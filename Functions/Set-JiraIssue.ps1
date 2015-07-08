@@ -1,0 +1,159 @@
+﻿function Set-JiraIssue
+{
+    [CmdletBinding(DefaultParameterSetName = 'ByInputObject')]
+    param(
+        # Issue key or PSJira.Issue object returned from Get-JiraIssue
+        [Parameter(Mandatory = $true,
+                   Position = 0,
+                   ValueFromPipeline = $true,
+                   ValueFromPipelineByPropertyName = $true)]
+        [Alias('Key')]
+        [Object[]] $Issue,
+
+        # New summary of the issue
+        [Parameter(Mandatory = $false)]
+        [String] $Summary,
+
+        # New description of the issue
+        [Parameter(Mandatory = $false)]
+        [String] $Description,
+
+        # New assignee of the issue. Enter 'Unassigned' to unassign the issue.
+        [Parameter(Mandatory = $false)]
+        [Object] $Assignee,
+
+        [ValidateScript({Test-Path $_})]
+        [String] $ConfigFile,
+
+        # Credentials to use to connect to Jira
+        [Parameter(Mandatory = $false)]
+        [System.Management.Automation.PSCredential] $Credential,
+
+        [Switch] $PassThru
+    )
+
+    begin
+    {
+        Write-Debug "[Set-JiraIssue] Checking to see if we have any operations to perform"
+        if (-not ($Summary -or $Description -or $Assignee))
+        {
+            Write-Verbose "Nothing to do."
+            return
+        }
+
+        Write-Debug "[Set-JiraIssue] Reading server from config file"
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        
+        if ($Assignee)
+        {
+            Write-Debug "[Set-JiraIssue] Testing Assignee type"
+            if ($Assignee -eq 'Unassigned')
+            {
+                Write-Debug "[Set-JiraIssue] 'Unassigned' String passed. Issue will be assigned to no one."
+                $assigneeString = ""
+                $validAssignee = $true
+            } else {
+                Write-Debug "[Set-JiraIssue] Attempting to obtain Jira user [$Assignee]"
+                $assigneeObj = Get-JiraUser -InputObject $Assignee -Credential $Credential
+                if ($assigneeObj)
+                {
+                    Write-Debug "[Set-JiraIssue] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
+                    $assigneeString = $assigneeObj.Name
+                    $validAssignee = $true
+                } else {
+                    Write-Debug "[Set-JiraIssue] Unable to obtain Assignee. Exception will be thrown."
+                    throw "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
+                }
+            }
+        }
+
+        Write-Debug "[Set-JiraIssue] Completed Begin block."
+    }
+
+    process
+    {
+        foreach ($i in $Issue)
+        {
+            $actOnIssueUri = $false
+            $actOnAssigneeUri = $false
+
+            Write-Debug "[Set-JiraIssue] Obtaining reference to issue"
+            $issueObj = Get-JiraIssue -InputObject $i -Credential $Credential
+
+            if ($issueObj)
+            {
+                $issueProps = @{
+                    'update' = @{}
+                }
+
+                if ($Summary)
+                {
+                    # Update properties need to be passed to JIRA as arrays
+                    $issueProps.update.summary = @()
+                    $issueProps.update.summary += @{
+                        'set' = $Summary;
+                    }
+                    $actOnIssueUri = $true
+                }
+
+                if ($Description)
+                {
+                    $issueProps.update.description = @()
+                    $issueProps.update.description += @{
+                        'set' = $Description;
+                    }
+                    $actOnIssueUri = $true
+                }
+
+                if ($validAssignee)
+                {
+                    
+                    $assigneeProps =  @{
+                        'name' = $assigneeString;
+                    }
+
+                    $actOnAssigneeUri = $true
+                }
+
+                if ($actOnIssueUri)
+                {
+                    Write-Debug "[Set-JiraIssue] Converting results to JSON"
+                    $json = ConvertTo-Json -InputObject $issueProps -Depth 3
+                    $issueObjURL = $issueObj.RestUrl
+
+                    Write-Debug "[Set-JiraIssue] Preparing for blastoff!"
+                    $issueResult = Invoke-JiraMethod -Method Put -URI $issueObjURL -Body $json -Credential $Credential
+                    Write-Debug "[Set-JiraIssue] Results are saved to issueResult variable"
+                }
+
+                if ($actOnAssigneeUri)
+                {
+                    # Jira handles assignee differently; you can't change it from the default "edit issues" screen unless 
+                    # you customize the "Edit Issue" screen.
+                    
+                    $assigneeUrl = "{0}/assignee" -f $issueObj.RestUrl
+                    $json = ConvertTo-Json -InputObject $assigneeProps
+
+                    Write-Debug "[Set-JiraIssue] Preparing for blastoff!"
+                    $assigneeResult = Invoke-JiraMethod -Method Put -URI $assigneeUrl -Body $json -Credential $Credential
+                    Write-Debug "[Set-JiraIssue] Results are saved to assigneeResult variable"
+                }
+
+                if ($PassThru)
+                {
+                    Write-Debug "[Set-JiraIssue] PassThru was specified. Obtaining updated reference to issue"
+                    Get-JiraIssue -Key $issueObj.Key -Credential $Credential
+                }
+
+            } else {
+                Write-Debug "[Set-JiraIssue] Unable to identify issue [$i]. Writing error message."
+                Write-Error "Unable to identify issue [$i]"
+            }
+        }
+    }
+
+    end
+    {
+        Write-Debug "[Set-JiraIssue] Complete"
+    }
+}
