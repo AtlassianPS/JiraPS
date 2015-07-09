@@ -285,7 +285,7 @@ InModuleScope PSJira {
 }
 "@
 
-            Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/search?jql=text~""test""&validateQuery=true&expand=transitions"} {
+            Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/search?jql=text~""test""*"} {
                     if ($ShowMockData)
                     {
                         Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
