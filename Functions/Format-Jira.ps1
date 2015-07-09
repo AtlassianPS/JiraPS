@@ -1,6 +1,28 @@
 ﻿function Format-Jira
 {
+    <#
+    .Synopsis
+       Converts an object into a table formatted according to JIRA's markdown syntax
+    .DESCRIPTION
+       This function converts a PowerShell object into a table using JIRA's markdown syntax. This can then be added to a JIRA issue description or comment.
+       
+       Like the native Format-* cmdlets, this is a destructive operation, so as always, remember to "filter left, format right!"
+    .EXAMPLE
+       $comment = Get-Process | Format-Jira
+       Add-JiraIssueComment $c -Issue TEST-001
+       This example illustrates converting the output from Get-Process into a JIRA table, which is then added as a comment to issue TEST-001.
+    .EXAMPLE
+       Get-Process chrome | Format-Jira Name,Id,VM
+       This example obtains all Google Chrome processes, then creates a JIRA table with only the Name,ID, and VM properties of each object.
+    .INPUTS
+       [System.Object[]] - accepts any Object via pipeline
+    .OUTPUTS
+       [System.String]
+    .NOTES
+       This is a destructive operation, since it permanently reduces InputObjects to Strings.  Remember to "filter left, format right."
+    #>
     [CmdletBinding()]
+    [OutputType([System.String])]
     param(
         # List of properties to display. If omitted, all properties will be shown.
         [Parameter(Mandatory = $false,

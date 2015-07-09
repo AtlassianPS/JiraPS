@@ -1,5 +1,36 @@
 ﻿function Get-JiraIssueCreateMetadata
 {
+    <#
+    .Synopsis
+       Returns metadata required to create an issue in JIRA
+    .DESCRIPTION
+       This function returns metadata required to create an issue in JIRA.
+       
+       This function can be used to directly query JIRA for a specific issue key or internal issue ID. It can also be used to query JIRA for issues matching a specific criteria using JQL (Jira Query Language).
+
+       For more details on JQL syntax, see this articla from Atlassian: https://confluence.atlassian.com/display/JIRA/Advanced+Searching
+
+       Output from this function can be piped to various other functions in this module, including Set-JiraIssue, Add-JiraIssueComment, and Invoke-JiraIssueTransition.
+    .EXAMPLE
+       Get-JiraIssue -Key TEST-001
+       This example returns a reference to JIRA issue TEST-001.
+    .EXAMPLE
+       Get-JiraIssue "TEST-002" | Add-JiraIssueComment "Test comment from PowerShell"
+       This example illustrates pipeline use from Get-JiraIssue to Add-JiraIssueComment.
+    .EXAMPLE
+       Get-JiraIssue -Query 'project = "TEST" AND created >= -5d'
+       This example illustrates using the Query parameter and JQL syntax to query Jira for matching issues.
+    .INPUTS
+       This function can accept PSJira.Issue objects, Strings, or Objects via the pipeline.
+       
+       * If a PSJira.Issue object is passed, this function returns a new reference to the same issue.
+       * If a String is passed, this function searches for an issue with that issue key or internal ID.
+       * If an Object is passed, this function invokes its ToString() method and treats it as a String.
+    .OUTPUTS
+       This function outputs the PSJira.Issue object retrieved.
+    .NOTES
+       This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
+    #>
     [CmdletBinding()]
     param(
         # Project ID or key
