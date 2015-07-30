@@ -1,5 +1,20 @@
 ﻿function Get-JiraSession
 {
+    <#
+    .Synopsis
+       Obtains a reference to the currently saved JIRA session
+    .DESCRIPTION
+       This functio obtains a reference to the currently saved JIRA session.  This can provide 
+       a JIRA session ID, as well as the username used to connect to JIRA.
+    .EXAMPLE
+       New-JiraSession -Credential (Get-Credential jiraUsername)
+       Get-JiraSession
+       Creates a Jira session for jiraUsername, then obtains a reference to it.
+    .INPUTS
+       None
+    .OUTPUTS
+       [PSJira.Session] An object representing the Jira session
+    #>
     [CmdletBinding()]
     param()
 
