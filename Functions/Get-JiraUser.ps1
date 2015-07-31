@@ -1,5 +1,23 @@
 ﻿function Get-JiraUser
 {
+    <#
+    .Synopsis
+       Returns a user from Jira
+    .DESCRIPTION
+       This function returns information regarding a specified user from Jira.
+    .EXAMPLE
+       Get-JiraUser -UserName user1 -Credential $cred
+       Returns information about the user user1
+    .EXAMPLE
+       Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
+       This example searches Active Directory for the username of John W. Smith, John H. Smith, 
+       and any other John Smiths, then obtains their JIRA user accounts.
+    .INPUTS
+       [String[]] Username
+       [PSCredential] Credentials to use to connect to Jira
+    .OUTPUTS
+       [PSJira.User]
+    #>
     [CmdletBinding(DefaultParameterSetName = 'ByUserName')]
     param(
         # Username, name, or e-mail address of the user. Any of these should 
