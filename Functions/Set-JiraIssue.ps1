@@ -1,5 +1,28 @@
 ﻿function Set-JiraIssue
 {
+    <#
+    .Synopsis
+       Modifies an existing issue in JIRA
+    .DESCRIPTION
+       This function modifies an existing isue in JIRA.  This can include changing 
+       the issue's summary or description, or assigning the issue.
+    .EXAMPLE
+       Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell'
+       This example changes the summary and description of the JIRA issue TEST-01.
+    .EXAMPLE
+       $issue = Get-JiraIssue TEST-01
+       $issue | Set-JiraIssue -Description "$($issue.Description)`n`nEdit: Also foo."
+       This example appends text to the end of an existing issue description by using 
+       Get-JiraIssue to obtain a reference to the current issue and description.
+    .EXAMPLE
+       Set-JiraIssue -Issue TEST-01 -Assignee 'Unassigned'
+       This example removes the assignee from JIRA issue TEST-01.
+    .INPUTS
+       [PSJira.Issue[]] The JIRA issue that should be modified
+    .OUTPUTS
+       If the -PassThru parameter is provided, this function will provide a reference 
+       to the JIRA issue modified.  Otherwise, this function does not provide output.
+    #>
     [CmdletBinding(DefaultParameterSetName = 'ByInputObject')]
     param(
         # Issue key or PSJira.Issue object returned from Get-JiraIssue
