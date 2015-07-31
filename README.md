@@ -6,7 +6,7 @@ PSJira is a Windows PowerShell module to interact with [Atlassian Jira](https://
 
 ## Requirements
 
-This module has a hard dependency on PowerShell 3.0.  I have no plans to release a version compatible with PowerShell 2, as I rely heavily on several cmdlets and syntax features added in version 3.0.
+This module has a hard dependency on PowerShell 3.0.  I have no plans to release a version compatible with PowerShell 2, as I rely heavily on several cmdlets and features added in version 3.0.
 
 ## Getting Started
 
