@@ -1,5 +1,32 @@
 ﻿function Invoke-JiraIssueTransition
 {
+    <#
+    .Synopsis
+       Performs an issue transition on a JIRA issue, changing its status
+    .DESCRIPTION
+       This function performs an issue transition on a JIRA issue.  Transitions are 
+       defined in JIRA through workflows, and allow the issue to move from one status 
+       to the next.  For example, the "Start Progress" transition typically moves 
+       an issue from an Open status to an "In Progress" status.
+
+       To identify the transitions that an issue can perform, use Get-JiraIssue and 
+       check the Transition property of the issue object returned.  Attempting to 
+       perform a transition that does not apply to the issue (for example, trying 
+       to "start progress" on an issue in progress) will result in an exception.
+    .EXAMPLE
+       Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11
+       Invokes transition ID 11 on issue TEST-01.
+    .EXAMPLE
+       $transition = Get-JiraIssue -Issue TEST-01 | Select-Object -ExpandProperty Transition | ? {$_.ResultStatus.Name -eq 'In Progress'}
+       Invoke-JiraIssueTransition -Issue TEST-01 -Transition $transition
+       This example identifies the correct transition based on the result status of 
+       "In Progress," and invokes that transition on issue TEST-01.
+    .INPUTS
+       [PSJira.Issue] Issue (can also be provided as a String)
+       [PSJira.Transition] Transition to perform (can also be provided as an int ID)
+    .OUTPUTS
+       This function does not provide output.
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true,
