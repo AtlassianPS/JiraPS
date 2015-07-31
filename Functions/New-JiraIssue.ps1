@@ -1,5 +1,32 @@
 ﻿function New-JiraIssue
 {
+    <#
+    .Synopsis
+       Creates an issue in JIRA
+    .DESCRIPTION
+       This function creates a new issue in JIRA.
+
+       Creating an issue requires a lot of data, and the exact data may be 
+       different from one instance of JIRA to the next.  To identify what data 
+       is required for a given issue type and project, use the 
+       Get-JiraIssueCreateMetadata function provided in this module.
+       
+       Some JIRA instances may require additional custom fields specific to that 
+       instance of JIRA.  In addition to the parameterized fields provided in 
+       this function, the Fields parameter accepts a hashtable of field names / 
+       IDs and values.  This allows users to provide custom field data when 
+       creating an issue.
+    .EXAMPLE
+       Get-JiraIssueCreateMetadata -Project TEST -IssueType Bug | ? {$_.Required -eq $true}
+       New-JiraIssue -Project TEST -IssueType Bug -Priority 1 -Summary 'Test issue from PowerShell' -Description 'This is a test issue created from the PSJira module in PowerShell.' -Fields {'Custom Field Name 1'='foo';'customfield_10001'='bar';}
+       This example uses Get-JiraIssueCreateMetadata to identify fields required 
+       to create an issue in JIRA.  It then creates an issue with the Fields parameter 
+       providing a field name and a field ID.
+    .INPUTS
+       This function does not accept pipeline input.
+    .OUTPUTS
+       [PSJira.Issue] The issue created in JIRA.
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
