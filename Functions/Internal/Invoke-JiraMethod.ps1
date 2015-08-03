@@ -39,7 +39,7 @@
         $session = Get-JiraSession
         if ($session)
         {
-            Write-Debug "[Invoke-JiraMethod] A session was found; using saved session (Username=[$($session.Username)], JSessionID=[$($sesion.JSessionID)])"
+            Write-Debug "[Invoke-JiraMethod] A session was found; using saved session (Username=[$($session.Username)], JSessionID=[$($session.JSessionID)])"
             Write-Verbose "Using saved Web session with username $($session.Username)"
         } else {
             $session = $null
