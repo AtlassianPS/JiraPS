@@ -50,11 +50,13 @@
         Write-Debug "[Get-JiraIssue] ParameterSetName=$($PSCmdlet.ParameterSetName)"
 
         Write-Debug "[Get-JiraUser] Building URI for REST call"
-        $userUrl = "$server/rest/api/latest/user/search?username={0}"
+        $userSearchUrl = "$server/rest/api/latest/user/search?username={0}"
         if ($IncludeInactive)
         {
-            $userUrl = "$userUrl&includeInactive=true"
+            $userSearchUrl = "$userSearchUrl&includeInactive=true"
         }
+
+        $userGetUrl = "$server/rest/api/latest/user?username={0}&expand=groups"
     }
 
     process
@@ -64,17 +66,32 @@
             foreach ($u in $UserName)
             {
                 Write-Debug "[Get-JiraUser] Processing user [$u]"
-                $thisUrl = $userURL -f $u
+                $thisSearchUrl = $userSearchUrl -f $u
                 
                 Write-Debug "[Get-JiraUser] Preparing for blastoff!"
-                $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
+                $result = Invoke-JiraMethod -Method Get -URI $thisSearchUrl -Credential $Credential
 
                 if ($result)
                 {
-                    Write-Debug "[Get-JiraUser] Converting result to PSJira.User object"
-                    $obj = ConvertTo-JiraUser -InputObject $result
+                    $rawResults = ConvertTo-JiraUser -InputObject $result
+                    Write-Debug "[Get-JiraUser] Processing raw results from JIRA"
 
-                    Write-Output $obj
+                    foreach ($r in $rawResults)
+                    {
+                        Write-Debug "[Get-JiraUser] Re-obtaining user information for user [$r]"
+                        $thisGetUrl = $userGetUrl -f $r.Name
+                        Write-Debug "[Get-JiraUser] Preparing for blastoff!"
+                        $thisNewResult = Invoke-JiraMethod -Method Get -URI $thisGetUrl -Credential $Credential
+                        
+                        if ($thisNewResult)
+                        {
+                            Write-Debug "[Get-JiraUser] Converting result to PSJira.User object"
+                            $thisUserObject = ConvertTo-JiraUser -InputObject $thisNewResult
+                            Write-Output $thisUserObject
+                        } else {
+                            Write-Debug "[Get-JiraUser] User [$r] could not be found in JIRA."
+                        }
+                    }
                 }
             }
         } else {

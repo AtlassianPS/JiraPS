@@ -25,6 +25,12 @@
                 'TimeZone' = $i.timeZone;
             }
             
+            if ($i.groups)
+            {
+#                Write-Debug "[ConvertTo-JiraUser] Adding groups"
+                $props.Groups = $i.groups.items.name
+            }
+
 #            Write-Debug "[ConvertTo-JiraUser] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
             

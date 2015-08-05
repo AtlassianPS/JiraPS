@@ -7,17 +7,48 @@ InModuleScope PSJira {
     $jiraServer = 'http://jiraserver.example.com'
 
     $testUsername = 'powershell-test'
-    
+    $testEmail = "$testUsername@example.com"
+
+    $testGroup1 = 'testGroup1'
+    $testGroup2 = 'testGroup2'
+
     $restResult = @"
 [
   {
     "self": "$jiraServer/rest/api/2/user?username=$testUsername",
     "key": "$testUsername",
     "name": "$testUsername",
+    "emailAddress": "$testEmail",
     "displayName": "Powershell Test User",
     "active": true
   }
 ]
+"@
+
+    # Removed from JSON: avatarUrls, timeZone
+    $restResult2 = @"
+{
+  "self": "$jiraServer/rest/api/2/user?username=$testUsername",
+  "key": "$testUsername",
+  "name": "$testUsername",
+  "emailAddress": "$testEmail",
+  "displayName": "Powershell Test User",
+  "active": true,
+  "groups": {
+    "size": 5,
+    "items": [
+      {
+        "name": "$testGroup1",
+        "self": "$jiraServer/rest/api/2/group?groupname=$testGroup1"
+      },
+      {
+        "name": "$testGroup2",
+        "self": "$jiraServer/rest/api/2/group?groupname=$testGroup2"
+      }
+    ]
+  },
+  "expand": "groups"
+}
 "@
 
     Describe "Get-JiraUser" {
@@ -26,6 +57,7 @@ InModuleScope PSJira {
             Write-Output $jiraServer
         }
 
+        # Searching for a user.
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/user/search?username=$testUsername"} {
             if ($ShowMockData)
             {
@@ -34,6 +66,17 @@ InModuleScope PSJira {
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
             }
             ConvertFrom-Json -InputObject $restResult
+        }
+
+        # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
+        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/user?username=$testUsername&expand=groups"} {
+            if ($ShowMockData)
+            {
+                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
+                Write-Host "         [Method] $Method" -ForegroundColor Cyan
+                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+            }
+            ConvertFrom-Json -InputObject $restResult2
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
@@ -77,6 +120,12 @@ InModuleScope PSJira {
             $result2 = Get-JiraUser -InputObject $result1
             $result2 | Should Not BeNullOrEmpty
             $result2.Name | Should Be $testUsername
+        }
+
+        It "Provides information about the user's group membership in Jira" {
+            $result = Get-JiraUser -Username $testUsername
+            $result.Groups | Should Not BeNullOrEmpty
+            $result.Groups[0] | Should Be $testGroup1
         }
     }
 }
