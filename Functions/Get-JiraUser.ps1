@@ -75,7 +75,6 @@
                 {
                     $rawResults = ConvertTo-JiraUser -InputObject $result
                     Write-Debug "[Get-JiraUser] Processing raw results from JIRA"
-
                     foreach ($r in $rawResults)
                     {
                         Write-Debug "[Get-JiraUser] Re-obtaining user information for user [$r]"
@@ -92,6 +91,10 @@
                             Write-Debug "[Get-JiraUser] User [$r] could not be found in JIRA."
                         }
                     }
+                    Write-Output $obj
+                } else {
+                    Write-Debug "[Get-JiraUser] JIRA returned no results."
+                    Write-Verbose "JIRA returned no results for user [$u]."
                 }
             }
         } else {
