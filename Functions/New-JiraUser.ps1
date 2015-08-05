@@ -13,7 +13,7 @@
         [String] $DisplayName,
 
         # Should the user receive a notification e-mail?
-        [Switch] $Notify,
+        [Boolean] $Notify = $true,
 
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
@@ -51,15 +51,9 @@
             $props.displayName = $UserName
         }
 
-        if ($Notify)
-        {
-            Write-Debug "[New-JiraUser] Setting Notify property to True"
-            $props.notify = $true
-        } else {
-            Write-Debug "[New-JiraUser] Setting Notify property to False"
-            $props.notify = $false
-        }
-
+        Write-Debug "[New-JiraUser] Setting Notify property to $Notify"
+            $props.notify = $Notify
+        
         Write-Debug "[New-JiraUser] Converting to JSON"
         $json = ConvertTo-Json -InputObject $props
 
