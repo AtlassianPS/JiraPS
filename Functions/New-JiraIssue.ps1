@@ -182,7 +182,6 @@
             $getResult = Get-JiraIssue -Key $result.Key -Credential $Credential
             Write-Debug "[New-JiraIssue] Writing output from New-JiraIssue"
             Write-Output $getResult
-            }
         } else {
             Write-Debug "[New-JiraIssue] Jira returned no results to output."
         }
