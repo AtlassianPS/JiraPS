@@ -34,7 +34,7 @@
                         [void] $allUsers.Add( (ConvertTo-JiraUser -InputObject $user) )
                     }
 
-                    $props.Users = ($allUsers.ToArray())
+                    $props.Member = ($allUsers.ToArray())
                 }
             }
 
