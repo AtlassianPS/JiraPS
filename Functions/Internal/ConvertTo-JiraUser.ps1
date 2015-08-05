@@ -39,7 +39,7 @@
 
 #            Write-Debug "[ConvertTo-JiraUser] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Body)"
+                Write-Output "$($this.Name)"
             }
 
 #            Write-Debug "[ConvertTo-JiraUser] Outputting object"
