@@ -174,25 +174,14 @@
         
         if ($result)
         {
-            if ($result.errors)
-            {
-                Write-Debug "[New-JiraIssue] Jira return an error result object."
+            # REST result will look something like this:               
+            # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/latest/issue/12345"}
 
-                $keys = (Get-Member -InputObject $result.errors | Where-Object -FilterScript {$_.MemberType -eq 'NoteProperty'}).Name
-                foreach ($k in $keys)
-                {
-                    Write-Error "Jira encountered an error: [$($k)] - $($result.errors.$k)"
-                }
-            } else {
+            Write-Debug "[New-JiraIssue] Obtaining a reference to the issue we just created"
 
-                # REST result will look something like this:               
-                # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/latest/issue/12345"}
-
-                Write-Debug "[New-JiraIssue] Obtaining a reference to the issue we just created"
-
-                $getResult = Get-JiraIssue -Key $result.Key -Credential $Credential
-                Write-Debug "[New-JiraIssue] Writing output from New-JiraIssue"
-                Write-Output $getResult
+            $getResult = Get-JiraIssue -Key $result.Key -Credential $Credential
+            Write-Debug "[New-JiraIssue] Writing output from New-JiraIssue"
+            Write-Output $getResult
             }
         } else {
             Write-Debug "[New-JiraIssue] Jira returned no results to output."
