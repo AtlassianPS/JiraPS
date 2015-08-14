@@ -91,7 +91,6 @@
                             Write-Debug "[Get-JiraUser] User [$r] could not be found in JIRA."
                         }
                     }
-                    Write-Output $obj
                 } else {
                     Write-Debug "[Get-JiraUser] JIRA returned no results."
                     Write-Verbose "JIRA returned no results for user [$u]."
