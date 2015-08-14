@@ -47,7 +47,7 @@
         Write-Debug "[Get-JiraUser] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         
-        Write-Debug "[Get-JiraIssue] ParameterSetName=$($PSCmdlet.ParameterSetName)"
+        Write-Debug "[Get-JiraUser] ParameterSetName=$($PSCmdlet.ParameterSetName)"
 
         Write-Debug "[Get-JiraUser] Building URI for REST call"
         $userSearchUrl = "$server/rest/api/latest/user/search?username={0}"
