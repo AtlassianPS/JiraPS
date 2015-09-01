@@ -15,6 +15,7 @@ InModuleScope PSJira {
     $testGroupNameEscaped = [System.Web.HttpUtility]::UrlPathEncode($testGroupName)
     $testGroupSize = 1
 
+    # The REST result returned by the interan call within Get-JiraGroup
     $restResultNoUsers = @"
 {
   "name": "$testGroupName",
@@ -60,19 +61,14 @@ InModuleScope PSJira {
             Write-Output $jiraServer
         }
 
-        # This is called by Get-JiraGroup - no users provided
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupNameEscaped"} {
-            if ($ShowMockData)
-            {
-                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
-            }
-            ConvertFrom-Json -InputObject $restResultNoUsers
+        Mock Get-JiraGroup -ModuleName PSJira {
+            ConvertTo-JiraGroup ( ConvertFrom-Json -InputObject $restResultNoUsers )
         }
 
-        # This is called by Get-JiraGroupMember - user information included
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupNameEscaped&expand=users"} {
+        # This is called by Get-JiraGroupMember - user information included.
+        # Note that the URI is changed from "latest" to "2" since this is operating on the output from Get-JiraGroup, 
+        # and JIRA never returns the "latest" symlink.
+        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/group?groupname=$testGroupName&expand=users"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
@@ -101,12 +97,13 @@ InModuleScope PSJira {
         It "Returns the members of a given JIRA group" {
             $members = Get-JiraGroupMember -Group $testGroupName
             $members | Should Not BeNullOrEmpty
-            $members.Count | Should Be $testGroupSize
+            @($members).Count | Should Be $testGroupSize
         }
 
         It "Returns results as PSJira.User objects" {
             $members = Get-JiraGroupMember -Group $testGroupName
-            (Get-Member -InputObject @($members)[0]).MemberType | Should Be 'PSJira.User'
+            # Shenanigans to account for members being either an array or a single object
+            @(Get-Member -InputObject @($members)[0])[0].TypeName | Should Be 'PSJira.User'
         }
     }
 }
