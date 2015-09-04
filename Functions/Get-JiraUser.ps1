@@ -26,7 +26,7 @@
                    Mandatory = $true,
                    Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [Alias('Name')]
+        [Alias('User','Name')]
         [String[]] $UserName,
 
         [Parameter(ParameterSetName = 'ByInputObject',
