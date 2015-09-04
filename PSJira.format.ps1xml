@@ -48,6 +48,47 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <View>
+      <Name>PSJira-User-TableView</Name>
+      <ViewSelectedBy>
+        <TypeName>PSJira.User</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Name</Label>
+            <Alignment>Left</Alignment>
+            <Width>20</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DisplayName</Label>
+            <Alignment>Left</Alignment>
+            <Width>36</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Active</Label>
+            <Alignment>Left</Alignment>
+            <Width>8</Width>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DisplayName</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Active</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    
     <!--<View>
       <Name>PSJira-Issue-ListView</Name>
       <ViewSelectedBy>
