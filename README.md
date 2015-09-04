@@ -21,7 +21,7 @@ That's it!  You're now ready to use PSJira.
 
 ## Usage
 
-See the project Wiki for detailed use information.
+Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/Getting-Started) page on the project wiki for detailed use information.
 
 ## Contact
 

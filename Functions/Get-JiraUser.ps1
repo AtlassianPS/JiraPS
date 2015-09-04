@@ -75,6 +75,9 @@
                     $obj = ConvertTo-JiraUser -InputObject $result
 
                     Write-Output $obj
+                } else {
+                    Write-Debug "[Get-JiraUser] JIRA returned no results."
+                    Write-Verbose "JIRA returned no results for user [$u]"
                 }
             }
         } else {

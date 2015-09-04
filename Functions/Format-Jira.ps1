@@ -8,8 +8,7 @@
        
        Like the native Format-* cmdlets, this is a destructive operation, so as always, remember to "filter left, format right!"
     .EXAMPLE
-       $comment = Get-Process | Format-Jira
-       Add-JiraIssueComment $c -Issue TEST-001
+       Get-Process | Format-Jira | Add-JiraIssueComment -Issue TEST-001
        This example illustrates converting the output from Get-Process into a JIRA table, which is then added as a comment to issue TEST-001.
     .EXAMPLE
        Get-Process chrome | Format-Jira Name,Id,VM
@@ -24,7 +23,9 @@
     [CmdletBinding()]
     [OutputType([System.String])]
     param(
-        # List of properties to display. If omitted, all properties will be shown.
+        # List of properties to display. If omitted, only the default properties will be shown.
+        #
+        # To display all properties, use -Property *.
         [Parameter(Mandatory = $false,
                    Position = 0)]
         [Object[]] $Property,
@@ -92,29 +93,24 @@
                     # Identify default table properties if possible and use them to create a Jira table
 
 
-#                    Write-Debug "[Format-Jira] Checking for format data for type [$($i.GetType())]"
-#                    $formatData = Get-FormatData -TypeName ($i.GetType()) -ErrorAction SilentlyContinue
-#                    if (Get-FormatData -TypeName ($i.GetType()) -ErrorAction SilentlyContinue)
-#                    {
-#                        foreach ($d in $formatData.FormatViewDefinition)
-#                        {
-#                            if (-not ($headers.Contains($d.Name)))
-#                            {
-#                                Write-Debug "[Format-Jira] Adding header [$($d.Name)]"
-#                                [void] $headers.Add($d.Name)
-#                            } else {
-#                                Write-Debug "[Format-Jira] Skipping header [$($d.Name)] because it has already been added"
-#                            }
-#                        }
-#                    } else {
-#                        Write-Debug "[Format-Jira] No format data exists for InputObject (type=[$($i.GetType())]). All properties will be used."
+                    if ($i.PSStandardMembers.DefaultDisplayPropertySet)
+                    {
+                        Write-Debug "[Format-Jira] Identifying default properties for object [$i]"
+                        $propertyNames = $i.PSStandardMembers.DefaultDisplayPropertySet.ReferencedPropertyNames
+                        foreach ($p in $propertyNames)
+                        {
+                            Write-Debug "[Format-Jira] Adding header [$p]"
+                            [void] $headers.Add($p)
+                        }
+                    } else {
+                        Write-Debug "[Format-Jira] No default format data exists for object [$i] (type=[$($i.GetType())]). All properties will be used."
                         $allProperties = Get-Member -InputObject $i -MemberType '*Property'
                         foreach ($a in $allProperties)
                         {
                             Write-Debug "[Format-Jira] Adding header [$($a.Name)]"
                             [void] $headers.Add($a.Name)
                         }
-#                    }
+                    }
                 }
                 
                 $headerString = "||$(($headers.ToArray()) -join '||')||"

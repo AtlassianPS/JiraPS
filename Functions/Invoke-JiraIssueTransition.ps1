@@ -100,7 +100,17 @@
 
         Write-Debug "[Invoke-JiraIssueTransition] Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Post -URI $transitionUrl -Body $json -Credential $Credential
-        Write-Output $result
+        
+        if ($result)
+        {
+            # JIRA doesn't typically return results here unless they contain errors, which are handled within Invoke-JiraMethod.
+            # If something does come out, let us know.
+            Write-Debug "[Invoke-JiraIssueTransition] Outputting raw results from JIRA."
+            Write-Warning "JIRA returned unexpected results, which are provided below."
+            Write-Output $result
+        } else {
+            Write-Debug "[Invoke-JiraIssueTransition] No results were returned from JIRA."
+        }
     }
 
     end
