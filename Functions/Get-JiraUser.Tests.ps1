@@ -4,6 +4,8 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 
 InModuleScope PSJira {
     
+    $ShowMockData = $false
+
     $jiraServer = 'http://jiraserver.example.com'
 
     $testUsername = 'powershell-test'

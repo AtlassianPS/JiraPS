@@ -5,6 +5,8 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 InModuleScope PSJira {
     Describe "Get-JiraIssueComment" {
         
+        $ShowMockData = $false
+
         $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
         $issueKey = 'IT-3676'
