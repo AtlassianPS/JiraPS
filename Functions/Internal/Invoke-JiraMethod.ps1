@@ -5,7 +5,7 @@
     param
     (
         [Parameter(Mandatory = $true)]
-        [ValidateSet('Get','Post','Put')]
+        [ValidateSet('Delete','Get','Post','Put')]
         [String] $Method,
 
         [Parameter(Mandatory = $true)]
