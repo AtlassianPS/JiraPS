@@ -13,7 +13,6 @@ InModuleScope PSJira {
 
     $testGroupName = 'testGroup'
 
-    # Trimmed from this example JSON: expand, groups, avatarURL
     $testJson = @"
 {
   "name": "$testGroupName",
