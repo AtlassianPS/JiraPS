@@ -33,7 +33,7 @@ InModuleScope PSJira {
             Write-Output $jiraServer
         }
 
-        # Searching for a user.
+        # Searching for a group.
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupNameEscaped"} {
             if ($ShowMockData)
             {
