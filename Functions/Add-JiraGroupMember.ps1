@@ -1,5 +1,6 @@
 ﻿function Add-JiraGroupMember
 {
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true,
                    Position = 0,
