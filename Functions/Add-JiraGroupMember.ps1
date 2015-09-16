@@ -50,17 +50,19 @@
             if ($userObj)
             {
                 Write-Debug "[Add-JiraGroupMember] Retrieved user reference [$userObj]"
-                $thisUserJson = ConvertTo-Json -InputObject @{
-                    'name' = $userObj.Name;
-                }
-                [void] $userAL.Add($thisUserJson)
+#                $thisUserJson = ConvertTo-Json -InputObject @{
+#                    'name' = $userObj.Name;
+#                }
+#                [void] $userAL.Add($thisUserJson)
+                [void] $userAL.Add($userObj.Name)
             } else {
                 Write-Debug "[Add-JiraGroupMember] Could not identify user [$u]. Writing error message."
                 Write-Error "Unable to identify user [$u]. Check the spelling of this user and ensure that you can access it via Get-JiraUser."
             }
         }
 
-        $userJsons = $userAL.ToArray()
+#        $userJsons = $userAL.ToArray()
+        $userNames = $userAL.ToArray()
         
         $restUrl = "$server/rest/api/latest/group/user?groupname={0}"
     }
@@ -74,12 +76,29 @@
 
             if ($groupObj)
             {
+                Write-Debug "[Remove-JiraGroupMember] Obtaining members of group [$g]"
+                $groupMembers = Get-JiraGroupMember -Group $g -Credential $Credential | Select-Object -ExpandProperty Name
+
                 $thisRestUrl = $restUrl -f $groupObj.Name
                 Write-Debug "[Add-JiraGroupMember] Group URL: [$thisRestUrl]"
-                foreach ($json in $userJsons)
+#                foreach ($json in $userJsons)
+#                {
+#                    Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
+#                    $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $json -Credential $Credential
+#                }
+                foreach ($u in $userNames)
                 {
-                    Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
-                    $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $json -Credential $Credential
+                    if ($groupMembers -notcontains $u)
+                    {
+                        $userJson = ConvertTo-Json -InputObject @{
+                            'Name' = $u;
+                        }
+                        Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
+                        $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $userJson -Credential $Credential
+                    } else {
+                        Write-Debug "[Remove-JiraGroupMember] User [$u] is already a member of group [$g]"
+                        Write-Verbose "User [$u] is already a member of group [$g]"
+                    }
                 }
 
                 if ($PassThru)
