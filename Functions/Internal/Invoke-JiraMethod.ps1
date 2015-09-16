@@ -71,30 +71,35 @@
         $webResponse = $_.Exception.Response
     }
     
-    Write-Debug "[Invoke-JiraMethod] Status code: $($webResponse.StatusCode)"
-
-    if ($webResponse.StatusCode.value__ -gt 399)
+    if ($webResponse)
     {
-        Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
-            
-        # Retrieve body of HTTP response - this contains more useful information about exactly why the error 
-        # occurred
-        $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
-        $body = $readStream.ReadToEnd()
-        $readStream.Close()
-        Write-Debug "[Invoke-JiraMethod] Retrieved body of HTTP response for more information about the error (`$body)"
-        $result = ConvertFrom-Json -InputObject $body
-        Write-Debug "[Invoke-JiraMethod] Converted `$body from JSON into PSCustomObject (`$result)"
-        Write-Output $result
-    } else {
-        $result = ConvertFrom-Json -InputObject $webResponse
-        if ($result.error)
+        Write-Debug "[Invoke-JiraMethod] Status code: $($webResponse.StatusCode)"
+
+        if ($webResponse.StatusCode.value__ -gt 399)
         {
-            Write-Debug "[Invoke-JiraMethod] An error response was received from JIRA; resolving"
-            Resolve-JiraError $result -WriteError
-        } else {
-            Write-Debug "[Invoke-JiraMethod] Outputting results from JIRA"
+            Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
+            
+            # Retrieve body of HTTP response - this contains more useful information about exactly why the error 
+            # occurred
+            $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
+            $body = $readStream.ReadToEnd()
+            $readStream.Close()
+            Write-Debug "[Invoke-JiraMethod] Retrieved body of HTTP response for more information about the error (`$body)"
+            $result = ConvertFrom-Json -InputObject $body
+            Write-Debug "[Invoke-JiraMethod] Converted `$body from JSON into PSCustomObject (`$result)"
             Write-Output $result
+        } else {
+            $result = ConvertFrom-Json -InputObject $webResponse
+            if ($result.error -or $result.errorMessages)
+            {
+                Write-Debug "[Invoke-JiraMethod] An error response was received from JIRA; resolving"
+                Resolve-JiraError $result -WriteError
+            } else {
+                Write-Debug "[Invoke-JiraMethod] Outputting results from JIRA"
+                Write-Output $result
+            }
         }
+    } else {
+        Write-Debug "[Invoke-JiraMethod] No results were returned from JIRA. This is unusual!"
     }
 }
