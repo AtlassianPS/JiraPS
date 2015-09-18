@@ -44,7 +44,7 @@
         $userAL = New-Object -TypeName System.Collections.ArrayList
         foreach ($u in $User)
         {
-            Write-Debug "[Set-JiraUser] Obtaining reference to user [$u]"
+            Write-Debug "[Add-JiraGroupMember] Obtaining reference to user [$u]"
             $userObj = Get-JiraUser -InputObject $u -Credential $Credential
 
             if ($userObj)
@@ -76,7 +76,7 @@
 
             if ($groupObj)
             {
-                Write-Debug "[Remove-JiraGroupMember] Obtaining members of group [$g]"
+                Write-Debug "[Add-JiraGroupMember] Obtaining members of group [$g]"
                 $groupMembers = Get-JiraGroupMember -Group $g -Credential $Credential | Select-Object -ExpandProperty Name
 
                 $thisRestUrl = $restUrl -f $groupObj.Name
@@ -90,13 +90,14 @@
                 {
                     if ($groupMembers -notcontains $u)
                     {
+                        Write-Debug "[Add-JiraGroupMember] User [$u] is not already in group [$g]. Adding user."
                         $userJson = ConvertTo-Json -InputObject @{
-                            'Name' = $u;
+                            'name' = $u;
                         }
                         Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
                         $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $userJson -Credential $Credential
                     } else {
-                        Write-Debug "[Remove-JiraGroupMember] User [$u] is already a member of group [$g]"
+                        Write-Debug "[Add-JiraGroupMember] User [$u] is already a member of group [$g]"
                         Write-Verbose "User [$u] is already a member of group [$g]"
                     }
                 }
