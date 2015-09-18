@@ -1,103 +1,22 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-
-    $ShowMockData = $false
-    $ShowDebugText = $false
-
-    $validMethods = @('Get','Post','Put')
-
     Describe "Invoke-JiraMethod" {
-        
-        if ($ShowDebugText)
-        {
-            Mock "Write-Debug" {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
 
-        Context "Sanity checking" {
-            $command = Get-Command -Name Invoke-JiraMethod
-            
-            function defParam($name)
-            {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueKey = 'IT-3676'
 
-            defParam 'Method'
-            defParam 'URI'
-            defParam 'Body'
-            defParam 'Credential'
+        $testUsername = 'powershell-test'
 
-            It "Has a ValidateSet for the -Method parameter that accepts methods [$($validMethods -join ', ')]" {
-                $validateSet = $command.Parameters.Method.Attributes | ? {$_.TypeID -eq [System.Management.Automation.ValidateSetAttribute]}
-                $validateSet.ValidValues | Should Be $validMethods
-            }
-        }
-
-        Context "Behavior testing" {
-            
-            $testUri = 'http://example.com'
-            $testUsername = 'testUsername'
-            $testPassword = 'password123'
-            $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername,(ConvertTo-SecureString -AsPlainText -Force $testPassword)
-
-            Mock Invoke-WebRequest {
-                if ($ShowMockData)
-                {
-                    Write-Host "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
-                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                }
-            }
-
-            It "Correctly performs all necessary HTTP method requests [$($validMethods -join ',')] to a provided URI" {
-                foreach ($method in $validMethods)
-                {
-                    { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
-                    Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Method -eq $method -and $Uri -eq $testUri} -Scope It
-                }
-            }
-
-            It "Sends the Content-Type header of application/json" {
-                { Invoke-JiraMethod -Method Get -URI $testUri } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Content-Type') -eq 'application/json'} -Scope It
-            }
-
-            It "Provides Base64 credentials in the Authorization header only when the -Credential parameter is supplied" {
-                # This is the authorizion token that should be provided when using HTTP Basic authentication. It takes the form of 
-                # "username:password" encoded into a base 64 String.
-
-                # This is why you shouldn't use PSJira on a plain HTTP connection.
-                # See how easy it would be to decrypt your credentials?
-                $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${testUsername}:$testPassword"))
-
-                { Invoke-JiraMethod -Method Get -URI $testUri -Credential $testCred } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Authorization') -eq "Basic $token"} -Exactly -Times 1 -Scope It
-                
-                # This one should call without the Authorization header, so check that the Authorization header mock has only been called once,
-                # and that the Authorization-less header mock has also been called once.
-                { Invoke-JiraMethod -Method Get -URI $testUri} | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Authorization') -eq "Basic $token"} -Exactly -Times 1 -Scope It
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {-not $Headers.Item('Authorization')} -Exactly -Times 1 -Scope It
-            }
-        }
-
-        Context "Output handling" {
-            It "Outputs an object representation of JSON returned from JIRA" {
-            
-                # This is a real REST result from Atlassian's public-facing JIRA instance, trimmed and cleaned 
-                # up just a bit for fields we don't care about.
-
-                # You can obtain this data with a single PowerShell line:
-                # Invoke-WebRequest -Method Get -Uri https://jira.atlassian.com/rest/api/latest/issue/303853
-                $validRestResult = @'
+        # Generated from a REST call to Atlassian's public Jira instance at the URI
+        # listed below with a GUI tool. This way, we can just assume that the Web
+        # request will work, whether or not Atlassian's servers are up.
+        # This also allows us to test for specific expected values.
+        $getResult = @"
 {
-  "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog,versionedRepresentations",
+  "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog",
   "id": "303853",
   "self": "https://jira.atlassian.com/rest/api/latest/issue/303853",
   "key": "DEMO-2719",
@@ -110,38 +29,60 @@ InModuleScope PSJira {
       "name": "New Feature",
       "subtask": false
     },
+    "customfield_12130": null,
     "timespent": null,
+    "customfield_10150": [
+      "ben@atlassian.com(ben@atlassian.com)",
+      "gokhant(gokhant)"
+    ],
+    "customfield_12131": null,
     "project": {
       "self": "https://jira.atlassian.com/rest/api/2/project/10820",
       "id": "10820",
       "key": "DEMO",
       "name": "Demo",
       "avatarUrls": {
-        "48x48": "https://jira.atlassian.com/secure/projectavatar?avatarId=10011",
-        "24x24": "https://jira.atlassian.com/secure/projectavatar?size=small&avatarId=10011",
-        "16x16": "https://jira.atlassian.com/secure/projectavatar?size=xsmall&avatarId=10011",
-        "32x32": "https://jira.atlassian.com/secure/projectavatar?size=medium&avatarId=10011"
+        "48x48": "https://jira.atlassian.com/secure/projectavatar?pid=10820&avatarId=10011",
+        "24x24": "https://jira.atlassian.com/secure/projectavatar?size=small&pid=10820&avatarId=10011",
+        "16x16": "https://jira.atlassian.com/secure/projectavatar?size=xsmall&pid=10820&avatarId=10011",
+        "32x32": "https://jira.atlassian.com/secure/projectavatar?size=medium&pid=10820&avatarId=10011"
       }
     },
+    "customfield_14430": null,
+    "customfield_10230": null,
     "fixVersions": [],
+    "customfield_12730": null,
     "aggregatetimespent": null,
+    "customfield_12531": "Not Started",
     "resolution": null,
+    "customfield_11436": "216954",
+    "customfield_11435": "216954",
+    "customfield_11437": "216644",
     "resolutiondate": null,
     "workratio": -1,
-    "lastViewed": null,
+    "lastViewed": "2014-12-17T14:19:32.364+0000",
     "watches": {
       "self": "https://jira.atlassian.com/rest/api/2/issue/DEMO-2719/watchers",
       "watchCount": 1,
       "isWatching": false
     },
+    "customfield_10180": null,
     "created": "2013-10-26T20:06:23.853+0000",
+    "customfield_11230": null,
     "priority": {
       "self": "https://jira.atlassian.com/rest/api/2/priority/4",
       "iconUrl": "https://jira.atlassian.com/images/icons/priorities/minor.png",
       "name": "Minor",
       "id": "4"
     },
+    "customfield_11431": "233452",
+    "customfield_11434": "216707",
+    "customfield_11631": null,
     "labels": [],
+    "customfield_11433": "224272",
+    "customfield_12833": null,
+    "customfield_12832": null,
+    "customfield_14735": "0|11177c:",
     "aggregatetimeoriginalestimate": null,
     "timeestimate": null,
     "versions": [],
@@ -319,9 +260,29 @@ InModuleScope PSJira {
       }
     },
     "components": [],
+    "customfield_14330": null,
+    "customfield_14130": null,
     "timeoriginalestimate": null,
     "description": "Creating of an issue using project keys and issue type names using the REST API",
+    "customfield_14532": null,
+    "customfield_12431": null,
+    "customfield_12430": null,
+    "customfield_10330": null,
+    "customfield_12433": null,
+    "customfield_10650": null,
+    "customfield_14733": "0|113t9s:",
+    "customfield_12432": null,
+    "customfield_10651": null,
+    "customfield_14734": "0|1115ag:",
+    "customfield_12831": null,
+    "customfield_12435": null,
+    "customfield_14731": "1|hzqtcf:",
+    "customfield_12830": null,
+    "customfield_10653": null,
+    "customfield_12434": null,
     "timetracking": {},
+    "customfield_14732": "0|112g48:",
+    "customfield_11930": null,
     "attachment": [],
     "aggregatetimeestimate": null,
     "summary": "REST ye merry gentlemen.",
@@ -341,6 +302,13 @@ InModuleScope PSJira {
       "timeZone": "Etc/UTC"
     },
     "subtasks": [],
+    "customfield_13230": null,
+    "customfield_10160": "35164800",
+    "customfield_10161": "true",
+    "customfield_11130": "232361",
+    "customfield_13430": null,
+    "customfield_13231": null,
+    "customfield_10680": null,
     "reporter": {
       "self": "https://jira.atlassian.com/rest/api/2/user?username=gokhant",
       "name": "gokhant",
@@ -360,6 +328,8 @@ InModuleScope PSJira {
       "progress": 0,
       "total": 0
     },
+    "customfield_11531": null,
+    "customfield_12931": null,
     "environment": null,
     "duedate": null,
     "progress": {
@@ -423,37 +393,75 @@ InModuleScope PSJira {
     }
   }
 }
-'@
+"@
 
-                $validTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/303853'
-                $validObjResult = ConvertFrom-Json -InputObject $validRestResult
-            
-                Mock Invoke-WebRequest -ParameterFilter {$Method -eq 'Get' -and $Uri -eq $validTestUri} {
-                    Write-Output $validRestResult
-                }
+        # Also generated from a REST call from an interactive PowerShell session
+        $putResult = [PSCustomObject]@{
+            'StatusCode'=204;
+            'StatusDescription'='No Content';
+            'Content' = @{};
+            'RawContent' = @"
+X-AREQUESTID: 584x212939x1
+X-Seraph-LoginReason: OK
+Set-Cookie: JSESSIONID=A1DD2528707AB1A228F84DE596F96124; Path=/jira; Secure; HttpOnly,atlassian.x
+srf.token=AP7Z-4SHZ-ZT53-2O17|7676a73277120b8c0f31a7d439c389ccf9282456|lin; Path=/jira; Secure
+Server: Apache-Coyote/1.1
+X-ASESSIONID: 1nfxnyn
+X-AUSERNAME: $testUsername
+Cache-Control: no-cache, no-store, no-transform
+X-Content-Type-Options: nosniff
+Date: Wed, 17 Dec 2014 15:44:19 GMT
+"@
+            'Headers' = @{};
+            'RawContentLength' = 0;
+        }
 
-                $result = Invoke-JiraMethod -Method Get -URI $validTestUri
-                $result | Should Not BeNullOrEmpty
+        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Method -eq 'Get'} {
+            Write-Output $getResult
+        }
 
-                # Compare each property in the result returned to the expected result
-                foreach ($property in (Get-Member -InputObject $result | ? {$_.MemberType -eq 'NoteProperty'})) {
-                    $result.$property | Should Be $validObjResult.$property
-                }
+        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Method -eq 'Put'} {
+            Write-Output $putResult
+        }
+
+        Mock Get-JiraSession -Verifiable {
+            Write-Output @{
+                'Username' = $testUsername;
             }
+        }
 
-            It "Uses Resolve-JiraError to parse any JIRA error messages returned" {
-                $invalidTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/1'
-                $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}';
+        It "Performs a GET request to JIRA" {
+            $getResult = Invoke-JiraMethod -Method Get -Uri 'https://jira.atlassian.com/rest/api/latest/issue/DEMO-2719'
+            $getResult.id | Should Be 303853
+            $getResult.self | Should Be 'https://jira.atlassian.com/rest/api/latest/issue/303853'
+            $getResult | Should Not Be $null
+            Assert-MockCalled -CommandName Invoke-WebRequest -Exactly 1 -Scope It
+        }
 
-                Mock Invoke-WebRequest {
-                    Write-Output $invalidRestResult
-                }
+        Mock ConvertFrom-Json -Verifiable {}
 
-                Mock Resolve-JiraError {}
-
-                { Invoke-JiraMethod -Method Get -URI $invalidTestUri } | Should Not Throw
-                Assert-MockCalled -CommandName Resolve-JiraError -Exactly -Times 1 -Scope It
+        It "Performs a PUT request to Jira" {
+            $props = @{
+                'update' = @{
+                    'description' = @(
+                        @{
+                            'set' = 'Edited description!'
+                        }
+                    );
+                };
             }
+            $json = ConvertTo-Json -InputObject $props -Depth 3
+
+            $putResult = Invoke-JiraMethod -Method Put -Uri "$jiraServer/rest/api/latest/issue/$issueKey" -Body $json
+            Assert-MockCalled -CommandName Invoke-WebRequest -Exactly 1 -Scope It
+            Assert-MockCalled -CommandName ConvertFrom-Json -Exactly 1 -Scope It
+        }
+
+        It "Uses Get-JiraSession to use a default Web session if credentials are not provided" {
+            $getResult = Invoke-JiraMethod -Method Get -Uri 'https://jira.atlassian.com/rest/api/latest/issue/DEMO-2719'
+            Assert-MockCalled -CommandName Get-JiraSession -Exactly -Times 1 -Scope It
         }
     }
 }
+
+

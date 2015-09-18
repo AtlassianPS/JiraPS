@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -14,7 +14,7 @@ InModuleScope PSJira {
         }
 
         $jiraServer = 'http://jiraserver.example.com'
-    
+
         $issueID = 41701
         $issueKey = 'IT-3676'
         $issueSummary = 'Test issue'
@@ -121,7 +121,7 @@ InModuleScope PSJira {
         It "Creates a PSObject out of JSON input" {
             $r | Should Not BeNullOrEmpty
         }
-    
+
         It "Sets the type name to PSJira.Issue" {
     #        $r.PSObject.TypeNames[0] | Should Be 'PSJira.Issue'
             (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Issue'
@@ -135,3 +135,5 @@ InModuleScope PSJira {
         defProp $r 'Description' $issueDescription
     }
 }
+
+

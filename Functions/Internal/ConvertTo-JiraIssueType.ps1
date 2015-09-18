@@ -1,4 +1,4 @@
-﻿function ConvertTo-JiraIssueType
+function ConvertTo-JiraIssueType
 {
     [CmdletBinding()]
     param(
@@ -6,7 +6,7 @@
                    Position = 0,
                    ValueFromPipeline = $true)]
         [PSObject[]] $InputObject,
-        
+
         [ValidateScript({Test-Path $_})]
         [String] $ConfigFile,
 
@@ -22,7 +22,7 @@
             if ($i.errorMessages)
             {
 #                Write-Debug "[ConvertTo-JiraIssueType] Detected an errorMessages property. This is an error result."
-                
+
                 if ($ReturnError)
                 {
 #                    Write-Debug "[ConvertTo-JiraIssueType] Outputting details about error message"
@@ -51,7 +51,7 @@
 
 #                Write-Debug "[ConvertTo-JiraIssueType] Creating PSObject out of properties"
                 $result = New-Object -TypeName PSObject -Property $props
-            
+
 #                Write-Debug "[ConvertTo-JiraIssueType] Inserting type name information"
                 $result.PSObject.TypeNames.Insert(0, 'PSJira.IssueType')
 
@@ -71,3 +71,5 @@
         Write-Debug "[ConvertTo-JiraIssueType] Complete"
     }
 }
+
+

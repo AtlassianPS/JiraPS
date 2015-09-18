@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -32,7 +32,7 @@ Describe "ConvertTo-JiraPriority" {
     It "Creates a PSObject out of JSON input" {
         $r | Should Not BeNullOrEmpty
     }
-    
+
     It "Sets the type name to PSJira.Priority" {
         (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Priority'
     }
@@ -43,3 +43,5 @@ Describe "ConvertTo-JiraPriority" {
     defProp $r 'Description' $priorityDescription
     defProp $r 'StatusColor' '#cc0000'
 }
+
+

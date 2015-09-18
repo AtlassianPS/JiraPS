@@ -1,4 +1,4 @@
-﻿function ConvertTo-JiraProject
+function ConvertTo-JiraProject
 {
     [CmdletBinding()]
     param(
@@ -28,7 +28,7 @@
 
 #            Write-Debug "Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
-            
+
 #            Write-Debug "Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'PSJira.Project')
 
@@ -47,3 +47,5 @@
 #        Write-Debug "Complete"
     }
 }
+
+

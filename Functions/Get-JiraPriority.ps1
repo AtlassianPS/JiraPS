@@ -1,4 +1,4 @@
-﻿function Get-JiraPriority
+function Get-JiraPriority
 {
     [CmdletBinding()]
     param(
@@ -43,5 +43,7 @@
     end
     {
         Write-Debug "[Get-JiraPriority] Complete."
-    }   
+    }
 }
+
+

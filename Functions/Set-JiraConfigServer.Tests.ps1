@@ -1,9 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $jiraServer = 'http://jiraserver.example.com'
 
     Describe "Set-JiraConfigServer" {
@@ -21,10 +21,12 @@ InModuleScope PSJira {
             $xml.Config.Server | Should Not BeNullOrEmpty
         }
 
-        It "Sets the config file's Server value " {    
+        It "Sets the config file's Server value " {
             $xml = New-Object -TypeName Xml
             $xml.Load($configFile)
             $xml.Config.Server | Should Be $jiraServer
         }
     }
 }
+
+

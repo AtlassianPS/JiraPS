@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -60,7 +60,7 @@ InModuleScope PSJira {
 "@
 
         $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-    
+
         It "Creates a PSObject out of JSON input" {
             $r = ConvertTo-JiraComment -InputObject $sampleObject
             $r | Should Not BeNullOrEmpty
@@ -80,3 +80,5 @@ InModuleScope PSJira {
         defProp $r 'Updated' (Get-Date '2015-05-01T16:24:38.000-0500')
     }
 }
+
+

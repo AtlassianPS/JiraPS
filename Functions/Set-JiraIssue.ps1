@@ -1,10 +1,10 @@
-﻿function Set-JiraIssue
+function Set-JiraIssue
 {
     <#
     .Synopsis
        Modifies an existing issue in JIRA
     .DESCRIPTION
-       This function modifies an existing isue in JIRA.  This can include changing 
+       This function modifies an existing isue in JIRA.  This can include changing
        the issue's summary or description, or assigning the issue.
     .EXAMPLE
        Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell'
@@ -12,7 +12,7 @@
     .EXAMPLE
        $issue = Get-JiraIssue TEST-01
        $issue | Set-JiraIssue -Description "$($issue.Description)`n`nEdit: Also foo."
-       This example appends text to the end of an existing issue description by using 
+       This example appends text to the end of an existing issue description by using
        Get-JiraIssue to obtain a reference to the current issue and description.
     .EXAMPLE
        Set-JiraIssue -Issue TEST-01 -Assignee 'Unassigned'
@@ -20,7 +20,7 @@
     .INPUTS
        [PSJira.Issue[]] The JIRA issue that should be modified
     .OUTPUTS
-       If the -PassThru parameter is provided, this function will provide a reference 
+       If the -PassThru parameter is provided, this function will provide a reference
        to the JIRA issue modified.  Otherwise, this function does not provide output.
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByInputObject')]
@@ -66,7 +66,7 @@
 
         Write-Debug "[Set-JiraIssue] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        
+
         if ($Assignee)
         {
             Write-Debug "[Set-JiraIssue] Testing Assignee type"
@@ -130,7 +130,7 @@
 
                 if ($validAssignee)
                 {
-                    
+
                     $assigneeProps =  @{
                         'name' = $assigneeString;
                     }
@@ -151,9 +151,9 @@
 
                 if ($actOnAssigneeUri)
                 {
-                    # Jira handles assignee differently; you can't change it from the default "edit issues" screen unless 
+                    # Jira handles assignee differently; you can't change it from the default "edit issues" screen unless
                     # you customize the "Edit Issue" screen.
-                    
+
                     $assigneeUrl = "{0}/assignee" -f $issueObj.RestUrl
                     $json = ConvertTo-Json -InputObject $assigneeProps
 
@@ -180,3 +180,5 @@
         Write-Debug "[Set-JiraIssue] Complete"
     }
 }
+
+

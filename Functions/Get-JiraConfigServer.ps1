@@ -1,4 +1,4 @@
-﻿function Get-JiraConfigServer
+function Get-JiraConfigServer
 {
     <#
     .Synopsis
@@ -25,9 +25,9 @@
         [String] $ConfigFile
     )
 
-    # Using a default value for this parameter wouldn't handle all cases. We want to make sure 
-    # that the user can pass a $null value to the ConfigFile parameter...but if it's null, we 
-    # want to default to the script variable just as we would if the parameter was not 
+    # Using a default value for this parameter wouldn't handle all cases. We want to make sure
+    # that the user can pass a $null value to the ConfigFile parameter...but if it's null, we
+    # want to default to the script variable just as we would if the parameter was not
     # provided at all.
 
     if (-not ($ConfigFile))

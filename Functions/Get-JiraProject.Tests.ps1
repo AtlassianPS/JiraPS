@@ -1,9 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $jiraServer = 'http://jiraserver.example.com'
 
     $projectKey = 'IT'
@@ -97,7 +97,7 @@ InModuleScope PSJira {
         # Tests
         #############
 
-        It "Returns all projects if called with no parameters" {    
+        It "Returns all projects if called with no parameters" {
             $allResults = Get-JiraProject
             $allResults | Should Not BeNullOrEmpty
             @($allResults).Count | Should Be (ConvertFrom-Json -InputObject $restResultAll).Count
@@ -126,3 +126,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

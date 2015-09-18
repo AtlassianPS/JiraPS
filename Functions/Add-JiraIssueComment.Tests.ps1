@@ -1,9 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $ShowMockData = $false
 
     $jiraServer = 'http://jiraserver.example.com'
@@ -57,7 +57,7 @@ InModuleScope PSJira {
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
             }
-            
+
             # This data was created from a GUI REST client, then sanitized. A lot of extra data was also removed to save space.
             # Many Bothans died to bring us this information.
             ConvertFrom-Json $restResponse
@@ -78,10 +78,10 @@ InModuleScope PSJira {
         It "Adds a comment to an issue in JIRA" {
             $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
             $commentResult | Should Not BeNullOrEmpty
-            
+
             # Get-JiraIssue should be used to identiyf the issue parameter
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
-            
+
             # Invoke-JiraMethod should be used to add the comment
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
         }
@@ -89,7 +89,7 @@ InModuleScope PSJira {
         It "Accepts pipeline input from Get-JiraIssue" {
             $commentResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueComment -Comment 'This is a test comment from Pester, using the pipeline!'
             $commentResult | Should Not BeNullOrEmpty
-            
+
             # Get-JiraIssue should be called once here, and once inside Add-JiraIssueComment (to identify the InputObject parameter)
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 2 -Scope It
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
@@ -101,3 +101,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

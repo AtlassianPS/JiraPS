@@ -1,4 +1,4 @@
-﻿param(
+param(
     [Parameter(Position = 0)]
     [bool] $ShowMockData
 )
@@ -8,13 +8,13 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $ShowMockData = $false
 
     $jiraServer = 'http://jiraserver.example.com'
     $issueID = 41701
     $issueKey = 'IT-3676'
-    
+
     $issueID2 = 41702
     $issueKey2 = 'IT-3677'
 
@@ -154,7 +154,7 @@ InModuleScope PSJira {
             #############
             # Tests
             #############
-        
+
             It "Gets information about a provided Jira issue" {
                 $getResult = Get-JiraIssue -Key $issueKey
                 $getResult | Should Not BeNullOrEmpty
@@ -180,11 +180,11 @@ InModuleScope PSJira {
                 $result2 | Should Not BeNullOrEmpty
                 $result2.Key | Should Be $issueKey
             }
-        
+
         }
 
         Context "Searching by query" {
-            
+
             $restResult = @"
 {
   "expand": "names,schema",
@@ -313,3 +313,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

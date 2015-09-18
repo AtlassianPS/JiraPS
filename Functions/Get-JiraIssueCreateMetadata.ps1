@@ -1,4 +1,4 @@
-﻿function Get-JiraIssueCreateMetadata
+function Get-JiraIssueCreateMetadata
 {
     <#
     .Synopsis
@@ -50,10 +50,10 @@
             Write-Debug "[Get-JiraIssueCreateMetadata] Encountered an error reading the Jira server."
             throw $err
         }
-        
+
         Write-Debug "[Get-JiraIssueCreateMetadata] Building URI for REST call based on parameters"
         $uri = "$server/rest/api/latest/issue/createmeta?"
-        
+
         Write-Debug "[Get-JiraIssueCreateMetadata] Obtaining project ID for project [$Project]"
         $projectObj = Get-JiraProject -Project $Project -Credential $Credential
         if ($projectObj)
@@ -74,7 +74,7 @@
 #            Add-Type -AssemblyName System.Web
 #            $n = [System.Web.HttpUtility]::UrlPathEncode($IssueType)
 #            $uri = "${uri}issuetypeNames=$n&"
-            
+
             $issueTypeId = $issueTypeObj.Id
             $uri = "${uri}issuetypeIds=$issueTypeId&"
         } else {
@@ -88,7 +88,7 @@
     {
         Write-Debug "[Get-JiraIssueCreateMetadata] Preparing for blastoff!"
         $jiraResult = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
-        
+
         if ($jiraResult)
         {
             if (@($jiraResult.projects).Count -eq 0)
@@ -124,10 +124,10 @@
 
             Write-Debug "[Get-JiraIssueCreateMetadata] Obtaining reference to fields"
             $fields = $jiraResult.projects.issuetypes.fields
-            
+
             Write-Debug "[Get-JiraIssueCreateMetadata] Obtaining field names"
             $fieldNames = (Get-Member -InputObject $fields -MemberType '*Property').Name
-            
+
             $resultArrayList = New-Object -TypeName System.Collections.ArrayList
             foreach ($name in $fieldNames)
             {
@@ -147,3 +147,5 @@
         }
     }
 }
+
+

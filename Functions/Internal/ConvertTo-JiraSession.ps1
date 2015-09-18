@@ -1,10 +1,10 @@
-﻿function ConvertTo-JiraSession
+function ConvertTo-JiraSession
 {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
         $WebResponse,
-        
+
         [Parameter(Mandatory = $true)]
         $Session,
 
@@ -31,7 +31,7 @@
 
 #        Write-Debug "[ConvertTo-JiraSession] Creating PSObject out of properties"
         $result = New-Object -TypeName PSObject -Property $props
-        
+
 #        Write-Debug "[ConvertTo-JiraSession] Inserting type name information"
         $result.PSObject.TypeNames.Insert(0, 'PSJira.Session')
 
@@ -44,3 +44,5 @@
         Write-Output $result
     }
 }
+
+

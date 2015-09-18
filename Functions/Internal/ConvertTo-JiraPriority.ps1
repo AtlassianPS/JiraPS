@@ -1,4 +1,4 @@
-﻿function ConvertTo-JiraPriority
+function ConvertTo-JiraPriority
 {
     [CmdletBinding()]
     param(
@@ -6,7 +6,7 @@
                    Position = 0,
                    ValueFromPipeline = $true)]
         [PSObject[]] $InputObject,
-        
+
         [ValidateScript({Test-Path $_})]
         [String] $ConfigFile,
 
@@ -22,7 +22,7 @@
             if ($i.errorMessages)
             {
 #                Write-Debug "[ConvertTo-JiraPriority] Detected an errorMessages property. This is an error result."
-                
+
                 if ($ReturnError)
                 {
 #                    Write-Debug "[ConvertTo-JiraPriority] Outputting details about error message"
@@ -51,7 +51,7 @@
 
 #                Write-Debug "[ConvertTo-JiraPriority] Creating PSObject out of properties"
                 $result = New-Object -TypeName PSObject -Property $props
-            
+
 #                Write-Debug "[ConvertTo-JiraPriority] Inserting type name information"
                 $result.PSObject.TypeNames.Insert(0, 'PSJira.Priority')
 
@@ -66,3 +66,5 @@
 #        Write-Debug "[ConvertTo-JiraPriority] Complete"
     }
 }
+
+
