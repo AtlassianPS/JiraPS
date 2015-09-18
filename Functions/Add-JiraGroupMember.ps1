@@ -1,5 +1,28 @@
 function Add-JiraGroupMember
 {
+    <#
+    .Synopsis
+       Adds a user to a JIRA group
+    .DESCRIPTION
+       This function adds a JIRA user to a JIRA group.
+    .EXAMPLE
+       Add-JiraGroupMember -Group testUsers -User jsmith
+       This example adds the user jsmith to the group testUsers
+    .EXAMPLE
+       Get-JiraGroup 'Project Admins' | Add-JiraGroupMember -User jsmith
+       This example illustrates the use of the pipeline to add jsmith to the
+       "Project Admins" group in JIRA.
+    .INPUTS
+       [PSJira.Group[]] Group(s) to which users should be added
+    .OUTPUTS
+       If the -PassThru parameter is provided, this function will provide a 
+       reference to the JIRA group modified.  Otherwise, this function does not
+       provide output.
+    .NOTES
+       This REST method is still marked Experimental in JIRA's REST API. That
+       means that there is a high probability this will break in future
+       versions of JIRA. The function will need to be re-written at that time.
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true,

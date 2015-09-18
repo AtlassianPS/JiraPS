@@ -1,5 +1,28 @@
 function Remove-JiraGroupMember
 {
+    <#
+    .Synopsis
+       Removes a user from a JIRA group
+    .DESCRIPTION
+       This function removes a JIRA user from a JIRA group.
+    .EXAMPLE
+       Remove-JiraGroupMember -Group testUsers -User jsmith
+       This example removes the user jsmith from the group testUsers.
+    .EXAMPLE
+       Get-JiraGroup 'Project Admins' | Remove-JiraGroupMember -User jsmith
+       This example illustrates the use of the pipeline to remove jsmith from
+       the "Project Admins" group in JIRA.
+    .INPUTS
+       [PSJira.Group[]] Group(s) from which users should be removed
+    .OUTPUTS
+       If the -PassThru parameter is provided, this function will provide a 
+       reference to the JIRA group modified.  Otherwise, this function does not
+       provide output.
+    .NOTES
+       This REST method is still marked Experimental in JIRA's REST API. That
+       means that there is a high probability this will break in future
+       versions of JIRA. The function will need to be re-written at that time.
+    #>
     [CmdletBinding(SupportsShouldProcess = $true,
                    ConfirmImpact = 'High')]
     param(

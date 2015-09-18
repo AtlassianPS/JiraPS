@@ -1,5 +1,22 @@
 function Get-JiraGroupMember
 {
+    <#
+    .Synopsis
+       Returns members of a given group in JIRA
+    .DESCRIPTION
+       This function returns members of a provided group in JIRA.
+    .EXAMPLE
+       Get-JiraGroupmember testGroup
+       This example returns all members of the JIRA group testGroup.
+    .EXAMPLE
+       Get-JiraGroup 'Developers' | Get-JiraGroupMember
+       This example illustrates the use of the pipeline to return members of
+       the Developers group in JIRA.
+    .INPUTS
+       [PSJira.Group] The group to query for members
+    .OUTPUTS
+       [PSJira.User[]] Members of the provided group
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true,
