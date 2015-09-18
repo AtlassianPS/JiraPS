@@ -1,16 +1,16 @@
-﻿function Remove-JiraSession
+function Remove-JiraSession
 {
     <#
     .Synopsis
        Removes a persistent JIRA authenticated session
     .DESCRIPTION
-       This function removes a persistent JIRA authenticated session and closes the session for JIRA.  
+       This function removes a persistent JIRA authenticated session and closes the session for JIRA.
        This can be used to "log out" of JIRA once work is complete.
 
-       If called with the Session parameter, this function will attempt to close the provided 
+       If called with the Session parameter, this function will attempt to close the provided
        PSJira.Session object.
 
-       If called with no parameters, this function will close the saved JIRA session in the module's 
+       If called with no parameters, this function will close the saved JIRA session in the module's
        PrivateData.
     .EXAMPLE
        New-JiraSession -Credential (Get-Credential jiraUsername)
@@ -20,7 +20,7 @@
     .EXAMPLE
        $s = New-JiraSession -Credential (Get-Credential jiraUsername)
        Remove-JiraSession $s
-       This example creates a JIRA session and saves it to a variable, then uses the variable reference to 
+       This example creates a JIRA session and saves it to a variable, then uses the variable reference to
        close the session.
     .INPUTS
        [PSJira.Session] A Session object to close.
@@ -97,8 +97,8 @@
                 Write-Debug "[Remove-JiraSession] Encountered an exception from the Jira server: $err"
 
                 Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
-            
-                # Retrieve body of HTTP response - this contains more useful information about exactly why the error 
+
+                # Retrieve body of HTTP response - this contains more useful information about exactly why the error
                 # occurred
                 $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
                 $body = $readStream.ReadToEnd()
@@ -112,3 +112,5 @@
         }
     }
 }
+
+

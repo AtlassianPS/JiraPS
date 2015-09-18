@@ -1,15 +1,15 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
     # For the time being, we'll need to hard-code this and adjust it as desired.
     $ShowMockData = $false
 
     Describe "Set-JiraIssue" {
-        
+
         $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
         $issueKey = 'IT-3676'
@@ -27,7 +27,7 @@ InModuleScope PSJira {
                 Write-Host "         [Key]         $Key" -ForegroundColor Cyan
                 Write-Host "         [InputObject] $InputObject" -ForegroundColor Cyan
             }
-            
+
             [PSCustomObject] @{
                 Summary     = 'Test issue';
                 Description = 'Test issue from PowerShell';
@@ -113,26 +113,26 @@ InModuleScope PSJira {
 
         It "Assigns the issue" {
             { Set-JiraIssue -Key $issueKey -Assignee $testUsername } | Should Not Throw
-            
+
             # Should use Get-JiraUser to obtain Assignee
             Assert-MockCalled -CommandName Get-JiraUser -ModuleName PSJira -Exactly -Times 1 -Scope It
 
             # Should use Get-JiraIssue to obtain issue
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
-            
+
             # Should use Invoke-JiraMethod to update issue
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
         }
 
         It "Unassigns the issue if the -Assignee parameter is supplied with 'Unassigned'" {
             { Set-JiraIssue -Key $issueKey -Assignee 'Unassigned' } | Should Not Throw
-            
+
             # Get-JiraUser should NOT be called for the 'Unassigned' user
             Assert-MockCalled -CommandName Get-JiraUser -ModuleName PSJira -Exactly -Times 0 -Scope It
 
             # Should use Get-JiraIssue to obtain issue
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
-            
+
             # Should use Invoke-JiraMethod to update issue
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
         }
@@ -145,9 +145,11 @@ InModuleScope PSJira {
 
             # Should use Get-JiraIssue to obtain issue
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
-            
+
             # Should use two separate calls to Invoke-JiraMethod to update issue and assign issue
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 2 -Scope It
         }
     }
 }
+
+

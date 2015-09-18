@@ -50,7 +50,7 @@
                             'Key' = $k;
                             'Message' = $i.errors.$k;
                         }
-                        
+
                         $obj.PSObject.TypeNames.Insert(0, 'PSJira.Error')
                         $obj | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
                             Write-Output "Jira error [$($this.ID)]: $($this.Message)"

@@ -1,15 +1,15 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
     Describe "Invoke-JiraMethod" {
-        
+
         $jiraServer = 'http://jiraserver.example.com'
         $issueKey = 'IT-3676'
 
         $testUsername = 'powershell-test'
-        
+
         # Generated from a REST call to Atlassian's public Jira instance at the URI
         # listed below with a GUI tool. This way, we can just assume that the Web
         # request will work, whether or not Atlassian's servers are up.
@@ -463,3 +463,5 @@ Date: Wed, 17 Dec 2014 15:44:19 GMT
         }
     }
 }
+
+

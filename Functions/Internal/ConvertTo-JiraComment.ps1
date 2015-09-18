@@ -1,4 +1,4 @@
-﻿function ConvertTo-JiraComment
+function ConvertTo-JiraComment
 {
     [CmdletBinding()]
     param(
@@ -11,7 +11,7 @@
     process
     {
         foreach ($i in $InputObject)
-        {         
+        {
 #            Write-Debug "[ConvertTo-JiraComment] Processing object: '$i'"
 
 #            Write-Debug "[ConvertTo-JiraComment] Defining standard properties"
@@ -21,8 +21,8 @@
                 'Visibility' = $i.visibility;
                 'RestUrl' = $i.self;
             }
-            
-            # These fields should typically exist on an object returned from Jira, 
+
+            # These fields should typically exist on an object returned from Jira,
             # but this provides a bit of extra error checking and safety
 
 #            Write-Debug "[ConvertTo-JiraComment] Checking for author"
@@ -51,7 +51,7 @@
 
 #            Write-Debug "[ConvertTo-JiraComment] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
-            
+
 #            Write-Debug "[ConvertTo-JiraComment] Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'PSJira.Comment')
 
@@ -70,3 +70,5 @@
 #        Write-Debug "[ConvertTo-JiraComment] Complete"
     }
 }
+
+

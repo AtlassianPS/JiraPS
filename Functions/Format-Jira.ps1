@@ -1,11 +1,11 @@
-﻿function Format-Jira
+function Format-Jira
 {
     <#
     .Synopsis
        Converts an object into a table formatted according to JIRA's markdown syntax
     .DESCRIPTION
        This function converts a PowerShell object into a table using JIRA's markdown syntax. This can then be added to a JIRA issue description or comment.
-       
+
        Like the native Format-* cmdlets, this is a destructive operation, so as always, remember to "filter left, format right!"
     .EXAMPLE
        Get-Process | Format-Jira | Add-JiraIssueComment -Issue TEST-001
@@ -58,7 +58,7 @@
                 foreach ($p in $Property)
                 {
                     Write-Debug "[Format-Jira] Adding header [$p]"
-                    [void] $headers.Add($p.ToString())   
+                    [void] $headers.Add($p.ToString())
                 }
 
                 $headerString = "||$(($headers.ToArray()) -join '||')||"
@@ -88,7 +88,7 @@
                         [void] $headers.Add($a.Name)
                     }
                 } else {
-                    
+
                     # TODO: find a way to format output objects based on PowerShell's own Format-Table
                     # Identify default table properties if possible and use them to create a Jira table
 
@@ -112,7 +112,7 @@
                         }
                     }
                 }
-                
+
                 $headerString = "||$(($headers.ToArray()) -join '||')||"
                 Write-Debug "[Format-Jira] Full header: [$headerString]"
                 [void] $allText.Append($headerString)
@@ -149,3 +149,5 @@
         Write-Debug "[Format-Jira] Complete"
     }
 }
+
+

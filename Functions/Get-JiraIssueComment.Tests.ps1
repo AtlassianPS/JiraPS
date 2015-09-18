@@ -1,10 +1,10 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
     Describe "Get-JiraIssueComment" {
-        
+
         $ShowMockData = $false
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -53,7 +53,7 @@ InModuleScope PSJira {
             }
             ConvertFrom-Json -InputObject $restResult
         }
-        
+
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName PSJira {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
@@ -102,3 +102,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

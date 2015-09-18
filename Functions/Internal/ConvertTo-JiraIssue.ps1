@@ -1,4 +1,4 @@
-﻿function ConvertTo-JiraIssue
+function ConvertTo-JiraIssue
 {
     [CmdletBinding()]
     param(
@@ -6,7 +6,7 @@
                    Position = 0,
                    ValueFromPipeline = $true)]
         [PSObject[]] $InputObject,
-        
+
         [ValidateScript({Test-Path $_})]
         [String] $ConfigFile,
 
@@ -36,7 +36,7 @@
             if ($i.errorMessages)
             {
 #                Write-Debug "[ConvertTo-JiraIssue] Detected an errorMessages property. This is an error result."
-                
+
                 if ($ReturnError)
                 {
 #                    Write-Debug "[ConvertTo-JiraIssue] Outputting details about error message"
@@ -98,7 +98,7 @@
                     $props.Fields = $i.fields
                     $props.Expand = $i.expand
                 }
-                
+
 #                Write-Debug "[ConvertTo-JiraIssue] Adding transitions"
                 [void] $transitions.Clear()
                 foreach ($t in $i.transitions)
@@ -135,7 +135,7 @@
 
 #                Write-Debug "[ConvertTo-JiraIssue] Creating PSObject out of properties"
                 $result = New-Object -TypeName PSObject -Property $props
-            
+
 #                Write-Debug "[ConvertTo-JiraIssue] Inserting type name information"
                 $result.PSObject.TypeNames.Insert(0, 'PSJira.Issue')
 
@@ -143,7 +143,7 @@
                 $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
                     Write-Output "[$($this.Key)] $($this.Summary)"
                 }
-                
+
 #                Write-Debug "[ConvertTo-JiraIssue] Outputting object"
                 Write-Output $result
             }
@@ -155,3 +155,5 @@
 #        Write-Debug "[ConvertTo-JiraIssue] Complete"
     }
 }
+
+

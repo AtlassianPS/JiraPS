@@ -1,4 +1,4 @@
-﻿function New-JiraIssue
+function New-JiraIssue
 {
     <#
     .Synopsis
@@ -6,21 +6,21 @@
     .DESCRIPTION
        This function creates a new issue in JIRA.
 
-       Creating an issue requires a lot of data, and the exact data may be 
-       different from one instance of JIRA to the next.  To identify what data 
-       is required for a given issue type and project, use the 
+       Creating an issue requires a lot of data, and the exact data may be
+       different from one instance of JIRA to the next.  To identify what data
+       is required for a given issue type and project, use the
        Get-JiraIssueCreateMetadata function provided in this module.
-       
-       Some JIRA instances may require additional custom fields specific to that 
-       instance of JIRA.  In addition to the parameterized fields provided in 
-       this function, the Fields parameter accepts a hashtable of field names / 
-       IDs and values.  This allows users to provide custom field data when 
+
+       Some JIRA instances may require additional custom fields specific to that
+       instance of JIRA.  In addition to the parameterized fields provided in
+       this function, the Fields parameter accepts a hashtable of field names /
+       IDs and values.  This allows users to provide custom field data when
        creating an issue.
     .EXAMPLE
        Get-JiraIssueCreateMetadata -Project TEST -IssueType Bug | ? {$_.Required -eq $true}
        New-JiraIssue -Project TEST -IssueType Bug -Priority 1 -Summary 'Test issue from PowerShell' -Description 'This is a test issue created from the PSJira module in PowerShell.' -Fields {'Custom Field Name 1'='foo';'customfield_10001'='bar';}
-       This example uses Get-JiraIssueCreateMetadata to identify fields required 
-       to create an issue in JIRA.  It then creates an issue with the Fields parameter 
+       This example uses Get-JiraIssueCreateMetadata to identify fields required
+       to create an issue in JIRA.  It then creates an issue with the Fields parameter
        providing a field name and a field ID.
     .INPUTS
        This function does not accept pipeline input.
@@ -55,13 +55,13 @@
     )
 
     begin
-    {   
+    {
         Write-Debug "[New-JiraIssue] Reading information from config file"
         try
         {
             Write-Debug "[New-JiraIssue] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-            
+
             Write-Debug "[New-JiraIssue] Reading Jira issue create metadata"
             $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -ConfigFile $ConfigFile -Credential $Credential -ErrorAction Stop
         } catch {
@@ -78,7 +78,7 @@
         {
             throw "Unable to identify Jira project [$Project]. Use Get-JiraProject for more information."
         }
-        
+
         Write-Debug "[New-JiraIssue] Obtaining a reference to Jira issue type [$IssueType]"
         $IssueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential
         if (-not ($IssueTypeObj))
@@ -129,7 +129,7 @@
             $name = $k
             $value = $Fields.$k
             Write-Debug "[New-JiraIssue] Attempting to identify field (name=[$name], value=[$value])"
-            
+
             $f = Get-JiraField -Field $name -Credential $Credential
 
             if ($f)
@@ -171,10 +171,10 @@
 
         Write-Debug "[New-JiraIssue] Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Post -URI $issueURL -Body $json -Credential $Credential
-        
+
         if ($result)
         {
-            # REST result will look something like this:               
+            # REST result will look something like this:
             # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/latest/issue/12345"}
 
             Write-Debug "[New-JiraIssue] Obtaining a reference to the issue we just created"
@@ -192,3 +192,5 @@
         Write-Debug "[New-JiraIssue] Completing New-JiraIssue"
     }
 }
+
+

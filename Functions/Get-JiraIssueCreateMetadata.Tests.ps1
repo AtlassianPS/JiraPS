@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -297,7 +297,7 @@ InModuleScope PSJira {
                 Name = $projectName;
             }
         }
-        
+
         Mock Get-JiraIssueType -ModuleName PSJira {
             [PSCustomObject] @{
                 ID = $issueTypeID;
@@ -337,3 +337,5 @@ InModuleScope PSJira {
 
     }
 }
+
+

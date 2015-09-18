@@ -1,4 +1,4 @@
-﻿#param(
+#param(
 #    [Switch] $ShowMockData
 #)
 
@@ -7,7 +7,7 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
     # For the time being, we'll need to hard-code this and adjust it as desired.
     $ShowMockData = $false
@@ -15,7 +15,7 @@ InModuleScope PSJira {
     $jiraServer = 'http://jiraserver.example.com'
     $issueID = 41701
     $issueKey = 'IT-3676'
-    
+
     $projectId = 10003
     $projectName = 'Information Technology'
     $projectKey = 'IT'
@@ -39,7 +39,7 @@ InModuleScope PSJira {
 }
 "@
     Describe "New-JiraIssue" {
-        
+
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
         }
@@ -58,7 +58,7 @@ InModuleScope PSJira {
                 'Name' = $issueTypeName;
             }
         }
-        
+
         Mock Get-JiraIssueCreateMetadata -ModuleName PSJira {
             [PSCustomObject] @{
                 'Id'       = $customField1Id;
@@ -152,3 +152,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

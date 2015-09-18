@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -11,8 +11,8 @@ Describe "ConvertTo-JiraStatus" {
     }
 
     $jiraServer = 'http://jiraserver.example.com'
-  
-    $statusName = 'In Progress'  
+
+    $statusName = 'In Progress'
     $statusId = 3
     $statusDesc = 'This issue is being actively worked on at the moment by the assignee.'
 
@@ -50,3 +50,5 @@ Describe "ConvertTo-JiraStatus" {
     defProp $r 'IconUrl' "$jiraServer/images/icons/statuses/inprogress.png"
     defProp $r 'RestUrl' "$jiraServer/rest/api/2/status/$statusId"
 }
+
+

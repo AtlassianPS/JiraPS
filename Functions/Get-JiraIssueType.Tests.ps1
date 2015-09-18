@@ -1,11 +1,11 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
 
     $jiraServer = 'http://jiraserver.example.com'
-    
+
     $issueTypeId = 2
     $issueTypeName = 'Desktop Support'
 
@@ -79,7 +79,7 @@ InModuleScope PSJira {
 "@
 
     Describe "Get-JiraIssueType" {
-        
+
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
         }
@@ -130,3 +130,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

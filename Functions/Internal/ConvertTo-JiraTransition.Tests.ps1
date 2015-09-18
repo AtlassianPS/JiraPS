@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -10,12 +10,12 @@ InModuleScope PSJira {
                 $obj.$propName | Should Be $propValue
             }
         }
-    
+
         $jiraServer = 'http://jiraserver.example.com'
 
         $tId = 11
         $tName = 'Start Progress'
-    
+
         # Transition result status
         $tRId = 3
         $tRName = 'In Progress'
@@ -62,3 +62,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

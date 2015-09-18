@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -13,7 +13,7 @@ InModuleScope PSJira {
     $testUsername = 'powershell-test'
     $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
     $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername,$testPassword
-    
+
 
     $testJson = @"
 {
@@ -30,7 +30,7 @@ InModuleScope PSJira {
 }
 "@
     Describe "New-JiraSession" {
-        
+
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
         }
@@ -57,7 +57,7 @@ InModuleScope PSJira {
             New-JiraSession -Credential $testCredential
             Assert-MockCalled -CommandName Invoke-WebRequest -Exactly -Times 1 -Scope It
         }
-        
+
         It "Returns a custom object of type PSJira.Session" {
             $s = New-JiraSession -Credential $testCredential
             $s | Should Not BeNullOrEmpty
@@ -76,3 +76,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

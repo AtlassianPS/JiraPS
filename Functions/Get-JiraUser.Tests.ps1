@@ -1,15 +1,15 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $ShowMockData = $false
 
     $jiraServer = 'http://jiraserver.example.com'
 
     $testUsername = 'powershell-test'
-    
+
     $restResult = @"
 [
   {
@@ -54,7 +54,7 @@ InModuleScope PSJira {
         # Tests
         #############
 
-        It "Gets information about a provided Jira user" {    
+        It "Gets information about a provided Jira user" {
             $getResult = Get-JiraUser -UserName $testUsername
             $getResult | Should Not BeNullOrEmpty
         }
@@ -82,3 +82,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

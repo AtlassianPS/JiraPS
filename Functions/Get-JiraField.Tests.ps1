@@ -1,9 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $jiraServer = 'http://jiraserver.example.com'
 
     # In my Jira instance, this returns 34 objects. I've stripped it down quite a bit for testing.
@@ -137,7 +137,7 @@ InModuleScope PSJira {
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
         }
-        
+
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/field"} {
             ConvertFrom-Json $restResult
         }
@@ -176,3 +176,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

@@ -1,10 +1,10 @@
-﻿function Get-JiraSession
+function Get-JiraSession
 {
     <#
     .Synopsis
        Obtains a reference to the currently saved JIRA session
     .DESCRIPTION
-       This functio obtains a reference to the currently saved JIRA session.  This can provide 
+       This functio obtains a reference to the currently saved JIRA session.  This can provide
        a JIRA session ID, as well as the username used to connect to JIRA.
     .EXAMPLE
        New-JiraSession -Credential (Get-Credential jiraUsername)
@@ -37,3 +37,5 @@
         }
     }
 }
+
+

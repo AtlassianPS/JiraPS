@@ -1,4 +1,4 @@
-﻿function ConvertTo-JiraStatus
+function ConvertTo-JiraStatus
 {
     [CmdletBinding()]
     param(
@@ -6,7 +6,7 @@
                    Position = 0,
                    ValueFromPipeline = $true)]
         [PSObject[]] $InputObject,
-        
+
         [ValidateScript({Test-Path $_})]
         [String] $ConfigFile
     )
@@ -26,10 +26,10 @@
                 'RestUrl' = $i.self;
             }
 
-            
+
 #            Write-Debug "[ConvertTo-JiraStatus] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
-            
+
 #            Write-Debug "[ConvertTo-JiraStatus] Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'PSJira.Status')
 
@@ -43,3 +43,5 @@
 #        Write-Debug "[ConvertTo-JiraStatus] Complete"
     }
 }
+
+

@@ -1,4 +1,4 @@
-﻿function Set-JiraConfigServer
+function Set-JiraConfigServer
 {
     <#
     .Synopsis
@@ -30,9 +30,9 @@
         [String] $ConfigFile
     )
 
-    # Using a default value for this parameter wouldn't handle all cases. We want to make sure 
-    # that the user can pass a $null value to the ConfigFile parameter...but if it's null, we 
-    # want to default to the script variable just as we would if the parameter was not 
+    # Using a default value for this parameter wouldn't handle all cases. We want to make sure
+    # that the user can pass a $null value to the ConfigFile parameter...but if it's null, we
+    # want to default to the script variable just as we would if the parameter was not
     # provided at all.
 
     if (-not ($ConfigFile))
@@ -49,13 +49,13 @@
     {
 #        Write-Debug "[Set-JiraConfigServer] Creating config file '$ConfigFile'"
         $xml = [XML] '<Config></Config>'
-        
+
     } else {
 #        Write-Debug "[Set-JiraConfigServer] Loading config file '$ConfigFile'"
         $xml = New-Object -TypeName XML
         $xml.Load($ConfigFile)
     }
-    
+
     $xmlConfig = $xml.DocumentElement
     if ($xmlConfig.LocalName -ne 'Config')
     {
@@ -74,7 +74,7 @@
 #        Write-Debug "[Set-JiraConfigServer] Adding element to existing XML file"
         [void] $xmlConfig.AppendChild($xmlServer)
     }
-    
+
 #    Write-Debug "[Set-JiraConfigServer] Saving XML file"
     try
     {
@@ -88,3 +88,5 @@
 #    Write-Debug "[Set-JiraConfigServer] Complete"
 
 }
+
+

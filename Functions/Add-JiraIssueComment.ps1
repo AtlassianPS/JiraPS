@@ -1,4 +1,4 @@
-﻿function Add-JiraIssueComment
+function Add-JiraIssueComment
 {
     <#
     .Synopsis
@@ -44,7 +44,7 @@
         [ValidateSet('All Users','Developers','Administrators')]
         [String] $VisibleRole = 'Developers',
 
-        # Credentials to use to connect to Jira. If not specified, this function will use 
+        # Credentials to use to connect to Jira. If not specified, this function will use
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -92,8 +92,8 @@
             'body' = $Comment;
         }
 
-        # If the visible role should be all users, the visibility block shouldn't be passed at 
-        # all. JIRA returns a 500 Internal Server Error if you try to pass this block with a 
+        # If the visible role should be all users, the visibility block shouldn't be passed at
+        # all. JIRA returns a 500 Internal Server Error if you try to pass this block with a
         # value of "All Users".
         if ($VisibleRole -ne 'All Users')
         {
@@ -121,3 +121,5 @@
         Write-Debug "[Add-JiraIssueComment] Complete"
     }
 }
+
+

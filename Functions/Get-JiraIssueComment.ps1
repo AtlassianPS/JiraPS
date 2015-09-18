@@ -1,4 +1,4 @@
-﻿function Get-JiraIssueComment
+function Get-JiraIssueComment
 {
     <#
     .Synopsis
@@ -44,7 +44,7 @@
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
         $url = "$($issueObj.RestURL)/comment"
-        
+
         Write-Debug "Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
 
@@ -71,3 +71,5 @@
         Write-Debug "Completed Get-JiraIssueComment"
     }
 }
+
+

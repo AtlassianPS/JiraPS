@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -9,7 +9,7 @@ InModuleScope PSJira {
     $jiraServer = 'http://jiraserver.example.com'
     $authUri = "$jiraServer/rest/auth/1/session"
     $jSessionId = '76449957D8C863BE8D4F6F5507E980E8'
-        
+
     $testUsername = 'powershell-test'
     $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
     $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername,$testPassword
@@ -30,7 +30,7 @@ InModuleScope PSJira {
 "@
 
     Describe "Remove-JiraSession" {
-        
+
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
         }
@@ -63,11 +63,11 @@ InModuleScope PSJira {
         }
 
         It "Closes a saved PSJira.Session object from module PrivateData" {
-            
+
             # This probably isn't the best test for this, but it's about all I can come up with at the moment.
-            # New-JiraSession has some slightly more elaborate testing, which includes a test for Get-JiraSession, 
+            # New-JiraSession has some slightly more elaborate testing, which includes a test for Get-JiraSession,
             # so if both of those pass, they should work as expected here.
-            
+
             New-JiraSession -Credential $testCredential | Remove-JiraSession
 
             Get-JiraSession | Should BeNullOrEmpty
@@ -78,7 +78,7 @@ InModuleScope PSJira {
             Get-JiraSession | Should BeNullOrEmpty
             Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'DELETE'} -Exactly -Times 1 -Scope It
         }
-        
+
         It "Correctly handles pipeline input from Get-JiraSession" {
             New-JiraSession -Credential $testCredential
             { Get-JiraSession | Remove-JiraSession } | Should Not Throw
@@ -87,3 +87,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

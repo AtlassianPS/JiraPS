@@ -1,23 +1,23 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
     # For the time being, we'll need to hard-code this and adjust it as desired.
     $ShowMockData = $false
-    
+
     $jiraServer = 'http://jiraserver.example.com'
     $issueID = 41701
     $issueKey = 'IT-3676'
 
     Describe "Invoke-JiraIssueTransition" {
-        
+
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
         }
-        
+
         Mock Get-JiraIssue -ModuleName PSJira {
             $t1 = [PSCustomObject] @{
                 Name = 'Start Progress';
@@ -74,7 +74,7 @@ InModuleScope PSJira {
             $issue = Get-JiraIssue -Key $issueKey
             $transition = $issue.Transition[0]
             { Invoke-JiraIssueTransition -Issue $issue -Transition $transition } | Should Not Throw
-            # Get-JiraIssue should be called once here in the test, and once in Invoke-JiraIssueTransition to 
+            # Get-JiraIssue should be called once here in the test, and once in Invoke-JiraIssueTransition to
             # obtain a reference to the issue object
             Assert-MockCalled Get-JiraIssue -ModuleName PSJira -Exactly -Times 2 -Scope It
             Assert-MockCalled Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
@@ -87,3 +87,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

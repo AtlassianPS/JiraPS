@@ -1,11 +1,11 @@
-﻿function Get-JiraIssue
+function Get-JiraIssue
 {
     <#
     .Synopsis
        Returns information about an issue in JIRA.
     .DESCRIPTION
        This function obtains references to issues in JIRA.
-       
+
        This function can be used to directly query JIRA for a specific issue key or internal issue ID. It can also be used to query JIRA for issues matching a specific criteria using JQL (Jira Query Language).
 
        For more details on JQL syntax, see this articla from Atlassian: https://confluence.atlassian.com/display/JIRA/Advanced+Searching
@@ -22,7 +22,7 @@
        This example illustrates using the Query parameter and JQL syntax to query Jira for matching issues.
     .INPUTS
        This function can accept PSJira.Issue objects, Strings, or Objects via the pipeline.
-       
+
        * If a PSJira.Issue object is passed, this function returns a new reference to the same issue.
        * If a String is passed, this function searches for an issue with that issue key or internal ID.
        * If an Object is passed, this function invokes its ToString() method and treats it as a String.
@@ -61,7 +61,7 @@
     {
         Write-Debug "[Get-JiraIssue] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        
+
         Write-Debug "[Get-JiraIssue] ParameterSetName=$($PSCmdlet.ParameterSetName)"
     }
 
@@ -76,7 +76,7 @@
 
                 Write-Debug "[Get-JiraIssue] Preparing for blastoff!"
                 $result = Invoke-JiraMethod -Method Get -URI $issueURL -Credential $Credential
-                
+
                 if ($result)
                 {
                     Write-Debug "[Get-JiraIssue] Converting REST result to Jira object"
@@ -107,7 +107,7 @@
                 Write-Output $issueObj
             }
         } elseif ($PSCmdlet.ParameterSetName -eq 'ByJQL') {
-            
+
             Write-Debug "[Get-JiraMethod] Escaping query and building URL"
             $escapedQuery = [System.Web.HttpUtility]::UrlPathEncode($Query)
             $issueURL = "$($server)/rest/api/latest/search?jql=$escapedQuery&validateQuery=true&expand=transitions&maxResults=$MaxResults"
@@ -141,3 +141,5 @@
         Write-Debug "[Get-JiraIssue] Complete"
     }
 }
+
+

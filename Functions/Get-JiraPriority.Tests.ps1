@@ -1,11 +1,11 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $jiraServer = 'http://jiraserver.example.com'
-    
+
     $restResultAll = @"
 [
   {
@@ -57,7 +57,7 @@ InModuleScope PSJira {
 "@
 
     Describe "Get-JiraPriority" {
-        
+
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
         }
@@ -86,11 +86,11 @@ InModuleScope PSJira {
         # Tests
         #############
 
-        It "Gets all available priorities if called with no parameters" {    
+        It "Gets all available priorities if called with no parameters" {
             $getResult = Get-JiraPriority -Credential $testCred
             $getResult | Should Not BeNullOrEmpty
             $getResult.Count | Should Be 5
-        }   
+        }
 
         It "Gets one priority if the ID parameter is supplied" {
             $getResult = Get-JiraPriority -Id 1 -Credential $testCred
@@ -105,3 +105,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -21,14 +21,14 @@ InModuleScope PSJira {
         It "Translates an object into a String" {
 
             $expected = "||A||B||C||$n|123|456|789|"
-            
+
             $string = Format-Jira -InputObject $obj
             $string | Should Be $expected
         }
 
         It "Handles positional parameters correctly" {
             $expected = "||A||B||C||$n|123|456|789|"
-            
+
             Format-Jira -Property A,B,C $obj | Should Be $expected
             Format-Jira A,B,C $obj | Should Be $expected
         }
@@ -44,14 +44,14 @@ InModuleScope PSJira {
             $expected1 = "||A||B||C||$n|123|456|789|$n|12345|12345|12345|"
 
             $expected2 = "||A||B||C||D||$n|12345|12345|12345|12345|$n|123|456|789| |"
-            
+
             $obj,$obj2 | Format-Jira | Should Be $expected1
             $obj2,$obj | Format-Jira | Should Be $expected2
         }
 
         It "Returns only selected properties if the -Property argument is passed" {
             Mock Get-Process {
-                # Rather than actually running Get-Process, we'll use a known example of what 
+                # Rather than actually running Get-Process, we'll use a known example of what
                 # its output *could* be, so we can produce repeatable results.
                 [PSCustomObject] @{
                     CompanyName = 'Microsoft Corporation'
@@ -120,3 +120,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

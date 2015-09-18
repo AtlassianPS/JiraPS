@@ -1,11 +1,11 @@
-﻿function Get-JiraProject
+function Get-JiraProject
 {
     <#
     .Synopsis
        Returns a project from Jira
     .DESCRIPTION
-       This function returns information regarding a specified project from Jira. If 
-       the Project parameter is not supplied, it will return information about all 
+       This function returns information regarding a specified project from Jira. If
+       the Project parameter is not supplied, it will return information about all
        projects the given user is authorized to view.
 
        The -Project parameter will accept either a project ID or a project key.
@@ -61,7 +61,7 @@
                 $thisUri = "$uri/${p}?expand=projectKeys"
 
                 Write-Debug "[Get-JiraProject] Preparing for blastoff!"
-            
+
                 $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
                 if ($result)
                 {
@@ -100,3 +100,5 @@
         Write-Debug "Complete"
     }
 }
+
+

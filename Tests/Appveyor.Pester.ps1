@@ -1,4 +1,4 @@
-﻿# This approach shamelessly copied from RamblingCookieMonster. ^.^
+# This approach shamelessly copied from RamblingCookieMonster. ^.^
 
 # Be SURE to install Pester using appveyor.yml. Chocolatey is available, so the simplest way is to use this:
 # cinst -y Pester
@@ -54,9 +54,9 @@ if ($failedCount -gt 0)
     Write-Host "Creating Pester failed test summary" -ForegroundColor Cyan
 
     # Display a summary of the tests that failed in the console.
-    
+
     # We break some of the PowerShell rules here by using Format-List in a script,
-    # but since this is a specialized script designed to write text to a screen, it's 
+    # but since this is a specialized script designed to write text to a screen, it's
     # okay in this instance. Detailed information is already passed to AppVeyor in the
     # NUnit XML file that we uploaded.
 

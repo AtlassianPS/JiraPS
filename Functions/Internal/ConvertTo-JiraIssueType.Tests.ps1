@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -28,11 +28,11 @@ Describe "ConvertTo-JiraIssueType" {
 "@
     $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
-    $r = ConvertTo-JiraIssueType $sampleObject 
+    $r = ConvertTo-JiraIssueType $sampleObject
     It "Creates a PSObject out of JSON input" {
         $r | Should Not BeNullOrEmpty
     }
-    
+
     It "Sets the type name to PSJira.IssueType" {
         (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.IssueType'
     }
@@ -44,3 +44,5 @@ Describe "ConvertTo-JiraIssueType" {
     defProp $r 'IconUrl' "$jiraServer/images/icons/issuetypes/newfeature.png"
     defProp $r 'Subtask' $false
 }
+
+

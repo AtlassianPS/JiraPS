@@ -1,4 +1,4 @@
-﻿function Invoke-JiraMethod
+function Invoke-JiraMethod
 {
     #Requires -Version 3
     [CmdletBinding(DefaultParameterSetName='UseCredential')]
@@ -13,7 +13,7 @@
 
         [ValidateNotNullOrEmpty()]
         [String] $Body,
-        
+
         [Parameter(ParameterSetName='UseCredential',
                    Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
@@ -49,7 +49,7 @@
 
     try
     {
-        # Handle all cases of whether $session and $Body are defined. We don't need to worry about $Credential, because 
+        # Handle all cases of whether $session and $Body are defined. We don't need to worry about $Credential, because
         # it's part of the headers being sent to Jira
         if ($session -and $Body)
         {
@@ -72,14 +72,14 @@
     }
 
     if ($webResponse)
-    {    
+    {
         Write-Debug "[Invoke-JiraMethod] Status code: $($webResponse.StatusCode)"
 
         if ($webResponse.StatusCode.value__ -gt 399)
         {
             Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
-            
-            # Retrieve body of HTTP response - this contains more useful information about exactly why the error 
+
+            # Retrieve body of HTTP response - this contains more useful information about exactly why the error
             # occurred
             $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
             $body = $readStream.ReadToEnd()
@@ -102,3 +102,5 @@
         Write-Debug "[Invoke-JiraMethod] No results were returned from JIRA. This is unusual!"
     }
 }
+
+

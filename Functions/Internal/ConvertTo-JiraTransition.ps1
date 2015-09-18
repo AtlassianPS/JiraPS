@@ -1,4 +1,4 @@
-﻿function ConvertTo-JiraTransition
+function ConvertTo-JiraTransition
 {
     [CmdletBinding()]
     param(
@@ -21,10 +21,10 @@
                 'ResultStatus' = (ConvertTo-JiraStatus -InputObject $i.to)
             }
 
-            
+
 #            Write-Debug "[ConvertTo-JiraTransition] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
-            
+
 #            Write-Debug "[ConvertTo-JiraTransition] Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'PSJira.Transition')
 
@@ -43,3 +43,5 @@
 #        Write-Debug "[ConvertTo-JiraTransition] Complete"
     }
 }
+
+

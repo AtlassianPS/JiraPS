@@ -1,21 +1,21 @@
-﻿function New-JiraSession
+function New-JiraSession
 {
     <#
     .Synopsis
        Creates a persistent JIRA authenticated session which can be used by other PSJira functions
     .DESCRIPTION
-       This function creates a persistent, authenticated session in to JIRA which can be used by all other 
-       PSJira functions instead of explicitly passing parameters.  This removes the need to use the 
+       This function creates a persistent, authenticated session in to JIRA which can be used by all other
+       PSJira functions instead of explicitly passing parameters.  This removes the need to use the
        -Credential parameter constantly for each function call.
-       
+
        This is the equivalent of a browser cookie saving login information.
 
-       Session data is stored in this module's PrivateData; it is not necessary to supply it to each 
+       Session data is stored in this module's PrivateData; it is not necessary to supply it to each
        subsequent function.
     .EXAMPLE
        New-JiraSession -Credential (Get-Credential jiraUsername)
        Get-JiraIssue TEST-01
-       Creates a Jira session for jiraUsername.  The following Get-JiraIssue is run using the 
+       Creates a Jira session for jiraUsername.  The following Get-JiraIssue is run using the
        saved session for jiraUsername.
     .INPUTS
        [PSCredential] The credentials to use to create the Jira session
@@ -65,7 +65,7 @@
             $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -SessionVariable newSessionVar
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
-            
+
             Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
             if ($MyInvocation.MyCommand.Module.PrivateData)
             {
@@ -86,8 +86,8 @@
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
 
             Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
-            
-            # Retrieve body of HTTP response - this contains more useful information about exactly why the error 
+
+            # Retrieve body of HTTP response - this contains more useful information about exactly why the error
             # occurred
             $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
             $body = $readStream.ReadToEnd()
@@ -98,3 +98,5 @@
         }
     }
 }
+
+
