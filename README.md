@@ -26,3 +26,5 @@ Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/G
 ## Contact
 
 Feel free to comment on this project here on GitHub using the issues or discussion pages.  You can also check out [my blog](http://replicajunction.github.io/) or catch me on the [PowerShell subreddit](https://www.reddit.com/r/powershell).
+
+*Note:* As with all community PowerShell modules and code, you use PSJira at your own risk.  I am not responsible if your JIRA instance causes a fire in your datacenter (literal or otherwise).
