@@ -44,6 +44,13 @@
         }
 
         $restUrl = "$server/rest/api/latest/group?groupname={0}"
+
+        if ($Force)
+        {
+            Write-Debug "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+            $oldConfirmPreference = $ConfirmPreference
+            $ConfirmPreference = 'None'
+        }
     }
 
     process
@@ -58,19 +65,13 @@
                 $thisUrl = $restUrl -f $groupObj.Name
                 Write-Debug "[Remove-JiraGroup] Group URL: [$thisUrl]"
 
-                Write-Debug "[Remove-JiraGroup] Checking for -WhatIf"
-                if (-not $WhatIfPreference)
+                Write-Debug "[Remove-JiraGroup] Checking for -WhatIf and Confirm"
+                if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove group [$groupObj] from JIRA"))
                 {
-                    Write-Debug "[Remove-JiraGroup] Checking for -Force or Confirm"
-                    if ($Force -or $PSCmdlet.ShouldProcess($groupObj.Name, "Remove group [$groupObj] from JIRA"))
-                    {
-                        Write-Debug "[Remove-JiraGroup] Preparing for blastoff!"
-                        Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
-                    } else {
-                        Write-Debug "[Remove-JiraGroup] User denied the confirmation prompt; no operation will be performed"
-                    }
+                    Write-Debug "[Remove-JiraGroup] Preparing for blastoff!"
+                    Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
                 } else {
-                    Write-Debug "[Remove-JiraGroup] Runnning in WhatIf mode; no operation will be performed"
+                    Write-Debug "[Remove-JiraGroup] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
                 }
             }
         }
@@ -78,6 +79,12 @@
 
     end
     {
+        if ($Force)
+        {
+            Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
+            $ConfirmPreference = $oldConfirmPreference
+        }
+
         Write-Debug "[Remove-JiraGroup] Complete"
     }
 }

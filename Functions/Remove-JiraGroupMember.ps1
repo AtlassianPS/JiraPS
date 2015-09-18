@@ -37,6 +37,13 @@
         }
 
         $restUrl = "$server/rest/api/latest/group/user?groupname={0}&username={1}"
+
+        if ($Force)
+        {
+            Write-Debug "[Remove-JiraGroupMember] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+            $oldConfirmPreference = $ConfirmPreference
+            $ConfirmPreference = 'None'
+        }
     }
 
     process
@@ -64,19 +71,14 @@
                         {
                             $thisRestUrl = $restUrl -f $groupObj.Name, $userObj.Name
                             Write-Debug "[Remove-JiraGroupMember] REST URI: [$thisRestUrl]"
-                            Write-Debug "[Remove-JiraGroupMember] Checking for -WhatIf"
-                            if (-not $WhatIfPreference)
+                            
+                            Write-Debug "[Remove-JiraGroupMember] Checking for -WhatIf and Confirm"
+                            if ($PSCmdlet.ShouldProcess("$groupObj", "Remove $userObj from group"))
                             {
-                                Write-Debug "[Remove-JiraGroupMember] Checking for -Force or Confirm"
-                                if ($Force -or $PSCmdlet.ShouldProcess("$groupObj", "Remove $userObj from group"))
-                                {
-                                    Write-Debug "[Remove-JiraGroupMember] Preparing for blastoff!"
-                                    Invoke-JiraMethod -Method Delete -URI $thisRestUrl -Credential $Credential
-                                } else {
-                                    Write-Debug "[Remove-JiraGroupMember] User denied the confirmation prompt; no operation will be performed"
-                                }
+                                Write-Debug "[Remove-JiraGroupMember] Preparing for blastoff!"
+                                Invoke-JiraMethod -Method Delete -URI $thisRestUrl -Credential $Credential
                             } else {
-                                Write-Debug "[Remove-JiraGroupMember] Runnning in WhatIf mode; no operation will be performed"
+                                Write-Debug "[Remove-JiraGroupMember] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
                             }
                         } else {
                             Write-Debug "[Remove-JiraGroupMember] User [$u] is not currently a member of group [$g]"
@@ -104,6 +106,12 @@
 
     end
     {
+        if ($Force)
+        {
+            Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
+            $ConfirmPreference = $oldConfirmPreference
+        }
+
         Write-Debug "[Remove-JiraGroupMember] Complete"
     }
 }

@@ -47,6 +47,13 @@
         }
 
         $userURL = "$server/rest/api/latest/user?username={0}"
+
+        if ($Force)
+        {
+            Write-Debug "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+            $oldConfirmPreference = $ConfirmPreference
+            $ConfirmPreference = 'None'
+        }
     }
 
     process
@@ -61,19 +68,13 @@
                 $thisUrl = $userUrl -f $userObj.Name
                 Write-Debug "[Remove-JiraUser] User URL: [$thisUrl]"
 
-                Write-Debug "[Remove-JiraUser] Checking for -WhatIf"
-                if (-not $WhatIfPreference)
+                Write-Debug "[Remove-JiraUser] Checking for -WhatIf and Confirm"
+                if ($PSCmdlet.ShouldProcess($userObj.Name, 'Completely remove user from JIRA'))
                 {
-                    Write-Debug "[Remove-JiraUser] Checking for -Force or Confirm"
-                    if ($Force -or $PSCmdlet.ShouldProcess($userObj.Name, 'Completely remove user from JIRA'))
-                    {
-                        Write-Debug "[Remove-JiraUser] Preparing for blastoff!"
-                        Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
-                    } else {
-                        Write-Debug "[Remove-JiraUser] User denied the confirmation prompt; no operation will be performed"
-                    }
+                    Write-Debug "[Remove-JiraUser] Preparing for blastoff!"
+                    Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
                 } else {
-                    Write-Debug "[Remove-JiraUser] Runnning in WhatIf mode; no operation will be performed"
+                    Write-Debug "[Remove-JiraUser] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
                 }
             }
         }
@@ -81,6 +82,12 @@
 
     end
     {
+        if ($Force)
+        {
+            Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
+            $ConfirmPreference = $oldConfirmPreference
+        }
+
         Write-Debug "[Remove-JiraUser] Complete"
     }
 }
