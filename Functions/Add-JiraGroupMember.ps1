@@ -15,7 +15,7 @@ function Add-JiraGroupMember
     .INPUTS
        [PSJira.Group[]] Group(s) to which users should be added
     .OUTPUTS
-       If the -PassThru parameter is provided, this function will provide a 
+       If the -PassThru parameter is provided, this function will provide a
        reference to the JIRA group modified.  Otherwise, this function does not
        provide output.
     .NOTES
@@ -144,5 +144,7 @@ function Add-JiraGroupMember
         Write-Debug "[Add-JiraGroupMember] Complete"
     }
 }
+
+
 
 

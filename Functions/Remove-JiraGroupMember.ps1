@@ -15,7 +15,7 @@ function Remove-JiraGroupMember
     .INPUTS
        [PSJira.Group[]] Group(s) from which users should be removed
     .OUTPUTS
-       If the -PassThru parameter is provided, this function will provide a 
+       If the -PassThru parameter is provided, this function will provide a
        reference to the JIRA group modified.  Otherwise, this function does not
        provide output.
     .NOTES
@@ -138,5 +138,7 @@ function Remove-JiraGroupMember
         Write-Debug "[Remove-JiraGroupMember] Complete"
     }
 }
+
+
 
 
