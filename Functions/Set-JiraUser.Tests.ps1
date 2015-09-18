@@ -1,9 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $showMockData = $false
 
     $jiraServer = 'http://jiraserver.example.com'
@@ -25,7 +25,7 @@ InModuleScope PSJira {
     "active": true
 }
 "@
-    
+
     Describe "Set-JiraUser" {
 
         Mock Get-JiraConfigServer -ModuleName PSJira {
@@ -101,3 +101,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

@@ -1,4 +1,4 @@
-﻿function ConvertTo-JiraGroup
+function ConvertTo-JiraGroup
 {
     [CmdletBinding()]
     param(
@@ -19,7 +19,7 @@
                 'Name' = $i.name;
                 'RestUrl' = $i.self;
             }
-            
+
             if ($i.users)
             {
 #                Write-Debug "[ConvertTo-JiraGroup] Adding users"
@@ -40,7 +40,7 @@
 
 #            Write-Debug "[ConvertTo-JiraGroup] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
-            
+
 #            Write-Debug "[ConvertTo-JiraGroup] Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'PSJira.Group')
 
@@ -59,3 +59,5 @@
 #        Write-Debug "[ConvertTo-JiraGroup] Complete"
     }
 }
+
+

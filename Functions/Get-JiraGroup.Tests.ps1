@@ -1,9 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $showMockData = $false
 
     $jiraServer = 'http://jiraserver.example.com'
@@ -60,7 +60,7 @@ InModuleScope PSJira {
         # Tests
         #############
 
-        It "Gets information about a provided Jira group" {    
+        It "Gets information about a provided Jira group" {
             $getResult = Get-JiraGroup -GroupName $testGroupName
             $getResult | Should Not BeNullOrEmpty
         }
@@ -87,3 +87,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

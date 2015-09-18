@@ -1,28 +1,28 @@
-﻿function Set-JiraUser
+function Set-JiraUser
 {
     <#
     .Synopsis
        Modifies user properties in JIRA
     .DESCRIPTION
-       This function modifies user properties in JIRA, allowing you to change a user's 
+       This function modifies user properties in JIRA, allowing you to change a user's
        e-mail address, display name, and any other properties supported by JIRA's API.
     .EXAMPLE
        Set-JiraUser -User user1 -EmailAddress user1_new@example.com
        Modifies user1's e-mail address to a new value.  The original value is overridden.
     .EXAMPLE
        Set-JiraUser -User user2 -Properties @{EmailAddress='user2_new@example.com';DisplayName='User 2'}
-       This example modifies a user's properties using a hashtable.  This allows updating 
+       This example modifies a user's properties using a hashtable.  This allows updating
        properties that are not exposed as parameters to this function.
     .INPUTS
        [PSJira.User[]] The JIRA user that should be modified.
     .OUTPUTS
-       If the -PassThru parameter is provided, this function will provide a reference 
+       If the -PassThru parameter is provided, this function will provide a reference
        to the JIRA user modified.  Otherwise, this function does not provide output.
     .NOTES
-       It is currently NOT possible to enable and disable users with this function. JIRA 
+       It is currently NOT possible to enable and disable users with this function. JIRA
        does not currently provide this ability via their REST API.
-       
-       If you'd like to see this ability added to JIRA and to this module, please vote on 
+
+       If you'd like to see this ability added to JIRA and to this module, please vote on
        Atlassian's site for this issue: https://jira.atlassian.com/browse/JRA-37294
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByNamedParameters')]
@@ -59,7 +59,7 @@
     {
         Write-Debug "[Set-JiraUser] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        
+
         Write-Debug "[Set-JiraIssue] ParameterSetName=$($PSCmdlet.ParameterSetName)"
 
         $updateProps = @{}
@@ -127,3 +127,5 @@
         Write-Debug "[Set-JiraUser] Complete"
     }
 }
+
+

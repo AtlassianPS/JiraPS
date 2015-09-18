@@ -1,4 +1,4 @@
-﻿function Get-JiraGroup
+function Get-JiraGroup
 {
     <#
     .Synopsis
@@ -6,14 +6,14 @@
     .DESCRIPTION
        This function returns information regarding a specified group from JIRA.
 
-       By default, this function does not display members of the group.  This is JIRA's default 
+       By default, this function does not display members of the group.  This is JIRA's default
        behavior as well.  To display group members, use Get-JiraGroupMember.
     .EXAMPLE
        Get-JiraGroup -GroupName testGroup -Credential $cred
        Returns information about the group "testGroup"
     .EXAMPLE
        Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
-       This example searches Active Directory for the username of John W. Smith, John H. Smith, 
+       This example searches Active Directory for the username of John W. Smith, John H. Smith,
        and any other John Smiths, then obtains their JIRA user accounts.
     .INPUTS
        [Object[]] The group to look up in JIRA. This can be a String or a PSJira.Group object.
@@ -46,7 +46,7 @@
     {
         Write-Debug "[Get-JiraGroup] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        
+
         Write-Debug "[Get-JiraIssue] ParameterSetName=$($PSCmdlet.ParameterSetName)"
 
         Write-Debug "[Get-JiraGroup] Building URI for REST call"
@@ -64,7 +64,7 @@
 
                 Write-Debug "[Get-JiraGroup] Escaped group name: [$escapedGroupName]"
                 $thisUrl = $groupUrl -f $escapedGroupName
-                
+
                 Write-Debug "[Get-JiraGroup] Preparing for blastoff!"
                 $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
 
@@ -72,7 +72,7 @@
                 {
                     Write-Debug "[Get-JiraGroup] Converting results to PSJira.Group"
                     $obj = ConvertTo-JiraGroup -InputObject $result
-                    
+
                     Write-Debug "[Get-JiraGroup] Outputting results"
                     Write-Output $obj
                 } else {
@@ -106,3 +106,5 @@
         Write-Debug "[Get-JiraGroup] Complete"
     }
 }
+
+

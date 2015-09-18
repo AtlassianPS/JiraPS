@@ -1,21 +1,21 @@
-﻿function New-JiraUser
+function New-JiraUser
 {
     <#
     .Synopsis
        Creates a new user in JIRA
     .DESCRIPTION
-       This function creates a new user in JIRA.  By default, the new user 
+       This function creates a new user in JIRA.  By default, the new user
        will be notified via e-mail.
 
        The new user's password is also randomly generated.
     .EXAMPLE
        New-JiraUser -UserName testUser -EmailAddress testUser@example.com
-       This example creates a new JIRA user named testUser, and sends a 
-       notification e-mail.  The user's DisplayName will be set to 
+       This example creates a new JIRA user named testUser, and sends a
+       notification e-mail.  The user's DisplayName will be set to
        "testUser" since it is not specified.
     .EXAMPLE
        New-JiraUser -UserName testUser2 -EmailAddress testUser2@example.com -DisplayName "Test User 2"
-       This example illustrates setting a user's display name during 
+       This example illustrates setting a user's display name during
        user creation.
     .INPUTS
        This function does not accept pipeline input.
@@ -30,7 +30,7 @@
         [Parameter(Mandatory = $true)]
         [Alias('Email')]
         [String] $EmailAddress,
-        
+
         [Parameter(Mandatory = $false)]
         [String] $DisplayName,
 
@@ -75,7 +75,7 @@
 
         Write-Debug "[New-JiraUser] Setting Notify property to $Notify"
             $props.notify = $Notify
-        
+
         Write-Debug "[New-JiraUser] Converting to JSON"
         $json = ConvertTo-Json -InputObject $props
 
@@ -103,3 +103,5 @@
         }
     }
 }
+
+

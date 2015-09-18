@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -15,7 +15,7 @@ InModuleScope PSJira {
     $testUsername2 = 'testUsername2'
 
     Describe "Add-JiraGroupMember" {
-        
+
         Mock Write-Debug -ModuleName PSJira {
             if ($ShowDebugData)
             {
@@ -92,8 +92,8 @@ InModuleScope PSJira {
             }
 
             It "Adds multiple users to a JIRA group if they are passed to the -User parameter" {
-            
-                # Override our previous mock so we have no group members    
+
+                # Override our previous mock so we have no group members
                 Mock Get-JiraGroupMember -ModuleName PSJira {
                     @()
                 }
@@ -112,3 +112,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

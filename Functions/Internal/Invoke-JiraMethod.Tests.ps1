@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
@@ -10,7 +10,7 @@ InModuleScope PSJira {
     $validMethods = @('Get','Post','Put','Delete')
 
     Describe "Invoke-JiraMethod" {
-        
+
         if ($ShowDebugText)
         {
             Mock "Write-Debug" {
@@ -20,7 +20,7 @@ InModuleScope PSJira {
 
         Context "Sanity checking" {
             $command = Get-Command -Name Invoke-JiraMethod
-            
+
             function defParam($name)
             {
                 It "Has a -$name parameter" {
@@ -40,7 +40,7 @@ InModuleScope PSJira {
         }
 
         Context "Behavior testing" {
-            
+
             $testUri = 'http://example.com'
             $testUsername = 'testUsername'
             $testPassword = 'password123'
@@ -69,7 +69,7 @@ InModuleScope PSJira {
             }
 
             It "Provides Base64 credentials in the Authorization header only when the -Credential parameter is supplied" {
-                # This is the authorizion token that should be provided when using HTTP Basic authentication. It takes the form of 
+                # This is the authorizion token that should be provided when using HTTP Basic authentication. It takes the form of
                 # "username:password" encoded into a base 64 String.
 
                 # This is why you shouldn't use PSJira on a plain HTTP connection.
@@ -78,7 +78,7 @@ InModuleScope PSJira {
 
                 { Invoke-JiraMethod -Method Get -URI $testUri -Credential $testCred } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Authorization') -eq "Basic $token"} -Exactly -Times 1 -Scope It
-                
+
                 # This one should call without the Authorization header, so check that the Authorization header mock has only been called once,
                 # and that the Authorization-less header mock has also been called once.
                 { Invoke-JiraMethod -Method Get -URI $testUri} | Should Not Throw
@@ -89,8 +89,8 @@ InModuleScope PSJira {
 
         Context "Output handling" {
             It "Outputs an object representation of JSON returned from JIRA" {
-            
-                # This is a real REST result from Atlassian's public-facing JIRA instance, trimmed and cleaned 
+
+                # This is a real REST result from Atlassian's public-facing JIRA instance, trimmed and cleaned
                 # up just a bit for fields we don't care about.
 
                 # You can obtain this data with a single PowerShell line:
@@ -427,7 +427,7 @@ InModuleScope PSJira {
 
                 $validTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/303853'
                 $validObjResult = ConvertFrom-Json -InputObject $validRestResult
-            
+
                 Mock Invoke-WebRequest -ParameterFilter {$Method -eq 'Get' -and $Uri -eq $validTestUri} {
                     Write-Output $validRestResult
                 }
@@ -457,3 +457,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

@@ -1,9 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
     # For the time being, we'll need to hard-code this and adjust it as desired.
     $ShowMockData = $false
@@ -28,7 +28,7 @@ InModuleScope PSJira {
 "@
 
     Describe "Remove-JiraUser" {
-        
+
         Mock Write-Debug -ModuleName PSJira {
             if ($ShowDebugData)
             {
@@ -92,3 +92,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

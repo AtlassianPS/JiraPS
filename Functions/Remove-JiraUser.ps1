@@ -1,4 +1,4 @@
-﻿function Remove-JiraUser
+function Remove-JiraUser
 {
     <#
     .Synopsis
@@ -7,8 +7,8 @@
        This function removes an existing user from JIRA.
 
        WARNING: Deleting a JIRA user may cause database integrity problems. See this article for
-       details:        
-       
+       details:
+
        https://confluence.atlassian.com/jira/how-do-i-delete-a-user-account-192519.html
     .EXAMPLE
        Remove-JiraUser -UserName testUser
@@ -91,3 +91,5 @@
         Write-Debug "[Remove-JiraUser] Complete"
     }
 }
+
+

@@ -1,4 +1,4 @@
-﻿function Add-JiraGroupMember
+function Add-JiraGroupMember
 {
     [CmdletBinding()]
     param(
@@ -63,7 +63,7 @@
 
 #        $userJsons = $userAL.ToArray()
         $userNames = $userAL.ToArray()
-        
+
         $restUrl = "$server/rest/api/latest/group/user?groupname={0}"
     }
 
@@ -121,3 +121,5 @@
         Write-Debug "[Add-JiraGroupMember] Complete"
     }
 }
+
+

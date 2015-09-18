@@ -1,4 +1,4 @@
-﻿function Get-JiraUser
+function Get-JiraUser
 {
     <#
     .Synopsis
@@ -10,7 +10,7 @@
        Returns information about the user user1
     .EXAMPLE
        Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
-       This example searches Active Directory for the username of John W. Smith, John H. Smith, 
+       This example searches Active Directory for the username of John W. Smith, John H. Smith,
        and any other John Smiths, then obtains their JIRA user accounts.
     .INPUTS
        [String[]] Username
@@ -20,7 +20,7 @@
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByUserName')]
     param(
-        # Username, name, or e-mail address of the user. Any of these should 
+        # Username, name, or e-mail address of the user. Any of these should
         # return search results from Jira.
         [Parameter(ParameterSetName = 'ByUserName',
                    Mandatory = $true,
@@ -46,7 +46,7 @@
     {
         Write-Debug "[Get-JiraUser] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        
+
         Write-Debug "[Get-JiraUser] ParameterSetName=$($PSCmdlet.ParameterSetName)"
 
         Write-Debug "[Get-JiraUser] Building URI for REST call"
@@ -67,7 +67,7 @@
             {
                 Write-Debug "[Get-JiraUser] Processing user [$u]"
                 $thisSearchUrl = $userSearchUrl -f $u
-                
+
                 Write-Debug "[Get-JiraUser] Preparing for blastoff!"
                 $result = Invoke-JiraMethod -Method Get -URI $thisSearchUrl -Credential $Credential
 
@@ -81,7 +81,7 @@
                         $thisGetUrl = $userGetUrl -f $r.Name
                         Write-Debug "[Get-JiraUser] Preparing for blastoff!"
                         $thisNewResult = Invoke-JiraMethod -Method Get -URI $thisGetUrl -Credential $Credential
-                        
+
                         if ($thisNewResult)
                         {
                             Write-Debug "[Get-JiraUser] Converting result to PSJira.User object"
@@ -122,3 +122,5 @@
         Write-Debug "[Get-JiraUser] Complete"
     }
 }
+
+

@@ -1,4 +1,4 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $manifestFile = "$here\PSJira.psd1"
 $changelogFile = "$here\CHANGELOG.md"
@@ -19,7 +19,7 @@ Describe "PSJira" {
     Context "Manifest, changelog, and AppVeyor" {
 
         # These tests are...erm, borrowed...from the module tests from the Pester module.
-        # I think they are excellent for sanity checking, and all credit for the following 
+        # I think they are excellent for sanity checking, and all credit for the following
         # tests goes to Dave Wyatt, the genius behind Pester.  I've just adapted them
         # slightly to match PSJira.
 
@@ -93,7 +93,7 @@ Describe "PSJira" {
     }
 
     Context "Style checking" {
-        
+
         # This section is again from the mastermind, Dave Wyatt. Again, credit
         # goes to him for these tests.
 
@@ -144,3 +144,5 @@ Describe "PSJira" {
         }
     }
 }
+
+

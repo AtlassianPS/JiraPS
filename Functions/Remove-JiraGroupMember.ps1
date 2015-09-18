@@ -1,4 +1,4 @@
-﻿function Remove-JiraGroupMember
+function Remove-JiraGroupMember
 {
     [CmdletBinding(SupportsShouldProcess = $true,
                    ConfirmImpact = 'High')]
@@ -71,7 +71,7 @@
                         {
                             $thisRestUrl = $restUrl -f $groupObj.Name, $userObj.Name
                             Write-Debug "[Remove-JiraGroupMember] REST URI: [$thisRestUrl]"
-                            
+
                             Write-Debug "[Remove-JiraGroupMember] Checking for -WhatIf and Confirm"
                             if ($PSCmdlet.ShouldProcess("$groupObj", "Remove $userObj from group"))
                             {
@@ -115,3 +115,5 @@
         Write-Debug "[Remove-JiraGroupMember] Complete"
     }
 }
+
+

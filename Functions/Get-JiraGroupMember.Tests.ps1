@@ -1,9 +1,9 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    
+
     $showMockData = $false
 
     $jiraServer = 'http://jiraserver.example.com'
@@ -66,7 +66,7 @@ InModuleScope PSJira {
         }
 
         # This is called by Get-JiraGroupMember - user information included.
-        # Note that the URI is changed from "latest" to "2" since this is operating on the output from Get-JiraGroup, 
+        # Note that the URI is changed from "latest" to "2" since this is operating on the output from Get-JiraGroup,
         # and JIRA never returns the "latest" symlink.
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/group?groupname=$testGroupName&expand=users"} {
             if ($ShowMockData)
@@ -107,3 +107,5 @@ InModuleScope PSJira {
         }
     }
 }
+
+

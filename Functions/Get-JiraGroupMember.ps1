@@ -1,4 +1,4 @@
-﻿function Get-JiraGroupMember
+function Get-JiraGroupMember
 {
     [CmdletBinding()]
     param(
@@ -30,16 +30,16 @@
 
                 if ($groupResult)
                 {
-                    # ConvertTo-JiraGroup contains logic to convert and add group members to 
+                    # ConvertTo-JiraGroup contains logic to convert and add group members to
                     # group objects if the members are returned from JIRA.
-                    
+
                     Write-Debug "[Get-JiraGroupMember] Converting results to PSJira.Group and PSJira.User objects"
                     $groupObjResult = ConvertTo-JiraGroup -InputObject $groupResult
 
                     Write-Debug "[Get-JiraGroupMember] Outputting group members"
                     Write-Output $groupObjResult.Member
                 } else {
-                    # Something is wrong here...we didn't get back a result from JIRA when we *did* get a 
+                    # Something is wrong here...we didn't get back a result from JIRA when we *did* get a
                     # valid group from Get-JiraGroup earlier.
                     Write-Warning "Something strange happened when invoking JIRA method Get to URL [$url]"
                 }
@@ -49,3 +49,5 @@
         }
     }
 }
+
+

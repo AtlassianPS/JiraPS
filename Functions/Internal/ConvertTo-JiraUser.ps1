@@ -1,4 +1,4 @@
-﻿function ConvertTo-JiraUser
+function ConvertTo-JiraUser
 {
     [CmdletBinding()]
     param(
@@ -24,7 +24,7 @@
                 'AvatarUrl' = $i.avatarUrls;
                 'TimeZone' = $i.timeZone;
             }
-            
+
             if ($i.groups)
             {
 #                Write-Debug "[ConvertTo-JiraUser] Adding groups"
@@ -33,7 +33,7 @@
 
 #            Write-Debug "[ConvertTo-JiraUser] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
-            
+
 #            Write-Debug "[ConvertTo-JiraUser] Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'PSJira.User')
 
@@ -52,3 +52,5 @@
 #        Write-Debug "[ConvertTo-JiraUser] Complete"
     }
 }
+
+
