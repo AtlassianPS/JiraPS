@@ -1,3 +1,22 @@
+## Next Release
+
+FEATURES:
+
+IMPROVEMENTS:
+
+BUG FIXES:
+
+## 1.1.0 (Sep 17, 2015)
+
+FEATURES:
+  - User management: create and delete users and groups, and modify group memberships
+
+IMPROVEMENTS:
+  - Cleaner error handling in all REST requests; JIRA's error messages should now be passed as PowerShell errors
+
+BUG FIXES:
+  - PSJira.User: ToString() now works as expected
+
 ## 1.0.0 (Aug 5, 2015)
 
   - Initial release
