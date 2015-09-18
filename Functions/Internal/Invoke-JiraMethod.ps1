@@ -5,7 +5,7 @@ function Invoke-JiraMethod
     param
     (
         [Parameter(Mandatory = $true)]
-        [ValidateSet('Get','Post','Put')]
+        [ValidateSet('Get','Post','Put','Delete')]
         [String] $Method,
 
         [Parameter(Mandatory = $true)]
