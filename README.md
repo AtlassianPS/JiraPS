@@ -23,6 +23,11 @@ That's it!  You're now ready to use PSJira.
 
 Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/Getting-Started) page on the project wiki for detailed use information.
 
+## Planned features
+
+* Support for filters in JIRA
+* Possible support for OAuth in addition to HTTP Basic authentication
+
 ## Contact
 
 Feel free to comment on this project here on GitHub using the issues or discussion pages.  You can also check out [my blog](http://replicajunction.github.io/) or catch me on the [PowerShell subreddit](https://www.reddit.com/r/powershell).
