@@ -26,6 +26,7 @@ Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/G
 ## Planned features
 
 * Support for filters in JIRA
+* Support for multiple config files and/or alternate config file locations
 * Possible support for OAuth in addition to HTTP Basic authentication
 
 ## Contact
