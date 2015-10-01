@@ -33,7 +33,7 @@ if ($env:Tags)
 Write-Verbose "Parameters for publishing:"
 foreach ($p in $publishParams.Keys)
 {
-    Write-Verbose "  {0}`t{1}" -f $p, $publishParams.$p
+    Write-Verbose ("  {0}`t{1}" -f $p, $publishParams.$p)
 }
 
 if ($shouldDeploy)
