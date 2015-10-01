@@ -24,7 +24,7 @@ Author = 'Joshua T'
 CompanyName = 'Unknown'
 
 # Copyright statement for this module
-Copyright = '(c) 2015 Joshua Taliaferro. All rights reserved.'
+Copyright = '(c) 2015 Joshua T. All rights reserved.'
 
 # Description of the functionality provided by this module
  Description = 'Windows PowerShell module to interact with Atlassian JIRA'
@@ -95,7 +95,7 @@ PrivateData = @{
         # Tags = @()
 
         # A URL to the license for this module.
-        LicenseUri = 'https://www.gnu.org/licenses/gpl-2.0.html'
+        LicenseUri = 'https://github.com/replicaJunction/PSJira/blob/master/LICENSE'
 
         # A URL to the main website for this project.
         ProjectUri = 'https://github.com/replicaJunction/PSJira'
