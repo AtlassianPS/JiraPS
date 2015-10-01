@@ -33,7 +33,7 @@ Import-Module Pester
 # We'll also need to import this module, since AppVeyor won't put it in $PSModulePath.
 Import-Module -Name "$ModuleRoot\PSJira.psm1"
 
-Set-Location -Path $ModuleRoot
+Push-Location -Path $ModuleRoot
 $resultsFile = Join-Path -Path $ProjectRoot -ChildPath 'TestResults.xml'
 #endregion
 
@@ -81,3 +81,5 @@ if ($failedCount -gt 0)
     # Generate a terminating exception so Pester understands that the build did not succeed
     throw "$failedCount tests failed during build process."
 }
+
+Pop-Location
