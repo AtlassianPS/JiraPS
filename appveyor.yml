@@ -1,17 +1,40 @@
 # See http://www.appveyor.com/docs/appveyor-yml for many more options
 
+# Credit for a lot of this file goes to RamblingCookieMonster:
+# https://github.com/RamblingCookieMonster/PSSQLite/blob/master/appveyor.yml
+
+environment:
+    ModuleName: $(APPVEYOR_PROJECT_NAME)
+    Tags: 'JIRA'
+    LicenseUri: 'https://github.com/replicaJunction/PSJira/blob/master/LICENSE'
+    ProjectUri: 'https://github.com/replicaJunction/PSJira/'
+
+    # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
+    PSGalleryAPIKey:
+        secure: qxRMLzkDC0WevTMoxl/evM9cY+SQUWj4Yjwn8OmjZcoaGERqZNgdgi52Bs9Bouav
+
 version: 1.1.0.{build}
 branches:
-  only:
-  - master
+    only:
+        - master
 skip_commits:
-  message: /readme*/
+    message: /readme*/
+skip_tags: true
 
 install:
-- cinst -y Pester
-
-build: false
+  - cinst Pester -y
 
 test_script:
-#- ps: Invoke-Pester -Script $env:APPVEYOR_BUILD_FOLDER
-- ps: . .\Tests\Appveyor.Pester.ps1
+#    - ps: Invoke-Pester -Script $env:APPVEYOR_BUILD_FOLDER
+    - ps: . .\Tests\Appveyor.Pester.ps1
+
+# Compile just the module into a zip file
+build_script:
+    - 7z a %ModuleName%.zip %ModuleName%\
+
+artifacts:
+    - path: $(ModuleName).zip
+
+# Deploy to the PowerShell Gallery
+deploy_script:
+    - ps: . .\Tests\Deploy.ps1
