@@ -11,7 +11,7 @@ environment:
 
     # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
     PSGalleryAPIKey:
-        secure: qxRMLzkDC0WevTMoxl/evM9cY+SQUWj4Yjwn8OmjZcoaGERqZNgdgi52Bs9Bouav
+        secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
 
 version: 1.1.0.{build}
 branches:

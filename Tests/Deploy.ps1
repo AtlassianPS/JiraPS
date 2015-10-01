@@ -74,8 +74,13 @@ if ($env:Tags)
 Write-Host "Parameters for publishing:" -ForegroundColor Cyan
 foreach ($p in $publishParams.Keys)
 {
-    Write-Host "${p}:" -ForegroundColor Cyan -NoNewline
-    Write-Host $publishParams.$p -ForegroundColor Green
+    Write-Host "${p}: " -ForegroundColor Cyan -NoNewline
+    if ($p -ne 'NuGetApiKey')
+    {
+        Write-Host $publishParams.$p -ForegroundColor Green
+    } else {
+        Write-Host "[Redacted]" -ForegroundColor Green
+    }
 }
 
 if ($shouldDeploy)
