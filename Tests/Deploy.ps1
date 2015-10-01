@@ -18,26 +18,27 @@ function Update-ModuleManifest {
 
 	if ([String]::IsNullOrEmpty($Path))
     {
-		$Path = Get-ChildItem -Path $env:APPVEYOR_BUILD_FOLDER -Include *.psd1;
+		$Path = Get-ChildItem -Path $env:APPVEYOR_BUILD_FOLDER -Include *.psd1
 		if (!$Path)
         {
-            throw 'Could not find a module manifest file';
+            throw 'Could not find a module manifest file'
         }
 	}
 
-	$ManifestContent = Get-Content -Path $Path -Raw;
-	$ManifestContent = $ManifestContent -replace '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')', ('${{ModuleVersion}}.{0}' -f $BuildNumber);
-	Set-Content -Path $Path -Value $ManifestContent;
+	$ManifestContent = Get-Content -Path $Path -Raw
+	$ManifestContent = $ManifestContent -replace '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')', ('${{ModuleVersion}}.{0}' -f $BuildNumber)
+	Set-Content -Path $Path -Value $ManifestContent
 
-	$ManifestContent -match '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')';
-	Write-Host -Message ('Module Version patched: ' + $Matches.ModuleVersion);
+	$ManifestContent -match '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')' | Out-Null
+	Write-Host ('Module Version patched: ' + $Matches.ModuleVersion)
 }
 #endregion
 
 Set-StrictMode -Off
 $ModuleRoot = Join-Path -Path $env:APPVEYOR_BUILD_FOLDER -ChildPath $env:ModuleName
 
-Write-Host "Beginning Deploy.ps1" -ForegroundColor Green
+Write-Host
+Write-Host "=== Beginning Deploy.ps1 ===" -ForegroundColor Green
 Write-Host
 Write-Host "AppVeyor build folder: " -ForegroundColor Cyan -NoNewline
 Write-Host $env:APPVEYOR_BUILD_FOLDER -ForegroundColor Green
@@ -70,7 +71,7 @@ if ($env:Tags)
     $publishParams.Tags = $env:Tags -split ',' | where { $_ } | foreach { $_.trim() }
 }
 
-Write-Host "Parameters for publishing:"
+Write-Host "Parameters for publishing:" -ForegroundColor Cyan
 foreach ($p in $publishParams.Keys)
 {
     Write-Host "${p}:" -ForegroundColor Cyan -NoNewline
