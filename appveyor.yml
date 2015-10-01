@@ -19,7 +19,6 @@ branches:
         - master
 skip_commits:
     message: /readme*/
-skip_tags: true
 
 install:
   - cinst Pester -y
