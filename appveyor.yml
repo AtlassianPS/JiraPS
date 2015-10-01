@@ -3,6 +3,9 @@
 # Credit for a lot of this file goes to RamblingCookieMonster:
 # https://github.com/RamblingCookieMonster/PSSQLite/blob/master/appveyor.yml
 
+# Necessary for now to make AppVeyor run with PowerShell 5
+os: Unstable
+
 environment:
     ModuleName: $(APPVEYOR_PROJECT_NAME)
     Tags: 'JIRA'
