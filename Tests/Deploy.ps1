@@ -35,6 +35,14 @@ function Update-ModuleManifest {
 #endregion
 
 Set-StrictMode -Off
+$ModuleRoot = Join-Path -Path $env:APPVEYOR_BUILD_FOLDER -ChildPath $env:ModuleName
+
+Write-Host "Beginning Deploy.ps1" -ForegroundColor Green
+Write-Host
+Write-Host "AppVeyor build folder: " -ForegroundColor Cyan -NoNewline
+Write-Host $env:APPVEYOR_BUILD_FOLDER -ForegroundColor Green
+Write-Host "Module root folder: " -ForegroundColor Cyan -NoNewline
+Write-Host $ModuleRoot -ForegroundColor Green
 
 $shouldDeploy = $false
 if ($env:APPVEYOR_REPO_TAG_NAME -notmatch 'release') {
@@ -47,8 +55,7 @@ if ($env:APPVEYOR_REPO_TAG_NAME -notmatch 'release') {
     $shouldDeploy = $true
 }
 
-Write-Output ("AppVeyor build folder: [{0}]" -f $env:APPVEYOR_BUILD_FOLDER)
-Update-ModuleManifest -Path $env:APPVEYOR_BUILD_FOLDER\PSJira.psd1 -BuildNumber $env:APPVEYOR_BUILD_NUMBER
+Update-ModuleManifest -Path (Join-Path -Path $ModuleRoot -ChildPath 'PSJira.psd1') -BuildNumber $env:APPVEYOR_BUILD_NUMBER
 
 $publishParams = @{
     Path = Join-Path -Path $env:APPVEYOR_BUILD_FOLDER -ChildPath $env:ModuleName
@@ -66,13 +73,14 @@ if ($env:Tags)
 Write-Host "Parameters for publishing:"
 foreach ($p in $publishParams.Keys)
 {
-    Write-Host ("  {0}`t{1}" -f $p, $publishParams.$p)
+    Write-Host "${p}:" -ForegroundColor Cyan -NoNewline
+    Write-Host $publishParams.$p -ForegroundColor Green
 }
 
 if ($shouldDeploy)
 {
     Write-Host "Calling Find-Package with dummy data to download nuget-anycpu.exe"
     Find-Package -ForceBootstrap -Name zzzzzz -ErrorAction Ignore
-    Write-Host "Publishing module"
+    Write-Host "Publishing module to PowerShell Gallery" -BackgroundColor Blue -ForegroundColor White
     Publish-Module @publishParams
 }
