@@ -9,6 +9,9 @@
 # This refers to the root of the project directory
 $ProjectRoot = $env:APPVEYOR_BUILD_FOLDER
 
+# This is the root of the module folder inside the project
+$ModuleRoot = Join-Path -Path $ProjectRoot -ChildPath 'PSJira'
+
 # This is AppVeyor's internal job ID, used to return results using their REST API
 $JobId = $env:APPVEYOR_JOB_ID
 #endregion
@@ -28,9 +31,9 @@ Write-Host "AppVeyor tests initialized (Job ID $JobId)" -ForegroundColor Cyan
 Import-Module Pester
 
 # We'll also need to import this module, since AppVeyor won't put it in $PSModulePath.
-Import-Module -Name "$ProjectRoot\PSJira.psm1"
+Import-Module -Name "$ModuleRoot\PSJira.psm1"
 
-Set-Location -Path $ProjectRoot
+Set-Location -Path $ModuleRoot
 $resultsFile = Join-Path -Path $ProjectRoot -ChildPath 'TestResults.xml'
 #endregion
 
