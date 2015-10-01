@@ -12,7 +12,7 @@ if ($env:APPVEYOR_REPO_TAG_NAME -notmatch 'release') {
     Write-Verbose "This commit is not to branch [master], so it will not be published."
 } elseif ($PSVersionTable.PSVersion -lt '5.0.0') {
     Write-Warning "We are not running in a PowerShell 5 environment, so the module cannot be pulbished."
- else {
+} else {
     $shouldDeploy = $true
 }
 
