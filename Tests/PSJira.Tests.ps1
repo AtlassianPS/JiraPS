@@ -1,9 +1,11 @@
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent $here
+$moduleRoot = "$projectRoot\PSJira"
 
-$manifestFile = "$here\PSJira.psd1"
-$changelogFile = "$here\CHANGELOG.md"
-$appveyorFile = "$here\appveyor.yml"
-$functions = "$here\Functions"
+$manifestFile = "$moduleRoot\PSJira.psd1"
+$changelogFile = "$projectRoot\CHANGELOG.md"
+$appveyorFile = "$projectRoot\appveyor.yml"
+$functions = "$moduleRoot\Functions"
 
 Describe "PSJira" {
     Context "All required tests are present" {
