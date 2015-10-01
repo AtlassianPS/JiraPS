@@ -27,7 +27,7 @@ CompanyName = 'Unknown'
 Copyright = '(c) 2015 Joshua Taliaferro. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+ Description = 'Windows PowerShell module to interact with Atlassian JIRA'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '3.0'
