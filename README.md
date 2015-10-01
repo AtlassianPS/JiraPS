@@ -8,16 +8,25 @@ PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://
 
 This module has a hard dependency on PowerShell 3.0.  I have no plans to release a version compatible with PowerShell 2, as I rely heavily on several cmdlets and features added in version 3.0.
 
+## Downloading
+
+In PowerShell 5, it's very simple to download the latest public release of this module:
+
+```powershell
+Install-Module PSJira
+```
+
+If you're using PowerShell 3 or 4, you can download this module from the Download Zip button on the right.  You'll need to extract the PSJira folder to your $PSModulePath.  Normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules.
+
+You can also always feel free to clone the module directly in Git.
+
 ## Getting Started
 
-1. Download this module, either from the Download Zip button on the right, or by directly cloning in Git.
-2. Extract the module to somewhere in your $PSModulePath.  Normally, this is at C:\Users\<username>\Documents\WindowsPowerShell\Modules.
-3. Define your JIRA server URL.  You will only need to do this once:
+Before using PSJira, you'll need to define your JIRA server URL.  You will only need to do this once:
+
 ```powershell
 Set-JiraConfigServer "https://jira.example.com"
 ```
-
-That's it!  You're now ready to use PSJira.
 
 ## Usage
 
