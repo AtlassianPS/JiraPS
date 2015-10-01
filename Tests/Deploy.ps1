@@ -46,8 +46,8 @@ Write-Host "Module root folder: " -ForegroundColor Cyan -NoNewline
 Write-Host $ModuleRoot -ForegroundColor Green
 
 $shouldDeploy = $false
-if ($env:APPVEYOR_REPO_TAG_NAME -notmatch 'release') {
-    Write-Host "This commit does not include the tag matching [release], so it will not be published."
+if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -notmatch 'release' -and $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED -notmatch 'release') {
+    Write-Host "This commit does not include the message [release], so it will not be published."
 } elseif ($env:APPVEYOR_REPO_BRANCH -ne 'master') {
     Write-Host "This commit is not to branch [master], so it will not be published."
 } elseif ($PSVersionTable.PSVersion -lt '5.0.0') {
