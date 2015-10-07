@@ -78,7 +78,7 @@ if ($failedCount -gt 0)
         }
     } | Sort-Object -Property Describe,Context,Name,Result | Format-List
 
-    # Generate a terminating exception so Pester understands that the build did not succeed
+    # Generate a terminating exception so AppVeyor understands that the build did not succeed
     throw "$failedCount tests failed during build process."
 }
 
