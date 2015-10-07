@@ -6,13 +6,17 @@ InModuleScope PSJira {
 
     $ShowMockData = $false
     $ShowDebugText = $false
-    
+
     Describe "Set-JiraIssue" {
         if ($ShowDebugText)
         {
             Mock "Write-Debug" {
                 Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
             }
+        }
+
+        Mock Get-JiraConfigServer {
+            'https://jira.example.com'
         }
 
         Mock Get-JiraIssue{
