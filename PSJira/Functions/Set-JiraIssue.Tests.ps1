@@ -43,6 +43,7 @@ InModuleScope PSJira {
             defParam 'Summary'
             defParam 'Description'
             defParam 'Assignee'
+            defParam 'Fields'
             defParam 'Credential'
             defParam 'PassThru'
 
@@ -95,6 +96,12 @@ InModuleScope PSJira {
                 { Set-JiraIssue -Issue TEST-001 -Summary 'New summary' -Assignee username } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*summary*set*New summary*' }
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345/assignee' -and $Body -like '*name*username*' }
+            }
+
+            It "Updates custom fields if provided to the -Fields parameter" {
+                { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345'='foo';'customfield_67890'='bar'} } | Should Not Throw
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_12345*set*foo*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_67890*set*bar*' }
             }
         }
 
