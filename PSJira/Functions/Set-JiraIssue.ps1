@@ -144,7 +144,10 @@ function Set-JiraIssue
                         $f = Get-JiraField -Field $name -Credential $Credential
                         if ($f)
                         {
-                            $id = $f.ID
+                            # For some reason, this was coming through as a hashtable instead of a String,
+                            # which was causing ConvertTo-Json to crash later.
+                            # Not sure why, but this forces $id to be a String and not a hashtable.
+                            $id = "$($f.ID)"
                             Write-Debug "[Set-JiraIssue] Field [$name] was identified as ID [$id]"
                             $issueProps.update.$id = @()
                             $issueProps.update.$id += @{

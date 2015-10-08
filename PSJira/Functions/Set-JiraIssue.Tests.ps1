@@ -4,8 +4,8 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 
 InModuleScope PSJira {
 
-    $ShowMockData = $true
-    $ShowDebugText = $true
+    $ShowMockData = $false
+    $ShowDebugText = $false
 
     Describe "Set-JiraIssue" {
         if ($ShowDebugText)
@@ -105,8 +105,7 @@ InModuleScope PSJira {
                         'ID'   = $Field;
                     }
                 }
-#                { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345'='foo'; 'customfield_67890'='bar'} } | Should Not Throw
-                Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345'='foo'; 'customfield_67890'='bar'}
+                { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345'='foo'; 'customfield_67890'='bar'} } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_12345*set*foo*' }
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_67890*set*bar*' }
             }
