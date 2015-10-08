@@ -17,13 +17,28 @@ $JobId = $env:APPVEYOR_JOB_ID
 #endregion
 
 #region Init
+Write-Host
+Write-Host "=== Beginning AppVeyor.ps1 ===" -ForegroundColor Green
+Write-Host
 
-Write-Host "Initializing AppVeyor tests." -ForegroundColor Cyan
 # AppVeyor environment variable set when running in an AppVeyor environment.
 if ($env:CI -ne $true)
 {
     throw "This script does not appear to be running in an AppVeyor environment."
 }
+
+Write-Host
+Write-Host ('Project name:               {0}' -f $env:APPVEYOR_PROJECT_NAME) -ForegroundColor Cyan
+Write-Host ('AppVeyor build ID:          {0}' -f $env:APPVEYOR_BUILD_ID) -ForegroundColor Cyan
+Write-Host ('AppVeyor build number:      {0}' -f $env:APPVEYOR_BUILD_NUMBER) -ForegroundColor Cyan
+Write-Host ('AppVeyor build version:     {0}' -f $env:APPVEYOR_BUILD_VERSION) -ForegroundColor Cyan
+Write-Host ('AppVeyor Job ID:            {0}' -f $JobID) -ForegroundColor Cyan
+Write-Host ('Commit message:             {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE) -ForegroundColor Cyan
+Write-Host ('Extended commit message:    {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED) -ForegroundColor Cyan
+Write-Host ('Build triggered from tag?   {0}' -f $env:APPVEYOR_REPO_TAG) -ForegroundColor Cyan
+Write-Host ('  - Tag name:               {0}' -f $env:APPVEYOR_REPO_TAG_NAME) -ForegroundColor Cyan
+Write-Host ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
+Write-Host
 
 Write-Host "AppVeyor tests initialized (Job ID $JobId)" -ForegroundColor Cyan
 
@@ -83,3 +98,7 @@ if ($failedCount -gt 0)
 }
 
 Pop-Location
+
+Write-Host
+Write-Host "=== Completed AppVeyor.ps1 ===" -ForegroundColor Green
+Write-Host

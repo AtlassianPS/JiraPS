@@ -28,7 +28,7 @@ install:
 
 test_script:
 #    - ps: Invoke-Pester -Script $env:APPVEYOR_BUILD_FOLDER
-    - ps: . .\Tests\Appveyor.Pester.ps1
+    - ps: . .\Tests\Appveyor.ps1
 
 # Compile just the module into a zip file
 build_script:
