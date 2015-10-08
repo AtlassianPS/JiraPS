@@ -30,7 +30,8 @@ function Update-ModuleManifest {
 	Set-Content -Path $Path -Value $ManifestContent
 
 	$ManifestContent -match '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')' | Out-Null
-	Write-Host ('Module Version patched: ' + $Matches.ModuleVersion)
+	Write-Host 'Module Version patched: ' -ForegroundColor Cyan -NoNewline
+    Write-Host $Matches.ModuleVersion -ForegroundColor Green
 }
 #endregion
 
@@ -47,9 +48,11 @@ Write-Host $ModuleRoot -ForegroundColor Green
 
 $shouldDeploy = $false
 if ($env:APPVEYOR_REPO_COMMIT_MESSAGE -notmatch '\[release\]' -and $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED -notmatch 'release') {
-    Write-Host "This commit does not include the message [release], so it will not be published."
+    Write-Host "This commit does not include the message " -ForegroundColor Yellow -NoNewline
+    Write-Host "[release]" -ForegroundColor Green -NoNewline
+    Write-Host ", so it will not be published." -ForegroundColor Yellow
 } elseif ($env:APPVEYOR_REPO_BRANCH -ne 'master') {
-    Write-Host "This commit is not to branch [master], so it will not be published."
+    Write-Host "This commit is not to branch [master], so it will not be published." -ForegroundColor Yellow
 } elseif ($PSVersionTable.PSVersion -lt '5.0.0') {
     Write-Warning "We are not running in a PowerShell 5 environment, so the module cannot be pulbished."
 } else {
@@ -90,3 +93,7 @@ if ($shouldDeploy)
     Write-Host "Publishing module to PowerShell Gallery" -BackgroundColor Blue -ForegroundColor White
     Publish-Module @publishParams
 }
+
+Write-Host
+Write-Host "=== Completed Deploy.ps1 ===" -ForegroundColor Green
+Write-Host
