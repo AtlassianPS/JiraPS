@@ -12,7 +12,7 @@
 RootModule = 'PSJira.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.0'
+ModuleVersion = '1.1.1'
 
 # ID used to uniquely identify this module
 GUID = '4bf3eb15-037e-43b7-9e47-20a30436324f'
@@ -27,7 +27,7 @@ CompanyName = 'Unknown'
 Copyright = '(c) 2015 Joshua T. All rights reserved.'
 
 # Description of the functionality provided by this module
- Description = 'Windows PowerShell module to interact with Atlassian JIRA'
+Description = 'Windows PowerShell module to interact with Atlassian JIRA'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '3.0'

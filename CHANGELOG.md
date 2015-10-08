@@ -1,10 +1,7 @@
-## Next Release
-
-FEATURES:
+## 1.1.1 (Oct 08, 2015)
 
 IMPROVEMENTS:
-
-BUG FIXES:
+  - Set-JiraIssue now supports modifying arbitrary fields through the Fields parameter
 
 ## 1.1.0 (Sep 17, 2015)
 
@@ -25,3 +22,13 @@ This changelog is inspired by the
 [Pester](https://github.com/pester/Pester/blob/master/CHANGELOG.md) file, which
 is in turn inspired by the 
 [Vagrant](https://github.com/mitchellh/vagrant/blob/master/CHANGELOG.md) file.
+
+## Template
+
+  ## Next Release
+
+  FEATURES:
+
+  IMPROVEMENTS:
+
+  BUG FIXES:
