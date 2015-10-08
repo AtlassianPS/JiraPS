@@ -45,6 +45,9 @@ function Set-JiraIssue
         [Parameter(Mandatory = $false)]
         [Object] $Assignee,
 
+        # Any additional fields that should be updated
+        [System.Collections.Hashtable] $Fields,
+
         [ValidateScript({Test-Path $_})]
         [String] $ConfigFile,
 
@@ -58,7 +61,8 @@ function Set-JiraIssue
     begin
     {
         Write-Debug "[Set-JiraIssue] Checking to see if we have any operations to perform"
-        if (-not ($Summary -or $Description -or $Assignee))
+        $fieldNames = $Fields.Keys
+        if (-not ($Summary -or $Description -or $Assignee -or $fieldNames))
         {
             Write-Verbose "Nothing to do."
             return
@@ -128,6 +132,32 @@ function Set-JiraIssue
                     $actOnIssueUri = $true
                 }
 
+                if ($Fields)
+                {
+                    Write-Debug "[Set-JiraIssue] Validating field names"
+                    foreach ($k in $Fields.Keys)
+                    {
+                        $name = $k
+                        $value = $Fields.$k
+                        Write-Debug "[Set-JiraIssue] Attempting to identify field (name=[$name], value=[$value])"
+
+                        $f = Get-JiraField -Field $name -Credential $Credential
+                        if ($f)
+                        {
+                            $id = $f.ID
+                            Write-Debug "[Set-JiraIssue] Field [$name] was identified as ID [$id]"
+                            $issueProps.update.$id = @()
+                            $issueProps.update.$id += @{
+                                'set' = $value;
+                            }
+                            $actOnIssueUri = $true
+                        } else {
+                            Write-Debug "[Set-JiraIssue] Field [$name] could not be identified in Jira"
+                            throw "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
+                        }
+                    }
+                }
+
                 if ($validAssignee)
                 {
 
@@ -140,6 +170,8 @@ function Set-JiraIssue
 
                 if ($actOnIssueUri)
                 {
+                    Write-Debug "[Set-JiraIssue] IssueProps: [$issueProps]"
+                    
                     Write-Debug "[Set-JiraIssue] Converting results to JSON"
                     $json = ConvertTo-Json -InputObject $issueProps -Depth 3
                     $issueObjURL = $issueObj.RestUrl
