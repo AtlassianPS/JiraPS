@@ -1,3 +1,11 @@
+## 1.1.2 (Oct 16, 2015)
+
+FEATURES:
+  - Get-JiraFilter: get a reference to a JIRA filter, including its JQL and owner
+
+IMPROVEMENTS:
+  - Get-JiraIssue: now supports a -Filter parameter to obtain all issues matching a given filter object or ID
+
 ## 1.1.1 (Oct 08, 2015)
 
 IMPROVEMENTS:
