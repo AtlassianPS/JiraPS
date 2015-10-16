@@ -49,6 +49,13 @@ InModuleScope PSJira {
                 { Get-JiraFilter -Id 12345 } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
             }
+
+            It "Uses ConvertTo-JiraFilter to output a Filter object if JIRA returns data" {
+                Mock Invoke-JiraMethod -ModuleName PSJira { $true }
+                Mock ConvertTo-JiraFilter -ModuleName PSJira {}
+                { Get-JiraFilter -Id 12345 } | Should Not Throw
+                Assert-MockCalled -CommandName ConvertTo-JiraFilter -ModuleName PSJira
+            }
         }
 
         Context "Input testing" {

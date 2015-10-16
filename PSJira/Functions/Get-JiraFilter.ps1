@@ -38,13 +38,11 @@
 
             if ($result)
             {
-#                Write-Debug "[Get-JiraPriority] Converting REST result to JiraPriority object"
-#                $obj = ConvertTo-JiraPriority -InputObject $result
+                Write-Debug "[Get-JiraFilter] Converting result to JiraFilter object"
+                $obj = ConvertTo-JiraFilter -InputObject $result
 
-#                Write-Debug "[Get-JiraPriority] Outputting result"
-#                Write-Output $obj
                 Write-Debug "Outputting result"
-                Write-Output $result
+                Write-Output $obj
             } else {
                 Write-Debug "[Get-JiraFilter] Invoke-JiraFilter returned no results to output."
             }
