@@ -174,7 +174,7 @@ function Set-JiraIssue
                 if ($actOnIssueUri)
                 {
                     Write-Debug "[Set-JiraIssue] IssueProps: [$issueProps]"
-                    
+
                     Write-Debug "[Set-JiraIssue] Converting results to JSON"
                     $json = ConvertTo-Json -InputObject $issueProps -Depth 3
                     $issueObjURL = $issueObj.RestUrl

@@ -78,7 +78,7 @@ InModuleScope PSJira {
         defProp $r 'ViewUrl' 'https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844'
         defProp $r 'SearchUrl' 'https://jira.atlassian.com/rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
         defProp $r 'Favorite' $false
-        
+
     }
 }
 
