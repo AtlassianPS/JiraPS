@@ -49,7 +49,11 @@ function Get-JiraIssue
         [Alias('JQL')]
         [String] $Query,
 
+        [Parameter(ParameterSetName = 'ByFilter')]
+        [Object] $Filter,
+
         [Parameter(ParameterSetName = 'ByJQL')]
+        [Parameter(ParameterSetName = 'ByFilter')]
         [Int] $MaxResults = 50,
 
         # Credentials to use to connect to Jira
@@ -132,6 +136,24 @@ function Get-JiraIssue
                 }
             } else {
                 Write-Debug "[Get-JiraMethod] Invoke-JiraMethod returned no results"
+            }
+        } elseif ($PSCmdlet.ParameterSetName -eq 'ByFilter') {
+            $filterObj = Get-JiraFilter -InputObject $Filter -Credential $Credential
+            if ($filterObj)
+            {
+                $jql = $filterObj.JQL
+                Write-Debug "[Get-JiraIssue] Invoking myself with filter JQL: [$jql]"
+                $result = Get-JiraIssue -Query $jql -Credential $Credential -MaxResults $MaxResults
+                if ($result)
+                {
+                    Write-Debug "[Get-JiraIssue] Returned from invoking myself; outputting results"
+                    Write-Output $result
+                } else {
+                    Write-Debug "[Get-JiraIssue] Returned from invoking myself, but no results were found"
+                }
+            } else {
+                Write-Debug "[Get-JiraIssue] Unable to identify filter [$Filter]"
+                Write-Error "Unable to identify filter [$Filter]. Check Get-JiraFilter for more details."
             }
         }
     }
