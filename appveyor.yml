@@ -20,6 +20,9 @@ version: 1.1.1.{build}
 branches:
     only:
         - master
+# Don't rebuild when I tag a release on GitHub
+skip_tags: true
+
 skip_commits:
     message: /readme*/
 
