@@ -11,15 +11,22 @@
        Get-JiraFilter -Id 12345
        Gets a reference to filter ID 12345 from JIRA
     .INPUTS
-       [String[]] ID of the filter(s)
+       [Object[]] The filter to look up in JIRA. This can be a String (filter ID) or a PSJira.Filter object.
     .OUTPUTS
        [PSJira.Filter[]] Filter objects
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'ByFilterID')]
     param(
-        [Parameter(Mandatory = $true,
+        [Parameter(ParameterSetName = 'ByFilterID',
+                   Mandatory = $true,
                    Position = 0)]
         [String[]] $Id,
+
+        [Parameter(ParameterSetName = 'ByInputObject',
+                   Mandatory = $true,
+                   ValueFromPipeline = $true,
+                   ValueFromPipelineByPropertyName = $true)]
+        [Object[]] $InputObject,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
@@ -43,25 +50,46 @@
 
     process
     {
-        foreach ($i in $Id)
+        if ($PSCmdlet.ParameterSetName -eq 'ByFilterID')
         {
-            Write-Debug "[Get-JiraFilter] Processing filter [$i]"
-            $thisUri = $uri -f $i
-            Write-Debug "[Get-JiraFilter] Filter URI: [$thisUri]"
-            Write-Debug "[Get-JiraFilter] Preparing for blast off!"
-            $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
-
-            if ($result)
+            foreach ($i in $Id)
             {
-                Write-Debug "[Get-JiraFilter] Converting result to JiraFilter object"
-                $obj = ConvertTo-JiraFilter -InputObject $result
+                Write-Debug "[Get-JiraFilter] Processing filter [$i]"
+                $thisUri = $uri -f $i
+                Write-Debug "[Get-JiraFilter] Filter URI: [$thisUri]"
+                Write-Debug "[Get-JiraFilter] Preparing for blast off!"
+                $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
 
-                Write-Debug "Outputting result"
-                Write-Output $obj
-            } else {
-                Write-Debug "[Get-JiraFilter] Invoke-JiraFilter returned no results to output."
+                if ($result)
+                {
+                    Write-Debug "[Get-JiraFilter] Converting result to JiraFilter object"
+                    $obj = ConvertTo-JiraFilter -InputObject $result
+
+                    Write-Debug "Outputting result"
+                    Write-Output $obj
+                } else {
+                    Write-Debug "[Get-JiraFilter] Invoke-JiraFilter returned no results to output."
+                }
+
             }
+        } else {
+            foreach ($i in $InputObject)
+            {
+                Write-Debug "[Get-JiraFilter] Processing InputObject [$i]"
+                if ((Get-Member -InputObject $i).TypeName -eq 'PSJira.Filter')
+                {
+                    Write-Debug "[Get-JiraFilter] User parameter is a PSJira.Filter object"
+                    $thisId = $i.ID
+                } else {
+                    $thisId = $i.ToString()
+                    Write-Debug "[Get-JiraFilter] ID is assumed to be [$thisId] via ToString()"
+                }
 
+                Write-Debug "[Get-JiraFilter] Invoking myself with the FilterID parameter set to search for filter ID [$thisId]"
+                $filterObj = Get-JiraFilter -Id $thisId -Credential $Credential
+                Write-Debug "[Get-JiraFilter] Returned from invoking myself; outputting results"
+                Write-Output $filterObj
+            }
         }
     }
 
