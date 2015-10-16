@@ -1,4 +1,4 @@
-## 1.1.2 (Oct 16, 2015)
+## 1.2.0 (Oct 16, 2015)
 
 FEATURES:
   - Get-JiraFilter: get a reference to a JIRA filter, including its JQL and owner
