@@ -4,32 +4,67 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 
 InModuleScope PSJira {
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
+    $ShowMockData = $false
+    $ShowDebugText = $false
 
-    $projectID = 10003
-    $projectName = 'Test Project'
+    Describe "Get-JiraIssueCreateMetadata" {
 
-    $issueTypeID = 2
-    $issueTypeName = 'Test Issue Type'
+        if ($ShowDebugText)
+        {
+            Mock 'Write-Debug' {
+                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
+            }
+        }
 
-    $restResult = @"
+        Mock Get-JiraConfigServer {
+            'https://jira.example.com'
+        }
+
+        # If we don't override this in a context or test, we don't want it to
+        # actually try to query a JIRA instance
+        Mock Invoke-JiraMethod -ModuleName PSJira {
+            if ($ShowMockData)
+            {
+                Write-Host "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
+                Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
+                Write-Host "         [Method]  $Method" -ForegroundColor Cyan
+            }
+        }
+
+        Context "Sanity checking" {
+            $command = Get-Command -Name Get-JiraIssueCreateMetadata
+
+            function defParam($name)
+            {
+                It "Has a -$name parameter" {
+                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
+                }
+            }
+
+            defParam 'Project'
+            defParam 'IssueType'
+            defParam 'Credential'
+        }
+
+        Context "Behavior testing" {
+
+            $restResult = ConvertFrom-Json @'
 {
   "expand": "projects",
   "projects": [
     {
       "expand": "issuetypes",
-      "self": "$jiraServer/rest/api/2/project/10003",
-      "id": "$projectId",
-      "key": "IT",
-      "name": "$projectName",
+      "self": "https://jira.example.com/rest/api/2/project/10003",
+      "id": "10003",
+      "key": "TEST",
+      "name": "Test Project",
       "issuetypes": [
         {
-          "self": "$jiraServer/rest/api/latest/issuetype/2",
-          "id": "$issueTypeID",
-          "description": "An issue related to end-user workstations.",
-          "name": "$issueTypeName",
+          "self": "https://jira.example.com/rest/api/latest/issuetype/2",
+          "id": "2",
+          "iconUrl": "https://jira.example.com/images/icons/issuetypes/newfeature.png",
+          "name": "Test Issue Type",
+          "subtask": false,
           "expand": "fields",
           "fields": {
             "summary": {
@@ -55,11 +90,11 @@ InModuleScope PSJira {
               "operations": [],
               "allowedValues": [
                 {
-                  "self": "$jiraServer/rest/api/2/issuetype/2",
-                  "id": "$issueTypeID",
-                  "description": "An issue related to end-user workstations.",
-                  "iconUrl": "$jiraServer/images/icons/issuetypes/newfeature.png",
-                  "name": "$issueTypeName",
+                  "self": "https://jira.example.com/rest/api/2/issuetype/2",
+                  "id": "2",
+                  "description": "This is a test issue type",
+                  "iconUrl": "https://jira.example.com/images/icons/issuetypes/newfeature.png",
+                  "name": "Test Issue Type",
                   "subtask": false
                 }
               ]
@@ -89,12 +124,12 @@ InModuleScope PSJira {
               ],
               "allowedValues": [
                 {
-                  "self": "$jiraServer/rest/api/2/project/$projectId",
-                  "id": "$projectId",
-                  "key": "IT",
-                  "name": "$projectName",
+                  "self": "https://jira.example.com/rest/api/2/project/10003",
+                  "id": "10003",
+                  "key": "TEST",
+                  "name": "Test Project",
                   "projectCategory": {
-                    "self": "$jiraServer/rest/api/2/projectCategory/10000",
+                    "self": "https://jira.example.com/rest/api/2/projectCategory/10000",
                     "id": "10000",
                     "description": "All Project Catagories",
                     "name": "All Project"
@@ -109,7 +144,7 @@ InModuleScope PSJira {
                 "system": "reporter"
               },
               "name": "Reporter",
-              "autoCompleteUrl": "$jiraServer/rest/api/latest/user/search?username=",
+              "autoCompleteUrl": "https://jira.example.com/rest/api/latest/user/search?username=",
               "hasDefaultValue": false,
               "operations": [
                 "set"
@@ -122,7 +157,7 @@ InModuleScope PSJira {
                 "system": "assignee"
               },
               "name": "Assignee",
-              "autoCompleteUrl": "$jiraServer/rest/api/latest/user/assignable/search?issueKey=null&username=",
+              "autoCompleteUrl": "https://jira.example.com/rest/api/latest/user/assignable/search?issueKey=null&username=",
               "hasDefaultValue": false,
               "operations": [
                 "set"
@@ -141,123 +176,34 @@ InModuleScope PSJira {
               ],
               "allowedValues": [
                 {
-                  "self": "$jiraServer/rest/api/2/priority/1",
-                  "iconUrl": "$jiraServer/images/icons/priorities/blocker.png",
-                  "name": "Critical",
+                  "self": "https://jira.example.com/rest/api/2/priority/1",
+                  "iconUrl": "https://jira.example.com/images/icons/priorities/blocker.png",
+                  "name": "Blocker",
                   "id": "1"
                 },
                 {
-                  "self": "$jiraServer/rest/api/2/priority/2",
-                  "iconUrl": "$jiraServer/images/icons/priorities/critical.png",
-                  "name": "High",
+                  "self": "https://jira.example.com/rest/api/2/priority/2",
+                  "iconUrl": "https://jira.example.com/images/icons/priorities/critical.png",
+                  "name": "Critical",
                   "id": "2"
                 },
                 {
-                  "self": "$jiraServer/rest/api/2/priority/3",
-                  "iconUrl": "$jiraServer/images/icons/priorities/major.png",
-                  "name": "Normal",
+                  "self": "https://jira.example.com/rest/api/2/priority/3",
+                  "iconUrl": "https://jira.example.com/images/icons/priorities/major.png",
+                  "name": "Major",
                   "id": "3"
                 },
                 {
-                  "self": "$jiraServer/rest/api/2/priority/4",
-                  "iconUrl": "$jiraServer/images/icons/priorities/minor.png",
-                  "name": "Project",
+                  "self": "https://jira.example.com/rest/api/2/priority/4",
+                  "iconUrl": "https://jira.example.com/images/icons/priorities/minor.png",
+                  "name": "Minor",
                   "id": "4"
                 },
                 {
-                  "self": "$jiraServer/rest/api/2/priority/5",
-                  "iconUrl": "$jiraServer/images/icons/priorities/trivial.png",
-                  "name": "Low",
+                  "self": "https://jira.example.com/rest/api/2/priority/5",
+                  "iconUrl": "https://jira.example.com/images/icons/priorities/trivial.png",
+                  "name": "Trivial",
                   "id": "5"
-                }
-              ]
-            },
-            "customfield_10001": {
-              "required": false,
-              "schema": {
-                "type": "datetime",
-                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:datetime",
-                "customId": 10001
-              },
-              "name": "Requested Completion Date",
-              "hasDefaultValue": false,
-              "operations": [
-                "set"
-              ]
-            },
-            "customfield_10012": {
-              "required": true,
-              "schema": {
-                "type": "string",
-                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
-                "customId": 10012
-              },
-              "name": "Contact Phone",
-              "hasDefaultValue": false,
-              "operations": [
-                "set"
-              ]
-            },
-            "customfield_10002": {
-              "required": true,
-              "schema": {
-                "type": "string",
-                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:textfield",
-                "customId": 10002
-              },
-              "name": "Issue Location",
-              "hasDefaultValue": false,
-              "operations": [
-                "set"
-              ]
-            },
-            "customfield_10014": {
-              "required": false,
-              "schema": {
-                "type": "string",
-                "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
-                "customId": 10014
-              },
-              "name": "Hardware Type",
-              "hasDefaultValue": false,
-              "operations": [
-                "set"
-              ],
-              "allowedValues": [
-                {
-                  "self": "$jiraServer/rest/api/2/customFieldOption/10017",
-                  "value": "PC",
-                  "id": "10017"
-                },
-                {
-                  "self": "$jiraServer/rest/api/2/customFieldOption/10018",
-                  "value": "MAC",
-                  "id": "10018"
-                },
-                {
-                  "self": "$jiraServer/rest/api/2/customFieldOption/10080",
-                  "value": "Cell Phone",
-                  "id": "10080"
-                },
-                {
-                  "self": "$jiraServer/rest/api/2/customFieldOption/10019",
-                  "value": "Monitor",
-                  "id": "10019"
-                },
-                {
-                  "self": "$jiraServer/rest/api/2/customFieldOption/10020",
-                  "value": "Printer",
-                  "id": "10020"
-                },
-                {
-                  "self": "$jiraServer/rest/api/2/customFieldOption/10021",
-                  "value": "Copier",
-                  "id": "10021"
-                },
-                {
-                  "self": "$jiraServer/rest/api/2/customFieldOption/10022",
-                  "value": "Other",
-                  "id": "10022"
                 }
               ]
             },
@@ -269,7 +215,7 @@ InModuleScope PSJira {
                 "system": "labels"
               },
               "name": "Labels",
-              "autoCompleteUrl": "$jiraServer/rest/api/1.0/labels/suggest?query=",
+              "autoCompleteUrl": "https://jira.example.com/rest/api/1.0/labels/suggest?query=",
               "hasDefaultValue": false,
               "operations": [
                 "add",
@@ -283,59 +229,50 @@ InModuleScope PSJira {
     }
   ]
 }
-"@
+'@
 
-    Describe "Get-JiraIssueCreateMetadata" {
+            Mock Get-JiraProject -ModuleName PSJira {
+                [PSCustomObject] @{
+                    ID = 10003;
+                    Name = 'Test Project';
+                }
+            }
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
-            Write-Output $jiraServer
-        }
+            Mock Get-JiraIssueType -ModuleName PSJira {
+                [PSCustomObject] @{
+                    ID = 2;
+                    Name = 'Test Issue Type';
+                }
+            }
 
-        Mock Get-JiraProject -ModuleName PSJira {
-            [PSCustomObject] @{
-                ID = $projectID;
-                Name = $projectName;
+            It "Queries Jira for metadata information about creating an issue" {
+                { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should Not Throw
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/createmeta?projectIds=10003&issuetypeIds=2&expand=projects.issuetypes.fields'}
+            }
+
+            It "Uses ConvertTo-JiraCreateMetaField to output CreateMetaField objects if JIRA returns data" {
+
+                # This is a simplified version of what JIRA will give back
+                Mock Invoke-JiraMethod -ModuleName PSJira {
+                    @{
+                        projects = @{
+                            issuetypes = @{
+                                fields = [PSCustomObject] @{
+                                    'a' = 1;
+                                    'b' = 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                Mock ConvertTo-JiraCreateMetaField -ModuleName PSJira {}
+
+                { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should Not Throw
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/createmeta?projectIds=10003&issuetypeIds=2&expand=projects.issuetypes.fields'}
+
+                # Should be called 2 times since there are 2 example fields in our mock above
+                Assert-MockCalled -CommandName ConvertTo-JiraCreateMetaField -ModuleName PSJira -Exactly -Times 2 -Scope It
             }
         }
-
-        Mock Get-JiraIssueType -ModuleName PSJira {
-            [PSCustomObject] @{
-                ID = $issueTypeID;
-                Name = $issueTypeName;
-            }
-        }
-
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/createmeta?projectIds=$projectID&issuetypeIds=$issueTypeID&expand=projects.issuetypes.fields"} {
-            ConvertFrom-Json -InputObject $restResult
-        }
-
-        # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
-            throw "Unidentified call to Invoke-JiraMethod"
-        }
-
-        #############
-        # Tests
-        #############
-
-        It "Queries Jira for metadata information about creating an issue" {
-            $meta = Get-JiraIssueCreateMetadata -Project $projectID -IssueType $issueTypeName
-            $meta | Should Not BeNullOrEmpty
-            @($meta).Count | Should Be @((ConvertFrom-Json -InputObject $restResult).projects.issuetypes.fields | Get-Member -MemberType NoteProperty).Count
-        }
-
-        It "Returns fields in a format that is easy to filter and use" {
-            @(Get-JiraIssueCreateMetadata -Project $projectID -IssueType $issueTypeName | ? {$_.Required -eq $true}).Count | Should Be 6
-        }
-
-        It "Sets the type name of the output objects to PSJira.CreateMetaField" {
-            (Get-Member -InputObject (Get-JiraIssueCreateMetadata -Project $projectID -IssueType $issueTypeName)[0]).TypeName | Should Be 'PSJira.CreateMetaField'
-        }
-
     }
 }
-
-

@@ -114,31 +114,17 @@ function Get-JiraIssueCreateMetadata
                 throw "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
             }
 
-            $issueTypeId = $jiraResult.projects.issuetypes.id
-            $issueTypeName = $jiraResult.projects.issuetypes.name
-
-            Write-Debug "[Get-JiraIssueCreateMetadata] Obtaining reference to fields"
             $fields = $jiraResult.projects.issuetypes.fields
-
-            Write-Debug "[Get-JiraIssueCreateMetadata] Obtaining field names"
             $fieldNames = (Get-Member -InputObject $fields -MemberType '*Property').Name
 
-            $resultArrayList = New-Object -TypeName System.Collections.ArrayList
-            foreach ($name in $fieldNames)
+            foreach ($f in $fieldNames)
             {
-                $thisRaw = $fields.$name
-                $obj = [PSCustomObject] @{
-                    'Id' = $name;
-                    'Name' = $thisRaw.name;
-                    'Required' = [bool]::Parse($thisRaw.required);
-                    'HasDefaultValue' = [bool]::Parse($thisRaw.hasDefaultValue);
-                    'Project' = $projectObj;
-                    'IssueType' = $issueTypeObj;
-                }
-
-                $obj.PSObject.TypeNames.Insert(0, 'PSJira.CreateMetaField')
+                Write-Debug "[Get-JiraIssueCreateMetadata] Converting field [$f]"
+                $obj = ConvertTo-JiraCreateMetaField -InputObject $fields.$f
                 Write-Output $obj
             }
+        } else {
+            Write-Debug "[Get-JiraIssueCreateMetadata] No results were returned from JIRA."
         }
     }
 }
