@@ -54,10 +54,10 @@ function Invoke-JiraMethod
         if ($session -and $Body)
         {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using WebSession and Body"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $Body -WebSession $session.WebSession -SessionVariable $sessionOut -ErrorAction SilentlyContinue
+            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $Body -WebSession $session.WebSession -ErrorAction SilentlyContinue
         } elseif ($session) {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using WebSession"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -WebSession $session.WebSession -SessionVariable $sessionOut -ErrorAction SilentlyContinue
+            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -WebSession $session.WebSession -ErrorAction SilentlyContinue
         } elseif ($Body) {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using Body"
             $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $Body -ErrorAction SilentlyContinue
