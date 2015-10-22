@@ -94,15 +94,10 @@ function Get-JiraIssueCreateMetadata
             if (@($jiraResult.projects).Count -eq 0)
             {
                 Write-Debug "[Get-JiraIssueCreateMetadata] No project results were found. Throwing exception."
-                if (-not ($Credential))
-                {
-                    throw "No projects were found for the given project type (projectKey=[$Project]). If you are certain that the key is correct, try passing credentials to Jira using the -Credential parameter."
-                } else {
-                    throw "No projects were found for the given project type (projectKey=[$Project])."
-                }
+                throw "No projects were found for the given project [$Project]. Use Get-JiraProject for more details."
             } elseif (@($jiraResult.projects).Count -gt 1) {
                 Write-Debug "[Get-JiraIssueCreateMetadata] Multiple project results were found. Throwing exception."
-                throw "Multiple projects were found for the given project type (projectKey=[$Project]). Refine the parameters to return only one project."
+                throw "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
             }
 
             $projectId = $jiraResult.projects.id
@@ -113,10 +108,10 @@ function Get-JiraIssueCreateMetadata
             if (@($jiraResult.projects.issuetypes) -eq 0)
             {
                 Write-Debug "[Get-JiraIssueCreateMetadata] No issue type results were found. Throwing exception."
-                throw "No issue types were found for the given project type (issuetypeName=[$IssueType])."
+                throw "No issue types were found for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
             } elseif (@($jiraResult.projects.issuetypes).Count -gt 1) {
                 Write-Debug "[Get-JiraIssueCreateMetadata] Multiple issue type results were found. Throwing exception."
-                throw "Multiple issue types were found for the given issue type (issuetypeName=[$IssueType]). Refine the parameters to return only one issue type."
+                throw "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
             }
 
             $issueTypeId = $jiraResult.projects.issuetypes.id
