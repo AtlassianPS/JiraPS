@@ -35,8 +35,6 @@ Set-JiraConfigServer "https://jira.example.com"
 Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/Getting-Started) page on the project wiki for detailed use information.
 
 ## Planned features
-
-* Support for filters in JIRA
 * Support for multiple config files and/or alternate config file locations
 * Possible support for OAuth in addition to HTTP Basic authentication
 
