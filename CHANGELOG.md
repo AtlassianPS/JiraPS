@@ -1,3 +1,8 @@
+## 1.2.1 (Oct 26, 2015)
+IMPROVEMENTS:
+  - Get-JiraIssueCreateMetadata: changed output type from a generic PSCustomObject to new type PSJira.CreateMetaField
+  - Get-JiraIssueCreateMetadata: now returns additional properties for field metadata, such as AllowedValues
+
 ## 1.2.0 (Oct 16, 2015)
 
 FEATURES:
