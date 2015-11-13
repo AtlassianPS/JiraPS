@@ -1,5 +1,33 @@
 ﻿function Set-JiraIssueLabel
 {
+    <#
+    .Synopsis
+       Modifies labels on an existing JIRA issue
+    .DESCRIPTION
+       This function modifies labels on an existing JIRA issue.  There are
+       four supported operations on labels:
+
+       * Add: appends additional labels to the labels that an issue already has
+       * Remove: Removes labels from an issue's current labels
+       * Set: erases the existing labels on the issue and replaces them with
+       the provided values
+       * Clear: removes all labels from the issue
+    .EXAMPLE
+       Set-JiraIssueLabel -Issue TEST-01 -Set 'fixed'
+       This example replaces all existing labels on issue TEST-01 with one
+       label, "fixed".
+    .EXAMPLE
+       $jql = 'created >= -7d AND reporter in (joeSmith)'
+       Get-JiraIssue -Query $jql | Set-JiraIssueLabel -Add 'enhancement'
+       This issue adds the "enhancement" label to all issues matching the JQL
+       set in the $jql variable - in this case, all issues created by user
+       joeSmith in the last 7 days.
+    .INPUTS
+       [PSJira.Issue[]] The JIRA issue that should be modified
+    .OUTPUTS
+       If the -PassThru parameter is provided, this function will provide a reference
+       to the JIRA issue modified.  Otherwise, this function does not provide output.
+    #>
     [CmdletBinding(DefaultParameterSetName = 'ReplaceLabels')]
     param(
         # Issue key or PSJira.Issue object returned from Get-JiraIssue
