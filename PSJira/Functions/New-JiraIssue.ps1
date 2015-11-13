@@ -48,6 +48,9 @@ function New-JiraIssue
         [Object] $Reporter,
 
         [Parameter(Mandatory = $false)]
+        [String[]] $Labels,
+
+        [Parameter(Mandatory = $false)]
         [Hashtable] $Fields,
 
         [Parameter(Mandatory = $false)]
@@ -121,6 +124,7 @@ function New-JiraIssue
             "issuetype"=$IssueTypeParam;
             "priority"=$PriorityParam;
             "reporter"=$ReporterParam;
+            "labels"=$Labels;
         }
 
         Write-Debug "[New-JiraIssue] Processing Fields parameter"

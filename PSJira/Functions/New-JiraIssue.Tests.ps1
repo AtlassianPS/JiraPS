@@ -1,156 +1,125 @@
-#param(
-#    [Switch] $ShowMockData
-#)
-
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
 
-    # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
-    # For the time being, we'll need to hard-code this and adjust it as desired.
     $ShowMockData = $false
+    $ShowDebugText = $false
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
-
-    $projectId = 10003
-    $projectName = 'Information Technology'
-    $projectKey = 'IT'
-
-    $issueTypeId = 2
-    $issueTypeName = 'Desktop Support'
-
-    $customField1Id = 'customfield_10002'
-    $customField1Name = 'Issue Location';
-
-    $customField2Id = 'customfield_10012';
-    $customField2Name = 'Contact Phone';
-
-    $testUsername = 'powershell-test'
-
-    $restResultNew = @"
-{
-  "id": "$issueID",
-  "key": "$issueKey",
-  "self": "$jiraServer/rest/api/latest/issue/$issueID"
-}
-"@
     Describe "New-JiraIssue" {
-
-        Mock Get-JiraConfigServer -ModuleName PSJira {
-            Write-Output $jiraServer
-        }
-
-        Mock Get-JiraProject -ModuleName PSJira {
-            [PSCUstomObject] @{
-                'ID'   = $projectId;
-                'Name' = $projectName;
-                'Key'  = $projectKey;
+        if ($ShowDebugText)
+        {
+            Mock "Write-Debug" {
+                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 
-        Mock Get-JiraIssueType -ModuleName PSJira {
+        Mock Get-JiraConfigServer {
+            'https://jira.example.com'
+        }
+
+        # If we don't override this in a context or test, we don't want it to
+        # actually try to query a JIRA instance
+        Mock Invoke-JiraMethod {}
+
+        Mock Get-JiraProject {
             [PSCustomObject] @{
-                'Id'   = $issueTypeId;
-                'Name' = $issueTypeName;
+                'ID'=$Project;
             }
         }
 
-        Mock Get-JiraIssueCreateMetadata -ModuleName PSJira {
+        Mock Get-JiraIssueType {
             [PSCustomObject] @{
-                'Id'       = $customField1Id;
-                'Name'     = $customField1Name;
-                'Required' = $true;
-            }
-
-            [PSCustomObject] @{
-                'Id'       = $customField2Id;
-                'Name'     = $customField2Name;
-                'Required' = $true;
+                'ID'=$IssueType;
             }
         }
 
-        Mock Get-JiraUser -ModuleName PSJira {
+        Mock Get-JiraUser {
             [PSCustomObject] @{
-                'Name' = $testUsername;
+                'Name'=$UserName;
             }
         }
 
-        Mock Get-JiraField -ModuleName PSJira -ParameterFilter {$Field -eq $customField1Id -or $Field -eq $customField1Name} {
-            [PSCustomObject] @{
-                'ID' = $customField1Id;
-                'Name' = $customField1Name;
+        # This one needs to be able to output multiple objects
+        Mock Get-JiraField {
+            $Field | % {
+                [PSCustomObject] @{
+                    'ID'=$_;
+                }
             }
         }
 
-        Mock Get-JiraField -ModuleName PSJira -ParameterFilter {$Field -eq $customField2Id -or $Field -eq $customField2Name} {
-            [PSCustomObject] @{
-                'ID' = $customField2Id;
-                'Name' = $customField2Name;
-            }
+        $newParams = @{
+            'Project'     = 'TEST';
+            'IssueType'   = 1;
+            'Priority'    = 1;
+            'Reporter'    = 'testUsername';
+            'Summary'     = 'Test summary';
+            'Description' = 'Test description';
         }
 
-        # This should be called when actually creating the issue
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue"} {
-            if ($ShowMockData)
+        Context "Sanity checking" {
+            $command = Get-Command -Name New-JiraIssue
+
+            function defParam($name)
             {
-                Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+                It "Has a -$name parameter" {
+                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
+                }
             }
-            ConvertFrom-Json $restResultNew
+
+            defParam 'Project'
+            defParam 'IssueType'
+            defParam 'Priority'
+            defParam 'Summary'
+            defParam 'Description'
+            defParam 'Reporter'
+            defParam 'Labels'
+            defParam 'Fields'
+            defParam 'Credential'
         }
 
-        Mock Get-JiraIssue -ModuleName PSJira -ParameterFilter {$Key -eq $issueKey} {
-            ConvertTo-JiraIssue ([PSCustomObject] @{
-                ID  = $issueID;
-                Key = $issueKey;
-                fields = @{}
-            })
+        Context "Behavior testing" {
+            Mock Invoke-JiraMethod {
+                if ($ShowMockData)
+                {
+                    Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
+                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
+                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
+                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                }
+            }
+
+            
+
+            It "Creates an issue in JIRA" {
+                { New-JiraIssue @newParams } | Should Not Throw
+                # The String in the ParameterFilter is made from the keywords
+                # we should expect to see in the JSON that should be sent,
+                # including the summary provided in the test call above.
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like '*/rest/api/*/issue' }
+            }
         }
 
-        # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
-            throw "Unidentified call to Invoke-JiraMethod"
-        }
+        Context "Input testing" {
+            It "Checks to make sure all required fields are provided" {
+                # We'll create a custom field that's required, then see what happens when we don't provide it
+                Mock Get-JiraIssueCreateMetadata {
+                    @(
+                        @{Name='Project';     ID='Project';     Required=$true},
+                        @{Name='IssueType';   ID='IssueType';   Required=$true},
+                        @{Name='Priority';    ID='Priority';    Required=$true},
+                        @{Name='Summary';     ID='Summary';     Required=$true},
+                        @{Name='Description'; ID='Description'; Required=$true},
+                        @{Name='Reporter';    ID='Reporter';    Required=$true},
+                        @{Name='CustomField'; ID='CustomField'; Required=$true}
+                    )
+                }
 
-        #############
-        # Tests
-        #############
-
-        It "Creates an issue in JIRA and returns a result" {
-            $newResult = New-JiraIssue -Project $projectKey -IssueType $issueTypeName -Priority 1 -Reporter $testUsername -Summary 'Test summary - new issue' -Description 'This is a test of creating a new Jira issue via PowerShell.' -Fields @{$customField1Name ='.'; $customField2Name = '.'}
-            $newResult | Should Not BeNullOrEmpty
-            $newResult.Key | Should Be $issueKey
-        }
-
-        It "Checks to make sure all reqiured custom fields are provided" {
-            { $newResult = New-JiraIssue -Project $projectKey -IssueType $issueTypeName -Priority 1 -Reporter $testUsername -Summary 'Test summary - new issue' -Description 'This is a test of creating a new Jira issue without custom fields that should be required.' } | Should Throw
-            { $newResult = New-JiraIssue -Project $projectKey -IssueType $issueTypeName -Priority 1 -Reporter $testUsername -Summary 'Test summary - new issue' -Description 'This is a test of creating a new Jira issue without custom fields that should be required.' -Fields @{$customField1Name = '.'} } | Should Throw
-        }
-
-        It "Sets the type name of the output object to PSJira.Issue" {
-            $newResult = New-JiraIssue -Project $projectKey -IssueType $issueTypeName -Priority 1 -Reporter $testUsername -Summary 'Test summary - new issue' -Description 'This is a test of creating a new Jira issue via PowerShell.' -Fields @{$customField1Name ='.'; $customField2Name = '.'}
-            (Get-Member -InputObject $newResult).TypeName | Should Be 'PSJira.Issue'
-        }
-
-        It "Accepts either the issue type ID or the issue type Name" {
-            $nameResult = New-JiraIssue -Project $projectKey -IssueType $issueTypeName -Priority 1 -Reporter $testUsername -Summary 'Test summary - new issue' -Description 'This is a test of creating a new Jira issue via PowerShell.' -Fields @{$customField1Name ='.'; $customField2Name = '.'}
-            $idResult = New-JiraIssue -Project $projectKey -IssueType $issueTypeId -Priority 1 -Reporter $testUsername -Summary 'Test summary - new issue' -Description 'This is a test of creating a new Jira issue via PowerShell.' -Fields @{$customField1Name ='.'; $customField2Name = '.'}
-            $nameResult.Key | Should Be $idResult.Key
-        }
-
-        It "Defaults to the Credential's username if the -Reporter parameter is not specified" {
-            $reporterResult = New-JiraIssue -Project 'IT' -IssueType 2 -Priority 1 -Summary 'Test summary - new issue' -Description 'This is a test of creating a new Jira issue without specifying the reporter.' -Fields @{$customField1Name ='.'; $customField2Name = '.'}
-            # I'm not sure how to test this...
+                { New-JiraIssue @newParams } | Should Throw
+                { New-JiraIssue @newParams -Fields @{CustomField='.'} } | Should Not Throw
+            }
         }
     }
 }
-
-
