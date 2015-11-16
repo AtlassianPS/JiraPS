@@ -107,15 +107,13 @@ function Get-JiraIssueCreateMetadata
                 throw "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
             }
 
-            $fields = $jiraResult.projects.issuetypes.fields
-            $fieldNames = (Get-Member -InputObject $fields -MemberType '*Property').Name
+            Write-Debug "[Get-JiraIssueCreateMetadata] Converting results to custom object"
+            $obj = ConvertTo-JiraCreateMetaField -InputObject $jiraResult
 
-            foreach ($f in $fieldNames)
-            {
-                Write-Debug "[Get-JiraIssueCreateMetadata] Converting field [$f]"
-                $obj = ConvertTo-JiraCreateMetaField -InputObject $fields.$f
-                Write-Output $obj
-            }
+            Write-Debug "Outputting results"
+            Write-Output $obj
+
+#            Write-Output $jiraResult
         } else {
             Write-Debug "[Get-JiraIssueCreateMetadata] No results were returned from JIRA."
         }
