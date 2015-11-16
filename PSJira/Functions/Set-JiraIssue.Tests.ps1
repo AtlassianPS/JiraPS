@@ -43,6 +43,7 @@ InModuleScope PSJira {
             defParam 'Summary'
             defParam 'Description'
             defParam 'Assignee'
+            defParam 'Label'
             defParam 'Fields'
             defParam 'Credential'
             defParam 'PassThru'
@@ -68,6 +69,8 @@ InModuleScope PSJira {
                     'Name' = 'username'
                 }
             }
+
+            Mock Set-JiraIssueLabel {}
 
             It "Modifies the summary of an issue if the -Summary parameter is passed" {
                 { Set-JiraIssue -Issue TEST-001 -Summary 'New summary' } | Should Not Throw
@@ -96,6 +99,11 @@ InModuleScope PSJira {
                 { Set-JiraIssue -Issue TEST-001 -Summary 'New summary' -Assignee username } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*summary*set*New summary*' }
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345/assignee' -and $Body -like '*name*username*' }
+            }
+
+            It "Uses Set-JiraIssueLabel with the -Set parameter when the -Label parameter is used" {
+                { Set-JiraIssue -Issue TEST-001 -Label 'test' } | Should Not Throw
+                Assert-MockCalled -CommandName Set-JiraIssueLabel -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Set -ne $null }
             }
 
             It "Updates custom fields if provided to the -Fields parameter" {
