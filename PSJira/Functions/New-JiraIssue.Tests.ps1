@@ -91,8 +91,6 @@ InModuleScope PSJira {
                 }
             }
 
-            
-
             It "Creates an issue in JIRA" {
                 { New-JiraIssue @newParams } | Should Not Throw
                 # The String in the ParameterFilter is made from the keywords
