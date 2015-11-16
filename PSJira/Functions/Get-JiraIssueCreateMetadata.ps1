@@ -68,13 +68,6 @@ function Get-JiraIssueCreateMetadata
         $issueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential
         if ($issueTypeObj)
         {
-#            #$n = [System.Net.WebUtility]::UrlEncode($IssueType)
-#            # This escapes URLs in the correct syntax for a Web request.
-#            # Need to load the assembly before we use this class.
-#            Add-Type -AssemblyName System.Web
-#            $n = [System.Web.HttpUtility]::UrlPathEncode($IssueType)
-#            $uri = "${uri}issuetypeNames=$n&"
-
             $issueTypeId = $issueTypeObj.Id
             $uri = "${uri}issuetypeIds=$issueTypeId&"
         } else {
@@ -114,15 +107,13 @@ function Get-JiraIssueCreateMetadata
                 throw "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
             }
 
-            $fields = $jiraResult.projects.issuetypes.fields
-            $fieldNames = (Get-Member -InputObject $fields -MemberType '*Property').Name
+            Write-Debug "[Get-JiraIssueCreateMetadata] Converting results to custom object"
+            $obj = ConvertTo-JiraCreateMetaField -InputObject $jiraResult
 
-            foreach ($f in $fieldNames)
-            {
-                Write-Debug "[Get-JiraIssueCreateMetadata] Converting field [$f]"
-                $obj = ConvertTo-JiraCreateMetaField -InputObject $fields.$f
-                Write-Output $obj
-            }
+            Write-Debug "Outputting results"
+            Write-Output $obj
+
+#            Write-Output $jiraResult
         } else {
             Write-Debug "[Get-JiraIssueCreateMetadata] No results were returned from JIRA."
         }

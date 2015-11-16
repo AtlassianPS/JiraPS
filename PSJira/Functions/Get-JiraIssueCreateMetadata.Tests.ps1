@@ -270,8 +270,10 @@ InModuleScope PSJira {
                 { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/createmeta?projectIds=10003&issuetypeIds=2&expand=projects.issuetypes.fields'}
 
-                # Should be called 2 times since there are 2 example fields in our mock above
-                Assert-MockCalled -CommandName ConvertTo-JiraCreateMetaField -ModuleName PSJira -Exactly -Times 2 -Scope It
+                # There are 2 example fields in our mock above, but they should
+                # be passed to Convert-JiraCreateMetaField as a single object.
+                # The method should only be called once.
+                Assert-MockCalled -CommandName ConvertTo-JiraCreateMetaField -ModuleName PSJira -Exactly -Times 1 -Scope It
             }
         }
     }
