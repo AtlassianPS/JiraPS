@@ -40,6 +40,13 @@ InModuleScope PSJira {
                 }
             }
 
+            function defAlias($name, $definition)
+            {
+                It "Supports the $name alias for the $definition parameter" {
+                    $command.Parameters.Item($definition).Aliases | Where-Object -FilterScript {$_ -eq $name} | Should Not BeNullOrEmpty
+                }
+            }
+
             defParam 'Issue'
             defParam 'Set'
             defParam 'Add'
@@ -48,13 +55,9 @@ InModuleScope PSJira {
             defParam 'Credential'
             defParam 'PassThru'
 
-            It "Supports the Key alias for the Issue parameter" {
-                $command.Parameters.Item('Issue').Aliases | Where-Object -FilterScript {$_ -eq 'Key'} | Should Not BeNullOrEmpty
-            }
-            
-            It "Supports the Label alias for the Set parameter" {
-                $command.Parameters.Item('Set').Aliases | Where-Object -FilterScript {$_ -eq 'Label'} | Should Not BeNullOrEmpty
-            }
+            defAlias 'Key' 'Issue'
+            defAlias 'Label' 'Set'
+            defAlias 'Replace' 'Set'
         }
 
         Context "Behavior testing" {

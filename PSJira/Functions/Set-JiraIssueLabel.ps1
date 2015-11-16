@@ -40,7 +40,7 @@
 
         [Parameter(ParameterSetName = 'ReplaceLabels',
                    Mandatory = $true)]
-        [Alias('Label')]
+        [Alias('Label','Replace')]
         [String[]] $Set,
 
         # Existing labels to be added
@@ -84,7 +84,7 @@
                 # As of JIRA 6.4, the Add and Remove verbs in the REST API for
                 # updating issues do not support arrays of parameters - you
                 # need to pass a single label to add or remove per API call.
-                
+
                 # Instead, we'll do some fancy footwork with the existing
                 # issue object and use the Set verb for everything, so we only
                 # have to make one call to JIRA.
@@ -118,7 +118,7 @@
                 if ($isDirty)
                 {
                     Write-Debug "[Set-JiraIssueLabel] New labels for the issue: [$($newLabels -join ',')]"
-                
+
                     $props = @{
                         'update' = @{
                             'labels' = @(
