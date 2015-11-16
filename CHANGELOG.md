@@ -1,3 +1,15 @@
+## 1.2.2 (Nov 16, 2015)
+FEATURES:
+  - Set-JiraIssueLabel: add and remove specific issue labels, or overwrite or clear all labels on an issue (#5)
+
+IMPROVEMENTS:
+  - New-JiraIssue: now has a -Label parameter
+  - Set-JiraIssue: now has a -Label parameter (this replaces all labels on an issue; use Set-JiraIssueLabel for more fine-grained control)
+  - Invoke-JiraMethod: handles special UTF-8 characters correctly (#4)
+
+BUG FIXES:
+  - Get-JiraIssueCreateMetadata: now correctly returns the ID of fields as well (#6)
+
 ## 1.2.1 (Oct 26, 2015)
 IMPROVEMENTS:
   - Get-JiraIssueCreateMetadata: changed output type from a generic PSCustomObject to new type PSJira.CreateMetaField
