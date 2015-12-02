@@ -4,8 +4,8 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 
 InModuleScope PSJira {
 
-    $ShowMockData = $true
-    $ShowDebugText = $true
+    $ShowMockData = $false
+    $ShowDebugText = $false
 
     Describe "Get-JiraIssue" {
         if ($ShowDebugText)
@@ -79,7 +79,7 @@ InModuleScope PSJira {
             }
 
             It "Returns all issues via looping if -MaxResults is not specified" {
-                
+
                 # In order to test this, we'll need a slightly more elaborate
                 # mock that actually returns some data.
 
@@ -109,9 +109,9 @@ InModuleScope PSJira {
 }
 '@
                 }
-                
+
                 { Get-JiraIssue -Query $jql -PageSize 25 } | Should Not Throw
-                
+
                 # This should call Invoke-JiraMethod once for one issue (to get the MaxResults value)...
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*maxResults=1*" }
 
