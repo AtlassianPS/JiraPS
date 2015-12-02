@@ -1,3 +1,13 @@
+## 1.2.3 (Dec 02, 2015)
+FEATURES:
+  - Get-JiraIssue: added paging support with the -StartIndex and -PageSize parameters. This allows programmatically looping through all issues that match a given search. (#9)
+
+IMPROVEMENTS:
+  - Get-JiraIssue: default behavior has been changed to return all issues via paging when using -Query or -Filter parameters
+
+BUG FIXES:
+  - Invoke-JiraMethod: Fixed issue where non-standard characters were not being parsed correctly from JSON (#7)
+
 ## 1.2.2 (Nov 16, 2015)
 FEATURES:
   - Set-JiraIssueLabel: add and remove specific issue labels, or overwrite or clear all labels on an issue (#5)
@@ -50,10 +60,10 @@ is in turn inspired by the
 
 ## Template
 
-  ## Next Release
+## Next Release
 
-  FEATURES:
+FEATURES:
 
-  IMPROVEMENTS:
+IMPROVEMENTS:
 
-  BUG FIXES:
+BUG FIXES:

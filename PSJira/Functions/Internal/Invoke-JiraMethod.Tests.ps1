@@ -429,7 +429,9 @@ InModuleScope PSJira {
                 $validObjResult = ConvertFrom-Json -InputObject $validRestResult
 
                 Mock Invoke-WebRequest -ParameterFilter {$Method -eq 'Get' -and $Uri -eq $validTestUri} {
-                    Write-Output $validRestResult
+                    Write-Output [PSCustomObject] @{
+                        'Content' = $validRestResult
+                    }
                 }
 
                 $result = Invoke-JiraMethod -Method Get -URI $validTestUri
@@ -446,7 +448,9 @@ InModuleScope PSJira {
                 $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}';
 
                 Mock Invoke-WebRequest {
-                    Write-Output $invalidRestResult
+                    Write-Output [PSCustomObject] @{
+                        'Content' = $invalidRestResult
+                    }
                 }
 
                 Mock Resolve-JiraError {}

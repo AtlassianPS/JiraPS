@@ -90,7 +90,7 @@ function Invoke-JiraMethod
             Write-Debug "[Invoke-JiraMethod] Retrieved body of HTTP response for more information about the error (`$body)"
             $result = ConvertFrom-Json -InputObject $body
         } else {
-            $result = ConvertFrom-Json -InputObject $webResponse
+            $result = ConvertFrom-Json -InputObject $webResponse.Content
         }
 
         if ($result.errors -ne $null)
