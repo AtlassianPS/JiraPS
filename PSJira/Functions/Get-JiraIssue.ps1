@@ -135,11 +135,11 @@ function Get-JiraIssue
             }
         } elseif ($PSCmdlet.ParameterSetName -eq 'ByJQL') {
 
-            Write-Debug "[Get-JiraMethod] Escaping query and building URL"
+            Write-Debug "[Get-JiraIssue] Escaping query and building URL"
             $escapedQuery = [System.Web.HttpUtility]::UrlPathEncode($Query)
             $issueURL = "$($server)/rest/api/latest/search?jql=$escapedQuery&validateQuery=true&expand=transitions&startAt=$StartIndex&maxResults=$MaxResults"
 
-            Write-Debug "[Get-JiraMethod] Preparing for blastoff!"
+            Write-Debug "[Get-JiraIssue] Preparing for blastoff!"
             $result = Invoke-JiraMethod -Method Get -URI $issueURL -Credential $Credential
 
             if ($result)
@@ -167,17 +167,17 @@ function Get-JiraIssue
                     Write-Progress -Activity 'Get-JiraIssue' -Status 'Obtaining issues' -Completed
                     Write-Output ($allIssues.ToArray())
                 } elseif ($result.total -gt 0) {
-                    Write-Debug "[Get-JiraMethod] Converting REST result to Jira issue"
+                    Write-Debug "[Get-JiraIssue] Converting REST result to Jira issue"
                     $obj = ConvertTo-JiraIssue -InputObject $result.issues
 
-                    Write-Debug "[Get-JiraMethod] Outputting result"
+                    Write-Debug "[Get-JiraIssue] Outputting result"
                     Write-Output $obj
                 } else {
-                    Write-Debug "[Get-JiraMethod] No results were found for the specified query"
+                    Write-Debug "[Get-JiraIssue] No results were found for the specified query"
                     Write-Verbose "No results were found for the query [$Query]"
                 }
             } else {
-                Write-Debug "[Get-JiraMethod] Invoke-JiraMethod returned no results"
+                Write-Debug "[Get-JiraIssue] Invoke-JiraMethod returned no results"
             }
         } elseif ($PSCmdlet.ParameterSetName -eq 'ByFilter') {
             $filterObj = Get-JiraFilter -InputObject $Filter -Credential $Credential
