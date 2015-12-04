@@ -15,7 +15,7 @@ InModuleScope PSJira {
                 $obj.$propName | Should Be $propValue
             }
         }
-        
+
         if ($ShowDebugText)
         {
             Mock "Write-Debug" {
@@ -26,7 +26,7 @@ InModuleScope PSJira {
         # An example of how an issue will look when returned from JIRA's REST API.
         # You can obtain most of this with a one-liner:
         # (Invoke-WebRequest -Method Get -Uri 'https://jira.atlassian.com/rest/api/latest/issue/JRA-37294?expand=transitions').Content
-        
+
         # I have edited the result just a bit to add a fake Transitions
         # property that matches the expected results from JIRA. I'm not
         # authorized to view issue transitions on Atlassian's JIRA instance,
@@ -885,16 +885,16 @@ InModuleScope PSJira {
         }
 
         Context "Output formatting" {
-            
+
             # Other ConvertTo-Jira* functions call each other in some cases, so
             # we need to mock out a few others to avoid our Assert-MockCalled
             # counts being unexpected.
-            
+
 #            Mock ConvertTo-JiraComment -ModuleName PSJira { $InputObject }
 #            Mock ConvertTo-JiraProject -ModuleName PSJira { $InputObject }
 #            Mock ConvertTo-JiraTransition -ModuleName PSJira { $InputObject }
 #            Mock ConvertTo-JiraUser -ModuleName PSJira { $InputObject }
-            
+
             $r = ConvertTo-JiraIssue -InputObject $sampleObject
 
             It "Defines Date fields as Date objects" {

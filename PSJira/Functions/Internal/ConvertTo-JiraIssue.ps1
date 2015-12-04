@@ -126,7 +126,7 @@ function ConvertTo-JiraIssue
                 {
                     $name = $f.Name
 #                    Write-Debug "[ConvertTo-JiraIssue] Adding property [$name] with value [$($f.Value)]"
-                    $props[$_.$name] = $f.Value
+                    $props[$name] = $f.Value
                 }
 
 #                Write-Debug "[ConvertTo-JiraIssue] Creating PSObject out of properties"
