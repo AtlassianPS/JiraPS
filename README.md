@@ -38,6 +38,18 @@ Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/G
 * Support for multiple config files and/or alternate config file locations
 * Possible support for OAuth in addition to HTTP Basic authentication
 
+## Contributing
+Want to contribute to PSJira?  Great!  I'm accepting pull requests against the *dev* branch.
+
+Here are a couple of notes regarding contributions:
+* PSJira relies heavily upon Pester testing to make sure that changes don't break each other.  Please respect the tests when coding against PSJira.
+** Pull requests are much more likely to be accepted if all tests pass.
+** If you write a change that causes a test to fail, please explain why the change is appropriate.  Tests are code, just like the module itself, so it's very possbile that they need to be fixed as well.  Bonus points if you also write the fix for the test.
+** If implementing a brand-new function or behavior, please write a test for it.
+* Please respect the formatting style of the rest of the module code as well.  If in doubt, place braces on a new line.
+
+Changes will be merged to master and released when the module passes all Pester tests, including the module style tests.
+
 ## Contact
 
 Feel free to comment on this project here on GitHub using the issues or discussion pages.  You can also check out [my blog](http://replicajunction.github.io/) or catch me on the [PowerShell subreddit](https://www.reddit.com/r/powershell).
