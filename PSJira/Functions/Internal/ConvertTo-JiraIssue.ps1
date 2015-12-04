@@ -7,9 +7,6 @@ function ConvertTo-JiraIssue
                    ValueFromPipeline = $true)]
         [PSObject[]] $InputObject,
 
-        [ValidateScript({Test-Path $_})]
-        [String] $ConfigFile,
-
         [Switch] $IncludeDebug,
 
         [Switch] $ReturnError
