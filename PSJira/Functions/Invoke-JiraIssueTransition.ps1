@@ -53,7 +53,7 @@ function Invoke-JiraIssueTransition
     process
     {
         Write-Debug "[Invoke-JiraIssueTransition] Obtaining a reference to Jira issue [$Issue]"
-        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $jCred
+        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
         if (-not $issueObj)
         {
