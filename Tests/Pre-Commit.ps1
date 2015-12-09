@@ -1,10 +1,13 @@
-﻿Write-Host
-Write-Host "Starting Pre-Commit Hooks..." -ForegroundColor Cyan
+﻿Write-Host "Starting Pre-Commit Hooks..." -ForegroundColor Cyan
 try {
-    $results = Invoke-Pester -PassThru
-    if ($results.FailedCount -gt 0)
+    Write-Host "PSScriptRoot: $PSScriptRoot"
+    $moduleManifest = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'PSJira\PSJira.psd1'
+    Write-Host "Module manifest file: $moduleManifest"
+    Import-Module $moduleManifest
+    $pesterResults = Invoke-Pester -Quiet -PassThru
+    if ($pesterResults.FailedCount -gt 0)
     {
-        Write-Error "Pester failed $($results.FailedCount) tests."
+        Write-Error "Pester failed $($pesterResults.FailedCount) tests."
         Write-Host
         Write-Host "Summary of failed tests:" -ForegroundColor White -BackgroundColor DarkRed
         Write-Host "------------------------" -ForegroundColor White -BackgroundColor DarkRed
@@ -13,14 +16,18 @@ try {
         $failedTests | ForEach-Object {
             $test = $_
             [PSCustomObject] @{
-                Describe = $Test.Describe;
-                Context = $Test.Context;
-                Name = "It `"$($test.Name)`"";
-                Result = $test.Result;
+                Describe = $test.Describe
+                Context = $test.Context
+                Name = "It `"$($test.Name)`""
+                Result = $test.Result
+                Message = $test.FailureMessage
             }
-        } | Sort-Object -Property Describe,Context,Name,Result | Format-List
+        } | Sort-Object -Property Describe,Context,Name,Result,FailureMessage | Format-List
 
         exit 1
+    } else {
+        Write-Host "All Pester tests passed." -ForegroundColor Green
+        exit 0
     }
 }
 catch {
