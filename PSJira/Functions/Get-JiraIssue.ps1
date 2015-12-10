@@ -185,7 +185,17 @@ function Get-JiraIssue
             {
                 $jql = $filterObj.JQL
                 Write-Debug "[Get-JiraIssue] Invoking myself with filter JQL: [$jql]"
-                $result = Get-JiraIssue -Query $jql -Credential $Credential -MaxResults $MaxResults
+
+                # MaxResults would have been set to 1 in the Begin block if it
+                # was not supplied as a parameter. We don't want to explicitly
+                # invoke this method recursively with a MaxResults value of 1
+                # if it wasn't initially provided to us.
+                if ($loopMode)
+                {
+                    $result = Get-JiraIssue -Query $jql -Credential $Credential
+                } else {
+                    $result = Get-JiraIssue -Query $jql -Credential $Credential -MaxResults $MaxResults
+                }
                 if ($result)
                 {
                     Write-Debug "[Get-JiraIssue] Returned from invoking myself; outputting results"
@@ -205,5 +215,3 @@ function Get-JiraIssue
         Write-Debug "[Get-JiraIssue] Complete"
     }
 }
-
-
