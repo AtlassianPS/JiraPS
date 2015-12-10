@@ -69,23 +69,22 @@ function Get-JiraUser
                 $thisSearchUrl = $userSearchUrl -f $u
 
                 Write-Debug "[Get-JiraUser] Preparing for blastoff!"
-                $result = Invoke-JiraMethod -Method Get -URI $thisSearchUrl -Credential $Credential
+                $rawResult = Invoke-JiraMethod -Method Get -URI $thisSearchUrl -Credential $Credential
 
-                if ($result)
+                if ($rawResult)
                 {
-                    $rawResults = ConvertTo-JiraUser -InputObject $result
                     Write-Debug "[Get-JiraUser] Processing raw results from JIRA"
-                    foreach ($r in $rawResults)
+                    foreach ($r in $rawResult)
                     {
                         Write-Debug "[Get-JiraUser] Re-obtaining user information for user [$r]"
-                        $thisGetUrl = $userGetUrl -f $r.Name
+                        $url = '{0}&expand=groups' -f $r.self
                         Write-Debug "[Get-JiraUser] Preparing for blastoff!"
-                        $thisNewResult = Invoke-JiraMethod -Method Get -URI $thisGetUrl -Credential $Credential
+                        $thisUserResult = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
 
-                        if ($thisNewResult)
+                        if ($thisUserResult)
                         {
                             Write-Debug "[Get-JiraUser] Converting result to PSJira.User object"
-                            $thisUserObject = ConvertTo-JiraUser -InputObject $thisNewResult
+                            $thisUserObject = ConvertTo-JiraUser -InputObject $thisUserResult
                             Write-Output $thisUserObject
                         } else {
                             Write-Debug "[Get-JiraUser] User [$r] could not be found in JIRA."
