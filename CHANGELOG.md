@@ -1,3 +1,12 @@
+## 1.2.4 (Dec 10, 2015)
+IMPROVEMENTS:
+  - Get-JiraGroupMember: now returns all members by default, with support for -MaxResults and -StartIndex parameters (#14)
+  - Get-JiraIssue: significantly increased performance (#12)
+  
+BUG FIXES:
+  - Get-JiraIssue: fixed issue where Get-JiraIssue would only return one result when using -Filter parameter in some cases (#15)
+  - Invoke-JiraIssueTransition: fixed -Credential parameter (#13)
+
 ## 1.2.3 (Dec 02, 2015)
 FEATURES:
   - Get-JiraIssue: added paging support with the -StartIndex and -PageSize parameters. This allows programmatically looping through all issues that match a given search. (#9)
