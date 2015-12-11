@@ -181,7 +181,7 @@ function Set-JiraIssue
                     Write-Debug "[Set-JiraIssue] IssueProps: [$issueProps]"
 
                     Write-Debug "[Set-JiraIssue] Converting results to JSON"
-                    $json = ConvertTo-Json -InputObject $issueProps -Depth 3
+                    $json = ConvertTo-Json -InputObject $issueProps -Depth 5
                     $issueObjURL = $issueObj.RestUrl
 
                     Write-Debug "[Set-JiraIssue] Preparing for blastoff!"
