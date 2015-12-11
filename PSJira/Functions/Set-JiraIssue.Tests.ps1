@@ -113,10 +113,12 @@ InModuleScope PSJira {
                         'ID'   = $Field;
                     }
                 }
-                { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345'='foo'; 'customfield_67890'='bar'} } | Should Not Throw
+                { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345'='foo'; 'customfield_67890'='bar'; 'customfield_111222'=@(@{value='foobar'})} } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_12345*set*foo*' }
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_67890*set*bar*' }
-            }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_111222*set*foobar*' }
+        }
+
         }
 
         Context "Input testing" {
