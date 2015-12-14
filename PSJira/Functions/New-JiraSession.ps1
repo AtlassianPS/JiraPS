@@ -45,7 +45,7 @@ function New-JiraSession
         $uri = "$server/rest/auth/1/session"
 
         $headers = @{
-            'Content-Type' = 'application/json';
+            #'Content-Type' = 'application/json';
         }
     }
 
@@ -62,7 +62,7 @@ function New-JiraSession
 
         try
         {
-            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -SessionVariable newSessionVar
+            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -SessionVariable newSessionVar -ContentType 'application/json'
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
 
@@ -81,7 +81,6 @@ function New-JiraSession
             Write-Debug "[New-JiraSession] Outputting result"
             Write-Output $result
         } catch {
-            $err = $_
             $webResponse = $err.Exception.Response
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
 
