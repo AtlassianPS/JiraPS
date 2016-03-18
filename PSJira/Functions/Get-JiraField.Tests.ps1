@@ -139,7 +139,7 @@ InModuleScope PSJira {
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/field"} {
-            ConvertFrom-Json22 $restResult
+            ConvertFrom-Json2 $restResult
         }
 
         It "Gets all fields in Jira if called with no parameters" {
