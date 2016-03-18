@@ -60,7 +60,7 @@ InModuleScope PSJira {
         }
 
         Context "Input testing" {
-            $sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json @'
+            $sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json2 @'
 {
     "self": "https://jira.atlassian.com/rest/api/latest/filter/12844",
     "id": "12844",

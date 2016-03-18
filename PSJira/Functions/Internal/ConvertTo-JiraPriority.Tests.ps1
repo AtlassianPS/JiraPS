@@ -25,7 +25,7 @@ Describe "ConvertTo-JiraPriority" {
     "id": "$priorityId"
   }
 "@
-    $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+    $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
     $r = ConvertTo-JiraPriority -InputObject $sampleObject
 

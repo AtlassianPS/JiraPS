@@ -42,7 +42,7 @@ InModuleScope PSJira {
         }
 
         Mock Get-JiraGroup -ModuleName PSJira {
-            ConvertTo-JiraGroup (ConvertFrom-Json $testJson)
+            ConvertTo-JiraGroup (ConvertFrom-Json2 $testJson)
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupName"} {

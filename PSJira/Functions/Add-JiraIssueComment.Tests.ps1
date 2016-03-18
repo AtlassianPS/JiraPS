@@ -60,7 +60,7 @@ InModuleScope PSJira {
 
             # This data was created from a GUI REST client, then sanitized. A lot of extra data was also removed to save space.
             # Many Bothans died to bring us this information.
-            ConvertFrom-Json $restResponse
+            ConvertFrom-Json2 $restResponse
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

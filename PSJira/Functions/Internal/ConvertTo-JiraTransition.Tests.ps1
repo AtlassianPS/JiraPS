@@ -41,7 +41,7 @@ InModuleScope PSJira {
     }
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
         $r = ConvertTo-JiraTransition -InputObject $sampleObject
 

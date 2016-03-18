@@ -48,7 +48,7 @@ InModuleScope PSJira {
 
         Context "Behavior testing" {
 
-            $restResult = ConvertFrom-Json @'
+            $restResult = ConvertFrom-Json2 @'
 {
   "expand": "projects",
   "projects": [

@@ -30,7 +30,7 @@ Describe "ConvertTo-JiraProject" {
 }
 }
 "@
-    $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+    $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
     $r = ConvertTo-JiraProject -InputObject $sampleObject
 
