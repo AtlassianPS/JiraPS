@@ -28,6 +28,7 @@ function New-JiraIssue
        [PSJira.Issue] The issue created in JIRA.
     #>
     [CmdletBinding()]
+    [OutputType('PSJira.Issue')]
     param(
         [Parameter(Mandatory = $true)]
         [String] $Project,
@@ -38,10 +39,10 @@ function New-JiraIssue
         [Parameter(Mandatory = $true)]
         [Int] $Priority,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [String] $Summary,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [String] $Description,
 
         [Parameter(Mandatory = $false)]
