@@ -28,7 +28,20 @@ function Set-JiraConfigServer
         [String] $Server,
 
         [String] $ConfigFile
+
+        [Parameter(Mandatory = $false)]
+        [PSCredential] $Credential
     )
+
+    # Set default value for Parameter Credential for all commands in this Module
+    if ($Credential)
+    {
+        [System.Collections.ArrayList]$commandList = Get-Command -Noun Jira* | Where-Object {$_.Name -ne 'Set-JiraConfigServer'}
+        foreach ($cmd in $commandList)
+        {
+            $global:PSDefaultParameterValues["${cmd}:Credential"] = $Credential
+        }
+    }
 
     # Using a default value for this parameter wouldn't handle all cases. We want to make sure
     # that the user can pass a $null value to the ConfigFile parameter...but if it's null, we
