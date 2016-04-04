@@ -4,6 +4,23 @@
 
 PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://www.atlassian.com/software/jira) via a REST API, while maintaining a consistent PowerShell look and feel.
 
+---
+
+## Project update: April 2016
+I've gone through a move and a job change in the last month, and as a result, I no longer have access to a working instance of JIRA. As you can imagine, this limits my ability to enhance the module a bit.
+
+I'd be willing to spin up a small home JIRA server to continue development on this, but my real-life budget is stretched to the breaking point, and I honestly can't afford the price tag even for the most basic JIRA license. If anyone has the ability to grant me a user account on a JIRA instance with enough permissions to test this stuff (create and modify users, issues, filters, etc.), drop me a PM on Reddit (replicaJunction).
+
+Meanwhile, I will continue to troubleshoot and provide support to the best of my ability.
+
+Because I don't have the ability to test the module against a real JIRA instance right now, it is *absolutely critical* that pull requests pass all CI tests before they are merged!
+
+Thanks for all your kind words on this project. I've invested too much in this just to let it die.
+
+-replica
+
+---
+
 ## Requirements
 
 This module has a hard dependency on PowerShell 3.0.  I have no plans to release a version compatible with PowerShell 2, as I rely heavily on several cmdlets and features added in version 3.0.
