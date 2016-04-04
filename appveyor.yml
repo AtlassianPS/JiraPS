@@ -16,12 +16,19 @@ environment:
     PSGalleryAPIKey:
         secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
 
-version: 1.1.1.{build}
+version: 1.2.4.{build}
 branches:
     only:
         - master
+        - dev
+# Don't rebuild when I tag a release on GitHub
+skip_tags: true
+
 skip_commits:
     message: /readme*/
+
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 install:
   - cinst Pester -y

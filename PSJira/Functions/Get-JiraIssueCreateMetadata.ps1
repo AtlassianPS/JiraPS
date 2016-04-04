@@ -68,13 +68,6 @@ function Get-JiraIssueCreateMetadata
         $issueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential
         if ($issueTypeObj)
         {
-#            #$n = [System.Net.WebUtility]::UrlEncode($IssueType)
-#            # This escapes URLs in the correct syntax for a Web request.
-#            # Need to load the assembly before we use this class.
-#            Add-Type -AssemblyName System.Web
-#            $n = [System.Web.HttpUtility]::UrlPathEncode($IssueType)
-#            $uri = "${uri}issuetypeNames=$n&"
-
             $issueTypeId = $issueTypeObj.Id
             $uri = "${uri}issuetypeIds=$issueTypeId&"
         } else {
@@ -94,15 +87,10 @@ function Get-JiraIssueCreateMetadata
             if (@($jiraResult.projects).Count -eq 0)
             {
                 Write-Debug "[Get-JiraIssueCreateMetadata] No project results were found. Throwing exception."
-                if (-not ($Credential))
-                {
-                    throw "No projects were found for the given project type (projectKey=[$Project]). If you are certain that the key is correct, try passing credentials to Jira using the -Credential parameter."
-                } else {
-                    throw "No projects were found for the given project type (projectKey=[$Project])."
-                }
+                throw "No projects were found for the given project [$Project]. Use Get-JiraProject for more details."
             } elseif (@($jiraResult.projects).Count -gt 1) {
                 Write-Debug "[Get-JiraIssueCreateMetadata] Multiple project results were found. Throwing exception."
-                throw "Multiple projects were found for the given project type (projectKey=[$Project]). Refine the parameters to return only one project."
+                throw "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
             }
 
             $projectId = $jiraResult.projects.id
@@ -113,37 +101,21 @@ function Get-JiraIssueCreateMetadata
             if (@($jiraResult.projects.issuetypes) -eq 0)
             {
                 Write-Debug "[Get-JiraIssueCreateMetadata] No issue type results were found. Throwing exception."
-                throw "No issue types were found for the given project type (issuetypeName=[$IssueType])."
+                throw "No issue types were found for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
             } elseif (@($jiraResult.projects.issuetypes).Count -gt 1) {
                 Write-Debug "[Get-JiraIssueCreateMetadata] Multiple issue type results were found. Throwing exception."
-                throw "Multiple issue types were found for the given issue type (issuetypeName=[$IssueType]). Refine the parameters to return only one issue type."
+                throw "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
             }
 
-            $issueTypeId = $jiraResult.projects.issuetypes.id
-            $issueTypeName = $jiraResult.projects.issuetypes.name
+            Write-Debug "[Get-JiraIssueCreateMetadata] Converting results to custom object"
+            $obj = ConvertTo-JiraCreateMetaField -InputObject $jiraResult
 
-            Write-Debug "[Get-JiraIssueCreateMetadata] Obtaining reference to fields"
-            $fields = $jiraResult.projects.issuetypes.fields
+            Write-Debug "Outputting results"
+            Write-Output $obj
 
-            Write-Debug "[Get-JiraIssueCreateMetadata] Obtaining field names"
-            $fieldNames = (Get-Member -InputObject $fields -MemberType '*Property').Name
-
-            $resultArrayList = New-Object -TypeName System.Collections.ArrayList
-            foreach ($name in $fieldNames)
-            {
-                $thisRaw = $fields.$name
-                $obj = [PSCustomObject] @{
-                    'Id' = $name;
-                    'Name' = $thisRaw.name;
-                    'Required' = [bool]::Parse($thisRaw.required);
-                    'HasDefaultValue' = [bool]::Parse($thisRaw.hasDefaultValue);
-                    'Project' = $projectObj;
-                    'IssueType' = $issueTypeObj;
-                }
-
-                $obj.PSObject.TypeNames.Insert(0, 'PSJira.CreateMetaField')
-                Write-Output $obj
-            }
+#            Write-Output $jiraResult
+        } else {
+            Write-Debug "[Get-JiraIssueCreateMetadata] No results were returned from JIRA."
         }
     }
 }

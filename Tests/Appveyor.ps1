@@ -51,7 +51,7 @@ Import-Module Pester
 # We'll also need to import this module, since AppVeyor won't put it in $PSModulePath.
 Import-Module -Name "$ModuleRoot\PSJira.psm1"
 
-Push-Location -Path $ModuleRoot
+#Push-Location -Path $ModuleRoot
 $resultsFile = Join-Path -Path $ProjectRoot -ChildPath 'TestResults.xml'
 #endregion
 
@@ -100,7 +100,7 @@ if ($failedCount -gt 0)
     throw "$failedCount tests failed during build process."
 }
 
-Pop-Location
+#Pop-Location
 
 Write-Host
 Write-Host "=== Completed AppVeyor.ps1 ===" -ForegroundColor Green

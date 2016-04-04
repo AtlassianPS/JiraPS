@@ -63,9 +63,9 @@ InModuleScope PSJira {
                 }
             }
 
-            It "Sends the Content-Type header of application/json" {
+            It "Sends the Content-Type header of application/json and UTF-8" {
                 { Invoke-JiraMethod -Method Get -URI $testUri } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Content-Type') -eq 'application/json'} -Scope It
+                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Content-Type') -eq 'application/json; charset=utf-8'} -Scope It
             }
 
             It "Provides Base64 credentials in the Authorization header only when the -Credential parameter is supplied" {
@@ -429,7 +429,9 @@ InModuleScope PSJira {
                 $validObjResult = ConvertFrom-Json -InputObject $validRestResult
 
                 Mock Invoke-WebRequest -ParameterFilter {$Method -eq 'Get' -and $Uri -eq $validTestUri} {
-                    Write-Output $validRestResult
+                    Write-Output [PSCustomObject] @{
+                        'Content' = $validRestResult
+                    }
                 }
 
                 $result = Invoke-JiraMethod -Method Get -URI $validTestUri
@@ -446,7 +448,9 @@ InModuleScope PSJira {
                 $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}';
 
                 Mock Invoke-WebRequest {
-                    Write-Output $invalidRestResult
+                    Write-Output [PSCustomObject] @{
+                        'Content' = $invalidRestResult
+                    }
                 }
 
                 Mock Resolve-JiraError {}

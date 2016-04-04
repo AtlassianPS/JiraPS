@@ -45,6 +45,11 @@ function Set-JiraIssue
         [Parameter(Mandatory = $false)]
         [Object] $Assignee,
 
+        # Labels to be set on the issue. These wil overwrite any existing
+        # labels on the issue. For more granular control over issue labels,
+        # use Set-JiraIssueLabel.
+        [String[]] $Label,
+
         # Any additional fields that should be updated
         [System.Collections.Hashtable] $Fields,
 
@@ -62,7 +67,7 @@ function Set-JiraIssue
     {
         Write-Debug "[Set-JiraIssue] Checking to see if we have any operations to perform"
         $fieldNames = $Fields.Keys
-        if (-not ($Summary -or $Description -or $Assignee -or $fieldNames))
+        if (-not ($Summary -or $Description -or $Assignee -or $Label -or $fieldNames))
         {
             Write-Verbose "Nothing to do."
             return
@@ -174,9 +179,9 @@ function Set-JiraIssue
                 if ($actOnIssueUri)
                 {
                     Write-Debug "[Set-JiraIssue] IssueProps: [$issueProps]"
-                    
+
                     Write-Debug "[Set-JiraIssue] Converting results to JSON"
-                    $json = ConvertTo-Json -InputObject $issueProps -Depth 3
+                    $json = ConvertTo-Json -InputObject $issueProps -Depth 5
                     $issueObjURL = $issueObj.RestUrl
 
                     Write-Debug "[Set-JiraIssue] Preparing for blastoff!"
@@ -195,6 +200,12 @@ function Set-JiraIssue
                     Write-Debug "[Set-JiraIssue] Preparing for blastoff!"
                     $assigneeResult = Invoke-JiraMethod -Method Put -URI $assigneeUrl -Body $json -Credential $Credential
                     Write-Debug "[Set-JiraIssue] Results are saved to assigneeResult variable"
+                }
+
+                if ($Label)
+                {
+                    Write-Debug "[Set-JiraIssue] Invoking Set-JiraIssueLabel to set issue labels"
+                    Set-JiraIssueLabel -Issue $issueObj -Set $Label -Credential $Credential
                 }
 
                 if ($PassThru)

@@ -24,7 +24,7 @@ function Invoke-JiraMethod
     )
 
     $headers = @{
-        'Content-Type' = 'application/json';
+        'Content-Type' = 'application/json; charset=utf-8';
     }
 
     if ($Credential)
@@ -47,6 +47,9 @@ function Invoke-JiraMethod
         }
     }
 
+    # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
+    $cleanBody = [System.Text.Encoding]::UTF8.GetBytes($Body)
+
     try
     {
         # Handle all cases of whether $session and $Body are defined. We don't need to worry about $Credential, because
@@ -54,13 +57,13 @@ function Invoke-JiraMethod
         if ($session -and $Body)
         {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using WebSession and Body"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $Body -WebSession $session.WebSession -SessionVariable $sessionOut -ErrorAction SilentlyContinue
+            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $cleanBody -WebSession $session.WebSession -ErrorAction SilentlyContinue
         } elseif ($session) {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using WebSession"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -WebSession $session.WebSession -SessionVariable $sessionOut -ErrorAction SilentlyContinue
+            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -WebSession $session.WebSession -ErrorAction SilentlyContinue
         } elseif ($Body) {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using Body"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $Body -ErrorAction SilentlyContinue
+            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $cleanBody -ErrorAction SilentlyContinue
         } else {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI with no WebSession or Body"
             $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -ErrorAction SilentlyContinue
@@ -87,7 +90,7 @@ function Invoke-JiraMethod
             Write-Debug "[Invoke-JiraMethod] Retrieved body of HTTP response for more information about the error (`$body)"
             $result = ConvertFrom-Json -InputObject $body
         } else {
-            $result = ConvertFrom-Json -InputObject $webResponse
+            $result = ConvertFrom-Json -InputObject $webResponse.Content
         }
 
         if ($result.errors -ne $null)

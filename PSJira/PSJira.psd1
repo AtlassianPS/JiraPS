@@ -12,7 +12,7 @@
 RootModule = 'PSJira.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.1'
+ModuleVersion = '1.2.4'
 
 # ID used to uniquely identify this module
 GUID = '4bf3eb15-037e-43b7-9e47-20a30436324f'

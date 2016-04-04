@@ -60,7 +60,7 @@ InModuleScope PSJira {
         }
 
         # Searching for a user.
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/user/search?username=$testUsername"} {
+        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
@@ -71,7 +71,7 @@ InModuleScope PSJira {
         }
 
         # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/user?username=$testUsername&expand=groups"} {
+        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan

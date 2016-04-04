@@ -7,9 +7,6 @@ function ConvertTo-JiraIssue
                    ValueFromPipeline = $true)]
         [PSObject[]] $InputObject,
 
-        [ValidateScript({Test-Path $_})]
-        [String] $ConfigFile,
-
         [Switch] $IncludeDebug,
 
         [Switch] $ReturnError
@@ -72,7 +69,7 @@ function ConvertTo-JiraIssue
 
                 foreach ($field in $userFields)
                 {
-#                    Write-Debug "[ConvertTo-JiraIssue] Checking field [$field]"
+#                    Write-Debug "[ConvertTo-JiraIssue] Checking for user field [$field]"
                     if ($i.fields.$field)
                     {
 #                        Write-Debug "[ConvertTo-JiraIssue] Adding user field $field"
@@ -80,6 +77,8 @@ function ConvertTo-JiraIssue
                     } elseif ($field -eq 'Assignee') {
 #                        Write-Debug "[ConvertTo-JiraIssue] Adding 'Unassigned' assignee field"
                         $props.Assignee = 'Unassigned'
+                    } else {
+#                        Write-Debug "[ConvertTo-JiraIssue] Object does not appear to contain property [$field]"
                     }
                 }
 
@@ -122,15 +121,12 @@ function ConvertTo-JiraIssue
                 }
 
 #                Write-Debug "[ConvertTo-JiraIssue] Checking for any additional fields"
-                foreach ($f in ($i.fields | Get-Member -MemberType "*Property"))
+                $extraFields = $i.fields.PSObject.Properties | Where-Object -FilterScript { $_.Name -notin $props.Keys }
+                foreach ($f in $extraFields)
                 {
                     $name = $f.Name
-#                    Write-Debug "[ConvertTo-JiraIssue] Checking field $name"
-                    if (-not ($props.$name))
-                    {
-#                        Write-Debug "[ConvertTo-JiraIssue]  - Adding field [$name]"
-                        $props.$name = $i.fields.$name
-                    }
+#                    Write-Debug "[ConvertTo-JiraIssue] Adding property [$name] with value [$($f.Value)]"
+                    $props[$name] = $f.Value
                 }
 
 #                Write-Debug "[ConvertTo-JiraIssue] Creating PSObject out of properties"
@@ -155,5 +151,3 @@ function ConvertTo-JiraIssue
 #        Write-Debug "[ConvertTo-JiraIssue] Complete"
     }
 }
-
-
