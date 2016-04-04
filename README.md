@@ -25,8 +25,6 @@ Thanks for all your kind words on this project. I've invested too much in this j
 
 This module has a hard dependency on PowerShell 3.0.  I have no plans to release a version compatible with PowerShell 2, as I rely heavily on several cmdlets and features added in version 3.0.
 
-Also note that this module doesn't officially support Jira Software (7.0.0 or greater), since I don't have an instance of this available for testing and troubleshooting.
-
 ## Downloading
 
 In PowerShell 5, it's very simple to download the latest public release of this module:
