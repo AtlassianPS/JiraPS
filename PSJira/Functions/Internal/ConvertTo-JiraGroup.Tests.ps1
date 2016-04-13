@@ -27,7 +27,7 @@ Describe "ConvertTo-JiraGroup" {
     "expand": "users"
 }
 "@
-    $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+    $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
     $r = ConvertTo-JiraGroup -InputObject $sampleObject
 

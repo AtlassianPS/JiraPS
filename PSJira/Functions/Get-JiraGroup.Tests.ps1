@@ -41,7 +41,7 @@ InModuleScope PSJira {
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
             }
-            ConvertFrom-Json -InputObject $restResult
+            ConvertFrom-Json2 -InputObject $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
@@ -72,7 +72,7 @@ InModuleScope PSJira {
 
         It "Returns all available properties about the returned group object" {
             $getResult = Get-JiraGroup -GroupName $testGroupName
-            $restObj = ConvertFrom-Json -InputObject $restResult
+            $restObj = ConvertFrom-Json2 -InputObject $restResult
 
             $getResult.RestUrl | Should Be $restObj.self
             $getResult.Name | Should Be $restObj.name

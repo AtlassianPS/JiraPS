@@ -93,7 +93,7 @@ function New-JiraSession
             $body = $readStream.ReadToEnd()
             $readStream.Close()
             Write-Debug "Retrieved body of HTTP response for more information about the error (`$body)"
-            $result = ConvertFrom-Json -InputObject $body
+            $result = ConvertFrom-Json2 -InputObject $body
             Write-Debug "Converted body from JSON into PSCustomObject (`$result)"
         }
     }

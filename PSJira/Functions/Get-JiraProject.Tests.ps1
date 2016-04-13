@@ -66,19 +66,19 @@ InModuleScope PSJira {
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project"} {
-            ConvertFrom-Json $restResultAll
+            ConvertFrom-Json2 $restResultAll
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project/${projectKey}?expand=projectKeys"} {
-            ConvertFrom-Json $restResultOne
+            ConvertFrom-Json2 $restResultOne
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project/${projectId}?expand=projectKeys"} {
-            ConvertFrom-Json $restResultOne
+            ConvertFrom-Json2 $restResultOne
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project/${projectKey}expand=projectKeys"} {
-            ConvertFrom-Json $restResultOne
+            ConvertFrom-Json2 $restResultOne
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
@@ -100,7 +100,7 @@ InModuleScope PSJira {
         It "Returns all projects if called with no parameters" {
             $allResults = Get-JiraProject
             $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be (ConvertFrom-Json -InputObject $restResultAll).Count
+            @($allResults).Count | Should Be (ConvertFrom-Json2 -InputObject $restResultAll).Count
         }
 
         It "Returns details about specific projects if the project key is supplied" {

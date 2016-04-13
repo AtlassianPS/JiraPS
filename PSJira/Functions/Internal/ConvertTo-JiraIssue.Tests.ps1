@@ -863,7 +863,7 @@ InModuleScope PSJira {
   ]
 }
 '@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
         Context "Basic behavior testing" {
             $r = ConvertTo-JiraIssue -InputObject $sampleObject

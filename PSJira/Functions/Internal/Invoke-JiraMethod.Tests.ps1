@@ -426,7 +426,7 @@ InModuleScope PSJira {
 '@
 
                 $validTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/303853'
-                $validObjResult = ConvertFrom-Json -InputObject $validRestResult
+                $validObjResult = ConvertFrom-Json2 -InputObject $validRestResult
 
                 Mock Invoke-WebRequest -ParameterFilter {$Method -eq 'Get' -and $Uri -eq $validTestUri} {
                     Write-Output [PSCustomObject] @{

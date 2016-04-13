@@ -33,7 +33,7 @@ InModuleScope PSJira {
         }
 
         Mock Get-JiraUser -ModuleName PSJira {
-            ConvertTo-JiraUser (ConvertFrom-Json $restResultGet)
+            ConvertTo-JiraUser (ConvertFrom-Json2 $restResultGet)
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Put' -and $URI -eq "$jiraServer/rest/api/latest/user?username=$testUsername"} {
@@ -43,7 +43,7 @@ InModuleScope PSJira {
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
             }
-            ConvertFrom-Json $restResultGet
+            ConvertFrom-Json2 $restResultGet
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

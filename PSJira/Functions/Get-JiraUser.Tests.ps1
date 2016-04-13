@@ -67,7 +67,7 @@ InModuleScope PSJira {
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
             }
-            ConvertFrom-Json -InputObject $restResult
+            ConvertFrom-Json2 -InputObject $restResult
         }
 
         # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
@@ -78,7 +78,7 @@ InModuleScope PSJira {
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
             }
-            ConvertFrom-Json -InputObject $restResult2
+            ConvertFrom-Json2 -InputObject $restResult2
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
@@ -109,7 +109,7 @@ InModuleScope PSJira {
 
         It "Returns all available properties about the returned user object" {
             $getResult = Get-JiraUser -Username $testUsername
-            $restObj = ConvertFrom-Json -InputObject $restResult
+            $restObj = ConvertFrom-Json2 -InputObject $restResult
 
             $getResult.RestUrl | Should Be $restObj.self
             $getResult.Name | Should Be $restObj.name

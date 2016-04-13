@@ -25,7 +25,7 @@ Describe "ConvertTo-JiraUser" {
     "active": true
 }
 "@
-    $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+    $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
     $r = ConvertTo-JiraUser -InputObject $sampleObject
 

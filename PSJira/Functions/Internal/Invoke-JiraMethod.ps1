@@ -88,9 +88,9 @@ function Invoke-JiraMethod
             $body = $readStream.ReadToEnd()
             $readStream.Close()
             Write-Debug "[Invoke-JiraMethod] Retrieved body of HTTP response for more information about the error (`$body)"
-            $result = ConvertFrom-Json -InputObject $body
+            $result = ConvertFrom-Json2 -InputObject $body
         } else {
-            $result = ConvertFrom-Json -InputObject $webResponse.Content
+            $result = ConvertFrom-Json2 -InputObject $webResponse.Content
         }
 
         if ($result.errors -ne $null)

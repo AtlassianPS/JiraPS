@@ -85,7 +85,7 @@ InModuleScope PSJira {
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/issuetype"} {
-            ConvertFrom-Json $restResult
+            ConvertFrom-Json2 $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
