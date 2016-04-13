@@ -123,8 +123,11 @@ function New-JiraIssue
             "description"=$Description;
             "issuetype"=$IssueTypeParam;
             "priority"=$PriorityParam;
-            "reporter"=$ReporterParam;
-            "labels"=$Labels;
+            "reporter"=$ReporterParam
+        }
+
+        if ($Labels) {
+            [void] $props.Add('labels', $Labels)
         }
 
         Write-Debug "[New-JiraIssue] Processing Fields parameter"
