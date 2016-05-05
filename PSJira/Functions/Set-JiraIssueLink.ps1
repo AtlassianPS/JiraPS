@@ -1,21 +1,9 @@
 function Set-JiraIssueLink
 {
-    <#
-    .Synopsis
-    .DESCRIPTION
-    .EXAMPLE
-    .EXAMPLE
-    .EXAMPLE
-    .INPUTS
-    .OUTPUTS
-    #>
     [CmdletBinding(DefaultParameterSetName = 'ByInputObject')]
     param(
         # Issue key or PSJira.Issue object returned from Get-JiraIssue
-        [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true )]
         [Alias('Key')]
         [Object[]] $Issue,
 

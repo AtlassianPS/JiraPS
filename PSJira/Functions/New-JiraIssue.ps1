@@ -36,7 +36,7 @@ function New-JiraIssue
         [Parameter(Mandatory = $true)]
         [String] $IssueType,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [Int] $Priority,
 
         [Parameter(Mandatory = $false)]
@@ -50,6 +50,9 @@ function New-JiraIssue
 
         [Parameter(Mandatory = $false)]
         [String[]] $Labels,
+
+        [Parameter(Mandatory = $false)]
+        [Object] $Parent,
 
         [Parameter(Mandatory = $false)]
         [Hashtable] $Fields,
@@ -109,6 +112,11 @@ function New-JiraIssue
             Write-Debug "[New-JiraIssue] Reporter [$reporterStr] could not be accessed"
                 throw "Unable to identify issue reporter. You must provide either the -Reporter parameter or the -Credential parameter, or the currently logged-on user must be a valid Jira user."
         }
+
+        if ($Parent)
+        {
+            $Parent = Get-JiraIssue $Parent -Credential $Credential
+        }
     }
 
     process
@@ -117,15 +125,18 @@ function New-JiraIssue
         $IssueTypeParam = New-Object -TypeName PSObject -Property @{"id"=[String] $IssueTypeObj.Id}
         $PriorityParam = New-Object -TypeName PSObject -Property @{"id"=[String] $Priority}
         $ReporterParam = New-Object -TypeName PSObject -Property @{"name"=$reporterObj.Name}
+        $ParentParam = New-Object -TypeName PSObject -Property @{"id"=$Parent.id}
 
         $props = @{
             "project"=$ProjectParam;
             "summary"=$Summary;
-            "description"=$Description;
             "issuetype"=$IssueTypeParam;
-            "priority"=$PriorityParam;
-            "reporter"=$ReporterParam
         }
+
+        if ($Description) { $props["description"]=$Description }
+        if ($Priority) { $props["priority"]=$PriorityParam }
+        if ($Reporter) { $props["reporter"]=$ReporterParam }
+        if ($Parent) { $props["parent"]=$ParentParam }
 
         if ($Labels) {
             [void] $props.Add('labels', $Labels)
