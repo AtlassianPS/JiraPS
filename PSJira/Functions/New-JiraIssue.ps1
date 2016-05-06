@@ -113,8 +113,10 @@ function New-JiraIssue
                 throw "Unable to identify issue reporter. You must provide either the -Reporter parameter or the -Credential parameter, or the currently logged-on user must be a valid Jira user."
         }
 
-        if ($Parent)
+        if ($Parent.key)
         {
+            $Parent = Get-JiraIssue $Parent.key -Credential $Credential
+        } elseif ($Parent) {
             $Parent = Get-JiraIssue $Parent -Credential $Credential
         }
     }

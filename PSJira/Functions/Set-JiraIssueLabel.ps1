@@ -112,7 +112,7 @@
                     # extra $null being added to the array, so we need to
                     # account for that in the Where-Object as well as the
                     # Remove parameter.
-                    $newLabels = $currentLabels + $Add | Where-Object -FilterScript {$_ -ne $null -and $Remove -notcontains $_}
+                    $newLabels = $currentLabels + $Add | Where-Object -FilterScript {$_ -ne $null -and $Remove -notcontains $_ -and $currentLabels -notcontains $_}
                 }
 
                 if ($isDirty)
