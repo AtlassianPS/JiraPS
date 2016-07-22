@@ -51,6 +51,9 @@ function New-JiraIssue
         [String[]] $Labels,
 
         [Parameter(Mandatory = $false)]
+        [String] $Parent,
+
+        [Parameter(Mandatory = $false)]
         [Hashtable] $Fields,
 
         [Parameter(Mandatory = $false)]
@@ -124,6 +127,9 @@ function New-JiraIssue
             "issuetype"=$IssueTypeParam;
             "priority"=$PriorityParam;
             "reporter"=$ReporterParam
+        }
+        if ($Parent) {
+            $props.parent =  New-Object -TypeName PSObject -Property @{"key"=$Parent}
         }
 
         if ($Labels) {
