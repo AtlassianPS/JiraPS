@@ -41,7 +41,7 @@ InModuleScope PSJira {
         }
 
         Mock Get-JiraUser -ModuleName PSJira {
-            ConvertTo-JiraUser (ConvertFrom-Json $testJsonGet)
+            ConvertTo-JiraUser (ConvertFrom-Json2 $testJsonGet)
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/user?username=$testUsername"} {

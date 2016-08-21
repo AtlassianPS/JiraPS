@@ -4,11 +4,18 @@
 
 PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://www.atlassian.com/software/jira) via a REST API, while maintaining a consistent PowerShell look and feel.
 
+---
+
+## Project update: August 2016
+Thanks to the generous folks at Atlassian, PSJira has been granted an Open Source license for a small test instance of JIRA. This means that finally, development on the project can continue!
+
+Bear with me for a little bit as I get back up to speed on everything. I'll also be adjusting the release pipeline a bit - the current model of only commiting to **master** occasionally isn't working well, and I'd prefer to have the project update any time all tests pass. The commit history may be a mess for a little bit as I work with GitHub and AppVeyor, but I'm hoping it will be better on the other side of things.
+
+---
+
 ## Requirements
 
 This module has a hard dependency on PowerShell 3.0.  I have no plans to release a version compatible with PowerShell 2, as I rely heavily on several cmdlets and features added in version 3.0.
-
-Also note that this module doesn't officially support Jira Software (7.0.0 or greater), since I don't have an instance of this available for testing and troubleshooting.
 
 ## Downloading
 

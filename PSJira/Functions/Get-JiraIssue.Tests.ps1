@@ -92,7 +92,7 @@ InModuleScope PSJira {
 #                        Write-Host "         [Body]    $Body" -ForegroundColor Cyan
                     }
 
-                    ConvertFrom-Json @'
+                    ConvertFrom-Json2 @'
 {
     "expand": "schema,names",
     "startAt": 0,

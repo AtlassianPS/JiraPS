@@ -24,7 +24,7 @@ InModuleScope PSJira {
         Mock Invoke-JiraMethod {}
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/group?groupname=testgroup*' } {
-            ConvertFrom-Json @'
+            ConvertFrom-Json2 @'
 {
     "Name":  "testgroup",
     "RestUrl":  "https://jira.example.com/rest/api/2/group?groupname=testgroup",
@@ -101,7 +101,7 @@ InModuleScope PSJira {
                         Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                         Write-Host "         [Method]  $Method" -ForegroundColor Cyan
                     }
-                    ConvertFrom-Json -InputObject @'
+                    ConvertFrom-Json2 -InputObject @'
 {
   "name": "testgroup",
   "self": "https://jira.example.com/rest/api/2/group?groupname=testgroup",

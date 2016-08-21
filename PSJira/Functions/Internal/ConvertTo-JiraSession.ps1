@@ -14,7 +14,7 @@ function ConvertTo-JiraSession
 
     process
     {
-        $obj = ConvertFrom-Json -InputObject $WebResponse
+        $obj = ConvertFrom-Json2 -InputObject $WebResponse
 
 #        Write-Debug "[ConvertTo-JiraSession] Defining standard properties"
         $props = @{

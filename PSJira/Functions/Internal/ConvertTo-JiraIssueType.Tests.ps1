@@ -26,7 +26,7 @@ Describe "ConvertTo-JiraIssueType" {
     "subtask": false
   }
 "@
-    $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+    $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
     $r = ConvertTo-JiraIssueType $sampleObject
     It "Creates a PSObject out of JSON input" {

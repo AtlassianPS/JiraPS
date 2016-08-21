@@ -32,7 +32,7 @@ Describe "ConvertTo-JiraStatus" {
   }
 }
 "@
-    $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+    $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
     $r = ConvertTo-JiraStatus -InputObject $sampleObject
 
