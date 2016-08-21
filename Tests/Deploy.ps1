@@ -67,13 +67,13 @@ $publishParams = @{
     NuGetApiKey = $env:PSGalleryAPIKey
 }
 if ($env:ReleaseNotes) { $publishParams.ReleaseNotes = $env:ReleaseNotes }
-if ($env:LicenseUri) { $publishParams.LicenseUri = $env:LicenseUri }
-if ($env:ProjectUri) { $publishParams.ProjectUri = $env:ProjectUri }
-if ($env:Tags)
-{
-    # Split by commas and trim whitespace from each tag
-    $publishParams.Tags = $env:Tags -split ',' | where { $_ } | foreach { $_.trim() }
-}
+# if ($env:LicenseUri) { $publishParams.LicenseUri = $env:LicenseUri }
+# if ($env:ProjectUri) { $publishParams.ProjectUri = $env:ProjectUri }
+# if ($env:Tags)
+# {
+#     # Split by commas and trim whitespace from each tag
+#     $publishParams.Tags = $env:Tags -split ',' | where { $_ } | foreach { $_.trim() }
+# }
 
 Write-Host "Parameters for publishing:" -ForegroundColor Cyan
 foreach ($p in $publishParams.Keys)
