@@ -62,6 +62,13 @@ function Set-JiraConfigServer
         throw "Unexpected document element [$($xmlConfig.LocalName)] in configuration file. You may need to delete the config file and recreate it using this function."
     }
 
+    # Check for trailing slash and strip it if necessary
+    $fixedServer = $Server.Trim()
+
+    if ($fixedServer.EndsWith('/') -or $fixedServer.EndsWith('\')) {
+        $fixedServer = $Server.Substring(0, $Server.Length - 1)
+    }
+
     if ($xmlConfig.Server)
     {
 #        Write-Debug "[Set-JiraConfigServer] Changing the existing Server element to the provided value '$Server'"
