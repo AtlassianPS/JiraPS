@@ -8,10 +8,6 @@ foreach ($i in $items)
 {
     Write-Verbose "Importing file '$($i.ProviderPath)'"
     . $i.ProviderPath
-
-    # This folder has public functions, so export them as module members
-    $name = Get-Item $i.ProviderPath | Select-Object -ExpandProperty BaseName
-    Export-ModuleMember -Function $name
 }
 
 # Same logic here, but don't export these. These functions should be private.
