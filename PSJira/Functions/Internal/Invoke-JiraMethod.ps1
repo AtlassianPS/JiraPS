@@ -24,7 +24,7 @@ function Invoke-JiraMethod
     )
 
     $headers = @{
-        'Content-Type' = 'application/json; charset=utf-8';
+        #'Content-Type' = 'application/json; charset=utf-8';
     }
 
     if ($Credential)
@@ -57,16 +57,16 @@ function Invoke-JiraMethod
         if ($session -and $Body)
         {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using WebSession and Body"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $cleanBody -WebSession $session.WebSession -ErrorAction SilentlyContinue
+            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $cleanBody -WebSession $session.WebSession -ErrorAction SilentlyContinue -ContentType 'application/json; charset=utf-8'
         } elseif ($session) {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using WebSession"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -WebSession $session.WebSession -ErrorAction SilentlyContinue
+            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -WebSession $session.WebSession -ErrorAction SilentlyContinue -ContentType 'application/json; charset=utf-8'
         } elseif ($Body) {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using Body"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $cleanBody -ErrorAction SilentlyContinue
+            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $cleanBody -ErrorAction SilentlyContinue -ContentType 'application/json; charset=utf-8'
         } else {
             Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI with no WebSession or Body"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -ErrorAction SilentlyContinue
+            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -ErrorAction SilentlyContinue -ContentType 'application/json; charset=utf-8'
         }
     } catch {
         # Invoke-WebRequest is hard-coded to throw an exception if the Web request returns a 4xx or 5xx error.
