@@ -22,7 +22,7 @@ function ConvertTo-JiraProject
                 'Description' = $i.description;
                 'IssueTypes' = $i.issueTypes;
                 'Roles' = $i.roles;
-                'Category' = $i.Category;
+                'Category' = $i.projectCategory;
                 'RestUrl' = $i.self;
             }
 
