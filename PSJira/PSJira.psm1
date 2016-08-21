@@ -1,6 +1,6 @@
 ﻿$moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path -Parent
-$functions = Join-Path -Path $moduleRoot -ChildPath 'Functions'
-$internal = Join-Path -Path $moduleRoot -ChildPath 'Functions\Internal'
+$functions = Join-Path -Path $moduleRoot -ChildPath 'Public'
+$internal = Join-Path -Path $moduleRoot -ChildPath 'Internal'
 
 # Import all .ps1 files that aren't Pester tests, and export the names of each one as a module function
 $items = Resolve-Path "$functions\*.ps1" | Where-Object -FilterScript { -not ($_.ProviderPath.Contains(".Tests.")) }
