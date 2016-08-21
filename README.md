@@ -27,7 +27,7 @@ Install-Module PSJira
 
 If you're using PowerShell 3 or 4, you can download this module from the Download Zip button on the right.  You'll need to extract the PSJira folder to your $PSModulePath.  Normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules.
 
-You can also always feel free to clone the module directly in Git.
+You can look at the releases here on GitHub for "stable" versions, but PSGallery will always have the latest (tested) version of the module, so it is the easiest way to stay up to date.
 
 ## Getting Started
 
@@ -46,16 +46,15 @@ Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/G
 * Possible support for OAuth in addition to HTTP Basic authentication
 
 ## Contributing
-Want to contribute to PSJira?  Great!  I'm accepting pull requests against the *dev* branch.
+Want to contribute to PSJira?  Great! Here are a couple of notes regarding contributions:
 
-Here are a couple of notes regarding contributions:
 * PSJira relies heavily upon Pester testing to make sure that changes don't break each other.  Please respect the tests when coding against PSJira.
-  * Pull requests are much more likely to be accepted if all tests pass.
-  * If you write a change that causes a test to fail, please explain why the change is appropriate.  Tests are code, just like the module itself, so it's very possbile that they need to be fixed as well.  Bonus points if you also write the fix for the test.
-  * If implementing a brand-new function or behavior, please write a test for it.
+* Pull requests are much more likely to be accepted if all tests pass.
+* If you write a change that causes a test to fail, please explain why the change is appropriate.  Tests are code, just like the module itself, so it's very possbile that they need to be fixed as well.  Bonus points if you also write the fix for the test.
+* If implementing a brand-new function or behavior, please write a test for it.
 * Please respect the formatting style of the rest of the module code as well.  If in doubt, place braces on a new line.
 
-Changes will be merged to master and released when the module passes all Pester tests, including the module style tests.
+Changes will be merged and released when the module passes all Pester tests, including the module style tests.
 
 ## Contact
 
