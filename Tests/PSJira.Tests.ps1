@@ -5,14 +5,15 @@ $moduleRoot = "$projectRoot\PSJira"
 $manifestFile = "$moduleRoot\PSJira.psd1"
 $changelogFile = "$projectRoot\CHANGELOG.md"
 $appveyorFile = "$projectRoot\appveyor.yml"
-$functions = "$moduleRoot\Functions"
+$publicFunctions = "$moduleRoot\Public"
+$internalFunctions = "$moduleRoot\Internal"
 
 Describe "PSJira" {
     Context "All required tests are present" {
         # We want to make sure that every .ps1 file in the Functions directory that isn't a Pester test has an associated Pester test.
         # This helps keep me honest and makes sure I'm testing my code appropriately.
         It "Includes a test for each PowerShell function in the module" {
-            Get-ChildItem -Path $functions -Filter "*.ps1" -Recurse | Where-Object -FilterScript {$_.Name -notlike '*.Tests.ps1'} | % {
+            Get-ChildItem -Path $publicFunctions -Filter "*.ps1" -Recurse | Where-Object -FilterScript {$_.Name -notlike '*.Tests.ps1'} | % {
                 $_.FullName -replace '.ps1','.Tests.ps1' | Should Exist
             }
         }
@@ -28,12 +29,20 @@ Describe "PSJira" {
         $script:manifest = $null
         It "Includes a valid manifest file" {
             {
-                $script:manifest = Test-ModuleManifest -Path $manifestFile -ErrorAction Stop -WarningAction SilentlyContinue
+                $script:manifest = Test-ModuleManifest -Path $script:manifestFile -ErrorAction Stop -WarningAction SilentlyContinue
             } | Should Not Throw
         }
 
-        It "Manifest file includes the correct name" {
-            $script:manifest.Name | Should Be PSJira
+        # There is a bug that prevents Test-ModuleManifest from updating correctly when the manifest file changes. See here:
+        # https://connect.microsoft.com/PowerShell/feedback/details/1541659/test-modulemanifest-the-psmoduleinfo-is-not-updated
+
+        # As a temp workaround, we'll just read the manifest as a raw hashtable.
+        # Credit to this workaround comes from here:
+        # https://psescape.azurewebsites.net/pester-testing-your-module-manifest/
+        $script:manifest = Invoke-Expression (Get-Content $script:manifestFile -Raw)
+
+        It "Manifest file includes the correct root module" {
+            $script:manifest.RootModule | Should Be 'PSJira.psm1'
         }
 
         It "Manifest file includes the correct guid" {
@@ -41,30 +50,31 @@ Describe "PSJira" {
         }
 
         It "Manifest file includes a valid version" {
-            $script:manifest.Version -as [Version] | Should Not BeNullOrEmpty
+            # $script:manifest.Version -as [Version] | Should Not BeNullOrEmpty
+            $script:manifest.ModuleVersion -as [Version] | Should Not BeNullOrEmpty
         }
 
         It "Includes a changelog file" {
             $changelogFile | Should Exist
         }
 
-        $script:changelogVersion = $null
+        $changelogVersion = $null
         It "Changelog includes a valid version number" {
 
             foreach ($line in (Get-Content $changelogFile))
             {
                 if ($line -match "^\D*(?<Version>(\d+\.){1,3}\d+)")
                 {
-                    $script:changelogVersion = $matches.Version
+                    $changelogVersion = $matches.Version
                     break
                 }
             }
-            $script:changelogVersion                | Should Not BeNullOrEmpty
-            $script:changelogVersion -as [Version]  | Should Not BeNullOrEmpty
+            $changelogVersion                | Should Not BeNullOrEmpty
+            $changelogVersion -as [Version]  | Should Not BeNullOrEmpty
         }
 
         It "Changelog version matches manifest version" {
-            $script:changelogVersion -as [Version] | Should Be ( $script:manifest.Version -as [Version] )
+            $changelogVersion -as [Version] | Should Be ( $script:manifest.Version -as [Version] )
         }
 
         # Back to me! Pester doesn't use AppVeyor, as far as I know, and I do.
@@ -81,16 +91,41 @@ Describe "PSJira" {
 
                 if ($line -match '^\D*(?<Version>(\d+\.){1,3}\d+).\{build\}')
                 {
-                    $script:appveyorVersion = $matches.Version
+                    $appveyorVersion = $matches.Version
                     break
                 }
             }
-            $script:appveyorVersion               | Should Not BeNullOrEmpty
-            $script:appveyorVersion -as [Version] | Should Not BeNullOrEmpty
+            $appveyorVersion               | Should Not BeNullOrEmpty
+            $appveyorVersion -as [Version] | Should Not BeNullOrEmpty
         }
 
         It "Appveyor version matches manifest version" {
-            $script:appveyorVersion -as [Version] | Should Be ( $script:manifest.Version -as [Version] )
+            $appveyorVersion -as [Version] | Should Be ( $script:manifest.Version -as [Version] )
+        }
+    }
+
+    Context "Function checking" {
+        $functionFiles = Get-ChildItem $publicFunctions -Filter *.ps1 |
+            Select-Object -ExpandProperty BaseName |
+            Where-Object { $_ -notlike "*.Tests" }
+
+        $internalFiles = Get-ChildItem $internalFunctions -Filter *.ps1 |
+            Select-Object -ExpandProperty BaseName |
+            Where-Object { $_ -notlike "*.Tests" }
+
+        #$exportedFunctions = $script:manifest.ExportedFunctions.Values.Name
+        $exportedFunctions = $script:manifest.FunctionsToExport
+
+        foreach ($f in $functionFiles) {
+            It "Exports $f" {
+                $exportedFunctions -contains $f | Should Be $true
+            }
+        }
+
+        foreach ($f in $internalFiles) {
+            It "Does not export $f" {
+                $exportedFunctions -contains $f | Should Be $false
+            }
         }
     }
 
@@ -101,7 +136,7 @@ Describe "PSJira" {
 
         $files = @(
             Get-ChildItem $here -Include *.ps1,*.psm1
-            Get-ChildItem $functions -Include *.ps1,*.psm1 -Recurse
+            Get-ChildItem $publicFunctions -Include *.ps1,*.psm1 -Recurse
         )
 
         It 'Source files contain no trailing whitespace' {
