@@ -6,18 +6,8 @@ PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://
 
 ---
 
-## Project update: April 2016
-I've gone through a move and a job change in the last month, and as a result, I no longer have access to a working instance of JIRA. As you can imagine, this limits my ability to enhance the module a bit.
-
-I'd be willing to spin up a small home JIRA server to continue development on this, but my real-life budget is stretched to the breaking point, and I honestly can't afford the price tag even for the most basic JIRA license. If anyone has the ability to grant me a user account on a JIRA instance with enough permissions to test this stuff (create and modify users, issues, filters, etc.), drop me a PM on Reddit (replicaJunction).
-
-Meanwhile, I will continue to troubleshoot and provide support to the best of my ability.
-
-Because I don't have the ability to test the module against a real JIRA instance right now, it is *absolutely critical* that pull requests pass all CI tests before they are merged!
-
-Thanks for all your kind words on this project. I've invested too much in this just to let it die.
-
--replica
+## Project update: August 2016
+Thanks to the generous folks at Atlassian, PSJira has been granted an Open Source license for a small test instance of JIRA. This means that finally, development on the project can continue!
 
 ---
 
