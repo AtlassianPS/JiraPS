@@ -10,6 +10,7 @@ PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://
 Thanks to the generous folks at Atlassian, PSJira has been granted an Open Source license for a small test instance of JIRA. This means that finally, development on the project can continue!
 
 Bear with me for a little bit as I get back up to speed on everything. I'll also be adjusting the release pipeline a bit - the current model of only commiting to **master** occasionally isn't working well, and I'd prefer to have the project update any time all tests pass. The commit history may be a mess for a little bit as I work with GitHub and AppVeyor, but I'm hoping it will be better on the other side of things.
+
 ---
 
 ## Requirements
