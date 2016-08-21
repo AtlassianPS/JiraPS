@@ -2,15 +2,16 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
-Describe "ConvertTo-JiraCreateMetaField" {
-    function defProp($obj, $propName, $propValue)
-    {
-        It "Defines the '$propName' property" {
-            $obj.$propName | Should Be $propValue
+InModuleScope PSJira {
+    Describe "ConvertTo-JiraCreateMetaField" {
+        function defProp($obj, $propName, $propValue)
+        {
+            It "Defines the '$propName' property" {
+                $obj.$propName | Should Be $propValue
+            }
         }
-    }
 
-    $sampleJson = @'
+        $sampleJson = @'
 {
     "expand":  "projects",
     "projects":  [
@@ -83,41 +84,42 @@ Describe "ConvertTo-JiraCreateMetaField" {
                  ]
 }
 '@
-    $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
-    $r = ConvertTo-JiraCreateMetaField $sampleObject
+        $r = ConvertTo-JiraCreateMetaField $sampleObject
 
-    It "Creates PSObjects out of JSON input" {
-        $r | Should Not BeNullOrEmpty
-        $r.Count | Should Be 2
-    }
-
-    It "Sets the type name to PSJira.CreateMetaField" {
-        # Need to use the pipeline in this case, instead of directly using the
-        # -InputObject parameter. This is a quirk of PowerShell, arrays, and
-        # the pipeline.
-        ($r | Get-Member).TypeName | Should Be 'PSJira.CreateMetaField'
-    }
-
-    Context "Data validation" {
-        # Our sample JSON includes two fields: summary and priority.
-        $summary = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Summary'}
-        $priority = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Priority'}
-
-        defProp $summary 'Id' 'summary'
-        defProp $summary 'Name' 'Summary'
-        defProp $summary 'HasDefaultValue' $false
-        defProp $summary 'Required' $true
-        defProp $summary 'Operations' @('set')
-
-        It "Defines the 'Schema' property if available" {
-            $summary.Schema | Should Not BeNullOrEmpty
-            $priority.Schema | Should Not BeNullOrEmpty
+        It "Creates PSObjects out of JSON input" {
+            $r | Should Not BeNullOrEmpty
+            $r.Count | Should Be 2
         }
 
-        It "Defines the 'AllowedValues' property if available" {
-            $summary.AllowedValues | Should BeNullOrEmpty
-            $priority.AllowedValues | Should Not BeNullOrEmpty
+        It "Sets the type name to PSJira.CreateMetaField" {
+            # Need to use the pipeline in this case, instead of directly using the
+            # -InputObject parameter. This is a quirk of PowerShell, arrays, and
+            # the pipeline.
+            ($r | Get-Member).TypeName | Should Be 'PSJira.CreateMetaField'
+        }
+
+        Context "Data validation" {
+            # Our sample JSON includes two fields: summary and priority.
+            $summary = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Summary'}
+            $priority = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Priority'}
+
+            defProp $summary 'Id' 'summary'
+            defProp $summary 'Name' 'Summary'
+            defProp $summary 'HasDefaultValue' $false
+            defProp $summary 'Required' $true
+            defProp $summary 'Operations' @('set')
+
+            It "Defines the 'Schema' property if available" {
+                $summary.Schema | Should Not BeNullOrEmpty
+                $priority.Schema | Should Not BeNullOrEmpty
+            }
+
+            It "Defines the 'AllowedValues' property if available" {
+                $summary.AllowedValues | Should BeNullOrEmpty
+                $priority.AllowedValues | Should Not BeNullOrEmpty
+            }
         }
     }
 }

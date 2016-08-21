@@ -2,21 +2,22 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
-Describe "ConvertTo-JiraStatus" {
-    function defProp($obj, $propName, $propValue)
-    {
-        It "Defines the '$propName' property" {
-            $obj.$propName | Should Be $propValue
+InModuleScope PSJira {
+    Describe "ConvertTo-JiraStatus" {
+        function defProp($obj, $propName, $propValue)
+        {
+            It "Defines the '$propName' property" {
+                $obj.$propName | Should Be $propValue
+            }
         }
-    }
 
-    $jiraServer = 'http://jiraserver.example.com'
+        $jiraServer = 'http://jiraserver.example.com'
 
-    $statusName = 'In Progress'
-    $statusId = 3
-    $statusDesc = 'This issue is being actively worked on at the moment by the assignee.'
+        $statusName = 'In Progress'
+        $statusId = 3
+        $statusDesc = 'This issue is being actively worked on at the moment by the assignee.'
 
-    $sampleJson = @"
+        $sampleJson = @"
 {
   "self": "$jiraServer/rest/api/2/status/$statusId",
   "description": "$statusDesc",
@@ -32,23 +33,22 @@ Describe "ConvertTo-JiraStatus" {
   }
 }
 "@
-    $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
-    $r = ConvertTo-JiraStatus -InputObject $sampleObject
+        $r = ConvertTo-JiraStatus -InputObject $sampleObject
 
-    It "Creates a PSObject out of JSON input" {
-        $r | Should Not BeNullOrEmpty
+        It "Creates a PSObject out of JSON input" {
+            $r | Should Not BeNullOrEmpty
+        }
+
+        It "Sets the type name to PSJira.Status" {
+            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Status'
+        }
+
+        defProp $r 'Id' $statusId
+        defProp $r 'Name' $statusName
+        defProp $r 'Description' $statusDesc
+        defProp $r 'IconUrl' "$jiraServer/images/icons/statuses/inprogress.png"
+        defProp $r 'RestUrl' "$jiraServer/rest/api/2/status/$statusId"
     }
-
-    It "Sets the type name to PSJira.Status" {
-        (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Status'
-    }
-
-    defProp $r 'Id' $statusId
-    defProp $r 'Name' $statusName
-    defProp $r 'Description' $statusDesc
-    defProp $r 'IconUrl' "$jiraServer/images/icons/statuses/inprogress.png"
-    defProp $r 'RestUrl' "$jiraServer/rest/api/2/status/$statusId"
 }
-
-

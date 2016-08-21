@@ -2,18 +2,19 @@
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
-Describe "ConvertTo-JiraGroup" {
-    function defProp($obj, $propName, $propValue)
-    {
-        It "Defines the '$propName' property" {
-            $obj.$propName | Should Be $propValue
+InModuleScope PSJira {
+    Describe "ConvertTo-JiraGroup" {
+        function defProp($obj, $propName, $propValue)
+        {
+            It "Defines the '$propName' property" {
+                $obj.$propName | Should Be $propValue
+            }
         }
-    }
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $groupName = 'powershell-testgroup'
+        $jiraServer = 'http://jiraserver.example.com'
+        $groupName = 'powershell-testgroup'
 
-    $sampleJson = @"
+        $sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/group?groupname=$groupName",
     "name": "$groupName",
@@ -27,19 +28,20 @@ Describe "ConvertTo-JiraGroup" {
     "expand": "users"
 }
 "@
-    $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
-    $r = ConvertTo-JiraGroup -InputObject $sampleObject
+        $r = ConvertTo-JiraGroup -InputObject $sampleObject
 
-    It "Creates a PSObject out of JSON input" {
-        $r | Should Not BeNullOrEmpty
+        It "Creates a PSObject out of JSON input" {
+            $r | Should Not BeNullOrEmpty
+        }
+
+        It "Sets the type name to PSJira.Group" {
+            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Group'
+        }
+
+        defProp $r 'Name' $groupName
+        defProp $r 'RestUrl' "$jiraServer/rest/api/2/group?groupname=$groupName"
+        defProp $r 'Size' 1
     }
-
-    It "Sets the type name to PSJira.Group" {
-        (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Group'
-    }
-
-    defProp $r 'Name' $groupName
-    defProp $r 'RestUrl' "$jiraServer/rest/api/2/group?groupname=$groupName"
-    defProp $r 'Size' 1
 }
