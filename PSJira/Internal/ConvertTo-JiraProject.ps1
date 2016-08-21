@@ -22,8 +22,17 @@ function ConvertTo-JiraProject
                 'Description' = $i.description;
                 'IssueTypes' = $i.issueTypes;
                 'Roles' = $i.roles;
-                'Category' = $i.Category;
                 'RestUrl' = $i.self;
+            }
+
+            if ($i.projectCategory) {
+                $props.Category = $i.projectCategory
+            }
+            elseif ($i.Category) {
+                $props.Category = $i.Category
+            }
+            else {
+                $props.Category = $null
             }
 
 #            Write-Debug "Creating PSObject out of properties"
