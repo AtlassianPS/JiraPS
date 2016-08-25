@@ -9,8 +9,6 @@ PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://
 ## Project update: August 2016
 Thanks to the generous folks at Atlassian, PSJira has been granted an Open Source license for a small test instance of JIRA. This means that finally, development on the project can continue!
 
-Bear with me for a little bit as I get back up to speed on everything. I'll also be adjusting the release pipeline a bit - the current model of only commiting to **master** occasionally isn't working well, and I'd prefer to have the project update any time all tests pass. The commit history may be a mess for a little bit as I work with GitHub and AppVeyor, but I'm hoping it will be better on the other side of things.
-
 ---
 
 ## Requirements
@@ -19,15 +17,17 @@ This module has a hard dependency on PowerShell 3.0.  I have no plans to release
 
 ## Downloading
 
-In PowerShell 5, it's very simple to download the latest public release of this module:
+Due to the magic of continuous integration, the latest passing build of this project will always be on the PowerShell Gallery. If you have the Package Management module for PowerShell (which comes with PowerShell 5.0), you can install the latest build easily:
 
 ```powershell
 Install-Module PSJira
 ```
 
-If you're using PowerShell 3 or 4, you can download this module from the Download Zip button on the right.  You'll need to extract the PSJira folder to your $PSModulePath.  Normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules.
+If you're using PowerShell 3 or 4, consider updating! If that's not an option, consider installing PackageManagement on PowerShell 3 or 4 (you can do so from the [PowerShell gallery](https://www.powershellgallery.com/) using the MSI installer link).
 
-You can look at the releases here on GitHub for "stable" versions, but PSGallery will always have the latest (tested) version of the module, so it is the easiest way to stay up to date.
+You can also download this module from the Download Zip button on this page.  You'll need to extract the PSJira folder to your $PSModulePath (normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules).
+
+Finally, you can check the releases page here on GitHub for "stable" versions, but again, PSGallery will always have the latest (tested) version of the module.
 
 ## Getting Started
 
