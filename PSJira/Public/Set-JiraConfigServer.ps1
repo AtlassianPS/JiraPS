@@ -72,12 +72,12 @@ function Set-JiraConfigServer
     if ($xmlConfig.Server)
     {
 #        Write-Debug "[Set-JiraConfigServer] Changing the existing Server element to the provided value '$Server'"
-        $xmlConfig.Server = $Server
+        $xmlConfig.Server = $fixedServer
     } else {
 #        Write-Debug "[Set-JiraConfigServer] Creating new element Server"
         $xmlServer = $xml.CreateElement('Server')
 #        Write-Debug "[Set-JiraConfigServer] Writing InnerText property with provided value '$Server'"
-        $xmlServer.InnerText = $Server
+        $xmlServer.InnerText = $fixedServer
 #        Write-Debug "[Set-JiraConfigServer] Adding element to existing XML file"
         [void] $xmlConfig.AppendChild($xmlServer)
     }
