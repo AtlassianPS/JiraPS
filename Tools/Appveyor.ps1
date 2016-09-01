@@ -29,6 +29,7 @@ if ($env:CI -ne $true)
 
 Write-Host
 Write-Host ('Project name:               {0}' -f $env:APPVEYOR_PROJECT_NAME) -ForegroundColor Cyan
+Write-Host ('Project root:               {0}' -f $ProjectRoot) -ForegroundColor Cyan
 Write-Host ('Commit:                     {0}' -f $env:APPVEYOR_REPO_COMMIT) -ForegroundColor Cyan
 Write-Host ('  - Author:                 {0}' -f $env:APPVEYOR_REPO_COMMIT_AUTHOR) -ForegroundColor Cyan
 Write-Host ('  - Time:                   {0}' -f $env:APPVEYOR_REPO_COMMIT_TIMESTAMP) -ForegroundColor Cyan
@@ -50,6 +51,7 @@ Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 
 # Don't forget -Force!
 Install-Module Pester,psake -Force
+Write-Host "Attempting to run $PSScriptRoot\Tools\psake.ps1" -ForegroundColor Cyan
 Invoke-psake .\Tools\psake.ps1
 
 Write-Host
