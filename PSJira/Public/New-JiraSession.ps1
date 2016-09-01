@@ -62,7 +62,7 @@ function New-JiraSession
 
         try
         {
-            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -SessionVariable newSessionVar
+            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -UseBasicParsing -SessionVariable newSessionVar
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
 

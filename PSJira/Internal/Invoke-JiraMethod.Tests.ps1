@@ -68,6 +68,11 @@ InModuleScope PSJira {
                 Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Content-Type') -eq 'application/json; charset=utf-8'} -Scope It
             }
 
+            It "Uses the -UseBasicParsing switch for Invoke-WebRequest" {
+                { Invoke-JiraMethod -Method Get -URI $testUri } | Should Not Throw
+                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$UseBasicParsing -eq $true} -Scope It
+            }
+
             It "Provides Base64 credentials in the Authorization header only when the -Credential parameter is supplied" {
                 # This is the authorizion token that should be provided when using HTTP Basic authentication. It takes the form of
                 # "username:password" encoded into a base 64 String.

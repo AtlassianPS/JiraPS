@@ -58,6 +58,11 @@ InModuleScope PSJira {
             Assert-MockCalled -CommandName Invoke-WebRequest -Exactly -Times 1 -Scope It
         }
 
+        It "Uses the -UseBasicParsing switch for Invoke-WebRequest" {
+            { New-JiraSession -Credential $testCredential } | Should Not Throw
+            Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$UseBasicParsing -eq $true} -Scope It
+        }
+
         It "Returns a custom object of type PSJira.Session" {
             $s = New-JiraSession -Credential $testCredential
             $s | Should Not BeNullOrEmpty

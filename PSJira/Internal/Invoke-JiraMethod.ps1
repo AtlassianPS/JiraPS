@@ -47,27 +47,33 @@ function Invoke-JiraMethod
         }
     }
 
-    # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
-    $cleanBody = [System.Text.Encoding]::UTF8.GetBytes($Body)
+    $iwrSplat = @{
+        Uri             = $Uri
+        Headers         = $headers
+        Method          = $Method
+        UseBasicParsing = $true
+        ErrorAction     = 'SilentlyContinue'
+    }
+
+    if ($Body)
+    {
+        # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
+        $cleanBody = [System.Text.Encoding]::UTF8.GetBytes($Body)
+        $iwrSplat.Add('Body', $cleanBody)
+    }
+
+    if ($Session)
+    {
+        $iwrSplat.Add('WebSession', $session.WebSession)
+    }
+
+    # We don't need to worry about $Credential, because it's part of the headers being sent to Jira
 
     try
     {
-        # Handle all cases of whether $session and $Body are defined. We don't need to worry about $Credential, because
-        # it's part of the headers being sent to Jira
-        if ($session -and $Body)
-        {
-            Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using WebSession and Body"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $cleanBody -WebSession $session.WebSession -ErrorAction SilentlyContinue
-        } elseif ($session) {
-            Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using WebSession"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -WebSession $session.WebSession -ErrorAction SilentlyContinue
-        } elseif ($Body) {
-            Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI using Body"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -Body $cleanBody -ErrorAction SilentlyContinue
-        } else {
-            Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI with no WebSession or Body"
-            $webResponse = Invoke-WebRequest -Uri $URI -Headers $headers -Method $Method -ErrorAction SilentlyContinue
-        }
+
+        Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI"
+        $webResponse = Invoke-WebRequest @iwrSplat
     } catch {
         # Invoke-WebRequest is hard-coded to throw an exception if the Web request returns a 4xx or 5xx error.
         # This is the best workaround I can find to retrieve the actual results of the request.
