@@ -96,7 +96,13 @@ function Invoke-JiraMethod
             Write-Debug "[Invoke-JiraMethod] Retrieved body of HTTP response for more information about the error (`$body)"
             $result = ConvertFrom-Json2 -InputObject $body
         } else {
-            $result = ConvertFrom-Json2 -InputObject $webResponse.Content
+            if ($webResponse.Content)
+            {
+                Write-Debug "[Invoke-JiraMethod] Converting body of response from JSON"
+                $result = ConvertFrom-Json2 -InputObject $webResponse.Content
+            } else {
+                Write-Debug "[Invoke-JiraMethod] No content was returned from JIRA."
+            }
         }
 
         if ($result.errors -ne $null)
@@ -108,7 +114,7 @@ function Invoke-JiraMethod
             Write-Output $result
         }
     } else {
-        Write-Debug "[Invoke-JiraMethod] No results were returned from JIRA. This is unusual!"
+        Write-Debug "[Invoke-JiraMethod] No Web result object was returned from JIRA. This is unusual!"
     }
 }
 

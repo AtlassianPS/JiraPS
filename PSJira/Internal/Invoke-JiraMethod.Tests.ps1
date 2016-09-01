@@ -11,6 +11,8 @@ InModuleScope PSJira {
 
     Describe "Invoke-JiraMethod" {
 
+        ## Helper functions
+
         if ($ShowDebugText)
         {
             Mock "Write-Debug" {
@@ -18,20 +20,30 @@ InModuleScope PSJira {
             }
         }
 
+        function defParam($command, $name)
+        {
+            It "Has a -$name parameter" {
+                $command.Parameters.Item($name) | Should Not BeNullOrEmpty
+            }
+        }
+
+        function ShowMockInfo($functionName, [String[]] $params) {
+            if ($ShowMockData)
+            {
+                Write-Host "       Mocked $functionName" -ForegroundColor Cyan
+                foreach ($p in $params) {
+                    Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly)" -ForegroundColor Cyan
+                }
+            }
+        }
+
         Context "Sanity checking" {
             $command = Get-Command -Name Invoke-JiraMethod
 
-            function defParam($name)
-            {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
-            defParam 'Method'
-            defParam 'URI'
-            defParam 'Body'
-            defParam 'Credential'
+            defParam $command 'Method'
+            defParam $command 'URI'
+            defParam $command 'Body'
+            defParam $command 'Credential'
 
             It "Has a ValidateSet for the -Method parameter that accepts methods [$($validMethods -join ', ')]" {
                 $validateSet = $command.Parameters.Method.Attributes | ? {$_.TypeID -eq [System.Management.Automation.ValidateSetAttribute]}
@@ -47,12 +59,13 @@ InModuleScope PSJira {
             $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername,(ConvertTo-SecureString -AsPlainText -Force $testPassword)
 
             Mock Invoke-WebRequest {
-                if ($ShowMockData)
-                {
-                    Write-Host "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
-                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                }
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
+                # if ($ShowMockData)
+                # {
+                #     Write-Host "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
+                #     Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
+                #     Write-Host "         [Method]  $Method" -ForegroundColor Cyan
+                # }
             }
 
             It "Correctly performs all necessary HTTP method requests [$($validMethods -join ',')] to a provided URI" {
@@ -92,15 +105,14 @@ InModuleScope PSJira {
             }
         }
 
-        Context "Output handling" {
-            It "Outputs an object representation of JSON returned from JIRA" {
+        $validTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/303853'
 
-                # This is a real REST result from Atlassian's public-facing JIRA instance, trimmed and cleaned
-                # up just a bit for fields we don't care about.
+        # This is a real REST result from Atlassian's public-facing JIRA instance, trimmed and cleaned
+        # up just a bit for fields we don't care about.
 
-                # You can obtain this data with a single PowerShell line:
-                # Invoke-WebRequest -Method Get -Uri https://jira.atlassian.com/rest/api/latest/issue/303853
-                $validRestResult = @'
+        # You can obtain this data with a single PowerShell line:
+        # Invoke-WebRequest -Method Get -Uri https://jira.atlassian.com/rest/api/latest/issue/303853
+        $validRestResult = @'
 {
   "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog,versionedRepresentations",
   "id": "303853",
@@ -430,10 +442,14 @@ InModuleScope PSJira {
 }
 '@
 
-                $validTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/303853'
-                $validObjResult = ConvertFrom-Json2 -InputObject $validRestResult
+        $validObjResult = ConvertFrom-Json2 -InputObject $validRestResult
+
+        Context "Output handling - valid object returned (HTTP 200)" {
+
+            It "Outputs an object representation of JSON returned from JIRA" {
 
                 Mock Invoke-WebRequest -ParameterFilter {$Method -eq 'Get' -and $Uri -eq $validTestUri} {
+                    ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
                     Write-Output [PSCustomObject] @{
                         'Content' = $validRestResult
                     }
@@ -447,19 +463,44 @@ InModuleScope PSJira {
                     $result.$property | Should Be $validObjResult.$property
                 }
             }
+        }
+
+        Context "Output handling - no content returned (HTTP 204)" {
+            Mock Invoke-WebRequest {
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
+
+                Write-Output [PSCustomObject] @{
+                    'StatusCode' = 204
+                    'Content' = $null
+                }
+            }
+            Mock ConvertFrom-Json2 {
+                ShowMockInfo 'ConvertFrom-Json2'
+            }
+
+            It "Correctly handles HTTP response codes that do not provide a return body" {
+                { Invoke-JiraMethod -Method Get -URI $validTestUri } | Should Not Throw
+                Assert-MockCalled -CommandName ConvertFrom-Json2 -Exactly -Times 0 -Scope It
+            }
+        }
+
+        Context "Output handling - JIRA error returned (HTTP 400 and up)" {
+            $invalidTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/1'
+            $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}';
+
+            Mock Invoke-WebRequest {
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
+                Write-Output [PSCustomObject] @{
+                    'StatusCode' = 400
+                    'Content'    = $invalidRestResult
+                }
+            }
+
+            Mock Resolve-JiraError {
+                ShowMockInfo 'Resolve-JiraError' -params 'InputObject'
+            }
 
             It "Uses Resolve-JiraError to parse any JIRA error messages returned" {
-                $invalidTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/1'
-                $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}';
-
-                Mock Invoke-WebRequest {
-                    Write-Output [PSCustomObject] @{
-                        'Content' = $invalidRestResult
-                    }
-                }
-
-                Mock Resolve-JiraError {}
-
                 { Invoke-JiraMethod -Method Get -URI $invalidTestUri } | Should Not Throw
                 Assert-MockCalled -CommandName Resolve-JiraError -Exactly -Times 1 -Scope It
             }
