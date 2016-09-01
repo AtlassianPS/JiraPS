@@ -50,7 +50,7 @@ Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 
 # Don't forget -Force!
 Install-Module Pester,psake -Force
-Invoke-psake .\psake.ps1
+Invoke-psake .\Tools\psake.ps1
 
 Write-Host
 Write-Host "=== Completed AppVeyor.ps1 ===" -ForegroundColor Green
