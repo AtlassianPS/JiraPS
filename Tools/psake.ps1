@@ -22,14 +22,14 @@ Properties {
 
 Task Init {
     $line
-    "INIT"
     Set-Location $ProjectRoot
+    "Importing module"
+    Import-Module "$ProjectRoot\PSJira.psd1"
     "`n"
 }
 
 Task Test -Depends Init  {
     $line
-    "TEST"
     "`n`tTesting with PowerShell $PSVersion"
 
     # Gather test results. Store them in a variable and file
@@ -79,12 +79,10 @@ Task Test -Depends Init  {
 
 Task Build -Depends Test {
     $line
-    "BUILD"
 }
 
 Task Deploy -Depends Build {
     $line
-    "DEPLOY"
 
     $publishParams = @{
         Path = $ModuleRoot
