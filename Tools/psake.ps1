@@ -33,7 +33,7 @@ Task Test -Depends Init  {
     "`n`tTesting with PowerShell $PSVersion"
 
     # Gather test results. Store them in a variable and file
-    $TestResults = Invoke-Pester -Path $ProjectRoot\Tests -PassThru -OutputFormat NUnitXml -OutputFile "$ProjectRoot\$TestFile"
+    $TestResults = Invoke-Pester -Path $ProjectRoot -PassThru -OutputFormat NUnitXml -OutputFile "$ProjectRoot\$TestFile"
 
     $url = "https://ci.appveyor.com/api/testresults/nunit/$($JobId)"
     "Uploading test results back to AppVeyor, url=[$url]"

@@ -52,7 +52,7 @@ Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 # Don't forget -Force!
 Install-Module Pester,psake -Force
 Write-Host "Attempting to run $PSScriptRoot\Tools\psake.ps1" -ForegroundColor Cyan
-Invoke-psake .\Tools\psake.ps1
+Invoke-psake .\psake.ps1
 
 Write-Host
 Write-Host "=== Completed AppVeyor.ps1 ===" -ForegroundColor Green
