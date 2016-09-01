@@ -51,7 +51,7 @@ Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 # Don't forget -Force!
 Install-Module PSDepend -Force
 
-Invoke-PSDepend -Path $ProjectRoot -Install -Import -Force
+Invoke-PSDepend -Path $ProjectRoot -Install $true -Import -Force
 
 Invoke-psake .\psake.ps1
 
