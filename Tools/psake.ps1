@@ -24,7 +24,7 @@ Task Init {
     $line
     Set-Location $ProjectRoot
     "Importing module"
-    Import-Module "$ProjectRoot\PSJira.psd1"
+    Import-Module "$ProjectRoot\PSJira\PSJira.psd1"
     "`n"
 }
 
