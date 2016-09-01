@@ -6,10 +6,10 @@
 #region Variables
 # AppVeyor environment variables
 
-# This refers to the root of the project directory
+# This refers to the root of the project directory - usually C:\Projects\PSJira, but it's not safe to assume that
 $ProjectRoot = $env:APPVEYOR_BUILD_FOLDER
 
-# This is the root of the module folder inside the project
+# This is the root of the module folder inside the project, where the .psm1 file lives
 $ModuleRoot = Join-Path -Path $ProjectRoot -ChildPath 'PSJira'
 
 # This is AppVeyor's internal job ID, used to return results using their REST API
@@ -51,8 +51,8 @@ Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 
 # Don't forget -Force!
 Install-Module Pester,psake -Force
-Write-Host "Attempting to run $PSScriptRoot\Tools\psake.ps1" -ForegroundColor Cyan
-Invoke-psake .\psake.ps1
+Write-Host "Attempting to run $env:APPVEYOR_BUILD_FOLDER\Tools\psake.ps1" -ForegroundColor Cyan
+Invoke-psake $env:APPVEYOR_BUILD_FOLDER\Tools\psake.ps1
 
 Write-Host
 Write-Host "=== Completed AppVeyor.ps1 ===" -ForegroundColor Green
