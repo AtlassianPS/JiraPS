@@ -1,7 +1,11 @@
+############################################################
+#
 # See http://www.appveyor.com/docs/appveyor-yml for many more options
-
+#
 # Credit for a lot of this file goes to RamblingCookieMonster:
 # https://github.com/RamblingCookieMonster/PSSQLite/blob/master/appveyor.yml
+#
+############################################################
 
 # This tells AppVeyor that we need WMF 5 and PowerShell 5.0
 os: WMF 5
@@ -17,35 +21,14 @@ environment:
         secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
 
 version: 1.2.5.{build}
-branches:
-    only:
-        - master
-        - dev
+
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
 
 skip_commits:
     message: /readme*/
 
-# init:
-#  # If necessary, you can use this to enable RDP to the testing box
-#  # - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
-#install:
-#  - cinst Pester -y
-
 test_script:
     - ps: . .\Tools\Appveyor.ps1
 
-# Compile just the module into a zip file
-#build_script:
-#    - 7z a %ModuleName%.zip %ModuleName%\
 build: false
-
-# Use the compiled zip file as the compiled and tested module
-#artifacts:
-#    - path: $(ModuleName).zip
-
-# Deploy to the PowerShell Gallery
-#deploy_script:
-#    - ps: . .\Tools\Deploy.ps1
