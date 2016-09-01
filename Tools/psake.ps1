@@ -82,7 +82,38 @@ Task Build -Depends Test {
 }
 
 Task Deploy -Depends Build {
+    # Credit to Trevor Sullivan:
+    # https://github.com/pcgeek86/PSNuGet/blob/master/deploy.ps1
+    function Update-ModuleManifest {
+        [CmdletBinding()]
+        param(
+            [String] $Path,
+            [String] $BuildNumber
+        )
+
+        if ([String]::IsNullOrEmpty($Path))
+        {
+            $Path = Get-ChildItem -Path $env:APPVEYOR_BUILD_FOLDER -Include *.psd1
+            if (!$Path)
+            {
+                throw 'Could not find a module manifest file'
+            }
+        }
+
+        $ManifestContent = Get-Content -Path $Path -Raw
+        $ManifestContent = $ManifestContent -replace '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')', ('${{ModuleVersion}}.{0}' -f $BuildNumber)
+        Set-Content -Path $Path -Value $ManifestContent
+
+        $ManifestContent -match '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')' | Out-Null
+        Write-Host 'Module Version patched: ' -ForegroundColor Cyan -NoNewline
+        Write-Host $Matches.ModuleVersion -ForegroundColor Green
+    }
+
+    ########################################################
     $line
+
+    "Patching module manifest version with build number ($env:APPVEYOR_BUILD_NUMBER)"
+    Update-ModuleManifest -Path (Join-Path -Path $ModuleRoot -ChildPath 'PSJira.psd1') -BuildNumber $env:APPVEYOR_BUILD_NUMBER
 
     $publishParams = @{
         Path = $ModuleRoot
