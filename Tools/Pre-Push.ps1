@@ -27,11 +27,13 @@ try {
         exit 1
     } else {
         Write-Host "All Pester tests passed." -ForegroundColor Green
+        Write-Host "`n"
         exit 0
     }
 }
 catch {
     $err = $_
     Write-Error -Message $_
+    Write-Host "`n"
     exit 1
 }
