@@ -49,7 +49,7 @@ Write-Host "AppVeyor build initialized (Job ID $JobId)" -ForegroundColor Cyan
 Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 
 # Don't forget -Force!
-Install-Module PSDepend -Force
+Install-Module Pester,psake -Force
 
 Invoke-PSDepend -Path $ProjectRoot -Install $true -Import -Force
 
