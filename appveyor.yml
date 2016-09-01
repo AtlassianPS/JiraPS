@@ -32,7 +32,7 @@ skip_commits:
 #  # - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 #install:
-  - cinst Pester -y
+#  - cinst Pester -y
 
 test_script:
     - ps: . .\Tools\Appveyor.ps1
