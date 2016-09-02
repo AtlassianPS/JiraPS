@@ -4,8 +4,8 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 
 InModuleScope PSJira {
 
-    $ShowMockData = $true
-    $ShowDebugText = $true
+    $ShowMockData = $false
+    $ShowDebugText = $false
 
     Describe 'Get-JiraIssueLinkType' {
         Mock Get-JiraConfigServer { 'https://jira.example.com' }
