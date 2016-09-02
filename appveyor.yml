@@ -23,7 +23,7 @@ environment:
 version: 1.2.5.{build}
 
 # Only build commits to these branches
-branch:
+branches:
     only:
         master
         dev
