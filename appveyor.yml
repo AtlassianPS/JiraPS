@@ -25,8 +25,8 @@ version: 1.2.5.{build}
 # Only build commits to these branches
 branches:
     only:
-        master
-        dev
+        - master
+        - dev
 
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
