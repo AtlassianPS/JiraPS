@@ -1,3 +1,8 @@
+# PSScriptAnalyzer - ignore creation of a SecureString using plain text for the contents of this script file
+# https://replicajunction.github.io/2016/09/19/suppressing-psscriptanalyzer-in-pester/
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+param()
+
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
