@@ -8,7 +8,7 @@
 ############################################################
 
 # This tells AppVeyor that we need WMF 5 and PowerShell 5.0
-os: WMF 5
+os: Previous WMF 5
 
 environment:
     ModuleName: $(APPVEYOR_PROJECT_NAME)
