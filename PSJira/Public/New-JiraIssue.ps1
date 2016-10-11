@@ -35,13 +35,13 @@ function New-JiraIssue
         [Parameter(Mandatory = $true)]
         [String] $IssueType,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [Int] $Priority,
 
         [Parameter(Mandatory = $true)]
         [String] $Summary,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [String] $Description,
 
         [Parameter(Mandatory = $false)]
@@ -117,17 +117,22 @@ function New-JiraIssue
     {
         $ProjectParam = New-Object -TypeName PSObject -Property @{"id"=$ProjectObj.Id}
         $IssueTypeParam = New-Object -TypeName PSObject -Property @{"id"=[String] $IssueTypeObj.Id}
-        $PriorityParam = New-Object -TypeName PSObject -Property @{"id"=[String] $Priority}
         $ReporterParam = New-Object -TypeName PSObject -Property @{"name"=$reporterObj.Name}
 
         $props = @{
             "project"=$ProjectParam;
             "summary"=$Summary;
-            "description"=$Description;
             "issuetype"=$IssueTypeParam;
-            "priority"=$PriorityParam;
             "reporter"=$ReporterParam
         }
+        if ($Priority) {
+            $props.priority = New-Object -TypeName PSObject -Property @{"id"=[String] $Priority}
+        }
+
+        if ($Description) {
+            $props.description = $Description
+        }
+
         if ($Parent) {
             $props.parent =  New-Object -TypeName PSObject -Property @{"key"=$Parent}
         }
