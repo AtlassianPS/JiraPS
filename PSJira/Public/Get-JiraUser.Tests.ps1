@@ -5,131 +5,89 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 InModuleScope PSJira {
 
     $ShowMockData = $false
-
-    $jiraServer = 'http://jiraserver.example.com'
-
-    $testUsername = 'powershell-test'
-    $testEmail = "$testUsername@example.com"
-
-    $testGroup1 = 'testGroup1'
-    $testGroup2 = 'testGroup2'
-
-    $restResult = @"
-[
-  {
-    "self": "$jiraServer/rest/api/2/user?username=$testUsername",
-    "key": "$testUsername",
-    "name": "$testUsername",
-    "emailAddress": "$testEmail",
-    "displayName": "Powershell Test User",
-    "active": true
-  }
-]
-"@
-
-    # Removed from JSON: avatarUrls, timeZone
-    $restResult2 = @"
-{
-  "self": "$jiraServer/rest/api/2/user?username=$testUsername",
-  "key": "$testUsername",
-  "name": "$testUsername",
-  "emailAddress": "$testEmail",
-  "displayName": "Powershell Test User",
-  "active": true,
-  "groups": {
-    "size": 5,
-    "items": [
-      {
-        "name": "$testGroup1",
-        "self": "$jiraServer/rest/api/2/group?groupname=$testGroup1"
-      },
-      {
-        "name": "$testGroup2",
-        "self": "$jiraServer/rest/api/2/group?groupname=$testGroup2"
-      }
-    ]
-  },
-  "expand": "groups"
-}
-"@
+    $ShowDebugText = $false
 
     Describe "Get-JiraUser" {
-
-        Mock Get-JiraConfigServer -ModuleName PSJira {
-            Write-Output $jiraServer
+        if ($ShowDebugText)
+        {
+            Mock "Write-Debug" {
+                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
+            }
+            Mock "Write-Verbose" {
+                Write-Host "       [VERBOSE] $Message" -ForegroundColor Cyan
+            }
         }
 
-        # Searching for a user.
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername"} {
+        Mock Get-JiraConfigServer {
+            'https://jira.example.com'
+        }
+
+        # If we don't override this in a context or test, we don't want it to
+        # actually try to query a JIRA instance
+        Mock Invoke-JiraMethod {
             if ($ShowMockData)
             {
-                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+                Write-Host "Mocked Invoke-JiraMethod"
+                Write-Host "  URI: [$URI]"
+                Write-Host "  Method: [$Method]"
             }
-            ConvertFrom-Json2 -InputObject $restResult
         }
 
-        # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"} {
-            if ($ShowMockData)
+        Mock ConvertTo-JiraUser { $true }
+
+        Context "Sanity checking" {
+            $command = Get-Command -Name Get-JiraUser
+
+            function defParam($name)
             {
-                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+                It "Has a -$name parameter" {
+                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
+                }
             }
-            ConvertFrom-Json2 -InputObject $restResult2
+
+            defParam 'UserName'
+            defParam 'InputObject'
+            defParam 'AlwaysSearch'
+            defParam 'IncludeInactive'
+            defParam 'Credential'
         }
 
-        # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
-            throw "Unidentified call to Invoke-JiraMethod"
+        Context "Behavior testing - exact username exists" {
+            Mock Invoke-JiraMethod { $true }
+
+            $output = Get-JiraUser -UserName 'tom'
+            It "Returns a user if the exact username exists" {
+                Assert-MockCalled -CommandName Invoke-JiraMethod -Scope Context -Exactly -Times 1 -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/latest/user?username=tom&expand=groups'}
+            }
+
+            It "Does not search for a user if the exact username was found" {
+                Assert-MockCalled -CommandName Invoke-JiraMethod -Scope Context -Exactly -Times 0 -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/latest/user/search?*' }
+            }
         }
 
-#        Mock Write-Debug {
-#            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-#        }
+        Context "Behavior testing - exact username does not exist" {
+            Mock Invoke-JiraMethod -ParameterFilter {$URI -like '*search?username=tom*'} {
+                if ($ShowMockData)
+                {
+                    Write-Host "Mocked Invoke-JiraMethod"
+                    Write-Host "  URI: [$URI]"
+                    Write-Host "  Method: [$Method]"
+                }
 
-        #############
-        # Tests
-        #############
+                # Next call to Invoke-JiraMethod relies on this returning real data
+                [PSCustomObject] @{
+                    self = "https://jira.example.com/rest/api/latest/user?username=tom"
+                }
+            }
 
-        It "Gets information about a provided Jira user" {
-            $getResult = Get-JiraUser -UserName $testUsername
-            $getResult | Should Not BeNullOrEmpty
-        }
+            $output = Get-JiraUser -UserName 'tom'
+            It "Searches for a user if the exact name does not exist" {
+                # "Get" should be called once for the initial search and once to get full details on the user
+                Assert-MockCalled -CommandName Invoke-JiraMethod -Scope Context -Exactly -Times 2 -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/latest/user?username=tom&expand=groups'}
 
-        It "Converts the output object to PSJira.User" {
-            $getResult = Get-JiraUser -UserName $testUsername
-            (Get-Member -InputObject $getResult).TypeName | Should Be 'PSJira.User'
-        }
-
-        It "Returns all available properties about the returned user object" {
-            $getResult = Get-JiraUser -Username $testUsername
-            $restObj = ConvertFrom-Json2 -InputObject $restResult
-
-            $getResult.RestUrl | Should Be $restObj.self
-            $getResult.Name | Should Be $restObj.name
-            $getResult.DisplayName | Should Be $restObj.displayName
-            $getResult.Active | Should Be $restObj.active
-        }
-
-        It "Gets information for a provided Jira user if a PSJira.User object is provided to the InputObject parameter" {
-            $result1 = Get-JiraUser -Username $testUsername
-            $result2 = Get-JiraUser -InputObject $result1
-            $result2 | Should Not BeNullOrEmpty
-            $result2.Name | Should Be $testUsername
-        }
-
-        It "Provides information about the user's group membership in Jira" {
-            $result = Get-JiraUser -Username $testUsername
-            $result.Groups | Should Not BeNullOrEmpty
-            $result.Groups[0] | Should Be $testGroup1
+                # "Search" should only be called once
+                Assert-MockCalled -CommandName Invoke-JiraMethod -Scope Context -Exactly -Times 1 -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/latest/user/search?*' }
+            }
         }
     }
 }
-
-
