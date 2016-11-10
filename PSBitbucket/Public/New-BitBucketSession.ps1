@@ -1,11 +1,11 @@
-function New-JiraSession
+function New-BitBucketSession
 {
     <#
     .Synopsis
-       Creates a persistent JIRA authenticated session which can be used by other PSJira functions
+       Creates a persistent BitBucket authenticated session which can be used by other PSBitBucket functions
     .DESCRIPTION
-       This function creates a persistent, authenticated session in to JIRA which can be used by all other
-       PSJira functions instead of explicitly passing parameters.  This removes the need to use the
+       This function creates a persistent, authenticated session in to BitBucket which can be used by all other
+       PSBitBucket functions instead of explicitly passing parameters.  This removes the need to use the
        -Credential parameter constantly for each function call.
 
        This is the equivalent of a browser cookie saving login information.
@@ -13,14 +13,14 @@ function New-JiraSession
        Session data is stored in this module's PrivateData; it is not necessary to supply it to each
        subsequent function.
     .EXAMPLE
-       New-JiraSession -Credential (Get-Credential jiraUsername)
-       Get-JiraIssue TEST-01
-       Creates a Jira session for jiraUsername.  The following Get-JiraIssue is run using the
-       saved session for jiraUsername.
+       New-BitBucketSession -Credential (Get-Credential BitBucketUsername)
+       Get-BitBucketIssue TEST-01
+       Creates a BitBucket session for BitBucketUsername.  The following Get-BitBucketIssue is run using the
+       saved session for BitBucketUsername.
     .INPUTS
-       [PSCredential] The credentials to use to create the Jira session
+       [PSCredential] The credentials to use to create the BitBucket session
     .OUTPUTS
-       [PSJira.Session] An object representing the Jira session
+       [PSBitBucket.Session] An object representing the BitBucket session
     #>
     [CmdletBinding()]
     param(
@@ -34,11 +34,11 @@ function New-JiraSession
     {
         try
         {
-            Write-Debug "[New-JiraSession] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+            Write-Debug "[New-BitBucketSession] Reading BitBucket server from config file"
+            $server = Get-BitBucketConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         } catch {
             $err = $_
-            Write-Debug "[New-JiraSession] Encountered an error reading configuration data."
+            Write-Debug "[New-BitBucketSession] Encountered an error reading configuration data."
             throw $err
         }
 
@@ -57,35 +57,35 @@ function New-JiraSession
         }
         $json = ConvertTo-Json -InputObject $hashtable
 
-        Write-Debug "[New-JiraSession] Created JSON syntax in variable `$json."
-        Write-Debug "[New-JiraSession] Preparing for blastoff!"
+        Write-Debug "[New-BitBucketSession] Created JSON syntax in variable `$json."
+        Write-Debug "[New-BitBucketSession] Preparing for blastoff!"
 
         try
         {
             $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -UseBasicParsing -SessionVariable newSessionVar
-            Write-Debug "[New-JiraSession] Converting result to JiraSession object"
-            $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
+            Write-Debug "[New-BitBucketSession] Converting result to BitBucketSession object"
+            $result = ConvertTo-BitBucketSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
 
-            Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
+            Write-Debug "[New-BitBucketSession] Saving session in module's PrivateData"
             if ($MyInvocation.MyCommand.Module.PrivateData)
             {
-                Write-Debug "[New-JiraSession] Adding session result to existing module PrivateData"
+                Write-Debug "[New-BitBucketSession] Adding session result to existing module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData.Session = $result;
             } else {
-                Write-Debug "[New-JiraSession] Creating module PrivateData"
+                Write-Debug "[New-BitBucketSession] Creating module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData = @{
                     'Session' = $result;
                 }
             }
 
-            Write-Debug "[New-JiraSession] Outputting result"
+            Write-Debug "[New-BitBucketSession] Outputting result"
             Write-Output $result
         } catch {
             $err = $_
             $webResponse = $err.Exception.Response
-            Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
+            Write-Debug "[New-BitBucketSession] Encountered an exception from the BitBucket server: $err"
 
-            Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
+            Write-Warning "BitBucket returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
 
             # Retrieve body of HTTP response - this contains more useful information about exactly why the error
             # occurred

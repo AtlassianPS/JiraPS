@@ -1,16 +1,16 @@
-function Set-JiraConfigServer
+function Set-BitBucketConfigServer
 {
     <#
     .Synopsis
-       Defines the configured URL for the JIRA server
+       Defines the configured URL for the BitBucket server
     .DESCRIPTION
-       This function defines the configured URL for the JIRA server that PSJira should manipulate. By default, this is stored in a config.xml file at the module's root path.
+       This function defines the configured URL for the BitBucket server that PSBitBucket should manipulate. By default, this is stored in a config.xml file at the module's root path.
     .EXAMPLE
-       Set-JiraConfigServer 'https://jira.example.com:8080'
-       This example defines the server URL of the JIRA server configured in the PSJira config file.
+       Set-BitBucketConfigServer 'https://BitBucket.example.com:8080'
+       This example defines the server URL of the BitBucket server configured in the PSBitBucket config file.
     .EXAMPLE
-       Set-JiraConfigServer -Server 'https://jira.example.com:8080' -ConfigFile C:\jiraconfig.xml
-       This example defines the server URL of the JIRA server configured at C:\jiraconfig.xml.
+       Set-BitBucketConfigServer -Server 'https://BitBucket.example.com:8080' -ConfigFile C:\BitBucketconfig.xml
+       This example defines the server URL of the BitBucket server configured at C:\BitBucketconfig.xml.
     .INPUTS
        This function does not accept pipeline input.
     .OUTPUTS
@@ -20,7 +20,7 @@ function Set-JiraConfigServer
     #>
     [CmdletBinding()]
     param(
-        # The base URL of the Jira instance.
+        # The base URL of the BitBucket instance.
         [Parameter(Mandatory = $true,
                    Position = 0)]
         [ValidateNotNullOrEmpty()]
@@ -37,21 +37,21 @@ function Set-JiraConfigServer
 
     if (-not ($ConfigFile))
     {
-#        Write-Debug "[Set-JiraConfigServer] ConfigFile was not provided, or provided with a null value"
+#        Write-Debug "[Set-BitBucketConfigServer] ConfigFile was not provided, or provided with a null value"
         # This file should be in $moduleRoot/Functions/Internal, so PSScriptRoot will be $moduleRoot/Functions
         $moduleFolder = Split-Path -Path $PSScriptRoot -Parent
-#        Write-Debug "[Set-JiraConfigServer] Module folder: $moduleFolder"
+#        Write-Debug "[Set-BitBucketConfigServer] Module folder: $moduleFolder"
         $ConfigFile = Join-Path -Path $moduleFolder -ChildPath 'config.xml'
-#        Write-Debug "[Set-JiraConfigServer] Using default config file at [$ConfigFile]"
+#        Write-Debug "[Set-BitBucketConfigServer] Using default config file at [$ConfigFile]"
     }
 
     if (-not (Test-Path -Path $ConfigFile))
     {
-#        Write-Debug "[Set-JiraConfigServer] Creating config file '$ConfigFile'"
+#        Write-Debug "[Set-BitBucketConfigServer] Creating config file '$ConfigFile'"
         $xml = [XML] '<Config></Config>'
 
     } else {
-#        Write-Debug "[Set-JiraConfigServer] Loading config file '$ConfigFile'"
+#        Write-Debug "[Set-BitBucketConfigServer] Loading config file '$ConfigFile'"
         $xml = New-Object -TypeName XML
         $xml.Load($ConfigFile)
     }
@@ -71,28 +71,28 @@ function Set-JiraConfigServer
 
     if ($xmlConfig.Server)
     {
-#        Write-Debug "[Set-JiraConfigServer] Changing the existing Server element to the provided value '$Server'"
+#        Write-Debug "[Set-BitBucketConfigServer] Changing the existing Server element to the provided value '$Server'"
         $xmlConfig.Server = $fixedServer
     } else {
-#        Write-Debug "[Set-JiraConfigServer] Creating new element Server"
+#        Write-Debug "[Set-BitBucketConfigServer] Creating new element Server"
         $xmlServer = $xml.CreateElement('Server')
-#        Write-Debug "[Set-JiraConfigServer] Writing InnerText property with provided value '$Server'"
+#        Write-Debug "[Set-BitBucketConfigServer] Writing InnerText property with provided value '$Server'"
         $xmlServer.InnerText = $fixedServer
-#        Write-Debug "[Set-JiraConfigServer] Adding element to existing XML file"
+#        Write-Debug "[Set-BitBucketConfigServer] Adding element to existing XML file"
         [void] $xmlConfig.AppendChild($xmlServer)
     }
 
-#    Write-Debug "[Set-JiraConfigServer] Saving XML file"
+#    Write-Debug "[Set-BitBucketConfigServer] Saving XML file"
     try
     {
         $xml.Save($ConfigFile)
     } catch {
         $err = $_
-#        Write-Debug "[Set-JiraConfigServer] Encountered an error saving the XML file"
-#        Write-Debug "[Set-JiraConfigServer] Throwing exception"
+#        Write-Debug "[Set-BitBucketConfigServer] Encountered an error saving the XML file"
+#        Write-Debug "[Set-BitBucketConfigServer] Throwing exception"
         throw $err
     }
-#    Write-Debug "[Set-JiraConfigServer] Complete"
+#    Write-Debug "[Set-BitBucketConfigServer] Complete"
 
 }
 

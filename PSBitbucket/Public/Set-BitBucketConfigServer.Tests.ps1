@@ -2,14 +2,14 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
-InModuleScope PSJira {
+InModuleScope PSBitBucket {
 
-    $jiraServer = 'http://jiraserver.example.com'
+    $BitBucketServer = 'http://BitBucketserver.example.com'
 
-    Describe "Set-JiraConfigServer" {
+    Describe "Set-BitBucketConfigServer" {
 
         $configFile = Join-Path -Path $TestDrive -ChildPath 'config.xml'
-        Set-JiraConfigServer -Server $jiraServer -ConfigFile $configFile
+        Set-BitBucketConfigServer -Server $BitBucketServer -ConfigFile $configFile
 
         It "Ensures that a config.xml file exists" {
             $configFile | Should Exist
@@ -24,21 +24,21 @@ InModuleScope PSJira {
         }
 
         It "Sets the config file's Server value " {
-            $xmlServer | Should Be $jiraServer
+            $xmlServer | Should Be $BitBucketServer
         }
 
         It "Trims whitespace from the provided Server parameter" {
-            Set-JiraConfigServer -Server "$jiraServer " -ConfigFile $configFile
+            Set-BitBucketConfigServer -Server "$BitBucketServer " -ConfigFile $configFile
             $xml = New-Object -TypeName Xml
             $xml.Load($configFile)
-            $xml.Config.Server | Should Be $jiraServer
+            $xml.Config.Server | Should Be $BitBucketServer
         }
 
         It "Trims trailing slasher from the provided Server parameter" {
-            Set-JiraConfigServer -Server "$jiraServer/" -ConfigFile $configFile
+            Set-BitBucketConfigServer -Server "$BitBucketServer/" -ConfigFile $configFile
             $xml = New-Object -TypeName Xml
             $xml.Load($configFile)
-            $xml.Config.Server | Should Be $jiraServer
+            $xml.Config.Server | Should Be $BitBucketServer
         }
     }
 }
