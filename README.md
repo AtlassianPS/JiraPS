@@ -1,3 +1,5 @@
+# NOTICE CURRENTLY NOT IN A FUNCTIONAL STATE!!!! 
+
 # PSBitBucket
 
 PSBitBucket is a Windows PowerShell module to interact with [Atlassian bitbucket](https://www.atlassian.com/software/bitbucket) via a REST API, while maintaining a consistent PowerShell look and feel.
