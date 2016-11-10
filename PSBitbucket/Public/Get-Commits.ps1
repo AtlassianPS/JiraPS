@@ -6,7 +6,7 @@ param (
 )
 
     $server = Get-BitbucketConfigServer
-    $ProjectKey = Get-ProjectKey -repo $Repo
+    $ProjectKey = Get-ProjectKey -repo $Repo -credential $credential
 
     Write-Verbose "
     Getting Commits:
