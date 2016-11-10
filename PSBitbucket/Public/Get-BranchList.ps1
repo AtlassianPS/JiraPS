@@ -1,4 +1,4 @@
-function Get-Commits {    
+function Get-BranchList {    
 [CmdletBinding()]
 param (
     [PSCredential]$credential, 
@@ -9,14 +9,15 @@ param (
     $ProjectKey = Get-ProjectKey -repo $Repo -credential $credential
 
     Write-Verbose "
-    Getting Commits:
+    Getting Branches:
     RepoName: $Repo
     ProjectKey: $ProjectKey
     Server: $Server
     "
 
-    $uri = "$server/rest/api/1.0/projects/$ProjectKey/repos/$Repo/commits"
+    $uri = "$server/rest/api/1.0/projects/$ProjectKey/repos/$Repo/branches"
 
-    $Commits = Invoke-BitBucketMethod -uri $uri -credential $credential -method GET
-    return $Commits.values
+    $Branches = Invoke-BitBucketMethod -uri $uri -credential $credential -method GET
+    
+    return $Branches.values
 }

@@ -15,5 +15,6 @@ param (
 
     $uri = "$server/rest/api/1.0/repos"
 
-    Invoke-BitBucketMethod -uri $uri -credential $credential -method GET
+    $Repos = Invoke-BitBucketMethod -uri $uri -credential $credential -method GET
+    return $Repos.values
 }

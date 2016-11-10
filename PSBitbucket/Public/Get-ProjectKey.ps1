@@ -11,7 +11,7 @@ Write-Verbose "
     RepoName: $Repo
     Server: $Server
     "
-$RepoObj = (Get-Repositories -credential $credential).values | where-object slug -match $Repo
+$RepoObj = Get-Repositories -credential $credential| where-object slug -match $Repo
 
 $RepoObj.project.key
 
