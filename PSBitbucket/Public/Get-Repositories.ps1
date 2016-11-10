@@ -1,4 +1,4 @@
-function Get-Commits {    
+function Get-Repositories {    
 [CmdletBinding()]
 param (
     [PSCredential]$credential, 
@@ -6,16 +6,14 @@ param (
 )
 
     $server = Get-BitbucketConfigServer
-    $ProjectKey = Get-ProjectKey -repo $Repo
-
+    
     Write-Verbose "
-    Getting Commits:
+    Getting Repos:
     RepoName: $Repo
-    ProjectKey: $ProjectKey
     Server: $Server
     "
 
-    $uri = "$server/rest/api/1.0/projects/$ProjectKey/repos/$Repo/commits"
+    $uri = "$server/rest/api/1.0/repos"
 
     Invoke-BitBucketMethod -uri $uri -credential $credential -method GET
 }
