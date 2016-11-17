@@ -1,13 +1,12 @@
-# PSJira
+# NOTICE CURRENTLY NOT IN A FUNCTIONAL STATE!!!! 
 
-[![Build status](https://ci.appveyor.com/api/projects/status/rog7nhvpfu58xrxu?svg=true)](https://ci.appveyor.com/project/JoshuaT/psjira)
+# PSBitBucket
 
-PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://www.atlassian.com/software/jira) via a REST API, while maintaining a consistent PowerShell look and feel.
+PSBitBucket is a Windows PowerShell module to interact with [Atlassian bitbucket](https://www.atlassian.com/software/bitbucket) via a REST API, while maintaining a consistent PowerShell look and feel.
 
 ---
 
-## Project update: August 2016
-Thanks to the generous folks at Atlassian, PSJira has been granted an Open Source license for a small test instance of JIRA. This means that finally, development on the project can continue!
+## Project update: November 2016
 
 ---
 
@@ -20,35 +19,32 @@ This module has a hard dependency on PowerShell 3.0.  I have no plans to release
 Due to the magic of continuous integration, the latest passing build of this project will always be on the PowerShell Gallery. If you have the Package Management module for PowerShell (which comes with PowerShell 5.0), you can install the latest build easily:
 
 ```powershell
-Install-Module PSJira
+Install-Module PSBitBucket
 ```
 
 If you're using PowerShell 3 or 4, consider updating! If that's not an option, consider installing PackageManagement on PowerShell 3 or 4 (you can do so from the [PowerShell gallery](https://www.powershellgallery.com/) using the MSI installer link).
 
-You can also download this module from the Download Zip button on this page.  You'll need to extract the PSJira folder to your $PSModulePath (normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules).
+You can also download this module from the Download Zip button on this page.  You'll need to extract the PSBitBucket folder to your $PSModulePath (normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules).
 
 Finally, you can check the releases page here on GitHub for "stable" versions, but again, PSGallery will always have the latest (tested) version of the module.
 
 ## Getting Started
 
-Before using PSJira, you'll need to define your JIRA server URL.  You will only need to do this once:
+Before using PSBitBucket, you'll need to define your bitbucket server URL.  You will only need to do this once:
 
 ```powershell
-Set-JiraConfigServer "https://jira.example.com"
+Set-BitBucketConfigServer "https://bitbucket.example.com"
 ```
 
 ## Usage
 
-Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/Getting-Started) page on the project wiki for detailed use information.
 
 ## Planned features
-* Support for multiple config files and/or alternate config file locations
-* Possible support for OAuth in addition to HTTP Basic authentication
 
 ## Contributing
-Want to contribute to PSJira?  Great! Here are a couple of notes regarding contributions:
+Want to contribute to PSBitBucket?  Great! Here are a couple of notes regarding contributions:
 
-* PSJira relies heavily upon Pester testing to make sure that changes don't break each other.  Please respect the tests when coding against PSJira.
+* PSBitBucket relies heavily upon Pester testing to make sure that changes don't break each other.  Please respect the tests when coding against PSBitBucket.
 * Pull requests are much more likely to be accepted if all tests pass.
 * If you write a change that causes a test to fail, please explain why the change is appropriate.  Tests are code, just like the module itself, so it's very possbile that they need to be fixed as well.  Bonus points if you also write the fix for the test.
 * If implementing a brand-new function or behavior, please write a test for it.
@@ -58,6 +54,6 @@ Changes will be merged and released when the module passes all Pester tests, inc
 
 ## Contact
 
-Feel free to comment on this project here on GitHub using the issues or discussion pages.  You can also check out [my blog](http://replicajunction.github.io/) or catch me on the [PowerShell subreddit](https://www.reddit.com/r/powershell).
+Feel free to comment on this project here on GitHub using the issues or discussion pages.  You can also check out [my blog](http://beaudry.io) or catch me on [reddit](https://www.reddit.com/u/crossbeau).
 
-*Note:* As with all community PowerShell modules and code, you use PSJira at your own risk.  I am not responsible if your JIRA instance causes a fire in your datacenter (literal or otherwise).
+*Note:* As with all community PowerShell modules and code, you use PSBitBucket at your own risk.  I am not responsible if your bitbucket instance causes a fire in your datacenter (literal or otherwise).
