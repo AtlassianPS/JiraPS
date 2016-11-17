@@ -27,25 +27,13 @@ function Invoke-BitBucketMethod
         'Content-Type' = 'application/json; charset=utf-8';
     }
 
-    if ($Credential)
-    {
+
         Write-Debug "[Invoke-BitBucketMethod] Using HTTP Basic authentication with provided credentials for $($Credential.UserName)"
         [String] $Username = $Credential.UserName
         $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${Username}:$($Credential.GetNetworkCredential().Password)"))
         $headers.Add('Authorization', "Basic $token")
         Write-Verbose "Using HTTP Basic authentication with username $($Credential.UserName)"
-    } else {
-        Write-Debug "[Invoke-BitBucketMethod] Credentials were not provided. Checking for a saved session"
-        $session = Get-BitBucketSession
-        if ($session)
-        {
-            Write-Debug "[Invoke-BitBucketMethod] A session was found; using saved session (Username=[$($session.Username)], JSessionID=[$($session.JSessionID)])"
-            Write-Verbose "Using saved Web session with username $($session.Username)"
-        } else {
-            $session = $null
-            Write-Debug "[Invoke-BitBucketMethod] No saved session was found; using anonymous access"
-        }
-    }
+
 
     $iwrSplat = @{
         Uri             = $Uri
