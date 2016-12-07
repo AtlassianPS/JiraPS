@@ -6,8 +6,8 @@ PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://
 
 ---
 
-## Project update: August 2016
-Thanks to the generous folks at Atlassian, PSJira has been granted an Open Source license for a small test instance of JIRA. This means that finally, development on the project can continue!
+## Project update: December 2016
+Life is crazy - especially around the holidays - but I'm hard at work on a pretty significant code and documentation overhaul for version 2.0. Please keep the feedback coming in the Issues page - I'm looking over that very closely - but plesae don't be offended if I'm not able to get back to you in a timely fashion. The community support and feedback I've received for this module is amazing!
 
 ---
 
@@ -52,7 +52,6 @@ Want to contribute to PSJira?  Great! Here are a couple of notes regarding contr
 * Pull requests are much more likely to be accepted if all tests pass.
 * If you write a change that causes a test to fail, please explain why the change is appropriate.  Tests are code, just like the module itself, so it's very possbile that they need to be fixed as well.  Bonus points if you also write the fix for the test.
 * If implementing a brand-new function or behavior, please write a test for it.
-* Please respect the formatting style of the rest of the module code as well.  If in doubt, place braces on a new line.
 
 Changes will be merged and released when the module passes all Pester tests, including the module style tests.
 
