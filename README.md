@@ -49,7 +49,7 @@ For basic instructions to get up and running, check out the [Getting Started](ht
 
 Want to contribute to PSJira?  Great! Start with the [Contributing](http://psjira.readthedocs.io/en/latest/contributing.html) page on the project documentation - it will explain how to work with PSJira's test and CI systems.
 
-Pull requests for PSJira are expected to pass all Pester tests before being merged. More details can be found on the project documentation site.
+**Pull requests for PSJira are expected to pass all Pester tests before being merged.** More details can be found on the project documentation site.
 
 ## Contact
 
