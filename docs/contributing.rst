@@ -16,7 +16,7 @@ The code for PSJira relies extensively on Pester tests as a sanity check. Pester
 
 **Pull requests for PSJira are expected to pass all Pester tests before they will be merged.**
 
-This is not intended to keep people from Contributing to PSJira...just to ensure that new features and changes don't break existing ones. If you have ideas for improvements but aren't comfortable with Pester, please feel free to submit a pull request. I (or other authors) would be glad to work with you to figure out what's failing and make the necessary changes (whether in your code or in the test code).
+This is not intended to keep people from contributing to PSJira...just to ensure that new features and changes don't break existing ones. If you have ideas for improvements but aren't comfortable with Pester, please feel free to submit a pull request. I (or other authors) would be glad to work with you to figure out what's failing and make the necessary changes (whether in your code or in the test code).
 
 Tests are code, just like the module itself, so it's entirely possible that they need to be fixed or updated when the module changes. Correcting tests is a healthy part of developing a tool, so changes to tests are welcome as well.
 
