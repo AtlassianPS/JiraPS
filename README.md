@@ -1,14 +1,20 @@
 # PSJira
 
 [![Build status](https://ci.appveyor.com/api/projects/status/rog7nhvpfu58xrxu?svg=true)](https://ci.appveyor.com/project/JoshuaT/psjira)
-
 [![Documentation Status](https://readthedocs.org/projects/psjira/badge/?version=latest)](http://psjira.readthedocs.io/en/latest/?badge=latest)
 
 PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://www.atlassian.com/software/jira) via a REST API, while maintaining a consistent PowerShell look and feel.
 
 ---
 
+## Documentation on ReadTheDocs
+
+Documentation for PSJira has moved to [ReadTheDocs.io](http://psjira.readthedocs.io). Check it out, and feel free to submit issues or PRs against the documentation as well!
+
+---
+
 ## Project update: December 2016
+
 Life is crazy - especially around the holidays - but I'm hard at work on a pretty significant code and documentation overhaul for version 2.0. I'm not able to commit to a timeline for this - depending on how much needs to get done and how much time I have, it could be very soon, or it could still be a couple months out. PSJira is a passion of mine, but (unfortunately) I've got other responsibilities that often take priority.
 
 Please keep the feedback coming in the Issues page - I'm looking over that very closely - but please don't be offended if I'm not able to get back to you in a timely fashion. The community support and feedback I've received for this module is amazing, and I enjoy working with you all!
