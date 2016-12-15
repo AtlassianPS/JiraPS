@@ -144,17 +144,21 @@ Release date: Aug 5, 2015
 
 * Initial release
 
-This changelog is inspired by the
-[Pester](https://github.com/pester/Pester/blob/master/CHANGELOG.md) file, which
-is in turn inspired by the
-[Vagrant](https://github.com/mitchellh/vagrant/blob/master/CHANGELOG.md) file.
+Template
+========
 
-## Template
+Release date: Jan 1, 2001
 
-## Next Release
+Features
+--------
 
-FEATURES:
+Improvements
+------------
 
-IMPROVEMENTS:
+Bug Fixes
+---------
 
-BUG FIXES:
+The format of this changelog is inspired by `Pester's changelog`_, which is in turn inspired by `Vagrant`_.
+
+.. _`Pester's changelog`: https://github.com/pester/Pester/blob/master/CHANGELOG.md
+.. _`Vagrant`: https://github.com/mitchellh/vagrant/blob/master/CHANGELOG.md
