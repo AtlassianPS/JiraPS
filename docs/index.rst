@@ -7,10 +7,14 @@
 PSJira
 ======
 
-.. image::
-   https://ci.appveyor.com/api/projects/status/rog7nhvpfu58xrxu?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/rog7nhvpfu58xrxu?svg=true
    :target: https://ci.appveyor.com/project/JoshuaT/psjira
    :alt: Appveyor build status
+
+.. image:: https://readthedocs.org/projects/psjira/badge/?version=latest
+    :target: http://psjira.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 
 PSJira is a Windows PowerShell module to interact with Atlassian JIRA via a REST API, while maintaining a consistent PowerShell look and feel.
 
