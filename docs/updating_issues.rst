@@ -24,6 +24,38 @@ Editing issues is done with the Set-JiraIssue function.
 
 If the field you want to change does not have a named parameter, Set-JiraIssue also supports changing arbitrary fields using the -Fields parameter. For more information on this parameter, see the :doc:`custom_fields` page.
 
+Labels
+------
+
+You can set labels on an issue using Set-JiraIssue's -Label parameter. Using this function will overwrite any existing labels on the issue.
+
+.. code:: PowerShell
+
+    Get-JiraIssue TEST-1 | Set-JiraIssue -Label 'Funny','Testing'
+
+For better control over labels, use Set-JiraIssueLabel. This provides more granular control over the labels in an issue using four parameters:
+
+* **Add** adds labels to an issue without modifying any existing labels.
+* **Remove** removes specific labels from an issue.
+* **Set** overwrites all labels with any labels passed to this parameter.
+* **Clear** removes all labels from the issue.
+
+The -Add and -Remove parameters can be used together; Set and Clear must be used individually.
+
+.. code:: powershell
+
+    $issue = Get-JiraIssue TEST-1
+
+    # Overwrite all labels with these two
+    $issue | Set-JiraIssueLabel -Set 'Funny','Test'
+
+    # Add another label and remove the Funny label - after this, the
+    # issue will have 'Test' and 'Serious'
+    $issue | Set-JiraIssueLabel -Add 'Serious' -Remove 'Funny'
+
+    # Remove ALL the labels!
+    $issue | Set-JiraIssueLabel -Clear
+
 .. _Adding Comments:
 
 Adding Comments
