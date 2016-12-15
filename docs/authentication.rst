@@ -27,7 +27,7 @@ JIRA sessions still require HTTP basic authentication once, to create the connec
 
 To create a JIRA session, you can use the New-JiraSession function:
 
-..code-block:: powershell
+.. code-block:: powershell
 
     $cred = Get-Credential 'powershell'
     New-JiraSession -Credential $cred

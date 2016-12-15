@@ -25,14 +25,16 @@ PSJira is a Windows PowerShell module to interact with Atlassian JIRA via a REST
     :maxdepth: 2
     :caption: Working with issues
 
-    issues/creating_issues
-    issues/custom_fields
+    viewing_issues
+    creating_issues
+    updating_issues
+    custom_fields
 
 .. toctree::
    :maxdepth: 1
    :caption: About PSJira
 
-   about/contributing
-   about/changelog
+   contributing
+   changelog
 
 New to the project? Check out the :doc:`getting_started` page for a quick guide to get you up and running!

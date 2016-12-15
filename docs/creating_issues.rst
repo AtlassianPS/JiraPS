@@ -4,7 +4,7 @@ Creating Issues
 
 In order to create a new issue in JIRA, you need to provide a certain amount of information about the issue. In the Web interface, you encounter this all the time when you hit the "Create Issue" button:
 
-.. image:: ../img/jira-screen-createIssue.png
+.. image:: img/jira-screen-createIssue.png
     :alt: The "Create issue" screen in JIRA shows information needed in order to create an issue in JIRA.
     :width: 406
 
@@ -42,7 +42,7 @@ This might be all the information we would need to pass New-JiraIssue to create 
 
     New-JiraIssue -Project TEST -IssueType Task -Reporter 'powershell' -Summary 'Test issue from PowerShell' -Description "This is a sample issue created by $env:USERNAME on $env:COMPUTERNAME." -Labels 'Test','Fake' -Credential $myJiraCreds
 
-.. note:: You don't need to pass your credentials to JIRA every time you run New-JiraIssue. See the :doc:`../authentication` page for details.
+.. note:: You don't need to pass your credentials to JIRA every time you run New-JiraIssue. See the :doc:`authentication` page for details.
 
 Additional Fields
 =================
@@ -55,4 +55,4 @@ New-JiraIssue provides the -Fields parameter for working with these custom field
 
     New-JiraIssue -Fields @{'customfield_10001'='foo'} # Other New-JiraIssue parameters
 
-For more information on custom fields, see the :doc:`custom_fields` page.
+For more information on the -Fields parameter, see the :doc:`custom_fields` page.
