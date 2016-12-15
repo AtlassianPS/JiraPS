@@ -14,6 +14,8 @@ PSJira
 
 PSJira is a Windows PowerShell module to interact with Atlassian JIRA via a REST API, while maintaining a consistent PowerShell look and feel.
 
+.. note:: This documentation is a work in progress - but there's enough here already that I wanted to go ahead and publish it as I continue fleshing it out. Please feel free to submit PR's or issues on this documentation over on the `GitHub Issues`_ page!
+
 .. toctree::
     :maxdepth: 2
     :caption: Introduction
@@ -38,3 +40,5 @@ PSJira is a Windows PowerShell module to interact with Atlassian JIRA via a REST
    changelog
 
 New to the project? Check out the :doc:`getting_started` page for a quick guide to get you up and running!
+
+.. _`GitHub Issues`: https://github.com/replicaJunction/PSJira/issues
