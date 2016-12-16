@@ -73,7 +73,7 @@ FunctionsToExport = 'Add-JiraGroupMember', 'Add-JiraIssueComment', 'Format-Jira'
                'Get-JiraConfigServer', 'Get-JiraField', 'Get-JiraFilter',
                'Get-JiraGroup', 'Get-JiraGroupMember', 'Get-JiraIssue',
                'Get-JiraIssueComment', 'Get-JiraIssueCreateMetadata', 'Get-JiraIssueEditMetadata',
-               'Get-JiraIssueType', 'Get-JiraPriority', 'Get-JiraProject', 'Remove-JiraRemoteLink',
+               'Get-JiraIssueType', 'Get-JiraPriority', 'Get-JiraProject', 'Get-JiraRemoteLink',
                'Get-JiraSession', 'Get-JiraUser', 'Invoke-JiraIssueTransition',
                'New-JiraGroup', 'New-JiraIssue', 'New-JiraSession', 'New-JiraUser',
                'Remove-JiraGroup', 'Remove-JiraGroupMember', 'Remove-JiraRemoteLink',
