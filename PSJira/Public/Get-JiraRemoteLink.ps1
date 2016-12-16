@@ -42,8 +42,7 @@ function Get-JiraRemoteLink
 
             if ($result)
             {
-                Write-Debug "[Get-JiraIssue] Converting REST result to Jira object"
-                ConvertFrom-Json $result
+                $result
             }
         }
     }
