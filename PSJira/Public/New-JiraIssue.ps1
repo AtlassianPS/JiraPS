@@ -28,6 +28,7 @@ function New-JiraIssue
        [PSJira.Issue] The issue created in JIRA.
     #>
     [CmdletBinding()]
+    [OutputType('PSJira.Issue')]
     param(
         [Parameter(Mandatory = $true)]
         [String] $Project,
@@ -38,9 +39,10 @@ function New-JiraIssue
         [Parameter(Mandatory = $false)]
         [Int] $Priority,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [String] $Summary,
 
+        [Parameter(Mandatory = $false)]
         [Parameter(Mandatory = $false)]
         [String] $Description,
 
@@ -52,6 +54,8 @@ function New-JiraIssue
 
         [Parameter(Mandatory = $false)]
         [String] $Parent,
+
+        [Parameter(Mandatory = $false)]
 
         [Parameter(Mandatory = $false)]
         [Hashtable] $Fields,
@@ -110,6 +114,13 @@ function New-JiraIssue
         {
             Write-Debug "[New-JiraIssue] Reporter [$reporterStr] could not be accessed"
                 throw "Unable to identify issue reporter. You must provide either the -Reporter parameter or the -Credential parameter, or the currently logged-on user must be a valid Jira user."
+        }
+
+        if ($Parent.key)
+        {
+            $Parent = Get-JiraIssue $Parent.key -Credential $Credential
+        } elseif ($Parent) {
+            $Parent = Get-JiraIssue $Parent -Credential $Credential
         }
     }
 
