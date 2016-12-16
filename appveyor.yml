@@ -1,10 +1,14 @@
+############################################################
+#
 # See http://www.appveyor.com/docs/appveyor-yml for many more options
-
+#
 # Credit for a lot of this file goes to RamblingCookieMonster:
 # https://github.com/RamblingCookieMonster/PSSQLite/blob/master/appveyor.yml
+#
+############################################################
 
-# Necessary for now to make AppVeyor run with PowerShell 5
-os: Unstable
+# This tells AppVeyor that we need WMF 5 and PowerShell 5.0
+os: Previous WMF 5
 
 environment:
     ModuleName: $(APPVEYOR_PROJECT_NAME)
@@ -16,34 +20,21 @@ environment:
     PSGalleryAPIKey:
         secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
 
-version: 1.2.4.{build}
+version: 1.2.5.{build}
+
+# Only build commits to these branches
 branches:
     only:
         - master
         - dev
+
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
 
 skip_commits:
     message: /readme*/
 
-init:
-  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
-install:
-  - cinst Pester -y
-
 test_script:
-#    - ps: Invoke-Pester -Script $env:APPVEYOR_BUILD_FOLDER
-    - ps: . .\Tests\Appveyor.ps1
+    - ps: . .\Tools\Appveyor.ps1
 
-# Compile just the module into a zip file
-build_script:
-    - 7z a %ModuleName%.zip %ModuleName%\
-
-artifacts:
-    - path: $(ModuleName).zip
-
-# Deploy to the PowerShell Gallery
-deploy_script:
-    - ps: . .\Tests\Deploy.ps1
+build: false

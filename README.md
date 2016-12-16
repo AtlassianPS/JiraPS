@@ -9,8 +9,6 @@ PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://
 ## Project update: August 2016
 Thanks to the generous folks at Atlassian, PSJira has been granted an Open Source license for a small test instance of JIRA. This means that finally, development on the project can continue!
 
-Bear with me for a little bit as I get back up to speed on everything. I'll also be adjusting the release pipeline a bit - the current model of only commiting to **master** occasionally isn't working well, and I'd prefer to have the project update any time all tests pass. The commit history may be a mess for a little bit as I work with GitHub and AppVeyor, but I'm hoping it will be better on the other side of things.
-
 ---
 
 ## Requirements
@@ -19,15 +17,17 @@ This module has a hard dependency on PowerShell 3.0.  I have no plans to release
 
 ## Downloading
 
-In PowerShell 5, it's very simple to download the latest public release of this module:
+Due to the magic of continuous integration, the latest passing build of this project will always be on the PowerShell Gallery. If you have the Package Management module for PowerShell (which comes with PowerShell 5.0), you can install the latest build easily:
 
 ```powershell
 Install-Module PSJira
 ```
 
-If you're using PowerShell 3 or 4, you can download this module from the Download Zip button on the right.  You'll need to extract the PSJira folder to your $PSModulePath.  Normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules.
+If you're using PowerShell 3 or 4, consider updating! If that's not an option, consider installing PackageManagement on PowerShell 3 or 4 (you can do so from the [PowerShell gallery](https://www.powershellgallery.com/) using the MSI installer link).
 
-You can also always feel free to clone the module directly in Git.
+You can also download this module from the Download Zip button on this page.  You'll need to extract the PSJira folder to your $PSModulePath (normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules).
+
+Finally, you can check the releases page here on GitHub for "stable" versions, but again, PSGallery will always have the latest (tested) version of the module.
 
 ## Getting Started
 
@@ -46,16 +46,15 @@ Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/G
 * Possible support for OAuth in addition to HTTP Basic authentication
 
 ## Contributing
-Want to contribute to PSJira?  Great!  I'm accepting pull requests against the *dev* branch.
+Want to contribute to PSJira?  Great! Here are a couple of notes regarding contributions:
 
-Here are a couple of notes regarding contributions:
 * PSJira relies heavily upon Pester testing to make sure that changes don't break each other.  Please respect the tests when coding against PSJira.
-  * Pull requests are much more likely to be accepted if all tests pass.
-  * If you write a change that causes a test to fail, please explain why the change is appropriate.  Tests are code, just like the module itself, so it's very possbile that they need to be fixed as well.  Bonus points if you also write the fix for the test.
-  * If implementing a brand-new function or behavior, please write a test for it.
+* Pull requests are much more likely to be accepted if all tests pass.
+* If you write a change that causes a test to fail, please explain why the change is appropriate.  Tests are code, just like the module itself, so it's very possbile that they need to be fixed as well.  Bonus points if you also write the fix for the test.
+* If implementing a brand-new function or behavior, please write a test for it.
 * Please respect the formatting style of the rest of the module code as well.  If in doubt, place braces on a new line.
 
-Changes will be merged to master and released when the module passes all Pester tests, including the module style tests.
+Changes will be merged and released when the module passes all Pester tests, including the module style tests.
 
 ## Contact
 
