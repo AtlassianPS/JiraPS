@@ -32,23 +32,18 @@ function Get-JiraRemoteLink
     {
         foreach ($k in $key)
         {
-            Write-Debug "[Get-JiraIssue] Processing issue key [$k]"
+            Write-Debug "[Get-JiraRemoteLink] Processing issue key [$k]"
             $issueURL = "$($server)/rest/api/latest/issue/${k}/remotelink"
             if ($linkId)
                 { $issueURL += "/$linkId" }
 
-            Write-Debug "[Get-JiraIssue] Preparing for blastoff!"
-            $result = Invoke-JiraMethod -Method Get -URI $issueURL -Credential $Credential
-
-            if ($result)
-            {
-                $result
-            }
+            Write-Debug "[Get-JiraRemoteLink] Preparing for blastoff!"
+            Invoke-JiraMethod -Method Get -URI $issueURL -Credential $Credential
         }
     }
 
     End
     {
-        Write-Debug "[Get-JiraIssue] Complete"
+        Write-Debug "[Get-JiraRemoteLink] Complete"
     }
 }
