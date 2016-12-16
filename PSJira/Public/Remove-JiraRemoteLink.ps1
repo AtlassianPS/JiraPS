@@ -13,7 +13,7 @@ function Remove-JiraRemoteLink
         [String[]]$Key,
 
         [Parameter(Mandatory = $true)]
-        [string]$GlobalId,
+        [string]$LinkId,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
@@ -24,21 +24,6 @@ function Remove-JiraRemoteLink
     {
         Write-Debug "[Get-JiraRemoteLink] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-
-
-
-        if ($apiURi -notmatch "\/$")
-            { $apiURi = $apiURi + "/" }
-        $restAPI = "${apiURi}rest/api/2/issue"
-
-        $header = @{
-            Authorization = "Basic  $([System.Convert]::ToBase64String(
-                [System.Text.Encoding]::UTF8.GetBytes(
-                    ($Credential.UserName)+":"+($Credential.getnetworkcredential().password)
-                )
-            ))"
-            "Content-Type" = "application/json"
-        }
     }
 
     Process
@@ -46,21 +31,16 @@ function Remove-JiraRemoteLink
 
         foreach ($k in $key)
         {
-            Write-Debug "[Get-JiraIssue] Processing issue key [$k]"
-            $issueURL = "$($server)/rest/api/latest/issue/${k}/remotelink"
+            Write-Debug "[Remove-JiraRemoteLink] Processing issue key [$k]"
+            $issueURL = "$($server)/rest/api/latest/issue/${k}/remotelink/${linkId}"
 
-            $body = "{globalId: `"$GlobalId`"}"
-
-            Write-Debug "[Get-JiraIssue] Preparing for blastoff!"
-            $result = Invoke-JiraMethod -Method Delete -URI -Body $body $issueURL -Credential $Credential
-
-            if ($result)
-            {
-                Write-Debug "[Get-JiraIssue] Converting REST result to Jira object"
-                ConvertFrom-Json $result
-            }
+            Write-Debug "[Remove-JiraRemoteLink] Preparing for blastoff!"
+            Invoke-JiraMethod -Method Delete -URI $issueURL -Credential $Credential
         }
     }
 
-    End {}
+    End
+    {
+        Write-Debug "[Remove-JiraRemoteLink] Complete"
+    }
 }
