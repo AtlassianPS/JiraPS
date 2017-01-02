@@ -28,7 +28,7 @@ InModuleScope PSJira {
     "id": "10000",
     "description": "All Project Catagories",
     "name": "All Project"
-}
+},
 "components": {
     "self": "$jiraServer/rest/api/2/component/11000",
     "id": "11000",
