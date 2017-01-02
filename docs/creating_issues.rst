@@ -13,7 +13,7 @@ To create an issue using PSJira, you need to provide this information as well. B
 Identifying "Create" Metadata
 =============================
 
-PSJira includes a command to make discorering this metadata as simple as possible. You will need to provide both a project and an issue type to this function, because each project and issue type can be configured to accept or require different fields when creating issues.
+PSJira includes a command to make discovering this metadata as simple as possible. You will need to provide both a project and an issue type to this function, because each project and issue type can be configured to accept or require different fields when creating issues.
 
 .. code-block:: powershell
 
