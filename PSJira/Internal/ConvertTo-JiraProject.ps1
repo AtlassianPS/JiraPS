@@ -23,6 +23,7 @@ function ConvertTo-JiraProject
                 'IssueTypes' = $i.issueTypes;
                 'Roles' = $i.roles;
                 'RestUrl' = $i.self;
+                'Components' = $i.components
             }
 
             if ($i.projectCategory) {

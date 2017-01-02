@@ -29,6 +29,12 @@ InModuleScope PSJira {
     "description": "All Project Catagories",
     "name": "All Project"
 }
+"components": {
+    "self": "$jiraServer/rest/api/2/component/11000",
+    "id": "11000",
+    "description": "A test component",
+    "name": "test component"
+}
 }
 "@
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
