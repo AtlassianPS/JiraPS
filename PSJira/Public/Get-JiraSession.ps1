@@ -16,7 +16,14 @@ function Get-JiraSession
        [PSJira.Session] An object representing the Jira session
     #>
     [CmdletBinding()]
-    param()
+    param(
+        [Switch]$All
+    )
+
+    begin
+    {
+        $Server = Get-JiraConfigServer
+    }
 
     process
     {
@@ -26,7 +33,18 @@ function Get-JiraSession
             if ($MyInvocation.MyCommand.Module.PrivateData.Session)
             {
                 Write-Debug "[Get-JiraSession] A Session object is saved; outputting"
-                Write-Output $MyInvocation.MyCommand.Module.PrivateData.Session
+                if ($All)
+                {
+                    # We have to store the keys seperately because we cannot delete from a
+                    # hashtable while we are itering throug it.
+                    $Keys = @($MyInvocation.MyCommand.Module.PrivateData.Session.Keys)
+                } else {
+                    $Keys = @(Get-JiraConfigServer)
+                }
+                foreach ($Key in $Keys)
+                {
+                    Write-Output $MyInvocation.MyCommand.Module.PrivateData.Session[$Key]
+                }
             } else {
                 Write-Debug "[Get-JiraSession] No Session objects are saved"
                 Write-Verbose "No Jira sessions have been saved."
@@ -37,5 +55,3 @@ function Get-JiraSession
         }
     }
 }
-
-
