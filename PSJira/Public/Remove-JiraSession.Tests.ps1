@@ -11,8 +11,17 @@ InModuleScope PSJira {
 
     $showMockData = $false
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $authUri = "$jiraServer/rest/auth/1/session"
+    $jiraServers = @(
+        'http://jiraserver.example.com'
+        'http://jiraserver2.example.com'
+    )
+    $authUriEndpoint = '/rest/auth/1/session'
+    $authUris = @(
+        "$($jiraServers[0])$authUriEndpoint"
+        "$($jiraServers[1])$authUriEndpoint"
+    )
+    $jiraServer = $jiraServers[0]
+    $authUri = $authUris[0]
     $jSessionId = '76449957D8C863BE8D4F6F5507E980E8'
 
     $testUsername = 'powershell-test'
@@ -36,11 +45,21 @@ InModuleScope PSJira {
 
     Describe "Remove-JiraSession" {
 
+        function Switch-JiraConfigServer {
+            if ($JiraServer -eq $jiraServers[0])
+            {
+                Set-Variable -Scope 1 -Name JiraServer -Value $jiraServers[1]
+            } else {
+                Set-Variable -Scope 1 -Name JiraServer -Value $jiraServers[0]
+            }
+                Set-Variable -Scope 1 -Name authUri -Value "$jiraServer/rest/auth/1/session"
+        }
+
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'POST'} {
+        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$authUris -contains $Uri -and $Method -eq 'POST'} {
             if ($showMockData)
             {
                 Write-Host "       Mocked Invoke-WebRequest with POST method" -ForegroundColor Cyan
@@ -51,7 +70,7 @@ InModuleScope PSJira {
             Write-Output $testJson
         }
 
-        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'DELETE'} {
+        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$authUris -contains $Uri -and $Method -eq 'DELETE'} {
             if ($showMockData)
             {
                 Write-Host "       Mocked Invoke-WebRequest with DELETE method" -ForegroundColor Cyan
@@ -90,6 +109,16 @@ InModuleScope PSJira {
             Get-JiraSession | Should BeNullOrEmpty
             Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'DELETE'} -Exactly -Times 1 -Scope It
         }
+
+        It "Removes all sessions" {
+            New-JiraSession -Credential $testCredential
+            Switch-JiraConfigServer
+            New-JiraSession -Credential $testCredential
+            {Remove-JiraSession -All } | Should Not Throw
+            Get-JiraSession | Should BeNullOrEmpty
+            Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$authUris -contains $Uri -and $Method -eq 'DELETE'} -Exactly -Times 2 -Scope It
+        }
+
     }
 }
 
