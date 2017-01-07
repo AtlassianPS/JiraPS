@@ -112,7 +112,7 @@ Task Deploy -Depends Build {
     ########################################################
     $line
 
-    if ($env:APPVEYOR_REPO_BRANCH -eq 'master') {
+    if ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and -not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
         "Patching module manifest version with build number ($env:APPVEYOR_BUILD_NUMBER)"
         Update-ModuleManifest -Path (Join-Path -Path $ModuleRoot -ChildPath 'PSJira.psd1') -BuildNumber $env:APPVEYOR_BUILD_NUMBER
 
