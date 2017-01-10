@@ -1,4 +1,4 @@
-function ConvertTo-JiraProject
+function ConvertTo-JiraComponent
 {
     [CmdletBinding()]
     param(
@@ -17,32 +17,29 @@ function ConvertTo-JiraProject
 #            Write-Debug "Defining standard properties"
             $props = @{
                 'ID' = $i.id;
-                'Key' = $i.key;
                 'Name' = $i.name;
-                'Description' = $i.description;
-                'IssueTypes' = $i.issueTypes;
-                'Roles' = $i.roles;
                 'RestUrl' = $i.self;
-                'Components' = $i.components
+                'Lead' = $i.lead;
+                'ProjectName' = $i.project;
+                'ProjectId' = $i.projectId
             }
 
-            if ($i.projectCategory) {
-                $props.Category = $i.projectCategory
-            }
-            elseif ($i.Category) {
-                $props.Category = $i.Category
+            if ($i.lead) {
+                $props.Lead = $i.lead
+                $props.LeadDisplayName = $i.lead.displayName
             }
             else {
-                $props.Category = $null
+                $props.Lead = $null
+                $props.LeadDisplayName = $null
             }
 
 #            Write-Debug "Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
 
 #            Write-Debug "Inserting type name information"
-            $result.PSObject.TypeNames.Insert(0, 'PSJira.Project')
+            $result.PSObject.TypeNames.Insert(0, 'PSJira.Component')
 
-#            Write-Debug "[ConvertTo-JiraProject] Inserting custom toString() method"
+#            Write-Debug "[ConvertTo-JiraComponent] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
                 Write-Output "$($this.Name)"
             }

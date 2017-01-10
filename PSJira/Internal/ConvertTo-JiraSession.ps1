@@ -9,7 +9,10 @@ function ConvertTo-JiraSession
         $Session,
 
         [Parameter(Mandatory = $true)]
-        [String] $Username
+        [String] $Username,
+
+        [Parameter(Mandatory = $true)]
+        [String] $Server
     )
 
     process
@@ -21,12 +24,8 @@ function ConvertTo-JiraSession
             'WebSession' = $Session;
             'JSessionID' = $obj.session.value;
             'LoginInfo' = $obj.loginInfo;
-        }
-
-        if ($Username)
-        {
-#            Write-Debug "[ConvertTo-JiraSession] Adding username"
-            $props.Username = $Username
+            'Username' = $Username;
+            'Server' = $Server
         }
 
 #        Write-Debug "[ConvertTo-JiraSession] Creating PSObject out of properties"
