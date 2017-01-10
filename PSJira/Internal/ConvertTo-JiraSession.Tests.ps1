@@ -12,7 +12,6 @@ InModuleScope PSJira {
         }
 
         $sampleUsername = 'powershell-test'
-        $sampleServer = 'http://jiraserver.example.com'
         $sampleJSessionID = '76449957D8C863BE8D4F6F5507E980E8'
         $sampleSession = @{}
         $sampleWebResponse = @"
@@ -28,7 +27,7 @@ InModuleScope PSJira {
 }
 "@
 
-        $r = ConvertTo-JiraSession -WebResponse $sampleWebResponse -Session $sampleSession -Username $sampleUsername -Server $sampleServer
+        $r = ConvertTo-JiraSession -WebResponse $sampleWebResponse -Session $sampleSession -Username $sampleUsername
 
         It "Creates a PSObject out of Web request data" {
             $r | Should Not BeNullOrEmpty
@@ -40,6 +39,5 @@ InModuleScope PSJira {
 
         defProp $r 'Username' $sampleUsername
         defProp $r 'JSessionID' $sampleJSessionID
-        defProp $r 'Server' $sampleServer
     }
 }

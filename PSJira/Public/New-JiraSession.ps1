@@ -64,7 +64,7 @@ function New-JiraSession
         {
             $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -UseBasicParsing -SessionVariable newSessionVar
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
-            $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName -Server $server
+            $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
 
             Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
             if ($MyInvocation.MyCommand.Module.PrivateData)

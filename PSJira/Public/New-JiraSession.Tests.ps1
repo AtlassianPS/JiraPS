@@ -79,16 +79,6 @@ InModuleScope PSJira {
             $s.JSessionID | Should Be $jSessionId
         }
 
-        It "Provides the Username of the session in Jira" {
-            $s = New-JiraSession -Credential $testCredential
-            $s.Username | Should Be $testUsername
-        }
-
-        It "Provides the JSessionID of the session in Jira" {
-            $s = New-JiraSession -Credential $testCredential
-            $s.Server | Should Be $jiraServer
-        }
-
         It "Stores the session variable in the module's PrivateData" {
             $s = New-JiraSession -Credential $testCredential
             $s2 = Get-JiraSession
