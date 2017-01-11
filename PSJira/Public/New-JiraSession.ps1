@@ -2,21 +2,33 @@ function New-JiraSession
 {
     <#
     .Synopsis
-       Creates a persistent JIRA authenticated session which can be used by other PSJira functions
+       Creates persistent JIRA authenticated sessions which can be used by other PSJira functions
     .DESCRIPTION
-       This function creates a persistent, authenticated session in to JIRA which can be used by all other
-       PSJira functions instead of explicitly passing parameters.  This removes the need to use the
+       This function creates persistent, authenticated sessions in to JIRA which can be used by all other
+       PSJira functions instead of explicitly passing parameters. This removes the need to use the
        -Credential parameter constantly for each function call.
 
        This is the equivalent of a browser cookie saving login information.
 
        Session data is stored in this module's PrivateData; it is not necessary to supply it to each
        subsequent function.
+
+       You can change the JiraConfigServer and create a new sessions for every server. The right session
+       will be choosen according to the JiraConfigServer 
     .EXAMPLE
        New-JiraSession -Credential (Get-Credential jiraUsername)
        Get-JiraIssue TEST-01
        Creates a Jira session for jiraUsername.  The following Get-JiraIssue is run using the
        saved session for jiraUsername.
+    .EXAMPLE
+        Set-JiraConfigServer 'http://jira1.example.com'
+        New-JiraSession -Credential (Get-Credential jiraUsername)
+        Set-JiraConfigServer 'http://jira2.example.com'
+        New-JiraSession -Credential (Get-Credential jiraUsername)
+        Get-JiraIssue JIRA2-01
+        Set-JiraConfigServer 'http://jira1.example.com'
+        Get-JiraIssue JIRA1-01
+        This example will create to sessions and two different Jira installations are queried
     .INPUTS
        [PSCredential] The credentials to use to create the Jira session
     .OUTPUTS
@@ -62,24 +74,8 @@ function New-JiraSession
 
         try
         {
+            Write-Debug "[New-JiraSession] sending web request"
             $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -UseBasicParsing -SessionVariable newSessionVar
-            Write-Debug "[New-JiraSession] Converting result to JiraSession object"
-            $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
-
-            Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
-            if ($MyInvocation.MyCommand.Module.PrivateData)
-            {
-                Write-Debug "[New-JiraSession] Adding session result to existing module PrivateData"
-                $MyInvocation.MyCommand.Module.PrivateData.Session = $result;
-            } else {
-                Write-Debug "[New-JiraSession] Creating module PrivateData"
-                $MyInvocation.MyCommand.Module.PrivateData = @{
-                    'Session' = $result;
-                }
-            }
-
-            Write-Debug "[New-JiraSession] Outputting result"
-            Write-Output $result
         } catch {
             $err = $_
             $webResponse = $err.Exception.Response
@@ -96,7 +92,22 @@ function New-JiraSession
             $result = ConvertFrom-Json2 -InputObject $body
             Write-Debug "Converted body from JSON into PSCustomObject (`$result)"
         }
+        Write-Debug "[New-JiraSession] Converting result to JiraSession object"
+        $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName -Server $server
+
+        Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
+        if ($MyInvocation.MyCommand.Module.PrivateData)
+        {
+            Write-Debug "[New-JiraSession] Adding session result to existing module PrivateData"
+            $MyInvocation.MyCommand.Module.PrivateData.Session[$server] = $result;
+        } else {
+            Write-Debug "[New-JiraSession] Creating module PrivateData"
+            $MyInvocation.MyCommand.Module.PrivateData = @{
+                'Session' = @{$server = $result};
+            }
+        }
+
+        Write-Debug "[New-JiraSession] Outputting result"
+        Write-Output $result
     }
 }
-
-
