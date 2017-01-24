@@ -90,5 +90,3 @@
         Write-Debug "[Remove-JiraIssueWatcher] Complete"
     }
 }
-
-

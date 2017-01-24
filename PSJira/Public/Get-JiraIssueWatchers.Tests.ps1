@@ -12,15 +12,15 @@ InModuleScope PSJira {
         $issueKey = 'IT-3676'
 
         ## Sample straight from the API:
-        ##    https://docs.atlassian.com/jira/REST/cloud/#api/2/issue-getIssueWatchers            
+        ##    https://docs.atlassian.com/jira/REST/cloud/#api/2/issue-getIssueWatchers
         $restResult = @"
 {
-    "self": "http://www.example.com/jira/rest/api/2/issue/EX-1/watchers",
+    "self": "$jiraServer/jira/rest/api/2/issue/EX-1/watchers",
     "isWatching": false,
     "watchCount": 1,
     "watchers": [
         {
-            "self": "http://www.example.com/jira/rest/api/2/user?username=fred",
+            "self": "$jiraServer/jira/rest/api/2/user?username=fred",
             "name": "fred",
             "displayName": "Fred F. User",
             "active": false
@@ -71,8 +71,9 @@ InModuleScope PSJira {
             $watchers = Get-JiraIssueWatchers -Issue $issueKey
             $watchers | Should Not BeNullOrEmpty
             @($watchers).Count | Should Be 1
-            $watchers.name | Should Be "fred"
-            $watchers.self | Should Be "$jiraServer/rest/api/2/user?username=fred"
+            $watchers.Name | Should Be "fred"
+            $watchers.DisplayName | Should Be "Fred F. User"
+            $watchers.RestUrl | Should Be "$jiraServer/jira/rest/api/2/user?username=fred"
 
             # Get-JiraIssue should be called to identify the -Issue parameter
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
@@ -98,5 +99,3 @@ InModuleScope PSJira {
         }
     }
 }
-
-

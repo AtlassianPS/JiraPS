@@ -10,7 +10,7 @@ InModuleScope PSJira {
     $issueID = 41701
     $issueKey = 'IT-3676'
 
-    Describe "Add-JiraIssueWatcher" {
+    Describe "Remove-JiraIssueWatcher" {
 
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
@@ -24,7 +24,7 @@ InModuleScope PSJira {
             }
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers"} {
+        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers?username=fred"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
@@ -45,8 +45,8 @@ InModuleScope PSJira {
         # Tests
         #############
 
-        It "Adds a Watcher to an issue in JIRA" {
-            $WatcherResult = Add-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
+        It "Removes a Watcher from an issue in JIRA" {
+            $WatcherResult = Remove-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
             $WatcherResult | Should BeNullOrEmpty
 
             # Get-JiraIssue should be used to identiyf the issue parameter
@@ -57,7 +57,7 @@ InModuleScope PSJira {
         }
 
         It "Accepts pipeline input from Get-JiraIssue" {
-            $WatcherResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueWatcher -Watcher 'fred'
+            $WatcherResult = Get-JiraIssue -InputObject $issueKey | Remove-JiraIssueWatcher -Watcher 'fred'
             $WatcherResult | Should BeNullOrEmpty
 
             # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)

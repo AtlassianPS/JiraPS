@@ -92,5 +92,3 @@
         Write-Debug "[Add-JiraIssueWatcher] Complete"
     }
 }
-
-
