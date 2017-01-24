@@ -69,14 +69,14 @@ FormatsToProcess = 'PSJira.format.ps1xml'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Add-JiraGroupMember', 'Add-JiraIssueComment', 'Get-JiraComponent', 'Format-Jira',
+FunctionsToExport = 'Add-JiraGroupMember', 'Add-JiraIssueComment', 'Add-JiraIssueWatcher', 'Get-JiraComponent', 'Format-Jira',
                'Get-JiraConfigServer', 'Get-JiraField', 'Get-JiraFilter',
                'Get-JiraGroup', 'Get-JiraGroupMember', 'Get-JiraIssue',
-               'Get-JiraIssueComment', 'Get-JiraIssueCreateMetadata', 'Get-JiraIssueEditMetadata',
+               'Get-JiraIssueComment', 'Get-JiraIssueWatchers', 'Get-JiraIssueCreateMetadata', 'Get-JiraIssueEditMetadata',
                'Get-JiraIssueType', 'Get-JiraPriority', 'Get-JiraProject',
                'Get-JiraSession', 'Get-JiraUser', 'Invoke-JiraIssueTransition',
                'New-JiraGroup', 'New-JiraIssue', 'New-JiraSession', 'New-JiraUser',
-               'Remove-JiraGroup', 'Remove-JiraGroupMember', 'Remove-JiraSession',
+               'Remove-JiraGroup', 'Remove-JiraGroupMember', 'Remove-JiraSession', 'Remove-JiraIssueWatcher',
                'Remove-JiraUser', 'Set-JiraConfigServer', 'Set-JiraIssue',
                'Set-JiraIssueLabel', 'Set-JiraUser'
 
