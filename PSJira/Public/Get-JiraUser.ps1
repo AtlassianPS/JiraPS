@@ -44,13 +44,17 @@ function Get-JiraUser
 
     begin
     {
+        [int]$maxResults = 50
+        [int]$startAt = 0
+        [bool]$hasMoreResults = $true
+
         Write-Debug "[Get-JiraUser] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Get-JiraUser] ParameterSetName=$($PSCmdlet.ParameterSetName)"
 
         Write-Debug "[Get-JiraUser] Building URI for REST call"
-        $userSearchUrl = "$server/rest/api/latest/user/search?username={0}"
+        $userSearchUrl = "$server/rest/api/latest/user/search?username={0}&maxResults=$maxResults&startAt={1}"
         if ($IncludeInactive)
         {
             $userSearchUrl = "$userSearchUrl&includeInactive=true"
@@ -65,34 +69,43 @@ function Get-JiraUser
         {
             foreach ($u in $UserName)
             {
-                Write-Debug "[Get-JiraUser] Processing user [$u]"
-                $thisSearchUrl = $userSearchUrl -f $u
 
-                Write-Debug "[Get-JiraUser] Preparing for blastoff!"
-                $rawResult = Invoke-JiraMethod -Method Get -URI $thisSearchUrl -Credential $Credential
-
-                if ($rawResult)
+                while ($hasMoreResults)
                 {
-                    Write-Debug "[Get-JiraUser] Processing raw results from JIRA"
-                    foreach ($r in $rawResult)
-                    {
-                        Write-Debug "[Get-JiraUser] Re-obtaining user information for user [$r]"
-                        $url = '{0}&expand=groups' -f $r.self
-                        Write-Debug "[Get-JiraUser] Preparing for blastoff!"
-                        $thisUserResult = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
+                    Write-Debug "[Get-JiraUser] Processing user [$u]"
+                    $thisSearchUrl = $userSearchUrl -f $u, $startAt
 
-                        if ($thisUserResult)
+                    Write-Debug "[Get-JiraUser] Preparing for blastoff!"
+                    $rawResult = Invoke-JiraMethod -Method Get -URI $thisSearchUrl -Credential $Credential
+
+                    if ($rawResult)
+                    {
+                        Write-Debug "[Get-JiraUser] Processing raw results from JIRA"
+                        foreach ($r in $rawResult)
                         {
-                            Write-Debug "[Get-JiraUser] Converting result to PSJira.User object"
-                            $thisUserObject = ConvertTo-JiraUser -InputObject $thisUserResult
-                            Write-Output $thisUserObject
-                        } else {
-                            Write-Debug "[Get-JiraUser] User [$r] could not be found in JIRA."
+                            Write-Debug "[Get-JiraUser] Re-obtaining user information for user [$r]"
+                            $url = '{0}&expand=groups' -f $r.self
+                            Write-Debug "[Get-JiraUser] Preparing for blastoff!"
+                            $thisUserResult = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
+
+                            if ($thisUserResult)
+                            {
+                                Write-Debug "[Get-JiraUser] Converting result to PSJira.User object"
+                                $thisUserObject = ConvertTo-JiraUser -InputObject $thisUserResult
+                                Write-Output $thisUserObject
+                            } else {
+                                Write-Debug "[Get-JiraUser] User [$r] could not be found in JIRA."
+                            }
+                        }
+                        $hasMoreResults = ($maxResults -eq $rawResult.Count) #if we get a full set of results, go back for more
+                        $startAt += $maxResults
+                    } else {
+                        $hasMoreResults = $false
+                        if ($startAt -eq 0) {
+                            Write-Debug "[Get-JiraUser] JIRA returned no results."
+                            Write-Verbose "JIRA returned no results for user [$u]."
                         }
                     }
-                } else {
-                    Write-Debug "[Get-JiraUser] JIRA returned no results."
-                    Write-Verbose "JIRA returned no results for user [$u]."
                 }
             }
         } else {
