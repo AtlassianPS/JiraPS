@@ -38,4 +38,4 @@ function Get-JiraSession
     }
 }
 
-
+ 
