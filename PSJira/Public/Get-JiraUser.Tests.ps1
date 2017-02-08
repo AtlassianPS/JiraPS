@@ -4,7 +4,7 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 
 InModuleScope PSJira {
 
-    $ShowMockData = $false
+    $ShowMockData = $true
 
     $jiraServer = 'http://jiraserver.example.com'
 
@@ -70,6 +70,28 @@ InModuleScope PSJira {
             ConvertFrom-Json2 -InputObject $restResult
         }
 
+        # Searching for a user; with paging (first call).
+        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername&maxResults=50&startAt=0"} {
+            if ($ShowMockData)
+            {
+                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
+                Write-Host "         [Method] $Method" -ForegroundColor Cyan
+                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+            }
+            ConvertFrom-Json2 -InputObject $restResult
+        }
+
+        # Searching for a user; with paging (second call).
+        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername&maxResults=50&startAt=50"} {
+            if ($ShowMockData)
+            {
+                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
+                Write-Host "         [Method] $Method" -ForegroundColor Cyan
+                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+            }
+            ConvertFrom-Json2 -InputObject $restResult
+        }
+
         # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"} {
             if ($ShowMockData)
@@ -104,7 +126,7 @@ InModuleScope PSJira {
 
         It "Converts the output object to PSJira.User" {
             $getResult = Get-JiraUser -UserName $testUsername
-            (Get-Member -InputObject $getResult).TypeName | Should Be 'PSJira.User'
+            $getResult.PSObject.TypeNames[0] | Should Be 'PSJira.User'
         }
 
         It "Returns all available properties about the returned user object" {
