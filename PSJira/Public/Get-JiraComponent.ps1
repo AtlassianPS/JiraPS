@@ -92,6 +92,3 @@ function Get-JiraComponent
         Write-Debug "Complete"
     }
 }
-
-
- 

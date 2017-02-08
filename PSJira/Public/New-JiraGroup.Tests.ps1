@@ -70,7 +70,7 @@ InModuleScope PSJira {
 
         It "Outputs a PSJira.Group object" {
             $newResult = New-JiraGroup -GroupName $testGroupName
-            (Get-Member -InputObject $newResult).TypeName | Should Be 'PSJira.Group'
+            $newResult.PSObject.TypeNames[0] | Should Be 'PSJira.Group'
             $newResult.Name | Should Be $testGroupName
             $newResult.RestUrl | Should Be "$jiraServer/rest/api/2/group?groupname=$testGroupName"
         }

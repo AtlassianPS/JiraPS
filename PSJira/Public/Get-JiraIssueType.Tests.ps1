@@ -126,7 +126,7 @@ InModuleScope PSJira {
 
         It "Returns output of type PSJira.IssueType" {
             $oneResult = Get-JiraIssueType -IssueType $issueTypeId
-            (Get-Member -InputObject $oneResult).TypeName | Should Be 'PSJira.IssueType'
+            $oneResult.PSObject.TypeNames[0] | Should Be 'PSJira.IssueType'
         }
     }
 }

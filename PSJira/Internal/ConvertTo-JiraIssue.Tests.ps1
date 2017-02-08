@@ -873,8 +873,7 @@ InModuleScope PSJira {
             }
 
             It "Sets the type name to PSJira.Issue" {
-#                $r.PSObject.TypeNames[0] | Should Be 'PSJira.Issue'
-                (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Issue'
+                $r.PSObject.TypeNames[0] | Should Be 'PSJira.Issue'
             }
 
             defProp $r 'Key' 'JRA-37294'
@@ -903,7 +902,7 @@ InModuleScope PSJira {
                 {
                     $value = $r.$f
                     $value | Should Not BeNullOrEmpty
-                    (Get-Member -InputObject $value).TypeName | Should Be 'System.DateTime'
+                    $value.PSObject.TypeNames[0] | Should Be 'System.DateTime'
                 }
             }
 
@@ -913,7 +912,7 @@ InModuleScope PSJira {
                 {
                     $value = $r.$f
                     $value | Should Not BeNullOrEmpty
-                    (Get-Member -InputObject $value).TypeName | Should Be 'PSJira.User'
+                    $value.PSObject.TypeNames[0]| Should Be 'PSJira.User'
                 }
 
                 # We can't mock this out without rewriting most of the code in it
@@ -921,12 +920,12 @@ InModuleScope PSJira {
             }
 
             It "Uses ConvertTo-JiraProject to return the project as an object" {
-                (Get-Member -InputObject $r.Project).TypeName | Should Be 'PSJira.Project'
+                $r.Project.PSObject.TypeNames[0] | Should Be 'PSJira.Project'
             }
 
             It "Uses ConvertTo-JiraTransition to return the issue's transitions as an object array" {
-                (Get-Member -InputObject $r.Transition).TypeName | Should Be 'System.Object[]'
-                (Get-Member -InputObject $r.Transition[0]).TypeName | Should Be 'PSJira.Transition'
+                $r.Transition.PSObject.TypeNames[0] | Should Be 'System.Object[]'
+                $r.Transition[0].PSObject.TypeNames[0] | Should Be 'PSJira.Transition'
             }
         }
     }

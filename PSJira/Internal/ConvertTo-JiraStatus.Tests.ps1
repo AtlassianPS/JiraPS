@@ -42,7 +42,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Status" {
-            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Status'
+            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Status'
         }
 
         defProp $r 'Id' $statusId

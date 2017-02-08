@@ -97,7 +97,7 @@ InModuleScope PSJira {
 
         It "Outputs the comment as a PSJira.Comment object" {
             $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
-            (Get-Member -InputObject $commentResult).TypeName | Should Be 'PSJira.Comment'
+            $commentResult.PSObject.TypeNames[0] | Should Be 'PSJira.Comment'
         }
     }
 }

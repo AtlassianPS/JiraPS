@@ -35,7 +35,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Comment" {
-            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.User'
+            $r.PSObject.TypeNames[0] | Should Be 'PSJira.User'
         }
 
         defProp $r 'Name' $username

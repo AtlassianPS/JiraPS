@@ -112,5 +112,3 @@ function Remove-JiraSession
         }
     }
 }
-
- 

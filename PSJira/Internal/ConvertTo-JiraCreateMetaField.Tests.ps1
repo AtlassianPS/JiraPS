@@ -94,10 +94,8 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.CreateMetaField" {
-            # Need to use the pipeline in this case, instead of directly using the
-            # -InputObject parameter. This is a quirk of PowerShell, arrays, and
-            # the pipeline.
-            ($r | Get-Member).TypeName | Should Be 'PSJira.CreateMetaField'
+            $r.PSObject.TypeNames[0] | Should Be 'System.Object[]' #because it's an array
+            $r[0].PSObject.TypeNames[0] | Should Be 'PSJira.CreateMetaField' # check single value in array
         }
 
         Context "Data validation" {

@@ -37,5 +37,3 @@ function Get-JiraSession
         }
     }
 }
-
- 

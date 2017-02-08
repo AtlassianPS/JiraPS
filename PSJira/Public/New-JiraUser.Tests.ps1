@@ -69,7 +69,7 @@ InModuleScope PSJira {
 
         It "Outputs a PSJira.User object" {
             $newResult = New-JiraUser -UserName $testUsername -EmailAddress $testEmail -DisplayName $testDisplayName
-            (Get-Member -InputObject $newResult).TypeName | Should Be 'PSJira.User'
+            $newResult.PSObject.TypeNames[0] | Should Be 'PSJira.User'
             $newResult.Name | Should Be $testUsername
             $newResult.EmailAddress | Should Be $testEmail
             $newResult.DisplayName | Should Be $testDisplayName
