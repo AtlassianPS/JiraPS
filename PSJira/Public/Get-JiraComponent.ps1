@@ -17,6 +17,9 @@ function Get-JiraComponent
     .EXAMPLE
        Get-JiraProject Project1 | Get-JiraComponent -Credential $cred
        Returns information about all components within project 'Project1'
+    .EXAMPLE
+        Get-JiraComponent ABC,DEF
+        Return information about all components within projects 'ABC' and 'DEF'
     .INPUTS
        [String[]] Component ID
        [PSCredential] Credentials to use to connect to Jira
@@ -55,20 +58,47 @@ function Get-JiraComponent
             throw $err
         }
 
-        $uri = "$server/rest/api/latest/component"
+        $uri = "$server/rest/api/latest"
     }
 
     process
     {
-        if ($Project -and ($Project.PSObject.TypeNames[0] -eq 'PSJira.Project')) {
-            $ComponentId = @($Project.Components | select -ExpandProperty id)
+        if ($Project)
+        {
+            if ($Project.PSObject.TypeNames[0] -eq 'PSJira.Project') {
+                $ComponentId = @($Project.Components | select -ExpandProperty id)
+            } else {
+                foreach ($p in $Project)
+                {
+                    if ($p -is [string])
+                    {
+                        Write-Debug "[Get-JiraComponent] Processing project [$p]"
+                        $thisUri = "$uri/project/${p}/components"
+
+                        Write-Debug "[Get-JiraComponent] Preparing for blastoff!"
+
+                        $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
+                        if ($result)
+                        {
+                            Write-Debug "[Get-JiraComponent] Converting to object"
+                            $obj = ConvertTo-JiraComponent -InputObject $result
+
+                            Write-Debug "[Get-JiraComponent] Outputting result"
+                            Write-Output $obj
+                        } else {
+                            Write-Debug "[Get-JiraComponent] No results were returned from Jira"
+                            Write-Debug "[Get-JiraComponent] No results were returned from Jira for component [$i]"
+                        }
+                    }
+                }
+            }
         }
         if ($ComponentId)
         {
             foreach ($i in $ComponentId)
             {
-                Write-Debug "[Get-JiraComponent] Processing project [$i]"
-                $thisUri = "$uri/${i}"
+                Write-Debug "[Get-JiraComponent] Processing component [$i]"
+                $thisUri = "$uri/component/${i}"
 
                 Write-Debug "[Get-JiraComponent] Preparing for blastoff!"
 
