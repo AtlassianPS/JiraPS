@@ -90,8 +90,6 @@ function Get-JiraComponent
 
     end
     {
-        Write-Debug "Complete"
+        Write-Debug "[Get-JiraComponent] Complete"
     }
 }
-
-
