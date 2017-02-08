@@ -23,24 +23,24 @@ function Get-JiraComponent
     .OUTPUTS
        [PSJira.Component]
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
+        # The Project ID or project key of a project to search
+        [Parameter(ParameterSetName = 'ByProject',
+                   ValueFromPipeline,
+                   Mandatory = $true)]
+        $Project,
+
         # The Component ID
         [Parameter(Mandatory = $true,
                    Position = 0,
-                   ParameterSetName = 'ID')]
+                   ParameterSetName = 'ByID')]
         [Alias("Id")]
-        [String[]] $ComponentId,
+        [int[]] $ComponentId,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential,
-
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $true,
-                   ValueFromPipeline,
-                   ParameterSetName = 'InputObject')]
-        [PSObject] $InputObject
+        [System.Management.Automation.PSCredential] $Credential
     )
 
     begin
@@ -60,8 +60,8 @@ function Get-JiraComponent
 
     process
     {
-        if ($InputObject -and ($InputObject.PSObject.TypeNames[0] -eq 'PSJira.Project')) {
-            $ComponentId = @($InputObject.Components | select -ExpandProperty id)
+        if ($Project -and ($Project.PSObject.TypeNames[0] -eq 'PSJira.Project')) {
+            $ComponentId = @($Project.Components | select -ExpandProperty id)
         }
         if ($ComponentId)
         {
