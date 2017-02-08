@@ -29,7 +29,8 @@ function Get-JiraComponent
         [Parameter(Mandatory = $true,
                    Position = 0,
                    ParameterSetName = 'ID')]
-        [String[]] $Id,
+        [Alias("Id")]
+        [String[]] $ComponentId,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
@@ -60,11 +61,11 @@ function Get-JiraComponent
     process
     {
         if ($InputObject -and ($InputObject.PSObject.TypeNames[0] -eq 'PSJira.Project')) {
-            $Id = @($InputObject.Components | select -ExpandProperty id)
+            $ComponentId = @($InputObject.Components | select -ExpandProperty id)
         }
-        if ($Id)
+        if ($ComponentId)
         {
-            foreach ($i in $Id)
+            foreach ($i in $ComponentId)
             {
                 Write-Debug "[Get-JiraComponent] Processing project [$i]"
                 $thisUri = "$uri/${i}"
