@@ -28,7 +28,7 @@ InModuleScope PSJira {
         Mock Invoke-JiraMethod -ModuleName PSJira {
             if ($ShowMockData)
             {
-                Write-Host "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
+                Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                 Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                 Write-Host "         [Method]  $Method" -ForegroundColor Cyan
             }
@@ -223,10 +223,10 @@ InModuleScope PSJira {
 
             It "Queries Jira for metadata information about editing an issue" {
                 { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/createmeta?projectIds=10003&issuetypeIds=2&expand=projects.issuetypes.fields'}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"}
             }
 
-            It "Uses ConvertTo-JiraCreateMetaField to output EditMetaField objects if JIRA returns data" {
+            It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
 
                 # This is a simplified version of what JIRA will give back
                 Mock Invoke-JiraMethod -ModuleName PSJira {
@@ -237,10 +237,10 @@ InModuleScope PSJira {
                       }
                     }
                 }
-                Mock ConvertTo-JiraCreateMetaField -ModuleName PSJira {}
+                Mock ConvertTo-JiraEditMetaField -ModuleName PSJira {}
 
                 { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/createmeta?projectIds=10003&issuetypeIds=2&expand=projects.issuetypes.fields'}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"}
 
                 # There are 2 example fields in our mock above, but they should
                 # be passed to Convert-JiraCreateMetaField as a single object.

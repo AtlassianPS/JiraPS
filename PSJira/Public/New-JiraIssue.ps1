@@ -28,7 +28,6 @@ function New-JiraIssue
        [PSJira.Issue] The issue created in JIRA.
     #>
     [CmdletBinding()]
-    [OutputType('PSJira.Issue')]
     param(
         [Parameter(Mandatory = $true)]
         [String] $Project,
@@ -39,15 +38,14 @@ function New-JiraIssue
         [Parameter(Mandatory = $false)]
         [Int] $Priority,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [String] $Summary,
 
-        [Parameter(Mandatory = $false)]
         [Parameter(Mandatory = $false)]
         [String] $Description,
 
         [Parameter(Mandatory = $false)]
-        [Object] $Reporter,
+        [String] $Reporter,
 
         [Parameter(Mandatory = $false)]
         [String[]] $Labels,
@@ -95,25 +93,6 @@ function New-JiraIssue
         {
             throw "Unable to identify Jira issue type [$IssueType]. Use Get-JiraIssueType for more information."
         }
-
-        Write-Debug "[New-JiraIssue] Checking Reporter parameter"
-        if ($Reporter)
-        {
-            Write-Debug "[New-JiraIssue] Reporter parameter was provided; attempting to identify Jira user [$Reporter]"
-            $reporterStr = $Reporter.ToString()
-        } elseif ($Credential) {
-            Write-Debug "[New-JiraIssue] Reporter parameter was not provided; attempting to use username from -Credential parameter [$($Credential.UserName)] as the reporter"
-            $reporterStr = $Credential.UserName
-        } else {
-            Write-Debug "[New-JiraIssue] Neither Reporter parameter nor Credential parameter were provided; attempting to use logged-on user [$env:USERNAME] as the reporter"
-            $reporterStr = $env:USERNAME
-        }
-
-        $reporterObj = Get-JiraUser -UserName $reporterStr -Credential $Credential
-        if (-not ($reporterObj))
-        {
-            Write-Debug "[New-JiraIssue] Reporter [$reporterStr] could not be accessed"
-                throw "Unable to identify issue reporter. You must provide either the -Reporter parameter or the -Credential parameter, or the currently logged-on user must be a valid Jira user."
         }
 
         if ($Parent.key)
@@ -121,20 +100,17 @@ function New-JiraIssue
             $Parent = Get-JiraIssue $Parent.key -Credential $Credential
         } elseif ($Parent) {
             $Parent = Get-JiraIssue $Parent -Credential $Credential
-        }
     }
 
     process
     {
         $ProjectParam = New-Object -TypeName PSObject -Property @{"id"=$ProjectObj.Id}
         $IssueTypeParam = New-Object -TypeName PSObject -Property @{"id"=[String] $IssueTypeObj.Id}
-        $ReporterParam = New-Object -TypeName PSObject -Property @{"name"=$reporterObj.Name}
 
         $props = @{
             "project"=$ProjectParam;
             "summary"=$Summary;
             "issuetype"=$IssueTypeParam;
-            "reporter"=$ReporterParam
         }
         if ($Priority) {
             $props.priority = New-Object -TypeName PSObject -Property @{"id"=[String] $Priority}
@@ -142,6 +118,10 @@ function New-JiraIssue
 
         if ($Description) {
             $props.description = $Description
+        }
+
+        if ($Reporter) {
+            $props.reporter = New-Object -TypeName PSObject -Property @{"name"=$Reporter}
         }
 
         if ($Parent) {
@@ -183,7 +163,12 @@ function New-JiraIssue
                     Write-Debug "[New-JiraIssue] Required field (id=[$($c.Id)], name=[$($c.Name)]) was provided (value=[$($props.$($c.Id))])"
                 } else {
                     Write-Debug "[New-JiraIssue] Required field (id=[$($c.Id)], name=[$($c.Name)]) was NOT provided. Writing error."
-                    throw "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided (name=[$($c.Name)], id=[$($c.Id)]). You must supply this field via the -Fields parameter. Use Get-JiraIssueCreateMetadata for more information."
+                    if ($c.Id -eq 'Reporter')
+                    {
+                        throw "Jira's metadata for project [$Project] and issue type [$IssueType] requires a reporter. Provide a value for the -Reporter parameter when creating an issue."
+                    } else {
+                        throw "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided (name=[$($c.Name)], id=[$($c.Id)]). You must supply this field via the -Fields parameter. Use Get-JiraIssueCreateMetadata for more information."
+                    }
                 }
             } else {
                 Write-Debug "[New-JiraIssue] Non-required field (id=[$($c.Id)], name=[$($c.Name)])"

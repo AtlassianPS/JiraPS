@@ -3,7 +3,7 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 . "$here\$sut"
 
 InModuleScope PSJira {
-    Describe "ConvertTo-JiraProject" {
+    Describe "ConvertTo-JiraComponent" {
         function defProp($obj, $propName, $propValue)
         {
             It "Defines the '$propName' property" {

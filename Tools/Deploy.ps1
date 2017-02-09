@@ -47,7 +47,9 @@ Write-Host "Module root folder: " -ForegroundColor Cyan -NoNewline
 Write-Host $ModuleRoot -ForegroundColor Green
 
 $shouldDeploy = $false
-if ($env:APPVEYOR_REPO_BRANCH -ne 'master')
+if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
+    Write-Host "This commit is from a pull request, so it will not be published." -ForegroundColor Yellow
+} elseif ($env:APPVEYOR_REPO_BRANCH -ne 'master')
 {
     Write-Host "This commit is not to branch [master], so it will not be published." -ForegroundColor Yellow
 #} elseif ($env:APPVEYOR_REPO_COMMIT_MESSAGE -notmatch '\[release\]' -and $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED -notmatch '\[release\]') {
