@@ -54,8 +54,6 @@ function New-JiraIssue
         [String] $Parent,
 
         [Parameter(Mandatory = $false)]
-
-        [Parameter(Mandatory = $false)]
         [Hashtable] $Fields,
 
         [Parameter(Mandatory = $false)]
@@ -93,13 +91,6 @@ function New-JiraIssue
         {
             throw "Unable to identify Jira issue type [$IssueType]. Use Get-JiraIssueType for more information."
         }
-        }
-
-        if ($Parent.key)
-        {
-            $Parent = Get-JiraIssue $Parent.key -Credential $Credential
-        } elseif ($Parent) {
-            $Parent = Get-JiraIssue $Parent -Credential $Credential
     }
 
     process
