@@ -27,7 +27,7 @@ function Get-JiraRemoteLink
         [String[]]$Issue,
 
         # Get a single link by it's id
-        [Int[]]$LinkId,
+        [Int]$LinkId,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
@@ -50,27 +50,24 @@ function Get-JiraRemoteLink
         foreach ($k in $Issue)
         {
             Write-Debug "[Get-JiraRemoteLink] Processing issue key [$k]"
-            foreach ($l in $LinkId)
+            $thisUrl = $linkUrl -f $k
+
+            if ($linkId)
+                { $thisUrl += "/$l" }
+
+            Write-Debug "[Get-JiraRemoteLink] Preparing for blastoff!"
+            $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
+
+            if ($result)
             {
-                $thisUrl = $linkUrl -f $k
+                Write-Debug "[Get-JiraRemoteLink] Converting results to PSJira.Group"
+                $obj = ConvertTo-JiraLink -InputObject $result
 
-                if ($linkId)
-                    { $thisUrl += "/$l" }
-
-                Write-Debug "[Get-JiraRemoteLink] Preparing for blastoff!"
-                $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
-
-                if ($result)
-                {
-                    Write-Debug "[Get-JiraRemoteLink] Converting results to PSJira.Group"
-                    $obj = ConvertTo-JiraLink -InputObject $result
-
-                    Write-Debug "[Get-JiraRemoteLink] Outputting results"
-                    Write-Output $obj
-                } else {
-                    Write-Debug "[Get-JiraRemoteLink] No results were returned from JIRA"
-                    Write-Verbose "No results were returned from JIRA."
-                }
+                Write-Debug "[Get-JiraRemoteLink] Outputting results"
+                Write-Output $obj
+            } else {
+                Write-Debug "[Get-JiraRemoteLink] No results were returned from JIRA"
+                Write-Verbose "No results were returned from JIRA."
             }
         }
     }
