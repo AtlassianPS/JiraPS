@@ -25,8 +25,7 @@ InModuleScope PSJira {
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers"} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
