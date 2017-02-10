@@ -35,7 +35,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Priority" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Priority'
+            $r | Test-HasTypeName 'PSJira.Priority' | Should Be $True
         }
 
         defProp $r 'Id' $priorityId

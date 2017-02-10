@@ -126,7 +126,7 @@ InModuleScope PSJira {
 
         It "Converts the output object to PSJira.User" {
             $getResult = Get-JiraUser -UserName $testUsername
-            $getResult.PSObject.TypeNames[0] | Should Be 'PSJira.User'
+            $getResult | Test-HasTypeName 'PSJira.User' | Should Be $True
         }
 
         It "Returns all available properties about the returned user object" {

@@ -101,7 +101,7 @@ InModuleScope PSJira {
         It "Converts the output object to type PSJira.Priority" {
             $getResult = Get-JiraPriority -Id 1 -Credential $testCred
             $getResult | Should Not BeNullOrEmpty
-            $getResult.PSObject.TypeNames[0] | Should Be 'PSJira.Priority'
+            $getResult | Test-HasTypeName 'PSJira.Priority' | Should Be $True
         }
     }
 }

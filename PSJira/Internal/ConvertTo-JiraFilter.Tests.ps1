@@ -66,7 +66,7 @@ InModuleScope PSJira {
 
         It "Sets the type name to PSJira.Filter" {
             $r = ConvertTo-JiraFilter -InputObject $sampleObject
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Filter'
+            $r | Test-HasTypeName 'PSJira.Filter' | Should Be $True
         }
 
         $r = ConvertTo-JiraFilter -InputObject $sampleObject

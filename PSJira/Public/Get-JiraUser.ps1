@@ -112,7 +112,7 @@ function Get-JiraUser
             foreach ($i in $InputObject)
             {
                 Write-Debug "[Get-JiraUser] Processing InputObject [$i]"
-                if ((Get-Member -InputObject $i).TypeName -eq 'PSJira.User')
+                if ($i | Test-HasTypeName 'PSJira.User')
                 {
                     Write-Debug "[Get-JiraUser] User parameter is a PSJira.User object"
                     $thisUserName = $i.Name

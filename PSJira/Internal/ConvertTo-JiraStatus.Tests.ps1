@@ -42,7 +42,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Status" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Status'
+            $r | Test-HasTypeName 'PSJira.Status' | Should Be $True
         }
 
         defProp $r 'Id' $statusId

@@ -34,7 +34,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Session" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Session'
+            $r | Test-HasTypeName 'PSJira.Session' | Should Be $True
         }
 
         defProp $r 'Username' $sampleUsername

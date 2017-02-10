@@ -37,7 +37,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Group" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Group'
+            $r | Test-HasTypeName 'PSJira.Group' | Should Be $True
         }
 
         defProp $r 'Name' $groupName

@@ -46,8 +46,8 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Project" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Project'
-        }
+            $r | Test-HasTypeName 'PSJira.Project' | Should Be $True
+         }
 
         defProp $r 'Id' $projectId
         defProp $r 'Key' $projectKey

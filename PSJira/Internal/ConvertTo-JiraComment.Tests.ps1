@@ -68,8 +68,8 @@ InModuleScope PSJira {
 
         It "Sets the type name to PSJira.Comment" {
             $r = ConvertTo-JiraComment -InputObject $sampleObject
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Comment'
-        }
+            $r | Test-HasTypeName 'PSJira.Comment' | Should Be $True
+         }
 
         $r = ConvertTo-JiraComment -InputObject $sampleObject
 

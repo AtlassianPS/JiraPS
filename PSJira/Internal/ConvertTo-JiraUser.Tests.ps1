@@ -35,7 +35,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Comment" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.User'
+            $r | Test-HasTypeName 'PSJira.User' | Should Be $True
         }
 
         defProp $r 'Name' $username

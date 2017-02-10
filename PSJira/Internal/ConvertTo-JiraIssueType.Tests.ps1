@@ -35,7 +35,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.IssueType" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.IssueType'
+            $r | Test-HasTypeName 'PSJira.IssueType' | Should Be $True
         }
 
         defProp $r 'Id' $issueTypeId

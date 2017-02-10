@@ -94,8 +94,8 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.CreateMetaField" {
-            $r.PSObject.TypeNames[0] | Should Be 'System.Object[]' #because it's an array
-            $r[0].PSObject.TypeNames[0] | Should Be 'PSJira.CreateMetaField' # check single value in array
+            @(,$r) | Test-HasTypeName 'System.Object[]' | Should Be $True 
+            $r[0] | Test-HasTypeName 'PSJira.CreateMetaField' | Should Be $True  
         }
 
         Context "Data validation" {

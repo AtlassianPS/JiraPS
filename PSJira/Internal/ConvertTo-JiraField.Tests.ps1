@@ -20,7 +20,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Field" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Field'
+            $r | Test-HasTypeName 'PSJira.Field' | Should Be $True
         }
 
         defProp $r 'Id' 'issuetype'

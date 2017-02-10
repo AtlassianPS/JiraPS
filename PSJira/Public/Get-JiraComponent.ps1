@@ -59,7 +59,7 @@ function Get-JiraComponent
 
     process
     {
-        if ($InputObject -and ($InputObject.PSObject.TypeNames[0] -eq 'PSJira.Project')) {
+        if ($InputObject -and ($InputObject | Test-HasTypeName 'PSJira.Project')) {
             $Id = @($InputObject.Components | select -ExpandProperty id)
         }
         if ($Id)

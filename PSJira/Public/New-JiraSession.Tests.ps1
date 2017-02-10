@@ -71,7 +71,7 @@ InModuleScope PSJira {
         It "Returns a custom object of type PSJira.Session" {
             $s = New-JiraSession -Credential $testCredential
             $s | Should Not BeNullOrEmpty
-            $s.PSObject.TypeNames[0] | Should Be PSJira.Session
+            $s | Test-HasTypeName 'PSJira.Session' | Should Be $True
         }
 
         It "Provides the JSessionID of the session in Jira" {

@@ -67,7 +67,7 @@ InModuleScope PSJira {
 
         It "Converts the output object to PSJira.Group" {
             $getResult = Get-JiraGroup -GroupName $testGroupName
-            $getResult.PSObject.TypeNames[0] | Should Be 'PSJira.Group'
+            $getResult | Test-HasTypeName 'PSJira.Group' | Should Be $True
         }
 
         It "Returns all available properties about the returned group object" {
