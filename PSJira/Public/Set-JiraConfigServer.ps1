@@ -7,16 +7,17 @@ function Set-JiraConfigServer
        This function defines the configured URL for the JIRA server that PSJira should manipulate. By default, this is stored in a config.xml file at the module's root path.
     .EXAMPLE
        Set-JiraConfigServer 'https://jira.example.com:8080'
-       This example defines the server URL of the JIRA server configured in the PSJira config file.
+       This example defines the server URL of the JIRA server for this PowerShell session.
+       This information will be lost after this PowerShell session is closed.
     .EXAMPLE
        Set-JiraConfigServer -Server 'https://jira.example.com:8080' -ConfigFile C:\jiraconfig.xml
-       This example defines the server URL of the JIRA server configured at C:\jiraconfig.xml.
+       This example defines the server URL of the JIRA server and writes it to C:\jiraconfig.xml.
+    .EXAMPLE
+       Set-JiraConfigServer -Server 'https://jira.example.com:8080' -persistent
+       This example defines the server URL of the JIRA server and writes it to a config file.
+       This action requires to run PowerShell in administrative mode.
     .INPUTS
        This function does not accept pipeline input.
-    .OUTPUTS
-       [System.String]
-    .NOTES
-       Support for multiple configuration files is limited at this point in time, but enhancements are planned for a future update.
     #>
     [CmdletBinding()]
     param(

@@ -6,17 +6,11 @@ function Export-JiraConfigServerXml
     .DESCRIPTION
        This function writes the URL for the JIRA server to an XML file. By default, this is stored in a config.xml file at the module's root path.
     .EXAMPLE
-       Set-JiraConfigServer 'https://jira.example.com:8080'
-       This example defines the server URL of the JIRA server configured in the PSJira config file.
+       Export-JiraConfigServerXml -Server $Server
     .EXAMPLE
-       Set-JiraConfigServer -Server 'https://jira.example.com:8080' -ConfigFile C:\jiraconfig.xml
-       This example defines the server URL of the JIRA server configured at C:\jiraconfig.xml.
+       Export-JiraConfigServerXml -Server $Server -ConfigFile $ConfigFile
     .INPUTS
        This function does not accept pipeline input.
-    .OUTPUTS
-       [System.String]
-    .NOTES
-       Support for multiple configuration files is limited at this point in time, but enhancements are planned for a future update.
     #>
     [CmdletBinding()]
     param(

@@ -15,8 +15,6 @@ function Get-JiraConfigServer
        This function does not accept pipeline input.
     .OUTPUTS
        [System.String]
-    .NOTES
-       Support for multiple configuration files is limited at this point in time, but enhancements are planned for a future update.
     #>
     [CmdletBinding(DefaultParameterSetName="default")]
     [OutputType([System.String])]
