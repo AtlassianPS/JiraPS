@@ -18,12 +18,40 @@ function Get-JiraConfigServer
     .NOTES
        Support for multiple configuration files is limited at this point in time, but enhancements are planned for a future update.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName="default")]
     [OutputType([System.String])]
     param(
         # Path to the configuration file, if not the default.
-        [String] $ConfigFile
-    )
+        [Parameter(
+            Position=0,
+            ParameterSetName='Filename'
+        )]
+        [String] $ConfigFile,
 
-    Import-JiraConfigServerXml -ConfigFile $ConfigFile
+        [Parameter(
+            ParameterSetName='LoadDefaultFile'
+        )]
+        [Switch] $LoadConfigFile
+    )
+    $ActiveConfigServer = ''
+    if ($ConfigFile)
+    {
+        $ActiveConfigServer = Import-JiraConfigServerXml -ConfigFile $ConfigFile
+    } elseif ($LoadConfigFile) 
+    {
+        $ActiveConfigServer = Import-JiraConfigServerXml
+    } else 
+    {
+        $ActiveConfigServer = Import-JiraConfigServerModulePrivateData
+        if (-not $ActiveConfigServer)
+        {
+            $ActiveConfigServer = Import-JiraConfigServerXml
+        }
+    }
+
+    if ($ActiveConfigServer) {
+        Write-Output $ActiveConfigServer
+    } else {
+        Write-Error "No ConfigServer configured"
+    }
 }

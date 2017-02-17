@@ -27,10 +27,20 @@ function Set-JiraConfigServer
         [Alias('Uri')]
         [String] $Server,
 
-        [String] $ConfigFile
+        [String] $ConfigFile,
+
+        [Parameter()]
+        [Switch] $Persistent
     )
 
-    Export-JiraConfigServerXml -Server $Server -ConfigFile $ConfigFile
+    Export-JiraConfigServerModulePrivateData -Server $Server
+    if ($Persistent) {
+        if ($ConfigFile) {
+            Export-JiraConfigServerXml -Server $Server -ConfigFile $ConfigFile
+        } else {
+            Export-JiraConfigServerXml -Server $Server
+        }
+    } else {
+        Write-Warning "Server $Server was temporary set.`nThis means that this setting will be gone if you close this PowerShell session.`nYou can save your settings by using Set-JiraConfigServer <Servername> -persistent. This requires to run PowerShell in administrative mode."
+    }
 }
-
-
