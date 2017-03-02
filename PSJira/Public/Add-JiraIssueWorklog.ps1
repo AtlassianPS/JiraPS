@@ -6,17 +6,17 @@ function Add-JiraIssueWorklog
     .DESCRIPTION
        This function adds a worklog item to an existing issue in JIRA. You can optionally set the visibility of the item (All Users, Developers, or Administrators).
     .EXAMPLE
-       Add-JiraIssueWorklog -Comment "Test comment" -Issue "TEST-001" -TimeSpent "1m" -DateStarted (Get-Date)
+       Add-JiraIssueWorklog -Comment "Test comment" -Issue "TEST-001" -TimeSpent 60 -DateStarted (Get-Date)
        This example adds a simple worklog item to the issue TEST-001.
     .EXAMPLE
-       Get-JiraIssue "TEST-002" | Add-JiraIssueWorklog "Test worklog item from PowerShell" -TimeSpent "1m" -DateStarted (Get-Date)
+       Get-JiraIssue "TEST-002" | Add-JiraIssueWorklog "Test worklog item from PowerShell" -TimeSpent 60 -DateStarted (Get-Date)
        This example illustrates pipeline use from Get-JiraIssue to Add-JiraIssueWorklog.
     .EXAMPLE
-       Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' | % { Add-JiraIssueWorklog "This issue has been cancelled per Vice President's orders." -TimeSpent "1m" -DateStarted (Get-Date)}
+       Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' | % { Add-JiraIssueWorklog "This issue has been cancelled per Vice President's orders." -TimeSpent 60 -DateStarted (Get-Date)}
        This example illustrates logging work on all projects which match a given JQL query. It would be best to validate the query first to make sure the query returns the expected issues!
     .EXAMPLE
        $comment = Get-Process | Format-Jira
-       Add-JiraIssueWorklog $c -Issue TEST-003 -TimeSpent "1m" -DateStarted (Get-Date)
+       Add-JiraIssueWorklog $c -Issue TEST-003 -TimeSpent 60 -DateStarted (Get-Date)
        This example illustrates adding a comment based on other logic to a JIRA issue.  Note the use of Format-Jira to convert the output of Get-Process into a format that is easily read by users.
     .INPUTS
        This function can accept PSJira.Issue objects via pipeline.
@@ -45,7 +45,7 @@ function Add-JiraIssueWorklog
                    Position = 2,
                    ValueFromPipeline = $true,
                    ValueFromPipelineByPropertyName = $true)]
-        [String] $TimeSpent,
+        [Int] $TimeSpent,
 
         # Date/time started to be logged
         [Parameter(Mandatory = $true,

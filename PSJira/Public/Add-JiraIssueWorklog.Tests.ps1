@@ -93,7 +93,7 @@ InModuleScope PSJira {
         #############
 
         It "Adds a comment to an issue in JIRA" {
-            $commentResult = Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent "1h" -DateStarted "2018-01-01"
+            $commentResult = Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent 3600 -DateStarted "2018-01-01"
             $commentResult | Should Not BeNullOrEmpty
 
             # Get-JiraIssue should be used to identify the issue parameter
@@ -104,7 +104,7 @@ InModuleScope PSJira {
         }
 
         It "Accepts pipeline input from Get-JiraIssue" {
-            $commentResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueWorklog -Comment 'This is a test comment from Pester, using the pipeline!' -TimeSpent "1h" -DateStarted "2018-01-01"
+            $commentResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueWorklog -Comment 'This is a test comment from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
             $commentResult | Should Not BeNullOrEmpty
 
             # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWorklog (to identify the InputObject parameter)
@@ -113,7 +113,7 @@ InModuleScope PSJira {
         }
 
         It "Outputs the comment as a PSJira.Worklogitem object" {
-            $commentResult = Add-JiraIssueWorklog -Comment 'This is a test comment from Pester.' -Issue $issueKey -TimeSpent "1h" -DateStarted "2018-01-01"
+            $commentResult = Add-JiraIssueWorklog -Comment 'This is a test comment from Pester.' -Issue $issueKey -TimeSpent "3600" -DateStarted "2018-01-01"
             (Get-Member -InputObject $commentResult).TypeName | Should Be 'PSJira.Worklogitem'
         }
     }
