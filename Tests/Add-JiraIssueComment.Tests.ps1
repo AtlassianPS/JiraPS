@@ -86,9 +86,14 @@ InModuleScope PSJira {
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
         }
 
-        It "Outputs the comment as a PSJira.Comment object" {
-            $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
-            (Get-Member -InputObject $commentResult).TypeName | Should Be 'PSJira.Comment'
+        Context "Output checking" {
+            Mock ConvertTo-JiraComment {}
+            Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey | Out-Null
+
+
+            It "Uses ConvertTo-JiraComment to beautify output" {
+                Assert-MockCalled 'ConvertTo-JiraComment'
+            }
         }
     }
 }
