@@ -21,10 +21,10 @@ if (-not (Get-Module -Name $ModuleName -ErrorAction SilentlyContinue) -or (!$Sup
 }
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='ShowMockData')]
-$ShowMockData = $false
+$ShowMockData = $true
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='ShowDebugText')]
-$ShowDebugText = $false
+$ShowDebugText = $true
 
 function defProp($obj, $propName, $propValue)
 {

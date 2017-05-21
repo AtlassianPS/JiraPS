@@ -97,18 +97,13 @@ InModuleScope PSJira {
         # Tests
         #############
 
+        $getResult = Get-JiraUser -UserName $testUsername
+
         It "Gets information about a provided Jira user" {
-            $getResult = Get-JiraUser -UserName $testUsername
             $getResult | Should Not BeNullOrEmpty
         }
 
-        It "Converts the output object to PSJira.User" {
-            $getResult = Get-JiraUser -UserName $testUsername
-            (Get-Member -InputObject $getResult).TypeName | Should Be 'PSJira.User'
-        }
-
         It "Returns all available properties about the returned user object" {
-            $getResult = Get-JiraUser -Username $testUsername
             $restObj = ConvertFrom-Json2 -InputObject $restResult
 
             $getResult.RestUrl | Should Be $restObj.self
@@ -118,16 +113,23 @@ InModuleScope PSJira {
         }
 
         It "Gets information for a provided Jira user if a PSJira.User object is provided to the InputObject parameter" {
-            $result1 = Get-JiraUser -Username $testUsername
-            $result2 = Get-JiraUser -InputObject $result1
+            $result2 = Get-JiraUser -InputObject $getResult
             $result2 | Should Not BeNullOrEmpty
             $result2.Name | Should Be $testUsername
         }
 
         It "Provides information about the user's group membership in Jira" {
-            $result = Get-JiraUser -Username $testUsername
-            $result.Groups | Should Not BeNullOrEmpty
-            $result.Groups[0] | Should Be $testGroup1
+            $getResult.Groups | Should Not BeNullOrEmpty
+            $getResult.Groups[0] | Should Be $testGroup1
+        }
+
+        Context "Output checking" {
+            Mock ConvertTo-JiraUser {}
+            Get-JiraUser -Username $testUsername | Out-Null
+
+            It "Uses ConvertTo-JiraUser to beautify output" {
+                Assert-MockCalled 'ConvertTo-JiraUser'
+            }
         }
     }
 }
