@@ -45,11 +45,11 @@ InModuleScope PSJira {
             }
         }
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraIssue -ModuleName PSJira {
+        Mock Get-JiraIssue {
             [PSCustomObject] @{
                 ID = $issueID;
                 Key = $issueKey;
@@ -57,7 +57,7 @@ InModuleScope PSJira {
             }
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
+        Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
@@ -71,7 +71,7 @@ InModuleScope PSJira {
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
@@ -86,7 +86,7 @@ InModuleScope PSJira {
             $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
             $commentResult | Should Not BeNullOrEmpty
 
-            # Get-JiraIssue should be used to identiyf the issue parameter
+            # Get-JiraIssue should be used to identify the issue parameter
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
 
             # Invoke-JiraMethod should be used to add the comment
