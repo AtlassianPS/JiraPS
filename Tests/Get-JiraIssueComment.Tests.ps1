@@ -1,11 +1,12 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
+
 
 InModuleScope PSJira {
-    Describe "Get-JiraIssueComment" {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
 
-        $ShowMockData = $false
+    Describe "Get-JiraIssueComment" {
 
         $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
