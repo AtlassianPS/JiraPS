@@ -107,10 +107,10 @@ PrivateData = @{
         Tags = 'JIRA'
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/replicaJunction/PSJira/blob/master/LICENSE'
+        LicenseUri = 'https://github.com/PSJira/PSJira/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://github.com/replicaJunction/PSJira'
+        ProjectUri = 'https://github.com/PSJira/PSJira'
 
         # A URL to an icon representing this module.
         # IconUri = ''
