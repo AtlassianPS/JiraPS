@@ -1,15 +1,8 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
     Describe "ConvertTo-JiraFilter" {
-        function defProp($obj, $propName, $propValue)
-        {
-            It "Defines the '$propName' property" {
-                $obj.$propName | Should Be $propValue
-            }
-        }
+        . $PSScriptRoot\Shared.ps1
 
         # Obtained from Atlassian's public JIRA instance
         $sampleJson = @'
@@ -58,18 +51,13 @@ InModuleScope PSJira {
 '@
 
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $r = ConvertTo-JiraFilter -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r = ConvertTo-JiraFilter -InputObject $sampleObject
             $r | Should Not BeNullOrEmpty
         }
 
-        It "Sets the type name to PSJira.Filter" {
-            $r = ConvertTo-JiraFilter -InputObject $sampleObject
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Filter'
-        }
-
-        $r = ConvertTo-JiraFilter -InputObject $sampleObject
+        checkPsType $r 'PSJira.Filter'
 
         defProp $r 'Id' 12844
         defProp $r 'Name' 'All JIRA Bugs'

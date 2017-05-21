@@ -1,15 +1,7 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
-
+. $PSScriptRoot\Shared.ps1
 InModuleScope PSJira {
     Describe "ConvertTo-JiraIssueType" {
-        function defProp($obj, $propName, $propValue)
-        {
-            It "Defines the '$propName' property" {
-                $obj.$propName | Should Be $propValue
-            }
-        }
+        . $PSScriptRoot\Shared.ps1
 
         $jiraServer = 'http://jiraserver.example.com'
 
@@ -34,9 +26,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        It "Sets the type name to PSJira.IssueType" {
-            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.IssueType'
-        }
+        checkPsType $r 'PSJira.IssueType'
 
         defProp $r 'Id' $issueTypeId
         defProp $r 'Name' $issueTypeName

@@ -1,15 +1,8 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
     Describe "ConvertTo-JiraCreateMetaField" {
-        function defProp($obj, $propName, $propValue)
-        {
-            It "Defines the '$propName' property" {
-                $obj.$propName | Should Be $propValue
-            }
-        }
+        . $PSScriptRoot\Shared.ps1
 
         $sampleJson = @'
 {
@@ -93,12 +86,7 @@ InModuleScope PSJira {
             $r.Count | Should Be 2
         }
 
-        It "Sets the type name to PSJira.CreateMetaField" {
-            # Need to use the pipeline in this case, instead of directly using the
-            # -InputObject parameter. This is a quirk of PowerShell, arrays, and
-            # the pipeline.
-            ($r | Get-Member).TypeName | Should Be 'PSJira.CreateMetaField'
-        }
+        checkPsType $r 'PSJira.CreateMetaField'
 
         Context "Data validation" {
             # Our sample JSON includes two fields: summary and priority.

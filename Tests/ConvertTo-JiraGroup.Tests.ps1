@@ -1,15 +1,8 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+﻿. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
     Describe "ConvertTo-JiraGroup" {
-        function defProp($obj, $propName, $propValue)
-        {
-            It "Defines the '$propName' property" {
-                $obj.$propName | Should Be $propValue
-            }
-        }
+        . $PSScriptRoot\Shared.ps1
 
         $jiraServer = 'http://jiraserver.example.com'
         $groupName = 'powershell-testgroup'
@@ -36,9 +29,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        It "Sets the type name to PSJira.Group" {
-            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Group'
-        }
+        checkPsType $r 'PSJira.Group'
 
         defProp $r 'Name' $groupName
         defProp $r 'RestUrl' "$jiraServer/rest/api/2/group?groupname=$groupName"

@@ -890,7 +890,7 @@ InModuleScope PSJira {
                 {
                     $value = $r.$f
                     $value | Should Not BeNullOrEmpty
-                    (Get-Member -InputObject $value).TypeName | Should Be 'System.DateTime'
+                    checkType $value 'System.DateTime'
                 }
             }
 
@@ -900,7 +900,8 @@ InModuleScope PSJira {
                 {
                     $value = $r.$f
                     $value | Should Not BeNullOrEmpty
-                    (Get-Member -InputObject $value).TypeName | Should Be 'PSJira.User'
+                    # (Get-Member -InputObject $value).TypeName | Should Be 'PSJira.User'
+                    checkType $value 'PSJira.User'
                 }
 
                 # We can't mock this out without rewriting most of the code in it
@@ -908,12 +909,13 @@ InModuleScope PSJira {
             }
 
             It "Uses ConvertTo-JiraProject to return the project as an object" {
-                (Get-Member -InputObject $r.Project).TypeName | Should Be 'PSJira.Project'
+                # (Get-Member -InputObject $r.Project).TypeName | Should Be 'PSJira.Project'
+                checkType $r.Project 'PSJira.Project'
             }
 
-            It "Uses ConvertTo-JiraTransition to return the issue's transitions as an object array" {
-                (Get-Member -InputObject $r.Transition).TypeName | Should Be 'System.Object[]'
-                (Get-Member -InputObject $r.Transition[0]).TypeName | Should Be 'PSJira.Transition'
+            It "Uses ConvertTo-JiraTransition to return the issue's transitions as an object" {
+                # Even though this is an array, our checkType function checks the first item in the array
+                checkType $r.Transition 'PSJira.Transition'
             }
         }
     }
