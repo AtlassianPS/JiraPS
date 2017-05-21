@@ -75,7 +75,7 @@ InModuleScope PSJira {
             $r.Count | Should Be 2
         }
 
-        checkPsType $r 'PSJira.EditMetaField'
+        checkPsType $r[0] 'PSJira.EditMetaField'
 
         Context "Data validation" {
             # Our sample JSON includes two fields: summary and priority.

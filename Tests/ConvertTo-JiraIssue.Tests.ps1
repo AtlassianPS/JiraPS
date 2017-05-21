@@ -914,8 +914,7 @@ InModuleScope PSJira {
             }
 
             It "Uses ConvertTo-JiraTransition to return the issue's transitions as an object" {
-                # Even though this is an array, our checkType function checks the first item in the array
-                checkType $r.Transition 'PSJira.Transition'
+                checkType $r.Transition[0] 'PSJira.Transition'
             }
         }
     }

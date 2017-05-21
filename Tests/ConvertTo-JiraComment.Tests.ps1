@@ -53,15 +53,14 @@ InModuleScope PSJira {
 "@
 
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $r = ConvertTo-JiraComment -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r = ConvertTo-JiraComment -InputObject $sampleObject
             $r | Should Not BeNullOrEmpty
         }
 
         checkPsType $r 'PSJira.Comment'
 
-        $r = ConvertTo-JiraComment -InputObject $sampleObject
 
         defProp $r 'Id' $commentId
         defProp $r 'Body' $commentBody

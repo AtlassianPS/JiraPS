@@ -33,15 +33,38 @@ function defProp($obj, $propName, $propValue)
     }
 }
 
+function defParam($command, $name)
+{
+    It "Has a -$name parameter" {
+        $command.Parameters.Item($name) | Should Not BeNullOrEmpty
+    }
+}
+
 # This function must be used from within an It block
 function checkType($obj, $typeName) {
-    # If $obj is an array, newer versions of PowerShell can return
-    # the typenames in a row - "PSJira.Issue PSJira.Issue PSJira.Issue"
-    @($obj)[0].PSObject.TypeNames[0] | Should Be $typeName
+    if ($obj -is [System.Array]) {
+        $o = $obj[0]
+    }
+    else {
+        $o = $obj
+    }
+
+    $obj.PSObject.TypeNames[0] | Should Be $typeName
 }
 
 function checkPsType($obj, $typeName) {
     It "Uses output type of '$typeName'" {
         checkType $obj $typeName
+    }
+}
+
+function ShowMockInfo($functionName, [String[]] $params)
+{
+    if ($ShowMockData)
+    {
+        Write-Host "       Mocked $functionName" -ForegroundColor Cyan
+        foreach ($p in $params) {
+            Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly)" -ForegroundColor Cyan
+        }
     }
 }
