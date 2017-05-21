@@ -1,6 +1,4 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
 
@@ -52,6 +50,8 @@ InModuleScope PSJira {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
+        Mock ConvertTo-JiraGroup { $InputObject }
+
 #        Mock Write-Debug {
 #            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
 #        }
@@ -65,25 +65,8 @@ InModuleScope PSJira {
             $getResult | Should Not BeNullOrEmpty
         }
 
-        It "Converts the output object to PSJira.Group" {
-            $getResult = Get-JiraGroup -GroupName $testGroupName
-            (Get-Member -InputObject $getResult).TypeName | Should Be 'PSJira.Group'
-        }
-
-        It "Returns all available properties about the returned group object" {
-            $getResult = Get-JiraGroup -GroupName $testGroupName
-            $restObj = ConvertFrom-Json2 -InputObject $restResult
-
-            $getResult.RestUrl | Should Be $restObj.self
-            $getResult.Name | Should Be $restObj.name
-            $getResult.Size | Should Be $restObj.users.size
-        }
-
-        It "Gets information for a provided Jira group if a PSJira.Group object is provided to the InputObject parameter" {
-            $result1 = Get-JiraGroup -GroupName $testGroupName
-            $result2 = Get-JiraGroup -InputObject $result1
-            $result2 | Should Not BeNullOrEmpty
-            $result2.Name | Should Be $testGroupName
+        It "Uses ConvertTo-JiraGroup to beautify output" {
+            Assert-MockCalled 'ConvertTo-JiraGroup'
         }
     }
 }

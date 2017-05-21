@@ -3,13 +3,13 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 param()
 
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
 
-    $showMockData = $false
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
     $authUri = "$jiraServer/rest/auth/1/session"
@@ -68,12 +68,6 @@ InModuleScope PSJira {
             Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$UseBasicParsing -eq $true} -Scope It
         }
 
-        It "Returns a custom object of type PSJira.Session" {
-            $s = New-JiraSession -Credential $testCredential
-            $s | Should Not BeNullOrEmpty
-            (Get-Member -InputObject $s).TypeName | Should Be PSJira.Session
-        }
-
         It "Provides the JSessionID of the session in Jira" {
             $s = New-JiraSession -Credential $testCredential
             $s.JSessionID | Should Be $jSessionId
@@ -83,6 +77,15 @@ InModuleScope PSJira {
             $s = New-JiraSession -Credential $testCredential
             $s2 = Get-JiraSession
             $s2 | Should Be $s
+        }
+
+        Context "Output checking" {
+            Mock ConvertTo-JiraSession {}
+            New-JiraSession -Credential $testCredential
+
+            It "Uses ConvertTo-JiraSession to beautify output" {
+                Assert-MockCalled 'ConvertTo-JiraSession'
+            }
         }
     }
 }

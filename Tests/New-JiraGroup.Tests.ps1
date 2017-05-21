@@ -1,13 +1,10 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
 
-    # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
-    # For the time being, we'll need to hard-code this and adjust it as desired.
-    $ShowMockData = $false
-    $ShowDebugData = $false
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
 
@@ -30,12 +27,12 @@ InModuleScope PSJira {
 
     Describe "New-JiraGroup" {
 
-        Mock Write-Debug {
-            if ($ShowDebugData)
-            {
-                Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
+        # Mock Write-Debug {
+        #     if ($ShowDebugData)
+        #     {
+        #         Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
+        #     }
+        # }
 
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
@@ -59,6 +56,8 @@ InModuleScope PSJira {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
+        Mock ConvertTo-JiraGroup { $InputObject }
+
         #############
         # Tests
         #############
@@ -68,12 +67,16 @@ InModuleScope PSJira {
             $newResult | Should Not BeNullOrEmpty
         }
 
-        It "Outputs a PSJira.Group object" {
-            $newResult = New-JiraGroup -GroupName $testGroupName
-            (Get-Member -InputObject $newResult).TypeName | Should Be 'PSJira.Group'
-            $newResult.Name | Should Be $testGroupName
-            $newResult.RestUrl | Should Be "$jiraServer/rest/api/2/group?groupname=$testGroupName"
+        It "Uses ConvertTo-JiraGroup to beautify output" {
+            Assert-MockCalled 'ConvertTo-JiraGroup'
         }
+
+        # It "Outputs a PSJira.Group object" {
+        #     $newResult = New-JiraGroup -GroupName $testGroupName
+        #     (Get-Member -InputObject $newResult).TypeName | Should Be 'PSJira.Group'
+        #     $newResult.Name | Should Be $testGroupName
+        #     $newResult.RestUrl | Should Be "$jiraServer/rest/api/2/group?groupname=$testGroupName"
+        # }
     }
 }
 

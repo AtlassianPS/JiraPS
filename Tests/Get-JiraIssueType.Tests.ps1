@@ -1,6 +1,4 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
 
@@ -124,11 +122,15 @@ InModuleScope PSJira {
             $oneResult.Name | Should Be 'Desktop Support'
         }
 
-        It "Returns output of type PSJira.IssueType" {
-            $oneResult = Get-JiraIssueType -IssueType $issueTypeId
-            (Get-Member -InputObject $oneResult).TypeName | Should Be 'PSJira.IssueType'
+        Context "Output Checking" {
+
+            Mock ConvertTo-JiraIssueType {}
+
+            Get-JiraIssueType
+
+            It "Uses ConvertTo-JiraIssueType to beautify output" {
+                Assert-MockCalled 'ConvertTo-JiraIssueType'
+            }
         }
     }
 }
-
-

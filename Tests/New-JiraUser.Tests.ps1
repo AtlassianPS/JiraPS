@@ -1,13 +1,10 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
 
-    # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
-    # For the time being, we'll need to hard-code this and adjust it as desired.
-    $ShowMockData = $false
-    $ShowDebugData = $false
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
 
@@ -67,12 +64,13 @@ InModuleScope PSJira {
             $newResult | Should Not BeNullOrEmpty
         }
 
-        It "Outputs a PSJira.User object" {
-            $newResult = New-JiraUser -UserName $testUsername -EmailAddress $testEmail -DisplayName $testDisplayName
-            (Get-Member -InputObject $newResult).TypeName | Should Be 'PSJira.User'
-            $newResult.Name | Should Be $testUsername
-            $newResult.EmailAddress | Should Be $testEmail
-            $newResult.DisplayName | Should Be $testDisplayName
+        Context "Output checking" {
+            Mock ConvertTo-JiraUser {}
+            New-JiraUser -UserName $testUsername -EmailAddress $testEmail -DisplayName $testDisplayName
+
+            It "Uses ConvertTo-JiraUser to beautify output" {
+                Assert-MockCalled 'ConvertTo-JiraUser'
+            }
         }
     }
 }

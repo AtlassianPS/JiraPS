@@ -42,9 +42,6 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        It "Sets the type name to PSJira.Transition" {
-            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Transition'
-        }
         checkPsType $r 'PSJira.Transition'
 
         defProp $r 'Id' $tId
