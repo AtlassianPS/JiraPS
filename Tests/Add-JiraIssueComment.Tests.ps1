@@ -12,27 +12,11 @@ InModuleScope PSJira {
 
     $restResponse = @"
 {
-  "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog",
-  "id": "$issueID",
-  "self": "$jiraServer/rest/api/latest/issue/$issueID",
-  "key": "$issueKey",
-  "fields": {
-    "description": "Test issue from PowerShell (created at an interactive shell).",
-    "comment": {
-      "startAt": 0,
-      "maxResults": 1,
-      "total": 1,
-      "comments": [
-        {
-          "self": "$jiraServer/rest/api/2/issue/$issueID/comment/90730",
-          "id": "90730",
-          "body": "Test comment",
-          "created": "2015-05-01T16:24:38.000-0500",
-          "updated": "2015-05-01T16:24:38.000-0500"
-        }
-      ]
-    }
-  }
+    "self": "$jiraServer/rest/api/2/issue/$issueID/comment/90730",
+    "id": "90730",
+    "body": "Test comment",
+    "created": "2015-05-01T16:24:38.000-0500",
+    "updated": "2015-05-01T16:24:38.000-0500"
 }
 "@
 
