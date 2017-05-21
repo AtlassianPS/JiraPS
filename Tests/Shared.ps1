@@ -1,3 +1,4 @@
+
 # Dot source this script in any Pester test script that requires the module to be imported.
 
 $ModuleName = 'PSJira'
@@ -19,9 +20,23 @@ if (-not (Get-Module -Name $ModuleName -ErrorAction SilentlyContinue) -or (!$Sup
     $SuppressImportModule = $true
 }
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='ShowMockData')]
+$ShowMockData = $true
+
+[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='ShowDebugText')]
+$ShowDebugText = $true
+
 function defProp($obj, $propName, $propValue)
 {
     It "Defines the '$propName' property" {
         $obj.$propName | Should Be $propValue
+    }
+}
+
+function checkPsType($obj, $typeName) {
+    It "Uses output type of '$typeName'" {
+        # If $obj is an array, newer versions of PowerShell can return
+        # the typenames in a row - "PSJira.Issue PSJira.Issue PSJira.Issue"
+        @($obj)[0].PSObject.TypeNames[0] | Should Be $typeName
     }
 }

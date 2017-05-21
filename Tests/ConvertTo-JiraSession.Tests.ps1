@@ -1,15 +1,8 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+﻿. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
+    . $PSScriptRoot\Shared.ps1
     Describe "ConvertTo-JiraSession" {
-        function defProp($obj, $propName, $propValue)
-        {
-            It "Defines the '$propName' property" {
-                $obj.$propName | Should Be $propValue
-            }
-        }
 
         $sampleUsername = 'powershell-test'
         $sampleJSessionID = '76449957D8C863BE8D4F6F5507E980E8'
@@ -33,9 +26,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        It "Sets the type name to PSJira.Session" {
-            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Session'
-        }
+        checkPsType $r 'PSJira.Session'
 
         defProp $r 'Username' $sampleUsername
         defProp $r 'JSessionID' $sampleJSessionID
