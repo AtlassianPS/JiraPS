@@ -38,6 +38,13 @@ InModuleScope PSJira {
 
     Describe "Add-JiraIssueComment" {
 
+        if ($ShowDebugText)
+        {
+            Mock "Write-Debug" {
+                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
+            }
+        }
+
         Mock Get-JiraConfigServer -ModuleName PSJira {
             Write-Output $jiraServer
         }
