@@ -69,7 +69,7 @@ function New-JiraSession
         {
             If($Tls)
             {
-                Write-Debug "[New-JiraSession] setting security protocol"
+                Write-Debug "[New-JiraSession] Setting security protocol"
                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::$Tls
             }
             $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -UseBasicParsing -SessionVariable newSessionVar
