@@ -5,10 +5,12 @@
 Properties {
     # ----------------------- Basic properties --------------------------------
 
-    Write-Host "build.settings.ps1 - Propertes" -ForegroundColor Green
+    Write-Host "build.settings.ps1 - Properties" -ForegroundColor Green
+    Write-Host "* PSScriptRoot: $PSScriptRoot" -ForegroundColor Green
 
     # Root directory for the project
-    $ProjectRoot = Split-Path $PSScriptRoot -Parent
+    $ProjectRoot = Split-Path "$PSScriptRoot" -Parent
+    Write-Host "* ProjectRoot: $ProjectRoot" -ForegroundColor Green
 
     # The root directories for the module's docs, src and test.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
@@ -22,15 +24,18 @@ Properties {
     $ModuleName = Get-Item $SrcRootDir/*.psd1 |
                       Where-Object { $null -ne (Test-ModuleManifest -Path $_ -ErrorAction SilentlyContinue) } |
                       Select-Object -First 1 | Foreach-Object BaseName
+    Write-Host "* ModuleName: $ModuleName" -ForegroundColor Green
 
     # The $OutDir is where module files and updatable help files are staged for signing, install and publishing.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $OutDir = "$ProjectRoot\Release"
+    Write-Host "* OutDir: $OutDir" -ForegroundColor Green
 
     # The local installation directory for the install task. Defaults to your home Modules location.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $InstallPath = Join-Path (Split-Path $profile.CurrentUserAllHosts -Parent) `
                              "Modules\$ModuleName\$((Test-ModuleManifest -Path $SrcRootDir\$ModuleName.psd1).Version.ToString())"
+    Write-Host "* InstallPath: $InstallPath" -ForegroundColor Green
 
     # Default Locale used for help generation, defaults to en-US.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
