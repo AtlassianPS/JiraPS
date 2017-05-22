@@ -32,9 +32,16 @@ Properties {
     Write-Host "* OutDir: $OutDir" -ForegroundColor Green
 
     # The local installation directory for the install task. Defaults to your home Modules location.
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $InstallPath = Join-Path (Split-Path $profile.CurrentUserAllHosts -Parent) `
-                             "Modules\$ModuleName\$((Test-ModuleManifest -Path $SrcRootDir\$ModuleName.psd1).Version.ToString())"
+    if ($profile.CurrentUserAllHosts) {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
+        $InstallPath = Join-Path (Split-Path $profile.CurrentUserAllHosts -Parent) `
+            "Modules\$ModuleName\$((Test-ModuleManifest -Path $SrcRootDir\$ModuleName.psd1).Version.ToString())"
+    }
+    else {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
+        $InstallPath = Join-Path $env:USERPROFILE `
+            "Documents\WindowsPowerShell\Modules\$ModuleName\$((Test-ModuleManifest -Path $SrcRootDir\$ModuleName.psd1).Version.ToString())"
+    }
     Write-Host "* InstallPath: $InstallPath" -ForegroundColor Green
 
     # Default Locale used for help generation, defaults to en-US.
