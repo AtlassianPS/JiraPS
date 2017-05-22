@@ -54,7 +54,7 @@ Write-Host "AppVeyor build initialized (Job ID $JobId)" -ForegroundColor Cyan
 Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 
 # Don't forget -Force!
-Install-Module Pester,psake,BuildHelpers -Force
+Install-Module Pester,psake,PSScriptAnalyzer,BuildHelpers -Force
 
 Write-Host "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n" -ForegroundColor Cyan
 

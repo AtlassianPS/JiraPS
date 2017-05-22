@@ -194,10 +194,24 @@ Task AfterBuild -requiredVariables ProjectRoot,OutDir {
         Write-Host "* Updating build number" -ForegroundColor Green
 
         $manifestContent = Get-Content -Path $outputManifestFile -Raw
-        $manifestContent = $manifestContent -replace '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')',
-            ('${{ModuleVersion}}.{0}' -f $env:APPVEYOR_BUILD_NUMBER)
+        if ($manifestContent -notmatch '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')') {
+            throw "Module version was not found in manifest file $outputManifestFile"
+        }
 
-        Update-Metadata -Path $outputManifestFile -PropertyName ModuleVersion -Value $Version
+        $currentVersion = [Version] $Matches.ModuleVersion
+        if ($env:BHBuildNumber) {
+            $newRevision = $env:BHBuildNumber
+        }
+        else {
+            $newRevision = $currentVersion.Revision
+        }
+
+        $newVersion = New-Object -TypeName System.Version -ArgumentList $currentVersion.Major,
+            $currentVersion.Minor,
+            $currentVersion.Build,
+            $newRevision
+
+        Update-Metadata -Path $outputManifestFile -PropertyName ModuleVersion -Value $newVersion
     }
 
     Write-Host "Defining module functions" -ForegroundColor Green
