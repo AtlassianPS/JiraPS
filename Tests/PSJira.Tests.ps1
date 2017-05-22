@@ -182,5 +182,3 @@ Describe "PSJira" {
         }
     }
 }
-
-
