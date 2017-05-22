@@ -151,7 +151,7 @@ Properties {
     # This is typically used to write out test results so that they can be sent to a CI
     # system like AppVeyor.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $TestOutputFile = "$env:TEMP\TestResults_PS$PSVersion`_$TimeStamp.xml"
+    $TestOutputFile = "$ProjectRoot\TestResults.xml"
 
     # Specifies the test output format to use when the TestOutputFile property is given
     # a path.  This parameter is passed through to Invoke-Pester's -OutputFormat parameter.
@@ -215,32 +215,7 @@ Task AfterBuild -requiredVariables ProjectRoot,OutDir {
     }
 
     Write-Host "Defining module functions" -ForegroundColor Green
-    Set-ModuleFunctions -Name (Join-Path $OutDir -ChildPath 'PSJira\PSJira.psd1')
-}
-
-###############################################################################
-# Customize these tasks for performing operations before and/or after Test.
-###############################################################################
-
-# Executes before the Test task.
-Task BeforeTest {
-}
-
-# Executes after the Test task.
-Task AfterTest -requiredVariables TestOutputFile {
-    if ($env:BHBuildSystem -eq 'AppVeyor') {
-        # Upload test results to AppVeyor
-
-        if (-not (Test-Path $TestOutputFile)) {
-            throw "Pester test file was not created at path $TestOutputFile. Build cannot continue."
-        }
-
-        $url = "https://ci.appveyor.com/api/testresults/nunit/$env:APPVEYOR_JOB_ID"
-        Write-Host "Uploading test results back to AppVeyor, url=[$url]"
-        $wc = New-Object -TypeName System.Net.WebClient
-        $wc.UploadFile($url, $TestOutputFile)
-        $wc.Dispose()
-    }
+    Set-ModuleFunctions -Name $outputManifestFile
 }
 
 ###############################################################################

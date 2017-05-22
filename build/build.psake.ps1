@@ -380,10 +380,7 @@ Task CoreInstall -requiredVariables ModuleOutDir {
     "Module installed into $InstallPath"
 }
 
-Task Test -depends Build, BeforeTest, CoreTest, AfterTest {
-}
-
-Task CoreTest -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverageEnabled, CodeCoverageFiles {
+Task Test -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverageEnabled, CodeCoverageFiles {
     if (!(Get-Module Pester -ListAvailable)) {
         "Pester module is not installed. Skipping $($psake.context.currentTaskName) task."
         return

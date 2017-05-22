@@ -61,6 +61,18 @@ Write-Host "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`
 Write-Host "Running tests" -ForegroundColor Cyan
 Invoke-psake -buildFile "$ProjectRoot\build\build.psake.ps1" -taskList Test
 
+# Make sure this matches the declaration in build.settings.ps1
+$testOutputFile = Join-Path $ProjectRoot 'TestResults.xml'
+if (-not (Test-Path $testOutputFile)) {
+    throw "Test results were not found at path "
+}
+
+$url = "https://ci.appveyor.com/api/testresults/nunit/$env:APPVEYOR_JOB_ID"
+Write-Host "Uploading test results back to AppVeyor, url=[$url]"
+$wc = New-Object -TypeName System.Net.WebClient
+$wc.UploadFile($url, $testOutputFile)
+$wc.Dispose()
+
 if (-not $psake.build_success) {
     Write-Error "Build failed."
     exit 1
