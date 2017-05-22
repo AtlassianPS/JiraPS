@@ -45,4 +45,4 @@ PSJira is a Windows PowerShell module to interact with Atlassian JIRA via a REST
 
 New to the project? Check out the :doc:`getting_started` page for a quick guide to get you up and running!
 
-.. _`GitHub Issues`: https://github.com/replicaJunction/PSJira/issues
+.. _`GitHub Issues`: https://github.com/PSJira/PSJira/issues
