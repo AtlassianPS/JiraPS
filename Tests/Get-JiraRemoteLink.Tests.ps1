@@ -72,11 +72,6 @@ InModuleScope PSJira {
             $getResult | Should Not BeNullOrEmpty
         }
 
-        # It "Converts the output object to PSJira.Link" {
-        #     $getResult = Get-JiraRemoteLink -Issue $issueKey
-        #     (Get-Member -InputObject $getResult).TypeName | Should Be 'PSJira.Link'
-        # }
-
         It "Returns all available properties about the returned link object" {
             $getResult = Get-JiraRemoteLink -Issue $issueKey
             $restObj = ConvertFrom-Json2 -InputObject $restResult
