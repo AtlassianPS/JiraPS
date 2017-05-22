@@ -159,6 +159,7 @@ Properties {
     $TestOutputFormat = "NUnitXml"
 
     Write-Host "build.settings.ps1 - Propertes completed" -ForegroundColor Green
+    Set-BuildEnvironment -Path $ProjectRoot
 }
 
 ###############################################################################

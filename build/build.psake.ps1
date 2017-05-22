@@ -89,8 +89,6 @@ Task Init -requiredVariables OutDir,ProjectRoot {
     else {
         Write-Verbose "$($psake.context.currentTaskName) - directory already exists '$OutDir'."
     }
-
-    Set-BuildEnvironment -Path $ProjectRoot
 }
 
 Task Clean -depends Init -requiredVariables OutDir {
