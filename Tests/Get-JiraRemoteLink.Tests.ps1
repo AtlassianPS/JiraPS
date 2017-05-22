@@ -1,14 +1,14 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
-
-    $showMockData = $false
+    
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
 
-    $testIssueKey = 'MKY-1'
+    $issueKey = 'MKY-1'
 
     $restResult = @"
     {
@@ -40,15 +40,14 @@ InModuleScope PSJira {
 
         Mock Get-JiraIssue {
             [PSCustomObject] @{
-                'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
-                'Key'     = $testIssueKey
+                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
+                'Key'     = $issueKey
             }
         }
 
         # Searching for a group.
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get'} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
@@ -64,26 +63,22 @@ InModuleScope PSJira {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-#        Mock Write-Debug {
-#            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-#        }
-
         #############
         # Tests
         #############
 
         It "Gets information of all remote link from a Jira issue" {
-            $getResult = Get-JiraRemoteLink -Issue $testIssueKey
+            $getResult = Get-JiraRemoteLink -Issue $issueKey
             $getResult | Should Not BeNullOrEmpty
         }
 
-        It "Converts the output object to PSJira.Link" {
-            $getResult = Get-JiraRemoteLink -Issue $testIssueKey
-            (Get-Member -InputObject $getResult).TypeName | Should Be 'PSJira.Link'
-        }
+        # It "Converts the output object to PSJira.Link" {
+        #     $getResult = Get-JiraRemoteLink -Issue $issueKey
+        #     (Get-Member -InputObject $getResult).TypeName | Should Be 'PSJira.Link'
+        # }
 
         It "Returns all available properties about the returned link object" {
-            $getResult = Get-JiraRemoteLink -Issue $testIssueKey
+            $getResult = Get-JiraRemoteLink -Issue $issueKey
             $restObj = ConvertFrom-Json2 -InputObject $restResult
 
             $getResult.RestUrl | Should Be $restObj.self

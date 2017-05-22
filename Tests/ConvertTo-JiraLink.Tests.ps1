@@ -1,15 +1,8 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+﻿. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
     Describe "ConvertTo-JiraLink" {
-        function defProp($obj, $propName, $propValue)
-        {
-            It "Defines the '$propName' property" {
-                $obj.$propName | Should Be $propValue
-            }
-        }
+        . $PSScriptRoot\Shared.ps1
 
         $jiraServer = 'http://jiraserver.example.com'
         $LinkID = "10000"
@@ -51,9 +44,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        It "Sets the type name to PSJira.Link" {
-            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Link'
-        }
+        checkPsType $r 'PSJira.Link'
 
         defProp $r 'id' $LinkId
         defProp $r 'RestUrl' "$jiraServer/rest/api/issue/MKY-1/remotelink/10000"
