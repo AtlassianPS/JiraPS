@@ -5,6 +5,8 @@
 Properties {
     # ----------------------- Basic properties --------------------------------
 
+    Write-Host "build.settings.ps1 - Propertes" -ForegroundColor Green
+
     # Root directory for the project
     $ProjectRoot = Split-Path $PSScriptRoot -Parent
 
@@ -143,6 +145,8 @@ Properties {
     # a path.  This parameter is passed through to Invoke-Pester's -OutputFormat parameter.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $TestOutputFormat = "NUnitXml"
+
+    Write-Host "build.settings.ps1 - Propertes completed" -ForegroundColor Green
 }
 
 ###############################################################################
@@ -151,6 +155,7 @@ Properties {
 
 # Executes before the StageFiles task.
 Task BeforeStageFiles -requiredVariables ProjectRoot {
+    Write-Host "build.settings.ps1 - BeforeStageFiles" -ForegroundColor Green
     Write-Host "BuildHelpers environment:`n$(Get-Item env:bh* | Out-String)" -ForegroundColor Green
 }
 
@@ -164,6 +169,7 @@ Task AfterStageFiles {
 
 # Executes before the BeforeStageFiles phase of the Build task.
 Task BeforeBuild {
+    Write-Host "build.settings.ps1 - BeforeBuild" -ForegroundColor Green
 }
 
 # Executes after the Build task.

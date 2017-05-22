@@ -62,6 +62,7 @@
 # Private properties.
 ###############################################################################
 Properties {
+    Write-Host "build.psake.ps1 - Properties" -ForegroundColor Green
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $ModuleOutDir = "$OutDir\$ModuleName"
 
@@ -81,6 +82,7 @@ Properties {
 Task default -depends Build
 
 Task Init -requiredVariables OutDir,ProjectRoot {
+    Write-Host "build.psake.ps1 - Init" -ForegroundColor Green
     if (!(Test-Path -LiteralPath $OutDir)) {
         New-Item $OutDir -ItemType Directory -Verbose:$VerbosePreference > $null
     }
@@ -92,6 +94,7 @@ Task Init -requiredVariables OutDir,ProjectRoot {
 }
 
 Task Clean -depends Init -requiredVariables OutDir {
+    Write-Host "build.psake.ps1 - Clean" -ForegroundColor Green
     # Maybe a bit paranoid but this task nuked \ on my laptop. Good thing I was not running as admin.
     if ($OutDir.Length -gt 3) {
         Get-ChildItem $OutDir | Remove-Item -Recurse -Force -Verbose:$VerbosePreference
@@ -105,6 +108,7 @@ Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles, AfterSta
 }
 
 Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
+    Write-Host "build.psake.ps1 - CoreStageFiles" -ForegroundColor Green
     if (!(Test-Path -LiteralPath $ModuleOutDir)) {
         New-Item $ModuleOutDir -ItemType Directory -Verbose:$VerbosePreference > $null
     }
