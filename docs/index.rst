@@ -7,7 +7,7 @@
 PSJira
 ======
 
-.. image:: https://ci.appveyor.com/api/projects/status/rog7nhvpfu58xrxu?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/utpel25via67xw3b?svg=true
    :target: https://ci.appveyor.com/project/JoshuaT/psjira
    :alt: Appveyor build status
 
