@@ -89,7 +89,6 @@ Task Init -requiredVariables OutDir,ProjectRoot {
     }
 
     Set-BuildEnvironment -Path $ProjectRoot
-    Set-Location $ProjectRoot
 }
 
 Task Clean -depends Init -requiredVariables OutDir {
