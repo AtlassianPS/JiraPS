@@ -57,12 +57,12 @@ Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 Install-Module Pester,psake,BuildHelpers -Force
 
 # Init the BuildHelpers environment variables
-Set-BuildEnvironment
+Set-BuildEnvironment -Path $ProjectRoot
 
 Write-Host "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n" -ForegroundColor Cyan
 
 Write-Host "Running tests" -ForegroundColor Cyan
-Invoke-psake $env:APPVEYOR_BUILD_FOLDER\build\build.psake.ps1 -taskList Test
+Invoke-psake -buildFile "$ProjectRoot\build\build.psake.ps1" -taskList Test
 
 if (-not $psake.build_success) {
     Write-Error "Build failed."
