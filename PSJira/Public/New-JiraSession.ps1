@@ -26,7 +26,7 @@ function New-JiraSession
     param(
         # Credentials to use to connect to JIRA.
         [Parameter(Mandatory = $true,
-                   Position = 0)]
+            Position = 0)]
         [System.Management.Automation.PSCredential] $Credential
     )
 
@@ -36,7 +36,8 @@ function New-JiraSession
         {
             Write-Debug "[New-JiraSession] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[New-JiraSession] Encountered an error reading configuration data."
             throw $err
@@ -71,7 +72,9 @@ function New-JiraSession
             {
                 Write-Debug "[New-JiraSession] Adding session result to existing module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData.Session = $result;
-            } else {
+            }
+            else
+            {
                 Write-Debug "[New-JiraSession] Creating module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData = @{
                     'Session' = $result;
@@ -80,7 +83,8 @@ function New-JiraSession
 
             Write-Debug "[New-JiraSession] Outputting result"
             Write-Output $result
-        } catch {
+        } catch
+        {
             $err = $_
             $webResponse = $err.Exception.Response
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
@@ -98,5 +102,3 @@ function New-JiraSession
         }
     }
 }
-
-

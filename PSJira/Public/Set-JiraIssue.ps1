@@ -27,9 +27,9 @@ function Set-JiraIssue
     param(
         # Issue key or PSJira.Issue object returned from Get-JiraIssue.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('Key')]
         [Object[]] $Issue,
 
@@ -87,7 +87,9 @@ function Set-JiraIssue
                 Write-Debug "[Set-JiraIssue] 'Unassigned' String passed. Issue will be assigned to no one."
                 $assigneeString = ""
                 $validAssignee = $true
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Set-JiraIssue] Attempting to obtain Jira user [$Assignee]"
                 $assigneeObj = Get-JiraUser -InputObject $Assignee -Credential $Credential
                 if ($assigneeObj)
@@ -95,7 +97,9 @@ function Set-JiraIssue
                     Write-Debug "[Set-JiraIssue] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                     $assigneeString = $assigneeObj.Name
                     $validAssignee = $true
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Set-JiraIssue] Unable to obtain Assignee. Exception will be thrown."
                     throw "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
                 }
@@ -162,7 +166,9 @@ function Set-JiraIssue
                                 'set' = $value;
                             }
                             $actOnIssueUri = $true
-                        } else {
+                        }
+                        else
+                        {
                             Write-Debug "[Set-JiraIssue] Field [$name] could not be identified in Jira"
                             throw "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
                         }
@@ -172,7 +178,7 @@ function Set-JiraIssue
                 if ($validAssignee)
                 {
 
-                    $assigneeProps =  @{
+                    $assigneeProps = @{
                         'name' = $assigneeString;
                     }
 
@@ -217,7 +223,9 @@ function Set-JiraIssue
                     Get-JiraIssue -Key $issueObj.Key -Credential $Credential
                 }
 
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Set-JiraIssue] Unable to identify issue [$i]. Writing error message."
                 Write-Error "Unable to identify issue [$i]"
             }
@@ -229,5 +237,3 @@ function Set-JiraIssue
         Write-Debug "[Set-JiraIssue] Complete"
     }
 }
-
-

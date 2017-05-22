@@ -1,4 +1,5 @@
-function Invoke-JiraIssueTransition {
+function Invoke-JiraIssueTransition
+{
     <#
     .Synopsis
        Performs an issue transition on a JIRA issue, changing its status
@@ -47,29 +48,36 @@ function Invoke-JiraIssueTransition {
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin {
+    begin
+    {
         # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
     }
 
-    process {
+    process
+    {
         Write-Debug "[Invoke-JiraIssueTransition] Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
-        if (-not $issueObj) {
+        if (-not $issueObj)
+        {
             Write-Debug "[Invoke-JiraIssueTransition] No Jira issues were found for parameter [$Issue]. An exception will be thrown."
             throw "Unable to identify Jira issue [$Issue]. Use Get-JiraIssue for more information."
         }
 
         Write-Debug "[Invoke-JiraIssueTransition] Checking Transition parameter"
-        if ($Transition.PSObject.TypeNames[0] -eq 'PSJira.Transition') {
+        if ($Transition.PSObject.TypeNames[0] -eq 'PSJira.Transition')
+        {
             Write-Debug "[Invoke-JiraIssueTransition] Transition parameter is a PSJira.Transition object"
             $transitionId = $Transition.ID
         }
-        else {
+        else
+        {
             Write-Debug "[Invoke-JiraIssueTransition] Attempting to cast Transition parameter [$Transition] as int for transition ID"
-            try {
+            try
+            {
                 $transitionId = [int] "$Transition"
-            } catch {
+            } catch
+            {
                 $err = $_
                 Write-Debug "[Invoke-JiraIssueTransition] Encountered an error converting transition to Int. An exception will be thrown."
                 throw $err
@@ -77,10 +85,12 @@ function Invoke-JiraIssueTransition {
         }
 
         Write-Debug "[Invoke-JiraIssueTransition] Checking that the issue can perform the given transition"
-        if (($issueObj.Transition | Select-Object -ExpandProperty ID) -contains $transitionId) {
+        if (($issueObj.Transition | Select-Object -ExpandProperty ID) -contains $transitionId)
+        {
             Write-Debug "[Invoke-JiraIssueTransition] Transition [$transitionId] is valid for issue [$issueObj]"
         }
-        else {
+        else
+        {
             Write-Debug "[Invoke-JiraIssueTransition] Transition [$transitionId] is not valid for issue [$issueObj]. An exception will be thrown."
             throw "The specified Jira issue cannot perform transition [$transitionId]. Check the issue's Transition property and provide a transition valid for its current state."
         }
@@ -99,21 +109,22 @@ function Invoke-JiraIssueTransition {
         Write-Debug "[Invoke-JiraIssueTransition] Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Post -URI $transitionUrl -Body $json -Credential $Credential
 
-        if ($result) {
+        if ($result)
+        {
             # JIRA doesn't typically return results here unless they contain errors, which are handled within Invoke-JiraMethod.
             # If something does come out, let us know.
             Write-Debug "[Invoke-JiraIssueTransition] Outputting raw results from JIRA."
             Write-Warning "JIRA returned unexpected results, which are provided below."
             Write-Output $result
         }
-        else {
+        else
+        {
             Write-Debug "[Invoke-JiraIssueTransition] No results were returned from JIRA."
         }
     }
 
-    end {
+    end
+    {
         Write-Debug "Complete"
     }
 }
-
-

@@ -4,8 +4,8 @@
     param(
         # The Issue Type name or ID to search.
         [Parameter(Mandatory = $false,
-                   Position = 0,
-                   ValueFromRemainingArguments = $true)]
+            Position = 0,
+            ValueFromRemainingArguments = $true)]
         [String[]] $IssueType,
 
         # Credentials to use to connect to JIRA.
@@ -20,7 +20,8 @@
         try
         {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Get-JiraIssueType] Encountered an error reading the Jira server."
             throw $err
@@ -44,20 +45,26 @@
                 {
                     Write-Debug "[Get-JiraIssueType] Found results; outputting"
                     Write-Output $thisIssueType
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Get-JiraIssueType] No results were found for issue type by name. Searching for issue type (id=[$i])"
                     $thisIssueType = $allIssueTypes | Where-Object -FilterScript {$_.Id -eq $i}
                     if ($thisIssueType)
                     {
                         Write-Debug "[Get-JiraIssueType] Found results; outputting"
                         Write-Output $thisIssueType
-                    } else {
+                    }
+                    else
+                    {
                         Write-Debug "[Get-JiraIssueType] No results were found for issue type by ID. This issue type appears to be unknown."
                         Write-Verbose "Unable to identify Jira issue type [$i]"
                     }
                 }
             }
-        } else {
+        }
+        else
+        {
             Write-Debug "[Get-JiraIssueType] No IssueType was supplied. Outputting all issues."
             Write-Output $allIssueTypes
         }

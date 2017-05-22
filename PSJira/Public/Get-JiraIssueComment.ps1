@@ -1,4 +1,5 @@
-function Get-JiraIssueComment {
+function Get-JiraIssueComment
+{
     <#
     .Synopsis
        Returns comments on an issue in JIRA.
@@ -58,11 +59,15 @@ function Get-JiraIssueComment {
 
                 Write-Debug "Outputting results"
                 Write-Output $obj
-            } else {
+            }
+            else
+            {
                 Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
                 Write-Output $result
             }
-        } else {
+        }
+        else
+        {
             Write-Debug "Invoke-JiraMethod returned no results to output."
         }
     }
@@ -72,5 +77,3 @@ function Get-JiraIssueComment {
         Write-Debug "Completed Get-JiraIssueComment"
     }
 }
-
-

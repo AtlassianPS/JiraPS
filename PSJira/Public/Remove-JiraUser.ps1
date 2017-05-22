@@ -1,4 +1,5 @@
-function Remove-JiraUser {
+function Remove-JiraUser
+{
     <#
     .Synopsis
        Removes an existing user from JIRA
@@ -36,12 +37,15 @@ function Remove-JiraUser {
         [Switch] $Force
     )
 
-    begin {
+    begin
+    {
         Write-Debug "[Remove-JiraUser] Reading information from config file"
-        try {
+        try
+        {
             Write-Debug "[Remove-JiraUser] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Remove-JiraUser] Encountered an error reading configuration data."
             throw $err
@@ -49,36 +53,44 @@ function Remove-JiraUser {
 
         $userURL = "$server/rest/api/latest/user?username={0}"
 
-        if ($Force) {
+        if ($Force)
+        {
             Write-Debug "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
             $oldConfirmPreference = $ConfirmPreference
             $ConfirmPreference = 'None'
         }
     }
 
-    process {
-        foreach ($u in $User) {
+    process
+    {
+        foreach ($u in $User)
+        {
             Write-Debug "[Remove-JiraUser] Obtaining reference to user [$u]"
             $userObj = Get-JiraUser -InputObject $u -Credential $Credential
 
-            if ($userObj) {
+            if ($userObj)
+            {
                 $thisUrl = $userUrl -f $userObj.Name
                 Write-Debug "[Remove-JiraUser] User URL: [$thisUrl]"
 
                 Write-Debug "[Remove-JiraUser] Checking for -WhatIf and Confirm"
-                if ($PSCmdlet.ShouldProcess($userObj.Name, 'Completely remove user from JIRA')) {
+                if ($PSCmdlet.ShouldProcess($userObj.Name, 'Completely remove user from JIRA'))
+                {
                     Write-Debug "[Remove-JiraUser] Preparing for blastoff!"
                     Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
                 }
-                else {
+                else
+                {
                     Write-Debug "[Remove-JiraUser] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
                 }
             }
         }
     }
 
-    end {
-        if ($Force) {
+    end
+    {
+        if ($Force)
+        {
             Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
             $ConfirmPreference = $oldConfirmPreference
         }
@@ -86,5 +98,3 @@ function Remove-JiraUser {
         Write-Debug "[Remove-JiraUser] Complete"
     }
 }
-
-

@@ -24,7 +24,7 @@ function Get-JiraIssueEditMetadata
     param(
         # Issue id or key of the reference issue.
         [Parameter(Mandatory = $true,
-                   Position = 0)]
+            Position = 0)]
         [String] $Issue,
 
         # Path of the file with the configuration.
@@ -42,7 +42,8 @@ function Get-JiraIssueEditMetadata
         try
         {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Get-JiraIssueEditMetadata] Encountered an error reading the Jira server."
             throw $err
@@ -63,7 +64,9 @@ function Get-JiraIssueEditMetadata
             {
                 Write-Debug "[Get-JiraIssueEditMetadata] No project results were found. Throwing exception."
                 throw "No projects were found for the given project [$Project]. Use Get-JiraProject for more details."
-            } elseif (@($jiraResult.projects).Count -gt 1) {
+            }
+            elseif (@($jiraResult.projects).Count -gt 1)
+            {
                 Write-Debug "[Get-JiraIssueEditMetadata] Multiple project results were found. Throwing exception."
                 throw "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
             }
@@ -77,7 +80,9 @@ function Get-JiraIssueEditMetadata
             {
                 Write-Debug "[Get-JiraIssueEditMetadata] No issue type results were found. Throwing exception."
                 throw "No issue types were found for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
-            } elseif (@($jiraResult.projects.issuetypes).Count -gt 1) {
+            }
+            elseif (@($jiraResult.projects.issuetypes).Count -gt 1)
+            {
                 Write-Debug "[Get-JiraIssueEditMetadata] Multiple issue type results were found. Throwing exception."
                 throw "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
             }
@@ -88,8 +93,10 @@ function Get-JiraIssueEditMetadata
             Write-Debug "Outputting results"
             Write-Output $obj
 
-#            Write-Output $jiraResult
-        } else {
+            #            Write-Output $jiraResult
+        }
+        else
+        {
             Write-Debug "[Get-JiraIssueEditMetadata] No results were returned from JIRA."
         }
     }

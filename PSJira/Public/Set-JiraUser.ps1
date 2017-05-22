@@ -29,26 +29,26 @@ function Set-JiraUser
     param(
         # Username or user object obtained from Get-JiraUser.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('UserName')]
         [Object[]] $User,
 
         # Display name to set.
         [Parameter(ParameterSetName = 'ByNamedParameters',
-                   Mandatory = $false)]
+            Mandatory = $false)]
         [String] $DisplayName,
 
         # E-mail address to set.
         [Parameter(ParameterSetName = 'ByNamedParameters',
-                   Mandatory = $false)]
+            Mandatory = $false)]
         [String] $EmailAddress,
 
         # Hashtable (dictionary) of additional information to set.
         [Parameter(ParameterSetName = 'ByHashtable',
-                   Mandatory = $true,
-                   Position = 1)]
+            Mandatory = $true,
+            Position = 1)]
         [Hashtable] $Property,
 
         # Credentials to use to connect to JIRA.
@@ -75,7 +75,9 @@ function Set-JiraUser
             {
                 Write-Debug "[Set-JiraIssue] Nothing to do."
                 return
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Set-JiraIssue] Building property hashtable"
                 if ($DisplayName)
                 {
@@ -87,7 +89,9 @@ function Set-JiraUser
                     $updateProps.emailAddress = $EmailAddress
                 }
             }
-        } else {
+        }
+        else
+        {
             $updateProps = $Property
         }
 
@@ -117,10 +121,14 @@ function Set-JiraUser
                         Write-Debug "[Set-JiraUser] PassThru flag was specified. Invoking Get-JiraUser to get an updated reference to user [$u]"
                         Write-Output (Get-JiraUser -InputObject $u)
                     }
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Set-JiraUser] JIRA returned no results to display."
                 }
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Set-JiraUser] Unable to identify user [$u]. Writing error message."
                 Write-Error "Unable to identify user [$u]"
             }
@@ -132,5 +140,3 @@ function Set-JiraUser
         Write-Debug "[Set-JiraUser] Complete"
     }
 }
-
-

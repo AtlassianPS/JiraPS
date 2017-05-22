@@ -1,4 +1,4 @@
-<#	
+<#
 	.NOTES
 		===========================================================================
 		Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2016 v5.2.119
@@ -34,16 +34,16 @@ Enter a CommandInfo object, such as the object that Get-Command returns. You
 can also pipe a CommandInfo object to the function.
 
 This parameter takes a CommandInfo object, instead of a command name, so
-you can use the parameters of Get-Command to specify the module and version 
+you can use the parameters of Get-Command to specify the module and version
 of the command.
 
 .EXAMPLE
 PS C:\> Get-ParametersDefaultFirst -Command (Get-Command New-Guid)
-This command uses the Command parameter to specify the command to 
+This command uses the Command parameter to specify the command to
 Get-ParametersDefaultFirst
 
 .EXAMPLE
-PS C:\> Get-Command New-Guid | Get-ParametersDefaultFirst 
+PS C:\> Get-Command New-Guid | Get-ParametersDefaultFirst
 You can also pipe a CommandInfo object to Get-ParametersDefaultFirst
 
 .EXAMPLE
@@ -54,7 +54,7 @@ command runs Get-Command module-qualified name value.
 .EXAMPLE
 PS C:\> $ModuleSpec = @{ModuleName='BetterCredentials';RequiredVersion=4.3}
 PS C:\> Get-Command -FullyQualifiedName $ModuleSpec | Get-ParametersDefaultFirst
-This command uses a Microsoft.PowerShell.Commands.ModuleSpecification object to 
+This command uses a Microsoft.PowerShell.Commands.ModuleSpecification object to
 specify the module and version. You can also use it to specify the module GUID.
 Then, it pipes the CommandInfo object to Get-ParametersDefaultFirst.
 #>
@@ -67,7 +67,7 @@ function Get-ParametersDefaultFirst
 		[System.Management.Automation.CommandInfo]
 		$Command
 	)
-	
+
 	BEGIN
 	{
 		$Common = 'Debug', 'ErrorAction', 'ErrorVariable', 'InformationAction', 'InformationVariable', 'OutBuffer', 'OutVariable', 'PipelineVariable', 'Verbose', 'WarningAction', 'WarningVariable'
@@ -79,7 +79,7 @@ function Get-ParametersDefaultFirst
 		{
 			$defaultParameters = ($Command.ParameterSets | Where-Object Name -eq $defaultPSetName).parameters | Where-Object Name -NotIn $common
 			$otherParameters = ($Command.ParameterSets | Where-Object Name -ne $defaultPSetName).parameters | Where-Object Name -NotIn $common
-			
+
 			$parameters += $defaultParameters
 			if ($parameters -and $otherParameters)
 			{
@@ -96,8 +96,8 @@ function Get-ParametersDefaultFirst
 		{
 			$parameters = $Command.ParameterSets.Parameters | Where-Object Name -NotIn $common | Sort-Object Name -Unique
 		}
-		
-		
+
+
 		return $parameters
 	}
 	END { }
@@ -143,70 +143,70 @@ $commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow 
 foreach ($command in $commands)
 {
 	$commandName = $command.Name
-	
+
 	# The module-qualified command fails on Microsoft.PowerShell.Archive cmdlets
 	$Help = Get-Help $commandName -ErrorAction SilentlyContinue
-	
+
     Describe "Test help for $commandName" -Tag "CommandHelp" {
-		
+
         # If help is not found, synopsis in auto-generated help is the syntax diagram
         It "should not be auto-generated" {
             $Help.Synopsis | Should Not BeLike '*`[`<CommonParameters`>`]*'
         }
-		
+
         # Should be a synopsis for every function
         It "gets synopsis for $commandName" {
             $Help.Synopsis | Should Not beNullOrEmpty
         }
-		
+
         # Should be a description for every function
         It "gets description for $commandName" {
             $Help.Description | Should Not BeNullOrEmpty
         }
-		
+
         # Should be at least one example
         It "gets example code from $commandName" {
             ($Help.Examples.Example | Select-Object -First 1).Code | Should Not BeNullOrEmpty
         }
-		
+
         # Should be at least one example description
         It "gets example help from $commandName" {
             ($Help.Examples.Example.Remarks | Select-Object -First 1).Text | Should Not BeNullOrEmpty
         }
-		
+
         It "has at least as many examples as ParameterSets" {
-			($Help.Examples.Example | Measure-Object).Count | Should Not BeLessThan $command.ParameterSets.Count
+            ($Help.Examples.Example | Measure-Object).Count | Should Not BeLessThan $command.ParameterSets.Count
         }
-		
+
         Context "Test parameter help for $commandName" {
-			
+
             $Common = 'Debug', 'ErrorAction', 'ErrorVariable', 'InformationAction', 'InformationVariable', 'OutBuffer', 'OutVariable',
             'PipelineVariable', 'Verbose', 'WarningAction', 'WarningVariable'
-			
-            # Get parameters. When >1 parameter with same name, 
+
+            # Get parameters. When >1 parameter with same name,
             # get parameter from the default parameter set, if any.
             $parameters = Get-ParametersDefaultFirst -Command $command
-			
+
             $parameterNames = $parameters.Name
             $HelpParameterNames = $Help.Parameters.Parameter.Name | Sort-Object -Unique
-			
+
             foreach ($parameter in $parameters) {
                 $parameterName = $parameter.Name
                 $parameterHelp = $Help.parameters.parameter | Where-Object Name -EQ $parameterName
-				
+
                 # Should be a description for every parameter
                 If ($parameterName -notmatch 'Confirm|WhatIf') {
                     It "gets help for parameter: $parameterName : in $commandName" {
                         $parameterHelp.Description.Text | Should Not BeNullOrEmpty
                     }
                 }
-				
+
                 # Required value in Help should match IsMandatory property of parameter
                 It "help for $parameterName parameter in $commandName has correct Mandatory value" {
                     $codeMandatory = $parameter.IsMandatory.toString()
                     $parameterHelp.Required | Should Be $codeMandatory
                 }
-				
+
                 # Parameter type in Help should match code
                 It "help for $commandName has correct parameter type for $parameterName" {
                     $codeType = $parameter.ParameterType.Name
@@ -215,7 +215,7 @@ foreach ($command in $commands)
                     $helpType | Should be $codeType
                 }
             }
-			
+
             foreach ($helpParm in $HelpParameterNames) {
                 # Shouldn't find extra parameters in help.
                 It "finds help parameter in code: $helpParm" {

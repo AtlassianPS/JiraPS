@@ -31,8 +31,8 @@ function Remove-JiraSession
     param(
         # A Jira session to be closed. If not specified, this function will use a saved session.
         [Parameter(Mandatory = $false,
-                    Position = 0,
-                    ValueFromPipeline = $true)]
+            Position = 0,
+            ValueFromPipeline = $true)]
         [Object] $Session
     )
 
@@ -42,7 +42,8 @@ function Remove-JiraSession
         {
             Write-Debug "[Remove-JiraSession] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Remove-JiraSession] Encountered an error reading configuration data."
             throw $err
@@ -63,11 +64,15 @@ function Remove-JiraSession
             if ((Get-Member -InputObject $Session).TypeName -eq 'PSJira.Session')
             {
                 Write-Debug "[Remove-JiraSession] Successfully parsed Session parameter as a PSJira.Session object"
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Remove-JiraSession] Session parameter is not a PSJira.Session object. Throwing exception"
                 throw "Unable to parse parameter [$Session] as a PSJira.Session object"
             }
-        } else {
+        }
+        else
+        {
             Write-Debug "[Remove-JiraSession] Session parameter was not supplied. Checking for saved session in module PrivateData"
             $Session = Get-JiraSession
         }
@@ -85,13 +90,16 @@ function Remove-JiraSession
                 {
                     Write-Debug "[Remove-JiraSession] Removing session from existing module PrivateData"
                     $MyInvocation.MyCommand.Module.PrivateData.Session = $null;
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Remove-JiraSession] Creating module PrivateData"
                     $MyInvocation.MyCommand.Module.PrivateData = @{
                         'Session' = $null;
                     }
                 }
-            } catch {
+            } catch
+            {
                 $err = $_
                 $webResponse = $err.Exception.Response
                 Write-Debug "[Remove-JiraSession] Encountered an exception from the Jira server: $err"
@@ -107,10 +115,10 @@ function Remove-JiraSession
                 $result = ConvertFrom-Json2 -InputObject $body
                 Write-Debug "Converted body from JSON into PSCustomObject (`$result)"
             }
-        } else {
+        }
+        else
+        {
             Write-Verbose "No Jira session is saved."
         }
     }
 }
-
-

@@ -30,14 +30,14 @@ function Get-JiraComponent
     param(
         # The Project ID or project key of a project to search.
         [Parameter(ParameterSetName = 'ByProject',
-                   ValueFromPipeline,
-                   Mandatory = $true)]
+            ValueFromPipeline,
+            Mandatory = $true)]
         $Project,
 
         # The Component ID.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ParameterSetName = 'ByID')]
+            Position = 0,
+            ParameterSetName = 'ByID')]
         [Alias("Id")]
         [int[]] $ComponentId,
 
@@ -53,7 +53,8 @@ function Get-JiraComponent
         try
         {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Get-JiraComponent] Encountered an error reading the Jira server."
             throw $err
@@ -66,9 +67,12 @@ function Get-JiraComponent
     {
         if ($Project)
         {
-            if ($Project.PSObject.TypeNames[0] -eq 'PSJira.Project') {
+            if ($Project.PSObject.TypeNames[0] -eq 'PSJira.Project')
+            {
                 $ComponentId = @($Project.Components | Select-Object -ExpandProperty id)
-            } else {
+            }
+            else
+            {
                 foreach ($p in $Project)
                 {
                     if ($p -is [string])
@@ -86,7 +90,9 @@ function Get-JiraComponent
 
                             Write-Debug "[Get-JiraComponent] Outputting result"
                             Write-Output $obj
-                        } else {
+                        }
+                        else
+                        {
                             Write-Debug "[Get-JiraComponent] No results were returned from Jira"
                             Write-Debug "[Get-JiraComponent] No results were returned from Jira for component [$i]"
                         }
@@ -111,7 +117,9 @@ function Get-JiraComponent
 
                     Write-Debug "[Get-JiraComponent] Outputting result"
                     Write-Output $obj
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Get-JiraComponent] No results were returned from Jira"
                     Write-Debug "[Get-JiraComponent] No results were returned from Jira for component [$i]"
                 }

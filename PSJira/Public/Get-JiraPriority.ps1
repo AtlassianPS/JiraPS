@@ -36,7 +36,9 @@ function Get-JiraPriority
 
             Write-Debug "[Get-JiraPriority] Outputting result"
             Write-Output $obj
-        } else {
+        }
+        else
+        {
             Write-Debug "[Get-JiraPriority] Invoke-JiraMethod returned no results to output."
         }
     }
@@ -46,5 +48,3 @@ function Get-JiraPriority
         Write-Debug "[Get-JiraPriority] Complete."
     }
 }
-
-

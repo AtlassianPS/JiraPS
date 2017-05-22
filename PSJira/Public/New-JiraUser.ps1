@@ -1,4 +1,5 @@
-function New-JiraUser {
+function New-JiraUser
+{
     <#
     .Synopsis
        Creates a new user in JIRA
@@ -45,12 +46,15 @@ function New-JiraUser {
         [PSCredential] $Credential
     )
 
-    begin {
+    begin
+    {
         Write-Debug "[New-JiraUser] Reading information from config file"
-        try {
+        try
+        {
             Write-Debug "[New-JiraUser] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[New-JiraUser] Encountered an error reading configuration data."
             throw $err
@@ -59,17 +63,20 @@ function New-JiraUser {
         $userURL = "$server/rest/api/latest/user"
     }
 
-    process {
+    process
+    {
         Write-Debug "[New-JiraUser] Defining properties"
         $props = @{
             "name"         = $UserName;
             "emailAddress" = $EmailAddress;
         }
 
-        if ($DisplayName) {
+        if ($DisplayName)
+        {
             $props.displayName = $DisplayName
         }
-        else {
+        else
+        {
             Write-Debug "[New-JiraUser] DisplayName was not specified; defaulting to UserName parameter [$UserName]"
             $props.displayName = $UserName
         }
@@ -83,25 +90,28 @@ function New-JiraUser {
         Write-Debug "[New-JiraUser] Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Post -URI $userURL -Body $json -Credential $Credential
 
-        if ($result) {
-            if ($result.errors) {
+        if ($result)
+        {
+            if ($result.errors)
+            {
                 Write-Debug "[New-JiraUser] Jira return an error result object."
 
                 $keys = (Get-Member -InputObject $result.errors | Where-Object -FilterScript {$_.MemberType -eq 'NoteProperty'}).Name
-                foreach ($k in $keys) {
+                foreach ($k in $keys)
+                {
                     Write-Error "Jira encountered an error: [$($k)] - $($result.errors.$k)"
                 }
             }
-            else {
+            else
+            {
                 # OK
                 Write-Debug "[New-JiraUser] Converting output object into a Jira user and outputting"
                 ConvertTo-JiraUser -InputObject $result
             }
         }
-        else {
+        else
+         {
             Write-Debug "[New-JiraUser] Jira returned no results to output."
         }
     }
 }
-
-
