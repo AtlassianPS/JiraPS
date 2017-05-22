@@ -17,7 +17,7 @@ Properties {
     $DocsRootDir = "$ProjectRoot\docs"
     $SrcRootDir  = "$ProjectRoot\PSJira"
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $TestRootDir = "$ProjectRoot\test"
+    $TestRootDir = "$ProjectRoot\Tests"
 
     # The name of your module should match the basename of the PSD1 file.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
