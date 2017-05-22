@@ -18,7 +18,7 @@ function Remove-JiraRemoteLink
     [CmdletBinding(SupportsShouldProcess = $true,
                    ConfirmImpact = 'High')]
     param(
-        # Issue from which to delete a remote link
+        # Issue from which to delete a remote link.
         [Parameter(ValueFromPipelineByPropertyName = $true,
                    ValueFromPipeline = $true,
                    Mandatory = $true,
@@ -27,15 +27,17 @@ function Remove-JiraRemoteLink
         [Alias("Key")]
         [Object[]] $Issue,
 
-        # Id of the remote link to delete
+        # Id of the remote link to delete.
         [Parameter(Mandatory = $true)]
         [Int[]] $LinkId,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
-        [Switch] $force
+        # Suppress user confirmation.
+        [Switch] $Force
     )
 
     Begin

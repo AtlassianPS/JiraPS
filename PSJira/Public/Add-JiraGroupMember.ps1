@@ -1,5 +1,4 @@
-function Add-JiraGroupMember
-{
+function Add-JiraGroupMember {
     <#
     .Synopsis
        Adds a user to a JIRA group
@@ -25,29 +24,30 @@ function Add-JiraGroupMember
     #>
     [CmdletBinding()]
     param(
+        # Group (or list of groups) to which the user(s) will be added.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true)]
+            Position = 0,
+            ValueFromPipeline = $true)]
         [Alias('GroupName')]
         [Object[]] $Group,
 
-        # Username or user object obtained from Get-JiraUser
+        # Username or user object obtained from Get-JiraUser.
         [Parameter(Mandatory = $true)]
         [Alias('UserName')]
         [Object[]] $User,
 
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
-        # Whether output should be provided after invoking this function
+        # Whether output should be provided after invoking this function.
         [Switch] $PassThru
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Add-JiraGroupMember] Reading information from config file"
-        try
-        {
+        try {
             Write-Debug "[Add-JiraGroupMember] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         } catch {
@@ -65,82 +65,76 @@ function Add-JiraGroupMember
         # request, which we'll loop through again in the Process block.
 
         $userAL = New-Object -TypeName System.Collections.ArrayList
-        foreach ($u in $User)
-        {
+        foreach ($u in $User) {
             Write-Debug "[Add-JiraGroupMember] Obtaining reference to user [$u]"
             $userObj = Get-JiraUser -InputObject $u -Credential $Credential
 
-            if ($userObj)
-            {
+            if ($userObj) {
                 Write-Debug "[Add-JiraGroupMember] Retrieved user reference [$userObj]"
-#                $thisUserJson = ConvertTo-Json -InputObject @{
-#                    'name' = $userObj.Name;
-#                }
-#                [void] $userAL.Add($thisUserJson)
+                #                $thisUserJson = ConvertTo-Json -InputObject @{
+                #                    'name' = $userObj.Name;
+                #                }
+                #                [void] $userAL.Add($thisUserJson)
                 [void] $userAL.Add($userObj.Name)
-            } else {
+            }
+            else {
                 Write-Debug "[Add-JiraGroupMember] Could not identify user [$u]. Writing error message."
                 Write-Error "Unable to identify user [$u]. Check the spelling of this user and ensure that you can access it via Get-JiraUser."
             }
         }
 
-#        $userJsons = $userAL.ToArray()
+        #        $userJsons = $userAL.ToArray()
         $userNames = $userAL.ToArray()
 
         $restUrl = "$server/rest/api/latest/group/user?groupname={0}"
     }
 
-    process
-    {
-        foreach ($g in $Group)
-        {
+    process {
+        foreach ($g in $Group) {
             Write-Debug "[Add-JiraGroupMember] Obtaining reference to group [$g]"
             $groupObj = Get-JiraGroup -InputObject $g -Credential $Credential
 
-            if ($groupObj)
-            {
+            if ($groupObj) {
                 Write-Debug "[Add-JiraGroupMember] Obtaining members of group [$g]"
                 $groupMembers = Get-JiraGroupMember -Group $g -Credential $Credential | Select-Object -ExpandProperty Name
 
                 $thisRestUrl = $restUrl -f $groupObj.Name
                 Write-Debug "[Add-JiraGroupMember] Group URL: [$thisRestUrl]"
-#                foreach ($json in $userJsons)
-#                {
-#                    Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
-#                    $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $json -Credential $Credential
-#                }
-                foreach ($u in $userNames)
-                {
-                    if ($groupMembers -notcontains $u)
-                    {
+                #                foreach ($json in $userJsons)
+                #                {
+                #                    Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
+                #                    $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $json -Credential $Credential
+                #                }
+                foreach ($u in $userNames) {
+                    if ($groupMembers -notcontains $u) {
                         Write-Debug "[Add-JiraGroupMember] User [$u] is not already in group [$g]. Adding user."
                         $userJson = ConvertTo-Json -InputObject @{
                             'name' = $u;
                         }
                         Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
                         $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $userJson -Credential $Credential
-                    } else {
+                    }
+                    else {
                         Write-Debug "[Add-JiraGroupMember] User [$u] is already a member of group [$g]"
                         Write-Verbose "User [$u] is already a member of group [$g]"
                     }
                 }
 
-                if ($PassThru)
-                {
+                if ($PassThru) {
                     Write-Debug "[Add-JiraGroupMember] -PassThru specified. Obtaining a final reference to group [$g]"
                     $groupObjNew = Get-JiraGroup -InputObject $g -Credential $Credential
                     Write-Debug "[Add-JiraGroupMember] Outputting group [$groupObjNew]"
                     Write-Output $groupObjNew
                 }
-            } else {
+            }
+            else {
                 Write-Debug "[Add-JiraGroupMember] Could not identify group [$g]"
                 Write-Error "Unable to identify group [$g]. Check the spelling of this group and ensure that you can access it via Get-JiraGroup."
             }
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Add-JiraGroupMember] Complete"
     }
 }

@@ -2,11 +2,12 @@ function Get-JiraPriority
 {
     [CmdletBinding()]
     param(
-        # ID of the priority to get
+        # ID of the priority to get.
         [Parameter(Mandatory = $false)]
         [Int] $Id,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )

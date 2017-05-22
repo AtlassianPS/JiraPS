@@ -29,6 +29,7 @@ function Get-JiraUser
         [Alias('User','Name')]
         [String[]] $UserName,
 
+        # User Object of the user.
         [Parameter(ParameterSetName = 'ByInputObject',
                    Mandatory = $true,
                    Position = 0)]
@@ -37,7 +38,8 @@ function Get-JiraUser
         # Include inactive users in the search
         [Switch] $IncludeInactive,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )

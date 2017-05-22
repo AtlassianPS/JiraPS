@@ -26,12 +26,13 @@ function Get-JiraProject
     #>
     [CmdletBinding(DefaultParameterSetName = 'AllProjects')]
     param(
-        # The Project ID or project key of a project to search
+        # The Project ID or project key of a project to search.
         [Parameter(Mandatory = $false,
                    Position = 0)]
         [String[]] $Project,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -100,5 +101,3 @@ function Get-JiraProject
         Write-Debug "Complete"
     }
 }
-
-

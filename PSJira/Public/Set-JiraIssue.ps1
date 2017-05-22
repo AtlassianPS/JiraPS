@@ -25,7 +25,7 @@ function Set-JiraIssue
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByInputObject')]
     param(
-        # Issue key or PSJira.Issue object returned from Get-JiraIssue
+        # Issue key or PSJira.Issue object returned from Get-JiraIssue.
         [Parameter(Mandatory = $true,
                    Position = 0,
                    ValueFromPipeline = $true,
@@ -33,11 +33,11 @@ function Set-JiraIssue
         [Alias('Key')]
         [Object[]] $Issue,
 
-        # New summary of the issue
+        # New summary of the issue.
         [Parameter(Mandatory = $false)]
         [String] $Summary,
 
-        # New description of the issue
+        # New description of the issue.
         [Parameter(Mandatory = $false)]
         [String] $Description,
 
@@ -50,16 +50,19 @@ function Set-JiraIssue
         # use Set-JiraIssueLabel.
         [String[]] $Label,
 
-        # Any additional fields that should be updated
+        # Any additional fields that should be updated.
         [System.Collections.Hashtable] $Fields,
 
+        # Path of the file where the configuration is stored.
         [ValidateScript({Test-Path $_})]
         [String] $ConfigFile,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential,
 
+        # Whether output should be provided after invoking this function.
         [Switch] $PassThru
     )
 

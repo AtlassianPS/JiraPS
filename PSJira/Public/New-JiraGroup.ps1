@@ -1,5 +1,4 @@
-﻿function New-JiraGroup
-{
+﻿function New-JiraGroup {
     <#
     .Synopsis
        Creates a new group in JIRA
@@ -15,20 +14,21 @@
     #>
     [CmdletBinding()]
     param(
+        # Name for the new group.
         [Parameter(Mandatory = $true,
-                   Position = 0)]
-        [Alias('Group','Name')]
+            Position = 0)]
+        [Alias('Name')]
         [String] $GroupName,
 
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[New-JiraGroup] Reading information from config file"
-        try
-        {
+        try {
             Write-Debug "[New-JiraGroup] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         } catch {
@@ -40,8 +40,7 @@
         $restUrl = "$server/rest/api/latest/group"
     }
 
-    process
-    {
+    process {
         Write-Debug "[New-JiraGroup] Defining properties"
         $props = @{
             "name" = $GroupName;
@@ -53,11 +52,11 @@
         Write-Debug "[New-JiraGroup] Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
 
-        if ($result)
-        {
+        if ($result) {
             Write-Debug "[New-JiraGroup] Converting output object into a Jira user and outputting"
             ConvertTo-JiraGroup -InputObject $result
-        } else {
+        }
+        else {
             Write-Debug "[New-JiraGroup] Jira returned no results to output."
         }
     }

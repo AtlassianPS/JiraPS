@@ -22,14 +22,16 @@ function Get-JiraIssueEditMetadata
     #>
     [CmdletBinding()]
     param(
-        # Issue id or key
+        # Issue id or key of the reference issue.
         [Parameter(Mandatory = $true,
                    Position = 0)]
         [String] $Issue,
 
+        # Path of the file with the configuration.
         [String] $ConfigFile,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -92,5 +94,3 @@ function Get-JiraIssueEditMetadata
         }
     }
 }
-
-

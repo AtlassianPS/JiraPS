@@ -27,12 +27,12 @@ function Add-JiraIssueComment
     #>
     [CmdletBinding()]
     param(
-        # Comment that should be added to JIRA
+        # Comment that should be added to JIRA.
         [Parameter(Mandatory = $true,
                    Position = 0)]
         [String] $Comment,
 
-        # Issue that should be commented upon
+        # Issue that should be commented upon.
         [Parameter(Mandatory = $true,
                    Position = 1,
                    ValueFromPipeline = $true,
@@ -44,7 +44,8 @@ function Add-JiraIssueComment
         [ValidateSet('All Users','Developers','Administrators')]
         [String] $VisibleRole = 'Developers',
 
-        # Credentials to use to connect to Jira. If not specified, this function will use
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )

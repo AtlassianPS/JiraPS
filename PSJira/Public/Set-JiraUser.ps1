@@ -27,7 +27,7 @@ function Set-JiraUser
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByNamedParameters')]
     param(
-        # Username or user object obtained from Get-JiraUser
+        # Username or user object obtained from Get-JiraUser.
         [Parameter(Mandatory = $true,
                    Position = 0,
                    ValueFromPipeline = $true,
@@ -35,23 +35,28 @@ function Set-JiraUser
         [Alias('UserName')]
         [Object[]] $User,
 
+        # Display name to set.
         [Parameter(ParameterSetName = 'ByNamedParameters',
                    Mandatory = $false)]
         [String] $DisplayName,
 
+        # E-mail address to set.
         [Parameter(ParameterSetName = 'ByNamedParameters',
                    Mandatory = $false)]
         [String] $EmailAddress,
 
+        # Hashtable (dictionary) of additional information to set.
         [Parameter(ParameterSetName = 'ByHashtable',
                    Mandatory = $true,
                    Position = 1)]
         [Hashtable] $Property,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential,
 
+        # Whether output should be provided after invoking this function.
         [Switch] $PassThru
     )
 

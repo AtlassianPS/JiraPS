@@ -24,7 +24,7 @@ function New-JiraSession
     #>
     [CmdletBinding()]
     param(
-        # Credentials to use for the persistent session
+        # Credentials to use to connect to JIRA.
         [Parameter(Mandatory = $true,
                    Position = 0)]
         [System.Management.Automation.PSCredential] $Credential

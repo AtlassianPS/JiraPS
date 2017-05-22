@@ -22,7 +22,7 @@ function Get-JiraGroup
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByGroupName')]
     param(
-        # Name of the group
+        # Name of the group to search for.
         [Parameter(ParameterSetName = 'ByGroupName',
                    Mandatory = $true,
                    Position = 0)]
@@ -30,6 +30,7 @@ function Get-JiraGroup
         [Alias('Name')]
         [String[]] $GroupName,
 
+        # Object of the group to search for.
         [Parameter(ParameterSetName = 'ByInputObject',
                    Mandatory = $true,
                    Position = 0,
@@ -37,7 +38,8 @@ function Get-JiraGroup
                    ValueFromPipelineByPropertyName = $true)]
         [Object[]] $InputObject,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )

@@ -2,13 +2,14 @@
 {
     [CmdletBinding()]
     param(
-        # The Issue Type name or ID to search
+        # The Issue Type name or ID to search.
         [Parameter(Mandatory = $false,
                    Position = 0,
                    ValueFromRemainingArguments = $true)]
         [String[]] $IssueType,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )

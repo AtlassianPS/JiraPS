@@ -27,6 +27,7 @@ function Set-JiraConfigServer
         [Alias('Uri')]
         [String] $Server,
 
+        # Path where the file with the configuration will be stored.
         [String] $ConfigFile
     )
 

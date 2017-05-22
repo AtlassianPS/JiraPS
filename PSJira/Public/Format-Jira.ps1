@@ -30,7 +30,7 @@ function Format-Jira
                    Position = 0)]
         [Object[]] $Property,
 
-        # Object to format
+        # Object to format.
         [Parameter(Mandatory = $true,
                    ValueFromPipeline = $true,
                    ValueFromRemainingArguments = $true)]

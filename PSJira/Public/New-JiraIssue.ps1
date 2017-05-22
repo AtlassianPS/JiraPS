@@ -1,5 +1,4 @@
-function New-JiraIssue
-{
+function New-JiraIssue {
     <#
     .Synopsis
        Creates an issue in JIRA
@@ -29,42 +28,52 @@ function New-JiraIssue
     #>
     [CmdletBinding()]
     param(
+        # Project in which to create the issue.
         [Parameter(Mandatory = $true)]
         [String] $Project,
 
+        # Type of the issue.
         [Parameter(Mandatory = $true)]
         [String] $IssueType,
 
+        # ID of the Priority the issue shall have.
         [Parameter(Mandatory = $false)]
         [Int] $Priority,
 
+        # Summary of the issue.
         [Parameter(Mandatory = $true)]
         [String] $Summary,
 
+        # Long description of the issue.
         [Parameter(Mandatory = $false)]
         [String] $Description,
 
+        # User that shall be registed as the reporter.
+        # If left empty, the currently authenticated user will be used.
         [Parameter(Mandatory = $false)]
         [String] $Reporter,
 
+        # List of labels which will be added to the issue.
         [Parameter(Mandatory = $false)]
         [String[]] $Labels,
 
+        # Parent issue - in case of "Sub-Tasks".
         [Parameter(Mandatory = $false)]
         [String] $Parent,
 
+        # Hashtable (dictionary) with other fields.
         [Parameter(Mandatory = $false)]
         [Hashtable] $Fields,
 
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[New-JiraIssue] Reading information from config file"
-        try
-        {
+        try {
             Write-Debug "[New-JiraIssue] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
@@ -80,31 +89,28 @@ function New-JiraIssue
 
         Write-Debug "[New-JiraIssue] Obtaining a reference to Jira project [$Project]"
         $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential
-        if (-not ($ProjectObj))
-        {
+        if (-not ($ProjectObj)) {
             throw "Unable to identify Jira project [$Project]. Use Get-JiraProject for more information."
         }
 
         Write-Debug "[New-JiraIssue] Obtaining a reference to Jira issue type [$IssueType]"
         $IssueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential
-        if (-not ($IssueTypeObj))
-        {
+        if (-not ($IssueTypeObj)) {
             throw "Unable to identify Jira issue type [$IssueType]. Use Get-JiraIssueType for more information."
         }
     }
 
-    process
-    {
-        $ProjectParam = New-Object -TypeName PSObject -Property @{"id"=$ProjectObj.Id}
-        $IssueTypeParam = New-Object -TypeName PSObject -Property @{"id"=[String] $IssueTypeObj.Id}
+    process {
+        $ProjectParam = New-Object -TypeName PSObject -Property @{"id" = $ProjectObj.Id}
+        $IssueTypeParam = New-Object -TypeName PSObject -Property @{"id" = [String] $IssueTypeObj.Id}
 
         $props = @{
-            "project"=$ProjectParam;
-            "summary"=$Summary;
-            "issuetype"=$IssueTypeParam;
+            "project"   = $ProjectParam;
+            "summary"   = $Summary;
+            "issuetype" = $IssueTypeParam;
         }
         if ($Priority) {
-            $props.priority = New-Object -TypeName PSObject -Property @{"id"=[String] $Priority}
+            $props.priority = New-Object -TypeName PSObject -Property @{"id" = [String] $Priority}
         }
 
         if ($Description) {
@@ -112,11 +118,11 @@ function New-JiraIssue
         }
 
         if ($Reporter) {
-            $props.reporter = New-Object -TypeName PSObject -Property @{"name"=$Reporter}
+            $props.reporter = New-Object -TypeName PSObject -Property @{"name" = $Reporter}
         }
 
         if ($Parent) {
-            $props.parent =  New-Object -TypeName PSObject -Property @{"key"=$Parent}
+            $props.parent = New-Object -TypeName PSObject -Property @{"key" = $Parent}
         }
 
         if ($Labels) {
@@ -124,20 +130,19 @@ function New-JiraIssue
         }
 
         Write-Debug "[New-JiraIssue] Processing Fields parameter"
-        foreach ($k in $Fields.Keys)
-        {
+        foreach ($k in $Fields.Keys) {
             $name = $k
             $value = $Fields.$k
             Write-Debug "[New-JiraIssue] Attempting to identify field (name=[$name], value=[$value])"
 
             $f = Get-JiraField -Field $name -Credential $Credential
 
-            if ($f)
-            {
+            if ($f) {
                 $id = $f.ID
                 Write-Debug "[New-JiraIssue] Field [$name] was identified as ID [$id]"
                 $props.$id = $value
-            } else {
+            }
+            else {
                 Write-Debug "[New-JiraIssue] Field [$name] could not be identified in Jira"
                 throw "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
             }
@@ -145,23 +150,22 @@ function New-JiraIssue
 
         Write-Verbose "Checking Jira createmeta to make sure all required fields are provided"
         Write-Debug "[New-JiraIssue] Testing Jira createmeta"
-        foreach ($c in $createmeta)
-        {
-            if ($c.Required)
-            {
-                if ($props.ContainsKey($c.Id))
-                {
+        foreach ($c in $createmeta) {
+            if ($c.Required) {
+                if ($props.ContainsKey($c.Id)) {
                     Write-Debug "[New-JiraIssue] Required field (id=[$($c.Id)], name=[$($c.Name)]) was provided (value=[$($props.$($c.Id))])"
-                } else {
+                }
+                else {
                     Write-Debug "[New-JiraIssue] Required field (id=[$($c.Id)], name=[$($c.Name)]) was NOT provided. Writing error."
-                    if ($c.Id -eq 'Reporter')
-                    {
+                    if ($c.Id -eq 'Reporter') {
                         throw "Jira's metadata for project [$Project] and issue type [$IssueType] requires a reporter. Provide a value for the -Reporter parameter when creating an issue."
-                    } else {
+                    }
+                    else {
                         throw "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided (name=[$($c.Name)], id=[$($c.Id)]). You must supply this field via the -Fields parameter. Use Get-JiraIssueCreateMetadata for more information."
                     }
                 }
-            } else {
+            }
+            else {
                 Write-Debug "[New-JiraIssue] Non-required field (id=[$($c.Id)], name=[$($c.Name)])"
             }
         }
@@ -177,8 +181,7 @@ function New-JiraIssue
         Write-Debug "[New-JiraIssue] Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Post -URI $issueURL -Body $json -Credential $Credential
 
-        if ($result)
-        {
+        if ($result) {
             # REST result will look something like this:
             # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/latest/issue/12345"}
 
@@ -187,13 +190,13 @@ function New-JiraIssue
             $getResult = Get-JiraIssue -Key $result.Key -Credential $Credential
             Write-Debug "[New-JiraIssue] Writing output from New-JiraIssue"
             Write-Output $getResult
-        } else {
+        }
+        else {
             Write-Debug "[New-JiraIssue] Jira returned no results to output."
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[New-JiraIssue] Completing New-JiraIssue"
     }
 }

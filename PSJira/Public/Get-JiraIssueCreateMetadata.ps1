@@ -22,19 +22,21 @@ function Get-JiraIssueCreateMetadata
     #>
     [CmdletBinding()]
     param(
-        # Project ID or key
+        # Project ID or key of the reference issue.
         [Parameter(Mandatory = $true,
                    Position = 0)]
         [String] $Project,
 
-        # Issue type ID or name
+        # Issue type ID or name.
         [Parameter(Mandatory = $true,
                    Position = 1)]
         [String] $IssueType,
 
+        # Path of the file with the configuration.
         [String] $ConfigFile,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )

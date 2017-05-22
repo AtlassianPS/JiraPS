@@ -1,5 +1,4 @@
-function Get-JiraIssueComment
-{
+function Get-JiraIssueComment {
     <#
     .Synopsis
        Returns comments on an issue in JIRA.
@@ -20,15 +19,17 @@ function Get-JiraIssueComment
     #>
     [CmdletBinding()]
     param(
-        # JIRA issue to check for comments. Can be a PSJira.Issue object, issue key, or internal issue ID.
+        # JIRA issue to check for comments.
+        # Can be a PSJira.Issue object, issue key, or internal issue ID.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('Key')]
         [Object] $Issue,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )

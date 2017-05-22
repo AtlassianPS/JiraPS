@@ -28,20 +28,21 @@ function Get-JiraComponent
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
-        # The Project ID or project key of a project to search
+        # The Project ID or project key of a project to search.
         [Parameter(ParameterSetName = 'ByProject',
                    ValueFromPipeline,
                    Mandatory = $true)]
         $Project,
 
-        # The Component ID
+        # The Component ID.
         [Parameter(Mandatory = $true,
                    Position = 0,
                    ParameterSetName = 'ByID')]
         [Alias("Id")]
         [int[]] $ComponentId,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
