@@ -1,4 +1,4 @@
-# PSJira
+# [PSJira](https://psjira.github.io/)
 
 [![Build status](https://ci.appveyor.com/api/projects/status/utpel25via67xw3b?svg=true)](https://ci.appveyor.com/project/JoshuaT/psjira)
 [![Documentation Status](https://readthedocs.org/projects/psjira/badge/?version=latest)](http://psjira.readthedocs.io/en/latest/?badge=latest)
@@ -27,7 +27,7 @@ Install-Module PSJira
 
 If you're using PowerShell 3 or 4, consider updating! If that's not an option, consider installing PackageManagement on PowerShell 3 or 4 (you can do so from the [PowerShell gallery](https://www.powershellgallery.com/) using the MSI installer link).
 
-You can also download this module from the Download Zip button on this page.  You'll need to extract the PSJira folder to your $PSModulePath (normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules).
+You can also download this module from the Download Zip button on this page.  You'll need to extract the PSJira folder to your $PSModulePath (normally, this is at C:\Users\<username>\Documents\WindowsPowerShell\Modules).
 
 Finally, you can check the releases page here on GitHub for "stable" versions, but again, PSGallery will always have the latest (tested) version of the module.
 
