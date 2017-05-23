@@ -51,7 +51,7 @@
             Write-Debug -Message '[New-JiraFixVersion] Reading Jira server from config file'
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         }
-        catch 
+        catch
         {
             $err = $_
             Write-Debug -Message '[New-JiraFixVersion] Encountered an error reading configuration data.'
@@ -91,11 +91,10 @@
         If ($result)
         {
             Write-Output -InputObject $result
-        } 
-        Else 
+        }
+        Else
         {
             Write-Debug -Message '[New-JiraFixVersion] Jira returned no results to output.'
         }
     }
 }
-
