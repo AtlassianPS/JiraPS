@@ -134,7 +134,6 @@ function Get-JiraIssue
                 Write-Output $issueObj
             }
         } elseif ($PSCmdlet.ParameterSetName -eq 'ByJQL') {
-
             Write-Debug "[Get-JiraIssue] Escaping query and building URL"
             $escapedQuery = [System.Web.HttpUtility]::UrlPathEncode($Query)
             $issueURL = "$($server)/rest/api/latest/search?jql=$escapedQuery&validateQuery=true&expand=transitions&startAt=$StartIndex&maxResults=$MaxResults"

@@ -27,7 +27,12 @@ function New-JiraSession
         # Credentials to use for the persistent session
         [Parameter(Mandatory = $true,
                    Position = 0)]
-        [System.Management.Automation.PSCredential] $Credential
+        [System.Management.Automation.PSCredential] $Credential,
+
+        [Parameter(Mandatory = $false,
+                    Position = 1)]
+        [ValidateSet('Ssl3','Tls','Tls11','Tls12')]
+        [String] $Tls
     )
 
     begin
@@ -62,6 +67,11 @@ function New-JiraSession
 
         try
         {
+            If($Tls)
+            {
+                Write-Debug "[New-JiraSession] Setting security protocol"
+                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::$Tls
+            }
             $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -UseBasicParsing -SessionVariable newSessionVar
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
