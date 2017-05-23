@@ -41,9 +41,10 @@ function Set-JiraIssue
         [Parameter(Mandatory = $false)]
         [String] $Description,
 
-        # New FixVersion of the issue
+        # Set the FixVersion of the issue, this will overwrite any present FixVersions
         [Parameter(Mandatory = $false)]
-        [System.Collections.Hashtable] $FixVersion,
+        [Alias('FixVersions')]
+        [String[]] $FixVersion,
 
         # New assignee of the issue. Enter 'Unassigned' to unassign the issue.
         [Parameter(Mandatory = $false)]
@@ -143,9 +144,16 @@ function Set-JiraIssue
 
                 If($FixVersion)
                 {
+                    $fixVersionSet = @()
+                    Foreach($f in $FixVersion)
+                    {
+                        $fixVersionSet += @{
+                            'name' = $f
+                        }
+                    }
                     $issueProps.update.fixVersions = @()
                     $issueProps.update.fixVersions += @{
-                        'add' = $FixVersion;
+                        'set' = $fixVersionSet;
                     }
                     $actOnIssueUri = $true
                 }
