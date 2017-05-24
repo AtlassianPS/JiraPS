@@ -77,7 +77,7 @@
 
             if ($issueObj)
             {
-                $currentLabels = $issueObj.labels
+                $currentLabels = @($issueObj.labels)
                 $url = $issueObj.RestURL
                 $isDirty = $true
 
