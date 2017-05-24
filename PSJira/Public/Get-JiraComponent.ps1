@@ -17,29 +17,33 @@ function Get-JiraComponent
     .EXAMPLE
        Get-JiraProject Project1 | Get-JiraComponent -Credential $cred
        Returns information about all components within project 'Project1'
+    .EXAMPLE
+        Get-JiraComponent ABC,DEF
+        Return information about all components within projects 'ABC' and 'DEF'
     .INPUTS
        [String[]] Component ID
        [PSCredential] Credentials to use to connect to Jira
     .OUTPUTS
        [PSJira.Component]
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
+        # The Project ID or project key of a project to search
+        [Parameter(ParameterSetName = 'ByProject',
+                   ValueFromPipeline,
+                   Mandatory = $true)]
+        $Project,
+
         # The Component ID
         [Parameter(Mandatory = $true,
                    Position = 0,
-                   ParameterSetName = 'ID')]
-        [String[]] $Id,
+                   ParameterSetName = 'ByID')]
+        [Alias("Id")]
+        [int[]] $ComponentId,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential,
-
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $true,
-                   ValueFromPipeline,
-                   ParameterSetName = 'InputObject')]
-        [PSObject] $InputObject
+        [System.Management.Automation.PSCredential] $Credential
     )
 
     begin
@@ -54,20 +58,47 @@ function Get-JiraComponent
             throw $err
         }
 
-        $uri = "$server/rest/api/latest/component"
+        $uri = "$server/rest/api/latest"
     }
 
     process
     {
-        if ($InputObject -and ($InputObject.PSObject.TypeNames[0] -eq 'PSJira.Project')) {
-            $Id = @($InputObject.Components | select -ExpandProperty id)
-        }
-        if ($Id)
+        if ($Project)
         {
-            foreach ($i in $Id)
+            if ($Project.PSObject.TypeNames[0] -eq 'PSJira.Project') {
+                $ComponentId = @($Project.Components | Select-Object -ExpandProperty id)
+            } else {
+                foreach ($p in $Project)
+                {
+                    if ($p -is [string])
+                    {
+                        Write-Debug "[Get-JiraComponent] Processing project [$p]"
+                        $thisUri = "$uri/project/${p}/components"
+
+                        Write-Debug "[Get-JiraComponent] Preparing for blastoff!"
+
+                        $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
+                        if ($result)
+                        {
+                            Write-Debug "[Get-JiraComponent] Converting to object"
+                            $obj = ConvertTo-JiraComponent -InputObject $result
+
+                            Write-Debug "[Get-JiraComponent] Outputting result"
+                            Write-Output $obj
+                        } else {
+                            Write-Debug "[Get-JiraComponent] No results were returned from Jira"
+                            Write-Debug "[Get-JiraComponent] No results were returned from Jira for component [$i]"
+                        }
+                    }
+                }
+            }
+        }
+        if ($ComponentId)
+        {
+            foreach ($i in $ComponentId)
             {
-                Write-Debug "[Get-JiraComponent] Processing project [$i]"
-                $thisUri = "$uri/${i}"
+                Write-Debug "[Get-JiraComponent] Processing component [$i]"
+                $thisUri = "$uri/component/${i}"
 
                 Write-Debug "[Get-JiraComponent] Preparing for blastoff!"
 
@@ -89,8 +120,6 @@ function Get-JiraComponent
 
     end
     {
-        Write-Debug "Complete"
+        Write-Debug "[Get-JiraComponent] Complete"
     }
 }
-
-
