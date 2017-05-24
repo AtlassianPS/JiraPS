@@ -5,6 +5,10 @@
 
 PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://www.atlassian.com/software/jira) via a REST API, while maintaining a consistent PowerShell look and feel.
 
+Join the conversation on [![SlackLogo][] PSJira.Slack.com](https://slofile.com/slack/psjira)
+
+[SlackLogo]: assets/Slack_Mark_Web_28x28.png
+
 ---
 
 ## Documentation on ReadTheDocs
