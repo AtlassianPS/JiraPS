@@ -143,7 +143,7 @@ function Invoke-JiraIssueTransition
 
         if ($validAssignee)
         {
-            Write-Debug "[Invoke-JiraIssueTransition] Updating Assignee"            
+            Write-Debug "[Invoke-JiraIssueTransition] Updating Assignee"
             $props += @{
                 'fields' = @{
                     'assignee' = @{
@@ -152,15 +152,15 @@ function Invoke-JiraIssueTransition
                 }
             }
         }
-            
+
 
         if ($Fields)
         {
-            Write-Debug "[Invoke-JiraIssueTransition] Validating field names"            
+            Write-Debug "[Invoke-JiraIssueTransition] Validating field names"
             $props += @{
                 'update' = @{}
             }
-                      
+
             foreach ($k in $Fields.Keys)
             {
                 $name = $k
