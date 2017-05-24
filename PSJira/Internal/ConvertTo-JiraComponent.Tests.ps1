@@ -46,7 +46,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Project" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Project'
+            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Project'
         }
 
         defProp $r 'Id' $projectId
@@ -55,4 +55,3 @@ InModuleScope PSJira {
         defProp $r 'RestUrl' "$jiraServer/rest/api/2/project/$projectId"
     }
 }
- 

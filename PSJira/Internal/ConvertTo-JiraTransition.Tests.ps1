@@ -50,7 +50,7 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Transition" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Transition'
+            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Transition'
         }
 
         defProp $r 'Id' $tId

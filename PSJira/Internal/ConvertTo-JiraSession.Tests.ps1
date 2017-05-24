@@ -34,11 +34,10 @@ InModuleScope PSJira {
         }
 
         It "Sets the type name to PSJira.Session" {
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Session'
+            (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Session'
         }
 
         defProp $r 'Username' $sampleUsername
         defProp $r 'JSessionID' $sampleJSessionID
     }
 }
- 

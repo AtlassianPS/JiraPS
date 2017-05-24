@@ -172,7 +172,7 @@ InModuleScope PSJira {
 
         It "Returns output of type PSJira.Field" {
             $oneResult = Get-JiraField -Field 'Issue Type'
-            $oneResult.PSObject.TypeNames[0] | Should Be 'PSJira.Field'
+            (Get-Member -InputObject $oneResult).TypeName | Should Be 'PSJira.Field'
         }
     }
 }
