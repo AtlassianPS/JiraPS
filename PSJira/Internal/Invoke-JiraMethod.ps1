@@ -23,6 +23,11 @@ function Invoke-JiraMethod
 #        [Object] $Session
     )
 
+    # load DefaultParameters for Invoke-WebRequest
+    # as the global PSDefaultParameterValues is not used
+    # TODO: find out why PSJira doesn't need this
+    $PSDefaultParameterValues = $global:PSDefaultParameterValues
+
     $headers = @{
         'Content-Type' = 'application/json; charset=utf-8';
     }

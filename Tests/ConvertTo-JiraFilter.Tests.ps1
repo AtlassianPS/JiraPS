@@ -57,7 +57,6 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        $r = ConvertTo-JiraFilter -InputObject $sampleObject
         checkPsType $r 'PSJira.Filter'
 
         defProp $r 'Id' 12844

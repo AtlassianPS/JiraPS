@@ -41,6 +41,11 @@ function Set-JiraIssue
         [Parameter(Mandatory = $false)]
         [String] $Description,
 
+        # Set the FixVersion of the issue, this will overwrite any present FixVersions
+        [Parameter(Mandatory = $false)]
+        [Alias('FixVersions')]
+        [String[]] $FixVersion,
+
         # New assignee of the issue. Enter 'Unassigned' to unassign the issue.
         [Parameter(Mandatory = $false)]
         [Object] $Assignee,
@@ -67,7 +72,7 @@ function Set-JiraIssue
     {
         Write-Debug "[Set-JiraIssue] Checking to see if we have any operations to perform"
         $fieldNames = $Fields.Keys
-        if (-not ($Summary -or $Description -or $Assignee -or $Label -or $fieldNames))
+        if (-not ($Summary -or $Description -or $Assignee -or $Label -or $FixVersion -or $fieldNames))
         {
             Write-Verbose "Nothing to do."
             return
@@ -137,6 +142,22 @@ function Set-JiraIssue
                     $actOnIssueUri = $true
                 }
 
+                If($FixVersion)
+                {
+                    $fixVersionSet = @()
+                    Foreach($f in $FixVersion)
+                    {
+                        $fixVersionSet += @{
+                            'name' = $f
+                        }
+                    }
+                    $issueProps.update.fixVersions = @()
+                    $issueProps.update.fixVersions += @{
+                        'set' = $fixVersionSet;
+                    }
+                    $actOnIssueUri = $true
+                }
+
                 if ($Fields)
                 {
                     Write-Debug "[Set-JiraIssue] Validating field names"
@@ -168,7 +189,6 @@ function Set-JiraIssue
 
                 if ($validAssignee)
                 {
-
                     $assigneeProps =  @{
                         'name' = $assigneeString;
                     }
@@ -213,7 +233,6 @@ function Set-JiraIssue
                     Write-Debug "[Set-JiraIssue] PassThru was specified. Obtaining updated reference to issue"
                     Get-JiraIssue -Key $issueObj.Key -Credential $Credential
                 }
-
             } else {
                 Write-Debug "[Set-JiraIssue] Unable to identify issue [$i]. Writing error message."
                 Write-Error "Unable to identify issue [$i]"
@@ -226,5 +245,3 @@ function Set-JiraIssue
         Write-Debug "[Set-JiraIssue] Complete"
     }
 }
-
-

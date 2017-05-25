@@ -46,4 +46,3 @@ InModuleScope PSJira {
         defProp $r 'RestUrl' "$jiraServer/rest/api/2/project/$projectId"
     }
 }
- 

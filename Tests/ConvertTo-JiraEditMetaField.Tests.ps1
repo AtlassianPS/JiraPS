@@ -1,4 +1,3 @@
-
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
@@ -76,7 +75,6 @@ InModuleScope PSJira {
             $r.Count | Should Be 2
         }
 
-        checkIsArray $r
         checkPsType $r[0] 'PSJira.EditMetaField'
 
         Context "Data validation" {

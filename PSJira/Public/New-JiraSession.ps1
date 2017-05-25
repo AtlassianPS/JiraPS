@@ -42,6 +42,10 @@ function New-JiraSession
             throw $err
         }
 
+        # load DefaultParameters for Invoke-WebRequest
+        # as the global PSDefaultParameterValues is not used
+        $PSDefaultParameterValues = $global:PSDefaultParameterValues
+
         $uri = "$server/rest/auth/1/session"
 
         $headers = @{
@@ -98,3 +102,5 @@ function New-JiraSession
         }
     }
 }
+
+
