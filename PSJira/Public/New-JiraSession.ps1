@@ -42,29 +42,25 @@ function New-JiraSession
             throw $err
         }
 
-        $uri = "$server/rest/auth/1/session"
+        $uri = "$server/rest/api/2/mypermissions"
 
         $headers = @{
             'Content-Type' = 'application/json';
         }
     }
 
-    process
-    {
-        $hashtable = @{
-            'username' = $Credential.UserName;
-            'password' = $Credential.GetNetworkCredential().Password;
-        }
-        $json = ConvertTo-Json -InputObject $hashtable
+    process {
+        [String] $Username = $Credential.UserName
+        $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${Username}:$($Credential.GetNetworkCredential().Password)"))
+        $headers.Add('Authorization', "Basic $token")
 
-        Write-Debug "[New-JiraSession] Created JSON syntax in variable `$json."
-        Write-Debug "[New-JiraSession] Preparing for blastoff!"
+        try {
+            Write-Debug "[New-JiraSession] Preparing for blastoff!"
+            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Get -Body $json -UseBasicParsing -SessionVariable newSessionVar
 
-        try
-        {
-            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -UseBasicParsing -SessionVariable newSessionVar
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
+
 
             Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
             if ($MyInvocation.MyCommand.Module.PrivateData)
