@@ -91,10 +91,10 @@ function Invoke-JiraMethod
             # Retrieve body of HTTP response - this contains more useful information about exactly why the error
             # occurred
             $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
-            $body = $readStream.ReadToEnd()
+            $responseBody = $readStream.ReadToEnd()
             $readStream.Close()
-            Write-Debug "[Invoke-JiraMethod] Retrieved body of HTTP response for more information about the error (`$body)"
-            $result = ConvertFrom-Json2 -InputObject $body
+            Write-Debug "[Invoke-JiraMethod] Retrieved body of HTTP response for more information about the error (`$responseBody)"
+            $result = ConvertFrom-Json2 -InputObject $responseBody
         } else {
             if ($webResponse.Content)
             {

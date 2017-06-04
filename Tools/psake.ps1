@@ -112,34 +112,39 @@ Task Deploy -Depends Build {
     ########################################################
     $line
 
-    "Patching module manifest version with build number ($env:APPVEYOR_BUILD_NUMBER)"
-    Update-ModuleManifest -Path (Join-Path -Path $ModuleRoot -ChildPath 'PSJira.psd1') -BuildNumber $env:APPVEYOR_BUILD_NUMBER
+    if ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and -not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
+        "Patching module manifest version with build number ($env:APPVEYOR_BUILD_NUMBER)"
+        Update-ModuleManifest -Path (Join-Path -Path $ModuleRoot -ChildPath 'PSJira.psd1') -BuildNumber $env:APPVEYOR_BUILD_NUMBER
 
-    $publishParams = @{
-        Path = $ModuleRoot
-        NuGetApiKey = $env:PSGalleryAPIKey
-    }
-
-    "Parameters for publishing:"
-    foreach ($p in $publishParams.Keys)
-    {
-        if ($p -ne 'NuGetApiKey')
-        {
-            "${p}:`t$($publishParams.$p)"
-        } else {
-            "${p}:`t[Redacted]"
+        $publishParams = @{
+            Path = $ModuleRoot
+            NuGetApiKey = $env:PSGalleryAPIKey
         }
+
+        "Parameters for publishing:"
+        foreach ($p in $publishParams.Keys)
+        {
+            if ($p -ne 'NuGetApiKey')
+            {
+                "${p}:`t$($publishParams.$p)"
+            } else {
+                "${p}:`t[Redacted]"
+            }
+        }
+
+        "Publishing module to PowerShell Gallery"
+        Publish-Module @publishParams
+
+        # $Params = @{
+        #     Path = $ProjectRoot
+        #     Force = $true
+        #     Recurse = $false # We keep psdeploy artifacts, avoid deploying those : )
+        # }
+        # Invoke-PSDeploy @Verbose @Params
     }
-
-    "Publishing module to PowerShell Gallery"
-    Publish-Module @publishParams
-
-    # $Params = @{
-    #     Path = $ProjectRoot
-    #     Force = $true
-    #     Recurse = $false # We keep psdeploy artifacts, avoid deploying those : )
-    # }
-    # Invoke-PSDeploy @Verbose @Params
+    else {
+        "This commit is not to the master branch. It will not be published."
+    }
 }
 
 Task Default -Depends Deploy

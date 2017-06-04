@@ -1,19 +1,25 @@
-# PSJira
+# [PSJira](https://psjira.github.io/)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/rog7nhvpfu58xrxu?svg=true)](https://ci.appveyor.com/project/JoshuaT/psjira)
+[![Build status](https://ci.appveyor.com/api/projects/status/utpel25via67xw3b?svg=true)](https://ci.appveyor.com/project/JoshuaT/psjira)
+[![Documentation Status](https://readthedocs.org/projects/psjira/badge/?version=latest)](http://psjira.readthedocs.io/en/latest/?badge=latest)
 
 PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://www.atlassian.com/software/jira) via a REST API, while maintaining a consistent PowerShell look and feel.
 
+Join the conversation on [![SlackLogo][] PSJira.Slack.com](https://slofile.com/slack/psjira)
+
+[SlackLogo]: assets/Slack_Mark_Web_28x28.png
+
 ---
 
-## Project update: August 2016
-Thanks to the generous folks at Atlassian, PSJira has been granted an Open Source license for a small test instance of JIRA. This means that finally, development on the project can continue!
+## Documentation on ReadTheDocs
+
+Documentation for PSJira has moved to [ReadTheDocs.io](http://psjira.readthedocs.io). Check it out, and feel free to submit issues or PRs against the documentation as well!
 
 ---
 
 ## Requirements
 
-This module has a hard dependency on PowerShell 3.0.  I have no plans to release a version compatible with PowerShell 2, as I rely heavily on several cmdlets and features added in version 3.0.
+This module has a hard dependency on PowerShell 3.0.  There are no plans to release a version compatible with PowerShell 2, as the module relies on several cmdlets and features added in version 3.0.
 
 ## Downloading
 
@@ -25,36 +31,21 @@ Install-Module PSJira
 
 If you're using PowerShell 3 or 4, consider updating! If that's not an option, consider installing PackageManagement on PowerShell 3 or 4 (you can do so from the [PowerShell gallery](https://www.powershellgallery.com/) using the MSI installer link).
 
-You can also download this module from the Download Zip button on this page.  You'll need to extract the PSJira folder to your $PSModulePath (normally, this is at C:\Users\<username>Documents\WindowsPowerShell\Modules).
+You can also download this module from the Download Zip button on this page.  You'll need to extract the PSJira folder to your $PSModulePath (normally, this is at C:\Users\<username>\Documents\WindowsPowerShell\Modules).
 
 Finally, you can check the releases page here on GitHub for "stable" versions, but again, PSGallery will always have the latest (tested) version of the module.
 
-## Getting Started
-
-Before using PSJira, you'll need to define your JIRA server URL.  You will only need to do this once:
-
-```powershell
-Set-JiraConfigServer "https://jira.example.com"
-```
-
 ## Usage
 
-Check out the [Getting Started](https://github.com/replicaJunction/PSJira/wiki/Getting-Started) page on the project wiki for detailed use information.
+All the documentation for PSJira is on the [ReadTheDocs page](http://psjira.readthedocs.io).
 
-## Planned features
-* Support for multiple config files and/or alternate config file locations
-* Possible support for OAuth in addition to HTTP Basic authentication
+For basic instructions to get up and running, check out the [Getting Started](http://psjira.readthedocs.io/en/latest/getting_started.html) page.
 
 ## Contributing
-Want to contribute to PSJira?  Great! Here are a couple of notes regarding contributions:
 
-* PSJira relies heavily upon Pester testing to make sure that changes don't break each other.  Please respect the tests when coding against PSJira.
-* Pull requests are much more likely to be accepted if all tests pass.
-* If you write a change that causes a test to fail, please explain why the change is appropriate.  Tests are code, just like the module itself, so it's very possbile that they need to be fixed as well.  Bonus points if you also write the fix for the test.
-* If implementing a brand-new function or behavior, please write a test for it.
-* Please respect the formatting style of the rest of the module code as well.  If in doubt, place braces on a new line.
+Want to contribute to PSJira?  Great! Start with the [Contributing](http://psjira.readthedocs.io/en/latest/contributing.html) page on the project documentation - it will explain how to work with PSJira's test and CI systems.
 
-Changes will be merged and released when the module passes all Pester tests, including the module style tests.
+**Pull requests for PSJira are expected to pass all Pester tests before being merged.** More details can be found on the project documentation site.
 
 ## Contact
 

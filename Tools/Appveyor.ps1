@@ -30,11 +30,15 @@ if ($env:CI -ne $true)
 Write-Host
 Write-Host ('Project name:               {0}' -f $env:APPVEYOR_PROJECT_NAME) -ForegroundColor Cyan
 Write-Host ('Project root:               {0}' -f $ProjectRoot) -ForegroundColor Cyan
+Write-Host ('Repo name:                  {0}' -f $env:APPVEYOR_REPO_NAME) -ForegroundColor Cyan
+Write-Host ('Branch:                     {0}' -f $env:APPVEYOR_REPO_BRANCH) -ForegroundColor Cyan
 Write-Host ('Commit:                     {0}' -f $env:APPVEYOR_REPO_COMMIT) -ForegroundColor Cyan
 Write-Host ('  - Author:                 {0}' -f $env:APPVEYOR_REPO_COMMIT_AUTHOR) -ForegroundColor Cyan
 Write-Host ('  - Time:                   {0}' -f $env:APPVEYOR_REPO_COMMIT_TIMESTAMP) -ForegroundColor Cyan
 Write-Host ('  - Message:                {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE) -ForegroundColor Cyan
 Write-Host ('  - Extended message:       {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED) -ForegroundColor Cyan
+Write-Host ('Pull request number:        {0}' -f $env:APPVEYOR_PULL_REQUEST_NUMBER) -ForegroundColor Cyan
+Write-Host ('Pull request title:         {0}' -f $env:APPVEYOR_PULL_REQUEST_TITLE) -ForegroundColor Cyan
 Write-Host ('AppVeyor build ID:          {0}' -f $env:APPVEYOR_BUILD_ID) -ForegroundColor Cyan
 Write-Host ('AppVeyor build number:      {0}' -f $env:APPVEYOR_BUILD_NUMBER) -ForegroundColor Cyan
 Write-Host ('AppVeyor build version:     {0}' -f $env:APPVEYOR_BUILD_VERSION) -ForegroundColor Cyan

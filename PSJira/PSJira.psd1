@@ -69,10 +69,10 @@ FormatsToProcess = 'PSJira.format.ps1xml'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Add-JiraGroupMember', 'Add-JiraIssueComment', 'Format-Jira',
+FunctionsToExport = 'Add-JiraGroupMember', 'Add-JiraIssueComment', 'Get-JiraComponent', 'Format-Jira',
                'Get-JiraConfigServer', 'Get-JiraField', 'Get-JiraFilter',
                'Get-JiraGroup', 'Get-JiraGroupMember', 'Get-JiraIssue',
-               'Get-JiraIssueComment', 'Get-JiraIssueCreateMetadata',
+               'Get-JiraIssueComment', 'Get-JiraIssueCreateMetadata', 'Get-JiraIssueEditMetadata',
                'Get-JiraIssueLinkType', 'Get-JiraIssueType', 'Get-JiraPriority', 'Get-JiraProject',
                'Get-JiraSession', 'Get-JiraUser', 'Invoke-JiraIssueTransition',
                'New-JiraGroup', 'New-JiraIssue', 'New-JiraSession', 'New-JiraUser',
@@ -107,10 +107,10 @@ PrivateData = @{
         Tags = 'JIRA'
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/replicaJunction/PSJira/blob/master/LICENSE'
+        LicenseUri = 'https://github.com/PSJira/PSJira/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://github.com/replicaJunction/PSJira'
+        ProjectUri = 'https://github.com/PSJira/PSJira'
 
         # A URL to an icon representing this module.
         # IconUri = ''
