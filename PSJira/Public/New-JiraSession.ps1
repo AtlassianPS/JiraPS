@@ -90,9 +90,9 @@ function New-JiraSession
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
 
             # Test HEADERS if Jira requires a CAPTCHA
-            $tokenRequiresCaptcha  = "AUTHENTICATED_FAILED"
+            $tokenRequiresCaptcha  = "AUTHENTICATION_DENIED"
             $headerRequiresCaptcha = "X-Seraph-LoginReason"
-            if (($webResponse.headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha) {
+            if (($webResponse.Headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha) {
                 Write-Warning "JIRA requires you to log on to the website before continiuing for security reasons."
             }
 
