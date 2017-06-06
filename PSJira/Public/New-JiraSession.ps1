@@ -86,6 +86,10 @@ function New-JiraSession {
             $body = $readStream.ReadToEnd()
             $readStream.Close()
             Write-Debug "Retrieved body of HTTP response for more information about the error (`$body)"
+
+            # Clear the body in case it is not a JSON (but rather html)
+            if ($body -match "^[\s\t]*\<html\>") { $body = "" }
+
             $result = ConvertFrom-Json2 -InputObject $body
             Write-Debug "Converted body from JSON into PSCustomObject (`$result)"
         }
