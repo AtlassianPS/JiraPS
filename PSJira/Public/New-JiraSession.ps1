@@ -43,6 +43,11 @@ function New-JiraSession
         }
 
         $uri = "$server/rest/api/2/mypermissions"
+        
+        # load DefaultParameters for Invoke-WebRequest
+        # as the global PSDefaultParameterValues is not used
+        $PSDefaultParameterValues = $global:PSDefaultParameterValues
+
 
         $headers = @{
             'Content-Type' = 'application/json';

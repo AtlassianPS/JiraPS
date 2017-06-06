@@ -105,30 +105,37 @@ Describe "PSJira" {
         }
     }
 
-    Context "Function checking" {
-        $functionFiles = Get-ChildItem $publicFunctions -Filter *.ps1 |
-            Select-Object -ExpandProperty BaseName |
-            Where-Object { $_ -notlike "*.Tests" }
+    # The CI changes I'm testng now will render this section obsolete,
+    # as it should automatically patch the module manifest file with all
+    # exported function names.
+    # Leaving the code here for the moment while I can ensure those
+    # features are working correctly.
 
-        $internalFiles = Get-ChildItem $internalFunctions -Filter *.ps1 |
-            Select-Object -ExpandProperty BaseName |
-            Where-Object { $_ -notlike "*.Tests" }
+    #
+    # Context "Function checking" {
+    #     $functionFiles = Get-ChildItem $publicFunctions -Filter *.ps1 |
+    #         Select-Object -ExpandProperty BaseName |
+    #         Where-Object { $_ -notlike "*.Tests" }
 
-        #$exportedFunctions = $script:manifest.ExportedFunctions.Values.Name
-        $exportedFunctions = $script:manifest.FunctionsToExport
+    #     $internalFiles = Get-ChildItem $internalFunctions -Filter *.ps1 |
+    #         Select-Object -ExpandProperty BaseName |
+    #         Where-Object { $_ -notlike "*.Tests" }
 
-        foreach ($f in $functionFiles) {
-            It "Exports $f" {
-                $exportedFunctions -contains $f | Should Be $true
-            }
-        }
+    #     #$exportedFunctions = $script:manifest.ExportedFunctions.Values.Name
+    #     $exportedFunctions = $script:manifest.FunctionsToExport
 
-        foreach ($f in $internalFiles) {
-            It "Does not export $f" {
-                $exportedFunctions -contains $f | Should Be $false
-            }
-        }
-    }
+    #     foreach ($f in $functionFiles) {
+    #         It "Exports $f" {
+    #             $exportedFunctions -contains $f | Should Be $true
+    #         }
+    #     }
+
+    #     foreach ($f in $internalFiles) {
+    #         It "Does not export $f" {
+    #             $exportedFunctions -contains $f | Should Be $false
+    #         }
+    #     }
+    # }
 
     Context "Style checking" {
 
