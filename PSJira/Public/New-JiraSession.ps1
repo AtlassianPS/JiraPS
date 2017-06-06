@@ -45,16 +45,19 @@ function New-JiraSession {
         # as the global PSDefaultParameterValues is not used
         $PSDefaultParameterValues = $global:PSDefaultParameterValues
 
+        [String] $Username = $Credential.UserName
+        $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${Username}:$($Credential.GetNetworkCredential().Password)"))
 
         $headers = @{
-            'Content-Type' = 'application/json';
+            'Content-Type'  = 'application/json'
+            'Authorization' = "Basic $token"
         }
     }
 
     process {
         try {
             Write-Debug "[New-JiraSession] Preparing for blastoff!"
-            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Get -Body $json -Credential $Credential -UseBasicParsing -SessionVariable newSessionVar
+            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Get -Body $json -UseBasicParsing -SessionVariable newSessionVar
 
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
