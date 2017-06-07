@@ -92,5 +92,3 @@ InModuleScope PSJira {
         }
     }
 }
-
-

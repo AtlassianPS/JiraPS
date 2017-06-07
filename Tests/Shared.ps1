@@ -58,6 +58,12 @@ function checkPsType($obj, $typeName) {
     }
 }
 
+function checkIsArray($obj) {
+    It "Returns an array" {
+        $obj -is [System.Array]
+    }
+}
+
 function ShowMockInfo($functionName, [String[]] $params)
 {
     if ($ShowMockData)

@@ -58,7 +58,7 @@ function Add-JiraIssueComment
     process
     {
 #        Write-Debug "[Add-JiraIssueComment] Checking Issue parameter"
-#        if ($Issue.PSObject.TypeNames[0] -eq 'PSJira.Issue')
+#        if ($Issue | Test-HasTypeName 'PSJira.Issue')
 #        {
 #            Write-Debug "[Add-JiraIssueComment] Issue parameter is a PSJira.Issue object"
 #            $issueObj = $Issue

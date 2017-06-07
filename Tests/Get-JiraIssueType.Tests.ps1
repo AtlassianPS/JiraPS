@@ -2,6 +2,10 @@
 
 InModuleScope PSJira {
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
+
     $jiraServer = 'http://jiraserver.example.com'
 
     $issueTypeId = 2
@@ -121,6 +125,9 @@ InModuleScope PSJira {
             $oneResult.ID | Should Be 2
             $oneResult.Name | Should Be 'Desktop Support'
         }
+
+        $oneResult = Get-JiraIssueType -IssueType $issueTypeId
+        checkPsType $oneResult 'PSJira.IssueType'
 
         Context "Output Checking" {
 

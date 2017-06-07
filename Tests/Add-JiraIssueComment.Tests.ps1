@@ -68,7 +68,8 @@ InModuleScope PSJira {
 
         It "Adds a comment to an issue in JIRA" {
             $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
-            $commentResult | Should Not BeNullOrEmpty
+            $commentResult | Should Not Be $Null
+            #$commentResult | Should Not BeNullOrEmpty #commentResult is not a string, so this method should not be used
 
             # Get-JiraIssue should be used to identify the issue parameter
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
@@ -79,7 +80,8 @@ InModuleScope PSJira {
 
         It "Accepts pipeline input from Get-JiraIssue" {
             $commentResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueComment -Comment 'This is a test comment from Pester, using the pipeline!'
-            $commentResult | Should Not BeNullOrEmpty
+            $commentResult | Should Not Be $Null
+            #$commentResult | Should Not BeNullOrEmpty #commentResult is not a string, so this method should not be used
 
             # Get-JiraIssue should be called once here, and once inside Add-JiraIssueComment (to identify the InputObject parameter)
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 2 -Scope It
@@ -88,14 +90,13 @@ InModuleScope PSJira {
 
         Context "Output checking" {
             Mock ConvertTo-JiraComment {}
-            Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey | Out-Null
+            $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey 
 
-
+            #checkPsType $commentResult 'PSJira.Comment'
             It "Uses ConvertTo-JiraComment to beautify output" {
                 Assert-MockCalled 'ConvertTo-JiraComment'
-            }
+            } 
+ 
         }
     }
 }
-
-

@@ -94,17 +94,18 @@ InModuleScope PSJira {
             $getResult.Count | Should Be 5
         }
 
-        It "Gets one priority if the ID parameter is supplied" {
-            $getResult = Get-JiraPriority -Id 1 -Credential $testCred
+        $getResult = Get-JiraPriority -Id 1 -Credential $testCred
+
+        It "Returns a non-null result" {
             $getResult | Should Not BeNullOrEmpty
+        }
+
+        It "Gets one priority if the ID parameter is supplied" {
             @($getResult).Count | Should Be 1
         }
 
-        It "Converts the output object to type PSJira.Priority" {
-            $getResult = Get-JiraPriority -Id 1 -Credential $testCred
-            $getResult | Should Not BeNullOrEmpty
-            $getResult.PSObject.TypeNames[0] | Should Be 'PSJira.Priority'
-        }
+        checkPsType $getResult 'PSJira.Priority'
+
     }
 }
 

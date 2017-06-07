@@ -119,7 +119,7 @@ function Get-JiraIssue
             foreach ($i in $InputObject)
             {
                 Write-Debug "[Get-JiraIssue] Processing InputObject [$i]"
-                if ((Get-Member -InputObject $i).TypeName -eq 'PSJira.Issue')
+                if ($i | Test-HasTypeName 'PSJira.Issue')
                 {
                     Write-Debug "[Get-JiraIssue] Issue parameter is a PSJira.Issue object"
                     $issueKey = $i.Key

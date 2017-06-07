@@ -83,7 +83,7 @@ function Invoke-JiraIssueTransition
         }
 
         Write-Debug "[Invoke-JiraIssueTransition] Checking Transition parameter"
-        if ($Transition.PSObject.TypeNames[0] -eq 'PSJira.Transition')
+        if ($Transition | Test-HasTypeName 'PSJira.Transition')
         {
             Write-Debug "[Invoke-JiraIssueTransition] Transition parameter is a PSJira.Transition object"
             $transitionId = $Transition.ID

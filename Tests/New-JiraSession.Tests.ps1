@@ -68,6 +68,12 @@ InModuleScope PSJira {
             Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$UseBasicParsing -eq $true} -Scope It
         }
 
+        $s = New-JiraSession -Credential $testCredential
+        It "Returns a custom object of type PSJira.Session" {
+            $s | Should Not BeNullOrEmpty
+        }
+        checkPsType $s 'PSJira.Session'
+
         It "Provides the JSessionID of the session in Jira" {
             $s = New-JiraSession -Credential $testCredential
             $s.JSessionID | Should Be $jSessionId
@@ -89,5 +95,3 @@ InModuleScope PSJira {
         }
     }
 }
-
-

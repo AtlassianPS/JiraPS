@@ -64,6 +64,14 @@ InModuleScope PSJira {
             $newResult | Should Not BeNullOrEmpty
         }
 
+        It "Outputs a PSJira.User object" {
+            $newResult = New-JiraUser -UserName $testUsername -EmailAddress $testEmail -DisplayName $testDisplayName
+            checkType $newResult 'PSJira.User' 
+            $newResult.Name | Should Be $testUsername
+            $newResult.EmailAddress | Should Be $testEmail
+            $newResult.DisplayName | Should Be $testDisplayName
+        }
+
         Context "Output checking" {
             Mock ConvertTo-JiraUser {}
             New-JiraUser -UserName $testUsername -EmailAddress $testEmail -DisplayName $testDisplayName

@@ -909,13 +909,15 @@ InModuleScope PSJira {
             }
 
             It "Uses ConvertTo-JiraProject to return the project as an object" {
-                # (Get-Member -InputObject $r.Project).TypeName | Should Be 'PSJira.Project'
                 checkType $r.Project 'PSJira.Project'
             }
 
             It "Uses ConvertTo-JiraTransition to return the issue's transitions as an object" {
                 checkType $r.Transition[0] 'PSJira.Transition'
             }
+
+            checkIsArray $r.Transition
+
         }
     }
 }

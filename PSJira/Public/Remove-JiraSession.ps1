@@ -60,7 +60,7 @@ function Remove-JiraSession
         if ($Session)
         {
             Write-Debug "[Remove-JiraSession] Validating Session parameter"
-            if ((Get-Member -InputObject $Session).TypeName -eq 'PSJira.Session')
+            if ($Session | Test-HasTypeName 'PSJira.Session')
             {
                 Write-Debug "[Remove-JiraSession] Successfully parsed Session parameter as a PSJira.Session object"
             } else {

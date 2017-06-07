@@ -61,7 +61,6 @@ InModuleScope PSJira {
 
         checkPsType $r 'PSJira.Comment'
 
-
         defProp $r 'Id' $commentId
         defProp $r 'Body' $commentBody
         defProp $r 'RestUrl' "$jiraServer/rest/api/2/issue/41701/comment/$commentId"

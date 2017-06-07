@@ -76,7 +76,7 @@
             foreach ($i in $InputObject)
             {
                 Write-Debug "[Get-JiraFilter] Processing InputObject [$i]"
-                if ((Get-Member -InputObject $i).TypeName -eq 'PSJira.Filter')
+                if ($i | Test-HasTypeName 'PSJira.Filter')
                 {
                     Write-Debug "[Get-JiraFilter] User parameter is a PSJira.Filter object"
                     $thisId = $i.ID

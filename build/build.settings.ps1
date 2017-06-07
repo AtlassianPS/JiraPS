@@ -159,7 +159,7 @@ Properties {
     $TestOutputFormat = "NUnitXml"
 
     Write-Host "build.settings.ps1 - Propertes completed" -ForegroundColor Green
-    Set-BuildEnvironment -Path $ProjectRoot
+    Set-BuildEnvironment -Path $ProjectRoot -VariableNamePrefix 'BHJira'
 }
 
 ###############################################################################
@@ -169,7 +169,7 @@ Properties {
 # Executes before the StageFiles task.
 Task BeforeStageFiles -requiredVariables ProjectRoot {
     Write-Host "build.settings.ps1 - BeforeStageFiles" -ForegroundColor Green
-    Write-Host "BuildHelpers environment:`n$(Get-Item env:bh* | Out-String)" -ForegroundColor Green
+    Write-Host "BuildHelpers environment:`n$(Get-Item env:BHJira* | Out-String)" -ForegroundColor Green
 }
 
 # Executes after the StageFiles task.
@@ -189,7 +189,7 @@ Task BeforeBuild {
 Task AfterBuild -requiredVariables ProjectRoot,OutDir {
     $outputManifestFile = Join-Path -Path $OutDir -ChildPath 'PSJira\PSJira.psd1'
     Write-Host "Patching module manifest file $outputManifestFile" -ForegroundColor Green
-    if ($env:BHBuildSystem -eq 'AppVeyor') {
+    if ($env:BHJiraBuildSystem -eq 'AppVeyor') {
         # If we're in AppVeyor, add the build number to the manifest
         Write-Host "* Updating build number" -ForegroundColor Green
 
@@ -199,8 +199,8 @@ Task AfterBuild -requiredVariables ProjectRoot,OutDir {
         }
 
         $currentVersion = [Version] $Matches.ModuleVersion
-        if ($env:BHBuildNumber) {
-            $newRevision = $env:BHBuildNumber
+        if ($env:BHJiraBuildNumber) {
+            $newRevision = $env:BHJiraBuildNumber
         }
         else {
             $newRevision = $currentVersion.Revision
@@ -272,12 +272,12 @@ Task AfterInstall {
 
 # Executes before the Publish task.
 Task BeforePublish -requiredVariables NuGetApiKey {
-    if ($env:BHBranchName -ne 'master') {
-        Write-Host "This build is from branch [$env:BHBranchName]. It will not be published." -ForegroundColor Yellow
+    if ($env:BHJiraBranchName -ne 'master') {
+        Write-Host "This build is from branch [$env:BHJiraBranchName]. It will not be published." -ForegroundColor Yellow
         throw "Terminating build."
     }
 
-    if ($env:BHBuildSystem -eq 'AppVeyor') {
+    if ($env:BHJiraBuildSystem -eq 'AppVeyor') {
         if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
             Write-Host "This build is from a pull request. It will not be published." -ForegroundColor Yellow
             throw "Terminating build."

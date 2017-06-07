@@ -62,21 +62,17 @@ InModuleScope PSJira {
         # Tests
         #############
 
+        $newResult = New-JiraGroup -GroupName $testGroupName
+
         It "Creates a group in JIRA and returns a result" {
-            $newResult = New-JiraGroup -GroupName $testGroupName
             $newResult | Should Not BeNullOrEmpty
         }
 
         It "Uses ConvertTo-JiraGroup to beautify output" {
             Assert-MockCalled 'ConvertTo-JiraGroup'
         }
+        #checkPsType $newResult 'PSJira.Group' #does not happen now we've mocked the conversion
 
-        # It "Outputs a PSJira.Group object" {
-        #     $newResult = New-JiraGroup -GroupName $testGroupName
-        #     (Get-Member -InputObject $newResult).TypeName | Should Be 'PSJira.Group'
-        #     $newResult.Name | Should Be $testGroupName
-        #     $newResult.RestUrl | Should Be "$jiraServer/rest/api/2/group?groupname=$testGroupName"
-        # }
     }
 }
 

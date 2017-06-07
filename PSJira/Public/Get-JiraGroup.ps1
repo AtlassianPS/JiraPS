@@ -84,7 +84,7 @@ function Get-JiraGroup
             foreach ($i in $InputObject)
             {
                 Write-Debug "[Get-JiraGroup] Processing InputObject [$i]"
-                if ((Get-Member -InputObject $i).TypeName -eq 'PSJira.Group')
+                if ($i | Test-HasTypeName 'PSJira.Group')
                 {
                     Write-Debug "[Get-JiraGroup] User parameter is a PSJira.Group object"
                     $thisGroupName = $i.Name
