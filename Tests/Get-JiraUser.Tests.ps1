@@ -70,6 +70,28 @@ InModuleScope PSJira {
             ConvertFrom-Json2 -InputObject $restResult
         }
 
+        # Searching for a user; with paging (first call).
+        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername&maxResults=50&startAt=0"} {
+            if ($ShowMockData)
+            {
+                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
+                Write-Host "         [Method] $Method" -ForegroundColor Cyan
+                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+            }
+            ConvertFrom-Json2 -InputObject $restResult
+        }
+
+        # Searching for a user; with paging (second call).
+        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername&maxResults=50&startAt=50"} {
+            if ($ShowMockData)
+            {
+                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
+                Write-Host "         [Method] $Method" -ForegroundColor Cyan
+                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+            }
+            ConvertFrom-Json2 -InputObject $restResult
+        }
+
         # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"} {
             if ($ShowMockData)
