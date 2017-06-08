@@ -28,9 +28,7 @@ function Invoke-JiraMethod
     # TODO: find out why PSJira doesn't need this
     $PSDefaultParameterValues = $global:PSDefaultParameterValues
 
-    $headers = @{
-        'Content-Type' = 'application/json; charset=utf-8';
-    }
+    $headers = @{}
 
     if ($Credential)
     {
@@ -56,6 +54,7 @@ function Invoke-JiraMethod
         Uri             = $Uri
         Headers         = $headers
         Method          = $Method
+        ContentType     = 'application/json; charset=utf-8'
         UseBasicParsing = $true
         ErrorAction     = 'SilentlyContinue'
     }

@@ -48,9 +48,7 @@ function New-JiraSession
 
         $uri = "$server/rest/auth/1/session"
 
-        $headers = @{
-            'Content-Type' = 'application/json';
-        }
+        $headers = @{}
     }
 
     process
@@ -64,18 +62,26 @@ function New-JiraSession
         Write-Debug "[New-JiraSession] Created JSON syntax in variable `$json."
         Write-Debug "[New-JiraSession] Preparing for blastoff!"
 
-        try
-        {
-            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -UseBasicParsing -SessionVariable newSessionVar
+        try {
+            $iwrSplat = @{
+                Uri             = $uri
+                Headers         = $headers
+                Method          = "Post"
+                Body            = $json
+                ContentType     = 'application/json; charset=utf-8'
+                UseBasicParsing = $true
+                SessionVariable = "newSessionVar"
+            }
+            $webResponse = Invoke-WebRequest @iwrSplat
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
 
             Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
-            if ($MyInvocation.MyCommand.Module.PrivateData)
-            {
+            if ($MyInvocation.MyCommand.Module.PrivateData) {
                 Write-Debug "[New-JiraSession] Adding session result to existing module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData.Session = $result;
-            } else {
+            }
+            else {
                 Write-Debug "[New-JiraSession] Creating module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData = @{
                     'Session' = $result;
@@ -90,7 +96,7 @@ function New-JiraSession
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
 
             # Test HEADERS if Jira requires a CAPTCHA
-            $tokenRequiresCaptcha  = "AUTHENTICATION_DENIED"
+            $tokenRequiresCaptcha = "AUTHENTICATION_DENIED"
             $headerRequiresCaptcha = "X-Seraph-LoginReason"
             if (($webResponse.Headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha) {
                 Write-Warning "JIRA requires you to log on to the website before continuing for security reasons."
