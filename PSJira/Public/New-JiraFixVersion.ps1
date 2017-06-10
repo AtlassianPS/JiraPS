@@ -1,17 +1,17 @@
 ﻿function New-JiraFixVersion
 {
     <#
-            .Synopsis
-            Creates a new FixVersion in JIRA
-            .DESCRIPTION
-            This function creates a new FixVersion in JIRA.
-            .EXAMPLE
-            New-JiraFixVersion -FixVersion '1.0.0.0'
-            This example creates a new JIRA FixVersion named '1.0.0.0'.
-            .INPUTS
-            This function does not accept pipeline input.
-            .OUTPUTS
-            [PSJira.FixVersions] The FixVersion field object created
+    .Synopsis
+        Creates a new FixVersion in JIRA
+    .DESCRIPTION
+        This function creates a new FixVersion in JIRA.
+    .EXAMPLE
+        New-JiraFixVersion -FixVersion '1.0.0.0'
+        This example creates a new JIRA FixVersion named '1.0.0.0'.
+    .INPUTS
+        This function does not accept pipeline input.
+    .OUTPUTS
+        [PSJira.FixVersions] The FixVersion field object created
     #>
     [CmdletBinding(DefaultParameterSetName = 'Release')]
     param(
@@ -59,6 +59,9 @@
         }
 
         $restUrl = "$server/rest/api/latest/version"
+        Write-Debug "[New-JiraFixVersion] Rest URL set to [$restUrl]."
+
+        Write-Debug "[New-JiraFixVersion] Completed Begin block."
     }
 
     process
@@ -96,5 +99,10 @@
         {
             Write-Debug -Message '[New-JiraFixVersion] Jira returned no results to output.'
         }
+    }
+
+    end
+    {
+        Write-Debug "[New-JiraFixVersion] Complete"
     }
 }
