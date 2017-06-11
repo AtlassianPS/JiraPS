@@ -62,7 +62,11 @@ function New-JiraIssue
         [Parameter(Mandatory = $false)]
         [String] $Parent,
 
-        # Hashtable (dictionary) with other fields.
+        # Set the FixVersion of the issue
+        [Parameter(Mandatory = $false)]
+        [Alias('FixVersions')]
+        [String[]] $FixVersion,
+
         [Parameter(Mandatory = $false)]
         [Hashtable] $Fields,
 
@@ -139,6 +143,20 @@ function New-JiraIssue
         if ($Labels)
         {
             [void] $props.Add('labels', $Labels)
+        }
+
+        Write-Debug "[New-JiraIssue] Processing FixVersion parameter"
+        If($FixVersion)
+        {
+            $fixVersionHash = @()
+            Foreach($f in $FixVersion)
+            {
+                $fixVersionHash += @{
+                    'name' = $f
+                }
+            }
+            $props.fixVersions = New-Object -TypeName PSObject -Property @{}
+            $props.fixVersions = $fixVersionHash
         }
 
         Write-Debug "[New-JiraIssue] Processing Fields parameter"

@@ -49,7 +49,7 @@ function checkType($obj, $typeName) {
         $o = $obj
     }
 
-    $obj.PSObject.TypeNames[0] | Should Be $typeName
+    $o.PSObject.TypeNames[0] | Should Be $typeName
 }
 
 function checkPsType($obj, $typeName) {
