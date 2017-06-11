@@ -103,39 +103,20 @@ function Get-ParametersDefaultFirst
 	END { }
 }
 
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here        = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $here
-$moduleRoot = "$projectRoot\PSJira"
-
-
-# For tests in .\Tests subdirectory
-if ((Split-Path $moduleRoot -Leaf) -eq 'Tests')
-{
-	$moduleRoot = Split-Path $moduleRoot -Parent
-}
-
-
-# Handles modules in version directories
-$leaf = Split-Path $moduleRoot -Leaf
-$parent = Split-Path $moduleRoot -Parent
-$parsedVersion = $null
-if ([System.Version]::TryParse($leaf, [ref]$parsedVersion))
-{
-	$ModuleName = Split-Path $parent -Leaf
-}
-else
-{
-	$ModuleName = $leaf
-}
+$moduleName  = "PSJira"
+$moduleRoot  = "$projectRoot\$moduleName"
 
 # Removes all versions of the module from the session before importing
-Get-Module $ModuleName | Remove-Module
+Get-Module $moduleName | Remove-Module
 
-# Because ModuleBase includes version number, this imports the required version
-# of the module
-$Module = Import-Module $moduleRoot\$ModuleName.psd1 -PassThru -ErrorAction Stop
-$commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
-
+# Dot source all public functions
+$commands = @()
+Get-ChildItem -Path "$moduleRoot\Public\*.ps1" | ForEach-Object {
+    . $_.FullName
+    $commands += Get-Command ($_.BaseName).Replace(".ps1","")
+}
 
 ## When testing help, remember that help is cached at the beginning of each session.
 ## To test, restart session.
