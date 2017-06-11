@@ -62,11 +62,12 @@ function New-JiraIssue
         [Parameter(Mandatory = $false)]
         [String] $Parent,
 
-        # Set the FixVersion of the issue
+        # Set the FixVersion of the issue.
         [Parameter(Mandatory = $false)]
         [Alias('FixVersions')]
         [String[]] $FixVersion,
 
+        # Any additional fields.
         [Parameter(Mandatory = $false)]
         [Hashtable] $Fields,
 

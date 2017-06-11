@@ -2,34 +2,40 @@ function Get-JiraIssue
 {
     <#
     .Synopsis
-       Returns information about an issue in JIRA.
+        Returns information about an issue in JIRA.
     .DESCRIPTION
-       This function obtains references to issues in JIRA.
+        This function obtains references to issues in JIRA.
 
-       This function can be used to directly query JIRA for a specific issue key or internal issue ID. It can also be used to query JIRA for issues matching a specific criteria using JQL (Jira Query Language).
+        This function can be used to directly query JIRA for a specific issue key or internal issue ID. It can also be used to query JIRA for issues matching a specific criteria using JQL (Jira Query Language).
 
-       For more details on JQL syntax, see this articla from Atlassian: https://confluence.atlassian.com/display/JIRA/Advanced+Searching
+        For more details on JQL syntax, see this articla from Atlassian: https://confluence.atlassian.com/display/JIRA/Advanced+Searching
 
-       Output from this function can be piped to various other functions in this module, including Set-JiraIssue, Add-JiraIssueComment, and Invoke-JiraIssueTransition.
+        Output from this function can be piped to various other functions in this module, including Set-JiraIssue, Add-JiraIssueComment, and Invoke-JiraIssueTransition.
     .EXAMPLE
-       Get-JiraIssue -Key TEST-001
-       This example returns a reference to JIRA issue TEST-001.
+        Get-JiraIssue -Key TEST-001
+        This example returns a reference to JIRA issue TEST-001.
     .EXAMPLE
-       Get-JiraIssue "TEST-002" | Add-JiraIssueComment "Test comment from PowerShell"
-       This example illustrates pipeline use from Get-JiraIssue to Add-JiraIssueComment.
+        Get-JiraIssue "TEST-002" | Add-JiraIssueComment "Test comment from PowerShell"
+        This example illustrates pipeline use from Get-JiraIssue to Add-JiraIssueComment.
     .EXAMPLE
-       Get-JiraIssue -Query 'project = "TEST" AND created >= -5d'
-       This example illustrates using the Query parameter and JQL syntax to query Jira for matching issues.
+        Get-JiraIssue -Query 'project = "TEST" AND created >= -5d'
+        This example illustrates using the Query parameter and JQL syntax to query Jira for matching issues.
+    .EXAMPLE
+        Get-JiraIssue -InputObject $oldIssue
+        This example illustrates how to get an update of an issue from an old result of Get-JiraIssue stored in $oldIssue.
+    .EXAMPLE
+        Get-JiraFilter -Id 12345 | Get-JiraIssue
+        This example retrieves all issues that match the criteria in the saved fiilter with id 12345.
     .INPUTS
-       This function can accept PSJira.Issue objects, Strings, or Objects via the pipeline.
+        This function can accept PSJira.Issue objects, Strings, or Objects via the pipeline.
 
-       * If a PSJira.Issue object is passed, this function returns a new reference to the same issue.
-       * If a String is passed, this function searches for an issue with that issue key or internal ID.
-       * If an Object is passed, this function invokes its ToString() method and treats it as a String.
+        * If a PSJira.Issue object is passed, this function returns a new reference to the same issue.
+        * If a String is passed, this function searches for an issue with that issue key or internal ID.
+        * If an Object is passed, this function invokes its ToString() method and treats it as a String.
     .OUTPUTS
-       This function outputs the PSJira.Issue object retrieved.
+        This function outputs the PSJira.Issue object retrieved.
     .NOTES
-       This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
+        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByIssueKey')]
     param(
