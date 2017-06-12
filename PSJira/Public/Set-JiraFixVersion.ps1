@@ -2,14 +2,14 @@
 {
     <#
     .Synopsis
-       Modifies an existing issue in JIRA
+        Modifies an existing issue in JIRA
     .DESCRIPTION
-       This function modifies the fixversion field for an existing issue in JIRA.  
+        This function modifies the fixversion field for an existing issue in JIRA.  
     .EXAMPLE
-       Set-JiraFixVersion -Issue TEST-01 -FixVersion '1.0.0.0'
-       This example assigns the fixversion 1.0.0.0 to the JIRA issue TEST-01.
+        Set-JiraFixVersion -Issue TEST-01 -FixVersion '1.0.0.0'
+        This example assigns the fixversion 1.0.0.0 to the JIRA issue TEST-01.
     .INPUTS
-       [PSJira.Issue[]] The JIRA issue that should be modified
+        [PSJira.Issue[]] The JIRA issue that should be modified
     .OUTPUTS
         No Output on success
     #>

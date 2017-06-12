@@ -47,21 +47,20 @@
     }
 
     process
-    {    
-        Write-Debug "[Get-JiraFixVersion] Gathering project data for [$Project]."    
+    {
+        Write-Debug "[Get-JiraFixVersion] Gathering project data for [$Project]."
         $ProjectData = Get-JiraProject -Project $Project
-                
+
         $restUrl = "$server/rest/api/2/project/$($projectData.key)/versions"
         Write-Debug "[Get-JiraFixVersion] Rest URL set to $restUrl."
-        
+
         Write-Debug -Message '[Get-JiraFixVersion] Preparing for blastoff!'
         $result = Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
 
         If ($result)
         {
             Write-Output -InputObject $result
-        }
-        Else
+        }Else
         {
             Write-Debug -Message '[Get-JiraFixVersion] Jira returned no results to output.'
         }
