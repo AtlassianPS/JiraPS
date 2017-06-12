@@ -1,4 +1,4 @@
-function ConvertTo-JiraWorklogitem
+function ConvertTo-JiraWorklogItem
 {
     [CmdletBinding()]
     param(

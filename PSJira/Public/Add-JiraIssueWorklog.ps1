@@ -27,12 +27,12 @@ function Add-JiraIssueWorklog
     #>
     [CmdletBinding()]
     param(
-        # Comment that should be added to JIRA
+        # Worklog item that should be added to JIRA
         [Parameter(Mandatory = $true,
                    Position = 0)]
         [String] $Comment,
 
-        # Issue that should be commented upon
+        # Issue to receive the new worklog item
         [Parameter(Mandatory = $true,
                    Position = 1,
                    ValueFromPipeline = $true,
@@ -40,19 +40,19 @@ function Add-JiraIssueWorklog
         [Alias('Key')]
         [Object] $Issue,
 
-        # Time spent to be logged, in seconds
+        # Time spent to be logged
         [Parameter(Mandatory = $true,
                    Position = 2,
                    ValueFromPipeline = $true,
                    ValueFromPipelineByPropertyName = $true)]
-        [Int] $TimeSpent,
+        [TimeSpan] $TimeSpent,
 
         # Date/time started to be logged
         [Parameter(Mandatory = $true,
                    Position = 3,
                    ValueFromPipeline = $true,
                    ValueFromPipelineByPropertyName = $true)]
-        [String] $DateStarted,
+        [DateTime] $DateStarted,
 
         # Visibility of the comment - should it be publicly visible, viewable to only developers, or only administrators?
         [ValidateSet('All Users','Developers','Administrators')]
@@ -71,41 +71,41 @@ function Add-JiraIssueWorklog
 
     process
     {
-#        Write-Debug "[Add-JiraIssueWorklog] Checking Issue parameter"
-#        if ($Issue.PSObject.TypeNames[0] -eq 'PSJira.Issue')
-#        {
-#            Write-Debug "[Add-JiraIssueWorklog] Issue parameter is a PSJira.Issue object"
-#            $issueObj = $Issue
-#        } else {
-#            $issueKey = $Issue.ToString()
-#            Write-Debug "[Add-JiraIssueWorklog] Issue key is assumed to be [$issueKey] via ToString()"
-#            Write-Verbose "Searching for issue [$issueKey]"
-#            try
-#            {
-#                $issueObj = Get-JiraIssue -Key $issueKey -Credential $Credential
-#            } catch {
-#                $err = $_
-#                Write-Debug 'Encountered an error searching for Jira issue. An exception will be thrown.'
-#                throw $err
-#            }
-#        }
-#
-#        if (-not $issueObj)
-#        {
-#            Write-Debug "[Add-JiraIssueWorklog] No Jira issues were found for parameter [$Issue]. An exception will be thrown."
-#            throw "Unable to identify Jira issue [$Issue]. Does this issue exist?"
-#        }
+        Write-Debug "[Add-JiraIssueWorklog] Checking Issue parameter"
+        if ($Issue.PSObject.TypeNames[0] -eq 'PSJira.Issue')
+        {
+            Write-Debug "[Add-JiraIssueWorklog] Issue parameter is a PSJira.Issue object"
+            $issueObj = $Issue
+        } else {
+            $issueKey = $Issue.ToString()
+            Write-Debug "[Add-JiraIssueWorklog] Issue key is assumed to be [$issueKey] via ToString()"
+            Write-Verbose "Searching for issue [$issueKey]"
+            try
+            {
+                $issueObj = Get-JiraIssue -Key $issueKey -Credential $Credential
+            } catch {
+                $err = $_
+                Write-Debug 'Encountered an error searching for Jira issue. An exception will be thrown.'
+                throw $err
+            }
+        }
 
-        Write-Debug "[Add-JiraIssueWorklog] Obtaining a reference to Jira issue [$Issue]"
-        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
+        if (-not $issueObj)
+        {
+            Write-Debug "[Add-JiraIssueWorklog] No Jira issues were found for parameter [$Issue]. An exception will be thrown."
+            throw "Unable to identify Jira issue [$Issue]. Does this issue exist?"
+        }
+
+        #Write-Debug "[Add-JiraIssueWorklog] Obtaining a reference to Jira issue [$Issue]"
+        #$issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
         $url = "$($issueObj.RestURL)/worklog"
 
         Write-Debug "[Add-JiraIssueWorklog] Creating request body from comment"
         $props = @{
             'comment' = $Comment;
-            'started' = $DateStarted;
-            'timeSpent' = $TimeSpent
+            'started' = $DateStarted.ToString();
+            'timeSpent' = $TimeSpent.TotalSeconds.ToString();
         }
 
 

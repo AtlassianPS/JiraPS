@@ -58,11 +58,13 @@ InModuleScope PSJira {
         }
 
         Mock Get-JiraIssue -ModuleName PSJira {
-            [PSCustomObject] @{
+            $result = [PSCustomObject] @{
                 ID = $issueID;
                 Key = $issueKey;
                 RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
             }
+            $result.PSObject.TypeNames.Insert(0, 'PSJira.Issue')
+            Write-Output $result
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
@@ -90,9 +92,10 @@ InModuleScope PSJira {
         # Tests
         #############
 
-        It "Adds a comment to an issue in JIRA" {
+        It "Adds a worklog item to an issue in JIRA" {
             $commentResult = Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent 3600 -DateStarted "2018-01-01"
-            $commentResult | Should Not BeNullOrEmpty
+            # BeNullOrEmpty test doesn't work on the PSJira.WorklogItem passed to it, so let's test a required property instead
+            $commentResult.ID | Should Not BeNullOrEmpty
 
             # Get-JiraIssue should be used to identify the issue parameter
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
@@ -102,17 +105,12 @@ InModuleScope PSJira {
         }
 
         It "Accepts pipeline input from Get-JiraIssue" {
-            $commentResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueWorklog -Comment 'This is a test comment from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
-            $commentResult | Should Not BeNullOrEmpty
+            $commentResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueWorklog -Comment 'This is a test worklog item from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
+            $commentResult.ID | Should Not BeNullOrEmpty
 
-            # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWorklog (to identify the InputObject parameter)
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 2 -Scope It
+            # Get-JiraIssue should be called once here to fetch the initial test issue
+            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
-        }
-
-        It "Outputs the comment as a PSJira.Worklogitem object" {
-            $commentResult = Add-JiraIssueWorklog -Comment 'This is a test comment from Pester.' -Issue $issueKey -TimeSpent "3600" -DateStarted "2018-01-01"
-            (Get-Member -InputObject $commentResult).TypeName | Should Be 'PSJira.Worklogitem'
         }
     }
 }
