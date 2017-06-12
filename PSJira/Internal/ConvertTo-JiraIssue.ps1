@@ -50,7 +50,6 @@ function ConvertTo-JiraIssue
                 $http = "${server}browse/$($i.key)"
 
                 #                Write-Debug "[ConvertTo-JiraIssue] Defining standard properties"
-$global:foo = $i.fields.issuelinks | Out-Default
                 $props = @{
                     'Key'         = $i.key;
                     'ID'          = $i.id;
