@@ -42,6 +42,10 @@ function New-JiraSession
             throw $err
         }
 
+        # load DefaultParameters for Invoke-WebRequest
+        # as the global PSDefaultParameterValues is not used
+        $PSDefaultParameterValues = $global:PSDefaultParameterValues
+
         $uri = "$server/rest/auth/1/session"
 
         $headers = @{
@@ -84,6 +88,13 @@ function New-JiraSession
             $err = $_
             $webResponse = $err.Exception.Response
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
+
+            # Test HEADERS if Jira requires a CAPTCHA
+            $tokenRequiresCaptcha  = "AUTHENTICATION_DENIED"
+            $headerRequiresCaptcha = "X-Seraph-LoginReason"
+            if (($webResponse.Headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha) {
+                Write-Warning "JIRA requires you to log on to the website before continuing for security reasons."
+            }
 
             Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
 
