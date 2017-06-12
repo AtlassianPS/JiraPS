@@ -47,6 +47,7 @@ InModuleScope PSJira {
 
             defParam $command 'Issue'
             defParam $command 'IssueLink'
+            defParam $command 'Comment'
             defParam $command 'Credential'
         }
 

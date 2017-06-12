@@ -31,6 +31,9 @@ function Add-JiraIssueLink {
         [Parameter(Mandatory = $true)]
         [Object[]] $IssueLink,
 
+        # Write a comment to the issue
+        [String] $Comment,
+
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential<#,
@@ -85,6 +88,7 @@ function Add-JiraIssueLink {
                     inwardIssue  = $inwardIssue
                     outwardIssue = $outwardIssue
                 }
+                if ($Comment) {$body["comment"] = [PSCustomObject]@{body = $Comment}}
                 $json = ConvertTo-Json $body
 
                 $null = Invoke-JiraMethod -Method POST -URI $issueLinkURL -Body $json -Credential $Credential
