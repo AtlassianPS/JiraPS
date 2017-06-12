@@ -1,51 +1,37 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
 
-    $ShowMockData = $false
-    $ShowDebugText = $false
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
+
+    $jiraServer = 'http://jiraserver.example.com'
 
     Describe 'Get-JiraIssueLinkType' {
-        Mock Get-JiraConfigServer { 'https://jira.example.com' }
-
-        if ($ShowDebugText)
-        {
-            Mock 'Write-Debug' {
-                Write-Host "[DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
-        function ShowMockInfo($functionName, [String[]] $params) {
-            if ($ShowMockData)
-            {
-                Write-Host "       Mocked $functionName" -ForegroundColor Cyan
-                foreach ($p in $params) {
-                    Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly)" -ForegroundColor Cyan
-                }
-            }
+        
+        Mock Get-JiraConfigServer -ModuleName PSJira {
+            Write-Output $jiraServer
         }
 
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraIssueLinkType
 
-            function defParam($name)
-            {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
-            defParam 'LinkType'
-            defParam 'Credential'
+            defParam $command 'LinkType'
+            defParam $command 'Credential'
         }
 
-        $filterAll = {$Method -eq 'Get' -and $Uri -ceq 'https://jira.example.com/rest/api/latest/issueLinkType'}
-        $filterOne = {$Method -eq 'Get' -and $Uri -ceq 'https://jira.example.com/rest/api/latest/issueLinkType/10000'}
+        $filterAll = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType"}
+        $filterOne = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType/10000"}
+
+        # Generic catch-all. This will throw an exception if we forgot to mock something.
+        Mock Invoke-JiraMethod -ModuleName PSJira {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
+        }
 
         Mock Invoke-JiraMethod -ParameterFilter $filterAll {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method','Uri'
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             [PSCustomObject] @{
                 issueLinkTypes = @(
                     # We don't care what data actually comes back here
@@ -55,17 +41,12 @@ InModuleScope PSJira {
         }
 
         Mock Invoke-JiraMethod -ParameterFilter $filterOne {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method','Uri'
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             [PSCustomObject] @{
                 issueLinkTypes = @(
                     'bar'
                 )
             }
-        }
-
-        Mock Invoke-JiraMethod {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method','Uri'
-            throw "Unhandled call to Invoke-JiraMethod"
         }
 
         Context "Behavior testing - returning all link types" {
@@ -76,7 +57,7 @@ InModuleScope PSJira {
                 # We also don't care what comes out of here - this function has its own tests
                 [PSCustomObject] @{
                     PSTypeName = 'PSJira.IssueLinkType'
-                    foo = 'bar'
+                    foo        = 'bar'
                 }
             }
 
@@ -93,12 +74,6 @@ InModuleScope PSJira {
             It 'Uses the helper method ConvertTo-JiraIssueLinkType to process output' {
                 Assert-MockCalled -CommandName ConvertTo-JiraIssueLinkType -ParameterFilter {$InputObject -contains 'foo'} -Exactly -Times 1 -Scope Context
             }
-
-            It 'Outputs PSJira.IssueLinkType objects' {
-                $output | Should Not BeNullOrEmpty
-                ($output | Get-Member).TypeName | Should Be 'PSJira.IssueLinkType'
-                $output.foo | Should Be 'bar'
-            }
         }
 
         Context "Behavior testing - returning one link type" {
@@ -108,8 +83,8 @@ InModuleScope PSJira {
                 # We also don't care what comes out of here - this function has its own tests
                 [PSCustomObject] @{
                     PSTypeName = 'PSJira.IssueLinkType'
-                    Name = 'myLink'
-                    ID   = 5
+                    Name       = 'myLink'
+                    ID         = 5
                 }
             }
 
