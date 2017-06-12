@@ -12,8 +12,8 @@ function Add-JiraIssueLink {
         Add-JiraIssueLink -Issue TEST-01 -IssueLink $link
         Creates a link "is part of" between TEST-01 and TEST-10
     .INPUTS
-        [PSJira.Issue[]] The JIRA issue that should be modified
-        [PSJira.Issue[]] The JIRA issue that should be modified
+        [PSJira.Issue[]] The JIRA issue that should be linked
+        [PSJira.IssueLink[]] The JIRA issue link that should be used
     #>
     [CmdletBinding()]
     param(
