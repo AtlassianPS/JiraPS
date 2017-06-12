@@ -65,7 +65,7 @@ function ConvertTo-JiraWorklogItem
             if ($i.timeSpentSeconds)
             {
                 $props.TimeSpentSeconds = $i.timeSpentSeconds
-            }            
+            }
 
 #            Write-Debug "[ConvertTo-JiraWorklogitem] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
@@ -75,7 +75,7 @@ function ConvertTo-JiraWorklogItem
 
 #            Write-Debug "[ConvertTo-JiraWorklogitem] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Body)"
+                Write-Output "$($this.Id)"
             }
 
 #            Write-Debug "[ConvertTo-JiraWorklogitem] Outputting object"
