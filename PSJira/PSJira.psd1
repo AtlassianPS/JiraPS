@@ -7,6 +7,7 @@
 #
 
 @{
+
 # Script module or binary module file associated with this manifest.
 RootModule = 'PSJira.psm1'
 
@@ -68,18 +69,7 @@ FormatsToProcess = 'PSJira.format.ps1xml'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-
-FunctionsToExport = 'Add-JiraGroupMember', 'Add-JiraIssueComment', 'Get-JiraComponent', 'Format-Jira',
-               'Get-JiraConfigServer', 'Get-JiraField', 'Get-JiraFilter',
-               'Get-JiraGroup', 'Get-JiraGroupMember', 'Get-JiraIssue',
-               'Get-JiraIssueComment', 'Get-JiraIssueCreateMetadata', 'Get-JiraIssueEditMetadata',
-               'Get-JiraIssueType', 'Get-JiraPriority', 'Get-JiraProject',
-               'Get-JiraSession', 'Get-JiraUser', 'Invoke-JiraIssueTransition',
-               'New-JiraGroup', 'New-JiraIssue', 'New-JiraSession', 'New-JiraUser',
-               'Remove-JiraGroup', 'Remove-JiraGroupMember', 'Remove-JiraSession',
-               'Remove-JiraUser', 'Set-JiraConfigServer', 'Set-JiraIssue',
-               'Set-JiraIssueLabel', 'Set-JiraUser', 'New-JiraFixVersion', 'Get-JiraFixVersion', 
-               'Set-JiraFixVersion', 'Remove-JiraFixVersion'
+FunctionsToExport = '*'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -101,7 +91,9 @@ AliasesToExport = @()
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
+
     PSData = @{
+
         # Tags applied to this module. These help with module discovery in online galleries.
         Tags = 'JIRA'
 
@@ -119,7 +111,9 @@ PrivateData = @{
 
         # External dependent modules of this module
         # ExternalModuleDependencies = ''
+
     } # End of PSData hashtable
+
  } # End of PrivateData hashtable
 
 # HelpInfo URI of this module
@@ -127,4 +121,6 @@ PrivateData = @{
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 # DefaultCommandPrefix = ''
+
 }
+
