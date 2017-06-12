@@ -60,7 +60,6 @@
         {
             $issue = Get-JiraIssue -Key $i
             $RemainingFixVersions = $Issue.fixVersions | Where-Object {$PSItem.Name -NE $FixVersion}
-            
             Write-Debug "[Set-JiraFixVersion] Calling [ Set-JiraIssue -Issue $i -FixVersion $FixVersion ]."
             Set-JiraIssue -Issue $i -FixVersion $RemainingFixVersions.name
         }
