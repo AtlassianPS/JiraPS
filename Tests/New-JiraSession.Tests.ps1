@@ -12,7 +12,7 @@ InModuleScope PSJira {
     . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
-    $authUri = "$jiraServer/rest/auth/1/session"
+    $authUri = "$jiraServer/rest/api/2/mypermissions"
     $jSessionId = '76449957D8C863BE8D4F6F5507E980E8'
 
     $testUsername = 'powershell-test'
@@ -40,10 +40,10 @@ InModuleScope PSJira {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'POST'} {
+        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'GET'} {
             if ($showMockData)
             {
-                Write-Host "       Mocked Invoke-WebRequest with POST method" -ForegroundColor Cyan
+                Write-Host "       Mocked Invoke-WebRequest with GET method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]            $URI" -ForegroundColor Cyan
             }

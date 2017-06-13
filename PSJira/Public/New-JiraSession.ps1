@@ -1,5 +1,4 @@
-function New-JiraSession
-{
+function New-JiraSession {
     <#
     .Synopsis
        Creates a persistent JIRA authenticated session which can be used by other PSJira functions
@@ -26,14 +25,12 @@ function New-JiraSession
     param(
         # Credentials to use for the persistent session
         [Parameter(Mandatory = $true,
-                   Position = 0)]
+            Position = 0)]
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
-        try
-        {
+    begin {
+        try {
             Write-Debug "[New-JiraSession] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         } catch {
@@ -42,37 +39,26 @@ function New-JiraSession
             throw $err
         }
 
+        $uri = "$server/rest/api/2/mypermissions"
+
         # load DefaultParameters for Invoke-WebRequest
         # as the global PSDefaultParameterValues is not used
         $PSDefaultParameterValues = $global:PSDefaultParameterValues
 
-        $uri = "$server/rest/auth/1/session"
+        [String] $Username = $Credential.UserName
+        $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${Username}:$($Credential.GetNetworkCredential().Password)"))
 
-        $headers = @{}
+        $headers = @{
+            'Content-Type'  = 'application/json'
+            'Authorization' = "Basic $token"
+        }
     }
 
-    process
-    {
-        $hashtable = @{
-            'username' = $Credential.UserName;
-            'password' = $Credential.GetNetworkCredential().Password;
-        }
-        $json = ConvertTo-Json -InputObject $hashtable
-
-        Write-Debug "[New-JiraSession] Created JSON syntax in variable `$json."
-        Write-Debug "[New-JiraSession] Preparing for blastoff!"
-
+    process {
         try {
-            $iwrSplat = @{
-                Uri             = $uri
-                Headers         = $headers
-                Method          = "Post"
-                Body            = $json
-                ContentType     = 'application/json; charset=utf-8'
-                UseBasicParsing = $true
-                SessionVariable = "newSessionVar"
-            }
-            $webResponse = Invoke-WebRequest @iwrSplat
+            Write-Debug "[New-JiraSession] Preparing for blastoff!"
+            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Get -Body $json -UseBasicParsing -SessionVariable newSessionVar
+
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
 
@@ -110,6 +96,10 @@ function New-JiraSession
             $body = $readStream.ReadToEnd()
             $readStream.Close()
             Write-Debug "Retrieved body of HTTP response for more information about the error (`$body)"
+
+            # Clear the body in case it is not a JSON (but rather html)
+            if ($body -match "^[\s\t]*\<html\>") { $body = "" }
+
             $result = ConvertFrom-Json2 -InputObject $body
             Write-Debug "Converted body from JSON into PSCustomObject (`$result)"
         }
