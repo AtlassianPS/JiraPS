@@ -3,42 +3,54 @@
     <#
     .Synopsis
         Creates a new FixVersion in JIRA
-    .DESCRIPTION
-        This function creates a new FixVersion in JIRA.
-    .EXAMPLE
+     .DESCRIPTION
+         This function creates a new FixVersion in JIRA.
+     .EXAMPLE
         New-JiraFixVersion -FixVersion '1.0.0.0'
         This example creates a new JIRA FixVersion named '1.0.0.0'.
-    .INPUTS
-        This function does not accept pipeline input.
-    .OUTPUTS
+        New-JiraFixVersion -FixVersion '1.0.0.0' -Project TEST
+        This example creates a new JIRA FixVersion named '1.0.0.0' in Project TEST.
+    .EXAMPLE
+        New-JiraFixVersion -FixVersion '1.0.0.0' -Project TEST -ReleaseDate "2000-12-31"
+        Create a new Version in Project TEST with a set release date.
+     .INPUTS
+         This function does not accept pipeline input.
+     .OUTPUTS
         [PSJira.FixVersions] The FixVersion field object created
     #>
     [CmdletBinding(DefaultParameterSetName = 'Release')]
     param(
+        # Name of the version to create.
         [Parameter(Mandatory = $true,
-        Position = 0)]
+            Position = 0)]
         [Alias('FixVersions')]
         [String] $FixVersion,
 
-        [Parameter(Mandatory = $true)]
+        # Description of the version.
+        [Parameter(Mandatory = $false)]
         [String] $Description,
 
+        # Create the version as archived.
         [Parameter()]
         [switch] $Archived,
 
+        # Create the version as released.
         [Parameter()]
         [switch] $Released,
 
+        # Date of the release.
         [Parameter(ParameterSetName = 'Release')]
         [String] $ReleaseDate,
 
+        # Date of the user release.
         [Parameter(ParameterSetName = 'UserRelease')]
         [String] $UserReleaseDate,
 
-        # Project Key
+        # Key of the Project in which to create the version.
         [Parameter(Mandatory = $true)]
         [String] $Project,
 
+        # Credentials to use to connect to Jira.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
