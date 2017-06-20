@@ -1,4 +1,4 @@
-﻿function Get-JiraIssueWatchers
+﻿function Get-JiraIssueWatcher
 {
     <#
     .Synopsis
@@ -6,10 +6,10 @@
     .DESCRIPTION
        This function obtains watchers from existing issues in JIRA.
     .EXAMPLE
-       Get-JiraIssueWatchers -Key TEST-001
+       Get-JiraIssueWatcher -Key TEST-001
        This example returns all watchers posted to issue TEST-001.
     .EXAMPLE
-       Get-JiraIssue TEST-002 | Get-JiraIssueWatchers
+       Get-JiraIssue TEST-002 | Get-JiraIssueWatcher
        This example illustrates use of the pipeline to return all watchers on issue TEST-002.
     .INPUTS
        This function can accept PSJira.Issue objects, Strings, or Objects via the pipeline.  It uses Get-JiraIssue to identify the issue parameter; see its Inputs section for details on how this function handles inputs.
@@ -71,6 +71,6 @@
 
     end
     {
-        Write-Debug "Completed Get-JiraIssueWatchers"
+        Write-Debug "Completed Get-JiraIssueWatcher"
     }
 }
