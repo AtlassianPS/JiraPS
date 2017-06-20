@@ -71,8 +71,8 @@ function Get-JiraIssueEditMetadata
                 throw "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
             }
 
-            $projectId = $jiraResult.projects.id
-            $projectKey = $jiraResult.projects.key
+            # $projectId = $jiraResult.projects.id
+            # $projectKey = $jiraResult.projects.key
 
             Write-Debug "[Get-JiraIssueEditMetadata] Identified project key: [$Project]"
 

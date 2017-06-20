@@ -36,8 +36,8 @@ function ConvertTo-JiraPriority
                     Write-Output $result
                 }
             } else {
-                $server = ($InputObject.self -split 'rest')[0]
-                $http = "${server}browse/$($i.key)"
+                # $server = ($InputObject.self -split 'rest')[0]
+                # $http = "${server}browse/$($i.key)"
 
 #                Write-Debug "[ConvertTo-JiraPriority] Defining standard properties"
                 $props = @{

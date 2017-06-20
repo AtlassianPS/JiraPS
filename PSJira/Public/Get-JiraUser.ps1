@@ -58,7 +58,7 @@ function Get-JiraUser
             $userSearchUrl = "$userSearchUrl&includeInactive=true"
         }
 
-        $userGetUrl = "$server/rest/api/latest/user?username={0}&expand=groups"
+        # $userGetUrl = "$server/rest/api/latest/user?username={0}&expand=groups"
     }
 
     process
