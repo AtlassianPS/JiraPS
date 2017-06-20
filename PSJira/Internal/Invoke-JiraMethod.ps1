@@ -23,9 +23,12 @@ function Invoke-JiraMethod
 #        [Object] $Session
     )
 
-    $headers = @{
-        'Content-Type' = 'application/json; charset=utf-8';
-    }
+    # load DefaultParameters for Invoke-WebRequest
+    # as the global PSDefaultParameterValues is not used
+    # TODO: find out why PSJira doesn't need this
+    $PSDefaultParameterValues = $global:PSDefaultParameterValues
+
+    $headers = @{}
 
     if ($Credential)
     {
@@ -51,6 +54,7 @@ function Invoke-JiraMethod
         Uri             = $Uri
         Headers         = $headers
         Method          = $Method
+        ContentType     = 'application/json; charset=utf-8'
         UseBasicParsing = $true
         ErrorAction     = 'SilentlyContinue'
     }

@@ -120,7 +120,7 @@ function ConvertTo-JiraIssue
                     }
                 }
 
-#                Write-Debug "[ConvertTo-JiraIssue] Checking for any additional fields"
+#               Write-Debug "[ConvertTo-JiraIssue] Checking for any additional fields"
                 $extraFields = $i.fields.PSObject.Properties | Where-Object -FilterScript { $_.Name -notin $props.Keys }
                 foreach ($f in $extraFields)
                 {
