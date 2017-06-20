@@ -40,29 +40,37 @@ function Get-JiraIssueAttachment
 
     process
     {
-        Write-Debug "Obtaining a reference to Jira issue [$Issue]"
-        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
+        # Validate input object
+        if (
+            # from Pipeline
+            (($_) -and ($_.PSObject.TypeNames[0] -ne "PSJira.Issue")) -or
+            # by parameter
+            ($Issue.PSObject.TypeNames[0] -ne "PSJira.Issue") -and (($Issue -isnot [String]))
+        ) {
+            $message = "Wrong object type provided for Issue. Was $($Issue.Gettype().Name)"
+            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
+            Throw $exception
+        }
 
-        $url = "$($issueObj.RestURL)/comment"
+        # As we are not able to use proper type casting in the parameters, this is a workaround
+        # to extract the data from a PSJira.Issue object
+        Write-Debug "[Add-JiraAttachment] Obtaining a reference to Jira issue [$Issue]"
+        if ($Issue.PSObject.TypeNames[0] -eq "PSJira.Issue" -and $Issue.RestURL) {
+            $issueObj = $Issue
+        }
+        else {
+            $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential -ErrorAction Stop
+        }
 
-        Write-Debug "Preparing for blastoff!"
-        $result = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
-
-        if ($result)
+        if ($issueObj.attachment)
         {
-            if ($result.comments)
-            {
-                Write-Debug "Converting result to Jira comment objects"
-                $obj = ConvertTo-JiraComment -InputObject $result.comments
-
-                Write-Debug "Outputting results"
-                Write-Output $obj
-            } else {
-                Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
-                Write-Output $result
-            }
+            Write-Debug "Converting result to Jira comment objects"
+            $obj = ConvertTo-JiraAttachment -InputObject $issueObj.attachment
+            Write-Debug "Outputting results"
+            return $obj
         } else {
-            Write-Debug "Invoke-JiraMethod returned no results to output."
+            Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
+            Write-Output $result
         }
     }
 
