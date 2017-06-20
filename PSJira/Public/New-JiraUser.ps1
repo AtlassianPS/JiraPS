@@ -22,7 +22,7 @@ function New-JiraUser
     .OUTPUTS
        [PSJira.User] The user object created
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         # Name of user.
         [Parameter(Mandatory = $true)]
@@ -87,8 +87,11 @@ function New-JiraUser
         Write-Debug "[New-JiraUser] Converting to JSON"
         $json = ConvertTo-Json -InputObject $props
 
-        Write-Debug "[New-JiraUser] Preparing for blastoff!"
-        $result = Invoke-JiraMethod -Method Post -URI $userURL -Body $json -Credential $Credential
+        Write-Debug "[New-JiraUser] Checking for -WhatIf and Confirm"
+        if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {
+            Write-Debug "[New-JiraUser] Preparing for blastoff!"
+            $result = Invoke-JiraMethod -Method Post -URI $userURL -Body $json -Credential $Credential
+        }
 
         if ($result)
         {

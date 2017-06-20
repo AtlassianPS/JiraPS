@@ -13,7 +13,7 @@
     .OUTPUTS
        [PSJira.Group] The user object created
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         # Name for the new group.
         [Parameter(Mandatory = $true,
@@ -54,16 +54,16 @@
         Write-Debug "[New-JiraGroup] Converting to JSON"
         $json = ConvertTo-Json -InputObject $props
 
-        Write-Debug "[New-JiraGroup] Preparing for blastoff!"
-        $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
-
-        if ($result)
-        {
+        Write-Debug "[New-JiraGroup] Checking for -WhatIf and Confirm"
+        if ($PSCmdlet.ShouldProcess($GroupName, "Creating group [$GroupName] to JIRA")) {
+            Write-Debug "[New-JiraGroup] Preparing for blastoff!"
+            $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
+        }
+        if ($result) {
             Write-Debug "[New-JiraGroup] Converting output object into a Jira user and outputting"
             ConvertTo-JiraGroup -InputObject $result
         }
-        else
-        {
+        else {
             Write-Debug "[New-JiraGroup] Jira returned no results to output."
         }
     }

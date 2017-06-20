@@ -27,7 +27,7 @@ function New-JiraIssue
     .OUTPUTS
        [PSJira.Issue] The issue created in JIRA.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         # Project in which to create the issue.
         [Parameter(Mandatory = $true)]
@@ -219,8 +219,11 @@ function New-JiraIssue
         Write-Debug "[New-JiraIssue] Converting to JSON"
         $json = ConvertTo-Json -InputObject $hashtable -Depth 3
 
-        Write-Debug "[New-JiraIssue] Preparing for blastoff!"
-        $result = Invoke-JiraMethod -Method Post -URI $issueURL -Body $json -Credential $Credential
+        Write-Debug "[New-JiraIssue] Checking for -WhatIf and Confirm"
+        if ($PSCmdlet.ShouldProcess($Summary, "Creating new Issue on JIRA")) {
+            Write-Debug "[New-JiraIssue] Preparing for blastoff!"
+            $result = Invoke-JiraMethod -Method Post -URI $issueURL -Body $json -Credential $Credential
+        }
 
         if ($result)
         {

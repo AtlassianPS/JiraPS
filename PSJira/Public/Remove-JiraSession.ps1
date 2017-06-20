@@ -1,5 +1,4 @@
-function Remove-JiraSession
-{
+function Remove-JiraSession {
     <#
     .Synopsis
        Removes a persistent JIRA authenticated session
@@ -27,7 +26,8 @@ function Remove-JiraSession
     .OUTPUTS
        [PSJira.Session] An object representing the Jira session
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $false)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # A Jira session to be closed. If not specified, this function will use a saved session.
         [Parameter(Mandatory = $false,
@@ -36,14 +36,11 @@ function Remove-JiraSession
         [Object] $Session
     )
 
-    begin
-    {
-        try
-        {
+    begin {
+        try {
             Write-Debug "[Remove-JiraSession] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch
-        {
+        } catch {
             $err = $_
             Write-Debug "[Remove-JiraSession] Encountered an error reading configuration data."
             throw $err
@@ -56,43 +53,34 @@ function Remove-JiraSession
         }
     }
 
-    process
-    {
-        if ($Session)
-        {
+    process {
+        if ($Session) {
             Write-Debug "[Remove-JiraSession] Validating Session parameter"
-            if ((Get-Member -InputObject $Session).TypeName -eq 'PSJira.Session')
-            {
+            if ((Get-Member -InputObject $Session).TypeName -eq 'PSJira.Session') {
                 Write-Debug "[Remove-JiraSession] Successfully parsed Session parameter as a PSJira.Session object"
             }
-            else
-            {
+            else {
                 Write-Debug "[Remove-JiraSession] Session parameter is not a PSJira.Session object. Throwing exception"
                 throw "Unable to parse parameter [$Session] as a PSJira.Session object"
             }
         }
-        else
-        {
+        else {
             Write-Debug "[Remove-JiraSession] Session parameter was not supplied. Checking for saved session in module PrivateData"
             $Session = Get-JiraSession
         }
 
-        if ($Session)
-        {
+        if ($Session) {
             Write-Debug "[Remove-JiraSession] Preparing for blastoff!"
 
-            try
-            {
+            try {
                 $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Delete -WebSession $Session.WebSession
 
                 Write-Debug "[Remove-JiraSession] Removing session from module's PrivateData"
-                if ($MyInvocation.MyCommand.Module.PrivateData)
-                {
+                if ($MyInvocation.MyCommand.Module.PrivateData) {
                     Write-Debug "[Remove-JiraSession] Removing session from existing module PrivateData"
                     $MyInvocation.MyCommand.Module.PrivateData.Session = $null;
                 }
-                else
-                {
+                else {
                     Write-Debug "[Remove-JiraSession] Creating module PrivateData"
                     $MyInvocation.MyCommand.Module.PrivateData = @{
                         'Session' = $null;
@@ -112,12 +100,10 @@ function Remove-JiraSession
                 $body = $readStream.ReadToEnd()
                 $readStream.Close()
                 Write-Debug "Retrieved body of HTTP response for more information about the error (`$body)"
-                $result = ConvertFrom-Json2 -InputObject $body
-                Write-Debug "Converted body from JSON into PSCustomObject (`$result)"
+                ConvertFrom-Json2 -InputObject $body
             }
         }
-        else
-        {
+        else {
             Write-Verbose "No Jira session is saved."
         }
     }

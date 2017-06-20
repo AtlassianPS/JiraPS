@@ -1,5 +1,4 @@
-function New-JiraSession
-{
+function New-JiraSession {
     <#
     .Synopsis
        Creates a persistent JIRA authenticated session which can be used by other PSJira functions
@@ -22,7 +21,8 @@ function New-JiraSession
     .OUTPUTS
        [PSJira.Session] An object representing the Jira session
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $false)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # Credentials to use to connect to JIRA.
         [Parameter(Mandatory = $true,
@@ -30,14 +30,11 @@ function New-JiraSession
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
-        try
-        {
+    begin {
+        try {
             Write-Debug "[New-JiraSession] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch
-        {
+        } catch {
             $err = $_
             Write-Debug "[New-JiraSession] Encountered an error reading configuration data."
             throw $err
@@ -54,8 +51,7 @@ function New-JiraSession
         }
     }
 
-    process
-    {
+    process {
         $hashtable = @{
             'username' = $Credential.UserName;
             'password' = $Credential.GetNetworkCredential().Password;
@@ -65,8 +61,7 @@ function New-JiraSession
         Write-Debug "[New-JiraSession] Created JSON syntax in variable `$json."
         Write-Debug "[New-JiraSession] Preparing for blastoff!"
 
-        try
-        {
+        try {
             $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Post -Body $json -UseBasicParsing -SessionVariable newSessionVar
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
@@ -77,8 +72,7 @@ function New-JiraSession
                 Write-Debug "[New-JiraSession] Adding session result to existing module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData.Session = $result;
             }
-            else
-            {
+            else {
                 Write-Debug "[New-JiraSession] Creating module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData = @{
                     'Session' = $result;
@@ -87,14 +81,13 @@ function New-JiraSession
 
             Write-Debug "[New-JiraSession] Outputting result"
             Write-Output $result
-        } catch
-        {
+        } catch {
             $err = $_
             $webResponse = $err.Exception.Response
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
 
             # Test HEADERS if Jira requires a CAPTCHA
-            $tokenRequiresCaptcha  = "AUTHENTICATION_DENIED"
+            $tokenRequiresCaptcha = "AUTHENTICATION_DENIED"
             $headerRequiresCaptcha = "X-Seraph-LoginReason"
             if (($webResponse.Headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha) {
                 Write-Warning "JIRA requires you to log on to the website before continuing for security reasons."
