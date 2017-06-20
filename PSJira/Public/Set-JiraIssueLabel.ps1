@@ -104,7 +104,7 @@
                     Write-Debug "[Set-JiraIssueLabel] Set parameter was used; existing labels will be overwritten"
                     $newLabels = $Set
                 }
-                elseif ($currentLabels -eq $null -or $currentLabels.Count -eq 0)
+                elseif ($null -eq $currentLabels -or $currentLabels.Count -eq 0)
                 {
                     Write-Debug "[Set-JiraIssueLabel] Issue currently has no labels"
                     if ($Add)
