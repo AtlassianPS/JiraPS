@@ -1,10 +1,10 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
-. "$here\$sut"
+﻿. $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
 
-    $ShowMockData = $false
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
     $issueID = 41701
@@ -25,19 +25,12 @@ InModuleScope PSJira {
         }
 
         Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers?username=fred"} {
-            if ($ShowMockData)
-            {
-                Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri', 'Method'
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName PSJira {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri', 'Method'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
@@ -45,24 +38,35 @@ InModuleScope PSJira {
         # Tests
         #############
 
-        It "Removes a Watcher from an issue in JIRA" {
-            $WatcherResult = Remove-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
-            $WatcherResult | Should BeNullOrEmpty
+        Context "Sanity checking" {
+            $command = Get-Command -Name Remove-JiraIssueWatcher
 
-            # Get-JiraIssue should be used to identiyf the issue parameter
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
-
-            # Invoke-JiraMethod should be used to add the Watcher
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            defParam $command 'Watcher'
+            defParam $command 'Issue'
+            defParam $command 'Credential'
         }
 
-        It "Accepts pipeline input from Get-JiraIssue" {
-            $WatcherResult = Get-JiraIssue -InputObject $issueKey | Remove-JiraIssueWatcher -Watcher 'fred'
-            $WatcherResult | Should BeNullOrEmpty
+        Context "Behavior testing" {
 
-            # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
+            It "Removes a Watcher from an issue in JIRA" {
+                $WatcherResult = Remove-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
+                $WatcherResult | Should BeNullOrEmpty
+
+                # Get-JiraIssue should be used to identiyf the issue parameter
+                Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
+
+                # Invoke-JiraMethod should be used to add the Watcher
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            }
+
+            It "Accepts pipeline input from Get-JiraIssue" {
+                $WatcherResult = Get-JiraIssue -InputObject $issueKey | Remove-JiraIssueWatcher -Watcher 'fred'
+                $WatcherResult | Should BeNullOrEmpty
+
+                # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 2 -Scope It
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            }
         }
     }
 }
