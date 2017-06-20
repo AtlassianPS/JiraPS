@@ -27,7 +27,7 @@ function Get-JiraIssueAttachment
                    ValueFromPipelineByPropertyName = $true)]
         [Alias('Key')]
         [Object] $Issue,
-
+        [string] $filename,
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
@@ -67,10 +67,19 @@ function Get-JiraIssueAttachment
             Write-Debug "Converting result to Jira comment objects"
             $obj = ConvertTo-JiraAttachment -InputObject $issueObj.attachment
             Write-Debug "Outputting results"
-            return $obj
         } else {
             Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
             Write-Output $result
+        }
+
+        if ($filename)
+        {
+            $thisobj = $obj | where fileName -eq "$filename"
+            write-output $thisobj 
+        }
+        else 
+        {
+            write-output $obj
         }
     }
 

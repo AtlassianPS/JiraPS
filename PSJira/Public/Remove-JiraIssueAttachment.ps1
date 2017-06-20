@@ -17,12 +17,11 @@ function Remove-JiraIssueAttachment
     param(
         # Issue to which to attach the file
         [Parameter(
-            Mandatory = $true,
+            Mandatory = $false,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
         )]
-        [Alias('Key')]
-        [Object] $Issue,
+        [Object] $Attachment,
 
         # Id of the remote link to delete
         [Parameter(Mandatory = $true)]
@@ -63,11 +62,11 @@ function Remove-JiraIssueAttachment
             # Validate input object
             if (
                 # from Pipeline
-                (($_) -and ($_.PSObject.TypeNames[0] -ne "PSJira.Issue")) -or
+                (($_) -and ($_.PSObject.TypeNames[0] -ne "PSJira.Attachment")) -or
                 # by parameter
-                ($Issue.PSObject.TypeNames[0] -ne "PSJira.Issue") -and (($Issue -isnot [String]))
+                ($Attachment.PSObject.TypeNames[0] -ne "PSJira.Attachment") -and (($Attachment -isnot [String]))
             ) {
-                $message = "Wrong object type provided for Issue. Was $($Issue.Gettype().Name)"
+                $message = "Wrong object type provided for Issue. Was $($Attachment.Gettype().Name)"
                 $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
                 Throw $exception
             }
@@ -75,14 +74,14 @@ function Remove-JiraIssueAttachment
             # As we are not able to use proper type casting in the parameters, this is a workaround
             # to extract the data from a PSJira.Issue object
             Write-Debug "[Remove-JiraIssueAttachment] Obtaining a reference to Jira issue [$Issue]"
-            if ($Issue.PSObject.TypeNames[0] -eq "PSJira.Issue" -and $Issue.RestURL) {
-                $issueObj = $Issue
+            if ($Attachment.PSObject.TypeNames[0] -eq "PSJira.Attachment" -and $Attachment.RestURL) {
+                $AttachmentObj = $Attachment
             }
             else {
-                $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential -ErrorAction Stop
+                $AttachmentObj = Get-JiraIssueAttachment -InputObject $Issue -Credential $Credential -ErrorAction Stop #Make Fetch Specific FileName
             }
 
-            $ID = $issueObj.ID
+            $attachId = $issueObj.ID #Set Equal to Fetched File
 
 
             foreach ($a in $attachId)
