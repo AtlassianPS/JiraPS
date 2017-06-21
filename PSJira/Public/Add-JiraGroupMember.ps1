@@ -136,9 +136,7 @@ function Add-JiraGroupMember
                 if ($PassThru)
                 {
                     Write-Debug "[Add-JiraGroupMember] -PassThru specified. Obtaining a final reference to group [$g]"
-                    $groupObjNew = Get-JiraGroup -InputObject $g -Credential $Credential
-                    Write-Debug "[Add-JiraGroupMember] Outputting group [$groupObjNew]"
-                    Write-Output $groupObjNew
+                    $result | ConvertTo-JiraGroup
                 }
             }
             else
