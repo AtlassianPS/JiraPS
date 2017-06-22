@@ -19,9 +19,9 @@ function ConvertTo-JiraAttachment
                 'ID' = $i.id;
                 'self' = $i.self;
                 'fileName' = $i.FileName;
-                'author' = $i.Author;
-                'created' = $i.created;
-                'size' = $i.size;
+                'author' = (ConvertTo-JiraUser -InputObject $i.Author);
+                'created' = Get-Date -Date ($i.created);
+                'size' = ([int]$i.size);
                 'mimeType' = $i.mimeType;
                 'content' = $i.content;
                 'thumbnail' = $i.thumbnail
