@@ -110,7 +110,7 @@ function Invoke-JiraMethod
             }
         }
 
-        if ($null -ne $result.errors)
+        if ($result.errors)
         {
             Write-Debug "[Invoke-JiraMethod] An error response was received from JIRA; resolving"
             Resolve-JiraError $result -WriteError
