@@ -61,6 +61,10 @@ function ConvertTo-JiraIssue
                     'Status' = $i.fields.status.name;
                 }
 
+                if ($i.fields.attachment) {
+                    $props["Attachment"] = ConvertTo-JiraAttachment $i.fields.attachment
+                }
+
                 if ($i.fields.project)
                 {
 #                    Write-Debug "[ConvertTo-JiraIssue] Obtaining reference to project"
