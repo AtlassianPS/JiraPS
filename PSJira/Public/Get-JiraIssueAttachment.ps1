@@ -27,7 +27,8 @@ function Get-JiraIssueAttachment
                    ValueFromPipelineByPropertyName = $true)]
         [Alias('Key')]
         [Object] $Issue,
-        [string] $filename,
+
+        [String] $FileName,
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
@@ -47,14 +48,14 @@ function Get-JiraIssueAttachment
             # by parameter
             ($Issue.PSObject.TypeNames[0] -ne "PSJira.Issue") -and (($Issue -isnot [String]))
         ) {
-            $message = "Wrong object type provided for Issue. Was $($Issue.Gettype().Name)"
+            $message = "Wrong object type provided for Issue. Only PSJira.Issue and String is allowed"
             $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
             Throw $exception
         }
 
         # As we are not able to use proper type casting in the parameters, this is a workaround
         # to extract the data from a PSJira.Issue object
-        Write-Debug "[Add-JiraAttachment] Obtaining a reference to Jira issue [$Issue]"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Obtaining a reference to Jira issue [$Issue]"
         if ($Issue.PSObject.TypeNames[0] -eq "PSJira.Issue" -and $Issue.RestURL) {
             $issueObj = $Issue
         }
@@ -62,30 +63,24 @@ function Get-JiraIssueAttachment
             $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential -ErrorAction Stop
         }
 
-        if ($issueObj.attachment)
-        {
-            Write-Debug "Converting result to Jira comment objects"
-            $obj = ConvertTo-JiraAttachment -InputObject $issueObj.attachment
-            Write-Debug "Outputting results"
-        } else {
-            Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
-            Write-Output $result
-        }
+        if ($issueObj.Attachment) {
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Found Attachments on the Issue."
+            if ($FileName) {
+                $attachments = $issueObj.Attachment | Where-Object {$_.FileName -eq $FileName}
+            }
+            else { $attachments = $issueObj.Attachment }
 
-        if ($filename)
-        {
-            $thisobj = $obj | where fileName -eq "$filename"
-            write-output $thisobj 
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting result to Jira Attachment objects."
+            ConvertTo-JiraAttachment -InputObject $attachments
         }
-        else 
-        {
-            write-output $obj
+        else {
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Issue seems to have no Attachments. No output."
         }
     }
 
     end
     {
-        Write-Debug "Completed Get-JiraIssueAttachment"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Completed"
     }
 }
 
