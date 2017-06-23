@@ -24,7 +24,7 @@ InModuleScope PSJira {
             defParam $command 'Credential'
 
             It "Has a ValidateSet for the -Method parameter that accepts methods [$($validMethods -join ', ')]" {
-                $validateSet = $command.Parameters.Method.Attributes | ? {$_.TypeID -eq [System.Management.Automation.ValidateSetAttribute]}
+                $validateSet = $command.Parameters.Method.Attributes | Where-Object {$_.TypeID -eq [System.Management.Automation.ValidateSetAttribute]}
                 $validateSet.ValidValues | Should Be $validMethods
             }
         }
@@ -47,9 +47,9 @@ InModuleScope PSJira {
                 }
             }
 
-            It "Sends the Content-Type header of application/json and UTF-8" {
+            It "Uses the -ContentType parameter of Invoke-WebRequest to specify application/json and UTF-8" {
                 { Invoke-JiraMethod -Method Get -URI $testUri } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Content-Type') -eq 'application/json; charset=utf-8'} -Scope It
+                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$ContentType -eq 'application/json; charset=utf-8'} -Scope It
             }
 
             It "Uses the -UseBasicParsing switch for Invoke-WebRequest" {
@@ -430,7 +430,7 @@ InModuleScope PSJira {
                 $result | Should Not BeNullOrEmpty
 
                 # Compare each property in the result returned to the expected result
-                foreach ($property in (Get-Member -InputObject $result | ? {$_.MemberType -eq 'NoteProperty'})) {
+                foreach ($property in (Get-Member -InputObject $result | Where-Object {$_.MemberType -eq 'NoteProperty'})) {
                     $result.$property | Should Be $validObjResult.$property
                 }
             }

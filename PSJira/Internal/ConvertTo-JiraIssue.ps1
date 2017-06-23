@@ -30,13 +30,11 @@ function ConvertTo-JiraIssue
 
 #            Write-Debug "[ConvertTo-JiraIssue] Processing object: '$i'"
 
-            if ($i.errorMessages)
-            {
-#                Write-Debug "[ConvertTo-JiraIssue] Detected an errorMessages property. This is an error result."
+            if ($i.errorMessages) {
+                #                Write-Debug "[ConvertTo-JiraIssue] Detected an errorMessages property. This is an error result."
 
-                if ($ReturnError)
-                {
-#                    Write-Debug "[ConvertTo-JiraIssue] Outputting details about error message"
+                if ($ReturnError) {
+                    #                    Write-Debug "[ConvertTo-JiraIssue] Outputting details about error message"
                     $props = @{
                         'ErrorMessages' = $i.errorMessages;
                     }
@@ -46,101 +44,94 @@ function ConvertTo-JiraIssue
 
                     Write-Output $result
                 }
-            } else {
+            }
+            else {
                 $server = ($InputObject.self -split 'rest')[0]
                 $http = "${server}browse/$($i.key)"
 
-#                Write-Debug "[ConvertTo-JiraIssue] Defining standard properties"
+                #                Write-Debug "[ConvertTo-JiraIssue] Defining standard properties"
                 $props = @{
-                    'Key' = $i.key;
-                    'ID' = $i.id;
-                    'RestUrl' = $i.self;
-                    'HttpUrl' = $http;
-                    'Summary' = $i.fields.summary;
+                    'Key'         = $i.key;
+                    'ID'          = $i.id;
+                    'RestUrl'     = $i.self;
+                    'HttpUrl'     = $http;
+                    'Summary'     = $i.fields.summary;
                     'Description' = $i.fields.description;
-                    'Status' = $i.fields.status.name;
+                    'Status'      = $i.fields.status.name;
                 }
+                if ($i.fields.issuelinks) { $props['IssueLinks']   = (ConvertTo-JiraIssueLink $i.fields.issuelinks)}
 
-                if ($i.fields.project)
-                {
-#                    Write-Debug "[ConvertTo-JiraIssue] Obtaining reference to project"
+                if ($i.fields.project) {
+                    #                    Write-Debug "[ConvertTo-JiraIssue] Obtaining reference to project"
                     $props.Project = ConvertTo-JiraProject -InputObject $i.fields.project
                 }
 
-                foreach ($field in $userFields)
-                {
-#                    Write-Debug "[ConvertTo-JiraIssue] Checking for user field [$field]"
-                    if ($i.fields.$field)
-                    {
-#                        Write-Debug "[ConvertTo-JiraIssue] Adding user field $field"
+                foreach ($field in $userFields) {
+                    #                    Write-Debug "[ConvertTo-JiraIssue] Checking for user field [$field]"
+                    if ($i.fields.$field) {
+                        #                        Write-Debug "[ConvertTo-JiraIssue] Adding user field $field"
                         $props.$field = ConvertTo-JiraUser -InputObject $i.fields.$field
-                    } elseif ($field -eq 'Assignee') {
-#                        Write-Debug "[ConvertTo-JiraIssue] Adding 'Unassigned' assignee field"
+                    }
+                    elseif ($field -eq 'Assignee') {
+                        #                        Write-Debug "[ConvertTo-JiraIssue] Adding 'Unassigned' assignee field"
                         $props.Assignee = 'Unassigned'
-                    } else {
-#                        Write-Debug "[ConvertTo-JiraIssue] Object does not appear to contain property [$field]"
+                    }
+                    else {
+                        #                        Write-Debug "[ConvertTo-JiraIssue] Object does not appear to contain property [$field]"
                     }
                 }
 
-                foreach ($field in $dateFields)
-                {
-                    if ($i.fields.$field)
-                    {
-#                        Write-Debug "[ConvertTo-JiraIssue] Adding date field $field"
+                foreach ($field in $dateFields) {
+                    if ($i.fields.$field) {
+                        #                        Write-Debug "[ConvertTo-JiraIssue] Adding date field $field"
                         $props.$field = Get-Date -Date ($i.fields.$field)
                     }
                 }
 
-                if ($IncludeDebug)
-                {
-#                    Write-Debug "[ConvertTo-JiraIssue] Defining debug properties"
+                if ($IncludeDebug) {
+                    #                    Write-Debug "[ConvertTo-JiraIssue] Defining debug properties"
                     $props.Fields = $i.fields
                     $props.Expand = $i.expand
                 }
 
 #                Write-Debug "[ConvertTo-JiraIssue] Adding transitions"
                 [void] $transitions.Clear()
-                foreach ($t in $i.transitions)
-                {
+                foreach ($t in $i.transitions) {
                     [void] $transitions.Add((ConvertTo-JiraTransition -InputObject $t))
                 }
                 $props.Transition = ($transitions.ToArray())
 
-#                Write-Debug "[ConvertTo-JiraIssue] Adding comments"
+                #                Write-Debug "[ConvertTo-JiraIssue] Adding comments"
                 [void] $comments.Clear()
-                if ($i.fields.comment)
-                {
-                    if ($i.fields.comment.comments)
-                    {
-                        foreach ($c in $i.fields.comment.comments)
-                        {
+                if ($i.fields.comment) {
+                    if ($i.fields.comment.comments) {
+                        foreach ($c in $i.fields.comment.comments) {
                             [void] $comments.Add((ConvertTo-JiraComment -InputObject $c))
                         }
                         $props.Comment = ($comments.ToArray())
                     }
                 }
 
-#               Write-Debug "[ConvertTo-JiraIssue] Checking for any additional fields"
+                #                Write-Debug "[ConvertTo-JiraIssue] Checking for any additional fields"
                 $extraFields = $i.fields.PSObject.Properties | Where-Object -FilterScript { $_.Name -notin $props.Keys }
-                foreach ($f in $extraFields)
-                {
+                foreach ($f in $extraFields) {
                     $name = $f.Name
-#                    Write-Debug "[ConvertTo-JiraIssue] Adding property [$name] with value [$($f.Value)]"
+                    #                    Write-Debug "[ConvertTo-JiraIssue] Adding property [$name] with value [$($f.Value)]"
                     $props[$name] = $f.Value
                 }
 
-#                Write-Debug "[ConvertTo-JiraIssue] Creating PSObject out of properties"
+                #                Write-Debug "[ConvertTo-JiraIssue] Creating PSObject out of properties"
                 $result = New-Object -TypeName PSObject -Property $props
 
-#                Write-Debug "[ConvertTo-JiraIssue] Inserting type name information"
+                #                Write-Debug "[ConvertTo-JiraIssue] Inserting type name information"
                 $result.PSObject.TypeNames.Insert(0, 'PSJira.Issue')
 
-#                Write-Debug "[ConvertTo-JiraProject] Inserting custom toString() method"
+                #                Write-Debug "[ConvertTo-JiraProject] Inserting custom toString() method"
                 $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
                     Write-Output "[$($this.Key)] $($this.Summary)"
                 }
 
-#                Write-Debug "[ConvertTo-JiraIssue] Outputting object"
+                #                Write-Debug "[ConvertTo-JiraIssue] Outputting object"
                 Write-Output $result
             }
         }
