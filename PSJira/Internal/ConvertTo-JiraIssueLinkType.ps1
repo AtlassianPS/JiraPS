@@ -5,7 +5,7 @@ function ConvertTo-JiraIssueLinkType {
             Position = 0,
             ValueFromPipeline = $true)]
         [PSObject[]] $InputObject,
-        
+
         [Switch] $ReturnError
     )
 
@@ -34,6 +34,10 @@ function ConvertTo-JiraIssueLinkType {
 
                 $result = New-Object -TypeName PSObject -Property $props
                 $result.PSObject.TypeNames.Insert(0, 'PSJira.IssueLinkType')
+
+                $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
+                    Write-Output "$($this.Name)"
+                }
 
                 Write-Output $result
             }

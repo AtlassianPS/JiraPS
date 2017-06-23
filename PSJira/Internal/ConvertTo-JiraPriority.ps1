@@ -55,6 +55,11 @@ function ConvertTo-JiraPriority
 #                Write-Debug "[ConvertTo-JiraPriority] Inserting type name information"
                 $result.PSObject.TypeNames.Insert(0, 'PSJira.Priority')
 
+                # Write-Debug "[ConvertTo-JiraPriority] Inserting custom toString() method"
+                $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
+                    Write-Output "$($this.Name)"
+                }
+
 #                Write-Debug "[ConvertTo-JiraPriority] Outputting object"
                 Write-Output $result
             }

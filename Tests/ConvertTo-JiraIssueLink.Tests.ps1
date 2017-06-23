@@ -38,7 +38,7 @@ InModuleScope PSJira {
         checkPsType $r 'PSJira.IssueLink'
 
         defProp $r 'Id' $issueLinkId
-        defProp $r 'Type' "@{OutwardText=composes; InwardText=is part of; Name=Composition; ID=10500; RestUrl=}"
+        defProp $r 'Type' "Composition"
         defProp $r 'InwardIssue' "[$issueKeyInward] "
         defProp $r 'OutwardIssue' "[$issueKeyOutward] "
 
