@@ -185,7 +185,7 @@ Describe "PSJira" {
     }
 
     Context 'PSScriptAnalyzer Rules' {
-        $analysis = Invoke-ScriptAnalyzer -Path .\PSJira -Recurse -Settings ".\ScriptAnalyzerSettings.psd1" -CustomRulePath "$PSScriptRoot\..\Rules\" -IncludeDefaultRules
+        $analysis = Invoke-ScriptAnalyzer -Path "$moduleRoot" -Recurse -Settings ".\ScriptAnalyzerSettings.psd1"
         $scriptAnalyzerRules = Get-ScriptAnalyzerRule
 
         forEach ($rule in $scriptAnalyzerRules) {
