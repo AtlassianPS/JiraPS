@@ -21,7 +21,7 @@
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         # Watcher that should be removed from JIRA
         [Parameter(Mandatory = $true,
@@ -49,39 +49,16 @@
 
     process
     {
-#        Write-Debug "[Remove-JiraIssueWatcher] Checking Issue parameter"
-#        if ($Issue.PSObject.TypeNames[0] -eq 'PSJira.Issue')
-#        {
-#            Write-Debug "[Remove-JiraIssueWatcher] Issue parameter is a PSJira.Issue object"
-#            $issueObj = $Issue
-#        } else {
-#            $issueKey = $Issue.ToString()
-#            Write-Debug "[Remove-JiraIssueWatcher] Issue key is assumed to be [$issueKey] via ToString()"
-#            Write-Verbose "Searching for issue [$issueKey]"
-#            try
-#            {
-#                $issueObj = Get-JiraIssue -Key $issueKey -Credential $Credential
-#            } catch {
-#                $err = $_
-#                Write-Debug 'Encountered an error searching for Jira issue. An exception will be thrown.'
-#                throw $err
-#            }
-#        }
-#
-#        if (-not $issueObj)
-#        {
-#            Write-Debug "[Remove-JiraIssueWatcher] No Jira issues were found for parameter [$Issue]. An exception will be thrown."
-#            throw "Unable to identify Jira issue [$Issue]. Does this issue exist?"
-#        }
-
         Write-Debug "[Remove-JiraIssueWatcher] Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
-        foreach ($w in $Watcher) {
-            $url = "$($issueObj.RestURL)/watchers?username=$w"
+        foreach ($username in $Watcher) {
+            $url = "$($issueObj.RestURL)/watchers?username=$username"
 
-            Write-Debug "[Remove-JiraIssueWatcher] Preparing for blastoff!"
-            $rawResult = Invoke-JiraMethod -Method Delete -URI $url -Credential $Credential
+            if ($PSCmdlet.ShouldProcess($username, "Removing a watcher of issue [$($Issue.Key)]")) {
+                Write-Debug "[Remove-JiraIssueWatcher] Preparing for blastoff!"
+                Invoke-JiraMethod -Method Delete -URI $url -Credential $Credential
+            }
         }
     }
 
