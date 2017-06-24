@@ -49,31 +49,6 @@
 
     process
     {
-#        Write-Debug "[Add-JiraIssueWatcher] Checking Issue parameter"
-#        if ($Issue.PSObject.TypeNames[0] -eq 'PSJira.Issue')
-#        {
-#            Write-Debug "[Add-JiraIssueWatcher] Issue parameter is a PSJira.Issue object"
-#            $issueObj = $Issue
-#        } else {
-#            $issueKey = $Issue.ToString()
-#            Write-Debug "[Add-JiraIssueWatcher] Issue key is assumed to be [$issueKey] via ToString()"
-#            Write-Verbose "Searching for issue [$issueKey]"
-#            try
-#            {
-#                $issueObj = Get-JiraIssue -Key $issueKey -Credential $Credential
-#            } catch {
-#                $err = $_
-#                Write-Debug 'Encountered an error searching for Jira issue. An exception will be thrown.'
-#                throw $err
-#            }
-#        }
-#
-#        if (-not $issueObj)
-#        {
-#            Write-Debug "[Add-JiraIssueWatcher] No Jira issues were found for parameter [$Issue]. An exception will be thrown."
-#            throw "Unable to identify Jira issue [$Issue]. Does this issue exist?"
-#        }
-
         Write-Debug "[Add-JiraIssueWatcher] Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
@@ -83,7 +58,7 @@
             $body = """$w"""
 
             Write-Debug "[Add-JiraIssueWatcher] Preparing for blastoff!"
-            $rawResult = Invoke-JiraMethod -Method Post -URI $url -Body $body -Credential $Credential
+            Invoke-JiraMethod -Method Post -URI $url -Body $body -Credential $Credential
         }
     }
 

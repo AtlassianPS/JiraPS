@@ -22,21 +22,26 @@ function New-JiraUser
     .OUTPUTS
        [PSJira.User] The user object created
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
+        # Name of user.
         [Parameter(Mandatory = $true)]
         [String] $UserName,
 
+        # E-mail address of the user.
         [Parameter(Mandatory = $true)]
         [Alias('Email')]
         [String] $EmailAddress,
 
+        # Display name of the user.
         [Parameter(Mandatory = $false)]
         [String] $DisplayName,
 
         # Should the user receive a notification e-mail?
         [Boolean] $Notify = $true,
 
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
@@ -48,7 +53,8 @@ function New-JiraUser
         {
             Write-Debug "[New-JiraUser] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[New-JiraUser] Encountered an error reading configuration data."
             throw $err
@@ -61,26 +67,31 @@ function New-JiraUser
     {
         Write-Debug "[New-JiraUser] Defining properties"
         $props = @{
-            "name" = $UserName;
+            "name"         = $UserName;
             "emailAddress" = $EmailAddress;
         }
 
         if ($DisplayName)
         {
             $props.displayName = $DisplayName
-        } else {
+        }
+        else
+        {
             Write-Debug "[New-JiraUser] DisplayName was not specified; defaulting to UserName parameter [$UserName]"
             $props.displayName = $UserName
         }
 
         Write-Debug "[New-JiraUser] Setting Notify property to $Notify"
-            $props.notify = $Notify
+        $props.notify = $Notify
 
         Write-Debug "[New-JiraUser] Converting to JSON"
         $json = ConvertTo-Json -InputObject $props
 
-        Write-Debug "[New-JiraUser] Preparing for blastoff!"
-        $result = Invoke-JiraMethod -Method Post -URI $userURL -Body $json -Credential $Credential
+        Write-Debug "[New-JiraUser] Checking for -WhatIf and Confirm"
+        if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {
+            Write-Debug "[New-JiraUser] Preparing for blastoff!"
+            $result = Invoke-JiraMethod -Method Post -URI $userURL -Body $json -Credential $Credential
+        }
 
         if ($result)
         {
@@ -93,15 +104,17 @@ function New-JiraUser
                 {
                     Write-Error "Jira encountered an error: [$($k)] - $($result.errors.$k)"
                 }
-            } else {
+            }
+            else
+            {
                 # OK
                 Write-Debug "[New-JiraUser] Converting output object into a Jira user and outputting"
                 ConvertTo-JiraUser -InputObject $result
             }
-        } else {
+        }
+        else
+         {
             Write-Debug "[New-JiraUser] Jira returned no results to output."
         }
     }
 }
-
-

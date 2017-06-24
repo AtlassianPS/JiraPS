@@ -7,39 +7,13 @@ param()
 
 InModuleScope PSJira {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
-    $validMethods = @('Get','Post','Put','Delete')
+    $validMethods = @('Get', 'Post', 'Put', 'Delete')
 
     Describe "Invoke-JiraMethod" {
-
-        ## Helper functions
-
-        if ($ShowDebugText)
-        {
-            Mock "Write-Debug" {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
-        function defParam($command, $name)
-        {
-            It "Has a -$name parameter" {
-                $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-            }
-        }
-
-        function ShowMockInfo($functionName, [String[]] $params) {
-            if ($ShowMockData)
-            {
-                Write-Host "       Mocked $functionName" -ForegroundColor Cyan
-                foreach ($p in $params) {
-                    Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly)" -ForegroundColor Cyan
-                }
-            }
-        }
 
         Context "Sanity checking" {
             $command = Get-Command -Name Invoke-JiraMethod
@@ -60,21 +34,14 @@ InModuleScope PSJira {
             $testUri = 'http://example.com'
             $testUsername = 'testUsername'
             $testPassword = 'password123'
-            $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername,(ConvertTo-SecureString -AsPlainText -Force $testPassword)
+            $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername, (ConvertTo-SecureString -AsPlainText -Force $testPassword)
 
             Mock Invoke-WebRequest {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
-                # if ($ShowMockData)
-                # {
-                #     Write-Host "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
-                #     Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                #     Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                # }
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
             }
 
             It "Correctly performs all necessary HTTP method requests [$($validMethods -join ',')] to a provided URI" {
-                foreach ($method in $validMethods)
-                {
+                foreach ($method in $validMethods) {
                     { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
                     Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Method -eq $method -and $Uri -eq $testUri} -Scope It
                 }
@@ -453,7 +420,7 @@ InModuleScope PSJira {
             It "Outputs an object representation of JSON returned from JIRA" {
 
                 Mock Invoke-WebRequest -ParameterFilter {$Method -eq 'Get' -and $Uri -eq $validTestUri} {
-                    ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
+                    ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
                     Write-Output [PSCustomObject] @{
                         'Content' = $validRestResult
                     }
@@ -471,11 +438,11 @@ InModuleScope PSJira {
 
         Context "Output handling - no content returned (HTTP 204)" {
             Mock Invoke-WebRequest {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
 
                 Write-Output [PSCustomObject] @{
                     'StatusCode' = 204
-                    'Content' = $null
+                    'Content'    = $null
                 }
             }
             Mock ConvertFrom-Json2 {
@@ -493,7 +460,7 @@ InModuleScope PSJira {
             $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}';
 
             Mock Invoke-WebRequest {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
                 Write-Output [PSCustomObject] @{
                     'StatusCode' = 400
                     'Content'    = $invalidRestResult
@@ -505,7 +472,7 @@ InModuleScope PSJira {
             }
 
             It "Uses Resolve-JiraError to parse any JIRA error messages returned" {
-                { Invoke-JiraMethod -Method Get -URI $invalidTestUri } | Should Not Throw
+ { Invoke-JiraMethod -Method Get -URI $invalidTestUri } | Should Not Throw
                 Assert-MockCalled -CommandName Resolve-JiraError -Exactly -Times 1 -Scope It
             }
         }

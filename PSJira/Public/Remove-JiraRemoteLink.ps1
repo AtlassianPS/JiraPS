@@ -1,5 +1,6 @@
 function Remove-JiraRemoteLink
-{<#
+{
+    <#
     .Synopsis
        Removes a remote link from a JIRA issue
     .DESCRIPTION
@@ -16,26 +17,28 @@ function Remove-JiraRemoteLink
        This function returns no output.
     #>
     [CmdletBinding(SupportsShouldProcess = $true,
-                   ConfirmImpact = 'High')]
+        ConfirmImpact = 'High')]
     param(
-        # Issue from which to delete a remote link
+        # Issue from which to delete a remote link.
         [Parameter(ValueFromPipelineByPropertyName = $true,
-                   ValueFromPipeline = $true,
-                   Mandatory = $true,
-                   Position = 0
+            ValueFromPipeline = $true,
+            Mandatory = $true,
+            Position = 0
         )]
         [Alias("Key")]
         [Object[]] $Issue,
 
-        # Id of the remote link to delete
+        # Id of the remote link to delete.
         [Parameter(Mandatory = $true)]
         [Int[]] $LinkId,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
-        [Switch] $force
+        # Suppress user confirmation.
+        [Switch] $Force
     )
 
     Begin
@@ -44,7 +47,8 @@ function Remove-JiraRemoteLink
         {
             Write-Debug "[Remove-JiraRemoteLink] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Remove-JiraRemoteLink] Encountered an error reading configuration data."
             throw $err
@@ -70,7 +74,7 @@ function Remove-JiraRemoteLink
 
             foreach ($l in $LinkId)
             {
-                $thisUrl = $restUrl -f $k,$l
+                $thisUrl = $restUrl -f $k, $l
                 Write-Debug "[Remove-JiraRemoteLink] RemoteLink URL: [$thisUrl]"
 
                 Write-Debug "[Remove-JiraRemoteLink] Checking for -WhatIf and Confirm"
@@ -78,7 +82,9 @@ function Remove-JiraRemoteLink
                 {
                     Write-Debug "[Remove-JiraRemoteLink] Preparing for blastoff!"
                     Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Remove-JiraRemoteLink] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
                 }
             }

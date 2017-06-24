@@ -22,19 +22,21 @@ function Get-JiraIssueCreateMetadata
     #>
     [CmdletBinding()]
     param(
-        # Project ID or key
+        # Project ID or key of the reference issue.
         [Parameter(Mandatory = $true,
-                   Position = 0)]
+            Position = 0)]
         [String] $Project,
 
-        # Issue type ID or name
+        # Issue type ID or name.
         [Parameter(Mandatory = $true,
-                   Position = 1)]
+            Position = 1)]
         [String] $IssueType,
 
+        # Path of the file with the configuration.
         [String] $ConfigFile,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -45,7 +47,8 @@ function Get-JiraIssueCreateMetadata
         try
         {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Get-JiraIssueCreateMetadata] Encountered an error reading the Jira server."
             throw $err
@@ -60,7 +63,9 @@ function Get-JiraIssueCreateMetadata
         {
             $projectId = $projectObj.Id
             $uri = "${uri}projectIds=$projectId&"
-        } else {
+        }
+        else
+        {
             throw "No project was found for the given Project [$Project]. Use Get-JiraProject for more information on this issue."
         }
 
@@ -70,7 +75,9 @@ function Get-JiraIssueCreateMetadata
         {
             $issueTypeId = $issueTypeObj.Id
             $uri = "${uri}issuetypeIds=$issueTypeId&"
-        } else {
+        }
+        else
+        {
             throw "No issue types were found for the given IssueType [$IssueType]. Use Get-JiraIssueType for more information on this issue."
         }
 
@@ -88,13 +95,15 @@ function Get-JiraIssueCreateMetadata
             {
                 Write-Debug "[Get-JiraIssueCreateMetadata] No project results were found. Throwing exception."
                 throw "No projects were found for the given project [$Project]. Use Get-JiraProject for more details."
-            } elseif (@($jiraResult.projects).Count -gt 1) {
+            }
+            elseif (@($jiraResult.projects).Count -gt 1)
+            {
                 Write-Debug "[Get-JiraIssueCreateMetadata] Multiple project results were found. Throwing exception."
                 throw "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
             }
 
-            $projectId = $jiraResult.projects.id
-            $projectKey = $jiraResult.projects.key
+            # $projectId = $jiraResult.projects.id
+            # $projectKey = $jiraResult.projects.key
 
             Write-Debug "[Get-JiraIssueCreateMetadata] Identified project key: [$Project]"
 
@@ -102,7 +111,9 @@ function Get-JiraIssueCreateMetadata
             {
                 Write-Debug "[Get-JiraIssueCreateMetadata] No issue type results were found. Throwing exception."
                 throw "No issue types were found for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
-            } elseif (@($jiraResult.projects.issuetypes).Count -gt 1) {
+            }
+            elseif (@($jiraResult.projects.issuetypes).Count -gt 1)
+            {
                 Write-Debug "[Get-JiraIssueCreateMetadata] Multiple issue type results were found. Throwing exception."
                 throw "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
             }
@@ -113,11 +124,11 @@ function Get-JiraIssueCreateMetadata
             Write-Debug "Outputting results"
             Write-Output $obj
 
-#            Write-Output $jiraResult
-        } else {
+            #            Write-Output $jiraResult
+        }
+        else
+        {
             Write-Debug "[Get-JiraIssueCreateMetadata] No results were returned from JIRA."
         }
     }
 }
-
-

@@ -1,5 +1,4 @@
-function Set-JiraUser
-{
+function Set-JiraUser {
     <#
     .Synopsis
        Modifies user properties in JIRA
@@ -25,38 +24,45 @@ function Set-JiraUser
        If you'd like to see this ability added to JIRA and to this module, please vote on
        Atlassian's site for this issue: https://jira.atlassian.com/browse/JRA-37294
     #>
-    [CmdletBinding(DefaultParameterSetName = 'ByNamedParameters')]
+    [CmdletBinding(
+        SupportsShouldProcess = $true,
+        DefaultParameterSetName = 'ByNamedParameters'
+    )]
     param(
-        # Username or user object obtained from Get-JiraUser
+        # Username or user object obtained from Get-JiraUser.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('UserName')]
         [Object[]] $User,
 
+        # Display name to set.
         [Parameter(ParameterSetName = 'ByNamedParameters',
-                   Mandatory = $false)]
+            Mandatory = $false)]
         [String] $DisplayName,
 
+        # E-mail address to set.
         [Parameter(ParameterSetName = 'ByNamedParameters',
-                   Mandatory = $false)]
+            Mandatory = $false)]
         [String] $EmailAddress,
 
+        # Hashtable (dictionary) of additional information to set.
         [Parameter(ParameterSetName = 'ByHashtable',
-                   Mandatory = $true,
-                   Position = 1)]
+            Mandatory = $true,
+            Position = 1)]
         [Hashtable] $Property,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential,
 
+        # Whether output should be provided after invoking this function.
         [Switch] $PassThru
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Set-JiraUser] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
@@ -64,25 +70,23 @@ function Set-JiraUser
 
         $updateProps = @{}
 
-        if ($PSCmdlet.ParameterSetName -eq 'ByNamedParameters')
-        {
-            if (-not ($DisplayName -or $EmailAddress))
-            {
+        if ($PSCmdlet.ParameterSetName -eq 'ByNamedParameters') {
+            if (-not ($DisplayName -or $EmailAddress)) {
                 Write-Debug "[Set-JiraIssue] Nothing to do."
                 return
-            } else {
+            }
+            else {
                 Write-Debug "[Set-JiraIssue] Building property hashtable"
-                if ($DisplayName)
-                {
+                if ($DisplayName) {
                     $updateProps.displayName = $DisplayName
                 }
 
-                if ($EmailAddress)
-                {
+                if ($EmailAddress) {
                     $updateProps.emailAddress = $EmailAddress
                 }
             }
-        } else {
+        }
+        else {
             $updateProps = $Property
         }
 
@@ -90,42 +94,39 @@ function Set-JiraUser
         $userUrl = "$server/rest/api/latest/user?username={0}"
     }
 
-    process
-    {
-        foreach ($u in $User)
-        {
+    process {
+        foreach ($u in $User) {
             Write-Debug "[Set-JiraUser] Obtaining reference to user [$u]"
             $userObj = Get-JiraUser -InputObject $u -Credential $Credential
 
-            if ($userObj)
-            {
+            if ($userObj) {
                 $thisUrl = $userUrl -f $userObj.Name
                 Write-Debug "[Set-JiraUser] User URL: [$thisUrl]"
 
-                Write-Debug "Preparing for blastoff!"
-                $result = Invoke-JiraMethod -Method Put -URI $thisUrl -Body $updateProps -Credential $Credential
-                if ($result)
-                {
+                Write-Debug "[Set-JiraUser] Checking for -WhatIf and Confirm"
+                if ($PSCmdlet.ShouldProcess($User, "Updating user [$User] from JIRA")) {
+                    Write-Debug "Preparing for blastoff!"
+                    $result = Invoke-JiraMethod -Method Put -URI $thisUrl -Body $updateProps -Credential $Credential
+                }
+                if ($result) {
                     Write-Debug "[Set-JiraUser] JIRA returned results."
-                    if ($PassThru)
-                    {
+                    if ($PassThru) {
                         Write-Debug "[Set-JiraUser] PassThru flag was specified. Invoking Get-JiraUser to get an updated reference to user [$u]"
                         Write-Output (Get-JiraUser -InputObject $u)
                     }
-                } else {
+                }
+                else {
                     Write-Debug "[Set-JiraUser] JIRA returned no results to display."
                 }
-            } else {
+            }
+            else {
                 Write-Debug "[Set-JiraUser] Unable to identify user [$u]. Writing error message."
                 Write-Error "Unable to identify user [$u]"
             }
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Set-JiraUser] Complete"
     }
 }
-
-

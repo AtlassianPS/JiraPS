@@ -27,24 +27,25 @@ function Add-JiraIssueComment
     #>
     [CmdletBinding()]
     param(
-        # Comment that should be added to JIRA
+        # Comment that should be added to JIRA.
         [Parameter(Mandatory = $true,
-                   Position = 0)]
+            Position = 0)]
         [String] $Comment,
 
-        # Issue that should be commented upon
+        # Issue that should be commented upon.
         [Parameter(Mandatory = $true,
-                   Position = 1,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Position = 1,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('Key')]
         [Object] $Issue,
 
         # Visibility of the comment - should it be publicly visible, viewable to only developers, or only administrators?
-        [ValidateSet('All Users','Developers','Administrators')]
+        [ValidateSet('All Users', 'Developers', 'Administrators')]
         [String] $VisibleRole = 'Developers',
 
-        # Credentials to use to connect to Jira. If not specified, this function will use
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -57,30 +58,30 @@ function Add-JiraIssueComment
 
     process
     {
-#        Write-Debug "[Add-JiraIssueComment] Checking Issue parameter"
-#        if ($Issue.PSObject.TypeNames[0] -eq 'PSJira.Issue')
-#        {
-#            Write-Debug "[Add-JiraIssueComment] Issue parameter is a PSJira.Issue object"
-#            $issueObj = $Issue
-#        } else {
-#            $issueKey = $Issue.ToString()
-#            Write-Debug "[Add-JiraIssueComment] Issue key is assumed to be [$issueKey] via ToString()"
-#            Write-Verbose "Searching for issue [$issueKey]"
-#            try
-#            {
-#                $issueObj = Get-JiraIssue -Key $issueKey -Credential $Credential
-#            } catch {
-#                $err = $_
-#                Write-Debug 'Encountered an error searching for Jira issue. An exception will be thrown.'
-#                throw $err
-#            }
-#        }
-#
-#        if (-not $issueObj)
-#        {
-#            Write-Debug "[Add-JiraIssueComment] No Jira issues were found for parameter [$Issue]. An exception will be thrown."
-#            throw "Unable to identify Jira issue [$Issue]. Does this issue exist?"
-#        }
+        #        Write-Debug "[Add-JiraIssueComment] Checking Issue parameter"
+        #        if ($Issue.PSObject.TypeNames[0] -eq 'PSJira.Issue')
+        #        {
+        #            Write-Debug "[Add-JiraIssueComment] Issue parameter is a PSJira.Issue object"
+        #            $issueObj = $Issue
+        #        } else {
+        #            $issueKey = $Issue.ToString()
+        #            Write-Debug "[Add-JiraIssueComment] Issue key is assumed to be [$issueKey] via ToString()"
+        #            Write-Verbose "Searching for issue [$issueKey]"
+        #            try
+        #            {
+        #                $issueObj = Get-JiraIssue -Key $issueKey -Credential $Credential
+        #            } catch {
+        #                $err = $_
+        #                Write-Debug 'Encountered an error searching for Jira issue. An exception will be thrown.'
+        #                throw $err
+        #            }
+        #        }
+        #
+        #        if (-not $issueObj)
+        #        {
+        #            Write-Debug "[Add-JiraIssueComment] No Jira issues were found for parameter [$Issue]. An exception will be thrown."
+        #            throw "Unable to identify Jira issue [$Issue]. Does this issue exist?"
+        #        }
 
         Write-Debug "[Add-JiraIssueComment] Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
@@ -98,7 +99,7 @@ function Add-JiraIssueComment
         if ($VisibleRole -ne 'All Users')
         {
             $props.visibility = @{
-                'type' = 'role';
+                'type'  = 'role';
                 'value' = $VisibleRole;
             }
         }
@@ -121,5 +122,3 @@ function Add-JiraIssueComment
         Write-Debug "[Add-JiraIssueComment] Complete"
     }
 }
-
-

@@ -21,9 +21,10 @@ function New-JiraSession {
     .OUTPUTS
        [PSJira.Session] An object representing the Jira session
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $false)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
-        # Credentials to use for the persistent session
+        # Credentials to use to connect to JIRA.
         [Parameter(Mandatory = $true,
             Position = 0)]
         [System.Management.Automation.PSCredential] $Credential
@@ -105,5 +106,3 @@ function New-JiraSession {
         }
     }
 }
-
-

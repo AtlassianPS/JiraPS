@@ -22,22 +22,24 @@ function Get-JiraGroup
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByGroupName')]
     param(
-        # Name of the group
+        # Name of the group to search for.
         [Parameter(ParameterSetName = 'ByGroupName',
-                   Mandatory = $true,
-                   Position = 0)]
+            Mandatory = $true,
+            Position = 0)]
         [ValidateNotNullOrEmpty()]
         [Alias('Name')]
         [String[]] $GroupName,
 
+        # Object of the group to search for.
         [Parameter(ParameterSetName = 'ByInputObject',
-                   Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Mandatory = $true,
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Object[]] $InputObject,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -75,12 +77,16 @@ function Get-JiraGroup
 
                     Write-Debug "[Get-JiraGroup] Outputting results"
                     Write-Output $obj
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Get-JiraGroup] No results were returned from JIRA"
                     Write-Verbose "No results were returned from JIRA."
                 }
             }
-        } else {
+        }
+        else
+        {
             foreach ($i in $InputObject)
             {
                 Write-Debug "[Get-JiraGroup] Processing InputObject [$i]"
@@ -88,7 +94,9 @@ function Get-JiraGroup
                 {
                     Write-Debug "[Get-JiraGroup] User parameter is a PSJira.Group object"
                     $thisGroupName = $i.Name
-                } else {
+                }
+                else
+                {
                     $thisGroupName = $i.ToString()
                     Write-Debug "[Get-JiraGroup] Username is assumed to be [$thisGroupName] via ToString()"
                 }
@@ -106,5 +114,3 @@ function Get-JiraGroup
         Write-Debug "[Get-JiraGroup] Complete"
     }
 }
-
-

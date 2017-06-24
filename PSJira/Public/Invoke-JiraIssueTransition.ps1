@@ -39,15 +39,17 @@ function Invoke-JiraIssueTransition
     #>
     [CmdletBinding()]
     param(
+        # The Issue Object or ID to transition.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('Key')]
         [Object] $Issue,
 
+        # The Transition Object or ID.
         [Parameter(Mandatory = $true,
-                   Position = 1)]
+            Position = 1)]
         [Object] $Transition,
 
         # Any additional fields that should be updated. Fields must be configured to appear on the transition screen to use this parameter.

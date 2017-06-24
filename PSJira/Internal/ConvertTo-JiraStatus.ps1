@@ -26,12 +26,16 @@ function ConvertTo-JiraStatus
                 'RestUrl' = $i.self;
             }
 
-
 #            Write-Debug "[ConvertTo-JiraStatus] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
 
 #            Write-Debug "[ConvertTo-JiraStatus] Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'PSJira.Status')
+
+            # Write-Debug "[ConvertTo-JiraStatus] Inserting custom toString() method"
+            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
+                Write-Output "$($this.Name)"
+            }
 
 #            Write-Debug "[ConvertTo-JiraStatus] Outputting object"
             Write-Output $result

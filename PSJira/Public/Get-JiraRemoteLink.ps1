@@ -18,18 +18,20 @@ function Get-JiraRemoteLink
     #>
     [CmdletBinding()]
     param(
+        # The Issue Object or ID to link.
         [Parameter(ValueFromPipelineByPropertyName = $true,
-                   ValueFromPipeline = $true,
-                   Mandatory = $true,
-                   Position = 0
+            ValueFromPipeline = $true,
+            Mandatory = $true,
+            Position = 0
         )]
         [Alias("Key")]
         [String[]]$Issue,
 
-        # Get a single link by it's id
+        # Get a single link by it's id.
         [Int]$LinkId,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
@@ -53,7 +55,9 @@ function Get-JiraRemoteLink
             $thisUrl = $linkUrl -f $k
 
             if ($linkId)
-                { $thisUrl += "/$l" }
+            {
+                $thisUrl += "/$l"
+            }
 
             Write-Debug "[Get-JiraRemoteLink] Preparing for blastoff!"
             $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
@@ -65,7 +69,9 @@ function Get-JiraRemoteLink
 
                 Write-Debug "[Get-JiraRemoteLink] Outputting results"
                 Write-Output $obj
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Get-JiraRemoteLink] No results were returned from JIRA"
                 Write-Verbose "No results were returned from JIRA."
             }
