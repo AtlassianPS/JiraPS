@@ -3,7 +3,7 @@ function Set-JiraIssue {
     .Synopsis
        Modifies an existing issue in JIRA
     .DESCRIPTION
-       This function modifies an existing isue in JIRA.  This can include changing
+       This function modifies an existing issue in JIRA.  This can include changing
        the issue's summary or description, or assigning the issue.
     .EXAMPLE
        Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell'
