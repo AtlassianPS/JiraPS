@@ -1,3 +1,10 @@
+## 2.0.0 (Jun 24, 2017)
+
+### Changes to the code module
+  - Move module to organization `AtlassianPS`
+  - Rename of the module to `JiraPS` **breaking change**
+  - Rename of module's custom objects to `JiraPS.*` **breaking change**
+
 ## 1.2.5 (Aug 08, 2016)
 
 IMPROVEMENTS:

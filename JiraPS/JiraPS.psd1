@@ -12,7 +12,7 @@
 RootModule = 'JiraPS.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.2.5'
+ModuleVersion = '2.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -21,13 +21,13 @@ ModuleVersion = '1.2.5'
 GUID = '4bf3eb15-037e-43b7-9e47-20a30436324f'
 
 # Author of this module
-Author = 'Joshua T'
+Author = 'AtlassianPS'
 
 # Company or vendor of this module
-CompanyName = 'Unknown'
+CompanyName = 'AtlassianPS.org'
 
 # Copyright statement for this module
-Copyright = '(c) 2015 Joshua T. All rights reserved.'
+Copyright = '(c) 2017 AtlassianPS. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'Windows PowerShell module to interact with Atlassian JIRA'
