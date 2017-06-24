@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=PSJira
+set SPHINXPROJ=JiraPS
 
 if "%1" == "" goto help
 

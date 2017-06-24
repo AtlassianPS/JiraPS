@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     . $PSScriptRoot\Shared.ps1
 
@@ -862,7 +862,7 @@ InModuleScope PSJira {
                 $r | Should Not BeNullOrEmpty
             }
 
-            checkPsType $r 'PSJira.Issue'
+            checkPsType $r 'JiraPS.Issue'
 
             defProp $r 'Key' 'JRA-37294'
             defProp $r 'Id' '320391'
@@ -877,10 +877,10 @@ InModuleScope PSJira {
             # we need to mock out a few others to avoid our Assert-MockCalled
             # counts being unexpected.
 
-#            Mock ConvertTo-JiraComment -ModuleName PSJira { $InputObject }
-#            Mock ConvertTo-JiraProject -ModuleName PSJira { $InputObject }
-#            Mock ConvertTo-JiraTransition -ModuleName PSJira { $InputObject }
-#            Mock ConvertTo-JiraUser -ModuleName PSJira { $InputObject }
+#            Mock ConvertTo-JiraComment -ModuleName JiraPS { $InputObject }
+#            Mock ConvertTo-JiraProject -ModuleName JiraPS { $InputObject }
+#            Mock ConvertTo-JiraTransition -ModuleName JiraPS { $InputObject }
+#            Mock ConvertTo-JiraUser -ModuleName JiraPS { $InputObject }
 
             $r = ConvertTo-JiraIssue -InputObject $sampleObject
 
@@ -900,8 +900,8 @@ InModuleScope PSJira {
                 {
                     $value = $r.$f
                     $value | Should Not BeNullOrEmpty
-                    # (Get-Member -InputObject $value).TypeName | Should Be 'PSJira.User'
-                    checkType $value 'PSJira.User'
+                    # (Get-Member -InputObject $value).TypeName | Should Be 'JiraPS.User'
+                    checkType $value 'JiraPS.User'
                 }
 
                 # We can't mock this out without rewriting most of the code in it
@@ -909,12 +909,12 @@ InModuleScope PSJira {
             }
 
             It "Uses ConvertTo-JiraProject to return the project as an object" {
-                # (Get-Member -InputObject $r.Project).TypeName | Should Be 'PSJira.Project'
-                checkType $r.Project 'PSJira.Project'
+                # (Get-Member -InputObject $r.Project).TypeName | Should Be 'JiraPS.Project'
+                checkType $r.Project 'JiraPS.Project'
             }
 
             It "Uses ConvertTo-JiraTransition to return the issue's transitions as an object" {
-                checkType $r.Transition[0] 'PSJira.Transition'
+                checkType $r.Transition[0] 'JiraPS.Transition'
             }
         }
     }

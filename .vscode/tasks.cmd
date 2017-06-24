@@ -2,8 +2,8 @@
 @echo off
 if "%1" == "!" goto start
 chcp 65001 > nul
-PowerShell.exe -NoProfile -ExecutionPolicy Bypass "& 'D:\Documents\Projects\PSJira\Build\Invoke-Build.ps1' -File 'D:\Documents\Projects\PSJira\Build\PSJira.build.ps1' %1"
+PowerShell.exe -NoProfile -ExecutionPolicy Bypass "& 'D:\Documents\Projects\JiraPS\Build\Invoke-Build.ps1' -File 'D:\Documents\Projects\JiraPS\Build\JiraPS.build.ps1' %1"
 exit
 :start
 shift
-start PowerShell.exe -NoExit -NoProfile -ExecutionPolicy Bypass "& 'D:\Documents\Projects\PSJira\Build\Invoke-Build.ps1' -File 'D:\Documents\Projects\PSJira\Build\PSJira.build.ps1' %1"
+start PowerShell.exe -NoExit -NoProfile -ExecutionPolicy Bypass "& 'D:\Documents\Projects\JiraPS\Build\Invoke-Build.ps1' -File 'D:\Documents\Projects\JiraPS\Build\JiraPS.build.ps1' %1"

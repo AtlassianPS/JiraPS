@@ -1,10 +1,10 @@
 . $PSScriptRoot\Shared.ps1
 
 # This is a private function, so the test needs to be within the module's scope
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     # A bit counter-intuitive to import this twice, but otherwise its functions
-    # are outside the PSJira module scope. We need it outside to make sure the
+    # are outside the JiraPS module scope. We need it outside to make sure the
     # module is loaded, and we need it inside to make sure functions are
     # available.
     . $PSScriptRoot\Shared.ps1
@@ -27,9 +27,9 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        It "Sets the type name to PSJira.Project" {
-            # (Get-Member -InputObject $r).TypeName | Should Be 'PSJira.Component'
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.Component'
+        It "Sets the type name to JiraPS.Project" {
+            # (Get-Member -InputObject $r).TypeName | Should Be 'JiraPS.Component'
+            $r.PSObject.TypeNames[0] | Should Be 'JiraPS.Component'
         }
 
         defProp $r 'Id' '11000'

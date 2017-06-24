@@ -1,6 +1,6 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     . $PSScriptRoot\Shared.ps1
     Describe "ConvertTo-JiraSession" {
 
@@ -26,7 +26,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Session'
+        checkPsType $r 'JiraPS.Session'
 
         defProp $r 'Username' $sampleUsername
         defProp $r 'JSessionID' $sampleJSessionID

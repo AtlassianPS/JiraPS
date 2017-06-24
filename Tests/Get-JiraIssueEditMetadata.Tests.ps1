@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
@@ -24,7 +24,7 @@ InModuleScope PSJira {
 
         # If we don't override this in a context or test, we don't want it to
         # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
@@ -212,7 +212,7 @@ InModuleScope PSJira {
 }
 '@
 
-            Mock Get-JiraIssue -ModuleName PSJira {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 [PSCustomObject] @{
                     ID = $issueID;
                     Key = $issueKey;
@@ -222,13 +222,13 @@ InModuleScope PSJira {
 
             It "Queries Jira for metadata information about editing an issue" {
                 { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"}
             }
 
             It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
 
                 # This is a simplified version of what JIRA will give back
-                Mock Invoke-JiraMethod -ModuleName PSJira {
+                Mock Invoke-JiraMethod -ModuleName JiraPS {
                     @{
                       fields = [PSCustomObject] @{
                           'a' = 1;
@@ -236,15 +236,15 @@ InModuleScope PSJira {
                       }
                     }
                 }
-                Mock ConvertTo-JiraEditMetaField -ModuleName PSJira {}
+                Mock ConvertTo-JiraEditMetaField -ModuleName JiraPS {}
 
                 { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"}
 
                 # There are 2 example fields in our mock above, but they should
                 # be passed to Convert-JiraCreateMetaField as a single object.
                 # The method should only be called once.
-                Assert-MockCalled -CommandName ConvertTo-JiraEditMetaField -ModuleName PSJira -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName ConvertTo-JiraEditMetaField -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
         }
     }

@@ -1,6 +1,6 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraProject" {
         . $PSScriptRoot\Shared.ps1
 
@@ -38,7 +38,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Project'
+        checkPsType $r 'JiraPS.Project'
 
         defProp $r 'Id' $projectId
         defProp $r 'Key' $projectKey

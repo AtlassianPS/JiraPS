@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
@@ -27,22 +27,22 @@ InModuleScope PSJira {
 
     Describe "Remove-JiraGroup" {
 
-        Mock Write-Debug -ModuleName PSJira {
+        Mock Write-Debug -ModuleName JiraPS {
             if ($ShowDebugData)
             {
                 Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraGroup -ModuleName PSJira {
+        Mock Get-JiraGroup -ModuleName JiraPS {
             ConvertTo-JiraGroup (ConvertFrom-Json2 $testJson)
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupName"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupName"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with DELETE method" -ForegroundColor Cyan
@@ -53,7 +53,7 @@ InModuleScope PSJira {
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
@@ -69,7 +69,7 @@ InModuleScope PSJira {
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 
-        It "Accepts a PSJira.Group object to the -Group parameter" {
+        It "Accepts a JiraPS.Group object to the -Group parameter" {
             $group = Get-JiraGroup -GroupName $testGroupName
             { Remove-JiraGroup -Group $group -Force } | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It

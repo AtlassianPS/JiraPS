@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
@@ -55,12 +55,12 @@ InModuleScope PSJira {
 
     Describe "Get-JiraUser" {
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         # Searching for a user.
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
@@ -71,7 +71,7 @@ InModuleScope PSJira {
         }
 
         # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
@@ -82,7 +82,7 @@ InModuleScope PSJira {
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
@@ -112,7 +112,7 @@ InModuleScope PSJira {
             $getResult.Active | Should Be $restObj.active
         }
 
-        It "Gets information for a provided Jira user if a PSJira.User object is provided to the InputObject parameter" {
+        It "Gets information for a provided Jira user if a JiraPS.User object is provided to the InputObject parameter" {
             $result2 = Get-JiraUser -InputObject $getResult
             $result2 | Should Not BeNullOrEmpty
             $result2.Name | Should Be $testUsername

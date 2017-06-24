@@ -1,7 +1,7 @@
 . $PSScriptRoot\Shared.ps1
 
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
@@ -32,11 +32,11 @@ InModuleScope PSJira {
   ]
 }
 "@
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraIssue -ModuleName PSJira {
+        Mock Get-JiraIssue -ModuleName JiraPS {
             [PSCustomObject] @{
                 ID = $issueID;
                 Key = $issueKey;
@@ -45,7 +45,7 @@ InModuleScope PSJira {
         }
 
         # Obtaining comments from an issue...this is IT-3676 in the test environment
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
@@ -56,7 +56,7 @@ InModuleScope PSJira {
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
@@ -80,11 +80,11 @@ InModuleScope PSJira {
             $comments.RestUrl | Should Be "$jiraServer/rest/api/2/issue/$issueID/comment/90730"
 
             # Get-JiraIssue should be called to identify the -Issue parameter
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
 
             # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueComment, but
             # since we've mocked Get-JiraIssue out, it will only be called once.
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Obtains all Jira comments from a Jira issue if the Jira object is provided" {
@@ -92,14 +92,14 @@ InModuleScope PSJira {
             $comments = Get-JiraIssueComment -Issue $issue
             $comments | Should Not BeNullOrEmpty
             $comments.ID | Should Be 90730
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Handles pipeline input from Get-JiraIssue" {
             $comments = Get-JiraIssue -Key $issueKey | Get-JiraIssueComment
             $comments | Should Not BeNullOrEmpty
             $comments.ID | Should Be 90730
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
     }
 }

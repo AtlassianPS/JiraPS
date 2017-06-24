@@ -13,8 +13,8 @@ os: WMF 5
 environment:
     ModuleName: $(APPVEYOR_PROJECT_NAME)
     Tags: 'JIRA'
-    LicenseUri: 'https://github.com/PSJira/PSJira/blob/master/LICENSE'
-    ProjectUri: 'https://github.com/PSJira/PSJira/'
+    LicenseUri: 'https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE'
+    ProjectUri: 'https://github.com/AtlassianPS/JiraPS/'
 
     # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
     PSGalleryAPIKey:
