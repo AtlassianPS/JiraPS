@@ -7,39 +7,13 @@ param()
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
-    $validMethods = @('Get','Post','Put','Delete')
+    $validMethods = @('Get', 'Post', 'Put', 'Delete')
 
     Describe "Invoke-JiraMethod" {
-
-        ## Helper functions
-
-        if ($ShowDebugText)
-        {
-            Mock "Write-Debug" {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
-        function defParam($command, $name)
-        {
-            It "Has a -$name parameter" {
-                $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-            }
-        }
-
-        function ShowMockInfo($functionName, [String[]] $params) {
-            if ($ShowMockData)
-            {
-                Write-Host "       Mocked $functionName" -ForegroundColor Cyan
-                foreach ($p in $params) {
-                    Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly)" -ForegroundColor Cyan
-                }
-            }
-        }
 
         Context "Sanity checking" {
             $command = Get-Command -Name Invoke-JiraMethod
@@ -50,7 +24,7 @@ InModuleScope JiraPS {
             defParam $command 'Credential'
 
             It "Has a ValidateSet for the -Method parameter that accepts methods [$($validMethods -join ', ')]" {
-                $validateSet = $command.Parameters.Method.Attributes | ? {$_.TypeID -eq [System.Management.Automation.ValidateSetAttribute]}
+                $validateSet = $command.Parameters.Method.Attributes | Where-Object {$_.TypeID -eq [System.Management.Automation.ValidateSetAttribute]}
                 $validateSet.ValidValues | Should Be $validMethods
             }
         }
@@ -60,29 +34,22 @@ InModuleScope JiraPS {
             $testUri = 'http://example.com'
             $testUsername = 'testUsername'
             $testPassword = 'password123'
-            $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername,(ConvertTo-SecureString -AsPlainText -Force $testPassword)
+            $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername, (ConvertTo-SecureString -AsPlainText -Force $testPassword)
 
             Mock Invoke-WebRequest {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
-                # if ($ShowMockData)
-                # {
-                #     Write-Host "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
-                #     Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                #     Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                # }
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
             }
 
             It "Correctly performs all necessary HTTP method requests [$($validMethods -join ',')] to a provided URI" {
-                foreach ($method in $validMethods)
-                {
+                foreach ($method in $validMethods) {
                     { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
                     Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Method -eq $method -and $Uri -eq $testUri} -Scope It
                 }
             }
 
-            It "Sends the Content-Type header of application/json and UTF-8" {
+            It "Uses the -ContentType parameter of Invoke-WebRequest to specify application/json and UTF-8" {
                 { Invoke-JiraMethod -Method Get -URI $testUri } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Content-Type') -eq 'application/json; charset=utf-8'} -Scope It
+                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$ContentType -eq 'application/json; charset=utf-8'} -Scope It
             }
 
             It "Uses the -UseBasicParsing switch for Invoke-WebRequest" {
@@ -453,7 +420,7 @@ InModuleScope JiraPS {
             It "Outputs an object representation of JSON returned from JIRA" {
 
                 Mock Invoke-WebRequest -ParameterFilter {$Method -eq 'Get' -and $Uri -eq $validTestUri} {
-                    ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
+                    ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
                     Write-Output [PSCustomObject] @{
                         'Content' = $validRestResult
                     }
@@ -463,7 +430,7 @@ InModuleScope JiraPS {
                 $result | Should Not BeNullOrEmpty
 
                 # Compare each property in the result returned to the expected result
-                foreach ($property in (Get-Member -InputObject $result | ? {$_.MemberType -eq 'NoteProperty'})) {
+                foreach ($property in (Get-Member -InputObject $result | Where-Object {$_.MemberType -eq 'NoteProperty'})) {
                     $result.$property | Should Be $validObjResult.$property
                 }
             }
@@ -471,11 +438,11 @@ InModuleScope JiraPS {
 
         Context "Output handling - no content returned (HTTP 204)" {
             Mock Invoke-WebRequest {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
 
                 Write-Output [PSCustomObject] @{
                     'StatusCode' = 204
-                    'Content' = $null
+                    'Content'    = $null
                 }
             }
             Mock ConvertFrom-Json2 {
@@ -493,7 +460,7 @@ InModuleScope JiraPS {
             $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}';
 
             Mock Invoke-WebRequest {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri','Method'
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
                 Write-Output [PSCustomObject] @{
                     'StatusCode' = 400
                     'Content'    = $invalidRestResult
@@ -505,7 +472,7 @@ InModuleScope JiraPS {
             }
 
             It "Uses Resolve-JiraError to parse any JIRA error messages returned" {
-                { Invoke-JiraMethod -Method Get -URI $invalidTestUri } | Should Not Throw
+ { Invoke-JiraMethod -Method Get -URI $invalidTestUri } | Should Not Throw
                 Assert-MockCalled -CommandName Resolve-JiraError -Exactly -Times 1 -Scope It
             }
         }

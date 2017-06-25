@@ -20,7 +20,7 @@ environment:
     PSGalleryAPIKey:
         secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
 
-version: 2.0.0.{build}
+version: 2.1.0.{build}
 
 # Only build commits to these branches
 branches:

@@ -65,7 +65,7 @@ function ConvertTo-JiraEditMetaField
                     foreach ($extraProperty in (Get-Member -InputObject $item -MemberType NoteProperty).Name)
                     {
 #                        Write-Debug "[ConvertTo-JiraEditMetaField] Checking property $extraProperty"
-                        if ($props.$extraProperty -eq $null)
+                        if ($null -eq $props.$extraProperty)
                         {
 #                            Write-Debug "[ConvertTo-JiraEditMetaField]  - Adding property [$extraProperty]"
                             $props.$extraProperty = $item.$extraProperty

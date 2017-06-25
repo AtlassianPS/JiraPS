@@ -20,21 +20,31 @@ if (-not (Get-Module -Name $ModuleName -ErrorAction SilentlyContinue) -or (!$Sup
     $SuppressImportModule = $true
 }
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='ShowMockData')]
+[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'ShowMockData')]
 $ShowMockData = $false
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='ShowDebugText')]
+[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'ShowDebugText')]
 $ShowDebugText = $false
 
-function defProp($obj, $propName, $propValue)
-{
+function defProp($obj, $propName, $propValue) {
     It "Defines the '$propName' property" {
         $obj.$propName | Should Be $propValue
     }
 }
 
-function defParam($command, $name)
-{
+function hasProp($obj, $propName) {
+    It "Defines the '$propName' property" {
+        $obj | Get-Member -MemberType *Property -Name $propName | Should Not BeNullOrEmpty
+    }
+}
+
+function hasNotProp($obj, $propName) {
+    It "Defines the '$propName' property" {
+        $obj | Get-Member -MemberType *Property -Name $propName | Should BeNullOrEmpty
+    }
+}
+
+function defParam($command, $name) {
     It "Has a -$name parameter" {
         $command.Parameters.Item($name) | Should Not BeNullOrEmpty
     }
@@ -52,19 +62,37 @@ function checkType($obj, $typeName) {
     $o.PSObject.TypeNames[0] | Should Be $typeName
 }
 
+function castsToString($obj) {
+    if ($obj -is [System.Array]) {
+        $o = $obj[0]
+    }
+    else {
+        $o = $obj
+    }
+
+    $o.ToString() | Should Not BeNullOrEmpty
+}
+
 function checkPsType($obj, $typeName) {
     It "Uses output type of '$typeName'" {
         checkType $obj $typeName
     }
+    It "Can cast to string" {
+        castsToString($obj)
+    }
 }
 
-function ShowMockInfo($functionName, [String[]] $params)
-{
-    if ($ShowMockData)
-    {
+function ShowMockInfo($functionName, [String[]] $params) {
+    if ($ShowMockData) {
         Write-Host "       Mocked $functionName" -ForegroundColor Cyan
         foreach ($p in $params) {
             Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly)" -ForegroundColor Cyan
         }
+    }
+}
+
+if ($ShowDebugText) {
+    Mock "Write-Debug" {
+        Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
     }
 }

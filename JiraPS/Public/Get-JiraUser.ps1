@@ -23,21 +23,23 @@ function Get-JiraUser
         # Username, name, or e-mail address of the user. Any of these should
         # return search results from Jira.
         [Parameter(ParameterSetName = 'ByUserName',
-                   Mandatory = $true,
-                   Position = 0)]
+            Mandatory = $true,
+            Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [Alias('User','Name')]
+        [Alias('User', 'Name')]
         [String[]] $UserName,
 
+        # User Object of the user.
         [Parameter(ParameterSetName = 'ByInputObject',
-                   Mandatory = $true,
-                   Position = 0)]
+            Mandatory = $true,
+            Position = 0)]
         [Object[]] $InputObject,
 
         # Include inactive users in the search
         [Switch] $IncludeInactive,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -56,7 +58,7 @@ function Get-JiraUser
             $userSearchUrl = "$userSearchUrl&includeInactive=true"
         }
 
-        $userGetUrl = "$server/rest/api/latest/user?username={0}&expand=groups"
+        # $userGetUrl = "$server/rest/api/latest/user?username={0}&expand=groups"
     }
 
     process
@@ -86,16 +88,22 @@ function Get-JiraUser
                             Write-Debug "[Get-JiraUser] Converting result to JiraPS.User object"
                             $thisUserObject = ConvertTo-JiraUser -InputObject $thisUserResult
                             Write-Output $thisUserObject
-                        } else {
+                        }
+                        else
+                        {
                             Write-Debug "[Get-JiraUser] User [$r] could not be found in JIRA."
                         }
                     }
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Get-JiraUser] JIRA returned no results."
                     Write-Verbose "JIRA returned no results for user [$u]."
                 }
             }
-        } else {
+        }
+        else
+        {
             foreach ($i in $InputObject)
             {
                 Write-Debug "[Get-JiraUser] Processing InputObject [$i]"
@@ -103,7 +111,9 @@ function Get-JiraUser
                 {
                     Write-Debug "[Get-JiraUser] User parameter is a JiraPS.User object"
                     $thisUserName = $i.Name
-                } else {
+                }
+                else
+                {
                     $thisUserName = $i.ToString()
                     Write-Debug "[Get-JiraUser] Username is assumed to be [$thisUserName] via ToString()"
                 }
@@ -121,5 +131,3 @@ function Get-JiraUser
         Write-Debug "[Get-JiraUser] Complete"
     }
 }
-
-

@@ -2,6 +2,39 @@
 Changelog
 =========
 
+Release date: Jun 25, 2017
+
+Features
+--------
+
+* ``Get-JiraIssueEditMetadata``: Returns metadata required to create an issue in JIRA (#65, `@lipkau`_)
+* ``Get-JiraRemoteLink``: Returns a remote link from a JIRA issue (#80, `@lipkau`_)
+* ``Remove-JiraRemoteLink``: Removes a remote link from a JIRA issue (#80, `@lipkau`_)
+* ``Get-JiraComponent``: Returns a Component from JIRA (#68, `@axxelG`_)
+* ``Add-JiraIssueWorklog``: Add worklog items to an issue (#83, `@jkknorr`_)
+* Added support for getting and managing Issue Watchers (``Add-JiraIssueWatcher``, ``Get-JiraIssueWatcher``, ``Remove-JiraIssueWatcher``) (#73, `@ebekker`_)
+* Added IssueLink functionality (``Add-JiraIssueLink``, ``Get-JiraIssueLink``, ``Get-JiraIssueLinkType``, ``Remove-JiraIssueLink``) (#131, `@lipkau`_)
+
+Improvements
+------------
+
+* ``New-JiraIssue``: *Description* and *Priority* are no longer mandatory (#53, `@brianbunke`_)
+* Added property ``Components`` to ``PSjira.Project`` (#68, `@axxelG`_)
+* ``Invoke-JiraIssueTransition``: add support for parameters *Fields*, *Comment* and *Assignee* (#38, `@padgers`_)
+* Added support for *FixVersion* parameter in ``New-JiraIssue`` and ``Set-JiraIssue`` (#103, `@Dejulia489`_)
+* Respect the global ``$PSDefaultParameterValues`` inside the module (#110, `@lipkau`_)
+* ``New-JiraSession``: Display warning when login needs CAPTCHA (#111, `@lipkau`_)
+* Switched to *Basic Authentication* when generating the session (#116, `@lipkau`_)
+* Added more tests for the CI (#142, `@lipkau`_)
+
+Bug Fixes
+---------
+
+* ``Invoke-JiraMethod``: Error when Invoke-WebRequest returns '204 No content' (#42, `@colhal`_)
+* ``Invoke-JiraIssueTransition``: Error when Invoke-WebRequest returns '204 No content' (#43, `@colhal`_)
+* ``Set-JiraIssueLabel``: Forced label property to be an array (#88, `@kittholland`_)
+* ``Invoke-JiraMethod``: Send ContentType as Parameter instead of in the Header (#121, `@lukhase`_)
+
 2.0.0
 =====
 
@@ -174,3 +207,16 @@ The format of this changelog is inspired by `Pester's changelog`_, which is in t
 
 .. _`Pester's changelog`: https://github.com/pester/Pester/blob/master/CHANGELOG.md
 .. _`Vagrant`: https://github.com/mitchellh/vagrant/blob/master/CHANGELOG.md
+.. _`@alexsuslin`: https://github.com/alexsuslin
+.. _`@axxelG`: https://github.com/axxelG
+.. _`@brianbunke`: https://github.com/brianbunke
+.. _`@colhal`: https://github.com/colhal
+.. _`@Dejulia489`: https://github.com/Dejulia489
+.. _`@ebekker`: https://github.com/ebekker
+.. _`@jkknorr`: https://github.com/jkknorr
+.. _`@kittholland`: https://github.com/kittholland
+.. _`@LiamLeane`: https://github.com/LiamLeane
+.. _`@lipkau`: https://github.com/lipkau
+.. _`@lukhase`: https://github.com/lukhase
+.. _`@padgers`: https://github.com/padgers
+.. _`@ThePSAdmin`: https://github.com/ThePSAdmin

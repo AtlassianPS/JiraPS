@@ -1,3 +1,5 @@
+# No longer used as of 2017-05-22. See build\build.psake.ps1 instead.
+
 # PSake makes variables declared here available in other scriptblocks
 Properties {
     # This refers to the root of the project directory

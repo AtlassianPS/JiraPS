@@ -17,6 +17,16 @@ function Invoke-JiraIssueTransition
        Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11
        Invokes transition ID 11 on issue TEST-01.
     .EXAMPLE
+       Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition comment'
+       Invokes transition ID 11 on issue TEST-01 with a comment. Requires the comment field to be configured visible for transition.
+    .EXAMPLE
+       Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Assignee 'joe.bloggs'
+       Invokes transition ID 11 on issue TEST-01 and assigns to user 'Joe Blogs'. Requires the assignee field to be configured as visible for transition.
+    .EXAMPLE
+       $transitionFields = @{'customfield_12345' = 'example'}
+       Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Fields $transitionFields
+       Invokes transition ID 11 on issue TEST-01 and configures a custom field value. Requires fields to be configured as visible for transition.
+    .EXAMPLE
        $transition = Get-JiraIssue -Issue TEST-01 | Select-Object -ExpandProperty Transition | ? {$_.ResultStatus.Name -eq 'In Progress'}
        Invoke-JiraIssueTransition -Issue TEST-01 -Transition $transition
        This example identifies the correct transition based on the result status of
@@ -29,16 +39,29 @@ function Invoke-JiraIssueTransition
     #>
     [CmdletBinding()]
     param(
+        # The Issue Object or ID to transition.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('Key')]
         [Object] $Issue,
 
+        # The Transition Object or ID.
         [Parameter(Mandatory = $true,
-                   Position = 1)]
+            Position = 1)]
         [Object] $Transition,
+
+        # Any additional fields that should be updated. Fields must be configured to appear on the transition screen to use this parameter.
+        [System.Collections.Hashtable] $Fields,
+
+        # New assignee of the issue. Enter 'Unassigned' to unassign the issue. Assignee field must be configured to appear on the transition screen to use this parameter.
+        [Parameter(Mandatory = $false)]
+        [Object] $Assignee,
+
+        # Comment that should be added to JIRA. Comment field must be configured to appear on the transition screen to use this parameter.
+        [Parameter(Mandatory = $false)]
+        [String] $Comment,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
@@ -95,7 +118,96 @@ function Invoke-JiraIssueTransition
                 'id' = $transitionId;
             }
         }
-        $json = ConvertTo-Json -InputObject $props -Depth 3
+
+        if ($Assignee)
+        {
+            Write-Debug "[Invoke-JiraIssueTransition] Testing Assignee type"
+            if ($Assignee -eq 'Unassigned')
+            {
+                Write-Debug "[Invoke-JiraIssueTransition] 'Unassigned' String passed. Issue will be assigned to no one."
+                $assigneeString = ""
+                $validAssignee = $true
+            } else {
+                Write-Debug "[Invoke-JiraIssueTransition] Attempting to obtain Jira user [$Assignee]"
+                $assigneeObj = Get-JiraUser -InputObject $Assignee -Credential $Credential
+                if ($assigneeObj)
+                {
+                    Write-Debug "[Invoke-JiraIssueTransition] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
+                    $assigneeString = $assigneeObj.Name
+                    $validAssignee = $true
+                } else {
+                    Write-Debug "[Invoke-JiraIssueTransition] Unable to obtain Assignee. Exception will be thrown."
+                    throw "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
+                }
+            }
+        }
+
+
+        if ($validAssignee)
+        {
+            Write-Debug "[Invoke-JiraIssueTransition] Updating Assignee"
+            $props += @{
+                'fields' = @{
+                    'assignee' = @{
+                        'name' = $assigneeString;
+                     }
+                }
+            }
+        }
+
+
+        if ($Fields)
+        {
+            Write-Debug "[Invoke-JiraIssueTransition] Validating field names"
+            $props += @{
+                'update' = @{}
+            }
+
+            foreach ($k in $Fields.Keys)
+            {
+                $name = $k
+                $value = $Fields.$k
+                Write-Debug "[Invoke-JiraIssueTransition] Attempting to identify field (name=[$name], value=[$value])"
+
+                $f = Get-JiraField -Field $name -Credential $Credential
+                if ($f)
+                {
+                    # For some reason, this was coming through as a hashtable instead of a String,
+                    # which was causing ConvertTo-Json to crash later.
+                    # Not sure why, but this forces $id to be a String and not a hashtable.
+                    $id = "$($f.ID)"
+                    Write-Debug "[Invoke-JiraIssueTransition] Field [$name] was identified as ID [$id]"
+                    $props.update.$id = @()
+                    $props.update.$id += @{
+                        'set' = $value;
+                    }
+                } else {
+                    Write-Debug "[Invoke-JiraIssueTransition] Field [$name] could not be identified in Jira"
+                    throw "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
+                }
+            }
+        }
+
+
+        if ($Comment)
+        {
+            Write-Debug "[Invoke-JiraIssueTransition] Adding comment"
+            if (-not $Fields)
+            {
+                Write-Debug "[Invoke-JiraIssueTransition] Create 'update' hashtable since not already created"
+                $props += @{
+                    'update' = @{}
+                }
+            }
+
+            $props.update.comment += ,@{
+                'add' = @{
+                    'body' = $Comment
+                }
+            }
+        }
+
+        $json = ConvertTo-Json -InputObject $props -Depth 4
         Write-Debug "[Invoke-JiraIssueTransition] Converted properties to JSON"
 
         Write-Debug "[Invoke-JiraIssueTransition] Preparing for blastoff!"
@@ -118,5 +230,3 @@ function Invoke-JiraIssueTransition
         Write-Debug "Complete"
     }
 }
-
-

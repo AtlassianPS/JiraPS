@@ -12,7 +12,8 @@ InModuleScope JiraPS {
     . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
-    $authUri = "$jiraServer/rest/auth/1/session"
+    $authUri    = "$jiraServer/rest/api/2/mypermissions"
+    $sessionUri = "$jiraServer/rest/auth/1/session"
     $jSessionId = '76449957D8C863BE8D4F6F5507E980E8'
 
     $testUsername = 'powershell-test'
@@ -40,10 +41,10 @@ InModuleScope JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'POST'} {
+        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'GET'} {
             if ($showMockData)
             {
-                Write-Host "       Mocked Invoke-WebRequest with POST method" -ForegroundColor Cyan
+                Write-Host "       Mocked Invoke-WebRequest with GET method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]            $URI" -ForegroundColor Cyan
             }
@@ -51,7 +52,7 @@ InModuleScope JiraPS {
             Write-Output $testJson
         }
 
-        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'DELETE'} {
+        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $sessionUri -and $Method -eq 'DELETE'} {
             if ($showMockData)
             {
                 Write-Host "       Mocked Invoke-WebRequest with DELETE method" -ForegroundColor Cyan
@@ -73,22 +74,35 @@ InModuleScope JiraPS {
             # New-JiraSession has some slightly more elaborate testing, which includes a test for Get-JiraSession,
             # so if both of those pass, they should work as expected here.
 
-            New-JiraSession -Credential $testCredential | Remove-JiraSession
+            New-JiraSession -Credential $testCredential
+            Get-JiraSession | Should Not BeNullOrEmpty
 
+            Remove-JiraSession
             Get-JiraSession | Should BeNullOrEmpty
+            Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Uri -eq $sessionUri -and $Method -eq 'DELETE'} -Exactly -Times 1 -Scope It
+        }
+
+        It "Correctly handles sessions from a variable" {
+            $Session = New-JiraSession -Credential $testCredential
+            $Session | Should Not BeNullOrEmpty
+            Get-JiraSession | Should Not BeNullOrEmpty
+
+            Remove-JiraSession $Session
+            Get-JiraSession | Should BeNullOrEmpty
+            Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Uri -eq $sessionUri -and $Method -eq 'DELETE'} -Exactly -Times 1 -Scope It
         }
 
         It "Correctly handles pipeline input from New-JiraSession" {
             { New-JiraSession -Credential $testCredential | Remove-JiraSession } | Should Not Throw
             Get-JiraSession | Should BeNullOrEmpty
-            Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'DELETE'} -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Uri -eq $sessionUri -and $Method -eq 'DELETE'} -Exactly -Times 1 -Scope It
         }
 
         It "Correctly handles pipeline input from Get-JiraSession" {
             New-JiraSession -Credential $testCredential
             { Get-JiraSession | Remove-JiraSession } | Should Not Throw
             Get-JiraSession | Should BeNullOrEmpty
-            Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'DELETE'} -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Uri -eq $sessionUri -and $Method -eq 'DELETE'} -Exactly -Times 1 -Scope It
         }
     }
 }

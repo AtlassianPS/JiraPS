@@ -26,12 +26,13 @@ function Get-JiraProject
     #>
     [CmdletBinding(DefaultParameterSetName = 'AllProjects')]
     param(
-        # The Project ID or project key of a project to search
+        # The Project ID or project key of a project to search.
         [Parameter(Mandatory = $false,
-                   Position = 0)]
+            Position = 0)]
         [String[]] $Project,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -42,7 +43,8 @@ function Get-JiraProject
         try
         {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Get-JiraProject] Encountered an error reading the Jira server."
             throw $err
@@ -70,12 +72,16 @@ function Get-JiraProject
 
                     Write-Debug "[Get-JiraProject] Outputting result"
                     Write-Output $obj
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Get-JiraProject] No results were returned from Jira"
                     Write-Debug "[Get-JiraProject] No results were returned from Jira for project [$p]"
                 }
             }
-        } else {
+        }
+        else
+        {
             Write-Debug "[Get-JiraProject] Attempting to search for all projects"
             $thisUri = "$uri"
 
@@ -88,7 +94,9 @@ function Get-JiraProject
 
                 Write-Debug "[Get-JiraProject] Outputting result"
                 Write-Output $obj
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Get-JiraProject] No results were returned from Jira"
                 Write-Debug "[Get-JiraProject] No project results were returned from Jira"
             }
@@ -100,5 +108,3 @@ function Get-JiraProject
         Write-Debug "Complete"
     }
 }
-
-

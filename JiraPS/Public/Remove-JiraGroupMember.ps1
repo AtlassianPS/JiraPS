@@ -24,11 +24,12 @@ function Remove-JiraGroupMember
        versions of JIRA. The function will need to be re-written at that time.
     #>
     [CmdletBinding(SupportsShouldProcess = $true,
-                   ConfirmImpact = 'High')]
+        ConfirmImpact = 'High')]
     param(
+        # Group Object or ID from which to remove the user(s).
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true)]
+            Position = 0,
+            ValueFromPipeline = $true)]
         [Alias('GroupName')]
         [Object[]] $Group,
 
@@ -37,12 +38,15 @@ function Remove-JiraGroupMember
         [Alias('UserName')]
         [Object[]] $User,
 
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
         # Whether output should be provided after invoking this function
         [Switch] $PassThru,
 
+        # Suppress user confirmation.
         [Switch] $Force
     )
 
@@ -53,7 +57,8 @@ function Remove-JiraGroupMember
         {
             Write-Debug "[Remove-JiraGroupMember] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Remove-JiraGroupMember] Encountered an error reading configuration data."
             throw $err
@@ -100,14 +105,20 @@ function Remove-JiraGroupMember
                             {
                                 Write-Debug "[Remove-JiraGroupMember] Preparing for blastoff!"
                                 Invoke-JiraMethod -Method Delete -URI $thisRestUrl -Credential $Credential
-                            } else {
+                            }
+                            else
+                            {
                                 Write-Debug "[Remove-JiraGroupMember] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
                             }
-                        } else {
+                        }
+                        else
+                        {
                             Write-Debug "[Remove-JiraGroupMember] User [$u] is not currently a member of group [$g]"
                             Write-Verbose "User [$u] is not currently a member of group [$g]"
                         }
-                    } else {
+                    }
+                    else
+                    {
                         Write-Debug "[Remove-JiraGroupMember] Could not identify user [$u]. Writing error message."
                         Write-Error "Unable to identify user [$u]. Check the spelling of this user and ensure that you can access it via Get-JiraUser."
                     }
@@ -120,7 +131,9 @@ function Remove-JiraGroupMember
                     Write-Debug "[Remove-JiraGroupMember] Outputting group [$groupObjNew]"
                     Write-Output $groupObjNew
                 }
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Remove-JiraGroupMember] Could not identify group [$g]"
                 Write-Error "Unable to identify group [$g]. Check the spelling of this group and ensure that you can access it via Get-JiraGroup."
             }
@@ -138,7 +151,3 @@ function Remove-JiraGroupMember
         Write-Debug "[Remove-JiraGroupMember] Complete"
     }
 }
-
-
-
-

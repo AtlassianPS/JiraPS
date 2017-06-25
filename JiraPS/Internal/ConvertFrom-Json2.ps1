@@ -13,7 +13,7 @@ function ConvertFrom-Json2
     )
 
     begin {
-        function PopulateJsonFrom-Dictionary
+        function ConvertFrom-Dictionary
         {
             param
             (
@@ -30,11 +30,11 @@ function ConvertFrom-Json2
 
                     if ($pairObjectValue -is [System.Collections.Generic.IDictionary`2].MakeGenericType([String],[Object]))
                     {
-                        $pairObjectValue = PopulateJsonFrom-Dictionary $pairObjectValue
+                        $pairObjectValue = ConvertFrom-Dictionary $pairObjectValue
                     }
                     elseif ($pairObjectValue -is [System.Collections.Generic.ICollection`1].MakeGenericType([Object]))
                     {
-                        $pairObjectValue = PopulateJsonFrom-Collection $pairObjectValue
+                        $pairObjectValue = ConvertFrom-Collection $pairObjectValue
                     }
 
                     $returnObject | Add-Member Noteproperty $key $pairObjectValue
@@ -44,7 +44,7 @@ function ConvertFrom-Json2
             }
         }
 
-        function PopulateJsonFrom-Collection
+        function ConvertFrom-Collection
         {
             param
             (
@@ -60,11 +60,11 @@ function ConvertFrom-Json2
 
                     if ($jsonObjectValue -is [System.Collections.Generic.IDictionary`2].MakeGenericType([String],[Object]))
                     {
-                        $jsonObjectValue = PopulateJsonFrom-Dictionary $jsonObjectValue
+                        $jsonObjectValue = ConvertFrom-Dictionary $jsonObjectValue
                     }
                     elseif ($jsonObjectValue -is [System.Collections.Generic.ICollection`1].MakeGenericType([Object]))
                     {
-                        $jsonObjectValue = PopulateJsonFrom-Collection $jsonObjectValue
+                        $jsonObjectValue = ConvertFrom-Collection $jsonObjectValue
                     }
 
                     $returnList.Add($jsonObjectValue) | Out-Null
@@ -118,11 +118,11 @@ public class JsonObjectTypeResolver : System.Web.Script.Serialization.JavaScript
 
                 if ($jsonTree -is [System.Collections.Generic.IDictionary`2].MakeGenericType([String],[Object]))
                 {
-                    $jsonTree = PopulateJsonFrom-Dictionary $jsonTree
+                    $jsonTree = ConvertFrom-Dictionary $jsonTree
                 }
                 elseif ($jsonTree -is [System.Collections.Generic.ICollection`1].MakeGenericType([Object]))
                 {
-                    $jsonTree = PopulateJsonFrom-Collection $jsonTree
+                    $jsonTree = ConvertFrom-Collection $jsonTree
                 }
 
                 Write-Output $jsonTree

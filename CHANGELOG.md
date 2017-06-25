@@ -1,3 +1,31 @@
+## 2.1.0 (Jul 25, 2017)
+
+FEATURES:
+  - `Get-JiraIssueEditMetadata`: Returns metadata required to create an issue in JIRA (#65, [@lipkau][])
+  - `Get-JiraRemoteLink`: Returns a remote link from a JIRA issue (#80, [@lipkau][])
+  - `Remove-JiraRemoteLink`: Removes a remote link from a JIRA issue (#80, [@lipkau][])
+  - `Get-JiraComponent`: Returns a Component from JIRA (#68, [@axxelG][])
+  - `Add-JiraIssueWorklog`: Add worklog items to an issue (#83, [@jkknorr][])
+  - Added support for getting and managing Issue Watchers (`Add-JiraIssueWatcher`, `Get-JiraIssueWatcher`, `Remove-JiraIssueWatcher`) (#73, [@ebekker][])
+  - Added IssueLink functionality (`Add-JiraIssueLink`, `Get-JiraIssueLink`, `Get-JiraIssueLinkType`, `Remove-JiraIssueLink`) (#131, [@lipkau][])
+
+IMPROVEMENTS:
+  - `New-JiraIssue`: _Description_ and _Priority_ are no longer mandatory (#53, [@brianbunke][])
+  - Added property `Components` to `PSjira.Project` (#68, [@axxelG][])
+  - `Invoke-JiraIssueTransition`: add support for parameters _Fields_, _Comment_ and _Assignee_ (#38, [@padgers][])
+  - `New-JiraIssue`: support parameter _FixVersion_ (#103, [@Dejulia489][])
+  - `Set-JiraIssue`: support parameter _FixVersion_ (#103, [@Dejulia489][])
+  - Respect the global `$PSDefaultParameterValues` inside the module (#110, [@lipkau][])
+  - `New-JiraSession`: Display warning when login needs CAPTCHA (#111, [@lipkau][])
+  - Switched to _Basic Authentication_ when generating the session (#116, [@lipkau][])
+  - Added more tests for the CI (#142, [@lipkau][])
+
+BUG FIXES:
+  - `Invoke-JiraMethod`: Error when Invoke-WebRequest returns '204 No content' (#42, [@colhal][])
+  - `Invoke-JiraIssueTransition`: Error when Invoke-WebRequest returns '204 No content' (#43, [@colhal][])
+  - `Set-JiraIssueLabel`: Forced label property to be an array (#88, [@kittholland][])
+  - `Invoke-JiraMethod`: Send ContentType as Parameter instead of in the Header (#121, [@lukhase][])
+
 ## 2.0.0 (Jun 24, 2017)
 
 ### Changes to the code module
@@ -108,3 +136,17 @@ FEATURES:
 IMPROVEMENTS:
 
 BUG FIXES:
+
+[@alexsuslin]: https://github.com/alexsuslin
+[@axxelG]: https://github.com/axxelG
+[@brianbunke]: https://github.com/brianbunke
+[@colhal]: https://github.com/colhal
+[@Dejulia489]: https://github.com/Dejulia489
+[@ebekker]: https://github.com/ebekker
+[@jkknorr]: https://github.com/jkknorr
+[@kittholland]: https://github.com/kittholland
+[@LiamLeane]: https://github.com/LiamLeane
+[@lipkau]: https://github.com/lipkau
+[@lukhase]: https://github.com/lukhase
+[@padgers]: https://github.com/padgers
+[@ThePSAdmin]: https://github.com/ThePSAdmin

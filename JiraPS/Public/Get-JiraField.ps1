@@ -22,13 +22,14 @@
     #>
     [CmdletBinding()]
     param(
-        # The Field name or ID to search
+        # The Field name or ID to search.
         [Parameter(Mandatory = $false,
-                   Position = 0,
-                   ValueFromRemainingArguments = $true)]
+            Position = 0,
+            ValueFromRemainingArguments = $true)]
         [String[]] $Field,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -39,7 +40,8 @@
         try
         {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Get-JiraField] Encountered an error reading the Jira server."
             throw $err
@@ -63,20 +65,26 @@
                 {
                     Write-Debug "[Get-JiraField] Found results; outputting"
                     Write-Output $thisField
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Get-JiraField] No results were found for issue type by name. Searching for issue type (id=[$i])"
                     $thisField = $allFields | Where-Object -FilterScript {$_.Id -eq $f}
                     if ($thisField)
                     {
                         Write-Debug "[Get-JiraField] Found results; outputting"
                         Write-Output $thisField
-                    } else {
+                    }
+                    else
+                    {
                         Write-Debug "[Get-JiraField] No results were found for issue type by ID. This issue type appears to be unknown."
                         Write-Verbose "Unable to identify Jira field [$f]"
                     }
                 }
             }
-        } else {
+        }
+        else
+        {
             Write-Debug "[Get-JiraField] No Field was supplied. Outputting all fields."
             Write-Output $allFields
         }

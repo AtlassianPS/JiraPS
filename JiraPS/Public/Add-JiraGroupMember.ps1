@@ -25,21 +25,24 @@ function Add-JiraGroupMember
     #>
     [CmdletBinding()]
     param(
+        # Group (or list of groups) to which the user(s) will be added.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true)]
+            Position = 0,
+            ValueFromPipeline = $true)]
         [Alias('GroupName')]
         [Object[]] $Group,
 
-        # Username or user object obtained from Get-JiraUser
+        # Username or user object obtained from Get-JiraUser.
         [Parameter(Mandatory = $true)]
         [Alias('UserName')]
         [Object[]] $User,
 
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
-        # Whether output should be provided after invoking this function
+        # Whether output should be provided after invoking this function.
         [Switch] $PassThru
     )
 
@@ -50,7 +53,8 @@ function Add-JiraGroupMember
         {
             Write-Debug "[Add-JiraGroupMember] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Add-JiraGroupMember] Encountered an error reading configuration data."
             throw $err
@@ -73,18 +77,20 @@ function Add-JiraGroupMember
             if ($userObj)
             {
                 Write-Debug "[Add-JiraGroupMember] Retrieved user reference [$userObj]"
-#                $thisUserJson = ConvertTo-Json -InputObject @{
-#                    'name' = $userObj.Name;
-#                }
-#                [void] $userAL.Add($thisUserJson)
+                #                $thisUserJson = ConvertTo-Json -InputObject @{
+                #                    'name' = $userObj.Name;
+                #                }
+                #                [void] $userAL.Add($thisUserJson)
                 [void] $userAL.Add($userObj.Name)
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Add-JiraGroupMember] Could not identify user [$u]. Writing error message."
                 Write-Error "Unable to identify user [$u]. Check the spelling of this user and ensure that you can access it via Get-JiraUser."
             }
         }
 
-#        $userJsons = $userAL.ToArray()
+        #        $userJsons = $userAL.ToArray()
         $userNames = $userAL.ToArray()
 
         $restUrl = "$server/rest/api/latest/group/user?groupname={0}"
@@ -104,11 +110,11 @@ function Add-JiraGroupMember
 
                 $thisRestUrl = $restUrl -f $groupObj.Name
                 Write-Debug "[Add-JiraGroupMember] Group URL: [$thisRestUrl]"
-#                foreach ($json in $userJsons)
-#                {
-#                    Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
-#                    $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $json -Credential $Credential
-#                }
+                #                foreach ($json in $userJsons)
+                #                {
+                #                    Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
+                #                    $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $json -Credential $Credential
+                #                }
                 foreach ($u in $userNames)
                 {
                     if ($groupMembers -notcontains $u)
@@ -119,7 +125,9 @@ function Add-JiraGroupMember
                         }
                         Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
                         $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $userJson -Credential $Credential
-                    } else {
+                    }
+                    else
+                    {
                         Write-Debug "[Add-JiraGroupMember] User [$u] is already a member of group [$g]"
                         Write-Verbose "User [$u] is already a member of group [$g]"
                     }
@@ -128,11 +136,11 @@ function Add-JiraGroupMember
                 if ($PassThru)
                 {
                     Write-Debug "[Add-JiraGroupMember] -PassThru specified. Obtaining a final reference to group [$g]"
-                    $groupObjNew = Get-JiraGroup -InputObject $g -Credential $Credential
-                    Write-Debug "[Add-JiraGroupMember] Outputting group [$groupObjNew]"
-                    Write-Output $groupObjNew
+                    $result | ConvertTo-JiraGroup
                 }
-            } else {
+            }
+            else
+            {
                 Write-Debug "[Add-JiraGroupMember] Could not identify group [$g]"
                 Write-Error "Unable to identify group [$g]. Check the spelling of this group and ensure that you can access it via Get-JiraGroup."
             }
@@ -144,7 +152,3 @@ function Add-JiraGroupMember
         Write-Debug "[Add-JiraGroupMember] Complete"
     }
 }
-
-
-
-

@@ -16,17 +16,21 @@
        This function returns no output.
     #>
     [CmdletBinding(SupportsShouldProcess = $true,
-                   ConfirmImpact = 'High')]
+        ConfirmImpact = 'High')]
     param(
+        # Group Object or ID to delete.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true)]
+            Position = 0,
+            ValueFromPipeline = $true)]
         [Alias('GroupName')]
         [Object[]] $Group,
 
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
+        # Suppress user confirmation.
         [Switch] $Force
     )
 
@@ -37,7 +41,8 @@
         {
             Write-Debug "[Remove-JiraGroup] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        } catch
+        {
             $err = $_
             Write-Debug "[Remove-JiraGroup] Encountered an error reading configuration data."
             throw $err
@@ -70,7 +75,9 @@
                 {
                     Write-Debug "[Remove-JiraGroup] Preparing for blastoff!"
                     Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
-                } else {
+                }
+                else
+                {
                     Write-Debug "[Remove-JiraGroup] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
                 }
             }

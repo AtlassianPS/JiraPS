@@ -20,15 +20,17 @@ function Get-JiraIssueComment
     #>
     [CmdletBinding()]
     param(
-        # JIRA issue to check for comments. Can be a JiraPS.Issue object, issue key, or internal issue ID.
+        # JIRA issue to check for comments.
+        # Can be a JiraPS.Issue object, issue key, or internal issue ID.
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('Key')]
         [Object] $Issue,
 
-        # Credentials to use to connect to Jira
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
@@ -57,11 +59,15 @@ function Get-JiraIssueComment
 
                 Write-Debug "Outputting results"
                 Write-Output $obj
-            } else {
+            }
+            else
+            {
                 Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
                 Write-Output $result
             }
-        } else {
+        }
+        else
+        {
             Write-Debug "Invoke-JiraMethod returned no results to output."
         }
     }
@@ -71,5 +77,3 @@ function Get-JiraIssueComment
         Write-Debug "Completed Get-JiraIssueComment"
     }
 }
-
-
