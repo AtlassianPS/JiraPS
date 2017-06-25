@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraCreateMetaField" {
         . $PSScriptRoot\Shared.ps1
 
@@ -86,7 +86,7 @@ InModuleScope PSJira {
             $r.Count | Should Be 2
         }
 
-        checkPsType $r[0] 'PSJira.CreateMetaField'
+        checkPsType $r[0] 'JiraPS.CreateMetaField'
 
         Context "Data validation" {
             # Our sample JSON includes two fields: summary and priority.

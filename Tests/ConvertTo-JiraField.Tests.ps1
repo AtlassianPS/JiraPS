@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraField" {
         . $PSScriptRoot\Shared.ps1
 
@@ -12,7 +12,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Field'
+        checkPsType $r 'JiraPS.Field'
 
         defProp $r 'Id' 'issuetype'
         defProp $r 'Name' 'Issue Type'

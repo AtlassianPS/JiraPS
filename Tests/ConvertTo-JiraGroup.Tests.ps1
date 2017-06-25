@@ -1,6 +1,6 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraGroup" {
         . $PSScriptRoot\Shared.ps1
 
@@ -29,7 +29,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Group'
+        checkPsType $r 'JiraPS.Group'
 
         defProp $r 'Name' $groupName
         defProp $r 'RestUrl' "$jiraServer/rest/api/2/group?groupname=$groupName"

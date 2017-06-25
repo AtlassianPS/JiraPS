@@ -5,7 +5,7 @@ param()
 
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
@@ -94,7 +94,7 @@ InModuleScope PSJira {
                 # This is the authorizion token that should be provided when using HTTP Basic authentication. It takes the form of
                 # "username:password" encoded into a base 64 String.
 
-                # This is why you shouldn't use PSJira on a plain HTTP connection.
+                # This is why you shouldn't use JiraPS on a plain HTTP connection.
                 # See how easy it would be to decrypt your credentials?
                 $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${testUsername}:$testPassword"))
 

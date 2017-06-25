@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
@@ -15,31 +15,31 @@ InModuleScope PSJira {
 
     Describe "Add-JiraGroupMember" {
 
-        Mock Write-Debug -ModuleName PSJira {
+        Mock Write-Debug -ModuleName JiraPS {
             if ($ShowDebugData)
             {
                 Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraGroup -ModuleName PSJira {
+        Mock Get-JiraGroup -ModuleName JiraPS {
             [PSCustomObject] @{
                 'Name' = $testGroupName;
                 'Size' = 2;
             }
         }
 
-        Mock Get-JiraUser -ModuleName PSJira {
+        Mock Get-JiraUser -ModuleName JiraPS {
             [PSCustomObject] @{
                 'Name' = "$InputObject";
             }
         }
 
-        Mock Get-JiraGroupMember -ModuleName PSJira {
+        Mock Get-JiraGroupMember -ModuleName JiraPS {
             @(
                 [PSCustomObject] @{
                     'Name'=$testUsername1;
@@ -47,7 +47,7 @@ InModuleScope PSJira {
             )
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
@@ -66,7 +66,7 @@ InModuleScope PSJira {
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$URI -match $testGroupName} -Exactly -Times 1 -Scope It
             }
 
-            It "Accepts a PSJira.Group object to the -Group parameter" {
+            It "Accepts a JiraPS.Group object to the -Group parameter" {
                 $group = Get-JiraGroup -GroupName $testGroupName
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$URI -match $testGroupName} -Exactly -Times 1 -Scope It
@@ -93,7 +93,7 @@ InModuleScope PSJira {
             It "Adds multiple users to a JIRA group if they are passed to the -User parameter" {
 
                 # Override our previous mock so we have no group members
-                Mock Get-JiraGroupMember -ModuleName PSJira {
+                Mock Get-JiraGroupMember -ModuleName JiraPS {
                     @()
                 }
 

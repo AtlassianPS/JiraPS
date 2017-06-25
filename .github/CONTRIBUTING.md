@@ -1,8 +1,8 @@
-# Contributing to PSJira
+# Contributing to JiraPS
 -----------
 
 We welcome and appreciate contributions from the community.
-There are many ways to become involved with PSJira:
+There are many ways to become involved with JiraPS:
 * including filing issues,
 * joining in design conversations,
 * writing and improving documentation,
@@ -35,14 +35,14 @@ _not yet defined_
 
 ### Building and testing
 
-#### Testing PSJira
+#### Testing JiraPS
 
 Please see PowerShell [Testing Guidelines - Running Tests Outside of CI][running-tests-outside-of-ci] on how to test you build locally.
 
 ### Finding or creating an issue
 
 1. Follow the instructions in [Contributing to Issues][contribute-issues] to find or open an issue.
-2. Mention in the issue that you are working on the issue and ask `@PSJira/moderators` for an assignment.
+2. Mention in the issue that you are working on the issue and ask `@AtlassianPS/moderators` for an assignment.
 
 ### Forks and Pull Requests
 
@@ -142,9 +142,9 @@ See [Contributing to documentation related to PowerShell](#contributing-to-docum
   * An Author is encouraged to choose Reviewer(s) and an Assignee for the PR.
     If no Assignee is chosen, one of the Maintainers shall be assigned to it.
     If no Reviewer is chosen, the Assignee shall choose Reviewer(s) as appropriate.
-    * If an Author is a [PSJira Team](https://github.com/orgs/PSJira/people) member,
+    * If an Author is a [AtlassianPS Team](https://github.com/orgs/AtlassianPS/people) member,
       then the Author **is required** to choose Reviewer(s) and an Assignee for the PR.
-  * For a PR to be merged, it must be approved by at least one PSJira Team member or Collaborator,
+  * For a PR to be merged, it must be approved by at least one JiraPS Team member or Collaborator,
     so additional Reviewer(s) may be added by the Assignee as appropriate.
     The Assignee may also be re-assigned by Maintainers.
 
@@ -238,7 +238,7 @@ is also appropriate, as is using Markdown syntax.
   and John Gruber's [Markdown syntax](https://daringfireball.net/projects/markdown/syntax).
 
 * Don't commit code that you didn't write.
-  If you find code that you think is a good fit to add to PSJira,
+  If you find code that you think is a good fit to add to JiraPS,
   file an issue and start a discussion before proceeding.
 
 * Create and/or update tests when making code changes.

@@ -1,6 +1,6 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraUser" {
         . $PSScriptRoot\Shared.ps1
 
@@ -27,7 +27,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.User'
+        checkPsType $r 'JiraPS.User'
 
         defProp $r 'Name' $username
         defProp $r 'DisplayName' $displayName

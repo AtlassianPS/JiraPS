@@ -1,22 +1,22 @@
-.. PSJira documentation master file, created by
+.. JiraPS documentation master file, created by
    sphinx-quickstart on Tue Dec 13 19:31:32 2016.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 ======
-PSJira
+JiraPS
 ======
 
 .. image:: https://ci.appveyor.com/api/projects/status/utpel25via67xw3b?svg=true
-   :target: https://ci.appveyor.com/project/JoshuaT/psjira
+   :target: https://ci.appveyor.com/project/JoshuaT/JiraPS
    :alt: Appveyor build status
 
-.. image:: https://readthedocs.org/projects/psjira/badge/?version=latest
-    :target: http://psjira.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/JiraPS/badge/?version=latest
+    :target: http://JiraPS.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
 
-PSJira is a Windows PowerShell module to interact with Atlassian JIRA via a REST API, while maintaining a consistent PowerShell look and feel.
+JiraPS is a Windows PowerShell module to interact with Atlassian JIRA via a REST API, while maintaining a consistent PowerShell look and feel.
 
 .. note:: This documentation is a work in progress - but there's enough here already that I wanted to go ahead and publish it as I continue fleshing it out. Please feel free to submit PR's or issues on this documentation over on the `GitHub Issues`_ page!
 
@@ -38,11 +38,11 @@ PSJira is a Windows PowerShell module to interact with Atlassian JIRA via a REST
 
 .. toctree::
    :maxdepth: 1
-   :caption: About PSJira
+   :caption: About JiraPS
 
    contributing
    changelog
 
 New to the project? Check out the :doc:`getting_started` page for a quick guide to get you up and running!
 
-.. _`GitHub Issues`: https://github.com/PSJira/PSJira/issues
+.. _`GitHub Issues`: https://github.com/AtlassianPS/JiraPS/issues
