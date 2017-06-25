@@ -127,8 +127,11 @@ Properties {
     # Your NuGet API key for the PSGallery.  Leave it as $null and the first time you publish,
     # you will be prompted to enter your API key.  The build will store the key encrypted in the
     # settings file, so that on subsequent publishes you will no longer be prompted for the API key.
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $NuGetApiKey = $null
+    if ($env:PSGalleryAPIKey) {
+        Write-Host "PSGallery API key was found in environment variable"
+        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
+        $NuGetApiKey = $env:PSGalleryAPIKey
+    }
 
     # Name of the repository you wish to publish to. If $null is specified the default repo (PowerShellGallery) is used.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
@@ -271,31 +274,52 @@ Task AfterInstall {
 }
 
 ###############################################################################
+# Customize these tasks for performing operations before and/or after Test.
+###############################################################################
+
+# Executes before the Test task.
+Task BeforeTest {
+
+}
+
+# Executes after the Test task.
+Task AfterTest -requiredVariables TestOutputFile {
+    if ($env:BHBuildSystem -eq 'AppVeyor') {
+        if (-not (Test-Path $TestOutputFile)) {
+            throw "Pester test output file could not be found at path $TestOutputFile."
+        }
+        else {
+            $url = "https://ci.appveyor.com/api/testresults/nunit/$env:APPVEYOR_JOB_ID"
+            Write-Host "Uploading test results back to AppVeyor, url=[$url]"
+            $wc = New-Object -TypeName System.Net.WebClient
+            $wc.UploadFile($url, $TestOutputFile)
+            $wc.Dispose()
+        }
+    }
+}
+
+###############################################################################
 # Customize these tasks for performing operations before and/or after Publish.
 ###############################################################################
 
 # Executes before the Publish task.
-Task BeforePublish -requiredVariables NuGetApiKey {
+Task BeforePublish {
     Write-Host "build.settings.ps1 - BeforePublish" -ForegroundColor Green
     if ($env:BHBranchName -ne 'master') {
         Write-Host "This build is from branch [$env:BHBranchName]. It will not be published." -ForegroundColor Yellow
-        throw "Terminating build."
+        # throw "Terminating build."
+        exit 0
     }
 
     if ($env:BHBuildSystem -eq 'AppVeyor') {
         if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
             Write-Host "This build is from a pull request. It will not be published." -ForegroundColor Yellow
-            throw "Terminating build."
+            # throw "Terminating build."
+            exit 0
         }
-
-        # This build script saves credentials to a CliXML file in $APPDATA.
-        # While that's useful on a single dev machine, AppVeyor uses
-        # encrypted credentials in the appveyor.yml file, so we need to
-        # load those instead.
-        Write-Host "AppVeyor detected; setting NuGetApiKey to encrypted environment value"
-        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-        $NuGetApiKey = $env:PSGalleryAPIKey
     }
+
+    Write-Host "Build appears to have passed all pre-requisites for publishing." -ForegroundColor Green
 }
 
 # Executes after the Publish task.

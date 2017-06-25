@@ -62,33 +62,38 @@ Set-BuildEnvironment -Path $ProjectRoot
 
 Write-Host "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n" -ForegroundColor Cyan
 
-Write-Host "Running tests" -ForegroundColor Cyan
-Invoke-psake -buildFile "$ProjectRoot\build\build.psake.ps1" -taskList Test
+# To avoid PSake running tests twice, the logic below has all been merged into PSake.
+# The build will fail automatically and will not be published if it does not pass all
+# Pester tests, or if the commit is not to master.
 
-# Make sure this matches the declaration in build.settings.ps1
-$testOutputFile = Join-Path $ProjectRoot 'TestResults.xml'
-if (-not (Test-Path $testOutputFile)) {
-    throw "Test results were not found at path "
-}
+# Write-Host "Running tests" -ForegroundColor Cyan
+# Invoke-psake -buildFile "$ProjectRoot\build\build.psake.ps1" -taskList Test
 
-$url = "https://ci.appveyor.com/api/testresults/nunit/$env:APPVEYOR_JOB_ID"
-Write-Host "Uploading test results back to AppVeyor, url=[$url]"
-$wc = New-Object -TypeName System.Net.WebClient
-$wc.UploadFile($url, $testOutputFile)
-$wc.Dispose()
+# # Make sure this matches the declaration in build.settings.ps1
+# $testOutputFile = Join-Path $ProjectRoot 'TestResults.xml'
+# if (-not (Test-Path $testOutputFile)) {
+#     throw "Test results were not found at path "
+# }
 
-if (-not $psake.build_success) {
-    Write-Error "Build failed."
-    exit 1
-}
+# $url = "https://ci.appveyor.com/api/testresults/nunit/$env:APPVEYOR_JOB_ID"
+# Write-Host "Uploading test results back to AppVeyor, url=[$url]"
+# $wc = New-Object -TypeName System.Net.WebClient
+# $wc.UploadFile($url, $testOutputFile)
+# $wc.Dispose()
 
-if ($env:APPVEYOR_REPO_BRANCH -ne 'master' -or $env:APPVEYOR_PULL_REQUEST_NUMBER) {
-    Write-Host "This commit is not to the master branch. It will not be published." -ForegroundColor Yellow
-    exit 0
-}
+# if (-not $psake.build_success) {
+#     Write-Error "Build failed."
+#     exit 1
+# }
 
-Write-Host "Running publish task"
-Invoke-psake $env:APPVEYOR_BUILD_FOLDER\build\build.psake.ps1 -taskList Publish
+# # These safeguards have been moved to BeforePublish in build.settings.ps1
+# if ($env:APPVEYOR_REPO_BRANCH -ne 'master' -or $env:APPVEYOR_PULL_REQUEST_NUMBER) {
+#     Write-Host "This commit is not to the master branch. It will not be published." -ForegroundColor Yellow
+#     exit 0
+# }
+
+# Write-Host "Running publish task"
+# Invoke-psake $env:APPVEYOR_BUILD_FOLDER\build\build.psake.ps1 -taskList Publish
 
 Write-Host
 Write-Host "=== Completed AppVeyor.ps1 ===" -ForegroundColor Green
