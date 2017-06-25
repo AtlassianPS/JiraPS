@@ -62,6 +62,8 @@ Set-BuildEnvironment -Path $ProjectRoot
 
 Write-Host "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n" -ForegroundColor Cyan
 
+Invoke-Psake -buildFile "$ProjectRoot\build\build.psake.ps1" -taskList Test,Publish
+
 # To avoid PSake running tests twice, the logic below has all been merged into PSake.
 # The build will fail automatically and will not be published if it does not pass all
 # Pester tests, or if the commit is not to master.
