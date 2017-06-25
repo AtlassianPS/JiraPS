@@ -2,9 +2,9 @@
 Working With Fields
 ===================
 
-Many of PSJira's functions contain convenience parameters for issue fields that are commonly used. These parameters take care of translating PowerShell to the correct JSON format when working with JIRA'S API.
+Many of JiraPS's functions contain convenience parameters for issue fields that are commonly used. These parameters take care of translating PowerShell to the correct JSON format when working with JIRA'S API.
 
-However, not every standard JIRA field is implemented via a parameter, and most JIRA instances also contain custom fields to allow your organization to tailor its JIRA instance to your own requirements. To allow PSJira to work with fields that do not have named parameters, these functions support a generic -Fields parameter.
+However, not every standard JIRA field is implemented via a parameter, and most JIRA instances also contain custom fields to allow your organization to tailor its JIRA instance to your own requirements. To allow JiraPS to work with fields that do not have named parameters, these functions support a generic -Fields parameter.
 
 Using -Fields
 =============

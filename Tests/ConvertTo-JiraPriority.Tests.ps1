@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraPriority" {
         . $PSScriptRoot\Shared.ps1
 
@@ -27,7 +27,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Priority'
+        checkPsType $r 'JiraPS.Priority'
 
         defProp $r 'Id' $priorityId
         defProp $r 'Name' $priorityName

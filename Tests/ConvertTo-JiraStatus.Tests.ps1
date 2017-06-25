@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraStatus" {
         . $PSScriptRoot\Shared.ps1
 
@@ -34,7 +34,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Status'
+        checkPsType $r 'JiraPS.Status'
 
         defProp $r 'Id' $statusId
         defProp $r 'Name' $statusName

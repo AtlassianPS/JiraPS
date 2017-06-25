@@ -1,5 +1,5 @@
 . $PSScriptRoot\Shared.ps1
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraIssueType" {
         . $PSScriptRoot\Shared.ps1
 
@@ -26,7 +26,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.IssueType'
+        checkPsType $r 'JiraPS.IssueType'
 
         defProp $r 'Id' $issueTypeId
         defProp $r 'Name' $issueTypeName

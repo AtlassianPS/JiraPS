@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
@@ -12,21 +12,21 @@ InModuleScope PSJira {
 
     Describe "Invoke-JiraIssueTransition" {
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraIssue -ModuleName PSJira {
+        Mock Get-JiraIssue -ModuleName JiraPS {
             $t1 = [PSCustomObject] @{
                 Name = 'Start Progress';
                 ID   = 11;
             }
-            $t1.PSObject.TypeNames.Insert(0, 'PSJira.Transition')
+            $t1.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
             $t2 = [PSCustomObject] @{
                 Name = 'Resolve';
                 ID   = 81;
             }
-            $t2.PSObject.TypeNames.Insert(0, 'PSJira.Transition')
+            $t2.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
 
             [PSCustomObject] @{
                 ID = $issueID;
@@ -36,7 +36,7 @@ InModuleScope PSJira {
             }
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/transitions"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/transitions"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
@@ -47,7 +47,7 @@ InModuleScope PSJira {
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
@@ -64,8 +64,8 @@ InModuleScope PSJira {
 
         It "Performs a transition on a Jira issue when given an issue key and transition ID" {
             { $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 } | Should Not Throw
-            Assert-MockCalled Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
-            Assert-MockCalled Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Performs a transition on a Jira issue when given an issue object and transition object" {
@@ -74,14 +74,14 @@ InModuleScope PSJira {
             { Invoke-JiraIssueTransition -Issue $issue -Transition $transition } | Should Not Throw
             # Get-JiraIssue should be called once here in the test, and once in Invoke-JiraIssueTransition to
             # obtain a reference to the issue object
-            Assert-MockCalled Get-JiraIssue -ModuleName PSJira -Exactly -Times 2 -Scope It
-            Assert-MockCalled Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
+            Assert-MockCalled Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Handles pipeline input from Get-JiraIssue" {
             { $result = Get-JiraIssue -Key $issueKey | Invoke-JiraIssueTransition -Transition 11 } | Should Not Throw
-            Assert-MockCalled Get-JiraIssue -ModuleName PSJira -Exactly -Times 2 -Scope It
-            Assert-MockCalled Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
+            Assert-MockCalled Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
 

@@ -5,7 +5,7 @@ param()
 
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
@@ -37,7 +37,7 @@ InModuleScope PSJira {
 
     Describe "Remove-JiraSession" {
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
@@ -68,7 +68,7 @@ InModuleScope PSJira {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        It "Closes a saved PSJira.Session object from module PrivateData" {
+        It "Closes a saved JiraPS.Session object from module PrivateData" {
 
             # This probably isn't the best test for this, but it's about all I can come up with at the moment.
             # New-JiraSession has some slightly more elaborate testing, which includes a test for Get-JiraSession,

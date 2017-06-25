@@ -6,11 +6,11 @@
 #region Variables
 # AppVeyor environment variables
 
-# This refers to the root of the project directory - usually C:\Projects\PSJira, but it's not safe to assume that
+# This refers to the root of the project directory - usually C:\Projects\JiraPS, but it's not safe to assume that
 $ProjectRoot = $env:APPVEYOR_BUILD_FOLDER
 
 # This is the root of the module folder inside the project, where the .psm1 file lives
-$ModuleRoot = Join-Path -Path $ProjectRoot -ChildPath 'PSJira'
+$ModuleRoot = Join-Path -Path $ProjectRoot -ChildPath 'JiraPS'
 
 # This is AppVeyor's internal job ID, used to return results using their REST API
 $JobId = $env:APPVEYOR_JOB_ID
@@ -89,3 +89,4 @@ Invoke-psake $env:APPVEYOR_BUILD_FOLDER\build\build.psake.ps1 -taskList Publish
 Write-Host
 Write-Host "=== Completed AppVeyor.ps1 ===" -ForegroundColor Green
 Write-Host
+

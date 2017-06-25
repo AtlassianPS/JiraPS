@@ -1,22 +1,22 @@
 ======================
-Contributing to PSJira
+Contributing to JiraPS
 ======================
 
-There are two main areas where PSJira needs your help: in the module code itself, and in this documentation.
+There are two main areas where JiraPS needs your help: in the module code itself, and in this documentation.
 
-* :ref:`PSJira core`
+* :ref:`JiraPS core`
 * :ref:`Documentation`
 
-.. _PSJira core:
+.. _JiraPS core:
 
 Module Code
 ===========
 
-The code for PSJira relies extensively on Pester tests as a sanity check. Pester tests make sure that when a function gets changed, other functions that depend on it don't break due to the change.
+The code for JiraPS relies extensively on Pester tests as a sanity check. Pester tests make sure that when a function gets changed, other functions that depend on it don't break due to the change.
 
-**Pull requests for PSJira are expected to pass all Pester tests before they will be merged.**
+**Pull requests for JiraPS are expected to pass all Pester tests before they will be merged.**
 
-This is not intended to keep people from contributing to PSJira...just to ensure that new features and changes don't break existing ones. If you have ideas for improvements but aren't comfortable with Pester, please feel free to submit a pull request. I (or other authors) would be glad to work with you to figure out what's failing and make the necessary changes (whether in your code or in the test code).
+This is not intended to keep people from contributing to JiraPS...just to ensure that new features and changes don't break existing ones. If you have ideas for improvements but aren't comfortable with Pester, please feel free to submit a pull request. I (or other authors) would be glad to work with you to figure out what's failing and make the necessary changes (whether in your code or in the test code).
 
 Tests are code, just like the module itself, so it's entirely possible that they need to be fixed or updated when the module changes. Correcting tests is a healthy part of developing a tool, so changes to tests are welcome as well.
 
@@ -27,7 +27,7 @@ Automated Testing via Pre-Push Hooks
 
 By setting up a pre-push hook in your local Git repository, you can make sure that all Pester tests pass before you push your changes back to GitHub. This is not necessary to contribute, but it can save some frustration all around.
 
-In your PSJira workspace, create a file at .git/hooks/pre-push (with no file extension)
+In your JiraPS workspace, create a file at .git/hooks/pre-push (with no file extension)
 
 Edit this file in a text editor and add this content:
 
@@ -48,7 +48,7 @@ Documentation
 
 Unlike the main module code, there is very little to be tested in this documentation (the big thing that gets tested is the changelog, to make sure it's kept up-to-date with releases).
 
-This documentation is found in the /docs/ folder of the main PSJira repo, and is written in `ReStructured Text`_. This format was chosen mostly due to a deeper integration with ReadTheDocs than Markdown provided on its own, but the Sphinx build engine that processes the RST is quite powerful and supports a lot of interesting features.
+This documentation is found in the /docs/ folder of the main JiraPS repo, and is written in `ReStructured Text`_. This format was chosen mostly due to a deeper integration with ReadTheDocs than Markdown provided on its own, but the Sphinx build engine that processes the RST is quite powerful and supports a lot of interesting features.
 
 RST isn't difficult - a lot of the information in here is just written in plain text, and the parts that aren't provide examples of how to use it - but if you'd like to read more on how to write in RST, I'd recommend the `Sphinx guide`_ on RST, since that engine is responsible for building this documentation.
 

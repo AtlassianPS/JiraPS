@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraTransition" {
         . $PSScriptRoot\Shared.ps1
 
@@ -42,12 +42,12 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Transition'
+        checkPsType $r 'JiraPS.Transition'
 
         defProp $r 'Id' $tId
         defProp $r 'Name' $tName
 
-        It "Defines the 'ResultStatus' property as a PSJira.Status object" {
+        It "Defines the 'ResultStatus' property as a JiraPS.Status object" {
             $r.ResultStatus.Id | Should Be $tRId
             $r.ResultStatus.Name | Should Be $tRName
         }
