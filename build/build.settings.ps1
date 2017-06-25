@@ -159,7 +159,10 @@ Properties {
     $TestOutputFormat = "NUnitXml"
 
     Write-Host "build.settings.ps1 - Propertes completed" -ForegroundColor Green
-    Set-BuildEnvironment -Path $ProjectRoot
+    if (-not (Get-Item -Path 'Env:\BHProjectName')) {
+        Write-Host "Initializing BuildHelpers" -ForegroundColor Green
+        Set-BuildEnvironment -Path $ProjectRoot
+    }
 }
 
 ###############################################################################
@@ -187,6 +190,7 @@ Task BeforeBuild {
 
 # Executes after the Build task.
 Task AfterBuild -requiredVariables ProjectRoot,OutDir {
+    Write-Host "build.settings.ps1 - AfterBuild" -ForegroundColor Green
     $outputManifestFile = Join-Path -Path $OutDir -ChildPath 'JiraPS\JiraPS.psd1'
     Write-Host "Patching module manifest file $outputManifestFile" -ForegroundColor Green
     if ($env:BHBuildSystem -eq 'AppVeyor') {
@@ -272,6 +276,7 @@ Task AfterInstall {
 
 # Executes before the Publish task.
 Task BeforePublish -requiredVariables NuGetApiKey {
+    Write-Host "build.settings.ps1 - BeforePublish" -ForegroundColor Green
     if ($env:BHBranchName -ne 'master') {
         Write-Host "This build is from branch [$env:BHBranchName]. It will not be published." -ForegroundColor Yellow
         throw "Terminating build."
