@@ -1,6 +1,6 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
@@ -31,11 +31,11 @@ InModuleScope PSJira {
     ]
 }
 "@
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraIssue -ModuleName PSJira {
+        Mock Get-JiraIssue -ModuleName JiraPS {
             [PSCustomObject] @{
                 ID      = $issueID;
                 Key = $issueKey;
@@ -44,13 +44,13 @@ InModuleScope PSJira {
         }
 
         # Obtaining watchers from an issue...this is IT-3676 in the test environment
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers"} {
             ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri', 'Method'
             ConvertFrom-Json2 -InputObject $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri','Method'
             throw "Unidentified call to Invoke-JiraMethod"
         }
@@ -77,11 +77,11 @@ InModuleScope PSJira {
                 $watchers.RestUrl | Should Be "$jiraServer/jira/rest/api/2/user?username=fred"
 
                 # Get-JiraIssue should be called to identify the -Issue parameter
-                Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
 
                 # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueWatcher, but
                 # since we've mocked Get-JiraIssue out, it will only be called once.
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
             It "Obtains all Jira watchers from a Jira issue if the Jira object is provided" {
@@ -89,14 +89,14 @@ InModuleScope PSJira {
                 $watchers = Get-JiraIssueWatcher -Issue $issue
                 $watchers | Should Not BeNullOrEmpty
                 $watchers.name | Should Be "fred"
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "Handles pipeline input from Get-JiraIssue" {
                 $watchers = Get-JiraIssue -Key $issueKey | Get-JiraIssueWatcher
                 $watchers | Should Not BeNullOrEmpty
                 $watchers.name | Should Be "fred"
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
         }
     }

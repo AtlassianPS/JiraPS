@@ -19,9 +19,9 @@ function Add-JiraIssueWorklog
        Add-JiraIssueWorklog $c -Issue TEST-003 -TimeSpent 60 -DateStarted (Get-Date)
        This example illustrates adding a comment based on other logic to a JIRA issue.  Note the use of Format-Jira to convert the output of Get-Process into a format that is easily read by users.
     .INPUTS
-       This function can accept PSJira.Issue objects via pipeline.
+       This function can accept JiraPS.Issue objects via pipeline.
     .OUTPUTS
-       This function outputs the PSJira.Worklogitem object created.
+       This function outputs the JiraPS.Worklogitem object created.
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
@@ -72,9 +72,9 @@ function Add-JiraIssueWorklog
     process
     {
         Write-Debug "[Add-JiraIssueWorklog] Checking Issue parameter"
-        if ($Issue.PSObject.TypeNames[0] -eq 'PSJira.Issue')
+        if ($Issue.PSObject.TypeNames[0] -eq 'JiraPS.Issue')
         {
-            Write-Debug "[Add-JiraIssueWorklog] Issue parameter is a PSJira.Issue object"
+            Write-Debug "[Add-JiraIssueWorklog] Issue parameter is a JiraPS.Issue object"
             $issueObj = $Issue
         } else {
             $issueKey = $Issue.ToString()

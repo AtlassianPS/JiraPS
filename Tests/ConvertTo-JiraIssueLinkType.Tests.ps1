@@ -1,5 +1,5 @@
 . $PSScriptRoot\Shared.ps1
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraIssueLinkType" {
         . $PSScriptRoot\Shared.ps1
 
@@ -46,8 +46,8 @@ InModuleScope PSJira {
         It "Creates a PSObject out of JSON input" {
             $r | Should Not BeNullOrEmpty
         }
-        
-        checkPsType $r 'PSJira.IssueLinkType'
+
+        checkPsType $r 'JiraPS.IssueLinkType'
 
         defProp $r 'Id' '10000'
         defProp $r 'Name' 'Blocks'

@@ -15,7 +15,7 @@ Properties {
     # The root directories for the module's docs, src and test.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $DocsRootDir = "$ProjectRoot\docs"
-    $SrcRootDir  = "$ProjectRoot\PSJira"
+    $SrcRootDir  = "$ProjectRoot\JiraPS"
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $TestRootDir = "$ProjectRoot\Tests"
 
@@ -187,7 +187,7 @@ Task BeforeBuild {
 
 # Executes after the Build task.
 Task AfterBuild -requiredVariables ProjectRoot,OutDir {
-    $outputManifestFile = Join-Path -Path $OutDir -ChildPath 'PSJira\PSJira.psd1'
+    $outputManifestFile = Join-Path -Path $OutDir -ChildPath 'JiraPS\JiraPS.psd1'
     Write-Host "Patching module manifest file $outputManifestFile" -ForegroundColor Green
     if ($env:BHBuildSystem -eq 'AppVeyor') {
         # If we're in AppVeyor, add the build number to the manifest

@@ -1,6 +1,6 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraLink" {
         . $PSScriptRoot\Shared.ps1
 
@@ -44,7 +44,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Link'
+        checkPsType $r 'JiraPS.Link'
 
         defProp $r 'id' $LinkId
         defProp $r 'RestUrl' "$jiraServer/rest/api/issue/MKY-1/remotelink/10000"

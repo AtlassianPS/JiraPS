@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     $ShowMockData = $false
 
@@ -53,21 +53,21 @@ InModuleScope PSJira {
 
     Describe "Add-JiraIssueWorklog" {
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraIssue -ModuleName PSJira {
+        Mock Get-JiraIssue -ModuleName JiraPS {
             $result = [PSCustomObject] @{
                 ID = $issueID;
                 Key = $issueKey;
                 RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
             }
-            $result.PSObject.TypeNames.Insert(0, 'PSJira.Issue')
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             Write-Output $result
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
@@ -81,7 +81,7 @@ InModuleScope PSJira {
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
@@ -97,10 +97,10 @@ InModuleScope PSJira {
             $commentResult | Should Not BeNullOrEmpty
 
             # Get-JiraIssue should be used to identify the issue parameter
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
 
             # Invoke-JiraMethod should be used to add the comment
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Accepts pipeline input from Get-JiraIssue" {
@@ -108,8 +108,8 @@ InModuleScope PSJira {
             $commentResult | Should Not BeNullOrEmpty
 
             # Get-JiraIssue should be called once here to fetch the initial test issue
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName PSJira -Exactly -Times 1 -Scope It
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
     }
 }

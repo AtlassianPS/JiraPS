@@ -67,7 +67,7 @@ function ConvertTo-JiraLink
             $result = New-Object -TypeName PSObject -Property $props
 
 #            Write-Debug "[ConvertTo-JiraLink] Inserting type name information"
-            $result.PSObject.TypeNames.Insert(0, 'PSJira.Link')
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Link')
 
 #            Write-Debug "[ConvertTo-JiraLink] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {

@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraWorklogitem" {
         function defProp($obj, $propName, $propValue)
         {
@@ -65,9 +65,9 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        It "Sets the type name to PSJira.WorklogItem" {
+        It "Sets the type name to JiraPS.WorklogItem" {
             $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject
-            $r.PSObject.TypeNames[0] | Should Be 'PSJira.WorklogItem'
+            $r.PSObject.TypeNames[0] | Should Be 'JiraPS.WorklogItem'
         }
 
         $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject

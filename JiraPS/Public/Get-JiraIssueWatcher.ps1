@@ -12,15 +12,15 @@
        Get-JiraIssue TEST-002 | Get-JiraIssueWatcher
        This example illustrates use of the pipeline to return all watchers on issue TEST-002.
     .INPUTS
-       This function can accept PSJira.Issue objects, Strings, or Objects via the pipeline.  It uses Get-JiraIssue to identify the issue parameter; see its Inputs section for details on how this function handles inputs.
+       This function can accept JiraPS.Issue objects, Strings, or Objects via the pipeline.  It uses Get-JiraIssue to identify the issue parameter; see its Inputs section for details on how this function handles inputs.
     .OUTPUTS
-       This function outputs all PSJira.Watchers issues associated with the provided issue.
+       This function outputs all JiraPS.Watchers issues associated with the provided issue.
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
     [CmdletBinding()]
     param(
-        # JIRA issue to check for watchers. Can be a PSJira.Issue object, issue key, or internal issue ID.
+        # JIRA issue to check for watchers. Can be a JiraPS.Issue object, issue key, or internal issue ID.
         [Parameter(Mandatory = $true,
                    Position = 0,
                    ValueFromPipeline = $true,

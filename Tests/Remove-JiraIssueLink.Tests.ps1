@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
@@ -23,44 +23,44 @@ InModuleScope PSJira {
 
     Describe "Remove-JiraIssueLink" {
         $showMockData = $true
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/issueLink/1234"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/issueLink/1234"} {
             return $null
         }
 
-        Mock Get-JiraIssue -ModuleName PSJira -ParameterFilter {$Key -eq "TEST-01"} {
+        Mock Get-JiraIssue -ModuleName JiraPS -ParameterFilter {$Key -eq "TEST-01"} {
             # We don't care about the content of any field except for the id of the issuelinks
             $obj = [PSCustomObject]@{
                 "id"          = $issueLinkId
                 "type"        = "foo"
                 "inwardIssue" = "bar"
             }
-            $obj.PSObject.TypeNames.Insert(0, 'PSJira.IssueLink')
+            $obj.PSObject.TypeNames.Insert(0, 'JiraPS.IssueLink')
             $issue = [PSCustomObject]@{
                 issueLinks = @(
                     $obj
                 )
             }
-            $issue.PSObject.TypeNames.Insert(0, 'PSJira.Issue')
+            $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $issue
         }
 
-        Mock Get-JiraIssueLink -ModuleName PSJira {
+        Mock Get-JiraIssueLink -ModuleName JiraPS {
             $obj = [PSCustomObject]@{
                 "id"          = $issueLinkId
                 "type"        = "foo"
                 "inwardIssue" = "bar"
             }
-            $obj.PSObject.TypeNames.Insert(0, 'PSJira.IssueLink')
+            $obj.PSObject.TypeNames.Insert(0, 'JiraPS.IssueLink')
             return $obj
         }
 
@@ -84,12 +84,12 @@ InModuleScope PSJira {
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
-            It "Accepts a PSJira.Issue object over the pipeline" {
+            It "Accepts a JiraPS.Issue object over the pipeline" {
                 { Get-JiraIssue -Key TEST-01 | Remove-JiraIssueLink } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
-            It "Accepts a PSJira.IssueType over the pipeline" {
+            It "Accepts a JiraPS.IssueType over the pipeline" {
                 { Get-JiraIssueLink -Id 1234 | Remove-JiraIssueLink  } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }

@@ -67,7 +67,7 @@ function Get-JiraComponent
     {
         if ($Project)
         {
-            if ($Project.PSObject.TypeNames[0] -eq 'PSJira.Project')
+            if ($Project.PSObject.TypeNames[0] -eq 'JiraPS.Project')
             {
                 $ComponentId = @($Project.Components | Select-Object -ExpandProperty id)
             }

@@ -105,7 +105,7 @@ function Get-ParametersDefaultFirst
 
 $here        = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $here
-$moduleName  = "PSJira"
+$moduleName  = "JIraPS"
 $moduleRoot  = "$projectRoot\$moduleName"
 
 # Removes all versions of the module from the session before importing

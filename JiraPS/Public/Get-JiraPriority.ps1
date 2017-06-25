@@ -4,7 +4,7 @@ function Get-JiraPriority
     .Synopsis
         Returns information about the available priorities in JIRA.
     .DESCRIPTION
-        This function retrieves all the available Priorities on the JIRA server an returns them as PSJira.Priority.
+        This function retrieves all the available Priorities on the JIRA server an returns them as JiraPS.Priority.
 
         This function can restrict the output to a subset of the available IssueTypes if told so.
     .EXAMPLE
@@ -14,7 +14,7 @@ function Get-JiraPriority
         Get-JiraPriority -ID 1
         This example returns only the Priority with ID 1.
     .OUTPUTS
-        This function outputs the PSJira.Priority object retrieved.
+        This function outputs the JiraPS.Priority object retrieved.
     .NOTES
         This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>

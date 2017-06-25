@@ -56,12 +56,12 @@ function Remove-JiraSession {
     process {
         if ($Session) {
             Write-Debug "[Remove-JiraSession] Validating Session parameter"
-            if ((Get-Member -InputObject $Session).TypeName -eq 'PSJira.Session') {
+            if ((Get-Member -InputObject $Session).TypeName -eq 'JiraPS.Session') {
                 Write-Debug "[Remove-JiraSession] Successfully parsed Session parameter as a JiraPS.Session object"
             }
             else {
-                Write-Debug "[Remove-JiraSession] Session parameter is not a PSJira.Session object. Throwing exception"
-                throw "Unable to parse parameter [$Session] as a PSJira.Session object"
+                Write-Debug "[Remove-JiraSession] Session parameter is not a JiraPS.Session object. Throwing exception"
+                throw "Unable to parse parameter [$Session] as a JiraPS.Session object"
             }
         }
         else {

@@ -4,7 +4,7 @@
     .Synopsis
         Returns information about the available issue type in JIRA.
     .DESCRIPTION
-        This function retrieves all the available IssueType on the JIRA server an returns them as PSJira.IssueType.
+        This function retrieves all the available IssueType on the JIRA server an returns them as JiraPS.IssueType.
 
         This function can restrict the output to a subset of the available IssueTypes if told so.
     .EXAMPLE
@@ -19,7 +19,7 @@
     .INPUTS
         This function accepts Strings via the pipeline.
     .OUTPUTS
-        This function outputs the PSJira.IssueType object retrieved.
+        This function outputs the JiraPS.IssueType object retrieved.
     .NOTES
         This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>

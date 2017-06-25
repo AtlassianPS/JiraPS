@@ -15,7 +15,7 @@
        Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' | % { Remove-JiraIssueWatcher "fred" }
        This example illustrates removing watcher on all projects which match a given JQL query. It would be best to validate the query first to make sure the query returns the expected issues!
     .INPUTS
-       This function can accept PSJira.Issue objects via pipeline.
+       This function can accept JiraPS.Issue objects via pipeline.
     .OUTPUTS
        This function does not provide output.
     .NOTES

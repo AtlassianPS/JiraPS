@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
@@ -9,8 +9,8 @@ InModuleScope PSJira {
     $jiraServer = 'http://jiraserver.example.com'
 
     Describe 'Get-JiraIssueLinkType' {
-        
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
@@ -25,7 +25,7 @@ InModuleScope PSJira {
         $filterOne = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType/10000"}
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
@@ -56,7 +56,7 @@ InModuleScope PSJira {
 
                 # We also don't care what comes out of here - this function has its own tests
                 [PSCustomObject] @{
-                    PSTypeName = 'PSJira.IssueLinkType'
+                    PSTypeName = 'JiraPS.IssueLinkType'
                     foo        = 'bar'
                 }
             }
@@ -82,7 +82,7 @@ InModuleScope PSJira {
 
                 # We also don't care what comes out of here - this function has its own tests
                 [PSCustomObject] @{
-                    PSTypeName = 'PSJira.IssueLinkType'
+                    PSTypeName = 'JiraPS.IssueLinkType'
                     Name       = 'myLink'
                     ID         = 5
                 }

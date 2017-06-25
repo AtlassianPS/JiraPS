@@ -21,7 +21,7 @@ function Get-JiraIssueComment
     [CmdletBinding()]
     param(
         # JIRA issue to check for comments.
-        # Can be a PSJira.Issue object, issue key, or internal issue ID.
+        # Can be a JiraPS.Issue object, issue key, or internal issue ID.
         [Parameter(Mandatory = $true,
             Position = 0,
             ValueFromPipeline = $true,

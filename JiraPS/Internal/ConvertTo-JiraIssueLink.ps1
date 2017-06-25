@@ -1,4 +1,4 @@
-function ConvertTo-JiraIssueLinkType {
+function ConvertTo-JiraIssueLink {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true,
@@ -18,25 +18,24 @@ function ConvertTo-JiraIssueLinkType {
                     }
 
                     $result = New-Object -TypeName PSObject -Property $props
-                    $result.PSObject.TypeNames.Insert(0, 'PSJira.Error')
+                    $result.PSObject.TypeNames.Insert(0, 'JiraPS.Error')
 
                     Write-Output $result
                 }
             }
             else {
                 $props = @{
-                    'ID'          = $i.id;
-                    'Name'        = $i.name;
-                    'InwardText'  = $i.inward;
-                    'OutwardText' = $i.outward;
-                    'RestUrl'     = $i.self;
+                    'ID'   = $i.id
+                    'Type' = (ConvertTo-JiraIssueLinkType $i.type)
                 }
+                if ($i.inwardIssue) { $props['InwardIssue']  = (ConvertTo-JiraIssue $i.inwardIssue) }
+                if ($i.outwardIssue) { $props['OutwardIssue'] = (ConvertTo-JiraIssue $i.outwardIssue) }
 
                 $result = New-Object -TypeName PSObject -Property $props
-                $result.PSObject.TypeNames.Insert(0, 'PSJira.IssueLinkType')
+                $result.PSObject.TypeNames.Insert(0, 'JiraPS.IssueLink')
 
                 $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                    Write-Output "$($this.Name)"
+                    Write-Output "$($this.ID)"
                 }
 
                 Write-Output $result

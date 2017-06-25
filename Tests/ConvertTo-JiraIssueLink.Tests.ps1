@@ -1,5 +1,5 @@
 . $PSScriptRoot\Shared.ps1
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraIssueLink" {
         . $PSScriptRoot\Shared.ps1
 
@@ -35,7 +35,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.IssueLink'
+        checkPsType $r 'JiraPS.IssueLink'
 
         defProp $r 'Id' $issueLinkId
         defProp $r 'Type' "Composition"

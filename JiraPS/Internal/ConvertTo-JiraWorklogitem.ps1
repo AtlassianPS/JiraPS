@@ -71,7 +71,7 @@ function ConvertTo-JiraWorklogItem
             $result = New-Object -TypeName PSObject -Property $props
 
 #            Write-Debug "[ConvertTo-JiraWorklogitem] Inserting type name information"
-            $result.PSObject.TypeNames.Insert(0, 'PSJira.Worklogitem')
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Worklogitem')
 
 #            Write-Debug "[ConvertTo-JiraWorklogitem] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {

@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
     # For the time being, we'll need to hard-code this and adjust it as desired.
@@ -35,14 +35,14 @@ InModuleScope PSJira {
 
     Describe "Remove-JiraRemoteLink" {
 
-        Mock Write-Debug -ModuleName PSJira {
+        Mock Write-Debug -ModuleName JiraPS {
             if ($ShowDebugData)
             {
                 Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
@@ -57,7 +57,7 @@ InModuleScope PSJira {
             ConvertFrom-Json2 $testLink
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'DELETE'} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE'} {
             if ($ShowMockData)
             {
                 Write-Host "       Mocked Invoke-JiraMethod with DELETE method" -ForegroundColor Cyan
@@ -68,7 +68,7 @@ InModuleScope PSJira {
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
@@ -84,7 +84,7 @@ InModuleScope PSJira {
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 
-        It "Accepts a PSJira.Issue object to the -Issue parameter" {
+        It "Accepts a JiraPS.Issue object to the -Issue parameter" {
             $Issue = Get-JiraIssue $testIssueKey
             { Remove-JiraRemoteLink -Issue $Issue -LinkId 10000 -Force } | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
