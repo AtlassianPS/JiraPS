@@ -1,6 +1,6 @@
 # [JiraPS](https://JiraPS.github.io/)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/utpel25via67xw3b?svg=true)](https://ci.appveyor.com/project/JoshuaT/JiraPS)
+[![Build status](https://ci.appveyor.com/api/projects/status/utpel25via67xw3b?svg=true)](https://ci.appveyor.com/project/JoshuaT/psjira)
 [![Documentation Status](https://readthedocs.org/projects/JiraPS/badge/?version=latest)](http://JiraPS.readthedocs.io/en/latest/?badge=latest)
 
 JiraPS is a Windows PowerShell module to interact with [Atlassian JIRA](https://www.atlassian.com/software/jira) via a REST API, while maintaining a consistent PowerShell look and feel.
