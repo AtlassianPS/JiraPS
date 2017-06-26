@@ -31,14 +31,13 @@ branches:
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
 
-
 skip_commits:
     message: /readme*/
 
 # Don't build unless any file in the module folder (JiraPS/*) was modified
 only_commits:
     files:
-        - JiraPS/
+        - JiraPS/*
 
 test_script:
     - ps: . .\Tools\Appveyor.ps1
