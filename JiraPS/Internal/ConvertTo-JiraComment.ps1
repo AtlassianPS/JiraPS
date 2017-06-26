@@ -2,8 +2,8 @@ function ConvertTo-JiraComment {
     [CmdletBinding()]
     param(
         [Parameter(
-            Mandatory = $true,
             Position = 0,
+            Mandatory = $true,
             ValueFromPipeline = $true
         )]
         [PSObject[]] $InputObject
