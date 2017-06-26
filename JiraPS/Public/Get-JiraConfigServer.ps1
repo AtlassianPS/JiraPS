@@ -1,5 +1,4 @@
-function Get-JiraConfigServer
-{
+function Get-JiraConfigServer {
     <#
     .Synopsis
        Obtains the configured URL for the JIRA server
@@ -30,42 +29,37 @@ function Get-JiraConfigServer
     # want to default to the script variable just as we would if the parameter was not
     # provided at all.
 
-    if (-not ($ConfigFile))
-    {
-        #        Write-Debug "[Get-JiraConfigServer] ConfigFile was not provided, or provided with a null value"
+    if (-not ($ConfigFile)) {
+        # Write-Debug "[Get-JiraConfigServer] ConfigFile was not provided, or provided with a null value"
         # This file should be in $moduleRoot/Functions/Internal, so PSScriptRoot will be $moduleRoot/Functions
         $moduleFolder = Split-Path -Path $PSScriptRoot -Parent
-        #        Write-Debug "[Get-JiraConfigServer] Module folder: $moduleFolder"
+        # Write-Debug "[Get-JiraConfigServer] Module folder: $moduleFolder"
         $ConfigFile = Join-Path -Path $moduleFolder -ChildPath 'config.xml'
-        #        Write-Debug "[Get-JiraConfigServer] Using default config file at [$ConfigFile]"
+        # Write-Debug "[Get-JiraConfigServer] Using default config file at [$ConfigFile]"
     }
 
-    if (-not (Test-Path -Path $ConfigFile))
-    {
+    if (-not (Test-Path -Path $ConfigFile)) {
         throw "Config file [$ConfigFile] does not exist. Use Set-JiraConfigServer first to define the configuration file."
     }
 
-    #    Write-Debug "Loading config file '$ConfigFile'"
+    # Write-Debug "Loading config file '$ConfigFile'"
     $xml = New-Object -TypeName XML
     $xml.Load($ConfigFile)
 
     $xmlConfig = $xml.DocumentElement
-    if ($xmlConfig.LocalName -ne 'Config')
-    {
+    if ($xmlConfig.LocalName -ne 'Config') {
         throw "Unexpected document element [$($xmlConfig.LocalName)] in configuration file [$ConfigFile]. You may need to delete the config file and recreate it using Set-JiraConfigServer."
     }
 
-    #    Write-Debug "[Get-JiraConfigServer] Checking for Server element"
-    if ($xmlConfig.Server)
-    {
-        #        Write-Debug "[Get-JiraConfigServer] Found Server element. Outputting."
+    # Write-Debug "[Get-JiraConfigServer] Checking for Server element"
+    if ($xmlConfig.Server) {
+        Write-Debug "[Get-JiraConfigServer] Found Server element. Outputting."
         Write-Output $xmlConfig.Server
     }
-    else
-    {
-        #        Write-Debug "[Get-JiraConfigServer] No Server element is defined in the config file.  Throwing exception."
+    else {
+        # Write-Debug "[Get-JiraConfigServer] No Server element is defined in the config file.  Throwing exception."
         throw "No Server element is defined in the config file.  Use Set-JiraConfigServer to define one."
     }
 
-    #    Write-Debug "[Get-JiraConfigServer] Complete."
+    # Write-Debug "[Get-JiraConfigServer] Complete."
 }

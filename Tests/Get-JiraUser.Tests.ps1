@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -16,40 +16,40 @@ InModuleScope JiraPS {
 
     $restResult = @"
 [
-  {
-    "self": "$jiraServer/rest/api/2/user?username=$testUsername",
-    "key": "$testUsername",
-    "name": "$testUsername",
-    "emailAddress": "$testEmail",
-    "displayName": "Powershell Test User",
-    "active": true
-  }
+    {
+        "self": "$jiraServer/rest/api/2/user?username=$testUsername",
+        "key": "$testUsername",
+        "name": "$testUsername",
+        "emailAddress": "$testEmail",
+        "displayName": "Powershell Test User",
+        "active": true
+    }
 ]
 "@
 
     # Removed from JSON: avatarUrls, timeZone
     $restResult2 = @"
 {
-  "self": "$jiraServer/rest/api/2/user?username=$testUsername",
-  "key": "$testUsername",
-  "name": "$testUsername",
-  "emailAddress": "$testEmail",
-  "displayName": "Powershell Test User",
-  "active": true,
-  "groups": {
-    "size": 5,
-    "items": [
-      {
-        "name": "$testGroup1",
-        "self": "$jiraServer/rest/api/2/group?groupname=$testGroup1"
-      },
-      {
-        "name": "$testGroup2",
-        "self": "$jiraServer/rest/api/2/group?groupname=$testGroup2"
-      }
-    ]
-  },
-  "expand": "groups"
+    "self": "$jiraServer/rest/api/2/user?username=$testUsername",
+    "key": "$testUsername",
+    "name": "$testUsername",
+    "emailAddress": "$testEmail",
+    "displayName": "Powershell Test User",
+    "active": true,
+    "groups": {
+        "size": 5,
+        "items": [
+            {
+                "name": "$testGroup1",
+                "self": "$jiraServer/rest/api/2/group?groupname=$testGroup1"
+            },
+            {
+                "name": "$testGroup2",
+                "self": "$jiraServer/rest/api/2/group?groupname=$testGroup2"
+            }
+        ]
+    },
+    "expand": "groups"
 }
 "@
 
@@ -61,8 +61,7 @@ InModuleScope JiraPS {
 
         # Searching for a user.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername"} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
@@ -72,8 +71,7 @@ InModuleScope JiraPS {
 
         # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
@@ -89,9 +87,9 @@ InModuleScope JiraPS {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-#        Mock Write-Debug {
-#            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-#        }
+        # Mock Write-Debug {
+        #     Write-Host "DEBUG: $Message" -ForegroundColor Yellow
+        # }
 
         #############
         # Tests
@@ -133,5 +131,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-

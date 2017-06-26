@@ -64,10 +64,8 @@ Describe "JiraPS" {
         $changelogVersion = $null
         It "Changelog includes a valid version number" {
 
-            foreach ($line in (Get-Content $changelogFile))
-            {
-                if ($line -match "^\D*(?<Version>(\d+\.){1,3}\d+)")
-                {
+            foreach ($line in (Get-Content $changelogFile)) {
+                if ($line -match "^\D*(?<Version>(\d+\.){1,3}\d+)") {
                     $changelogVersion = $matches.Version
                     break
                 }
@@ -87,13 +85,11 @@ Describe "JiraPS" {
         }
 
         It "Appveyor.yml file includes the module version" {
-            foreach ($line in (Get-Content $appveyorFile))
-            {
+            foreach ($line in (Get-Content $appveyorFile)) {
                 # (?<Version>()) - non-capturing group, but named Version. This makes it
                 # easy to reference the inside group later.
 
-                if ($line -match '^\D*(?<Version>(\d+\.){1,3}\d+).\{build\}')
-                {
+                if ($line -match '^\D*(?<Version>(\d+\.){1,3}\d+).\{build\}') {
                     $appveyorVersion = $matches.Version
                     break
                 }
@@ -192,8 +188,8 @@ Describe "JiraPS" {
             It "Should pass $rule" {
                 If ($analysis.RuleName -contains $rule) {
                     $analysis |
-                         Where RuleName -EQ $rule -OutVariable failures |
-                         Out-Default
+                        Where RuleName -EQ $rule -OutVariable failures |
+                        Out-Default
                     $failures.Count | Should Be 0
                 }
             }

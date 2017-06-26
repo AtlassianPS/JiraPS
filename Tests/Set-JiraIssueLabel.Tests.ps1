@@ -2,13 +2,12 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     Describe "Set-JiraIssueLabel" {
-        if ($ShowDebugText)
-        {
+        if ($ShowDebugText) {
             Mock "Write-Debug" {
                 Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
             }
@@ -18,10 +17,10 @@ InModuleScope JiraPS {
             'https://jira.example.com'
         }
 
-        Mock Get-JiraIssue{
+        Mock Get-JiraIssue {
             [PSCustomObject] @{
                 'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345';
-                'Labels'  = @('existingLabel1','existingLabel2')
+                'Labels'  = @('existingLabel1', 'existingLabel2')
             }
         }
 
@@ -32,15 +31,13 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name Set-JiraIssueLabel
 
-            function defParam($name)
-            {
+            function defParam($name) {
                 It "Has a -$name parameter" {
                     $command.Parameters.Item($name) | Should Not BeNullOrEmpty
                 }
             }
 
-            function defAlias($name, $definition)
-            {
+            function defAlias($name, $definition) {
                 It "Supports the $name alias for the $definition parameter" {
                     $command.Parameters.Item($definition).Aliases | Where-Object -FilterScript {$_ -eq $name} | Should Not BeNullOrEmpty
                 }
@@ -61,8 +58,7 @@ InModuleScope JiraPS {
 
         Context "Behavior testing" {
             Mock Invoke-JiraMethod {
-                if ($ShowMockData)
-                {
+                if ($ShowMockData) {
                     Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                     Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                     Write-Host "         [Method]  $Method" -ForegroundColor Cyan
@@ -71,7 +67,7 @@ InModuleScope JiraPS {
             }
 
             It "Replaces all issue labels if the Set parameter is supplied" {
-                { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1','testLabel2' } | Should Not Throw
+                { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1', 'testLabel2' } | Should Not Throw
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.

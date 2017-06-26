@@ -1,35 +1,34 @@
-function ConvertTo-JiraStatus
-{
+function ConvertTo-JiraStatus {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true)]
+        [Parameter(
+            Mandatory = $true,
+            Position = 0,
+            ValueFromPipeline = $true
+        )]
         [PSObject[]] $InputObject,
 
-        [ValidateScript({Test-Path $_})]
+        [ValidateScript( {Test-Path $_})]
         [String] $ConfigFile
     )
 
-    process
-    {
-        foreach ($i in $InputObject)
-        {
-#            Write-Debug "[ConvertTo-JiraStatus] Processing object: '$i'"
+    process {
+        foreach ($i in $InputObject) {
+            # Write-Debug "[ConvertTo-JiraStatus] Processing object: '$i'"
 
-#            Write-Debug "[ConvertTo-JiraStatus] Defining standard properties"
+            # Write-Debug "[ConvertTo-JiraStatus] Defining standard properties"
             $props = @{
-                'ID' = $i.id;
-                'Name' = $i.name;
+                'ID'          = $i.id;
+                'Name'        = $i.name;
                 'Description' = $i.description;
-                'IconUrl' = $i.iconUrl;
-                'RestUrl' = $i.self;
+                'IconUrl'     = $i.iconUrl;
+                'RestUrl'     = $i.self;
             }
 
-#            Write-Debug "[ConvertTo-JiraStatus] Creating PSObject out of properties"
+            # Write-Debug "[ConvertTo-JiraStatus] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
 
-#            Write-Debug "[ConvertTo-JiraStatus] Inserting type name information"
+            # Write-Debug "[ConvertTo-JiraStatus] Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Status')
 
             # Write-Debug "[ConvertTo-JiraStatus] Inserting custom toString() method"
@@ -37,15 +36,12 @@ function ConvertTo-JiraStatus
                 Write-Output "$($this.Name)"
             }
 
-#            Write-Debug "[ConvertTo-JiraStatus] Outputting object"
+            # Write-Debug "[ConvertTo-JiraStatus] Outputting object"
             Write-Output $result
         }
     }
 
-    end
-    {
-#        Write-Debug "[ConvertTo-JiraStatus] Complete"
+    end {
+        # Write-Debug "[ConvertTo-JiraStatus] Complete"
     }
 }
-
-

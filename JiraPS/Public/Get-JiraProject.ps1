@@ -1,5 +1,4 @@
-function Get-JiraProject
-{
+function Get-JiraProject {
     <#
     .Synopsis
        Returns a project from Jira
@@ -27,8 +26,10 @@ function Get-JiraProject
     [CmdletBinding(DefaultParameterSetName = 'AllProjects')]
     param(
         # The Project ID or project key of a project to search.
-        [Parameter(Mandatory = $false,
-            Position = 0)]
+        [Parameter(
+            Position = 0,
+            Mandatory = $false
+        )]
         [String[]] $Project,
 
         # Credentials to use to connect to JIRA.
@@ -37,14 +38,12 @@ function Get-JiraProject
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Get-JiraProject] Reading server from config file"
-        try
-        {
+        try {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch
-        {
+        }
+        catch {
             $err = $_
             Write-Debug "[Get-JiraProject] Encountered an error reading the Jira server."
             throw $err
@@ -53,58 +52,49 @@ function Get-JiraProject
         $uri = "$server/rest/api/latest/project"
     }
 
-    process
-    {
-        if ($Project)
-        {
-            foreach ($p in $Project)
-            {
+    process {
+        if ($Project) {
+            foreach ($p in $Project) {
                 Write-Debug "[Get-JiraProject] Processing project [$p]"
                 $thisUri = "$uri/${p}?expand=projectKeys"
 
                 Write-Debug "[Get-JiraProject] Preparing for blastoff!"
 
                 $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
-                if ($result)
-                {
+                if ($result) {
                     Write-Debug "[Get-JiraProject] Converting to object"
                     $obj = ConvertTo-JiraProject -InputObject $result
 
                     Write-Debug "[Get-JiraProject] Outputting result"
                     Write-Output $obj
                 }
-                else
-                {
+                else {
                     Write-Debug "[Get-JiraProject] No results were returned from Jira"
                     Write-Debug "[Get-JiraProject] No results were returned from Jira for project [$p]"
                 }
             }
         }
-        else
-        {
+        else {
             Write-Debug "[Get-JiraProject] Attempting to search for all projects"
             $thisUri = "$uri"
 
             Write-Debug "[Get-JiraProject] Preparing for blastoff!"
             $result = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
-            if ($result)
-            {
+            if ($result) {
                 Write-Debug "[Get-JiraProject] Converting to object"
                 $obj = ConvertTo-JiraProject -InputObject $result
 
                 Write-Debug "[Get-JiraProject] Outputting result"
                 Write-Output $obj
             }
-            else
-            {
+            else {
                 Write-Debug "[Get-JiraProject] No results were returned from Jira"
                 Write-Debug "[Get-JiraProject] No project results were returned from Jira"
             }
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "Complete"
     }
 }

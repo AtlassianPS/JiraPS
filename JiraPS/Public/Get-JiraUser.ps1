@@ -1,5 +1,4 @@
-function Get-JiraUser
-{
+function Get-JiraUser {
     <#
     .Synopsis
        Returns a user from Jira
@@ -22,17 +21,21 @@ function Get-JiraUser
     param(
         # Username, name, or e-mail address of the user. Any of these should
         # return search results from Jira.
-        [Parameter(ParameterSetName = 'ByUserName',
+        [Parameter(
+            Position = 0,
             Mandatory = $true,
-            Position = 0)]
+            ParameterSetName = 'ByUserName'
+        )]
         [ValidateNotNullOrEmpty()]
         [Alias('User', 'Name')]
         [String[]] $UserName,
 
         # User Object of the user.
-        [Parameter(ParameterSetName = 'ByInputObject',
+        [Parameter(
+            Position = 0,
             Mandatory = $true,
-            Position = 0)]
+            ParameterSetName = 'ByInputObject'
+        )]
         [Object[]] $InputObject,
 
         # Include inactive users in the search
@@ -44,8 +47,7 @@ function Get-JiraUser
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Get-JiraUser] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
@@ -53,67 +55,54 @@ function Get-JiraUser
 
         Write-Debug "[Get-JiraUser] Building URI for REST call"
         $userSearchUrl = "$server/rest/api/latest/user/search?username={0}"
-        if ($IncludeInactive)
-        {
+        if ($IncludeInactive) {
             $userSearchUrl = "$userSearchUrl&includeInactive=true"
         }
 
         # $userGetUrl = "$server/rest/api/latest/user?username={0}&expand=groups"
     }
 
-    process
-    {
-        if ($PSCmdlet.ParameterSetName -eq 'ByUserName')
-        {
-            foreach ($u in $UserName)
-            {
+    process {
+        if ($PSCmdlet.ParameterSetName -eq 'ByUserName') {
+            foreach ($u in $UserName) {
                 Write-Debug "[Get-JiraUser] Processing user [$u]"
                 $thisSearchUrl = $userSearchUrl -f $u
 
                 Write-Debug "[Get-JiraUser] Preparing for blastoff!"
                 $rawResult = Invoke-JiraMethod -Method Get -URI $thisSearchUrl -Credential $Credential
 
-                if ($rawResult)
-                {
+                if ($rawResult) {
                     Write-Debug "[Get-JiraUser] Processing raw results from JIRA"
-                    foreach ($r in $rawResult)
-                    {
+                    foreach ($r in $rawResult) {
                         Write-Debug "[Get-JiraUser] Re-obtaining user information for user [$r]"
                         $url = '{0}&expand=groups' -f $r.self
                         Write-Debug "[Get-JiraUser] Preparing for blastoff!"
                         $thisUserResult = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
 
-                        if ($thisUserResult)
-                        {
+                        if ($thisUserResult) {
                             Write-Debug "[Get-JiraUser] Converting result to JiraPS.User object"
                             $thisUserObject = ConvertTo-JiraUser -InputObject $thisUserResult
                             Write-Output $thisUserObject
                         }
-                        else
-                        {
+                        else {
                             Write-Debug "[Get-JiraUser] User [$r] could not be found in JIRA."
                         }
                     }
                 }
-                else
-                {
+                else {
                     Write-Debug "[Get-JiraUser] JIRA returned no results."
                     Write-Verbose "JIRA returned no results for user [$u]."
                 }
             }
         }
-        else
-        {
-            foreach ($i in $InputObject)
-            {
+        else {
+            foreach ($i in $InputObject) {
                 Write-Debug "[Get-JiraUser] Processing InputObject [$i]"
-                if ((Get-Member -InputObject $i).TypeName -eq 'JiraPS.User')
-                {
+                if ((Get-Member -InputObject $i).TypeName -eq 'JiraPS.User') {
                     Write-Debug "[Get-JiraUser] User parameter is a JiraPS.User object"
                     $thisUserName = $i.Name
                 }
-                else
-                {
+                else {
                     $thisUserName = $i.ToString()
                     Write-Debug "[Get-JiraUser] Username is assumed to be [$thisUserName] via ToString()"
                 }
@@ -126,8 +115,7 @@ function Get-JiraUser
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Get-JiraUser] Complete"
     }
 }

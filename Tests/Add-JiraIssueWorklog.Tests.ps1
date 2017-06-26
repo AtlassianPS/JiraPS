@@ -14,40 +14,40 @@ InModuleScope JiraPS {
 
     $restResponse = @"
 {
-  "id": "$worklogitemID",
-  "self": "$jiraServer/rest/api/latest/issue/$issueID/worklog/$worklogitemID",
-  "comment": "Test description",
-  "created": "2015-05-01T16:24:38.000-0500",
-  "updated": "2015-05-01T16:24:38.000-0500",
-  "started": "2017-02-23T22:21:00.000-0500",
-  "timeSpent": "1h",
-  "timeSpentSeconds": "3600",
-  "author": {
-    "self": "$jiraServer/rest/api/2/user?username=powershell-test",
-    "name": "$jiraUsername",
-    "emailAddress": "$jiraUserEmail",
-    "avatarUrls": {
-        "48x48": "$jiraServer/secure/useravatar?avatarId=10202",
-        "24x24": "$jiraServer/secure/useravatar?size=small&avatarId=10202",
-        "16x16": "$jiraServer/secure/useravatar?size=xsmall&avatarId=10202",
-        "32x32": "$jiraServer/secure/useravatar?size=medium&avatarId=10202"
+    "id": "$worklogitemID",
+    "self": "$jiraServer/rest/api/latest/issue/$issueID/worklog/$worklogitemID",
+    "comment": "Test description",
+    "created": "2015-05-01T16:24:38.000-0500",
+    "updated": "2015-05-01T16:24:38.000-0500",
+    "started": "2017-02-23T22:21:00.000-0500",
+    "timeSpent": "1h",
+    "timeSpentSeconds": "3600",
+    "author": {
+        "self": "$jiraServer/rest/api/2/user?username=powershell-test",
+        "name": "$jiraUsername",
+        "emailAddress": "$jiraUserEmail",
+        "avatarUrls": {
+            "48x48": "$jiraServer/secure/useravatar?avatarId=10202",
+            "24x24": "$jiraServer/secure/useravatar?size=small&avatarId=10202",
+            "16x16": "$jiraServer/secure/useravatar?size=xsmall&avatarId=10202",
+            "32x32": "$jiraServer/secure/useravatar?size=medium&avatarId=10202"
+        },
+        "displayName": "$jiraUserDisplayName",
+        "active": true
     },
-    "displayName": "$jiraUserDisplayName",
-    "active": true
-  },
-  "updateAuthor": {
-    "self": "$jiraServer/rest/api/2/user?username=powershell-test",
-    "name": "powershell-test",
-    "emailAddress": "$jiraUserEmail",
-    "avatarUrls": {
-        "48x48": "$jiraServer/secure/useravatar?avatarId=10202",
-        "24x24": "$jiraServer/secure/useravatar?size=small&avatarId=10202",
-        "16x16": "$jiraServer/secure/useravatar?size=xsmall&avatarId=10202",
-        "32x32": "$jiraServer/secure/useravatar?size=medium&avatarId=10202"
-    },
-    "displayName": "$jiraUserDisplayName",
-    "active": true
-  }
+    "updateAuthor": {
+        "self": "$jiraServer/rest/api/2/user?username=powershell-test",
+        "name": "powershell-test",
+        "emailAddress": "$jiraUserEmail",
+        "avatarUrls": {
+            "48x48": "$jiraServer/secure/useravatar?avatarId=10202",
+            "24x24": "$jiraServer/secure/useravatar?size=small&avatarId=10202",
+            "16x16": "$jiraServer/secure/useravatar?size=xsmall&avatarId=10202",
+            "32x32": "$jiraServer/secure/useravatar?size=medium&avatarId=10202"
+        },
+        "displayName": "$jiraUserDisplayName",
+        "active": true
+    }
 }
 "@
 
@@ -59,8 +59,8 @@ InModuleScope JiraPS {
 
         Mock Get-JiraIssue -ModuleName JiraPS {
             $result = [PSCustomObject] @{
-                ID = $issueID;
-                Key = $issueKey;
+                ID      = $issueID;
+                Key     = $issueKey;
                 RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
             }
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
@@ -68,8 +68,7 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
@@ -113,5 +112,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-

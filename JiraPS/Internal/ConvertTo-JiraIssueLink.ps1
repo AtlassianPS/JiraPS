@@ -1,9 +1,11 @@
 function ConvertTo-JiraIssueLink {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true,
+        [Parameter(
+            Mandatory = $true,
             Position = 0,
-            ValueFromPipeline = $true)]
+            ValueFromPipeline = $true
+        )]
         [PSObject[]] $InputObject,
 
         [Switch] $ReturnError
@@ -28,7 +30,7 @@ function ConvertTo-JiraIssueLink {
                     'ID'   = $i.id
                     'Type' = (ConvertTo-JiraIssueLinkType $i.type)
                 }
-                if ($i.inwardIssue) { $props['InwardIssue']  = (ConvertTo-JiraIssue $i.inwardIssue) }
+                if ($i.inwardIssue) { $props['InwardIssue'] = (ConvertTo-JiraIssue $i.inwardIssue) }
                 if ($i.outwardIssue) { $props['OutwardIssue'] = (ConvertTo-JiraIssue $i.outwardIssue) }
 
                 $result = New-Object -TypeName PSObject -Property $props
@@ -43,7 +45,6 @@ function ConvertTo-JiraIssueLink {
         }
     }
 
-    end
-    {
+    end {
     }
 }

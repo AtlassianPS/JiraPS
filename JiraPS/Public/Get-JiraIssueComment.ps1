@@ -1,5 +1,4 @@
-function Get-JiraIssueComment
-{
+function Get-JiraIssueComment {
     <#
     .Synopsis
        Returns comments on an issue in JIRA.
@@ -22,10 +21,12 @@ function Get-JiraIssueComment
     param(
         # JIRA issue to check for comments.
         # Can be a JiraPS.Issue object, issue key, or internal issue ID.
-        [Parameter(Mandatory = $true,
+        [Parameter(
             Position = 0,
+            Mandatory = $true,
             ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true)]
+            ValueFromPipelineByPropertyName = $true
+        )]
         [Alias('Key')]
         [Object] $Issue,
 
@@ -35,13 +36,11 @@ function Get-JiraIssueComment
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
     }
 
-    process
-    {
+    process {
         Write-Debug "Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
@@ -50,30 +49,25 @@ function Get-JiraIssueComment
         Write-Debug "Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
 
-        if ($result)
-        {
-            if ($result.comments)
-            {
+        if ($result) {
+            if ($result.comments) {
                 Write-Debug "Converting result to Jira comment objects"
                 $obj = ConvertTo-JiraComment -InputObject $result.comments
 
                 Write-Debug "Outputting results"
                 Write-Output $obj
             }
-            else
-            {
+            else {
                 Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
                 Write-Output $result
             }
         }
-        else
-        {
+        else {
             Write-Debug "Invoke-JiraMethod returned no results to output."
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "Completed Get-JiraIssueComment"
     }
 }

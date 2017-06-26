@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -32,8 +32,8 @@ InModuleScope JiraPS {
         It "Handles positional parameters correctly" {
             $expected = "||A||B||C||$n|123|456|789|"
 
-            Format-Jira -Property A,B,C $obj | Should Be $expected
-            Format-Jira A,B,C $obj | Should Be $expected
+            Format-Jira -Property A, B, C $obj | Should Be $expected
+            Format-Jira A, B, C $obj | Should Be $expected
         }
 
         It "Handles pipeline input correctly" {
@@ -48,8 +48,8 @@ InModuleScope JiraPS {
 
             $expected2 = "||A||B||C||D||$n|12345|12345|12345|12345|$n|123|456|789| |"
 
-            $obj,$obj2 | Format-Jira | Should Be $expected1
-            $obj2,$obj | Format-Jira | Should Be $expected2
+            $obj, $obj2 | Format-Jira | Should Be $expected1
+            $obj2, $obj | Format-Jira | Should Be $expected2
         }
 
         It "Returns only selected properties if the -Property argument is passed" {
@@ -69,8 +69,8 @@ InModuleScope JiraPS {
             $expected1 = "||Name||Id||$n|explorer|4496|"
             $expected2 = "||Name||CompanyName||Id||MachineName||Handle||$n|explorer|Microsoft Corporation|4496|.|5368|"
 
-            Get-Process | Format-Jira -Property Name,Id | Should Be $expected1
-            Get-Process | Format-Jira -Property Name,CompanyName,Id,MachineName,Handle | Should Be $expected2
+            Get-Process | Format-Jira -Property Name, Id | Should Be $expected1
+            Get-Process | Format-Jira -Property Name, CompanyName, Id, MachineName, Handle | Should Be $expected2
         }
 
         It "Returns an object's default properties if the -Property argument is not passed" {
@@ -85,8 +85,8 @@ InModuleScope JiraPS {
                 }
 
                 # Since we're mocking this with a PSCustomObject, we need to define its default property set
-                [String[]] $DefaultProperties = @('Name','Id')
-                $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet',$DefaultProperties
+                [String[]] $DefaultProperties = @('Name', 'Id')
+                $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet', $DefaultProperties
                 $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
                 Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
 
@@ -109,8 +109,8 @@ InModuleScope JiraPS {
                     Path        = 'C:\Windows\Explorer.EXE';
                 }
 
-                [String[]] $DefaultProperties = @('Name','Id')
-                $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet',$DefaultProperties
+                [String[]] $DefaultProperties = @('Name', 'Id')
+                $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet', $DefaultProperties
                 $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
                 Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
 
@@ -123,5 +123,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-

@@ -13,31 +13,30 @@ InModuleScope JiraPS {
 
     $testLink = @"
 {
-   "id": 10000,
-   "self": "http://www.example.com/jira/rest/api/issue/MKY-1/remotelink/10000",
-   "globalId": "system=http://www.mycompany.com/support&id=1",
-   "application": {
-       "type": "com.acme.tracker",
-       "name": "My Acme Tracker"
-   },
-   "relationship": "causes",
-   "object": {
-       "url": "http://www.mycompany.com/support?id=1",
-       "title": "TSTSUP-111",
-       "summary": "Crazy customer support issue",
-       "icon": {
-           "url16x16": "http://www.mycompany.com/support/ticket.png",
-           "title": "Support Ticket"
-       }
-   }
+    "id": 10000,
+    "self": "http://www.example.com/jira/rest/api/issue/MKY-1/remotelink/10000",
+    "globalId": "system=http://www.mycompany.com/support&id=1",
+    "application": {
+        "type": "com.acme.tracker",
+        "name": "My Acme Tracker"
+    },
+    "relationship": "causes",
+    "object": {
+        "url": "http://www.mycompany.com/support?id=1",
+        "title": "TSTSUP-111",
+        "summary": "Crazy customer support issue",
+        "icon": {
+            "url16x16": "http://www.mycompany.com/support/ticket.png",
+            "title": "Support Ticket"
+        }
+    }
 }
 "@
 
     Describe "Remove-JiraRemoteLink" {
 
         Mock Write-Debug -ModuleName JiraPS {
-            if ($ShowDebugData)
-            {
+            if ($ShowDebugData) {
                 Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
             }
         }
@@ -58,8 +57,7 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE'} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with DELETE method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]            $URI" -ForegroundColor Cyan
@@ -111,5 +109,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-
