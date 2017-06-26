@@ -15,15 +15,15 @@ Properties {
     # The root directories for the module's docs, src and test.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $DocsRootDir = "$ProjectRoot\docs"
-    $SrcRootDir  = "$ProjectRoot\JiraPS"
+    $SrcRootDir = "$ProjectRoot\JiraPS"
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $TestRootDir = "$ProjectRoot\Tests"
 
     # The name of your module should match the basename of the PSD1 file.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $ModuleName = Get-Item $SrcRootDir/*.psd1 |
-                      Where-Object { $null -ne (Test-ModuleManifest -Path $_ -ErrorAction SilentlyContinue) } |
-                      Select-Object -First 1 | Foreach-Object BaseName
+        Where-Object { $null -ne (Test-ModuleManifest -Path $_ -ErrorAction SilentlyContinue) } |
+        Select-Object -First 1 | Foreach-Object BaseName
     Write-Host "* ModuleName: $ModuleName" -ForegroundColor Green
 
     # The $OutDir is where module files and updatable help files are staged for signing, install and publishing.
@@ -103,7 +103,7 @@ Properties {
 
     # Enable/disable generation of a catalog (.cat) file for the module.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $CatalogGenerationEnabled = $true
+    $CatalogGenerationEnabled = $false
 
     # Select the hash version to use for the catalog file: 1 for SHA1 (compat with Windows 7 and
     # Windows Server 2008 R2), 2 for SHA2 to support only newer Windows versions.
@@ -192,7 +192,7 @@ Task BeforeBuild {
 }
 
 # Executes after the Build task.
-Task AfterBuild -requiredVariables ProjectRoot,OutDir {
+Task AfterBuild -requiredVariables ProjectRoot, OutDir {
     Write-Host "build.settings.ps1 - AfterBuild" -ForegroundColor Green
     $outputManifestFile = Join-Path -Path $OutDir -ChildPath 'JiraPS\JiraPS.psd1'
     Write-Host "Patching module manifest file $outputManifestFile" -ForegroundColor Green
@@ -214,9 +214,9 @@ Task AfterBuild -requiredVariables ProjectRoot,OutDir {
         }
 
         $newVersion = New-Object -TypeName System.Version -ArgumentList $currentVersion.Major,
-            $currentVersion.Minor,
-            $currentVersion.Build,
-            $newRevision
+        $currentVersion.Minor,
+        $currentVersion.Build,
+        $newRevision
 
         Update-Metadata -Path $outputManifestFile -PropertyName ModuleVersion -Value $newVersion
     }
