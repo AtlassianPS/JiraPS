@@ -86,7 +86,7 @@ function ShowMockInfo($functionName, [String[]] $params) {
     if ($ShowMockData) {
         Write-Host "       Mocked $functionName" -ForegroundColor Cyan
         foreach ($p in $params) {
-            Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly)" -ForegroundColor Cyan
+            Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly -ErrorAction SilentlyContinue)" -ForegroundColor Cyan
         }
     }
 }
