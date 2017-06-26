@@ -34,7 +34,14 @@
     // Show the output window always
     "showOutput": "always",
     // Associate with test task runner
-    "tasks": [
+    "tasks": [{
+            "taskName": "SetUp",
+            "suppressTaskName": true,
+            "args": [
+                "Write-Host 'Invoking psake to set up the environment for you.'; Invoke-psake build\\build.psake.ps1 -taskList Setup;",
+                "Invoke-Command { Write-Host 'Completed SetUp task in task runner.' }"
+            ]
+        },
         {
             "taskName": "Clean",
             "suppressTaskName": true,
