@@ -11,7 +11,7 @@ InModuleScope JiraPS {
     $issueKey = "TEST-01"
     $issueLink = [PSCustomObject]@{
         outwardIssue = [PSCustomObject]@{key = "TEST-10"}
-        type = [PSCustomObject]@{name = "Composition"}
+        type         = [PSCustomObject]@{name = "Composition"}
     }
 
 

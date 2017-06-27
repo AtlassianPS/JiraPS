@@ -22,8 +22,7 @@ Write-Host "=== Beginning AppVeyor.ps1 ===" -ForegroundColor Green
 Write-Host
 
 # AppVeyor environment variable set when running in an AppVeyor environment.
-if ($env:CI -ne $true)
-{
+if ($env:CI -ne $true) {
     throw "This script does not appear to be running in an AppVeyor environment."
 }
 
@@ -54,7 +53,7 @@ Write-Host "AppVeyor build initialized (Job ID $JobId)" -ForegroundColor Cyan
 Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 
 # Don't forget -Force!
-Install-Module Pester,psake,PSScriptAnalyzer,BuildHelpers -Force
+Install-Module Pester, psake, PSScriptAnalyzer, BuildHelpers -Force
 
 # Load BuildHelpers
 Import-Module BuildHelpers
@@ -62,7 +61,7 @@ Set-BuildEnvironment -Path $ProjectRoot
 
 Write-Host "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n" -ForegroundColor Cyan
 
-Invoke-Psake -buildFile "$ProjectRoot\build\build.psake.ps1" -taskList Test,Publish
+Invoke-Psake -buildFile "$ProjectRoot\build\build.psake.ps1" -taskList Test, Publish
 
 # To avoid PSake running tests twice, the logic below has all been merged into PSake.
 # The build will fail automatically and will not be published if it does not pass all

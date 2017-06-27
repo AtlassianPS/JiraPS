@@ -1,5 +1,4 @@
-﻿function Get-JiraIssueWatcher
-{
+﻿function Get-JiraIssueWatcher {
     <#
     .Synopsis
        Returns watchers on an issue in JIRA.
@@ -21,10 +20,12 @@
     [CmdletBinding()]
     param(
         # JIRA issue to check for watchers. Can be a JiraPS.Issue object, issue key, or internal issue ID.
-        [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+        [Parameter(
+            Mandatory = $true,
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
         [Alias('Key')]
         [Object] $Issue,
 
@@ -33,13 +34,11 @@
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
     }
 
-    process
-    {
+    process {
         Write-Debug "Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
@@ -48,10 +47,8 @@
         Write-Debug "Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
 
-        if ($result)
-        {
-            if ($result.watchers)
-            {
+        if ($result) {
+            if ($result.watchers) {
                 Write-Verbose "Result: $($result)"
                 Write-Verbose "Watchers: $($result.Watchers)"
 
@@ -60,17 +57,18 @@
 
                 Write-Debug "Outputting results"
                 Write-Output $obj
-            } else {
+            }
+            else {
                 Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
                 Write-Output $result
             }
-        } else {
+        }
+        else {
             Write-Debug "Invoke-JiraMethod returned no results to output."
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "Completed Get-JiraIssueWatcher"
     }
 }

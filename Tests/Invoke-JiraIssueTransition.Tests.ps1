@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -29,16 +29,15 @@ InModuleScope JiraPS {
             $t2.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
 
             [PSCustomObject] @{
-                ID = $issueID;
-                Key = $issueKey;
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
-                Transition = @($t1,$t2)
+                ID         = $issueID;
+                Key        = $issueKey;
+                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID";
+                Transition = @($t1, $t2)
             }
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/transitions"} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
@@ -54,10 +53,10 @@ InModuleScope JiraPS {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-#        Mock Write-Debug {
-#            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-#        }
-#
+        # Mock Write-Debug {
+        #     Write-Host "DEBUG: $Message" -ForegroundColor Yellow
+        # }
+        #
         #############
         # Tests
         #############
@@ -92,28 +91,28 @@ InModuleScope JiraPS {
                     'ID'   = $Field;
                 }
             }
-            { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{'customfield_12345'='foo'; 'customfield_67890'='bar'} } | Should Not Throw
+            { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{'customfield_12345' = 'foo'; 'customfield_67890' = 'bar'} } | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_12345*set*foo*' }
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_67890*set*bar*' }
         }
 
-        It "Updates assignee name if provided to the -Assignee parameter"{
+        It "Updates assignee name if provided to the -Assignee parameter" {
             Mock Get-JiraUser {
                 [PSCustomObject] @{
-                    'Name' = 'powershell-user';
-                    'RestUrl'   = "$jiraServer/rest/api/2/user?username=powershell-user";
+                    'Name'    = 'powershell-user';
+                    'RestUrl' = "$jiraServer/rest/api/2/user?username=powershell-user";
                 }
             }
             { $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'powershell-user'} | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*name*powershell-user*' }
         }
 
-        It "Unassigns an issue if 'Unassigned' is passed to the -Assignee parameter"{
+        It "Unassigns an issue if 'Unassigned' is passed to the -Assignee parameter" {
             { $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'Unassigned'} | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*name*""*' }
         }
 
-        It "Adds a comment if provide to the -Comment parameter"{
+        It "Adds a comment if provide to the -Comment parameter" {
             { $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Comment 'test comment'} | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*body*test comment*' }
         }

@@ -1,5 +1,4 @@
-function Get-JiraComponent
-{
+function Get-JiraComponent {
     <#
     .Synopsis
        Returns a Component from Jira
@@ -29,15 +28,19 @@ function Get-JiraComponent
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
         # The Project ID or project key of a project to search.
-        [Parameter(ParameterSetName = 'ByProject',
-            ValueFromPipeline,
-            Mandatory = $true)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ParameterSetName = 'ByProject'
+        )]
         $Project,
 
         # The Component ID.
-        [Parameter(Mandatory = $true,
+        [Parameter(
             Position = 0,
-            ParameterSetName = 'ByID')]
+            Mandatory = $true,
+            ParameterSetName = 'ByID'
+        )]
         [Alias("Id")]
         [int[]] $ComponentId,
 
@@ -47,14 +50,12 @@ function Get-JiraComponent
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Get-JiraComponent] Reading server from config file"
-        try
-        {
+        try {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch
-        {
+        }
+        catch {
             $err = $_
             Write-Debug "[Get-JiraComponent] Encountered an error reading the Jira server."
             throw $err
@@ -63,36 +64,28 @@ function Get-JiraComponent
         $uri = "$server/rest/api/latest"
     }
 
-    process
-    {
-        if ($Project)
-        {
-            if ($Project.PSObject.TypeNames[0] -eq 'JiraPS.Project')
-            {
+    process {
+        if ($Project) {
+            if ($Project.PSObject.TypeNames[0] -eq 'JiraPS.Project') {
                 $ComponentId = @($Project.Components | Select-Object -ExpandProperty id)
             }
-            else
-            {
-                foreach ($p in $Project)
-                {
-                    if ($p -is [string])
-                    {
+            else {
+                foreach ($p in $Project) {
+                    if ($p -is [string]) {
                         Write-Debug "[Get-JiraComponent] Processing project [$p]"
                         $thisUri = "$uri/project/${p}/components"
 
                         Write-Debug "[Get-JiraComponent] Preparing for blastoff!"
 
                         $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
-                        if ($result)
-                        {
+                        if ($result) {
                             Write-Debug "[Get-JiraComponent] Converting to object"
                             $obj = ConvertTo-JiraComponent -InputObject $result
 
                             Write-Debug "[Get-JiraComponent] Outputting result"
                             Write-Output $obj
                         }
-                        else
-                        {
+                        else {
                             Write-Debug "[Get-JiraComponent] No results were returned from Jira"
                             Write-Debug "[Get-JiraComponent] No results were returned from Jira for component [$i]"
                         }
@@ -100,26 +93,22 @@ function Get-JiraComponent
                 }
             }
         }
-        if ($ComponentId)
-        {
-            foreach ($i in $ComponentId)
-            {
+        if ($ComponentId) {
+            foreach ($i in $ComponentId) {
                 Write-Debug "[Get-JiraComponent] Processing component [$i]"
                 $thisUri = "$uri/component/${i}"
 
                 Write-Debug "[Get-JiraComponent] Preparing for blastoff!"
 
                 $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
-                if ($result)
-                {
+                if ($result) {
                     Write-Debug "[Get-JiraComponent] Converting to object"
                     $obj = ConvertTo-JiraComponent -InputObject $result
 
                     Write-Debug "[Get-JiraComponent] Outputting result"
                     Write-Output $obj
                 }
-                else
-                {
+                else {
                     Write-Debug "[Get-JiraComponent] No results were returned from Jira"
                     Write-Debug "[Get-JiraComponent] No results were returned from Jira for component [$i]"
                 }
@@ -127,8 +116,7 @@ function Get-JiraComponent
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Get-JiraComponent] Complete"
     }
 }

@@ -9,14 +9,14 @@ InModuleScope JiraPS {
         $sampleSession = @{}
         $sampleWebResponse = @"
 {
-  "session": {
-    "name": "JSESSIONID",
-    "value": "$sampleJSessionID"
-  },
-  "loginInfo": {
-    "failedLoginCount": 5,
-    "loginCount": 50
-  }
+    "session": {
+        "name": "JSESSIONID",
+        "value": "$sampleJSessionID"
+    },
+    "loginInfo": {
+        "failedLoginCount": 5,
+        "loginCount": 50
+    }
 }
 "@
 

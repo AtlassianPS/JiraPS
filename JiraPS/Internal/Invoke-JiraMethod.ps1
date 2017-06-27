@@ -13,8 +13,10 @@ function Invoke-JiraMethod {
         [ValidateNotNullOrEmpty()]
         [String] $Body,
 
-        [Parameter(ParameterSetName = 'UseCredential',
-            Mandatory = $false)]
+        [Parameter(
+            Mandatory = $false,
+            ParameterSetName = 'UseCredential'
+        )]
         [System.Management.Automation.PSCredential] $Credential
 
         #        [Parameter(ParameterSetName='UseSession',
@@ -74,7 +76,8 @@ function Invoke-JiraMethod {
 
         Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI"
         $webResponse = Invoke-WebRequest @iwrSplat
-    } catch {
+    }
+    catch {
         # Invoke-WebRequest is hard-coded to throw an exception if the Web request returns a 4xx or 5xx error.
         # This is the best workaround I can find to retrieve the actual results of the request.
         $webResponse = $_.Exception.Response

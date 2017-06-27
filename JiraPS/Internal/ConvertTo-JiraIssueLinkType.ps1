@@ -1,9 +1,11 @@
 function ConvertTo-JiraIssueLinkType {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true,
+        [Parameter(
+            Mandatory = $true,
             Position = 0,
-            ValueFromPipeline = $true)]
+            ValueFromPipeline = $true
+        )]
         [PSObject[]] $InputObject,
 
         [Switch] $ReturnError
@@ -44,7 +46,6 @@ function ConvertTo-JiraIssueLinkType {
         }
     }
 
-    end
-    {
+    end {
     }
 }

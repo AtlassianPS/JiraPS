@@ -12,16 +12,16 @@ InModuleScope JiraPS {
 
     $restResult = @"
 {
-  "name": "$testGroupName",
-  "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
-  "users": {
-    "size": $testGroupSize,
-    "items": [],
-    "max-results": 50,
-    "start-index": 0,
-    "end-index": 0
-  },
-  "expand": "users"
+    "name": "$testGroupName",
+    "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
+    "users": {
+        "size": "$testGroupSize",
+        "items": [],
+        "max-results": 50,
+        "start-index": 0,
+        "end-index": 0
+    },
+    "expand": "users"
 }
 "@
 
@@ -33,8 +33,7 @@ InModuleScope JiraPS {
 
         # Searching for a group.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupNameEscaped"} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
@@ -52,9 +51,9 @@ InModuleScope JiraPS {
 
         Mock ConvertTo-JiraGroup { $InputObject }
 
-#        Mock Write-Debug {
-#            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-#        }
+        #        Mock Write-Debug {
+        #            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
+        #        }
 
         #############
         # Tests
@@ -70,5 +69,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-

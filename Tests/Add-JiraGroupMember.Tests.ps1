@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -16,8 +16,7 @@ InModuleScope JiraPS {
     Describe "Add-JiraGroupMember" {
 
         Mock Write-Debug -ModuleName JiraPS {
-            if ($ShowDebugData)
-            {
+            if ($ShowDebugData) {
                 Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
             }
         }
@@ -42,14 +41,13 @@ InModuleScope JiraPS {
         Mock Get-JiraGroupMember -ModuleName JiraPS {
             @(
                 [PSCustomObject] @{
-                    'Name'=$testUsername1;
+                    'Name' = $testUsername1;
                 }
             )
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
@@ -98,18 +96,16 @@ InModuleScope JiraPS {
                 }
 
                 # Should use the REST method twice, since at present, you can only add one group member per API call
-                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1,$testUsername2 } | Should Not Throw
+                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Post' -and $URI -match $testGroupName} -Exactly -Times 2 -Scope It
             }
         }
 
         Context "Error checking" {
             It "Gracefully handles cases where a provided user is already in the provided group" {
-                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1,$testUsername2 } | Should Not Throw
+                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Post' -and $URI -match $testGroupName} -Exactly -Times 1 -Scope It
             }
         }
     }
 }
-
-

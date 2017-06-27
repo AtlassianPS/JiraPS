@@ -77,5 +77,3 @@ function Get-JiraIssueLink {
         Write-Debug "[Get-JiraIssueLink] Complete"
     }
 }
-
-

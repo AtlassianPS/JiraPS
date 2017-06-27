@@ -69,5 +69,3 @@ InModuleScope JiraPS {
         defProp $r 'Updated' (Get-Date '2015-05-01T16:24:38.000-0500')
     }
 }
-
-

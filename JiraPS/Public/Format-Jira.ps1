@@ -1,5 +1,4 @@
-function Format-Jira
-{
+function Format-Jira {
     <#
     .Synopsis
        Converts an object into a table formatted according to JIRA's markdown syntax
@@ -26,20 +25,23 @@ function Format-Jira
         # List of properties to display. If omitted, only the default properties will be shown.
         #
         # To display all properties, use -Property *.
-        [Parameter(Mandatory = $false,
-            Position = 0)]
+        [Parameter(
+            Position = 0,
+            Mandatory = $false
+        )]
         [Object[]] $Property,
 
         # Object to format.
-        [Parameter(Mandatory = $true,
+        [Parameter(
+            Mandatory = $true,
             ValueFromPipeline = $true,
-            ValueFromRemainingArguments = $true)]
+            ValueFromRemainingArguments = $true
+        )]
         [ValidateNotNull()]
         [PSObject[]] $InputObject
     )
 
-    begin
-    {
+    begin {
         $headers = New-Object -TypeName System.Collections.ArrayList
         $thisLine = New-Object -TypeName System.Text.StringBuilder
         $allText = New-Object -TypeName System.Text.StringBuilder
@@ -48,17 +50,13 @@ function Format-Jira
 
         $n = [System.Environment]::NewLine
 
-        if ($Property)
-        {
-            if ($Property -eq '*')
-            {
+        if ($Property) {
+            if ($Property -eq '*') {
                 Write-Debug "[Format-Jira] -Property * was passed. Adding all properties."
             }
-            else
-            {
+            else {
 
-                foreach ($p in $Property)
-                {
+                foreach ($p in $Property) {
                     Write-Debug "[Format-Jira] Adding header [$p]"
                     [void] $headers.Add($p.ToString())
                 }
@@ -69,52 +67,40 @@ function Format-Jira
                 $headerDefined = $true
             }
         }
-        else
-        {
+        else {
             Write-Debug "[Format-Jira] Property parameter was not specified. Checking first InputObject for property names."
         }
     }
 
-    process
-    {
-        foreach ($i in $InputObject)
-        {
-            if (-not ($headerDefined))
-            {
+    process {
+        foreach ($i in $InputObject) {
+            if (-not ($headerDefined)) {
                 # This should only be called if Property was not supplied and this is the first object in the InputObject array.
-                if ($Property -and $Property -eq '*')
-                {
+                if ($Property -and $Property -eq '*') {
                     Write-Debug "[Format-Jira] Adding all properties from object [$i]"
                     $allProperties = Get-Member -InputObject $i -MemberType '*Property'
-                    foreach ($a in $allProperties)
-                    {
+                    foreach ($a in $allProperties) {
                         Write-Debug "[Format-Jira] Adding header [$($a.Name)]"
                         [void] $headers.Add($a.Name)
                     }
                 }
-                else
-                {
+                else {
 
                     # TODO: find a way to format output objects based on PowerShell's own Format-Table
                     # Identify default table properties if possible and use them to create a Jira table
 
-
-                    if ($i.PSStandardMembers.DefaultDisplayPropertySet)
-                    {
+                    if ($i.PSStandardMembers.DefaultDisplayPropertySet) {
                         Write-Debug "[Format-Jira] Identifying default properties for object [$i]"
                         $propertyNames = $i.PSStandardMembers.DefaultDisplayPropertySet.ReferencedPropertyNames
-                        foreach ($p in $propertyNames)
-                        {
+                        foreach ($p in $propertyNames) {
                             Write-Debug "[Format-Jira] Adding header [$p]"
                             [void] $headers.Add($p)
                         }
                     }
-                    else
-                    {
+                    else {
                         Write-Debug "[Format-Jira] No default format data exists for object [$i] (type=[$($i.GetType())]). All properties will be used."
                         $allProperties = Get-Member -InputObject $i -MemberType '*Property'
-                        foreach ($a in $allProperties)
-                        {
+                        foreach ($a in $allProperties) {
                             Write-Debug "[Format-Jira] Adding header [$($a.Name)]"
                             [void] $headers.Add($a.Name)
                         }
@@ -131,16 +117,13 @@ function Format-Jira
             [void] $thisLine.Clear()
             [void] $thisLine.Append("$n|")
 
-            foreach ($h in $headers)
-            {
+            foreach ($h in $headers) {
                 $value = $InputObject.$h
-                if ($value)
-                {
+                if ($value) {
                     Write-Debug "[Format-Jira] Adding property (name=[$h], value=[$value])"
                     [void] $thisLine.Append("$value|")
                 }
-                else
-                {
+                else {
                     Write-Debug "[Format-Jira] Property [$h] does not exist on this object."
                     [void] $thisLine.Append(' |')
                 }
@@ -152,8 +135,7 @@ function Format-Jira
         }
     }
 
-    end
-    {
+    end {
         $allTextString = $allText.ToString()
         Write-Output $allTextString
         Write-Debug "[Format-Jira] Complete"

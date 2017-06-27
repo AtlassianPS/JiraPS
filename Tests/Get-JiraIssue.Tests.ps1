@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -18,8 +18,7 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraIssue
 
-            function defParam($name)
-            {
+            function defParam($name) {
                 It "Has a -$name parameter" {
                     $command.Parameters.Item($name) | Should Not BeNullOrEmpty
                 }
@@ -37,12 +36,11 @@ InModuleScope JiraPS {
 
         Context "Behavior testing" {
             Mock Invoke-JiraMethod {
-                if ($ShowMockData)
-                {
+                if ($ShowMockData) {
                     Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                     Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                     Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-#                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                    #                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
                 }
             }
 
@@ -76,12 +74,11 @@ InModuleScope JiraPS {
                 # mock that actually returns some data.
 
                 Mock Invoke-JiraMethod {
-                    if ($ShowMockData)
-                    {
+                    if ($ShowMockData) {
                         Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                         Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                         Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-#                        Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                        #                        Write-Host "         [Body]    $Body" -ForegroundColor Cyan
                     }
 
                     ConvertFrom-Json2 @'
@@ -120,8 +117,8 @@ InModuleScope JiraPS {
 
             It "Accepts an issue object for the -InputObject parameter" {
                 $issue = [PSCustomObject] @{
-                    'Key'     = 'TEST-001'
-                    'ID'      = '12345'
+                    'Key' = 'TEST-001'
+                    'ID'  = '12345'
                 }
                 $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
 

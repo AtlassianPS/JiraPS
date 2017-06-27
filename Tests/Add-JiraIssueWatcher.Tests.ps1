@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -19,7 +19,7 @@ InModuleScope JiraPS {
         Mock Get-JiraIssue -ModuleName JiraPS {
             [PSCustomObject] @{
                 ID      = $issueID;
-                Key = $issueKey;
+                Key     = $issueKey;
                 RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
             }
         }
@@ -64,7 +64,7 @@ InModuleScope JiraPS {
                 $WatcherResult | Should BeNullOrEmpty
 
                 # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
         }

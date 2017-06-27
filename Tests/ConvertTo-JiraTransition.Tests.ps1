@@ -19,18 +19,18 @@ InModuleScope JiraPS {
     "id": "$tId",
     "name": "$tName",
     "to": {
-    "self": "$jiraServer/rest/api/2/status/$tRId",
-    "description": "$tRDesc",
-    "iconUrl": "$jiraServer/images/icons/statuses/inprogress.png",
-    "name": "$tRName",
-    "id": "$tRId",
-    "statusCategory": {
-        "self": "$jiraServer/rest/api/2/statuscategory/4",
-        "id": 4,
-        "key": "indeterminate",
-        "colorName": "yellow",
-        "name": "In Progress"
-    }
+        "self": "$jiraServer/rest/api/2/status/$tRId",
+        "description": "$tRDesc",
+        "iconUrl": "$jiraServer/images/icons/statuses/inprogress.png",
+        "name": "$tRName",
+        "id": "$tRId",
+        "statusCategory": {
+            "self": "$jiraServer/rest/api/2/statuscategory/4",
+            "id": 4,
+            "key": "indeterminate",
+            "colorName": "yellow",
+            "name": "In Progress"
+        }
     }
 }
 "@
@@ -53,5 +53,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-

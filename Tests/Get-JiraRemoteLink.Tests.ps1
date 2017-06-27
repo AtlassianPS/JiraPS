@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -11,25 +11,25 @@ InModuleScope JiraPS {
     $issueKey = 'MKY-1'
 
     $restResult = @"
-    {
-       "id": 10000,
-       "self": "http://jiraserver.example.com/rest/api/issue/MKY-1/remotelink/10000",
-       "globalId": "system=http://www.mycompany.com/support&id=1",
-       "application": {
-           "type": "com.acme.tracker",
-           "name": "My Acme Tracker"
-       },
-       "relationship": "causes",
-       "object": {
-           "url": "http://www.mycompany.com/support?id=1",
-           "title": "TSTSUP-111",
-           "summary": "Crazy customer support issue",
-           "icon": {
-               "url16x16": "http://www.mycompany.com/support/ticket.png",
-               "title": "Support Ticket"
-           }
-       }
+{
+    "id": 10000,
+    "self": "http://jiraserver.example.com/rest/api/issue/MKY-1/remotelink/10000",
+    "globalId": "system=http://www.mycompany.com/support&id=1",
+    "application": {
+        "type": "com.acme.tracker",
+        "name": "My Acme Tracker"
+    },
+    "relationship": "causes",
+    "object": {
+        "url": "http://www.mycompany.com/support?id=1",
+        "title": "TSTSUP-111",
+        "summary": "Crazy customer support issue",
+        "icon": {
+            "url16x16": "http://www.mycompany.com/support/ticket.png",
+            "title": "Support Ticket"
+        }
     }
+}
 "@
 
     Describe "Get-JiraRemoteLink" {
@@ -82,5 +82,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-
