@@ -13,7 +13,7 @@ Join the conversation on [![SlackLogo][] AtlassianPS.Slack.com](https://slofile.
 
 ## Documentation on ReadTheDocs
 
-Documentation for JiraPS has moved to [ReadTheDocs.io](http://JiraPS.readthedocs.io). Check it out, and feel free to submit issues or PRs against the documentation as well!
+Documentation for JiraPS has moved to [ReadTheDocs.io](http://psjira.readthedocs.io). Check it out, and feel free to submit issues or PRs against the documentation as well!
 
 ---
 
