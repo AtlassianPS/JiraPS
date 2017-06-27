@@ -1,4 +1,4 @@
-﻿function New-JiraFixVersion
+﻿function New-JiraVersion
 {
     <#
     .Synopsis
@@ -6,12 +6,13 @@
      .DESCRIPTION
          This function creates a new FixVersion in JIRA.
      .EXAMPLE
-        New-JiraFixVersion -FixVersion '1.0.0.0'
+        New-JiraVersion -FixVersion '1.0.0.0'
         This example creates a new JIRA FixVersion named '1.0.0.0'.
-        New-JiraFixVersion -FixVersion '1.0.0.0' -Project TEST
+	.EXAMPLE
+        New-JiraVersion -FixVersion '1.0.0.0' -Project TEST
         This example creates a new JIRA FixVersion named '1.0.0.0' in Project TEST.
     .EXAMPLE
-        New-JiraFixVersion -FixVersion '1.0.0.0' -Project TEST -ReleaseDate "2000-12-31"
+        New-JiraVersion -FixVersion '1.0.0.0' -Project TEST -ReleaseDate "2000-12-31"
         Create a new Version in Project TEST with a set release date.
      .INPUTS
          This function does not accept pipeline input.
@@ -24,7 +25,7 @@
         [Parameter(Mandatory = $true,
             Position = 0)]
         [Alias('FixVersions')]
-        [String] $FixVersion,
+        [String] $Version,
 
         # Description of the version.
         [Parameter(Mandatory = $false)]
@@ -40,11 +41,11 @@
 
         # Date of the release.
         [Parameter(ParameterSetName = 'Release')]
-        [String] $ReleaseDate,
+        [DateTime] $ReleaseDate,
 
         # Date of the user release.
         [Parameter(ParameterSetName = 'UserRelease')]
-        [String] $UserReleaseDate,
+        [DateTime] $UserReleaseDate,
 
         # Key of the Project in which to create the version.
         [Parameter(Mandatory = $true)]
@@ -57,32 +58,32 @@
 
     begin
     {
-        Write-Debug -Message '[New-JiraFixVersion] Reading information from config file'
+        Write-Debug -Message '[New-JiraVersion] Reading information from config file'
         try
         {
-            Write-Debug -Message '[New-JiraFixVersion] Reading Jira server from config file'
+            Write-Debug -Message '[New-JiraVersion] Reading Jira server from config file'
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         }
         catch
         {
             $err = $_
-            Write-Debug -Message '[New-JiraFixVersion] Encountered an error reading configuration data.'
+            Write-Debug -Message '[New-JiraVersion] Encountered an error reading configuration data.'
             throw $err
         }
 
         $restUrl = "$server/rest/api/latest/version"
-        Write-Debug "[New-JiraFixVersion] Rest URL set to [$restUrl]."
+        Write-Debug "[New-JiraVersion] Rest URL set to [$restUrl]."
 
-        Write-Debug "[New-JiraFixVersion] Completed Begin block."
+        Write-Debug "[New-JiraVersion] Completed Begin block."
     }
 
     process
     {
         $ProjectData = Get-JiraProject -Project $Project
-        Write-Debug -Message '[New-JiraFixVersion] Defining properties'
+        Write-Debug -Message '[New-JiraVersion] Defining properties'
         $props = @{
             description = $Description
-            name        = $FixVersion
+            name        = $Version
             archived    = $Archived.IsPresent
             released    = $Released.IsPresent
             project     = $ProjectData.Key
@@ -97,10 +98,10 @@
             $props.userReleaseDate = $UserReleaseDate
         }
 
-        Write-Debug -Message '[New-JiraFixVersion] Converting to JSON'
+        Write-Debug -Message '[New-JiraVersion] Converting to JSON'
         $json = ConvertTo-Json -InputObject $props
 
-        Write-Debug -Message '[New-JiraFixVersion] Preparing for blastoff!'
+        Write-Debug -Message '[New-JiraVersion] Preparing for blastoff!'
         $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
 
         If ($result)
@@ -109,12 +110,12 @@
         }
         Else
         {
-            Write-Debug -Message '[New-JiraFixVersion] Jira returned no results to output.'
+            Write-Debug -Message '[New-JiraVersion] Jira returned no results to output.'
         }
     }
 
     end
     {
-        Write-Debug "[New-JiraFixVersion] Complete"
+        Write-Debug "[New-JiraVersion] Complete"
     }
 }

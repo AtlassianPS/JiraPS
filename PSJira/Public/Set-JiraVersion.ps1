@@ -1,12 +1,12 @@
-﻿function Set-JiraFixVersion
+﻿function Set-JiraVersion
 {
     <#
     .Synopsis
         Modifies an existing issue in JIRA
     .DESCRIPTION
-        This function modifies the fixversion field for an existing issue in JIRA.
+        This function modifies the FixVersion field for an existing issue in JIRA.
     .EXAMPLE
-        Set-JiraFixVersion -Issue TEST-01 -FixVersion '1.0.0.0'
+        Set-JiraVersion -Issue TEST-01 -FixVersion '1.0.0.0'
         This example assigns the fixversion 1.0.0.0 to the JIRA issue TEST-01.
     .INPUTS
         [PSJira.Issue[]] The JIRA issue that should be modified
@@ -26,7 +26,7 @@
         # Set the FixVersion of the issue, this will overwrite any present FixVersions
         [Parameter(Mandatory = $True)]
         [Alias('FixVersions')]
-        [String[]] $FixVersion,
+        [String[]] $Name,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
@@ -35,33 +35,33 @@
 
     begin
     {
-        Write-Debug -Message '[Set-JiraFixVersion] Reading information from config file'
+        Write-Debug -Message '[Set-JiraVersion] Reading information from config file'
         try
         {
-            Write-Debug -Message '[Set-JiraFixVersion] Reading Jira server from config file'
+            Write-Debug -Message '[Set-JiraVersion] Reading Jira server from config file'
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         }
         catch
         {
             $err = $_
-            Write-Debug -Message '[Set-JiraFixVersion] Encountered an error reading configuration data.'
+            Write-Debug -Message '[Set-JiraVersion] Encountered an error reading configuration data.'
             throw $err
         }
 
-        Write-Debug "[Set-JiraFixVersion] Completed Begin block."
+        Write-Debug "[Set-JiraVersion] Completed Begin block."
     }
 
     process
     {
         foreach ($i in $Issue)
         {
-            Write-Debug "[Set-JiraFixVersion] Calling [ Set-JiraIssue -Issue $i -FixVersion $FixVersion ]."
-            Set-JiraIssue -Issue $i -FixVersion $FixVersion
+            Write-Debug "[Set-JiraVersion] Calling [ Set-JiraIssue -Issue $i -FixVersion $Name ]."
+            Set-JiraIssue -Issue $i -FixVersion $Name
         }
     }
 
     end
     {
-        Write-Debug "[Set-JiraFixVersion] Complete"
+        Write-Debug "[Set-JiraVersion] Complete"
     }
 }
