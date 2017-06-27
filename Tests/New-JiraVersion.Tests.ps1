@@ -1,7 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
-
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
@@ -9,7 +8,9 @@ InModuleScope PSJira {
     $jiraServer = 'http://jiraserver.example.com'
 
     $testFixVersion = '1.0.0.0'
-    
+
+    $testJiraProjectKey = 'LDD'
+
     $testJson = @"
 {
     "name": "$testFixVersion",
@@ -22,8 +23,14 @@ InModuleScope PSJira {
 }
 "@
 
-    Describe "New-JiraFixVersion" {
+    $testJiraProject = @"
+{
+    "ID":  "12101",
+    "Key":  "LDD"
+}
+"@
 
+    Describe "New-JiraVersion" {
         # Mock Write-Debug {
         #     if ($ShowDebugData)
         #     {
@@ -61,20 +68,21 @@ InModuleScope PSJira {
         # Tests
         #############
 
-        It "Removes a FixVersion from an issue" {
-
+        It "Creates a FixVersion in JIRA and returns a result" {
+            $newResult = New-JiraVersion -FixVersion $testFixVersion -Description $testFixVersion -Project $testJiraProjectKey
+            $newResult | Should Not BeNullOrEmpty
         }
-      
+
         It "Uses Invoke-JiraMethod to do blast off once" {
-            #Assert-MockCalled 'Invoke-JiraMethod' -Times 1
+            Assert-MockCalled 'Invoke-JiraMethod' -Times 1
         }
 
         It "Uses Get-JiraProject once" {
-            #Assert-MockCalled 'Get-JiraProject' -Times 1
+            Assert-MockCalled 'Get-JiraProject' -Times 1
         }
 
         It "Assert VerifiableMocks" {
-            #Assert-VerifiableMocks 
+            Assert-VerifiableMocks
         }
     }
 }

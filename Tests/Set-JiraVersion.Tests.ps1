@@ -1,7 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope PSJira {
-
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
@@ -9,7 +8,7 @@ InModuleScope PSJira {
     $jiraServer = 'http://jiraserver.example.com'
 
     $testFixVersion = '1.0.0.0'
-    
+
     $testJson = @"
 {
     "name": "$testFixVersion",
@@ -22,8 +21,7 @@ InModuleScope PSJira {
 }
 "@
 
-    Describe "New-JiraFixVersion" {
-
+    Describe "New-JiraVersion" {
         # Mock Write-Debug {
         #     if ($ShowDebugData)
         #     {
@@ -62,9 +60,8 @@ InModuleScope PSJira {
         #############
 
         It "Removes a FixVersion from an issue" {
-
         }
-      
+
         It "Uses Invoke-JiraMethod to do blast off once" {
             #Assert-MockCalled 'Invoke-JiraMethod' -Times 1
         }
@@ -74,7 +71,7 @@ InModuleScope PSJira {
         }
 
         It "Assert VerifiableMocks" {
-            #Assert-VerifiableMocks 
+            #Assert-VerifiableMocks
         }
     }
 }
