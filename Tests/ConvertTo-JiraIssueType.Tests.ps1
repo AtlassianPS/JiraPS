@@ -17,7 +17,7 @@ InModuleScope JiraPS {
     "iconUrl": "$jiraServer/images/icons/issuetypes/newfeature.png",
     "name": "$issueTypeName",
     "subtask": false
-  }
+}
 "@
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 

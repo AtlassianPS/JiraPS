@@ -1,5 +1,4 @@
-function Add-JiraIssueWorklog
-{
+function Add-JiraIssueWorklog {
     <#
     .Synopsis
        Adds a worklog item to an existing JIRA issue
@@ -28,34 +27,42 @@ function Add-JiraIssueWorklog
     [CmdletBinding()]
     param(
         # Worklog item that should be added to JIRA
-        [Parameter(Mandatory = $true,
-                   Position = 0)]
+        [Parameter(
+            Position = 0,
+            Mandatory = $true
+        )]
         [String] $Comment,
 
         # Issue to receive the new worklog item
-        [Parameter(Mandatory = $true,
-                   Position = 1,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+        [Parameter(
+            Position = 1,
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
         [Alias('Key')]
         [Object] $Issue,
 
         # Time spent to be logged
-        [Parameter(Mandatory = $true,
-                   Position = 2,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+        [Parameter(
+            Position = 2,
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
         [TimeSpan] $TimeSpent,
 
         # Date/time started to be logged
-        [Parameter(Mandatory = $true,
-                   Position = 3,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+        [Parameter(
+            Position = 3,
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
         [DateTime] $DateStarted,
 
         # Visibility of the comment - should it be publicly visible, viewable to only developers, or only administrators?
-        [ValidateSet('All Users','Developers','Administrators')]
+        [ValidateSet('All Users', 'Developers', 'Administrators')]
         [String] $VisibleRole = 'Developers',
 
         # Credentials to use to connect to Jira. If not specified, this function will use
@@ -63,35 +70,32 @@ function Add-JiraIssueWorklog
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Add-JiraIssueWorklog] Begin"
         # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
     }
 
-    process
-    {
+    process {
         Write-Debug "[Add-JiraIssueWorklog] Checking Issue parameter"
-        if ($Issue.PSObject.TypeNames[0] -eq 'JiraPS.Issue')
-        {
+        if ($Issue.PSObject.TypeNames[0] -eq 'JiraPS.Issue') {
             Write-Debug "[Add-JiraIssueWorklog] Issue parameter is a JiraPS.Issue object"
             $issueObj = $Issue
-        } else {
+        }
+        else {
             $issueKey = $Issue.ToString()
             Write-Debug "[Add-JiraIssueWorklog] Issue key is assumed to be [$issueKey] via ToString()"
             Write-Verbose "Searching for issue [$issueKey]"
-            try
-            {
+            try {
                 $issueObj = Get-JiraIssue -Key $issueKey -Credential $Credential
-            } catch {
+            }
+            catch {
                 $err = $_
                 Write-Debug 'Encountered an error searching for Jira issue. An exception will be thrown.'
                 throw $err
             }
         }
 
-        if (-not $issueObj)
-        {
+        if (-not $issueObj) {
             Write-Debug "[Add-JiraIssueWorklog] No Jira issues were found for parameter [$Issue]. An exception will be thrown."
             throw "Unable to identify Jira issue [$Issue]. Does this issue exist?"
         }
@@ -103,20 +107,17 @@ function Add-JiraIssueWorklog
 
         Write-Debug "[Add-JiraIssueWorklog] Creating request body from comment"
         $props = @{
-            'comment' = $Comment;
-            'started' = $DateStarted.ToString();
+            'comment'   = $Comment;
+            'started'   = $DateStarted.ToString();
             'timeSpent' = $TimeSpent.TotalSeconds.ToString();
         }
-
-
 
         # If the visible role should be all users, the visibility block shouldn't be passed at
         # all. JIRA returns a 500 Internal Server Error if you try to pass this block with a
         # value of "All Users".
-        if ($VisibleRole -ne 'All Users')
-        {
+        if ($VisibleRole -ne 'All Users') {
             $props.visibility = @{
-                'type' = 'role';
+                'type'  = 'role';
                 'value' = $VisibleRole;
             }
         }
@@ -134,10 +135,7 @@ function Add-JiraIssueWorklog
         Write-Output $result
     }
 
-    end
-    {
+    end {
         Write-Debug "[Add-JiraIssueWorklog] Complete"
     }
 }
-
-

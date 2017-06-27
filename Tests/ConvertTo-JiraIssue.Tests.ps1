@@ -6,8 +6,7 @@ InModuleScope JiraPS {
 
     Describe "ConvertTo-JiraIssue" {
 
-        if ($ShowDebugText)
-        {
+        if ($ShowDebugText) {
             Mock "Write-Debug" {
                 Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
             }
@@ -877,17 +876,16 @@ InModuleScope JiraPS {
             # we need to mock out a few others to avoid our Assert-MockCalled
             # counts being unexpected.
 
-#            Mock ConvertTo-JiraComment -ModuleName JiraPS { $InputObject }
-#            Mock ConvertTo-JiraProject -ModuleName JiraPS { $InputObject }
-#            Mock ConvertTo-JiraTransition -ModuleName JiraPS { $InputObject }
-#            Mock ConvertTo-JiraUser -ModuleName JiraPS { $InputObject }
+            #            Mock ConvertTo-JiraComment -ModuleName JiraPS { $InputObject }
+            #            Mock ConvertTo-JiraProject -ModuleName JiraPS { $InputObject }
+            #            Mock ConvertTo-JiraTransition -ModuleName JiraPS { $InputObject }
+            #            Mock ConvertTo-JiraUser -ModuleName JiraPS { $InputObject }
 
             $r = ConvertTo-JiraIssue -InputObject $sampleObject
 
             It "Defines Date fields as Date objects" {
-                $dateFields = @('Created','Updated') # LastViewed should be in here too, but in this example issue from Atlassian, that value is null
-                foreach ($f in $dateFields)
-                {
+                $dateFields = @('Created', 'Updated') # LastViewed should be in here too, but in this example issue from Atlassian, that value is null
+                foreach ($f in $dateFields) {
                     $value = $r.$f
                     $value | Should Not BeNullOrEmpty
                     checkType $value 'System.DateTime'
@@ -895,9 +893,8 @@ InModuleScope JiraPS {
             }
 
             It "Uses ConvertTo-JiraUser to return user fields as User objects" {
-                $userFields = @('Creator','Reporter') # Again, Assigned is another user field, but in this example it's unassigned
-                foreach ($f in $userFields)
-                {
+                $userFields = @('Creator', 'Reporter') # Again, Assigned is another user field, but in this example it's unassigned
+                foreach ($f in $userFields) {
                     $value = $r.$f
                     $value | Should Not BeNullOrEmpty
                     # (Get-Member -InputObject $value).TypeName | Should Be 'JiraPS.User'

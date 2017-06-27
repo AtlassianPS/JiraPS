@@ -1,14 +1,14 @@
 . $PSScriptRoot\Shared.ps1
 
 Describe "ConvertFrom-Json2" {
-	$sampleJson = '{"id":"issuetype","name":"Issue Type","custom":false,"orderable":true,"navigable":true,"searchable":true,"clauseNames":["issuetype","type"],"schema":{"type":"issuetype","system":"issuetype"}}'
+    $sampleJson = '{"id":"issuetype","name":"Issue Type","custom":false,"orderable":true,"navigable":true,"searchable":true,"clauseNames":["issuetype","type"],"schema":{"type":"issuetype","system":"issuetype"}}'
     $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
-	It "Creates a PSObject out of JSON input" {
+    It "Creates a PSObject out of JSON input" {
         $sampleObject | Should Not BeNullOrEmpty
     }
 
-	defProp $sampleObject 'Id' 'issuetype'
+    defProp $sampleObject 'Id' 'issuetype'
     defProp $sampleObject 'Name' 'Issue Type'
     defProp $sampleObject 'Custom' $false
 
@@ -18,7 +18,7 @@ Describe "ConvertFrom-Json2" {
         }
 
         It "Accepts pipeline input" {
-            { @($sampleJson,$sampleJson) | ConvertFrom-Json2 } | Should Not Throw
+            { @($sampleJson, $sampleJson) | ConvertFrom-Json2 } | Should Not Throw
         }
 
         It "Provides the same output as ConvertFrom-Json for JSON strings the latter can handle" {

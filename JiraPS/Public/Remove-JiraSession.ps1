@@ -30,9 +30,11 @@ function Remove-JiraSession {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # A Jira session to be closed. If not specified, this function will use a saved session.
-        [Parameter(Mandatory = $false,
+        [Parameter(
             Position = 0,
-            ValueFromPipeline = $true)]
+            Mandatory = $false,
+            ValueFromPipeline = $true
+        )]
         [Object] $Session
     )
 
@@ -40,7 +42,8 @@ function Remove-JiraSession {
         try {
             Write-Debug "[Remove-JiraSession] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        }
+        catch {
             $err = $_
             Write-Debug "[Remove-JiraSession] Encountered an error reading configuration data."
             throw $err
@@ -86,8 +89,8 @@ function Remove-JiraSession {
                         'Session' = $null;
                     }
                 }
-            } catch
-            {
+            }
+            catch {
                 $err = $_
                 $webResponse = $err.Exception.Response
                 Write-Debug "[Remove-JiraSession] Encountered an exception from the Jira server: $err"

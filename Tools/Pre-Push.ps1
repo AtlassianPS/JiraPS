@@ -5,8 +5,7 @@ try {
     Write-Host "Module manifest file: $moduleManifest"
     Import-Module $moduleManifest
     $pesterResults = Invoke-Pester -Quiet -PassThru
-    if ($pesterResults.FailedCount -gt 0)
-    {
+    if ($pesterResults.FailedCount -gt 0) {
         Write-Error "Pester failed $($pesterResults.FailedCount) tests."
         Write-Host
         Write-Host "Summary of failed tests:" -ForegroundColor White -BackgroundColor DarkRed
@@ -17,15 +16,16 @@ try {
             $test = $_
             [PSCustomObject] @{
                 Describe = $test.Describe
-                Context = $test.Context
-                Name = "It `"$($test.Name)`""
-                Result = $test.Result
-                Message = $test.FailureMessage
+                Context  = $test.Context
+                Name     = "It `"$($test.Name)`""
+                Result   = $test.Result
+                Message  = $test.FailureMessage
             }
-        } | Sort-Object -Property Describe,Context,Name,Result,FailureMessage | Format-List
+        } | Sort-Object -Property Describe, Context, Name, Result, FailureMessage | Format-List
 
         exit 1
-    } else {
+    }
+    else {
         Write-Host "All Pester tests passed." -ForegroundColor Green
         Write-Host "`n"
         exit 0

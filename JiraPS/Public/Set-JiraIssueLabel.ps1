@@ -34,17 +34,21 @@
     )]
     param(
         # Issue key or JiraPS.Issue object returned from Get-JiraIssue
-        [Parameter(Mandatory = $true,
+        [Parameter(
             Position = 0,
+            Mandatory = $true,
             ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true)]
+            ValueFromPipelineByPropertyName = $true
+        )]
         [Alias('Key')]
         [Object[]] $Issue,
 
         # List of labels that will be set to the issue.
         # Any label that was already assigned to the issue will be removed.
-        [Parameter(ParameterSetName = 'ReplaceLabels',
-            Mandatory = $true)]
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = 'ReplaceLabels'
+        )]
         [Alias('Label', 'Replace')]
         [String[]] $Set,
 

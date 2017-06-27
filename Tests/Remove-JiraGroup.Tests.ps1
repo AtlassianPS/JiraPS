@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -12,24 +12,23 @@ InModuleScope JiraPS {
 
     $testJson = @"
 {
-  "name": "$testGroupName",
-  "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
-  "users": {
-    "size": 0,
-    "items": [],
-    "max-results": 50,
-    "start-index": 0,
-    "end-index": 0
-  },
-  "expand": "users"
+    "name": "$testGroupName",
+    "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
+    "users": {
+        "size": 0,
+        "items": [],
+        "max-results": 50,
+        "start-index": 0,
+        "end-index": 0
+    },
+    "expand": "users"
 }
 "@
 
     Describe "Remove-JiraGroup" {
 
         Mock Write-Debug -ModuleName JiraPS {
-            if ($ShowDebugData)
-            {
+            if ($ShowDebugData) {
                 Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
             }
         }
@@ -43,8 +42,7 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupName"} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with DELETE method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]            $URI" -ForegroundColor Cyan
@@ -90,5 +88,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-

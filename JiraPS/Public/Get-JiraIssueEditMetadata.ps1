@@ -1,5 +1,4 @@
-function Get-JiraIssueEditMetadata
-{
+function Get-JiraIssueEditMetadata {
     <#
     .Synopsis
        Returns metadata required to create an issue in JIRA
@@ -23,8 +22,10 @@ function Get-JiraIssueEditMetadata
     [CmdletBinding()]
     param(
         # Issue id or key of the reference issue.
-        [Parameter(Mandatory = $true,
-            Position = 0)]
+        [Parameter(
+            Position = 0,
+            Mandatory = $true
+        )]
         [String] $Issue,
 
         # Path of the file with the configuration.
@@ -36,14 +37,12 @@ function Get-JiraIssueEditMetadata
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Get-JiraIssueEditMetadata] Reading server from config file"
-        try
-        {
+        try {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch
-        {
+        }
+        catch {
             $err = $_
             Write-Debug "[Get-JiraIssueEditMetadata] Encountered an error reading the Jira server."
             throw $err
@@ -53,20 +52,16 @@ function Get-JiraIssueEditMetadata
         $uri = "$server/rest/api/latest/issue/$Issue/editmeta"
     }
 
-    process
-    {
+    process {
         Write-Debug "[Get-JiraIssueEditMetadata] Preparing for blastoff!"
         $jiraResult = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
 
-        if ($jiraResult)
-        {
-            if (@($jiraResult.projects).Count -eq 0)
-            {
+        if ($jiraResult) {
+            if (@($jiraResult.projects).Count -eq 0) {
                 Write-Debug "[Get-JiraIssueEditMetadata] No project results were found. Throwing exception."
                 throw "No projects were found for the given project [$Project]. Use Get-JiraProject for more details."
             }
-            elseif (@($jiraResult.projects).Count -gt 1)
-            {
+            elseif (@($jiraResult.projects).Count -gt 1) {
                 Write-Debug "[Get-JiraIssueEditMetadata] Multiple project results were found. Throwing exception."
                 throw "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
             }
@@ -76,13 +71,11 @@ function Get-JiraIssueEditMetadata
 
             Write-Debug "[Get-JiraIssueEditMetadata] Identified project key: [$Project]"
 
-            if (@($jiraResult.projects.issuetypes) -eq 0)
-            {
+            if (@($jiraResult.projects.issuetypes) -eq 0) {
                 Write-Debug "[Get-JiraIssueEditMetadata] No issue type results were found. Throwing exception."
                 throw "No issue types were found for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
             }
-            elseif (@($jiraResult.projects.issuetypes).Count -gt 1)
-            {
+            elseif (@($jiraResult.projects.issuetypes).Count -gt 1) {
                 Write-Debug "[Get-JiraIssueEditMetadata] Multiple issue type results were found. Throwing exception."
                 throw "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
             }
@@ -95,8 +88,7 @@ function Get-JiraIssueEditMetadata
 
             #            Write-Output $jiraResult
         }
-        else
-        {
+        else {
             Write-Debug "[Get-JiraIssueEditMetadata] No results were returned from JIRA."
         }
     }

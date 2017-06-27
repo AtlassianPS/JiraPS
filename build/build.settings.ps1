@@ -172,6 +172,10 @@ Properties {
 # Customize these tasks for performing operations before and/or after file staging.
 ###############################################################################
 
+Task SetUp {
+    Install-Module Pester, psake, PSScriptAnalyzer, BuildHelpers -Force
+}
+
 # Executes before the StageFiles task.
 Task BeforeStageFiles -requiredVariables ProjectRoot {
     Write-Host "build.settings.ps1 - BeforeStageFiles" -ForegroundColor Green

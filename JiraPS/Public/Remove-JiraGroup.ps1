@@ -1,5 +1,4 @@
-﻿function Remove-JiraGroup
-{
+﻿function Remove-JiraGroup {
     <#
     .Synopsis
        Removes an existing group from JIRA
@@ -19,9 +18,11 @@
         ConfirmImpact = 'High')]
     param(
         # Group Object or ID to delete.
-        [Parameter(Mandatory = $true,
+        [Parameter(
             Position = 0,
-            ValueFromPipeline = $true)]
+            Mandatory = $true,
+            ValueFromPipeline = $true
+        )]
         [Alias('GroupName')]
         [Object[]] $Group,
 
@@ -34,15 +35,13 @@
         [Switch] $Force
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Remove-JiraGroup] Reading information from config file"
-        try
-        {
+        try {
             Write-Debug "[Remove-JiraGroup] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch
-        {
+        }
+        catch {
             $err = $_
             Write-Debug "[Remove-JiraGroup] Encountered an error reading configuration data."
             throw $err
@@ -50,44 +49,36 @@
 
         $restUrl = "$server/rest/api/latest/group?groupname={0}"
 
-        if ($Force)
-        {
+        if ($Force) {
             Write-Debug "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
             $oldConfirmPreference = $ConfirmPreference
             $ConfirmPreference = 'None'
         }
     }
 
-    process
-    {
-        foreach ($g in $Group)
-        {
+    process {
+        foreach ($g in $Group) {
             Write-Debug "[Remove-JiraGroup] Obtaining reference to group [$g]"
             $groupObj = Get-JiraGroup -InputObject $g -Credential $Credential
 
-            if ($groupObj)
-            {
+            if ($groupObj) {
                 $thisUrl = $restUrl -f $groupObj.Name
                 Write-Debug "[Remove-JiraGroup] Group URL: [$thisUrl]"
 
                 Write-Debug "[Remove-JiraGroup] Checking for -WhatIf and Confirm"
-                if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove group [$groupObj] from JIRA"))
-                {
+                if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove group [$groupObj] from JIRA")) {
                     Write-Debug "[Remove-JiraGroup] Preparing for blastoff!"
                     Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
                 }
-                else
-                {
+                else {
                     Write-Debug "[Remove-JiraGroup] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
                 }
             }
         }
     }
 
-    end
-    {
-        if ($Force)
-        {
+    end {
+        if ($Force) {
             Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
             $ConfirmPreference = $oldConfirmPreference
         }

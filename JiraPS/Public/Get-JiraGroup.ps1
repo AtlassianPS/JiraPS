@@ -1,5 +1,4 @@
-function Get-JiraGroup
-{
+function Get-JiraGroup {
     <#
     .Synopsis
        Returns a group from Jira
@@ -23,19 +22,23 @@ function Get-JiraGroup
     [CmdletBinding(DefaultParameterSetName = 'ByGroupName')]
     param(
         # Name of the group to search for.
-        [Parameter(ParameterSetName = 'ByGroupName',
+        [Parameter(
+            Position = 0,
             Mandatory = $true,
-            Position = 0)]
+            ParameterSetName = 'ByGroupName'
+        )]
         [ValidateNotNullOrEmpty()]
         [Alias('Name')]
         [String[]] $GroupName,
 
         # Object of the group to search for.
-        [Parameter(ParameterSetName = 'ByInputObject',
-            Mandatory = $true,
+        [Parameter(
             Position = 0,
+            Mandatory = $true,
             ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true)]
+            ParameterSetName = 'ByInputObject',
+            ValueFromPipelineByPropertyName = $true
+        )]
         [Object[]] $InputObject,
 
         # Credentials to use to connect to JIRA.
@@ -44,8 +47,7 @@ function Get-JiraGroup
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Get-JiraGroup] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
@@ -55,12 +57,9 @@ function Get-JiraGroup
         $groupUrl = "$server/rest/api/latest/group?groupname={0}"
     }
 
-    process
-    {
-        if ($PSCmdlet.ParameterSetName -eq 'ByGroupName')
-        {
-            foreach ($g in $GroupName)
-            {
+    process {
+        if ($PSCmdlet.ParameterSetName -eq 'ByGroupName') {
+            foreach ($g in $GroupName) {
                 Write-Debug "[Get-JiraGroup] Escaping group name [$g]"
                 $escapedGroupName = [System.Web.HttpUtility]::UrlPathEncode($g)
 
@@ -70,33 +69,27 @@ function Get-JiraGroup
                 Write-Debug "[Get-JiraGroup] Preparing for blastoff!"
                 $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
 
-                if ($result)
-                {
+                if ($result) {
                     Write-Debug "[Get-JiraGroup] Converting results to JiraPS.Group"
                     $obj = ConvertTo-JiraGroup -InputObject $result
 
                     Write-Debug "[Get-JiraGroup] Outputting results"
                     Write-Output $obj
                 }
-                else
-                {
+                else {
                     Write-Debug "[Get-JiraGroup] No results were returned from JIRA"
                     Write-Verbose "No results were returned from JIRA."
                 }
             }
         }
-        else
-        {
-            foreach ($i in $InputObject)
-            {
+        else {
+            foreach ($i in $InputObject) {
                 Write-Debug "[Get-JiraGroup] Processing InputObject [$i]"
-                if ((Get-Member -InputObject $i).TypeName -eq 'JiraPS.Group')
-                {
+                if ((Get-Member -InputObject $i).TypeName -eq 'JiraPS.Group') {
                     Write-Debug "[Get-JiraGroup] User parameter is a JiraPS.Group object"
                     $thisGroupName = $i.Name
                 }
-                else
-                {
+                else {
                     $thisGroupName = $i.ToString()
                     Write-Debug "[Get-JiraGroup] Username is assumed to be [$thisGroupName] via ToString()"
                 }
@@ -109,8 +102,7 @@ function Get-JiraGroup
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Get-JiraGroup] Complete"
     }
 }

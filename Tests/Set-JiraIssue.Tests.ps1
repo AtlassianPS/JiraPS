@@ -2,13 +2,12 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     Describe "Set-JiraIssue" {
-        if ($ShowDebugText)
-        {
+        if ($ShowDebugText) {
             Mock "Write-Debug" {
                 Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
             }
@@ -18,7 +17,7 @@ InModuleScope JiraPS {
             'https://jira.example.com'
         }
 
-        Mock Get-JiraIssue{
+        Mock Get-JiraIssue {
             [PSCustomObject] @{
                 'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
             }
@@ -31,8 +30,7 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name Set-JiraIssue
 
-            function defParam($name)
-            {
+            function defParam($name) {
                 It "Has a -$name parameter" {
                     $command.Parameters.Item($name) | Should Not BeNullOrEmpty
                 }
@@ -54,12 +52,11 @@ InModuleScope JiraPS {
 
         Context "Behavior testing" {
             Mock Invoke-JiraMethod {
-                if ($ShowMockData)
-                {
+                if ($ShowMockData) {
                     Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                     Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                     Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-#                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                    #                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
                 }
             }
 
@@ -112,11 +109,11 @@ InModuleScope JiraPS {
                         'ID'   = $Field;
                     }
                 }
-                { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345'='foo'; 'customfield_67890'='bar'; 'customfield_111222'=@(@{value='foobar'})} } | Should Not Throw
+                { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345' = 'foo'; 'customfield_67890' = 'bar'; 'customfield_111222' = @(@{value = 'foobar'})} } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_12345*set*foo*' }
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_67890*set*bar*' }
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*customfield_111222*set*foobar*' }
-        }
+            }
 
         }
 

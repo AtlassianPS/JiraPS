@@ -21,8 +21,10 @@ function Set-JiraConfigServer {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # The base URL of the Jira instance.
-        [Parameter(Mandatory = $true,
-            Position = 0)]
+        [Parameter(
+            Position = 0,
+            Mandatory = $true
+        )]
         [ValidateNotNullOrEmpty()]
         [Alias('Uri')]
         [String] $Server,
@@ -72,8 +74,7 @@ function Set-JiraConfigServer {
         #        Write-Debug "[Set-JiraConfigServer] Changing the existing Server element to the provided value '$Server'"
         $xmlConfig.Server = $fixedServer
     }
-    else
-    {
+    else {
         #        Write-Debug "[Set-JiraConfigServer] Creating new element Server"
         $xmlServer = $xml.CreateElement('Server')
         #        Write-Debug "[Set-JiraConfigServer] Writing InnerText property with provided value '$Server'"
@@ -85,7 +86,8 @@ function Set-JiraConfigServer {
     #    Write-Debug "[Set-JiraConfigServer] Saving XML file"
     try {
         $xml.Save($ConfigFile)
-    } catch {
+    }
+    catch {
         $err = $_
         #        Write-Debug "[Set-JiraConfigServer] Encountered an error saving the XML file"
         #        Write-Debug "[Set-JiraConfigServer] Throwing exception"
