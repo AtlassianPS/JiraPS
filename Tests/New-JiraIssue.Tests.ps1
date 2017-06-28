@@ -2,13 +2,12 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     Describe "New-JiraIssue" {
-        if ($ShowDebugText)
-        {
+        if ($ShowDebugText) {
             Mock "Write-Debug" {
                 Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
             }
@@ -24,19 +23,19 @@ InModuleScope JiraPS {
 
         Mock Get-JiraProject {
             [PSCustomObject] @{
-                'ID'=$Project;
+                'ID' = $Project;
             }
         }
 
         Mock Get-JiraIssueType {
             [PSCustomObject] @{
-                'ID'=$IssueType;
+                'ID' = $IssueType;
             }
         }
 
         Mock Get-JiraUser {
             [PSCustomObject] @{
-                'Name'=$UserName;
+                'Name' = $UserName;
             }
         }
 
@@ -44,7 +43,7 @@ InModuleScope JiraPS {
         Mock Get-JiraField {
             $Field | % {
                 [PSCustomObject] @{
-                    'ID'=$_;
+                    'ID' = $_;
                 }
             }
         }
@@ -61,8 +60,7 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name New-JiraIssue
 
-            function defParam($name)
-            {
+            function defParam($name) {
                 It "Has a -$name parameter" {
                     $command.Parameters.Item($name) | Should Not BeNullOrEmpty
                 }
@@ -81,8 +79,7 @@ InModuleScope JiraPS {
 
         Context "Behavior testing" {
             Mock Invoke-JiraMethod {
-                if ($ShowMockData)
-                {
+                if ($ShowMockData) {
                     Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                     Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                     Write-Host "         [Method]  $Method" -ForegroundColor Cyan
@@ -104,18 +101,18 @@ InModuleScope JiraPS {
                 # We'll create a custom field that's required, then see what happens when we don't provide it
                 Mock Get-JiraIssueCreateMetadata {
                     @(
-                        @{Name='Project';     ID='Project';     Required=$true},
-                        @{Name='IssueType';   ID='IssueType';   Required=$true},
-                        @{Name='Priority';    ID='Priority';    Required=$true},
-                        @{Name='Summary';     ID='Summary';     Required=$true},
-                        @{Name='Description'; ID='Description'; Required=$true},
-                        @{Name='Reporter';    ID='Reporter';    Required=$true},
-                        @{Name='CustomField'; ID='CustomField'; Required=$true}
+                        @{Name = 'Project'; ID = 'Project'; Required = $true},
+                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true},
+                        @{Name = 'Priority'; ID = 'Priority'; Required = $true},
+                        @{Name = 'Summary'; ID = 'Summary'; Required = $true},
+                        @{Name = 'Description'; ID = 'Description'; Required = $true},
+                        @{Name = 'Reporter'; ID = 'Reporter'; Required = $true},
+                        @{Name = 'CustomField'; ID = 'CustomField'; Required = $true}
                     )
                 }
 
                 { New-JiraIssue @newParams } | Should Throw
-                { New-JiraIssue @newParams -Fields @{CustomField='.'} } | Should Not Throw
+                { New-JiraIssue @newParams -Fields @{CustomField = '.'} } | Should Not Throw
             }
         }
     }

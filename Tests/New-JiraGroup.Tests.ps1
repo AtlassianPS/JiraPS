@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -12,16 +12,16 @@ InModuleScope JiraPS {
 
     $testJson = @"
 {
-  "name": "$testGroupName",
-  "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
-  "users": {
-    "size": 0,
-    "items": [],
-    "max-results": 50,
-    "start-index": 0,
-    "end-index": 0
-  },
-  "expand": "users"
+    "name": "$testGroupName",
+    "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
+    "users": {
+        "size": 0,
+        "items": [],
+        "max-results": 50,
+        "start-index": 0,
+        "end-index": 0
+    },
+    "expand": "users"
 }
 "@
 
@@ -39,8 +39,7 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/group"} {
-            if ($ShowMockData)
-            {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]            $URI" -ForegroundColor Cyan
@@ -79,5 +78,3 @@ InModuleScope JiraPS {
         # }
     }
 }
-
-

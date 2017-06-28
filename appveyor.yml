@@ -33,6 +33,12 @@ skip_tags: true
 
 skip_commits:
     message: /readme*/
+    files:
+        - .github/
+        - .vscode/
+        - assets/
+        - docs/
+        - Tools/
 
 test_script:
     - ps: . .\Tools\Appveyor.ps1

@@ -1,5 +1,4 @@
-function Get-JiraPriority
-{
+function Get-JiraPriority {
     <#
     .Synopsis
         Returns information about the available priorities in JIRA.
@@ -30,39 +29,33 @@ function Get-JiraPriority
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Get-JiraPriority] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         $priorityUrl = "$($server)/rest/api/latest/priority"
 
-        if ($Id)
-        {
+        if ($Id) {
             $priorityUrl = "$priorityUrl/$Id"
         }
     }
 
-    process
-    {
+    process {
         Write-Debug "[Get-JiraPriority] Preparing for blastoff!"
         $result = Invoke-JiraMethod -Method Get -URI $priorityUrl -Credential $Credential
 
-        if ($result)
-        {
+        if ($result) {
             Write-Debug "[Get-JiraPriority] Converting REST result to JiraPriority object"
             $obj = ConvertTo-JiraPriority -InputObject $result
 
             Write-Debug "[Get-JiraPriority] Outputting result"
             Write-Output $obj
         }
-        else
-        {
+        else {
             Write-Debug "[Get-JiraPriority] Invoke-JiraMethod returned no results to output."
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Get-JiraPriority] Complete."
     }
 }

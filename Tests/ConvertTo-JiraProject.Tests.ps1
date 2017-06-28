@@ -12,22 +12,22 @@ InModuleScope JiraPS {
 
         $sampleJson = @"
 {
-"self": "$jiraServer/rest/api/2/project/$projectId",
-"id": "$projectId",
-"key": "$projectKey",
-"name": "$projectName",
-"projectCategory": {
-    "self": "$jiraServer/rest/api/2/projectCategory/10000",
-    "id": "10000",
-    "description": "All Project Catagories",
-    "name": "All Project"
-},
-"components": {
-    "self": "$jiraServer/rest/api/2/component/11000",
-    "id": "11000",
-    "description": "A test component",
-    "name": "test component"
-}
+    "self": "$jiraServer/rest/api/2/project/$projectId",
+    "id": "$projectId",
+    "key": "$projectKey",
+    "name": "$projectName",
+    "projectCategory": {
+        "self": "$jiraServer/rest/api/2/projectCategory/10000",
+        "id": "10000",
+        "description": "All Project Catagories",
+        "name": "All Project"
+    },
+    "components": {
+        "self": "$jiraServer/rest/api/2/component/11000",
+        "id": "11000",
+        "description": "A test component",
+        "name": "test component"
+    }
 }
 "@
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson

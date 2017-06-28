@@ -1,5 +1,4 @@
-﻿function Get-JiraFilter
-{
+﻿function Get-JiraFilter {
     <#
     .Synopsis
        Returns information about a filter in JIRA
@@ -21,16 +20,20 @@
     [CmdletBinding(DefaultParameterSetName = 'ByFilterID')]
     param(
         # ID of the filter to search for.
-        [Parameter(ParameterSetName = 'ByFilterID',
+        [Parameter(
+            Position = 0,
             Mandatory = $true,
-            Position = 0)]
+            ParameterSetName = 'ByFilterID'
+        )]
         [String[]] $Id,
 
         # Object of the filter to search for.
-        [Parameter(ParameterSetName = 'ByInputObject',
+        [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true)]
+            ParameterSetName = 'ByInputObject',
+            ValueFromPipelineByPropertyName = $true
+        )]
         [Object[]] $InputObject,
 
         # Credentials to use to connect to JIRA.
@@ -39,14 +42,12 @@
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Get-JiraFilter] Reading server from config file"
-        try
-        {
+        try {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch
-        {
+        }
+        catch {
             $err = $_
             Write-Debug "[Get-JiraFilter] Encountered an error reading the Jira server."
             throw $err
@@ -55,45 +56,36 @@
         $uri = "$server/rest/api/latest/filter/{0}"
     }
 
-    process
-    {
-        if ($PSCmdlet.ParameterSetName -eq 'ByFilterID')
-        {
-            foreach ($i in $Id)
-            {
+    process {
+        if ($PSCmdlet.ParameterSetName -eq 'ByFilterID') {
+            foreach ($i in $Id) {
                 Write-Debug "[Get-JiraFilter] Processing filter [$i]"
                 $thisUri = $uri -f $i
                 Write-Debug "[Get-JiraFilter] Filter URI: [$thisUri]"
                 Write-Debug "[Get-JiraFilter] Preparing for blast off!"
                 $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
 
-                if ($result)
-                {
+                if ($result) {
                     Write-Debug "[Get-JiraFilter] Converting result to JiraFilter object"
                     $obj = ConvertTo-JiraFilter -InputObject $result
 
                     Write-Debug "Outputting result"
                     Write-Output $obj
                 }
-                else
-                {
+                else {
                     Write-Debug "[Get-JiraFilter] Invoke-JiraFilter returned no results to output."
                 }
 
             }
         }
-        else
-        {
-            foreach ($i in $InputObject)
-            {
+        else {
+            foreach ($i in $InputObject) {
                 Write-Debug "[Get-JiraFilter] Processing InputObject [$i]"
-                if ((Get-Member -InputObject $i).TypeName -eq 'JiraPS.Filter')
-                {
+                if ((Get-Member -InputObject $i).TypeName -eq 'JiraPS.Filter') {
                     Write-Debug "[Get-JiraFilter] User parameter is a JiraPS.Filter object"
                     $thisId = $i.ID
                 }
-                else
-                {
+                else {
                     $thisId = $i.ToString()
                     Write-Debug "[Get-JiraFilter] ID is assumed to be [$thisId] via ToString()"
                 }
@@ -106,8 +98,7 @@
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Get-JiraFilter] Complete"
     }
 }

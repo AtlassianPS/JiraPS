@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -19,32 +19,32 @@ InModuleScope JiraPS {
 
     $restResultAll = @"
 [
-  {
-    "self": "$jiraServer/rest/api/2/component/$componentId",
-    "id": "$componentId",
-    "name": "$componentName",
-    "project": "$projectKey",
-    "projectId": "$projectId"
-  },
-  {
-    "self": "$jiraServer/rest/api/2/component/$componentId2",
-    "id": "$componentId2",
-    "name": "$componentName2",
-    "project": "$projectKey",
-    "projectId": "$projectId"
-  }
+    {
+        "self": "$jiraServer/rest/api/2/component/$componentId",
+        "id": "$componentId",
+        "name": "$componentName",
+        "project": "$projectKey",
+        "projectId": "$projectId"
+    },
+    {
+        "self": "$jiraServer/rest/api/2/component/$componentId2",
+        "id": "$componentId2",
+        "name": "$componentName2",
+        "project": "$projectKey",
+        "projectId": "$projectId"
+    }
 ]
 "@
 
     $restResultOne = @"
 [
-  {
-    "self": "$jiraServer/rest/api/2/component/$componentId",
-    "id": "$componentId",
-    "name": "$componentName",
-    "project": "$projectKey",
-    "projectId": "$projectId"
-  }
+    {
+        "self": "$jiraServer/rest/api/2/component/$componentId",
+        "id": "$componentId",
+        "name": "$componentName",
+        "project": "$projectKey",
+        "projectId": "$projectId"
+    }
 ]
 "@
 
@@ -65,9 +65,9 @@ InModuleScope JiraPS {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-#        Mock Write-Debug {
-#            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-#        }
+        #        Mock Write-Debug {
+        #            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
+        #        }
 
         #############
         # Tests
@@ -88,5 +88,3 @@ InModuleScope JiraPS {
 
     }
 }
-
-

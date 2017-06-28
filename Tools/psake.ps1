@@ -30,7 +30,7 @@ Task Init {
     "`n"
 }
 
-Task Test -Depends Init  {
+Task Test -Depends Init {
     $line
     "`n`tTesting with PowerShell $PSVersion"
 
@@ -48,8 +48,7 @@ Task Test -Depends Init  {
 
     # We don't want PSake or AppVeyor to think the build succeeded if Pester failed some tests.
     $failedCount = ($TestResults.FailedCount | Measure-Object -Sum).Sum
-    if ($failedCount -gt 0)
-    {
+    if ($failedCount -gt 0) {
         Write-Host "Creating Pester failed test summary" -ForegroundColor Cyan
 
         # Display a summary of the tests that failed in the console.
@@ -68,11 +67,11 @@ Task Test -Depends Init  {
             $test = $_
             [PSCustomObject] @{
                 Describe = $Test.Describe;
-                Context = $Test.Context;
-                Name = "It `"$($test.Name)`"";
-                Result = $test.Result;
+                Context  = $Test.Context;
+                Name     = "It `"$($test.Name)`"";
+                Result   = $test.Result;
             }
-        } | Sort-Object -Property Describe,Context,Name,Result | Format-List
+        } | Sort-Object -Property Describe, Context, Name, Result | Format-List
 
         # Generate a terminating exception so AppVeyor understands that the build did not succeed
         Write-Error "$failedCount tests failed during build process."
@@ -93,11 +92,9 @@ Task Deploy -Depends Build {
             [String] $BuildNumber
         )
 
-        if ([String]::IsNullOrEmpty($Path))
-        {
+        if ([String]::IsNullOrEmpty($Path)) {
             $Path = Get-ChildItem -Path $env:APPVEYOR_BUILD_FOLDER -Include *.psd1
-            if (!$Path)
-            {
+            if (!$Path) {
                 throw 'Could not find a module manifest file'
             }
         }
@@ -119,17 +116,16 @@ Task Deploy -Depends Build {
         Update-ModuleManifest -Path (Join-Path -Path $ModuleRoot -ChildPath 'JiraPS.psd1') -BuildNumber $env:APPVEYOR_BUILD_NUMBER
 
         $publishParams = @{
-            Path = $ModuleRoot
+            Path        = $ModuleRoot
             NuGetApiKey = $env:PSGalleryAPIKey
         }
 
         "Parameters for publishing:"
-        foreach ($p in $publishParams.Keys)
-        {
-            if ($p -ne 'NuGetApiKey')
-            {
+        foreach ($p in $publishParams.Keys) {
+            if ($p -ne 'NuGetApiKey') {
                 "${p}:`t$($publishParams.$p)"
-            } else {
+            }
+            else {
                 "${p}:`t[Redacted]"
             }
         }

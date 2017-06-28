@@ -1,5 +1,4 @@
-function Get-JiraIssueLinkType
-{
+function Get-JiraIssueLinkType {
     <#
     .SYNOPSIS
         Gets available issue link types
@@ -23,9 +22,11 @@ function Get-JiraIssueLinkType
     [CmdletBinding()]
     param(
         # The Issue Type name or ID to search
-        [Parameter(Mandatory = $false,
-                   Position = 0,
-                   ValueFromRemainingArguments = $true)]
+        [Parameter(
+            Position = 0,
+            Mandatory = $false,
+            ValueFromRemainingArguments = $true
+        )]
         [Object] $LinkType,
 
         # Credentials to use to connect to Jira
@@ -33,13 +34,12 @@ function Get-JiraIssueLinkType
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Get-JiraIssueLinkType] Reading server from config file"
-        try
-        {
+        try {
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        }
+        catch {
             $err = $_
             Write-Debug "[Get-JiraIssueLinkType] Encountered an error reading the Jira server."
             throw $err
@@ -48,50 +48,49 @@ function Get-JiraIssueLinkType
         $uri = "$server/rest/api/latest/issueLinkType"
     }
 
-    process
-    {
+    process {
         $searchLinks = $false
-        if ($LinkType)
-        {
+        if ($LinkType) {
             # If the link type provided is an int, we can assume it's an ID number.
             # If it's a String, it's probably a name, though, and there isn't an API call to look up a link type by name.
-            if ($LinkType -is [int])
-            {
+            if ($LinkType -is [int]) {
                 Write-Debug "[Get-JiraIssueLinkType] Link type ID was specified; obtaining issue link type $LinkType"
                 $uri = "$uri/$LinkType"
-            } else {
+            }
+            else {
                 Write-Debug "[Get-JiraIssueLinkType] Assuming -LinkType parameter $LinkType to be a name; obtaining all link types"
                 $searchLinks = $true
             }
-        } else {
+        }
+        else {
             Write-Debug "[Get-JiraIssueLinkType] Obtaining all issue link types from Jira"
         }
 
         $jiraResult = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
 
-        if ($jiraResult -and $jiraResult.issueLinkTypes)
-        {
+        if ($jiraResult -and $jiraResult.issueLinkTypes) {
             Write-Debug "[Get-JiraIssueLinkType] Converting Jira output to custom object"
             $obj = ConvertTo-JiraIssueLinkType -InputObject $jiraResult.issueLinkTypes
 
-            if ($searchLinks)
-            {
+            if ($searchLinks) {
                 Write-Debug "[Get-JiraIssueLinkType] Searching for link type with name [$LinkType]"
                 $output = $obj | Where-Object {$_.Name -eq $LinkType}
-                if ($output)
-                {
+                if ($output) {
                     Write-Debug "[Get-JiraIssueLinkType] Found issue with ID [$($output.ID)]"
-                } else {
+                }
+                else {
                     Write-Debug "[Get-JiraIssueLinkType] Could not find an issue."
                     Write-Verbose "Unable to identify issue link type $LinkType."
                 }
-            } else {
+            }
+            else {
                 $output = $obj
             }
 
             Write-Debug "[Get-JiraIssueLinkType] Writing output"
             Write-Output $obj
-        } else {
+        }
+        else {
             Write-Debug "[Get-JiraIssueLinkType] No issue link types were found."
         }
     }

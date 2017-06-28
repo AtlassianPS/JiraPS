@@ -2,13 +2,12 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     Describe "Get-JiraGroupMember" {
-        if ($ShowDebugText)
-        {
+        if ($ShowDebugText) {
             Mock "Write-Debug" {
                 Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
             }
@@ -34,9 +33,9 @@ InModuleScope JiraPS {
 
         Mock Get-JiraGroup -ModuleName JiraPS {
             $obj = [PSCustomObject] @{
-                'Name' = 'testgroup'
+                'Name'    = 'testgroup'
                 'RestUrl' = 'https://jira.example.com/rest/api/2/group?groupname=testgroup'
-                'Size' = 2
+                'Size'    = 2
             }
             $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
             Write-Output $obj
@@ -45,8 +44,7 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraGroupMember
 
-            function defParam($name)
-            {
+            function defParam($name) {
                 It "Has a -$name parameter" {
                     $command.Parameters.Item($name) | Should Not BeNullOrEmpty
                 }
@@ -60,12 +58,11 @@ InModuleScope JiraPS {
 
         Context "Behavior testing" {
             Mock Invoke-JiraMethod -ModuleName JiraPS {
-                if ($ShowMockData)
-                {
+                if ($ShowMockData) {
                     Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                     Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                     Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-#                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                    #                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
                 }
             }
 
@@ -94,41 +91,40 @@ InModuleScope JiraPS {
                 # mock that actually returns some data.
 
                 Mock Invoke-JiraMethod -ModuleName JiraPS {
-                    if ($ShowMockData)
-                    {
+                    if ($ShowMockData) {
                         Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                         Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                         Write-Host "         [Method]  $Method" -ForegroundColor Cyan
                     }
                     ConvertFrom-Json2 -InputObject @'
 {
-  "name": "testgroup",
-  "self": "https://jira.example.com/rest/api/2/group?groupname=testgroup",
-  "users": {
-    "size": 2,
-    "items": [
-        {
-            "self": "https://jira.example.com/rest/api/2/user?username=testuser1",
-            "key": "testuser1",
-            "name": "testuser1",
-            "emailAddress": "testuser1@example.com",
-            "displayName": "Test User 1",
-            "active": true
-        },
-        {
-            "self": "https://jira.example.com/rest/api/2/user?username=testuser2",
-            "key": "testuser2",
-            "name": "testuser2",
-            "emailAddress": "testuser2@example.com",
-            "displayName": "Test User 2",
-            "active": true
-        }
-    ],
-    "max-results": 50,
-    "start-index": 0,
-    "end-index": 0
-  },
-  "expand": "users"
+    "name": "testgroup",
+    "self": "https://jira.example.com/rest/api/2/group?groupname=testgroup",
+    "users": {
+        "size": 2,
+        "items": [
+            {
+                "self": "https://jira.example.com/rest/api/2/user?username=testuser1",
+                "key": "testuser1",
+                "name": "testuser1",
+                "emailAddress": "testuser1@example.com",
+                "displayName": "Test User 1",
+                "active": true
+            },
+            {
+                "self": "https://jira.example.com/rest/api/2/user?username=testuser2",
+                "key": "testuser2",
+                "name": "testuser2",
+                "emailAddress": "testuser2@example.com",
+                "displayName": "Test User 2",
+                "active": true
+            }
+        ],
+        "max-results": 50,
+        "start-index": 0,
+        "end-index": 0
+    },
+    "expand": "users"
 }
 '@
                 }

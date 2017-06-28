@@ -2,7 +2,7 @@
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -10,41 +10,41 @@ InModuleScope JiraPS {
 
     $restResultAll = @"
 [
-  {
-    "self": "$jiraServer/rest/api/2/priority/1",
-    "statusColor": "#cc0000",
-    "description": "Cannot continue work. Affects teaching and learning",
-    "name": "Critical",
-    "id": "1"
-  },
-  {
-    "self": "$jiraServer/rest/api/2/priority/2",
-    "statusColor": "#ff0000",
-    "description": "High priority, attention needed immediately",
-    "name": "High",
-    "id": "2"
-  },
-  {
-    "self": "$jiraServer/rest/api/2/priority/3",
-    "statusColor": "#ffff66",
-    "description": "Typical request for information or service",
-    "name": "Normal",
-    "id": "3"
-  },
-  {
-    "self": "$jiraServer/rest/api/2/priority/4",
-    "statusColor": "#006600",
-    "description": "Upcoming project, planned request",
-    "name": "Project",
-    "id": "4"
-  },
-  {
-    "self": "$jiraServer/rest/api/2/priority/5",
-    "statusColor": "#0000ff",
-    "description": "General questions, request for enhancement, wish list",
-    "name": "Low",
-    "id": "5"
-  }
+    {
+        "self": "$jiraServer/rest/api/2/priority/1",
+        "statusColor": "#cc0000",
+        "description": "Cannot continue work. Affects teaching and learning",
+        "name": "Critical",
+        "id": "1"
+    },
+    {
+        "self": "$jiraServer/rest/api/2/priority/2",
+        "statusColor": "#ff0000",
+        "description": "High priority, attention needed immediately",
+        "name": "High",
+        "id": "2"
+    },
+    {
+        "self": "$jiraServer/rest/api/2/priority/3",
+        "statusColor": "#ffff66",
+        "description": "Typical request for information or service",
+        "name": "Normal",
+        "id": "3"
+    },
+    {
+        "self": "$jiraServer/rest/api/2/priority/4",
+        "statusColor": "#006600",
+        "description": "Upcoming project, planned request",
+        "name": "Project",
+        "id": "4"
+    },
+    {
+        "self": "$jiraServer/rest/api/2/priority/5",
+        "statusColor": "#0000ff",
+        "description": "General questions, request for enhancement, wish list",
+        "name": "Low",
+        "id": "5"
+    }
 ]
 "@
 
@@ -55,7 +55,7 @@ InModuleScope JiraPS {
     "description": "Cannot continue work. Affects teaching and learning",
     "name": "Critical",
     "id": "1"
-  }
+}
 "@
 
     Describe "Get-JiraPriority" {
@@ -80,9 +80,9 @@ InModuleScope JiraPS {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-#        Mock Write-Debug {
-#            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-#        }
+        #        Mock Write-Debug {
+        #            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
+        #        }
 
         #############
         # Tests
@@ -107,5 +107,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-

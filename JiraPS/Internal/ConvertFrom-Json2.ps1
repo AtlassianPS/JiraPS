@@ -1,11 +1,12 @@
-function ConvertFrom-Json2
-{
+function ConvertFrom-Json2 {
     [CmdletBinding()]
     param
     (
-        [Parameter(Mandatory = $true,
-                   ValueFromPipeline = $true,
-                   Position = 0)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            Position = 0
+        )]
         [Object[]] $InputObject,
 
         [Parameter()]
@@ -13,27 +14,22 @@ function ConvertFrom-Json2
     )
 
     begin {
-        function ConvertFrom-Dictionary
-        {
+        function ConvertFrom-Dictionary {
             param
             (
-                [System.Collections.Generic.IDictionary`2[String,Object]]$InputObject
+                [System.Collections.Generic.IDictionary`2[String, Object]]$InputObject
             )
 
-            process
-            {
+            process {
                 $returnObject = New-Object PSObject
 
-                foreach($key in $InputObject.Keys)
-                {
+                foreach ($key in $InputObject.Keys) {
                     $pairObjectValue = $InputObject[$key]
 
-                    if ($pairObjectValue -is [System.Collections.Generic.IDictionary`2].MakeGenericType([String],[Object]))
-                    {
+                    if ($pairObjectValue -is [System.Collections.Generic.IDictionary`2].MakeGenericType([String], [Object])) {
                         $pairObjectValue = ConvertFrom-Dictionary $pairObjectValue
                     }
-                    elseif ($pairObjectValue -is [System.Collections.Generic.ICollection`1].MakeGenericType([Object]))
-                    {
+                    elseif ($pairObjectValue -is [System.Collections.Generic.ICollection`1].MakeGenericType([Object])) {
                         $pairObjectValue = ConvertFrom-Collection $pairObjectValue
                     }
 
@@ -44,26 +40,21 @@ function ConvertFrom-Json2
             }
         }
 
-        function ConvertFrom-Collection
-        {
+        function ConvertFrom-Collection {
             param
             (
                 [System.Collections.Generic.ICollection`1[Object]]$InputObject
             )
 
-            process
-            {
+            process {
                 $returnList = New-Object ([System.Collections.Generic.List`1].MakeGenericType([Object]))
-                foreach($jsonObject in $InputObject)
-                {
+                foreach ($jsonObject in $InputObject) {
                     $jsonObjectValue = $jsonObject
 
-                    if ($jsonObjectValue -is [System.Collections.Generic.IDictionary`2].MakeGenericType([String],[Object]))
-                    {
+                    if ($jsonObjectValue -is [System.Collections.Generic.IDictionary`2].MakeGenericType([String], [Object])) {
                         $jsonObjectValue = ConvertFrom-Dictionary $jsonObjectValue
                     }
-                    elseif ($jsonObjectValue -is [System.Collections.Generic.ICollection`1].MakeGenericType([Object]))
-                    {
+                    elseif ($jsonObjectValue -is [System.Collections.Generic.ICollection`1].MakeGenericType([Object])) {
                         $jsonObjectValue = ConvertFrom-Collection $jsonObjectValue
                     }
 
@@ -91,37 +82,32 @@ public class JsonObjectTypeResolver : System.Web.Script.Serialization.JavaScript
 }
 "@
 
-		try {
-        	Add-Type -TypeDefinition $typeResolver -ReferencedAssemblies $scriptAssembly.FullName
-		}
-		catch {
-			# This is a relatively common error that's harmless unless changing the actual C#
-			# code, so it can be ignored. Unfortunately, it's just a plain old System.Exception,
-			# so we can't try to catch a specific error type.
-			if (-not $_.ToString() -like "*The type name 'JsonObjectTypeResolver' already exists*")
-			{
-				throw $_
-			}
-		}
+        try {
+            Add-Type -TypeDefinition $typeResolver -ReferencedAssemblies $scriptAssembly.FullName
+        }
+        catch {
+            # This is a relatively common error that's harmless unless changing the actual C#
+            # code, so it can be ignored. Unfortunately, it's just a plain old System.Exception,
+            # so we can't try to catch a specific error type.
+            if (-not $_.ToString() -like "*The type name 'JsonObjectTypeResolver' already exists*") {
+                throw $_
+            }
+        }
 
         $jsonserial = New-Object System.Web.Script.Serialization.JavaScriptSerializer(New-Object JsonObjectTypeResolver)
         $jsonserial.MaxJsonLength = $MaxJsonLength
     }
 
-    process
-    {
-        foreach ($i in $InputObject)
-        {
+    process {
+        foreach ($i in $InputObject) {
             $s = $i.ToString()
             if ($s) {
                 $jsonTree = $jsonserial.DeserializeObject($s)
 
-                if ($jsonTree -is [System.Collections.Generic.IDictionary`2].MakeGenericType([String],[Object]))
-                {
+                if ($jsonTree -is [System.Collections.Generic.IDictionary`2].MakeGenericType([String], [Object])) {
                     $jsonTree = ConvertFrom-Dictionary $jsonTree
                 }
-                elseif ($jsonTree -is [System.Collections.Generic.ICollection`1].MakeGenericType([Object]))
-                {
+                elseif ($jsonTree -is [System.Collections.Generic.ICollection`1].MakeGenericType([Object])) {
                     $jsonTree = ConvertFrom-Collection $jsonTree
                 }
 

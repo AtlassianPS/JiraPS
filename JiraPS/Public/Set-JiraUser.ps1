@@ -30,27 +30,35 @@ function Set-JiraUser {
     )]
     param(
         # Username or user object obtained from Get-JiraUser.
-        [Parameter(Mandatory = $true,
+        [Parameter(
             Position = 0,
+            Mandatory = $true,
             ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true)]
+            ValueFromPipelineByPropertyName = $true
+        )]
         [Alias('UserName')]
         [Object[]] $User,
 
         # Display name to set.
-        [Parameter(ParameterSetName = 'ByNamedParameters',
-            Mandatory = $false)]
+        [Parameter(
+            Mandatory = $false,
+            ParameterSetName = 'ByNamedParameters'
+        )]
         [String] $DisplayName,
 
         # E-mail address to set.
-        [Parameter(ParameterSetName = 'ByNamedParameters',
-            Mandatory = $false)]
+        [Parameter(
+            Mandatory = $false,
+            ParameterSetName = 'ByNamedParameters'
+        )]
         [String] $EmailAddress,
 
         # Hashtable (dictionary) of additional information to set.
-        [Parameter(ParameterSetName = 'ByHashtable',
+        [Parameter(
+            Position = 1,
             Mandatory = $true,
-            Position = 1)]
+            ParameterSetName = 'ByHashtable'
+        )]
         [Hashtable] $Property,
 
         # Credentials to use to connect to JIRA.

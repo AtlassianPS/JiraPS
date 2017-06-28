@@ -7,31 +7,31 @@ param()
 
 InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
-    $authUri    = "$jiraServer/rest/api/2/mypermissions"
+    $authUri = "$jiraServer/rest/api/2/mypermissions"
     $sessionUri = "$jiraServer/rest/auth/1/session"
     $jSessionId = '76449957D8C863BE8D4F6F5507E980E8'
 
     $testUsername = 'powershell-test'
     $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
-    $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername,$testPassword
+    $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername, $testPassword
 
-     $testJson = @"
+    $testJson = @"
 {
-  "session": {
-    "name": "JSESSIONID",
-    "value": "$jSessionId"
-  },
-  "loginInfo": {
-    "failedLoginCount": 5,
-    "loginCount": 10,
-    "lastFailedLoginTime": "2015-06-23T13:17:44.005-0500",
-    "previousLoginTime": "2015-06-23T10:22:03.514-0500"
-  }
+    "session": {
+        "name": "JSESSIONID",
+        "value": "$jSessionId"
+    },
+    "loginInfo": {
+        "failedLoginCount": 5,
+        "loginCount": 10,
+        "lastFailedLoginTime": "2015-06-23T13:17:44.005-0500",
+        "previousLoginTime": "2015-06-23T10:22:03.514-0500"
+    }
 }
 "@
 
@@ -42,8 +42,7 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'GET'} {
-            if ($showMockData)
-            {
+            if ($showMockData) {
                 Write-Host "       Mocked Invoke-WebRequest with GET method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]            $URI" -ForegroundColor Cyan
@@ -53,8 +52,7 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $sessionUri -and $Method -eq 'DELETE'} {
-            if ($showMockData)
-            {
+            if ($showMockData) {
                 Write-Host "       Mocked Invoke-WebRequest with DELETE method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]            $URI" -ForegroundColor Cyan
@@ -106,5 +104,3 @@ InModuleScope JiraPS {
         }
     }
 }
-
-

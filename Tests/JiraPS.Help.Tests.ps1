@@ -58,55 +58,48 @@ This command uses a Microsoft.PowerShell.Commands.ModuleSpecification object to
 specify the module and version. You can also use it to specify the module GUID.
 Then, it pipes the CommandInfo object to Get-ParametersDefaultFirst.
 #>
-function Get-ParametersDefaultFirst
-{
-	param
-	(
-		[Parameter(Mandatory = $true,
-				   ValueFromPipeline = $true)]
-		[System.Management.Automation.CommandInfo]
-		$Command
-	)
+function Get-ParametersDefaultFirst {
+    param
+    (
+        [Parameter(Mandatory = $true,
+            ValueFromPipeline = $true)]
+        [System.Management.Automation.CommandInfo]
+        $Command
+    )
 
-	BEGIN
-	{
-		$Common = 'Debug', 'ErrorAction', 'ErrorVariable', 'InformationAction', 'InformationVariable', 'OutBuffer', 'OutVariable', 'PipelineVariable', 'Verbose', 'WarningAction', 'WarningVariable'
-		$parameters = @()
-	}
-	PROCESS
-	{
-		if ($defaultPSetName = $Command.DefaultParameterSet)
-		{
-			$defaultParameters = ($Command.ParameterSets | Where-Object Name -eq $defaultPSetName).parameters | Where-Object Name -NotIn $common
-			$otherParameters = ($Command.ParameterSets | Where-Object Name -ne $defaultPSetName).parameters | Where-Object Name -NotIn $common
+    BEGIN {
+        $Common = 'Debug', 'ErrorAction', 'ErrorVariable', 'InformationAction', 'InformationVariable', 'OutBuffer', 'OutVariable', 'PipelineVariable', 'Verbose', 'WarningAction', 'WarningVariable'
+        $parameters = @()
+    }
+    PROCESS {
+        if ($defaultPSetName = $Command.DefaultParameterSet) {
+            $defaultParameters = ($Command.ParameterSets | Where-Object Name -eq $defaultPSetName).parameters | Where-Object Name -NotIn $common
+            $otherParameters = ($Command.ParameterSets | Where-Object Name -ne $defaultPSetName).parameters | Where-Object Name -NotIn $common
 
-			$parameters += $defaultParameters
-			if ($parameters -and $otherParameters)
-			{
-				$otherParameters | ForEach-Object {
-					if ($_.Name -notin $parameters.Name)
-					{
-						$parameters += $_
-					}
-				}
-				$parameters = $parameters | Sort-Object Name
-			}
-		}
-		else
-		{
-			$parameters = $Command.ParameterSets.Parameters | Where-Object Name -NotIn $common | Sort-Object Name -Unique
-		}
+            $parameters += $defaultParameters
+            if ($parameters -and $otherParameters) {
+                $otherParameters | ForEach-Object {
+                    if ($_.Name -notin $parameters.Name) {
+                        $parameters += $_
+                    }
+                }
+                $parameters = $parameters | Sort-Object Name
+            }
+        }
+        else {
+            $parameters = $Command.ParameterSets.Parameters | Where-Object Name -NotIn $common | Sort-Object Name -Unique
+        }
 
 
-		return $parameters
-	}
-	END { }
+        return $parameters
+    }
+    END { }
 }
 
-$here        = Split-Path -Parent $MyInvocation.MyCommand.Path
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $here
-$moduleName  = "JIraPS"
-$moduleRoot  = "$projectRoot\$moduleName"
+$moduleName = "JIraPS"
+$moduleRoot = "$projectRoot\$moduleName"
 
 # Removes all versions of the module from the session before importing
 Get-Module $moduleName | Remove-Module
@@ -115,18 +108,17 @@ Get-Module $moduleName | Remove-Module
 $commands = @()
 Get-ChildItem -Path "$moduleRoot\Public\*.ps1" | ForEach-Object {
     . $_.FullName
-    $commands += Get-Command ($_.BaseName).Replace(".ps1","")
+    $commands += Get-Command ($_.BaseName).Replace(".ps1", "")
 }
 
 ## When testing help, remember that help is cached at the beginning of each session.
 ## To test, restart session.
 
-foreach ($command in $commands)
-{
-	$commandName = $command.Name
+foreach ($command in $commands) {
+    $commandName = $command.Name
 
-	# The module-qualified command fails on Microsoft.PowerShell.Archive cmdlets
-	$Help = Get-Help $commandName -ErrorAction SilentlyContinue
+    # The module-qualified command fails on Microsoft.PowerShell.Archive cmdlets
+    $Help = Get-Help $commandName -ErrorAction SilentlyContinue
 
     Describe "Test help for $commandName" -Tag "CommandHelp" {
 

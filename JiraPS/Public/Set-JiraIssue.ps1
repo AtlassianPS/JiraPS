@@ -28,10 +28,12 @@ function Set-JiraIssue {
     )]
     param(
         # Issue key or JiraPS.Issue object returned from Get-JiraIssue
-        [Parameter(Mandatory = $true,
+        [Parameter(
             Position = 0,
+            Mandatory = $true,
             ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true)]
+            ValueFromPipelineByPropertyName = $true
+        )]
         [Alias('Key')]
         [Object[]] $Issue,
 

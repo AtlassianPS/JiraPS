@@ -1,5 +1,4 @@
-﻿function Remove-JiraIssueWatcher
-{
+﻿function Remove-JiraIssueWatcher {
     <#
     .Synopsis
        Removes a watcher from an existing JIRA issue
@@ -24,15 +23,19 @@
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         # Watcher that should be removed from JIRA
-        [Parameter(Mandatory = $true,
-                   Position = 0)]
+        [Parameter(
+            Position = 0,
+            Mandatory = $true
+        )]
         [string[]] $Watcher,
 
         # Issue that should be updated
-        [Parameter(Mandatory = $true,
-                   Position = 1,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+        [Parameter(
+            Position = 1,
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
         [Alias('Key')]
         [Object] $Issue,
 
@@ -41,14 +44,12 @@
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Remove-JiraIssueWatcher] Begin"
         # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
     }
 
-    process
-    {
+    process {
         Write-Debug "[Remove-JiraIssueWatcher] Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
@@ -62,8 +63,7 @@
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Remove-JiraIssueWatcher] Complete"
     }
 }
