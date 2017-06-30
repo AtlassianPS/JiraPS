@@ -23,8 +23,7 @@ function Set-JiraIssue {
        to the JIRA issue modified.  Otherwise, this function does not provide output.
     #>
     [CmdletBinding(
-        SupportsShouldProcess = $true,
-        DefaultParameterSetName = 'ByInputObject'
+        SupportsShouldProcess = $true
     )]
     param(
         # Issue key or JiraPS.Issue object returned from Get-JiraIssue

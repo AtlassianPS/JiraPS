@@ -23,7 +23,7 @@ function Get-JiraProject {
     .OUTPUTS
        [JiraPS.Project]
     #>
-    [CmdletBinding(DefaultParameterSetName = 'AllProjects')]
+    [CmdletBinding()]
     param(
         # The Project ID or project key of a project to search.
         [Parameter(
