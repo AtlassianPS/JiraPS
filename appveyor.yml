@@ -48,4 +48,4 @@ install:
 test_script:
     # - cmd: mdspell '**/*.md' '!**/node_modules/**/*.md' --ignore-numbers --ignore-acronyms --report
     # - ps: Invoke-Build -Task Test
-    - ps: Invoke-Build
+    - ps: Invoke-Build .
