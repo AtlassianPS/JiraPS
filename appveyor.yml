@@ -43,6 +43,7 @@ skip_commits:
 install:
     - cmd: npm install -g markdown-spellcheck
     - ps: Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
+    - ps: Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     - ps: Install-Module BuildHelpers, InvokeBuild
 
 test_script:
