@@ -2,7 +2,7 @@
 # Dot source this script in any Pester test script that requires the module to be imported.
 
 $ModuleName = 'JiraPS'
-$ModuleManifestPath = "$PSScriptRoot\..\$ModuleName\$ModuleManifestName.psd1"
+$ModuleManifestPath = "$PSScriptRoot\..\$ModuleName\$ModuleName.psd1"
 $RootModule = "$PSScriptRoot\..\$ModuleName\$ModuleName.psm1"
 
 # The first time this is called, the module will be forcibly (re-)imported.
@@ -17,7 +17,7 @@ if (-not (Get-Module -Name $ModuleName -ErrorAction SilentlyContinue) -or (!$Sup
     Import-Module $RootModule -Scope Global -Force
 
     # Set to true so we don't need to import it again for the next test
-    $SuppressImportModule = $true
+    $global:SuppressImportModule = $true
 }
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'ShowMockData')]

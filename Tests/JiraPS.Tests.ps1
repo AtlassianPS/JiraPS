@@ -30,6 +30,24 @@ Describe "JiraPS" {
         # slightly to match JiraPS.
 
         $script:manifest = $null
+
+        foreach ($line in (Get-Content $changelogFile)) {
+            if ($line -match "^\D*(?<Version>(\d+\.){1,3}\d+)") {
+                $changelogVersion = $matches.Version
+                break
+            }
+        }
+
+        foreach ($line in (Get-Content $appveyorFile)) {
+            # (?<Version>()) - non-capturing group, but named Version. This makes it
+            # easy to reference the inside group later.
+
+            if ($line -match '^\D*(?<Version>(\d+\.){1,3}\d+).\{build\}') {
+                $appveyorVersion = $matches.Version
+                break
+            }
+        }
+
         It "Includes a valid manifest file" {
             {
                 $script:manifest = Test-ModuleManifest -Path $script:manifestFile -ErrorAction Stop -WarningAction SilentlyContinue
@@ -61,21 +79,14 @@ Describe "JiraPS" {
             $changelogFile | Should Exist
         }
 
-        $changelogVersion = $null
+        # $changelogVersion = $null
         It "Changelog includes a valid version number" {
-
-            foreach ($line in (Get-Content $changelogFile)) {
-                if ($line -match "^\D*(?<Version>(\d+\.){1,3}\d+)") {
-                    $changelogVersion = $matches.Version
-                    break
-                }
-            }
             $changelogVersion                | Should Not BeNullOrEmpty
             $changelogVersion -as [Version]  | Should Not BeNullOrEmpty
         }
 
         It "Changelog version matches manifest version" {
-            $changelogVersion -as [Version] | Should Be ( $script:manifest.Version -as [Version] )
+            $changelogVersion -as [Version] | Should Be ( $script:manifest.ModuleVersion -as [Version] )
         }
 
         # Back to me! Pester doesn't use AppVeyor, as far as I know, and I do.
@@ -85,21 +96,12 @@ Describe "JiraPS" {
         }
 
         It "Appveyor.yml file includes the module version" {
-            foreach ($line in (Get-Content $appveyorFile)) {
-                # (?<Version>()) - non-capturing group, but named Version. This makes it
-                # easy to reference the inside group later.
-
-                if ($line -match '^\D*(?<Version>(\d+\.){1,3}\d+).\{build\}') {
-                    $appveyorVersion = $matches.Version
-                    break
-                }
-            }
             $appveyorVersion               | Should Not BeNullOrEmpty
             $appveyorVersion -as [Version] | Should Not BeNullOrEmpty
         }
 
         It "Appveyor version matches manifest version" {
-            $appveyorVersion -as [Version] | Should Be ( $script:manifest.Version -as [Version] )
+            $appveyorVersion -as [Version] | Should Be ( $script:manifest.ModuleVersion -as [Version] )
         }
     }
 
@@ -181,12 +183,12 @@ Describe "JiraPS" {
     }
 
     Context 'PSScriptAnalyzer Rules' {
-        $analysis = Invoke-ScriptAnalyzer -Path "$moduleRoot" -Recurse -Settings ".\ScriptAnalyzerSettings.psd1"
+        $global:analysis = Invoke-ScriptAnalyzer -Path "$moduleRoot" -Recurse -Settings ".\ScriptAnalyzerSettings.psd1"
         $scriptAnalyzerRules = Get-ScriptAnalyzerRule
 
         forEach ($rule in $scriptAnalyzerRules) {
             It "Should pass $rule" {
-                If ($analysis.RuleName -contains $rule) {
+                If (($analysis) -and ($analysis.RuleName -contains $rule)) {
                     $analysis |
                         Where RuleName -EQ $rule -OutVariable failures |
                         Out-Default
