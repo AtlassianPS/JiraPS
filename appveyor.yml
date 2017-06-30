@@ -40,7 +40,13 @@ skip_commits:
         - docs/
         - Tools/
 
-test_script:
-    - ps: . .\Tools\Appveyor.ps1
+install:
+    - cmd: npm install -g markdown-spellcheck
+    - ps: Install-Module Pester, PSScriptAnalyzer, BuildHelpers, InvokeBuild, platyPS -Force -Scope currentuser
 
-build: false
+test_script:
+    # - cmd: mdspell '**/*.md' '!**/node_modules/**/*.md' --ignore-numbers --ignore-acronyms --report
+    - ps: Invoke-Build -Task Test
+
+build:
+    -ps: Invoke-Build -Task Build
