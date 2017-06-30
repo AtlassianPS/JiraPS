@@ -69,7 +69,7 @@ task TestPS5 {
 
 # Synopsis: Invoke Pester Tests
 task PesterTests {
-    Install-Module Pester, PSScriptAnalyzer
+    Install-Module Pester, PSScriptAnalyzer -Force
     try {
         $result = Invoke-Pester -PassThru -OutputFile $BuildRoot\TestResult.xml
         if ($env:BHBuildSystem -eq "AppVeyor") {
@@ -136,7 +136,7 @@ task GenerateDocs GenerateMarkdown, ConvertMarkdown, RemoveMarkdown
 
 # Synopsis: Generate markdown documentation with platyPS
 task GenerateMarkdown {
-    Install-Module platyPS
+    Install-Module platyPS -Force
     Import-Module platyPS -Force
     Import-Module "$BuildRoot\Release\JiraPS.psd1" -Force
     $null = New-MarkdownHelp -Module JiraPS -OutputFolder "$BuildRoot\Release\docs" -Force
