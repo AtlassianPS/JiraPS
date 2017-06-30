@@ -43,9 +43,9 @@ skip_commits:
 install:
     - cmd: npm install -g markdown-spellcheck
     - ps: Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
-    - ps: Install-Module Pester, PSScriptAnalyzer, BuildHelpers, InvokeBuild, platyPS -Force -Scope currentuser
+    - ps: Install-Module BuildHelpers, InvokeBuild
 
 test_script:
     # - cmd: mdspell '**/*.md' '!**/node_modules/**/*.md' --ignore-numbers --ignore-acronyms --report
     # - ps: Invoke-Build -Task Test
-    # - ps: Invoke-Build .
+    - ps: Invoke-Build .
