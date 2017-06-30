@@ -42,6 +42,7 @@ skip_commits:
 
 install:
     - cmd: npm install -g markdown-spellcheck
+    - ps: Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
     - ps: Install-Module Pester, PSScriptAnalyzer, BuildHelpers, InvokeBuild, platyPS -Force -Scope currentuser
 
 test_script:
