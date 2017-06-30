@@ -42,11 +42,22 @@ skip_commits:
 
 install:
     - cmd: npm install -g markdown-spellcheck
-    - ps: Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
-    - ps: Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-    - ps: Install-Module BuildHelpers, InvokeBuild
+    # - ps: Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
+    # - ps: Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+    # - ps: Install-Module BuildHelpers, InvokeBuild
+    - ps: |
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
+    Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force | Out-Null
+    Install-Module InvokeBuild -Scope CurrentUser -Force | Out-Null
 
-test_script:
+build_script:
+    - ps: Invoke-Build
+
+test: off
+
+# test_script:
     # - cmd: mdspell '**/*.md' '!**/node_modules/**/*.md' --ignore-numbers --ignore-acronyms --report
     # - ps: Invoke-Build -Task Test
-    - ps: Invoke-Build .
+    # - ps: Invoke-Build .
+
+
