@@ -43,6 +43,9 @@ skip_commits:
 install:
     - cmd: git config --global core.autocrlf true
     - cmd: cd JiraPS
+    - cmd: git add .
+    - cmd: git commit -m "Fix LFCR"
+    - cmd: git push
     - cmd: npm install -g markdown-spellcheck
     # - ps: Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
     # - ps: Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
