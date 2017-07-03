@@ -61,6 +61,8 @@ task InstallPandoc -If (-not (Test-Path Tools\pandoc.exe)) {
 # endregion
 
 # region test
+task Test RapidTest
+
 # Synopsis: Using the "Fast" Test Suit
 task RapidTest GitStatus, PesterTests
 # Synopsis: Using the complete Test Suit, which includes all supported Powershell versions
@@ -103,7 +105,7 @@ task PesterTests {
 
 # region build
 # Synopsis: Build shippable release
-task Package GenerateRelease, UpdateManifest, GenerateDocs
+task Build GenerateRelease, UpdateManifest, GenerateDocs
 
 # Synopsis: Generate .\Release structure
 task GenerateRelease {
@@ -179,7 +181,7 @@ task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
 # endregion
 
 # region publish
-task Publish -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) {
+task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) {
     Remove-Module JiraPS -ErrorAction SilentlyContinue
     Import-Module $BuildRoot\Release\JiraPS.psd1
 }, PushRelease, PublishToGallery
@@ -219,7 +221,4 @@ task RemoveMarkdown -If { Get-ChildItem "$BuildRoot\Release\*.md" -Recurse } {
 }
 # endregion
 
-task . ShowDebug, Test, Package, Publish, Clean
-task Test RapidTest
-task Release FullTest, Package, Publish, Clean
-task Build Package, Publish, Clean
+task . ShowDebug, Test, Build, Deploy, Clean
