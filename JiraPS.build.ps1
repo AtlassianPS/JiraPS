@@ -195,6 +195,7 @@ task PublishToGallery {
 
 # Synopsis: Push with a version tag.
 task PushRelease GitStatus, GetVersion, {
+    exec { git checkout master }
     exec { git add . }
     exec { git commit -m "Fix LFCR"}
     exec { git push }
