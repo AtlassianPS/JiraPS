@@ -33,7 +33,7 @@ task InstallPandoc -If (-not (Test-Path Tools\pandoc.exe)) {
     Write-Build Gray "Extracting pandoc"
     # Extract bits
     $null = New-Item -Path $env:temp\pandoc -ItemType Directory -Force
-    Start-Process -Wait -FilePath msiexec.exe -ArgumentList "/a /qn `"$($env:temp)\pandoc.msi`" targetdir=`"$($env:temp)\pandoc\`""
+    Start-Process -Wait -FilePath msiexec.exe -ArgumentList "/i /qn `"$($env:temp)\pandoc.msi`" targetdir=`"$($env:temp)\pandoc\`""
 
     Write-Build Gray "Moving pandoc"
     # Move to Tools folder
