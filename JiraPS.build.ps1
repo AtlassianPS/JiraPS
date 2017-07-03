@@ -64,9 +64,9 @@ task InstallPandoc -If (-not (Test-Path Tools\pandoc.exe)) {
 task Test RapidTest
 
 # Synopsis: Using the "Fast" Test Suit
-task RapidTest GitStatus, PesterTests
+task RapidTest PesterTests
 # Synopsis: Using the complete Test Suit, which includes all supported Powershell versions
-task FullTest GitStatus, TestVersions
+task FullTest TestVersions
 
 # Synopsis: Warn about not empty git status if .git exists.
 task GitStatus -If (Test-Path .git) {
@@ -194,7 +194,7 @@ task PublishToGallery {
 }
 
 # Synopsis: Push with a version tag.
-task PushRelease GetVersion, {
+task PushRelease GitStatus, GetVersion, {
     $changes = exec { git status --short }
     assert (!$changes) "Please, commit changes."
 

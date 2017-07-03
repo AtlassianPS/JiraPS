@@ -50,7 +50,7 @@ install:
         Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force | Out-Null
         Install-Module BuildHelpers -Scope CurrentUser -Force | Out-Null
 
-before_test:
+before_build:
     - ps: Invoke-Build -Task ShowDebug
 
 test_script:
