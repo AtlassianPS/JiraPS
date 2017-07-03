@@ -184,12 +184,12 @@ task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
 # region publish
 task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) {
     Remove-Module JiraPS -ErrorAction SilentlyContinue
-    Import-Module $BuildRoot\Release\JiraPS.psd1
 }, PublishToGallery
 
 task PublishToGallery {
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
 
+    Import-Module $BuildRoot\Release\JiraPS.psd1
     Publish-Module -Name JiraPS -NuGetApiKey $env:PSGalleryAPIKey
 }
 
