@@ -65,10 +65,22 @@ build_script:
 
 deploy_script:
     - ps: Invoke-Build -Task Deploy
+deploy:
+    provider: GitHub
+    release: v$(appveyor_build_version)
+    description: 'Release description'
+    auth_token:
+        secure: h40tYNJs+cDWsqezrkoy+ZV4+LVrC44zB4y1RhKtG1B554/cVPYOWxQQ9kl0L795
+    # artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
+    draft: false
+    prerelease: false
+    on:
+        branch: master                 # release from master branch only
+        appveyor_repo_tag: false        # deploy on tag push only
 
 notifications:
     - provider: Slack
       incoming_webhook: https://hooks.slack.com/services/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
 
-on_failure:
-    - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+# on_failure:
+    # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

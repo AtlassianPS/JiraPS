@@ -185,7 +185,7 @@ task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
 task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) {
     Remove-Module JiraPS -ErrorAction SilentlyContinue
     Import-Module $BuildRoot\Release\JiraPS.psd1
-}, PushRelease, PublishToGallery
+}, PublishToGallery
 
 task PublishToGallery {
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
@@ -195,6 +195,9 @@ task PublishToGallery {
 
 # Synopsis: Push with a version tag.
 task PushRelease GitStatus, GetVersion, {
+    # Done in appveyor.yml with deploy provider.
+    # This is needed, as I don't know how to athenticate (2-factor) in here.
+    exec { git checkout master }
     $changes = exec { git status --short }
     assert (!$changes) "Please, commit changes."
 
