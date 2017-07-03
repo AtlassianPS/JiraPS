@@ -7,6 +7,8 @@ if ($PSBoundParameters.ContainsKey('Verbose')) {
     $VerbosePreference = "Continue"
 }
 
+$modulePath = ($env:PSModulePath -split ";")[0]
+
 Import-Module BuildHelpers
 
 # Ensure Invoke-Build works in the most strict mode.
@@ -111,30 +113,30 @@ task Build GenerateRelease, UpdateManifest, GenerateDocs
 # Synopsis: Generate .\Release structure
 task GenerateRelease {
     # Setup
-    if (-not (Test-Path "$BuildRoot\Release")) {
-        $null = New-Item -Path "$BuildRoot\Release" -ItemType Directory
+    if (-not (Test-Path "$modulePath\JiraPS")) {
+        $null = New-Item -Path "$modulePath\JiraPS" -ItemType Directory
     }
 
     # Copy module
-    Copy-Item -Path "$BuildRoot\JiraPS\*" -Destination "$BuildRoot\Release" -Recurse -Force
+    Copy-Item -Path "$BuildRoot\JiraPS\*" -Destination "$modulePath\JiraPS" -Recurse -Force
     # Copy additional files
     $additionalFiles = @(
         "$BuildRoot\CHANGELOG.md"
         "$BuildRoot\LICENSE"
         "$BuildRoot\README.md"
     )
-    Copy-Item -Path $additionalFiles -Destination "$BuildRoot\Release" -Force
+    Copy-Item -Path $additionalFiles -Destination "$modulePath\JiraPS" -Force
 }
 
 # Synopsis: Update the manifest of the module
 task UpdateManifest GetVersion, {
-    Update-Metadata -Path "$BuildRoot\Release\JiraPS.psd1" -PropertyName ModuleVersion -Value $script:Version
-    Update-Metadata -Path "$BuildRoot\Release\JiraPS.psd1" -PropertyName FileList -Value (Get-ChildItem $BuildRoot\Release -Recurse).Name
-    Set-ModuleFunctions -Name "$BuildRoot\Release\JiraPS.psd1"
+    Update-Metadata -Path "$modulePath\JiraPS\JiraPS.psd1" -PropertyName ModuleVersion -Value $script:Version
+    Update-Metadata -Path "$modulePath\JiraPS\JiraPS.psd1" -PropertyName FileList -Value (Get-ChildItem $modulePath\JiraPS -Recurse).Name
+    Set-ModuleFunctions -Name "$modulePath\JiraPS\JiraPS.psd1"
 }
 
 task GetVersion {
-    $manifestContent = Get-Content -Path "$BuildRoot\Release\JiraPS.psd1" -Raw
+    $manifestContent = Get-Content -Path "$modulePath\JiraPS\JiraPS.psd1" -Raw
     if ($manifestContent -notmatch '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')') {
         throw "Module version was not found in manifest file,"
     }
@@ -159,15 +161,15 @@ task GenerateDocs GenerateMarkdown, ConvertMarkdown, RemoveMarkdown
 task GenerateMarkdown {
     Install-Module platyPS -Force
     Import-Module platyPS -Force
-    Import-Module "$BuildRoot\Release\JiraPS.psd1" -Force
-    $null = New-MarkdownHelp -Module JiraPS -OutputFolder "$BuildRoot\Release\docs" -Force
+    Import-Module "$modulePath\JiraPS\JiraPS.psd1" -Force
+    $null = New-MarkdownHelp -Module JiraPS -OutputFolder "$modulePath\JiraPS\docs" -Force
     Remove-Module JiraPS, platyPS
 }
 
 # Synopsis: Convert markdown files to HTML.
 # <http://johnmacfarlane.net/pandoc/>
 $ConvertMarkdown = @{
-    Inputs  = { Get-ChildItem "$BuildRoot\Release\*.md" -Recurse }
+    Inputs  = { Get-ChildItem "$modulePath\JiraPS\*.md" -Recurse }
     Outputs = {process {
             [System.IO.Path]::ChangeExtension($_, 'htm')
         }
@@ -189,7 +191,7 @@ task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR
 task PublishToGallery {
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
 
-    Import-Module $BuildRoot\Release\JiraPS.psd1 -ErrorAction Stop
+    Import-Module $modulePath\JiraPS\JiraPS.psd1 -ErrorAction Stop
     Publish-Module -Name JiraPS -NuGetApiKey $env:PSGalleryAPIKey
 }
 
@@ -220,8 +222,8 @@ task RemoveGeneratedFiles {
 }
 
 # Synopsis: Remove Markdown files from Release
-task RemoveMarkdown -If { Get-ChildItem "$BuildRoot\Release\*.md" -Recurse } {
-    Remove-Item -Path "$BuildRoot\Release" -Include "*.md" -Recurse
+task RemoveMarkdown -If { Get-ChildItem "$modulePath\JiraPS\*.md" -Recurse } {
+    Remove-Item -Path "$modulePath\JiraPS" -Include "*.md" -Recurse
 }
 # endregion
 
