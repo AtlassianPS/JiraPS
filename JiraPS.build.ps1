@@ -8,15 +8,35 @@ if ($PSBoundParameters.ContainsKey('Verbose')) {
 }
 
 Import-Module BuildHelpers
-# Write-Host "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n" -ForegroundColor Cyan
+# Write-Build "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n" -ForegroundColor Cyan
 
 # Ensure Invoke-Build works in the most strict mode.
 Set-StrictMode -Version Latest
 
-# region satisfy dependencies
-# task {
-# Import dependencies if missing
-# }
+# region debug information
+task ShowDebug {
+    Write-Build
+    Write-Build ('Project name:               {0}' -f $env:APPVEYOR_PROJECT_NAME)
+    Write-Build ('Project root:               {0}' -f $ProjectRoot)
+    Write-Build ('Repo name:                  {0}' -f $env:APPVEYOR_REPO_NAME)
+    Write-Build ('Branch:                     {0}' -f $env:APPVEYOR_REPO_BRANCH)
+    Write-Build ('Commit:                     {0}' -f $env:APPVEYOR_REPO_COMMIT)
+    Write-Build ('  - Author:                 {0}' -f $env:APPVEYOR_REPO_COMMIT_AUTHOR)
+    Write-Build ('  - Time:                   {0}' -f $env:APPVEYOR_REPO_COMMIT_TIMESTAMP)
+    Write-Build ('  - Message:                {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE)
+    Write-Build ('  - Extended message:       {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)
+    Write-Build ('Pull request number:        {0}' -f $env:APPVEYOR_PULL_REQUEST_NUMBER)
+    Write-Build ('Pull request title:         {0}' -f $env:APPVEYOR_PULL_REQUEST_TITLE)
+    Write-Build ('AppVeyor build ID:          {0}' -f $env:APPVEYOR_BUILD_ID)
+    Write-Build ('AppVeyor build number:      {0}' -f $env:APPVEYOR_BUILD_NUMBER)
+    Write-Build ('AppVeyor build version:     {0}' -f $env:APPVEYOR_BUILD_VERSION)
+    Write-Build ('AppVeyor job ID:            {0}' -f $JobID)
+    Write-Build ('Build triggered from tag?   {0}' -f $env:APPVEYOR_REPO_TAG)
+    Write-Build ('  - Tag name:               {0}' -f $env:APPVEYOR_REPO_TAG_NAME)
+    Write-Build ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
+    Write-Build
+    Write-Build "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n"
+}
 
 # Synopsis: Install pandoc to .\Tools\
 task InstallPandoc -If (-not (Test-Path Tools\pandoc.exe)) {
@@ -206,7 +226,7 @@ task RemoveMarkdown -If { Get-ChildItem "$BuildRoot\Release\*.md" -Recurse } {
 }
 # endregion
 
-task . Clean, Test, Package, Publish
+task . ShowDebug, Clean, Test, Package, Publish
 task Test RapidTest
 task Release Clean, FullTest, Package, Publish
 task Build Clean, Package, Publish
