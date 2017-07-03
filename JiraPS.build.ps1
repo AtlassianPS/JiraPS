@@ -35,7 +35,7 @@ task InstallPandoc -If (-not (Test-Path Tools\pandoc.exe)) {
     $null = New-Item -Path $env:temp\pandoc -ItemType Directory -Force
     Start-Process -Wait -FilePath msiexec.exe -ArgumentList " /qn /a `"$($env:temp)\pandoc.msi`" targetdir=`"$($env:temp)\pandoc\`""
 
-    Write-Default Gray "$((Get-ChildItem $env:temp\pandoc) | Out-String)"
+    Write-Build Gray "$((Get-ChildItem "$env:temp\pandoc") | Out-String)"
     Write-Build Gray "Moving pandoc"
     # Move to Tools folder
     Copy-Item -Path "$($env:temp)\pandoc\pandoc.exe" -Destination "$BuildRoot\Tools\"
