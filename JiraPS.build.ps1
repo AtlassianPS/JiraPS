@@ -25,22 +25,22 @@ task InstallPandoc -If (-not (Test-Path Tools\pandoc.exe)) {
         $null = New-Item -Path "$BuildRoot\Tools" -ItemType Directory
     }
 
-    Write-Build Grey "Downloading pandoc"
+    Write-Build Gray "Downloading pandoc"
     # Get latest bits
     $latestRelease = "https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-windows.msi"
     Invoke-WebRequest -Uri $latestRelease -OutFile "$($env:temp)\pandoc.msi"
 
-    Write-Build Grey "Extracting pandoc"
+    Write-Build Gray "Extracting pandoc"
     # Extract bits
     $null = New-Item -Path $env:temp\pandoc -ItemType Directory -Force
     Start-Process -Wait -FilePath msiexec.exe -ArgumentList "/a /qn `"$($env:temp)\pandoc.msi`" targetdir=`"$($env:temp)\pandoc\`""
 
-    Write-Build Grey "Moving pandoc"
+    Write-Build Gray "Moving pandoc"
     # Move to Tools folder
     Copy-Item -Path "$($env:temp)\pandoc\pandoc\pandoc.exe" -Destination "$BuildRoot\Tools\"
     Copy-Item -Path "$($env:temp)\pandoc\pandoc\pandoc-citeproc.exe" -Destination "$BuildRoot\Tools\"
 
-    Write-Build Grey "Removing pandoc"
+    Write-Build Gray "Removing pandoc"
     # Clean
     Remove-Item -Path "$($env:temp)\pandoc" -Recurse -Force
 }
