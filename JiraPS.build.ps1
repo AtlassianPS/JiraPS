@@ -34,7 +34,6 @@ task ShowDebug {
     Write-Build Gray ('  - Tag name:               {0}' -f $env:APPVEYOR_REPO_TAG_NAME)
     Write-Build Gray ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
     Write-Build Gray
-    Write-Build Gray "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n"
 }
 
 # Synopsis: Install pandoc to .\Tools\
@@ -91,7 +90,7 @@ task PesterTests {
     Install-Module Pester, PSScriptAnalyzer -Force
     try {
         $result = Invoke-Pester -PassThru -OutputFile $BuildRoot\TestResult.xml
-        if ($env:BHBuildSystem -eq "AppVeyor") {
+        if ($env:APPVEYOR_PROJECT_NAME) {
             Add-TestResultToAppveyor -TestFile "$BuildRoot\TestResult.xml"
         }
         assert ($result.FailedCount -eq 0) "$($result.FailedCount) Pester test(s) failed."
@@ -138,8 +137,8 @@ task GetVersion {
     }
 
     $currentVersion = [Version] $Matches.ModuleVersion
-    if ($env:BHBuildNumber) {
-        $newRevision = $env:BHBuildNumber
+    if ($env:APPVEYOR_BUILD_NUMBER) {
+        $newRevision = $env:APPVEYOR_BUILD_NUMBER
     }
     else {
         $newRevision = 0
@@ -180,7 +179,7 @@ task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
 # endregion
 
 # region publish
-task Publish -If ($env:BHBranchName -eq 'master' -and ($env:APPVEYOR_PULL_REQUEST_NUMBER)) {
+task Publish -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and ($env:APPVEYOR_PULL_REQUEST_NUMBER)) {
     Remove-Module JiraPS -ErrorAction SilentlyContinue
     Import-Module $BuildRoot\Release\JiraPS.psd1
 }, PushRelease, PublishToGallery
@@ -203,20 +202,15 @@ task PushRelease GetVersion, {
 # endregion
 
 #region Cleaning tasks
-task Clean RemoveGeneratedFiles, RemoveBHEnvironment
+task Clean RemoveGeneratedFiles
 # Synopsis: Remove generated and temp files.
-task RemoveGeneratedFiles -If (-not $env:BHBuildSystem -ne "Unknown") {
+task RemoveGeneratedFiles {
     $itemsToRemove = @(
         'Release'
         '*.htm'
         'TestResult.xml'
     )
     Remove-Item $itemsToRemove -Force -Recurse -ErrorAction 0
-}
-
-# Synopsis: Remove BuildHelper Environment
-task RemoveBHEnvironment {
-    Remove-Item -Path env:\BH*
 }
 
 # Synopsis: Remove Markdown files from Release
