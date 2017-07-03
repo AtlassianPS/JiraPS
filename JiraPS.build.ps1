@@ -94,6 +94,7 @@ task PesterTests {
         $result = Invoke-Pester -PassThru -OutputFile $BuildRoot\TestResult.xml
         if ($env:APPVEYOR_PROJECT_NAME) {
             Add-TestResultToAppveyor -TestFile "$BuildRoot\TestResult.xml"
+            Remove-Item "$BuildRoot\TestResult.xml" -Force
         }
         assert ($result.FailedCount -eq 0) "$($result.FailedCount) Pester test(s) failed."
     }
