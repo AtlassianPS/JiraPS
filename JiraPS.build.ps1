@@ -225,7 +225,7 @@ task RemoveMarkdown -If { Get-ChildItem "$BuildRoot\Release\*.md" -Recurse } {
 }
 # endregion
 
-task . ShowDebug, Clean, Test, Package, Publish
+task . ShowDebug, Test, Package, Publish, Clean
 task Test RapidTest
-task Release Clean, FullTest, Package, Publish
-task Build Clean, Package, Publish
+task Release FullTest, Package, Publish, Clean
+task Build Package, Publish, Clean
