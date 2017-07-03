@@ -30,10 +30,10 @@ task InstallPandoc -If (-not (Test-Path Tools\pandoc.exe)) {
     $latestRelease = "https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-windows.msi"
     Invoke-WebRequest -Uri $latestRelease -OutFile "$($env:temp)\pandoc.msi"
 
-    Write-Build Gray "Extracting pandoc"
+    Write-Build Gray "Extracting pandoc to $($env:temp)\pandoc"
     # Extract bits
     $null = New-Item -Path $env:temp\pandoc -ItemType Directory -Force
-    Start-Process -Wait -FilePath msiexec.exe -ArgumentList "/i /qn `"$($env:temp)\pandoc.msi`" targetdir=`"$($env:temp)\pandoc\`""
+    Start-Process -Wait -FilePath msiexec.exe -ArgumentList " /qn /i `"$($env:temp)\pandoc.msi`" targetdir=`"$($env:temp)\pandoc\`""
 
     Write-Build Gray "Moving pandoc"
     # Move to Tools folder
