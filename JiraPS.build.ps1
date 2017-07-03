@@ -16,7 +16,7 @@ Set-StrictMode -Version Latest
 task ShowDebug {
     Write-Build Gray
     Write-Build Gray ('Project name:               {0}' -f $env:APPVEYOR_PROJECT_NAME)
-    Write-Build Gray ('Project root:               {0}' -f $ProjectRoot)
+    Write-Build Gray ('Project root:               {0}' -f $env:APPVEYOR_BUILD_FOLDER)
     Write-Build Gray ('Repo name:                  {0}' -f $env:APPVEYOR_REPO_NAME)
     Write-Build Gray ('Branch:                     {0}' -f $env:APPVEYOR_REPO_BRANCH)
     Write-Build Gray ('Commit:                     {0}' -f $env:APPVEYOR_REPO_COMMIT)
@@ -29,7 +29,7 @@ task ShowDebug {
     Write-Build Gray ('AppVeyor build ID:          {0}' -f $env:APPVEYOR_BUILD_ID)
     Write-Build Gray ('AppVeyor build number:      {0}' -f $env:APPVEYOR_BUILD_NUMBER)
     Write-Build Gray ('AppVeyor build version:     {0}' -f $env:APPVEYOR_BUILD_VERSION)
-    Write-Build Gray ('AppVeyor job ID:            {0}' -f $JobID)
+    Write-Build Gray ('AppVeyor job ID:            {0}' -f $env:APPVEYOR_JOB_ID)
     Write-Build Gray ('Build triggered from tag?   {0}' -f $env:APPVEYOR_REPO_TAG)
     Write-Build Gray ('  - Tag name:               {0}' -f $env:APPVEYOR_REPO_TAG_NAME)
     Write-Build Gray ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
