@@ -42,6 +42,7 @@ skip_commits:
 
 install:
     - cmd: git config --global core.autocrlf true
+    - cmd: cd JiraPS
     - cmd: npm install -g markdown-spellcheck
     # - ps: Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
     # - ps: Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
