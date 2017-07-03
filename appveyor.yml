@@ -42,7 +42,6 @@ skip_commits:
 
 install:
     - cmd: git config --global core.autocrlf true
-    - cmd: cd JiraPS
     - cmd: git add .
     - cmd: git commit -m "Fix LFCR"
     - cmd: git push
