@@ -189,8 +189,8 @@ task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR
 task PublishToGallery {
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
 
-    Import-Module $BuildRoot\Release\JiraPS.psd1
-    Publish-Module -Name JiraPS -NuGetApiKey $env:PSGalleryAPIKey
+    # Import-Module $BuildRoot\Release\JiraPS.psd1
+    Publish-Module -Path "$BuildRoot\Release\JiraPS.psd1" -NuGetApiKey $env:PSGalleryAPIKey
 }
 
 # Synopsis: Push with a version tag.
