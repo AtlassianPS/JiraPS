@@ -34,7 +34,8 @@
     // Show the output window always
     "showOutput": "always",
     // Associate with test task runner
-    "tasks": [{
+    "tasks": [
+        {
             "taskName": "SetUp",
             "suppressTaskName": true,
             "args": [
