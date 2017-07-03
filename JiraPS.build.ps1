@@ -190,7 +190,7 @@ task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR
 task PublishToGallery {
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
 
-    Publish-Module JiraPS -NuGetApiKey $env:PSGalleryAPIKey
+    Publish-Module -Name JiraPS -NuGetApiKey $env:PSGalleryAPIKey
 }
 
 # Synopsis: Push with a version tag.
