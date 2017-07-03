@@ -41,6 +41,7 @@ skip_commits:
         - Tools/
 
 install:
+    - cmd: cd
     - cmd: git config --global core.autocrlf true
     - cmd: git config --global user.name "Oliver Lipkau"
     - cmd: git config --global user.email "oliver@lipkau.net"
