@@ -41,6 +41,7 @@ skip_commits:
         - Tools/
 
 install:
+    - cmd: git config --global core.autocrlf true
     - cmd: npm install -g markdown-spellcheck
     # - ps: Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
     # - ps: Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
@@ -67,5 +68,5 @@ notifications:
     - provider: Slack
       incoming_webhook: https://hooks.slack.com/services/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
 
-on_finish:
-    - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+# on_finish:
+    # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
