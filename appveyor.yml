@@ -60,4 +60,7 @@ test: off
     # - ps: Invoke-Build -Task Test
     # - ps: Invoke-Build .
 
-
+notifications:
+# Slack
+    - provider: Slack
+        incoming_webhook: https://hooks.slack.com/services/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
