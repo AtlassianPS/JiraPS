@@ -62,4 +62,4 @@ test: off
 
 notifications:
     - provider: Slack
-    incoming_webhook: https://hooks.slack.com/services/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
+        incoming_webhook: https://hooks.slack.com/services/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
