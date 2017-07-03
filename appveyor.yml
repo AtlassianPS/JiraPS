@@ -42,8 +42,8 @@ skip_commits:
 
 install:
     - cmd: git config --global core.autocrlf true
-    - cmd: it config --global user.name "Oliver Lipkau"
-    - cmd: it config --global user.email "oliver@lipkau.net"
+    - cmd: git config --global user.name "Oliver Lipkau"
+    - cmd: git config --global user.email "oliver@lipkau.net"
     - cmd: git add .
     - cmd: git commit -m "Fix LFCR"
     - cmd: git push
