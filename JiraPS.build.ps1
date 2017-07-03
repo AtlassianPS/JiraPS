@@ -8,34 +8,33 @@ if ($PSBoundParameters.ContainsKey('Verbose')) {
 }
 
 Import-Module BuildHelpers
-# Write-Build "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n" -ForegroundColor Cyan
 
 # Ensure Invoke-Build works in the most strict mode.
 Set-StrictMode -Version Latest
 
 # region debug information
 task ShowDebug {
-    Write-Build
-    Write-Build ('Project name:               {0}' -f $env:APPVEYOR_PROJECT_NAME)
-    Write-Build ('Project root:               {0}' -f $ProjectRoot)
-    Write-Build ('Repo name:                  {0}' -f $env:APPVEYOR_REPO_NAME)
-    Write-Build ('Branch:                     {0}' -f $env:APPVEYOR_REPO_BRANCH)
-    Write-Build ('Commit:                     {0}' -f $env:APPVEYOR_REPO_COMMIT)
-    Write-Build ('  - Author:                 {0}' -f $env:APPVEYOR_REPO_COMMIT_AUTHOR)
-    Write-Build ('  - Time:                   {0}' -f $env:APPVEYOR_REPO_COMMIT_TIMESTAMP)
-    Write-Build ('  - Message:                {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE)
-    Write-Build ('  - Extended message:       {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)
-    Write-Build ('Pull request number:        {0}' -f $env:APPVEYOR_PULL_REQUEST_NUMBER)
-    Write-Build ('Pull request title:         {0}' -f $env:APPVEYOR_PULL_REQUEST_TITLE)
-    Write-Build ('AppVeyor build ID:          {0}' -f $env:APPVEYOR_BUILD_ID)
-    Write-Build ('AppVeyor build number:      {0}' -f $env:APPVEYOR_BUILD_NUMBER)
-    Write-Build ('AppVeyor build version:     {0}' -f $env:APPVEYOR_BUILD_VERSION)
-    Write-Build ('AppVeyor job ID:            {0}' -f $JobID)
-    Write-Build ('Build triggered from tag?   {0}' -f $env:APPVEYOR_REPO_TAG)
-    Write-Build ('  - Tag name:               {0}' -f $env:APPVEYOR_REPO_TAG_NAME)
-    Write-Build ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
-    Write-Build
-    Write-Build "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n"
+    Write-Build Gray
+    Write-Build Gray ('Project name:               {0}' -f $env:APPVEYOR_PROJECT_NAME)
+    Write-Build Gray ('Project root:               {0}' -f $ProjectRoot)
+    Write-Build Gray ('Repo name:                  {0}' -f $env:APPVEYOR_REPO_NAME)
+    Write-Build Gray ('Branch:                     {0}' -f $env:APPVEYOR_REPO_BRANCH)
+    Write-Build Gray ('Commit:                     {0}' -f $env:APPVEYOR_REPO_COMMIT)
+    Write-Build Gray ('  - Author:                 {0}' -f $env:APPVEYOR_REPO_COMMIT_AUTHOR)
+    Write-Build Gray ('  - Time:                   {0}' -f $env:APPVEYOR_REPO_COMMIT_TIMESTAMP)
+    Write-Build Gray ('  - Message:                {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE)
+    Write-Build Gray ('  - Extended message:       {0}' -f $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)
+    Write-Build Gray ('Pull request number:        {0}' -f $env:APPVEYOR_PULL_REQUEST_NUMBER)
+    Write-Build Gray ('Pull request title:         {0}' -f $env:APPVEYOR_PULL_REQUEST_TITLE)
+    Write-Build Gray ('AppVeyor build ID:          {0}' -f $env:APPVEYOR_BUILD_ID)
+    Write-Build Gray ('AppVeyor build number:      {0}' -f $env:APPVEYOR_BUILD_NUMBER)
+    Write-Build Gray ('AppVeyor build version:     {0}' -f $env:APPVEYOR_BUILD_VERSION)
+    Write-Build Gray ('AppVeyor job ID:            {0}' -f $JobID)
+    Write-Build Gray ('Build triggered from tag?   {0}' -f $env:APPVEYOR_REPO_TAG)
+    Write-Build Gray ('  - Tag name:               {0}' -f $env:APPVEYOR_REPO_TAG_NAME)
+    Write-Build Gray ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
+    Write-Build Gray
+    Write-Build Gray "BuildHelpers environment details:`n$(Get-Item env:BH* | Out-String)`n"
 }
 
 # Synopsis: Install pandoc to .\Tools\
