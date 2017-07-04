@@ -42,12 +42,7 @@ skip_commits:
 
 install:
     - cmd: git config --global core.autocrlf true
-    - cmd: git config --global user.name "Oliver Lipkau"
-    - cmd: git config --global user.email "oliver@lipkau.net"
     - cmd: npm install -g markdown-spellcheck
-    # - ps: Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
-    # - ps: Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-    # - ps: Install-Module BuildHelpers, InvokeBuild
     - ps: |
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
         Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force | Out-Null

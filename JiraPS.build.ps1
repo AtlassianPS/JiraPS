@@ -108,7 +108,7 @@ task PesterTests {
 
 # region build
 # Synopsis: Build shippable release
-task Build GenerateRelease, UpdateManifest, GenerateDocs
+task Build GenerateRelease, GenerateDocs, UpdateManifest
 
 # Synopsis: Generate .\Release structure
 task GenerateRelease {
@@ -131,7 +131,7 @@ task GenerateRelease {
 # Synopsis: Update the manifest of the module
 task UpdateManifest GetVersion, {
     Update-Metadata -Path "$modulePath\JiraPS\JiraPS.psd1" -PropertyName ModuleVersion -Value $script:Version
-    Update-Metadata -Path "$modulePath\JiraPS\JiraPS.psd1" -PropertyName FileList -Value (Get-ChildItem $modulePath\JiraPS -Recurse).Name
+    # Update-Metadata -Path "$modulePath\JiraPS\JiraPS.psd1" -PropertyName FileList -Value (Get-ChildItem $modulePath\JiraPS -Recurse).Name
     Set-ModuleFunctions -Name "$modulePath\JiraPS\JiraPS.psd1"
 }
 
