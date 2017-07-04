@@ -67,7 +67,7 @@ deploy:
     release: v$(appveyor_build_version)
     description: ''
     auth_token:
-        secure: h40tYNJs+cDWsqezrkoy+ZV4+LVrC44zB4y1RhKtG1B554/cVPYOWxQQ9kl0L795
+        secure: GPFmkrGf5ufcdQZiGVbfdBefIjcgVRJFutY8xf5+98B/jf18ZiiRZclAps3jFFLd
     # artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
     draft: false
     prerelease: false
