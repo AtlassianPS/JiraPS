@@ -48,7 +48,6 @@ install:
         Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force | Out-Null
         Install-Module BuildHelpers -Scope CurrentUser -Force | Out-Null
         $env:releasePath = "$($pwd.Path)\Release"
-        Write-Host
 
 before_build:
     - ps: Invoke-Build -Task ShowDebug
@@ -56,8 +55,8 @@ before_build:
 build_script:
     - ps: Invoke-Build -Task Build
 
-after_build:
-    - cmd: mdspell %releasePath%\**/*.md --ignore-numbers --ignore-acronyms --report
+# after_build:
+    # - cmd: mdspell %releasePath%\**/*.md --ignore-numbers --ignore-acronyms --report
 
 test_script:
     - ps: Invoke-Build -Task Test

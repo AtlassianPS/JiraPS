@@ -7,7 +7,12 @@ if ($PSBoundParameters.ContainsKey('Verbose')) {
     $VerbosePreference = "Continue"
 }
 
-$releasePath = $env:releasePath
+if (!($env:releasePath)) {
+    $releasePath = "$BuildRoot\Release"
+}
+else {
+    $releasePath = $env:releasePath
+}
 $env:PSModulePath = "$($env:PSModulePath);$releasePath"
 
 Import-Module BuildHelpers
