@@ -50,20 +50,21 @@ install:
 
 before_build:
     - ps: Invoke-Build -Task ShowDebug
-
-test_script:
     - cmd: mdspell '**/*.md' '!**/node_modules/**/*.md' --ignore-numbers --ignore-acronyms --report
-    - ps: Invoke-Build -Task Test
 
 build_script:
     - ps: Invoke-Build -Task Build
 
-deploy_script:
-    - ps: Invoke-Build -Task Deploy
+test_script:
+    - ps: Invoke-Build -Task Test
+
+# deploy_script:
+    # - ps: Invoke-Build -Task Deploy
+
 deploy:
     provider: GitHub
     release: v$(appveyor_build_version)
-    description: 'Release description'
+    description: ''
     auth_token:
         secure: h40tYNJs+cDWsqezrkoy+ZV4+LVrC44zB4y1RhKtG1B554/cVPYOWxQQ9kl0L795
     # artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
