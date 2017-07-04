@@ -95,13 +95,19 @@
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags       = 'JIRA'
+            Tags       = @(
+                'JIRA',
+                'Atlassian'
+                'AtlassianPS'
+                'API'
+                'rest'
+            )
 
             # A URL to the license for this module.
             LicenseUri = 'https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE'
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://github.com/AtlassianPS/JiraPS'
+            ProjectUri = 'https://AtlassianPS.org/JiraPS'
 
             # A URL to an icon representing this module.
             # IconUri = ''
