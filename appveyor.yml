@@ -50,11 +50,12 @@ install:
 
 before_build:
     - ps: Invoke-Build -Task ShowDebug
-    - cmd: cd
-    - cmd: mdspell **/*.md --ignore-numbers --ignore-acronyms --report
 
 build_script:
     - ps: Invoke-Build -Task Build
+
+after_buid:
+    - cmd: mdspell **/*.md --ignore-numbers --ignore-acronyms --report
 
 test_script:
     - ps: Invoke-Build -Task Test

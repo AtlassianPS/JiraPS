@@ -155,7 +155,7 @@ task GetVersion {
 }
 
 # Synopsis: Generate documentation
-task GenerateDocs GenerateMarkdown, ConvertMarkdown, RemoveMarkdown
+task GenerateDocs GenerateMarkdown, ConvertMarkdown
 
 # Synopsis: Generate markdown documentation with platyPS
 task GenerateMarkdown {
@@ -184,7 +184,7 @@ task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
 # endregion
 
 # region publish
-task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) {
+task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) RemoveMarkdown, {
     Remove-Module JiraPS -ErrorAction SilentlyContinue
 }, PublishToGallery
 
