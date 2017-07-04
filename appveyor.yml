@@ -50,6 +50,7 @@ install:
 
 before_build:
     - ps: Invoke-Build -Task ShowDebug
+    - cmd: cd
     - cmd: mdspell '**/*.md' '!**/node_modules/**/*.md' --ignore-numbers --ignore-acronyms --report
 
 build_script:
@@ -58,8 +59,8 @@ build_script:
 test_script:
     - ps: Invoke-Build -Task Test
 
-# deploy_script:
-    # - ps: Invoke-Build -Task Deploy
+before_deploy:
+    - ps: Invoke-Build -Task Deploy
 
 deploy:
     provider: GitHub
