@@ -50,7 +50,7 @@ function Add-JiraIssueWorklog {
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
         )]
-        [TimeSpan] $TimeSpent,
+        [String] $TimeSpent,
 
         # Date/time started to be logged
         [Parameter(
@@ -104,12 +104,12 @@ function Add-JiraIssueWorklog {
         #$issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
         $url = "$($issueObj.RestURL)/worklog"
-
+		
         Write-Debug "[Add-JiraIssueWorklog] Creating request body from comment"
         $props = @{
             'comment'   = $Comment;
-            'started'   = $DateStarted.ToString();
-            'timeSpent' = $TimeSpent.TotalSeconds.ToString();
+            'started'   = $DateStarted.tostring("yyyy-MM-ddTHH:mm:ss.00+0000");
+            'timeSpent' = $TimeSpent.ToString();
         }
 
         # If the visible role should be all users, the visibility block shouldn't be passed at
