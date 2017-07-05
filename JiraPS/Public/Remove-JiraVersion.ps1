@@ -6,7 +6,10 @@
     .DESCRIPTION
        This function removes an existing version in JIRA.
     .EXAMPLE
-       Remove-JiraVersion -Version '1.0.0.0' -Project $Project
+       Remove-JiraVersion -Name '1.0.0.0' -Project $Project
+       This example removes the Version given.
+    .EXAMPLE
+       Remove-JiraVersion -ID '66596'
        This example removes the Version given.
     .INPUTS
        This function does not accept pipeline input pending class creation.

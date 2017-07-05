@@ -25,7 +25,7 @@
         [Parameter(Mandatory = $true,
             Position = 0)]
         [Alias('FixVersions')]
-        [String] $Version,
+        [String] $Name,
 
         # Description of the version.
         [Parameter(Mandatory = $false)]
@@ -83,7 +83,7 @@
         Write-Debug -Message '[New-JiraVersion] Defining properties'
         $props = @{
             description = $Description
-            name        = $Version
+            name        = $Name
             archived    = $Archived.IsPresent
             released    = $Released.IsPresent
             project     = $ProjectData.Key

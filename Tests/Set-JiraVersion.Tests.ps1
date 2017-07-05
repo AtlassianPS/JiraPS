@@ -1,77 +1,60 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
-
-    $testFixVersion = '1.0.0.0'
-
-    $testJson = @"
+    $issueKey = 'LDD-4060'
+    $Name = '1.0.0.0'
+    
+    $issueJson = @"
 {
-    "name": "$testFixVersion",
-    "description": "$testFixVersion",
-    "self": "$jiraServer/rest/api/2/latest/version/16809",
-    "id": "16809",
-    "archived" : "False",
-    "released" : "False",
-    "projectId" : "12101"
+    "Key" : $issueKey
 }
 "@
 
-    Describe "New-JiraVersion" {
-        # Mock Write-Debug {
-        #     if ($ShowDebugData)
-        #     {
-        #         Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
-        #     }
-        # }
-
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+    Describe "Set-JiraVersion" {
+#region Mock
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
-
-        Mock Get-JiraProject -ModuleName PSJira {
-            Write-Output $testJiraProject
+        Mock Get-JiraIssue -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/version/$ID" } {
+            ConvertFrom-Json2 $issueJson
         }
-
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/Version"} {
-            if ($ShowMockData)
-            {
-                Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Host "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]            $URI" -ForegroundColor Cyan
-            }
-            ConvertFrom-Json2 $testJson
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/version/$ID" } {
+            ConvertFrom-Json2 $testJsonOne
         }
-
-        # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
             throw "Unidentified call to Invoke-JiraMethod"
         }
+#endregion Mock
+        Context "Sanity checking" {
+            $command = Get-Command -Name Set-JiraVersion
 
-        #############
-        # Tests
-        #############
+            function defParam($name) {
+                It "Has a -$name parameter" {
+                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
+                }
+            }
 
-        It "Removes a FixVersion from an issue" {
+            defParam 'Issue'
+            defParam 'Name'
+            defParam 'Credential'
         }
-
-        It "Uses Invoke-JiraMethod to do blast off once" {
-            #Assert-MockCalled 'Invoke-JiraMethod' -Times 1
-        }
-
-        It "Uses Get-JiraProject once" {
-            #Assert-MockCalled 'Get-JiraProject' -Times 1
-        }
-
-        It "Assert VerifiableMocks" {
-            #Assert-VerifiableMocks
-        }
+        Context "Behavior checking" {
+            It "Sets an Issue's Version" {
+                #$Results = Set-JiraVersion -Issue $IssueKey -Name $Name | Should Not Throw
+                #Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/version/$ID" }
+            }
+            
+            It "Assert VerifiableMocks" {
+                Assert-VerifiableMocks
+            }
+        }        
     }
 }

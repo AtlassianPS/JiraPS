@@ -1,88 +1,90 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
+    $ProjectName = 'LDD'
     $jiraServer = 'http://jiraserver.example.com'
+    $Name = '1.0.0.0'
+    $ID = '16840'
 
-    $testFixVersion = '1.0.0.0'
-
-    $testJiraProjectKey = 'LDD'
-
-    $testJson = @"
-{
-    "name": "$testFixVersion",
-    "description": "$testFixVersion",
-    "self": "$jiraServer/rest/api/2/latest/version/16809",
-    "id": "16809",
-    "archived" : "False",
-    "released" : "False",
-    "projectId" : "12101"
-}
+    $JiraProjectData = @"
+    {
+        "Key" : "LDD"
+    }
 "@
-
-    $testJiraProject = @"
-{
-    "ID":  "12101",
-    "Key":  "LDD"
-}
+    $testJsonOne = @"
+    {
+        "self" : "$jiraServer/rest/api/2/version/16840",
+        "id" : 16840,
+        "description" : "1.0.0.0",
+        "name" : "1.0.0.0",
+        "archived" : "False",
+        "released" : "False",
+        "projectId" : "12101"
+    }
 "@
 
     Describe "New-JiraVersion" {
-        # Mock Write-Debug {
-        #     if ($ShowDebugData)
-        #     {
-        #         Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
-        #     }
-        # }
-
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+#region Mock
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraProject -ModuleName PSJira {
-            Write-Output $testJiraProject
+        Mock Get-JiraProject -ModuleName JiraPS {
+            ConvertFrom-Json2 $JiraProjectData
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/Version"} {
-            if ($ShowMockData)
-            {
-                Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Host "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]            $URI" -ForegroundColor Cyan
-            }
-            ConvertFrom-Json2 $testJson
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/project/$ProjectName/versions" } {
+            ConvertFrom-Json2 $testJsonOne
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$ID" } {
+        }        
+        
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/16840" } {
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
             throw "Unidentified call to Invoke-JiraMethod"
         }
+#endregion Mock
 
-        #############
-        # Tests
-        #############
+        Context "Sanity checking" {
+            $command = Get-Command -Name New-JiraVersion
 
-        It "Creates a FixVersion in JIRA and returns a result" {
-            $newResult = New-JiraVersion -FixVersion $testFixVersion -Description $testFixVersion -Project $testJiraProjectKey
-            $newResult | Should Not BeNullOrEmpty
+            function defParam($name) {
+                It "Has a -$name parameter" {
+                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
+                }
+            }
+
+            defParam 'Name'
+            defParam 'Description'
+            defParam 'Archived'
+            defParam 'Released'
+            defParam 'ReleaseDate'
+            defParam 'UserReleaseDate'
+            defParam 'Project'
+            defParam 'Credential'
         }
 
-        It "Uses Invoke-JiraMethod to do blast off once" {
-            Assert-MockCalled 'Invoke-JiraMethod' -Times 1
-        }
+        Context "Behavior checking" {
+            It "Creates a Version using Release Parameter Set" {
+                #$results = New-JiraVersion -ID $ID
+                #$results | Should BeNullOrEmpty
+                #Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$ID" }
+            }
 
-        It "Uses Get-JiraProject once" {
-            Assert-MockCalled 'Get-JiraProject' -Times 1
-        }
-
-        It "Assert VerifiableMocks" {
-            Assert-VerifiableMocks
+            It "Assert VerifiableMocks" {
+                Assert-VerifiableMocks
+            }
         }
     }
 }
