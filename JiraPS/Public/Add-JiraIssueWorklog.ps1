@@ -75,7 +75,6 @@ function Add-JiraIssueWorklog {
         # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
     }
 
-
     process {
         Write-Debug "[Add-JiraIssueWorklog] Checking Issue parameter"
         if ($Issue.PSObject.TypeNames[0] -eq 'JiraPS.Issue') {
