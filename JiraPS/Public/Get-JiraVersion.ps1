@@ -1,5 +1,4 @@
-﻿function Get-JiraVersion
-{
+﻿function Get-JiraVersion {
     <#
     .Synopsis
        This function returns information about a JIRA Project's Version
@@ -22,20 +21,20 @@
     param(
         # The Project ID or project key of a project to search
         [Parameter(Mandatory = $true,
-                    ParameterSetName = 'Project',
-                    Position = 0,
-                    ValueFromRemainingArguments = $true)]
+            ParameterSetName = 'Project',
+            Position = 0,
+            ValueFromRemainingArguments = $true)]
         [String] $Project,
 
         # Jira Version Name
         [Parameter(Mandatory = $false,
-                    ParameterSetName = 'Project')]
+            ParameterSetName = 'Project')]
         [Alias('Versions')]
         [string] $Name,
 
         # The Version ID
         [Parameter(Mandatory = $true,
-                    ParameterSetName = 'ID')]
+            ParameterSetName = 'ID')]
         [String] $ID,
 
         # Credentials to use to connect to Jira
@@ -43,16 +42,13 @@
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug "[Get-JiraVersion] Reading server from config file"
-        try
-        {
+        try {
             Write-Debug -Message '[Get-JiraVersion] Reading Jira server from config file'
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         }
-        catch
-        {
+        catch {
             $err = $_
             Write-Debug -Message '[Get-JiraVersion] Encountered an error reading configuration data.'
             throw $err
@@ -61,18 +57,14 @@
         Write-Debug "[Get-JiraVersion] Completed Begin block."
     }
 
-    process
-    {
-        Switch($PSCmdlet.ParameterSetName)
-        {
-            'Project'
-            {
+    process {
+        Switch ($PSCmdlet.ParameterSetName) {
+            'Project' {
                 Write-Debug "[Get-JiraVersion] Gathering project data for [$Project]."
                 $ProjectData = Get-JiraProject -Project $Project
                 $restUrl = "$server/rest/api/2/project/$($projectData.key)/versions"
             }
-            'ID'
-            {
+            'ID' {
                 $restUrl = "$server/rest/api/2/version/$ID"
             }
         }
@@ -81,21 +73,18 @@
         Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
         $result = Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
 
-        If ($result)
-        {
-            If ($Name)
-            {
+        If ($result) {
+            If ($Name) {
                 $result = $result | Where-Object {$PSItem.Name -eq $Name}
             }
             Write-Output -InputObject $result
-        }Else
-        {
+        }
+        Else {
             Write-Debug -Message '[Get-JiraVersion] Jira returned no results to output.'
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Get-JiraVersion] Complete"
     }
 }

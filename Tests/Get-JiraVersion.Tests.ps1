@@ -1,7 +1,7 @@
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -28,7 +28,7 @@ InModuleScope JiraPS {
 "@
 
     Describe "Get-JiraVersion" {
-#region Mock
+        #region Mock
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
@@ -52,7 +52,7 @@ InModuleScope JiraPS {
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
             throw "Unidentified call to Invoke-JiraMethod"
         }
-#endregion Mock
+        #endregion Mock
 
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraVersion

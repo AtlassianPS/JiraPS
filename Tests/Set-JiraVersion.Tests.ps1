@@ -1,14 +1,14 @@
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
     $issueKey = 'LDD-4060'
     $Name = '1.0.0.0'
-    
+
     $issueJson = @"
 {
     "Key" : $issueKey
@@ -16,7 +16,7 @@ InModuleScope JiraPS {
 "@
 
     Describe "Set-JiraVersion" {
-#region Mock
+        #region Mock
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
@@ -32,7 +32,7 @@ InModuleScope JiraPS {
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
             throw "Unidentified call to Invoke-JiraMethod"
         }
-#endregion Mock
+        #endregion Mock
         Context "Sanity checking" {
             $command = Get-Command -Name Set-JiraVersion
 
@@ -51,10 +51,10 @@ InModuleScope JiraPS {
                 #$Results = Set-JiraVersion -Issue $IssueKey -Name $Name | Should Not Throw
                 #Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/version/$ID" }
             }
-            
+
             It "Assert VerifiableMocks" {
                 Assert-VerifiableMocks
             }
-        }        
+        }
     }
 }

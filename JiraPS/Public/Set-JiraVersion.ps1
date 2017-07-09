@@ -1,5 +1,4 @@
-﻿function Set-JiraVersion
-{
+﻿function Set-JiraVersion {
     <#
     .Synopsis
         Modifies an existing issue in JIRA
@@ -17,9 +16,9 @@
     param(
         # Issue key or PSJira.Issue object returned from Get-JiraIssue
         [Parameter(Mandatory = $true,
-                   Position = 0,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            Position = 0,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('Key')]
         [Object[]] $Issue,
 
@@ -33,16 +32,13 @@
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug -Message '[Set-JiraVersion] Reading information from config file'
-        try
-        {
+        try {
             Write-Debug -Message '[Set-JiraVersion] Reading Jira server from config file'
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         }
-        catch
-        {
+        catch {
             $err = $_
             Write-Debug -Message '[Set-JiraVersion] Encountered an error reading configuration data.'
             throw $err
@@ -51,17 +47,14 @@
         Write-Debug "[Set-JiraVersion] Completed Begin block."
     }
 
-    process
-    {
-        foreach ($i in $Issue)
-        {
+    process {
+        foreach ($i in $Issue) {
             Write-Debug "[Set-JiraVersion] Calling [ Set-JiraIssue -Issue $i -FixVersion $Name ]."
             Set-JiraIssue -Issue $i -FixVersion $Name
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Set-JiraVersion] Complete"
     }
 }

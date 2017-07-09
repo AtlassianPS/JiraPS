@@ -1,5 +1,4 @@
-﻿function New-JiraVersion
-{
+﻿function New-JiraVersion {
     <#
     .Synopsis
         Creates a new FixVersion in JIRA
@@ -56,16 +55,13 @@
         [PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug -Message '[New-JiraVersion] Reading information from config file'
-        try
-        {
+        try {
             Write-Debug -Message '[New-JiraVersion] Reading Jira server from config file'
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         }
-        catch
-        {
+        catch {
             $err = $_
             Write-Debug -Message '[New-JiraVersion] Encountered an error reading configuration data.'
             throw $err
@@ -77,8 +73,7 @@
         Write-Debug "[New-JiraVersion] Completed Begin block."
     }
 
-    process
-    {
+    process {
         $ProjectData = Get-JiraProject -Project $Project
         Write-Debug -Message '[New-JiraVersion] Defining properties'
         $props = @{
@@ -89,12 +84,10 @@
             project     = $ProjectData.Key
             projectId   = $ProjectData.ID
         }
-        If($UserReleaseDate)
-        {
+        If ($UserReleaseDate) {
             $props.releaseDate = $ReleaseDate
         }
-        If($ReleaseDate)
-        {
+        If ($ReleaseDate) {
             $props.userReleaseDate = $UserReleaseDate
         }
 
@@ -104,18 +97,15 @@
         Write-Debug -Message '[New-JiraVersion] Preparing for blastoff!'
         $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
 
-        If ($result)
-        {
+        If ($result) {
             Write-Output -InputObject $result
         }
-        Else
-        {
+        Else {
             Write-Debug -Message '[New-JiraVersion] Jira returned no results to output.'
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[New-JiraVersion] Complete"
     }
 }
