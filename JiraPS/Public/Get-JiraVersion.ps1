@@ -24,7 +24,8 @@
         [Parameter(Mandatory = $true,
                     ParameterSetName = 'Key',
                     Position = 0,
-                    ValueFromRemainingArguments = $true)]
+                    ValueFromPipelineByPropertyName=$true)]
+        [Alias('Key')]
         [String] $Project,
 
         # Jira Version Name

@@ -23,7 +23,7 @@
     param(
         # Name of the version to create.
         [Parameter(Mandatory = $true,
-        ValueFromPipelineByPropertyName=$true,
+            ValueFromPipelineByPropertyName=$true,
             Position = 0)]
         [Alias('FixVersions','Versions')]
         [String] $Name,
