@@ -88,7 +88,6 @@
 
         Write-Debug "[New-JiraVersion] Completed Begin block."
     }
-    
     process
     {
         Switch($PSCmdlet.ParameterSetName)
