@@ -42,9 +42,17 @@ InModuleScope JiraPS {
                 }
             }
 
-            defParam 'Issue'
             defParam 'Name'
             defParam 'Credential'
+            defParam 'Description'
+            defParam 'Archived'
+            defParam 'Released'
+            defParam 'ReleaseDate'
+            defParam 'UserReleaseDate'
+            defParam 'ID'
+            defParam 'ProjectID'
+            defParam 'Project'
+            defParam 'RestURL'
         }
         Context "Behavior checking" {
             It "Sets an Issue's Version" {
