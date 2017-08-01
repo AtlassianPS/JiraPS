@@ -1,8 +1,7 @@
-function ConvertTo-JiraProject {
+function ConvertTo-JiraVersion {
     [CmdletBinding()]
     param(
         [Parameter(
-            Mandatory = $true,
             Position = 0,
             ValueFromPipeline = $true
         )]
@@ -16,31 +15,22 @@ function ConvertTo-JiraProject {
             # Write-Debug "Defining standard properties"
             $props = @{
                 'ID'          = $i.id;
-                'Key'         = $i.key;
+                'ProjectID'   = $i.projectId;
                 'Name'        = $i.name;
                 'Description' = $i.description;
-                'IssueTypes'  = $i.issueTypes;
-                'Roles'       = $i.roles;
+                'Archived'    = $i.archived;
+                'Released'    = $i.released;
+                'Overdue'     = $i.overdue;
                 'RestUrl'     = $i.self;
-                'Components'  = $i.components
-                'Versions'    = $i.versions | ConvertTo-JiraVersion
             }
-
-            if ($i.projectCategory) {
-                $props.Category = $i.projectCategory
-            }
-            elseif ($i.Category) {
-                $props.Category = $i.Category
-            }
-            else {
-                $props.Category = $null
-            }
+            if ($i.releaseDate) { $props["ReleaseDate"] = (Get-Date $i.releaseDate) }
+            if ($i.userReleaseDate) { $props["UserReleaseDate"] = (Get-Date $i.userReleaseDate) }
 
             # Write-Debug "Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
 
             # Write-Debug "Inserting type name information"
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
 
             # Write-Debug "[ConvertTo-JiraProject] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
