@@ -33,14 +33,14 @@
         [String] $Description,
 
         # Create the version as archived.
-        [Parameter(Mandatory = $true,
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName=$true)]
-        [switch] $Archived,
+        [bool] $Archived,
 
         # Create the version as released.
-        [Parameter(Mandatory = $true,
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName=$true)]
-        [switch] $Released,
+        [bool] $Released,
 
         # Date of the release.
         [Parameter(Mandatory = $false,
@@ -108,18 +108,20 @@
         $props = @{
             description = $Description
             name        = $Name
-            archived    = $Archived.IsPresent
-            released    = $Released.IsPresent
+            archived    = $Archived
+            released    = $Released
             project     = $ProjectData.Key
             projectId   = $ProjectData.ID
         }
         If($UserReleaseDate)
         {
-            $props.UserReleaseDate = $UserReleaseDate
+            $formatedUserReleaseDate = Get-Date $UserReleaseDate -Format 'd/MMM/yy'
+            $props.userReleaseDate = $formatedUserReleaseDate
         }
         If($ReleaseDate)
         {
-            $props.ReleaseDate = $ReleaseDate
+            $formatedReleaseDate = Get-Date $ReleaseDate -Format 'yyyy-MM-dd'
+            $props.releaseDate = $formatedReleaseDate
         }
 
         Write-Debug -Message '[New-JiraVersion] Converting to JSON'

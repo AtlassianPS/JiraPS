@@ -30,19 +30,19 @@
         # Create the version as archived.
         [Parameter(,
             ValueFromPipelineByPropertyName=$true)]
-        [switch] $Archived,
+        [bool] $Archived,
 
         # Create the version as released.
         [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [switch] $Released,
+        [bool] $Released,
 
         # Date of the release.
         [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [DateTime] $ReleaseDate,
+        [datetime] $ReleaseDate,
 
         # Date of the user release.
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [DateTime] $UserReleaseDate,
+        [Parameter(ValueFromPipelineByPropertyName=$false)]
+        [datetime] $UserReleaseDate,
 
         # The Version ID
         [Parameter(Mandatory = $true,
@@ -88,9 +88,6 @@
             throw $err
         }
 
-        $restUrl = "$server/rest/api/latest/version"
-        Write-Debug "[New-JiraVersion] Rest URL set to [$restUrl]."
-
         Write-Debug "[Set-JiraVersion] Completed Begin block."
     }
 
@@ -101,32 +98,38 @@
             'Key'
             {
                 $ProjectData = Get-JiraProject -Project $Project
-                $restUrl = $existingVersion.self
             }
             'ProjectID'
             {
-                $restUrl = "$server/rest/api/2/version/$ID"
+                
                 $ProjectData = @{}
                 $ProjectData.ID = $ProjectID
             }
         }
+        
+        $restUrl = "$server/rest/api/2/version/$ID"
+        Write-Debug "[Set-JiraVersion] Rest URL set to [$restUrl]."
+        
         $props = @{
             id = $ID
             description = $Description
             name        = $Name
-            archived    = $Archived.IsPresent
-            released    = $Released.IsPresent
+            archived    = $Archived
+            released    = $Released
             projectId   = $ProjectData.ID
+            self = $RestURL
         }
         Write-Debug -Message '[Set-JiraVersion] Defining properties'
 
         If($UserReleaseDate)
         {
-            $props.UserReleaseDate = $UserReleaseDate
+            $formatedUserReleaseDate = Get-Date $UserReleaseDate -Format 'd/MMM/yy'
+            $props.userReleaseDate = $formatedUserReleaseDate
         }
         If($ReleaseDate)
         {
-            $props.ReleaseDate = $ReleaseDate
+            $formatedReleaseDate = Get-Date $ReleaseDate -Format 'yyyy-MM-dd'
+            $props.releaseDate = $formatedReleaseDate
         }
 
         Write-Debug -Message '[Set-JiraVersion] Converting to JSON'
