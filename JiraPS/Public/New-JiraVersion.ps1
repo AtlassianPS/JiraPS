@@ -14,10 +14,10 @@
     .EXAMPLE
         New-JiraVersion -FixVersion '1.0.0.0' -Project TEST -ReleaseDate "2000-12-31"
         Create a new Version in Project TEST with a set release date.
-     .INPUTS
-         This function does not accept pipeline input.
      .OUTPUTS
-        [PSJira.FixVersions] The FixVersion field object created
+        [PSJira.Version]
+     .NOTES
+       This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
     [CmdletBinding(DefaultParameterSetName = 'ProjectID')]
     param(

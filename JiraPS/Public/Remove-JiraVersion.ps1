@@ -11,8 +11,8 @@
     .EXAMPLE
        Remove-JiraVersion -ID '66596'
        This example removes the Version given.
-    .INPUTS
-       This function does not accept pipeline input pending class creation.
+     .INPUTS
+        [PSJira.Version]
     .OUTPUTS
        This Function outputs no results
     .NOTES

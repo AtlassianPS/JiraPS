@@ -2,16 +2,21 @@
 {
     <#
     .Synopsis
-        Modifies an existing issue in JIRA
+        Modifies an existing Version in JIRA
     .DESCRIPTION
-        This function modifies the FixVersion field for an existing issue in JIRA.
+        This function modifies the Version for an existing Project in JIRA.
     .EXAMPLE
-        Set-JiraVersion -Issue TEST-01 -FixVersion '1.0.0.0'
-        This example assigns the fixversion 1.0.0.0 to the JIRA issue TEST-01.
-    .INPUTS
-        [PSJira.Issue[]] The JIRA issue that should be modified
-    .OUTPUTS
-        No Output on success
+        Get-JiraVersion -Project $Project | Set-JiraVersion -Name 'New-Name'
+        This example assigns the modifies the existing version with a new name 'New-Name'.
+    .EXAMPLE
+        Get-JiraVersion -ProjectID 162401 | Set-JiraVersion -Description 'Descriptive String'
+        This example assigns the modifies the existing version with a new name 'New-Name'.
+     .INPUTS
+        [PSJira.Version]
+     .OUTPUTS
+        [PSJira.Version]
+     .NOTES
+       This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
     [CmdletBinding(DefaultParameterSetName = 'ProjectID')]
     param(

@@ -12,7 +12,7 @@
        Get-JiraVersion -ID '66596'
        This example returns information about all JIRA Version visible to the current user (or using anonymous access if a PSJira session has not been defined) for the project.
     .INPUTS
-       This function does not accept pipeline input pending class creation.
+        [PSJira.Project]
     .OUTPUTS
        This function outputs a PSobject(s).
     .NOTES
