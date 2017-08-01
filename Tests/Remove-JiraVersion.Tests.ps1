@@ -69,6 +69,7 @@ InModuleScope JiraPS {
             defParam 'Name'
             defParam 'ID'
             defParam 'Credential'
+            defParam 'RestURL'
         }
 
         Context "Behavior checking" {

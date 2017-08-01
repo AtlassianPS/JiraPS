@@ -42,7 +42,7 @@
         [String] $ID,
 
         # The Version URL
-        [Parameter(Mandatory = $true,
+        [Parameter(Mandatory = $false,
                     ValueFromPipelineByPropertyName=$true)]
         [Alias('Self')]
         [String] $RestURL,
@@ -77,7 +77,7 @@
             'Project'
             {
                 $existingVersion = Get-JiraVersion -Project $Project | Where-Object {$PSItem.Name -eq $Name}
-                $restUrl = $self
+                $restUrl = $existingVersion.self
             }
             'VersionID'
             {
