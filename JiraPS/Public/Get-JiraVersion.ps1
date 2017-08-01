@@ -79,7 +79,7 @@
 
         Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
         $result = Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
-        
+
         If ($result)
         {
             If ($Name)

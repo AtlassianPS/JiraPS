@@ -69,7 +69,6 @@
 
         Write-Debug "[Remove-JiraVersion] Completed Begin block."
     }
-    
     process
     {
         Switch($PSCmdlet.ParameterSetName)
@@ -98,7 +97,6 @@
             Write-Debug -Message '[Remove-JiraVersion] Jira returned no results to output.'
         }
     }
-    
     end
     {
         Write-Debug "[Remove-JiraVersion] Complete"

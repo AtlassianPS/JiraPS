@@ -128,7 +128,7 @@
 
         Write-Debug -Message '[New-JiraVersion] Preparing for blastoff!'
         $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
-        
+
         If ($result)
         {
             Write-Output -InputObject $result
@@ -138,7 +138,6 @@
             Write-Debug -Message '[New-JiraVersion] Jira returned no results to output.'
         }
     }
-    
     end
     {
         Write-Debug "[New-JiraVersion] Complete"

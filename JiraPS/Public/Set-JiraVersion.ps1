@@ -110,10 +110,8 @@
                 $ProjectData.ID = $ProjectID
             }
         }
-        
         $restUrl = "$server/rest/api/2/version/$ID"
         Write-Debug "[Set-JiraVersion] Rest URL set to [$restUrl]."
-        
         $props = @{
             id = $ID
             description = $Description
