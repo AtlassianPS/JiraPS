@@ -106,7 +106,6 @@
             }
             'ProjectID'
             {
-                
                 $ProjectData = @{}
                 $ProjectData.ID = $ProjectID
             }
