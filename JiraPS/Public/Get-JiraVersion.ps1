@@ -42,7 +42,6 @@
         [Parameter(Mandatory = $false)]
         [System.Management.Automation.PSCredential] $Credential
     )
-
     begin
     {
         Write-Debug "[Get-JiraVersion] Reading server from config file"
@@ -60,7 +59,6 @@
 
         Write-Debug "[Get-JiraVersion] Completed Begin block."
     }
-
     process
     {
         Switch($PSCmdlet.ParameterSetName)
@@ -80,7 +78,7 @@
 
         Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
         $result = Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
-
+        
         If ($result)
         {
             If ($Name)
@@ -93,7 +91,6 @@
             Write-Debug -Message '[Get-JiraVersion] Jira returned no results to output.'
         }
     }
-
     end
     {
         Write-Debug "[Get-JiraVersion] Complete"
