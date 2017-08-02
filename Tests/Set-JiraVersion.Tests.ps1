@@ -52,7 +52,6 @@ InModuleScope JiraPS {
             defParam 'ID'
             defParam 'ProjectID'
             defParam 'Project'
-            defParam 'RestURL'
         }
         Context "Behavior checking" {
             It "Sets an Issue's Version" {

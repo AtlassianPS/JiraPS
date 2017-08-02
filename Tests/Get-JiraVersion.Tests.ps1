@@ -17,7 +17,7 @@ InModuleScope JiraPS {
 "@
     $testJsonOne = @"
     {
-        "self" : "$jiraServer/rest/api/2/version/16840",
+        "self" : "$jiraServer/rest/api/latest/version/16840",
         "id" : 16840,
         "description" : "1.0.0.0",
         "name" : "1.0.0.0",
@@ -37,11 +37,11 @@ InModuleScope JiraPS {
             ConvertFrom-Json2 $JiraProjectData
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/version/$ID" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$ID" } {
             ConvertFrom-Json2 $testJsonOne
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/project/$ProjectName/versions" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/project/$ProjectName/versions" } {
             ConvertFrom-Json2 $testJsonOne
         }
 
@@ -73,13 +73,13 @@ InModuleScope JiraPS {
             It "Gets a Version using ID Parameter Set" {
                 $results = Get-JiraVersion -ID $ID
                 $results | Should Not BeNullOrEmpty
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/version/$ID" }
+                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$ID" }
             }
 
             It "Gets a Version using Project Parameter Set" {
                 $results = Get-JiraVersion -Project $ProjectName -Name $Name
                 $results | Should Not BeNullOrEmpty
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/project/$ProjectName/versions" }
+                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/project/$ProjectName/versions" }
                 Assert-MockCalled 'Get-JiraProject' -Times 1 -Scope It -ModuleName JiraPS
             }
 
