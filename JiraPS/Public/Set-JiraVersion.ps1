@@ -1,5 +1,4 @@
-﻿function Set-JiraVersion
-{
+﻿function Set-JiraVersion {
     <#
     .Synopsis
         Modifies an existing Version in JIRA
@@ -18,70 +17,70 @@
      .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding(DefaultParameterSetName = 'ProjectID')]
+    [CmdletBinding(
+        SupportsShouldProcess = $true,
+        DefaultParameterSetName = 'ProjectID'
+    )]
     param(
         # Name of the version to create.
         [Parameter(Mandatory = $true,
             Position = 0,
-            ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipelineByPropertyName = $true)]
         [Alias('FixVersions')]
         [String] $Name,
 
         # Description of the version.
         [Parameter(Mandatory = $false,
-            ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipelineByPropertyName = $true)]
         [String] $Description,
 
         # Create the version as archived.
         [Parameter(,
-            ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipelineByPropertyName = $true)]
         [bool] $Archived,
 
         # Create the version as released.
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [bool] $Released,
 
         # Date of the release.
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [datetime] $ReleaseDate,
 
         # Date of the user release.
-        [Parameter(ValueFromPipelineByPropertyName=$false)]
+        [Parameter(ValueFromPipelineByPropertyName = $false)]
         [datetime] $UserReleaseDate,
 
         # The Version ID
         [Parameter(Mandatory = $true,
-                    ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipelineByPropertyName = $true)]
         [String] $ID,
 
         # The Project ID
         [Parameter(Mandatory = $true,
-                    ValueFromPipelineByPropertyName=$true,
-                    ParameterSetName = 'ProjectID')]
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'ProjectID')]
         [String] $ProjectID,
 
         # The Project Key
         [Parameter(Mandatory = $true,
-                    ValueFromPipelineByPropertyName=$true,
-                    ParameterSetName = 'Key')]
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Key')]
         [String] $Project,
 
         # Credentials to use to connect to Jira.
         [Parameter(Mandatory = $false,
-            ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipelineByPropertyName = $true)]
         [PSCredential] $Credential
     )
 
-    begin
-    {
+    begin {
         Write-Debug -Message '[Set-JiraVersion] Reading information from config file'
-        try
-        {
+        try {
             Write-Debug -Message '[Set-JiraVersion] Reading Jira server from config file'
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         }
-        catch
-        {
+        catch {
             $err = $_
             Write-Debug -Message '[Set-JiraVersion] Encountered an error reading configuration data.'
             throw $err
@@ -89,16 +88,12 @@
 
         Write-Debug "[Set-JiraVersion] Completed Begin block."
     }
-    process
-    {
-        Switch($PSCmdlet.ParameterSetName)
-        {
-            'Key'
-            {
+    process {
+        Switch ($PSCmdlet.ParameterSetName) {
+            'Key' {
                 $ProjectData = Get-JiraProject -Project $Project
             }
-            'ProjectID'
-            {
+            'ProjectID' {
                 $ProjectData = @{}
                 $ProjectData.ID = $ProjectID
             }
@@ -106,7 +101,7 @@
         $restUrl = "$server/rest/api/2/version/$ID"
         Write-Debug "[Set-JiraVersion] Rest URL set to [$restUrl]."
         $props = @{
-            id = $ID
+            id          = $ID
             description = $Description
             name        = $Name
             archived    = $Archived
@@ -115,13 +110,11 @@
         }
         Write-Debug -Message '[Set-JiraVersion] Defining properties'
 
-        If($UserReleaseDate)
-        {
+        If ($UserReleaseDate) {
             $formatedUserReleaseDate = Get-Date $UserReleaseDate -Format 'd/MMM/yy'
             $props.userReleaseDate = $formatedUserReleaseDate
         }
-        If($ReleaseDate)
-        {
+        If ($ReleaseDate) {
             $formatedReleaseDate = Get-Date $ReleaseDate -Format 'yyyy-MM-dd'
             $props.releaseDate = $formatedReleaseDate
         }
@@ -129,21 +122,20 @@
         Write-Debug -Message '[Set-JiraVersion] Converting to JSON'
         $json = ConvertTo-Json -InputObject $props
 
-        Write-Debug -Message '[Set-JiraVersion] Preparing for blastoff!'
-        $result = Invoke-JiraMethod -Method Put -URI $restUrl -Body $json -Credential $Credential
+        if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
+            Write-Debug -Message '[Set-JiraVersion] Preparing for blastoff!'
+            $result = Invoke-JiraMethod -Method Put -URI $restUrl -Body $json -Credential $Credential
+        }
 
-        If ($result)
-        {
+        If ($result) {
             Write-Output -InputObject $result
         }
-        Else
-        {
+        Else {
             Write-Debug -Message '[Set-JiraVersion] Jira returned no results to output.'
         }
     }
 
-    end
-    {
+    end {
         Write-Debug "[Set-JiraVersion] Complete"
     }
 }

@@ -1,5 +1,4 @@
-﻿function New-JiraVersion
-{
+﻿function New-JiraVersion {
     <#
     .Synopsis
         Creates a new FixVersion in JIRA
@@ -19,13 +18,16 @@
      .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding(DefaultParameterSetName = 'ProjectID')]
+    [CmdletBinding(
+        SupportsShouldProcess = $true,
+        DefaultParameterSetName = 'ProjectID'
+    )]
     param(
         # Name of the version to create.
         [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName=$true,
+            ValueFromPipelineByPropertyName = $true,
             Position = 0)]
-        [Alias('FixVersions','Versions')]
+        [Alias('FixVersions', 'Versions')]
         [String] $Name,
 
         # Description of the version.
@@ -34,50 +36,47 @@
 
         # Create the version as archived.
         [Parameter(Mandatory = $false,
-            ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipelineByPropertyName = $true)]
         [bool] $Archived,
 
         # Create the version as released.
         [Parameter(Mandatory = $false,
-            ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipelineByPropertyName = $true)]
         [bool] $Released,
 
         # Date of the release.
         [Parameter(Mandatory = $false,
-            ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipelineByPropertyName = $true)]
         [DateTime] $ReleaseDate,
 
         # Date of the user release.
         [Parameter(Mandatory = $false,
-            ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipelineByPropertyName = $true)]
         [DateTime] $UserReleaseDate,
 
         # The Project ID
         [Parameter(Mandatory = $true,
-                    ValueFromPipelineByPropertyName=$true,
-                    ParameterSetName = 'ProjectID')]
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'ProjectID')]
         [String] $ProjectID,
 
         # The Project Key
         [Parameter(Mandatory = $true,
-                    ValueFromPipelineByPropertyName=$true,
-                    ParameterSetName = 'Key')]
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'Key')]
         [String] $Project,
 
         # Credentials to use to connect to Jira.
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
-    begin
-    {
+    begin {
         Write-Debug -Message '[New-JiraVersion] Reading information from config file'
-        try
-        {
+        try {
             Write-Debug -Message '[New-JiraVersion] Reading Jira server from config file'
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
         }
-        catch
-        {
+        catch {
             $err = $_
             Write-Debug -Message '[New-JiraVersion] Encountered an error reading configuration data.'
             throw $err
@@ -88,16 +87,12 @@
 
         Write-Debug "[New-JiraVersion] Completed Begin block."
     }
-    process
-    {
-        Switch($PSCmdlet.ParameterSetName)
-        {
-            'Key'
-            {
+    process {
+        Switch ($PSCmdlet.ParameterSetName) {
+            'Key' {
                 $ProjectData = Get-JiraProject -Project $Project
             }
-            'ProjectID'
-            {
+            'ProjectID' {
                 $ProjectData = @{}
                 $ProjectData.ID = $ProjectID
             }
@@ -111,13 +106,11 @@
             project     = $ProjectData.Key
             projectId   = $ProjectData.ID
         }
-        If($UserReleaseDate)
-        {
+        If ($UserReleaseDate) {
             $formatedUserReleaseDate = Get-Date $UserReleaseDate -Format 'd/MMM/yy'
             $props.userReleaseDate = $formatedUserReleaseDate
         }
-        If($ReleaseDate)
-        {
+        If ($ReleaseDate) {
             $formatedReleaseDate = Get-Date $ReleaseDate -Format 'yyyy-MM-dd'
             $props.releaseDate = $formatedReleaseDate
         }
@@ -125,20 +118,19 @@
         Write-Debug -Message '[New-JiraVersion] Converting to JSON'
         $json = ConvertTo-Json -InputObject $props
 
-        Write-Debug -Message '[New-JiraVersion] Preparing for blastoff!'
-        $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
+        if ($PSCmdlet.ShouldProcess($Name, "Creating new Version on JIRA")) {
+            Write-Debug -Message '[New-JiraVersion] Preparing for blastoff!'
+            $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
+        }
 
-        If ($result)
-        {
+        If ($result) {
             Write-Output -InputObject $result
         }
-        Else
-        {
+        Else {
             Write-Debug -Message '[New-JiraVersion] Jira returned no results to output.'
         }
     }
-    end
-    {
+    end {
         Write-Debug "[New-JiraVersion] Complete"
     }
 }
