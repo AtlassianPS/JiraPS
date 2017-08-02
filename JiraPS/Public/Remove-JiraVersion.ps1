@@ -12,7 +12,7 @@
        Remove-JiraVersion -ID '66596'
        This example removes the Version given.
      .INPUTS
-        [PSJira.Versions]
+        [JiraPS.Versions]
     .OUTPUTS
        This Function outputs no results
     .NOTES

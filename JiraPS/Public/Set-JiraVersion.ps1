@@ -12,9 +12,9 @@
         Get-JiraVersion -ProjectID 162401 | Set-JiraVersion -Description 'Descriptive String'
         This example assigns the modifies the existing version with a new name 'New-Name'.
      .INPUTS
-        [PSJira.Versions]
+        [JiraPS.Versions]
      .OUTPUTS
-        [PSJira.Versions]
+        [JiraPS.Versions]
      .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
@@ -66,12 +66,6 @@
                     ParameterSetName = 'Key')]
         [String] $Project,
 
-        # The Version URL
-        [Parameter(Mandatory = $true,
-                    ValueFromPipelineByPropertyName=$true)]
-        [Alias('Self')]
-        [String] $RestURL,
-
         # Credentials to use to connect to Jira.
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName=$true)]
@@ -118,7 +112,6 @@
             archived    = $Archived
             released    = $Released
             projectId   = $ProjectData.ID
-            self = $RestURL
         }
         Write-Debug -Message '[Set-JiraVersion] Defining properties'
 
