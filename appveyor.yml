@@ -22,12 +22,6 @@ environment:
 
 version: 2.1.0.{build}
 
-# Only build commits to these branches
-branches:
-    only:
-        - master
-        - dev
-
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
 
@@ -40,6 +34,11 @@ skip_commits:
         - docs/
         - Tools/
 
+# PRs, by definition, don't change anything and therefore should not increment the version
+# To be fair, this is not important, and is really just AppVeyor enabling my pedantry
+pull_requests:
+  do_not_increment_build_number: true
+
 install:
     - cmd: git config --global core.autocrlf true
     - cmd: npm install -g markdown-spellcheck
@@ -47,6 +46,9 @@ install:
         Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
         Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force | Out-Null
         Install-Module BuildHelpers -Scope CurrentUser -Force | Out-Null
+        Install-Module platyPS -Scope CurrentUser -Force | Out-Null
+        Install-Module Pester -Scope CurrentUser -Force | Out-Null
+        Install-Module PSScriptAnalyzer -Scope CurrentUser -Force | Out-Null
         $env:releasePath = "$($pwd.Path)\Release"
 
 before_build:
@@ -76,10 +78,6 @@ deploy:
     on:
         branch: master                 # release from master branch only
         appveyor_repo_tag: false        # deploy on tag push only
-
-notifications:
-    - provider: Slack
-      incoming_webhook: https://hooks.slack.com/services/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
 
 # on_failure:
     # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
