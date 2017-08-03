@@ -5,19 +5,30 @@
     .DESCRIPTION
        This function provides information about JIRA Version
     .EXAMPLE
+       Get-JiraVersion -Project $ProjectKey
+       This example returns information about all JIRA Version visible to the current user for the project.
+    .EXAMPLE
        Get-JiraVersion -Project $ProjectKey -Name '1.0.0.0'
-       This example returns information about all JIRA Version visible to the current user (or using anonymous access if a PSJira session has not been defined) for the project.
+       This example returns the information of a specific Version.
     .EXAMPLE
        Get-JiraVersion -ID '66596'
-       This example returns information about all JIRA Version visible to the current user (or using anonymous access if a PSJira session has not been defined) for the project.
+       This example returns information about all JIRA Version visible to the current user (or using anonymous access if a JiraPS session has not been defined) for the project.
     .INPUTS
         [JiraPS.Project]
     .OUTPUTS
-       This function outputs a PSobject(s).
+       [JiraPS.Version]
+    .LINK
+        New-JiraVersion
+    .LINK
+        Remove-JiraVersion
+    .LINK
+        Set-JiraVersion
+    .LINK
+        Get-JiraProject
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding(DefaultParameterSetName = 'byProject')]
+    [CmdletBinding(DefaultParameterSetName = 'byId')]
     param(
         # Project key of a project to search
         [Parameter(
@@ -27,7 +38,7 @@
             ValueFromPipelineByPropertyName = $true
         )]
         [Alias('Key')]
-        [String] $Project,
+        [String[]] $Project,
 
         # Jira Version Name
         [Parameter(
@@ -35,14 +46,15 @@
             ParameterSetName = 'byProject'
         )]
         [Alias('Versions')]
-        [string[]] $Name,
+        [String[]] $Name,
 
         # The Version ID
         [Parameter(
             Mandatory = $true,
-            ParameterSetName = 'byVersionID'
+            ParameterSetName = 'byId',
+            ValueFromPipelineByPropertyName = $true
         )]
-        [Int[]] $ID,
+        [Int[]] $Id,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
@@ -50,41 +62,33 @@
     )
     begin {
         Write-Debug "[Get-JiraVersion] Reading server from config file"
-        try {
-            Write-Debug -Message '[Get-JiraVersion] Reading Jira server from config file'
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug -Message '[Get-JiraVersion] Encountered an error reading configuration data.'
-            throw $err
-        }
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Get-JiraVersion] Completed Begin block."
     }
     process {
         Switch ($PSCmdlet.ParameterSetName) {
             'byProject' {
-                Write-Debug "[Get-JiraVersion] Gathering project data for [$Project]."
-                $ProjectData = Get-JiraProject -Project $Project
-                $restUrl = "$server/rest/api/latest/project/$($projectData.key)/versions"
+                foreach ($_project in $Project) {
+                    Write-Debug "[Get-JiraVersion] Gathering project data for [$_project]."
+                    $projectData = Get-JiraProject -Project $_project
+                    $restUrl = "$server/rest/api/latest/project/$($projectData.key)/versions"
 
-                Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
-                $result = Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
+                    Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
+                    $result = Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
 
-                If ($Name) {
-                    $result | Where-Object {$PSItem.Name -in $Name}
-                }
-                else {
-                    $result
+                    If ($Name) {
+                        $result = $result | Where-Object {$_.Name -in $Name}
+                    }
+                    $result | ConvertTo-JiraVersion
                 }
             }
-            'byVersionID' {
+            'byId' {
                 foreach ($_id in $ID) {
                     $restUrl = "$server/rest/api/latest/version/$_id"
 
                     Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
-                    Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
+                    Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential | ConvertTo-JiraVersion
                 }
             }
         }

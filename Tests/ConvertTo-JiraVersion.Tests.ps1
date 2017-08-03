@@ -36,12 +36,16 @@ InModuleScope JiraPS {
         checkPsType $r 'JiraPS.Version'
 
         defProp $r 'ID' $versionID
-        defProp $r 'ProjectID' $projectId
+        defProp $r 'Project' $projectId
         defProp $r 'Name' $VersionName
         defProp $r 'Description' "$versionDescription"
         hasProp $r 'Archived'
         hasProp $r 'Released'
         hasProp $r 'Overdue'
         defProp $r 'RestUrl' "$jiraServer/rest/api/2/version/$versionId"
+
+        It 'properties are of the correct type' {
+            checkType $r.Project "JiraPS.Project"
+        }
     }
 }

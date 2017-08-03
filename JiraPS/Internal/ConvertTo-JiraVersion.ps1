@@ -14,17 +14,17 @@ function ConvertTo-JiraVersion {
 
             # Write-Debug "Defining standard properties"
             $props = @{
-                'ID'          = $i.id;
-                'ProjectID'   = $i.projectId;
-                'Name'        = $i.name;
-                'Description' = $i.description;
-                'Archived'    = $i.archived;
-                'Released'    = $i.released;
-                'Overdue'     = $i.overdue;
-                'RestUrl'     = $i.self;
+                'ID'          = $i.id
+                'Project'     = (Get-JiraProject $i.projectId)
+                'Name'        = $i.name
+                'Description' = $i.description
+                'Archived'    = $i.archived
+                'Released'    = $i.released
+                'Overdue'     = $i.overdue
+                'RestUrl'     = $i.self
             }
-            if ($i.releaseDate) { $props["ReleaseDate"] = (Get-Date $i.releaseDate) }
-            if ($i.userReleaseDate) { $props["UserReleaseDate"] = (Get-Date $i.userReleaseDate) }
+            if ($i.startDate) { $props["StartDate"] = (Get-Date $i.startDate) } else { $props["StartDate"] = "" }
+            if ($i.releaseDate) { $props["ReleaseDate"] = (Get-Date $i.releaseDate) } else { $props["ReleaseDate"] = "" }
 
             # Write-Debug "Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props

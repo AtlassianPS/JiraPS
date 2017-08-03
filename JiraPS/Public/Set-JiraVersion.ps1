@@ -5,133 +5,117 @@
     .DESCRIPTION
         This function modifies the Version for an existing Project in JIRA.
     .EXAMPLE
-        Get-JiraVersion -Project $Project | Set-JiraVersion -Name 'New-Name'
+        Get-JiraVersion -Project $Project -Name "Old-Name" | Set-JiraVersion -Name 'New-Name'
         This example assigns the modifies the existing version with a new name 'New-Name'.
     .EXAMPLE
-        Get-JiraVersion -ProjectID 162401 | Set-JiraVersion -Description 'Descriptive String'
+        Get-JiraVersion -ID 162401 | Set-JiraVersion -Description 'Descriptive String'
         This example assigns the modifies the existing version with a new name 'New-Name'.
      .INPUTS
-        [JiraPS.Versions]
+        [JiraPS.Version]
      .OUTPUTS
-        [JiraPS.Versions]
+        [JiraPS.Version]
      .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding(
-        SupportsShouldProcess = $true,
-        DefaultParameterSetName = 'ProjectID'
-    )]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param(
-        # Name of the version to create.
-        [Parameter(Mandatory = $true,
+        # Version to be changed
+        [Parameter(
             Position = 0,
-            ValueFromPipelineByPropertyName = $true)]
-        [Alias('FixVersions')]
+            Mandatory = $true,
+            ValueFromPipeline = $true
+        )]
+        [Object[]] $Version,
+
+        # New Name of the Version.
         [String] $Name,
 
-        # Description of the version.
-        [Parameter(Mandatory = $false,
-            ValueFromPipelineByPropertyName = $true)]
+        # New Description of the Version.
         [String] $Description,
 
-        # Create the version as archived.
-        [Parameter(,
-            ValueFromPipelineByPropertyName = $true)]
-        [bool] $Archived,
+        # New value for Archived.
+        [Bool] $Archived,
 
-        # Create the version as released.
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
-        [bool] $Released,
+        # New value for Released.
+        [Bool] $Released,
 
-        # Date of the release.
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
-        [datetime] $ReleaseDate,
+        # New Date of the release.
+        [DateTime] $ReleaseDate,
 
-        # Date of the user release.
-        [Parameter(ValueFromPipelineByPropertyName = $false)]
-        [datetime] $UserReleaseDate,
+        # New Date of the user release.
+        [DateTime] $StartDate,
 
-        # The Version ID
-        [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true)]
-        [String] $ID,
-
-        # The Project ID
-        [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'ProjectID')]
-        [String] $ProjectID,
-
-        # The Project Key
-        [Parameter(Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            ParameterSetName = 'Key')]
-        [String] $Project,
+        # The new Project where this version should be in.
+        # This can be the ID of the Project, or the Project Object
+        [Object] $Project,
 
         # Credentials to use to connect to Jira.
-        [Parameter(Mandatory = $false,
-            ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
 
     begin {
         Write-Debug -Message '[Set-JiraVersion] Reading information from config file'
-        try {
-            Write-Debug -Message '[Set-JiraVersion] Reading Jira server from config file'
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug -Message '[Set-JiraVersion] Encountered an error reading configuration data.'
-            throw $err
-        }
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Set-JiraVersion] Completed Begin block."
     }
+
     process {
-        Switch ($PSCmdlet.ParameterSetName) {
-            'Key' {
-                $ProjectData = Get-JiraProject -Project $Project
+        foreach ($_version in $Version) {
+            try {
+                # Validate InputObject type
+                if ($_version.PSObject.TypeNames[0] -ne "JiraPS.Version") {
+                    Write-Error "Wrong object type provided for Version. Only JiraPS.Version is accepted"
+                }
+
+                $id = [Int]($_version.Id)
+                $restUrl = "$server/rest/api/latest/version/$id"
+
+                $props = @{}
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) {
+                    $props["name"] = $Name
+                }
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
+                    $props["description"] = $Description
+                }
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Archived")) {
+                    $props["archived"] = $Archived
+                }
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Released")) {
+                    $props["released"] = $Released
+                }
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Project")) {
+                    if ($Project.PSObject.TypeNames[0] -eq "JiraPS.Project") {
+                        if ($Project.Id) {
+                            $props["projectId"] = $Project.Id
+                        }
+                        elseif ($Project.Key) {
+                            $props["project"] = $Project.Key
+                        }
+                    }
+                    else {
+                        $props["projectId"] = (Get-JiraProject $Project).Id
+                    }
+                }
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("ReleaseDate")) {
+                    $props["releaseDate"] = $ReleaseDate.ToString('yyyy-MM-dd')
+                }
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("StartDate")) {
+                    $props["startDate"] = $StartDate.ToString('yyyy-MM-dd')
+                }
+
+                Write-Debug -Message '[Set-JiraVersion] Converting to JSON'
+                $json = ConvertTo-Json -InputObject $props
+
+                if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
+                    Write-Debug -Message '[Set-JiraVersion] Preparing for blastoff!'
+                    Invoke-JiraMethod -Method Put -URI $restUrl -Body $json -Credential $Credential | ConvertTo-JiraVersion
+                }
             }
-            'ProjectID' {
-                $ProjectData = @{}
-                $ProjectData.ID = $ProjectID
+            catch {
+                Write-Error "Id of the Version was not available or could not be converted to Integer. Value was $($_version.Id)"
             }
-        }
-        $restUrl = "$server/rest/api/2/version/$ID"
-        Write-Debug "[Set-JiraVersion] Rest URL set to [$restUrl]."
-        $props = @{
-            id          = $ID
-            description = $Description
-            name        = $Name
-            archived    = $Archived
-            released    = $Released
-            projectId   = $ProjectData.ID
-        }
-        Write-Debug -Message '[Set-JiraVersion] Defining properties'
-
-        If ($UserReleaseDate) {
-            $formatedUserReleaseDate = Get-Date $UserReleaseDate -Format 'd/MMM/yy'
-            $props.userReleaseDate = $formatedUserReleaseDate
-        }
-        If ($ReleaseDate) {
-            $formatedReleaseDate = Get-Date $ReleaseDate -Format 'yyyy-MM-dd'
-            $props.releaseDate = $formatedReleaseDate
-        }
-
-        Write-Debug -Message '[Set-JiraVersion] Converting to JSON'
-        $json = ConvertTo-Json -InputObject $props
-
-        if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
-            Write-Debug -Message '[Set-JiraVersion] Preparing for blastoff!'
-            $result = Invoke-JiraMethod -Method Put -URI $restUrl -Body $json -Credential $Credential
-        }
-
-        If ($result) {
-            Write-Output -InputObject $result
-        }
-        Else {
-            Write-Debug -Message '[Set-JiraVersion] Jira returned no results to output.'
         }
     }
 
