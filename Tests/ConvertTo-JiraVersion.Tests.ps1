@@ -25,6 +25,16 @@ InModuleScope JiraPS {
     "projectId": $projectId
 }
 "@
+
+        Mock Get-JiraProject -ModuleName JiraPS {
+            $Project = [PSCustomObject]@{
+                Id = $projectId
+                Key = "ABC"
+            }
+            $Project.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+            $Project
+        }
+
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
         $r = ConvertTo-JiraVersion -InputObject $sampleObject
@@ -36,7 +46,7 @@ InModuleScope JiraPS {
         checkPsType $r 'JiraPS.Version'
 
         defProp $r 'ID' $versionID
-        defProp $r 'Project' $projectId
+        hasProp $r 'Project'
         defProp $r 'Name' $VersionName
         defProp $r 'Description' "$versionDescription"
         hasProp $r 'Archived'
