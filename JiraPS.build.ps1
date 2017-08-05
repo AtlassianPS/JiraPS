@@ -97,7 +97,6 @@ task TestPS5 {
 
 # Synopsis: Invoke Pester Tests
 task PesterTests {
-    Install-Module Pester, PSScriptAnalyzer -Force -Scope currentuser
     try {
         $result = Invoke-Pester -PassThru -OutputFile $BuildRoot\TestResult.xml
         if ($env:APPVEYOR_PROJECT_NAME) {
@@ -165,7 +164,6 @@ task GenerateDocs GenerateMarkdown, ConvertMarkdown
 
 # Synopsis: Generate markdown documentation with platyPS
 task GenerateMarkdown {
-    Install-Module platyPS -Force -scope currentuser
     Import-Module platyPS -Force
     Import-Module "$releasePath\JiraPS\JiraPS.psd1" -Force
     $null = New-MarkdownHelp -Module JiraPS -OutputFolder "$releasePath\JiraPS\docs" -Force

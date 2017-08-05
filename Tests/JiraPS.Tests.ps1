@@ -183,7 +183,7 @@ Describe "JiraPS" {
     }
 
     Context 'PSScriptAnalyzer Rules' {
-        $global:analysis = Invoke-ScriptAnalyzer -Path "$moduleRoot" -Recurse -Settings ".\ScriptAnalyzerSettings.psd1"
+        $analysis = Invoke-ScriptAnalyzer -Path "$moduleRoot" -Recurse -Settings ".\PSScriptAnalyzerSettings.psd1"
         $scriptAnalyzerRules = Get-ScriptAnalyzerRule
 
         forEach ($rule in $scriptAnalyzerRules) {

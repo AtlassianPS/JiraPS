@@ -61,6 +61,166 @@ InModuleScope JiraPS {
 
     }
 
+    Describe 'Handling of Versions' {
+        Context 'New-JiraVersion' {
+            # ARRANGE
+            $projectKey = "TV"
+            $versionName1 = "TESTv1"
+            $versionName2 = "TESTv2"
+            $versionName3 = "TESTv3"
+            $versionObject = [PSCustomObject]@{
+                Name        = $versionName1
+                Description = "My Description"
+                Project     = (Get-JiraProject -Project $projectKey)
+                ReleaseDate = (Get-Date "2017-12-01")
+                StartDate   = (Get-Date "2017-01-01")
+            }
+            $versionObject.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+            $versionParameter = [PSCustomObject]@{
+                Name        = $versionName2
+                Project     = $projectKey
+                Description = "Lorem Ipsum"
+            }
+            $versionSplat = @{
+                Name        = $versionName3
+                Description = "A Description"
+                Archived    = $false
+                Released    = $true
+                ReleaseDate = "2017-12-01"
+                StartDate   = "2017-01-01"
+                Project     = (Get-JiraProject -Project $projectKey)
+            }
+
+            # ACT
+            $result1 = $versionObject | New-JiraVersion -ErrorAction Stop
+            $result2 = New-JiraVersion -Name $versionParameter.Name -Project $versionParameter.Project -Description $versionParameter.Description -ErrorAction Stop
+            $result3 = New-JiraVersion @versionSplat -ErrorAction Stop
+
+            # ASSERT
+            It 'returns an object with specific properties' {
+                checkType $result1 'JiraPS.Version'
+                checkType $result1.Project 'JiraPS.Project'
+                checkType $result2 'JiraPS.Version'
+                checkType $result2.Project 'JiraPS.Project'
+                checkType $result3 'JiraPS.Version'
+                checkType $result3.Project 'JiraPS.Project'
+            }
+            defProp $result1 'Name' $versionName1
+            defProp $result2 'Name' $versionName2
+            defProp $result3 'Name' $versionName3
+        }
+
+        Context 'Get-JiraVersion' {
+            # ARRANGE
+            $projectKey = "TV"
+            $versionName1 = "TESTv1"
+            $versionName2 = "TESTv2"
+            $versionName3 = "TESTv3"
+            $versionObject = [PSCustomObject]@{
+                Name = $versionName1
+            }
+            $versionObject.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+            $versionParameter = [PSCustomObject]@{
+                Name    = $versionName2
+                Project = $projectKey
+            }
+
+            # ACT
+            $result1 = Get-JiraVersion -Project $projectKey -ErrorAction Stop
+            $result2 = Get-JiraProject $projectKey | Get-JiraVersion -ErrorAction Stop
+            $result3 = Get-JiraVersion -Project $projectKey -Name $versionName1, $versionName2 -ErrorAction Stop
+            $result4 = Get-JiraVersion -Id $result1.Id -ErrorAction Stop
+            $result5 = $result1 | Get-JiraVersion -ErrorAction Stop
+
+            # ASSERT
+            It 'returns an object with specific properties' {
+                checkType $result1 'JiraPS.Version'
+                checkType $result1.Project 'JiraPS.Project'
+                checkType $result2 'JiraPS.Version'
+                checkType $result2.Project 'JiraPS.Project'
+                checkType $result3 'JiraPS.Version'
+                checkType $result3.Project 'JiraPS.Project'
+                checkType $result4 'JiraPS.Version'
+                checkType $result4.Project 'JiraPS.Project'
+                checkType $result5 'JiraPS.Version'
+                checkType $result5.Project 'JiraPS.Project'
+            }
+            It 'returns the expected objects' {
+                $result1.Name -contains $versionName1 | Should Be $true
+                $result1.Name -contains $versionName2 | Should Be $true
+                $result1.Name -contains $versionName3 | Should Be $true
+                $result2.Name -contains $versionName1 | Should Be $true
+                $result2.Name -contains $versionName2 | Should Be $true
+                $result2.Name -contains $versionName3 | Should Be $true
+                $result1.ToString() | Should Be $result2.ToString()
+                $result3.Name -contains $versionName1 | Should Be $true
+                $result3.Name -contains $versionName2 | Should Be $true
+                $result1.ToString() | Should Be $result4.ToString()
+                $result1.ToString() | Should Be $result5.ToString()
+                $result4.ToString() | Should Be $result5.ToString()
+
+            }
+        }
+
+        Context 'Set-JiraVersion' {
+            # ARRANGE
+            $projectKey = "TV"
+            $now = (Get-Date)
+            $versionName1 = "TESTv1"
+            $oldVersion1 = Get-JiraVersion -Project $projectKey -Name $versionName1
+            $versionNewName1 = "TESTv1.1"
+            $versionName2 = "TESTv2"
+            $oldVersion2 = Get-JiraVersion -Project $projectKey -Name $versionName2
+            $versionName3 = "TESTv3"
+            $oldVersion3 = Get-JiraVersion -Project $projectKey -Name $versionName3
+
+            # ACT
+            $version1 = Set-JiraVersion -Version $oldVersion1 -Name "$versionNewName1" -ErrorAction Stop
+            $version2 = Set-JiraVersion -Version $oldVersion2 -Description "" -ErrorAction Stop
+            $version3 = $oldVersion2, $oldVersion3 | Set-JiraVersion -ReleaseDate $now -ErrorAction Stop
+
+            # ASSERT
+            It 'returns an object with specific properties' {
+                checkType $version1 'JiraPS.Version'
+                checkType $version2 'JiraPS.Version'
+                checkType $version3 'JiraPS.Version'
+            }
+            It 'changes field value by parameters' {
+                $version1 = Get-JiraVersion -Id $oldVersion1.Id
+                $version1.Name | Should Be $versionNewName1
+                $version1.Name | Should Not Be $oldVersion1.Name
+            }
+            It 'clears the value of a field' {
+                $oldVersion2.Description | Should Not BeNullOrEmpty
+                $version2 = Get-JiraVersion -Id $oldVersion2.Id
+                $version2.Description | Should BeNullOrEmpty
+                $version2.Description | Should Not Be $oldVersion2.Description
+            }
+            It 'changes field value by the pipeline' {
+                $version3 = Get-JiraVersion -Id $oldVersion2.Id, $oldVersion3.Id
+                $version3.ReleaseDate[0].ToString('yyyy-MM-dd') | Should Be $now.ToString('yyyy-MM-dd')
+            }
+        }
+
+        Context 'Remove-JiraVersion' {
+            # ARRANGE
+            $projectKey = "TV"
+            $versionName1 = "TESTv1.1"
+            $versionId1 = Get-JiraVersion -Project $projectKey -Name $versionName1
+            $versionName2 = "TESTv2"
+            $versionName3 = "TESTv3"
+
+            # ACT
+            Remove-JiraVersion -Version $versionId1 -Force -ErrorAction Stop
+            Get-JiraVersion -Project $projectKey -Name $versionName2, $versionName3 | Remove-JiraVersion -Force -ErrorAction Stop
+
+            # ASSERT
+            It 'removes the versions' {
+                Get-JiraVersion -Project $projectKey -Name $versionName1, $versionName2, $versionName3 | Should BeNullOrEmpty
+            }
+        }
+    }
+
     <# Describe 'Handling of Users and Groups' {
 
         Context 'New-JiraGroup' {
