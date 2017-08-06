@@ -193,7 +193,7 @@ task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR
 }, PublishToGallery
 
 task PublishToGallery {
-    Write-Build Gray $PSGalleryAPIKey
+    # Write-Build Gray $PSGalleryAPIKey
     Write-Build Gray $env:PSGalleryAPIKey
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
 
