@@ -59,7 +59,7 @@ InModuleScope JiraPS {
             $Version
         }
 
-        Mock ConvertTo-JiraVersion -InputObject $InoutObject -ModuleName JiraPS {
+        Mock ConvertTo-JiraVersion -InputObject $InputObject -ModuleName JiraPS {
             $result = New-Object -TypeName PSObject -Property @{
                 Id      = $InputObject.Id
                 Name    = $InputObject.name
@@ -99,14 +99,16 @@ InModuleScope JiraPS {
         Context "Behavior checking" {
             It "creates a Version from a Version Object" {
                 $version = Get-JiraVersion -Project $projectKey
-                ($result = { $version | New-JiraVersion }) | Should Not Throw
-                $results | Should BeNullOrEmpty
+                $results = $version | New-JiraVersion -ErrorAction Stop
+                $results | Should Not BeNullOrEmpty
+                checkType $results "JiraPS.Version"
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/latest/version" }
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
             }
             It "creates a Version using parameters" {
-                ($result = { New-JiraVersion -Name $versionName -Project $projectKey }) | Should Not Throw
-                $results | Should BeNullOrEmpty
+                $results = New-JiraVersion -Name $versionName -Project $projectKey -ErrorAction Stop
+                $results | Should Not BeNullOrEmpty
+                checkType $results "JiraPS.Version"
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/latest/version" }
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
             }
@@ -123,8 +125,9 @@ InModuleScope JiraPS {
                     Project     = (Get-JiraProject -Project $projectKey)
                     Credential  = $credentials
                 }
-                ($result = { New-JiraVersion @splat }) | Should Not Throw
-                $results | Should BeNullOrEmpty
+                $results = New-JiraVersion @splat -ErrorAction Stop
+                $results | Should Not BeNullOrEmpty
+                checkType $results "JiraPS.Version"
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/latest/version" }
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
             }
