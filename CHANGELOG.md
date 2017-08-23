@@ -1,3 +1,14 @@
+# Change Log
+
+## 2.2.0 (Aug 05, 2017)
+
+FEATURES:
+  - `New-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
+  - `Get-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
+  - `Set-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
+  - `Remove-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
+  - New custom object for Versions (#158, [@Dejulia489][])
+
 ## 2.1.0 (Jul 25, 2017)
 
 FEATURES:

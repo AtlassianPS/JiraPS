@@ -11,20 +11,17 @@
 os: WMF 5
 
 environment:
-    ModuleName: $(APPVEYOR_PROJECT_NAME)
-    Tags: 'JIRA'
-    LicenseUri: 'https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE'
-    ProjectUri: 'https://github.com/AtlassianPS/JiraPS/'
-
     # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
     PSGalleryAPIKey:
         secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
 
-version: 2.1.0.{build}
+version: 2.2.0.{build}
 
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
 
+# Ignore testing a commit if only the readme changed
+# Or if I include "skip-tests" in the commit message
 skip_commits:
     message: /readme*/
     files:
