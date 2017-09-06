@@ -11,6 +11,11 @@
 os: WMF 5
 
 environment:
+    ModuleName: $(APPVEYOR_PROJECT_NAME)
+    Tags: 'JIRA'
+    LicenseUri: 'https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE'
+    ProjectUri: 'https://github.com/AtlassianPS/JiraPS/'
+
     # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
     PSGalleryAPIKey:
         secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
@@ -23,13 +28,16 @@ skip_tags: true
 # Ignore testing a commit if only the readme changed
 # Or if I include "skip-tests" in the commit message
 skip_commits:
-    message: /readme*/
+    message: /skip\-tests/
     files:
         - .github/
         - .vscode/
         - assets/
         - docs/
         - Tools/
+        - README.md
+        - .gitattributes
+        - .gitignore
 
 # PRs, by definition, don't change anything and therefore should not increment the version
 # To be fair, this is not important, and is really just AppVeyor enabling my pedantry
@@ -69,7 +77,6 @@ deploy:
     description: ''
     auth_token:
         secure: GPFmkrGf5ufcdQZiGVbfdBefIjcgVRJFutY8xf5+98B/jf18ZiiRZclAps3jFFLd
-    # artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
     draft: false
     prerelease: false
     on:
