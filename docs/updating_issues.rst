@@ -22,6 +22,9 @@ Editing issues is done with the Set-JiraIssue function.
     $issue = Get-JiraIssue TEST-1
     $issue | Set-JiraIssue -Summary "$($issue.Summary) (Modified by PowerShell)"
 
+    # Change the issue's summary and add a comment for that change
+    $issue | Set-JiraIssue -Summary "New Summary" -AddComment "Changed summary for testing"
+
 If the field you want to change does not have a named parameter, Set-JiraIssue also supports changing arbitrary fields using the -Fields parameter. For more information on this parameter, see the :doc:`custom_fields` page.
 
 Labels
@@ -75,6 +78,11 @@ You can also use Format-Jira to convert a PowerShell object into a JIRA table.
     Get-JiraIssue TEST-1 | Add-JiraIssueComment "Current PowerShell processes:\n$commentText"
 
 .. note:: Like other Format-* commands, Format-Jira is a destructive operation for data in the pipeline. Remember to "filter left, format right!"
+
+Comments can also be added while changing other fields of issues, e.g. the assignee:
+
+.. code:: PowerShell
+    Set-JiraIssue -Issue TEST-1 -Assignee "John" -Addcomment "Dear mr. Doe, please review this issue.Thx"
 
 .. _Issue Transitions:
 
