@@ -87,11 +87,11 @@ InModuleScope JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraProject -Project $Project -ModuleName JiraPS {
+        Mock Get-JiraProject -ModuleName JiraPS {
             ConvertFrom-Json2 $JiraProjectData | Where-Object {$_.Key -in $Project}
         }
 
-        Mock ConvertTo-JiraVersion -InputObject $InoutObject -ModuleName JiraPS {
+        Mock ConvertTo-JiraVersion -ModuleName JiraPS {
             $result = New-Object -TypeName PSObject -Property @{
                 Id      = $InputObject.Id
                 Name    = $InputObject.name
