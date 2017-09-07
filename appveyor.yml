@@ -13,7 +13,7 @@ os: WMF 5
 environment:
     # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
     PSGalleryAPIKey:
-        secure: 7XKKiZnJO4AxMUeXdpy4h0mjzdT78AlLqNLq73WpZrs=
+        secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
 
 version: 2.2.0.{build}
 
