@@ -13,7 +13,8 @@ os: WMF 5
 environment:
     # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
     PSGalleryAPIKey:
-        secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
+        secure: Ezd2JjB6rbNZOiJmcek2bZSSdXB34fjoC6JXdXcICf6KZGoBOIRZAG9KfHAYiMa7
+        # Must be updated to use contact@AtlassianPS.net user
 
 version: 2.2.0.{build}
 
@@ -23,13 +24,16 @@ skip_tags: true
 # Ignore testing a commit if only the readme changed
 # Or if I include "skip-tests" in the commit message
 skip_commits:
-    message: /readme*/
+    message: /skip\-tests/
     files:
         - .github/
         - .vscode/
         - assets/
         - docs/
         - Tools/
+        - README.md
+        - .gitattributes
+        - .gitignore
 
 # PRs, by definition, don't change anything and therefore should not increment the version
 # To be fair, this is not important, and is really just AppVeyor enabling my pedantry
@@ -69,7 +73,6 @@ deploy:
     description: ''
     auth_token:
         secure: GPFmkrGf5ufcdQZiGVbfdBefIjcgVRJFutY8xf5+98B/jf18ZiiRZclAps3jFFLd
-    # artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
     draft: false
     prerelease: false
     on:
