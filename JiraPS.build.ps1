@@ -193,7 +193,6 @@ task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR
 }, PublishToGallery
 
 task PublishToGallery {
-    Write-Build Gray "Hi $($env:PSGalleryAPIKey)"
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
 
     Import-Module $releasePath\JiraPS\JiraPS.psd1 -ErrorAction Stop
