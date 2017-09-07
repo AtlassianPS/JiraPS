@@ -188,8 +188,7 @@ task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
 # endregion
 
 # region publish
-# task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) RemoveMarkdown, {
-task Deploy RemoveMarkdown, {
+task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) RemoveMarkdown, {
     Remove-Module JiraPS -ErrorAction SilentlyContinue
 }, PublishToGallery
 
