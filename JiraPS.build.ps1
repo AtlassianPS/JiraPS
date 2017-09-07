@@ -98,7 +98,7 @@ task TestPS5 {
 # Synopsis: Invoke Pester Tests
 task PesterTests {
     try {
-        $result = Invoke-Pester -PassThru -OutputFile $BuildRoot\TestResult.xml
+        $result = Invoke-Pester -PassThru -OutputFile "$BuildRoot\TestResult.xml" -OutputFormat "NUnitXml"
         if ($env:APPVEYOR_PROJECT_NAME) {
             Add-TestResultToAppveyor -TestFile "$BuildRoot\TestResult.xml"
             Remove-Item "$BuildRoot\TestResult.xml" -Force
