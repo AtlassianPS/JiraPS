@@ -72,7 +72,7 @@ deploy:
     release: v$(appveyor_build_version)
     description: ''
     auth_token:
-        secure: GPFmkrGf5ufcdQZiGVbfdBefIjcgVRJFutY8xf5+98B/jf18ZiiRZclAps3jFFLd
+        secure: TrwaJnVCWAPK2CuuNYo1uLCkaA9ZBXb4R/GBF4+pIirqISbrmioXRrju3U+rFV1o
     draft: false
     prerelease: false
     on:
