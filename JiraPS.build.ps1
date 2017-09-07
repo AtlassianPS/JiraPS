@@ -23,8 +23,6 @@ Set-StrictMode -Version Latest
 # region debug information
 task ShowDebug {
     Write-Build Gray
-    Write-Build Gray ('PSGalleryAPIKey:            {0}' -f $env:PSGalleryAPIKey)
-    Write-Build Gray
     Write-Build Gray ('Project name:               {0}' -f $env:APPVEYOR_PROJECT_NAME)
     Write-Build Gray ('Project root:               {0}' -f $env:APPVEYOR_BUILD_FOLDER)
     Write-Build Gray ('Repo name:                  {0}' -f $env:APPVEYOR_REPO_NAME)
