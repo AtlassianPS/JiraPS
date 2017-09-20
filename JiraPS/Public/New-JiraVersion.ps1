@@ -176,7 +176,7 @@
                     }
                 }
                 else {
-                    $iwrSplat["projectId"] = (Get-JiraProject $Project).Id
+                    $iwrSplat["projectId"] = (Get-JiraProject $Project -Credential $Credential).Id
                 }
             }
         }
@@ -190,7 +190,7 @@
         }
 
         If ($result) {
-            $result | ConvertTo-JiraVersion
+            $result | ConvertTo-JiraVersion -Credential $Credential
         }
         Else {
             Write-Debug -Message '[New-JiraVersion] Jira returned no results to output.'

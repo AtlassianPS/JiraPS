@@ -71,7 +71,7 @@
             'byProject' {
                 foreach ($_project in $Project) {
                     Write-Debug "[Get-JiraVersion] Gathering project data for [$_project]."
-                    $projectData = Get-JiraProject -Project $_project
+                    $projectData = Get-JiraProject -Project $_project -Credential $Credential
                     $restUrl = "$server/rest/api/latest/project/$($projectData.key)/versions"
 
                     Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
@@ -80,7 +80,7 @@
                     If ($Name) {
                         $result = $result | Where-Object {$_.Name -in $Name}
                     }
-                    $result | ConvertTo-JiraVersion
+                    $result | ConvertTo-JiraVersion -Credential $Credential
                 }
             }
             'byId' {
@@ -88,7 +88,7 @@
                     $restUrl = "$server/rest/api/latest/version/$_id"
 
                     Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
-                    Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential | ConvertTo-JiraVersion
+                    Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential | ConvertTo-JiraVersion -Credential $Credential
                 }
             }
         }

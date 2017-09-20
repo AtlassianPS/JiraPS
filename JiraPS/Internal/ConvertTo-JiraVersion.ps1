@@ -5,7 +5,10 @@ function ConvertTo-JiraVersion {
             Position = 0,
             ValueFromPipeline = $true
         )]
-        [PSObject[]] $InputObject
+        [PSObject[]] $InputObject,
+
+        [Parameter(Mandatory = $false)]
+        [System.Management.Automation.PSCredential] $Credential
     )
 
     process {
@@ -15,7 +18,7 @@ function ConvertTo-JiraVersion {
             # Write-Debug "Defining standard properties"
             $props = @{
                 'ID'          = $i.id
-                'Project'     = (Get-JiraProject $i.projectId)
+                'Project'     = (Get-JiraProject $i.projectId -Credential $Credential)
                 'Name'        = $i.name
                 'Description' = $i.description
                 'Archived'    = $i.archived
