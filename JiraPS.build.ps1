@@ -166,25 +166,26 @@ task GenerateDocs GenerateMarkdown, ConvertMarkdown
 task GenerateMarkdown {
     Import-Module platyPS -Force
     Import-Module "$releasePath\JiraPS\JiraPS.psd1" -Force
-    $null = New-MarkdownHelp -Module JiraPS -OutputFolder "$releasePath\JiraPS\docs" -Force
+    "$releasePath\docs\Update-Documentation.ps1"
+    # $null = New-MarkdownHelp -Module JiraPS -OutputFolder "$releasePath\JiraPS\docs" -Force
     Remove-Module JiraPS, platyPS
 }
 
 # Synopsis: Convert markdown files to HTML.
 # <http://johnmacfarlane.net/pandoc/>
-$ConvertMarkdown = @{
-    Inputs  = { Get-ChildItem "$releasePath\JiraPS\*.md" -Recurse }
-    Outputs = {process {
-            [System.IO.Path]::ChangeExtension($_, 'htm')
-        }
-    }
-}
+# $ConvertMarkdown = @{
+#     Inputs  = { Get-ChildItem "$releasePath\JiraPS\*.md" -Recurse }
+#     Outputs = {process {
+#             [System.IO.Path]::ChangeExtension($_, 'htm')
+#         }
+#     }
+# }
 # Synopsis: Converts *.md and *.markdown files to *.htm
-task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
-        Write-Build Green "Converting File: $_"
-        exec { Tools\pandoc.exe $_ --standalone --from=markdown_github "--output=$2" }
-    }
-}
+# task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
+#         Write-Build Green "Converting File: $_"
+#         exec { Tools\pandoc.exe $_ --standalone --from=markdown_github "--output=$2" }
+#     }
+# }
 # endregion
 
 # region publish
