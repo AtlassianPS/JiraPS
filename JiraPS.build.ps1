@@ -135,11 +135,15 @@ task GenerateRelease {
 
 # Synopsis: Update the manifest of the module
 task UpdateManifest GetVersion, {
+    $ModuleAlias = (Get-Alias | Where source -eq JiraPS)
+
     Remove-Module JiraPS -ErrorAction SilentlyContinue
     Import-Module "$releasePath\JiraPS\JiraPS.psd1"
     Update-Metadata -Path "$releasePath\JiraPS\JiraPS.psd1" -PropertyName ModuleVersion -Value $script:Version
     # Update-Metadata -Path "$releasePath\JiraPS\JiraPS.psd1" -PropertyName FileList -Value (Get-ChildItem $releasePath\JiraPS -Recurse).Name
-    Update-Metadata -Path "$releasePath\JiraPS\JiraPS.psd1" -PropertyName AliasesToExport -Value @((Get-Alias | Where source -eq JiraPS).Name)
+    if ($ModuleAlias) {
+        Update-Metadata -Path "$releasePath\JiraPS\JiraPS.psd1" -PropertyName AliasesToExport -Value @($ModuleAlias.Name)
+    }
     Set-ModuleFunctions -Name "$releasePath\JiraPS\JiraPS.psd1" -FunctionsToExport ([string[]](Get-ChildItem "$releasePath\JiraPS\public\*.ps1").BaseName)
 }
 
