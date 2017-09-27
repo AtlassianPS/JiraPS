@@ -18,7 +18,7 @@ function ConvertTo-JiraVersion {
             # Write-Debug "Defining standard properties"
             $props = @{
                 'ID'          = $i.id
-                'Project'     = (Get-JiraProject $i.projectId -Credential $Credential)
+                'Project'     = $i.projectId
                 'Name'        = $i.name
                 'Description' = $i.description
                 'Archived'    = $i.archived
