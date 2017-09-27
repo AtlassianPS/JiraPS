@@ -52,7 +52,6 @@ InModuleScope JiraPS {
         It "Answers to the alias 'Get-JiraServerInfo'" {
             $thisAlias = (Get-Alias -Name "Get-JiraServerInfo")
             $thisAlias.ResolvedCommandName | Should Be "Get-JiraServerInformation"
-            $thisAlias.Scope | Should Be "Global"
             $thisAlias.Source | Should Be "JiraPS"
         }
     }
