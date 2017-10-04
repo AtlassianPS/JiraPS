@@ -97,6 +97,10 @@ task TestPS5 {
 
 # Synopsis: Invoke Pester Tests
 task PesterTests {
+    # Ensure expected environment
+    Remove-Module JiraPS -ErrorAction SilentlyContinue
+    $global:SuppressImportModule = $false
+
     try {
         $result = Invoke-Pester -PassThru -OutputFile $BuildRoot\TestResult.xml
         if ($env:APPVEYOR_PROJECT_NAME) {
