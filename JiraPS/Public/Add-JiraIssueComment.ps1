@@ -45,7 +45,7 @@ function Add-JiraIssueComment {
 
         # Visibility of the comment - should it be publicly visible, viewable to only developers, or only administrators?
         [ValidateSet('All Users', 'Developers', 'Administrators')]
-        [String] $VisibleRole = 'Developers',
+        [String] $VisibleRole = 'All Users',
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.

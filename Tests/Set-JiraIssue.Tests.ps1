@@ -41,6 +41,7 @@ InModuleScope JiraPS {
             defParam 'Description'
             defParam 'Assignee'
             defParam 'Label'
+            defParam 'AddComment'
             defParam 'Fields'
             defParam 'Credential'
             defParam 'PassThru'
@@ -100,6 +101,11 @@ InModuleScope JiraPS {
             It "Uses Set-JiraIssueLabel with the -Set parameter when the -Label parameter is used" {
                 { Set-JiraIssue -Issue TEST-001 -Label 'test' } | Should Not Throw
                 Assert-MockCalled -CommandName Set-JiraIssueLabel -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Set -ne $null }
+            }
+
+            It "Adds a comment if the -AddComemnt parameter is passed" {
+                { Set-JiraIssue -Issue TEST-001 -AddComment 'New Comment' } | Should Not Throw
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $Uri -like '*/rest/api/2/issue/12345' -and $Body -like '*comment*add*body*New Comment*' }
             }
 
             It "Updates custom fields if provided to the -Fields parameter" {

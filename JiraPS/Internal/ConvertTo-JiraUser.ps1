@@ -15,6 +15,8 @@ function ConvertTo-JiraUser {
 
             # Write-Debug "[ConvertTo-JiraUser] Defining standard properties"
             $props = @{
+                'Key'          = $i.key;
+                'AccountId'    = $i.accountId;
                 'Name'         = $i.name;
                 'DisplayName'  = $i.displayName;
                 'EmailAddress' = $i.emailAddress;
@@ -22,6 +24,8 @@ function ConvertTo-JiraUser {
                 'RestUrl'      = $i.self;
                 'AvatarUrl'    = $i.avatarUrls;
                 'TimeZone'     = $i.timeZone;
+                'Locale'       = $i.locale;
+                'Groups'       = $i.groups.items;
             }
 
             if ($i.groups) {

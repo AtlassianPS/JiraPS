@@ -102,7 +102,7 @@ task PesterTests {
     $global:SuppressImportModule = $false
 
     try {
-        $result = Invoke-Pester -PassThru -OutputFile $BuildRoot\TestResult.xml
+        $result = Invoke-Pester -PassThru -OutputFile "$BuildRoot\TestResult.xml" -OutputFormat "NUnitXml"
         if ($env:APPVEYOR_PROJECT_NAME) {
             Add-TestResultToAppveyor -TestFile "$BuildRoot\TestResult.xml"
             Remove-Item "$BuildRoot\TestResult.xml" -Force
@@ -166,7 +166,6 @@ task GetVersion {
     }
     $script:Version = New-Object -TypeName System.Version -ArgumentList $currentVersion.Major,
     $currentVersion.Minor,
-    $currentVersion.Build,
     $newRevision
 }
 

@@ -16,6 +16,9 @@ function Set-JiraIssue {
     .EXAMPLE
        Set-JiraIssue -Issue TEST-01 -Assignee 'Unassigned'
        This example removes the assignee from JIRA issue TEST-01.
+    .EXAMPLE
+       Set-JiraIssue -Issue TEST-01 -Assignee 'joe' -AddComment 'Dear [~joe], please review.'
+       This example assigns the JIRA Issue TEST-01 to 'joe' and adds a comment at one.
     .INPUTS
        [JiraPS.Issue[]] The JIRA issue that should be modified
     .OUTPUTS
@@ -60,6 +63,10 @@ function Set-JiraIssue {
 
         # Any additional fields that should be updated.
         [System.Collections.Hashtable] $Fields,
+
+        # Add a comment ad once with your changes
+        [Parameter(Mandatory = $false)]
+        [String] $AddComment,
 
         # Path of the file where the configuration is stored.
         [ValidateScript( {Test-Path $_})]
@@ -147,6 +154,16 @@ function Set-JiraIssue {
                     $issueProps.update.fixVersions = @()
                     $issueProps.update.fixVersions += @{
                         'set' = $fixVersionSet;
+                    }
+                    $actOnIssueUri = $true
+                }
+
+                if ($AddComment) {
+                    $issueProps.update.comment = @()
+                    $issueProps.update.comment += @{
+                        'add' = @{
+                            'body' = $AddComment
+                        }
                     }
                     $actOnIssueUri = $true
                 }
