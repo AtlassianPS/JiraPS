@@ -85,7 +85,7 @@ function New-JiraSession {
             $tokenRequiresCaptcha = "AUTHENTICATION_DENIED"
             $headerRequiresCaptcha = "X-Seraph-LoginReason"
             if (
-                $webResponse.Headers.ContainsKey($headerRequiresCaptcha) -and
+                $webResponse.Headers[$headerRequiresCaptcha] -and
                 ($webResponse.Headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha
             ) {
                 Write-Warning "JIRA requires you to log on to the website before continuing for security reasons."
