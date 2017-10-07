@@ -1,5 +1,16 @@
 # Change Log
 
+## 2.3 (Okt 07, 2017)
+
+FEATURES:
+  - `Get-JiraServerInformation`: Fetches the information about the server (#187, [@lipkau][])
+
+IMPROVEMENTS:
+  - Added `-AddComment` to `Set-JiraIssue`. Allowing the user to write a comment for the changes to the issue (#167, [@Clijsters][])
+  - Changed the default visibility of comments (#172, [@lipkau][])
+  - Added more properties to `JiraPS.User` objects (#152, [@lipkau][])
+
+
 ## 2.2.0 (Aug 05, 2017)
 
 FEATURES:
@@ -151,6 +162,7 @@ BUG FIXES:
 [@alexsuslin]: https://github.com/alexsuslin
 [@axxelG]: https://github.com/axxelG
 [@brianbunke]: https://github.com/brianbunke
+[@Clijsters]: https://github.com/Clijsters
 [@colhal]: https://github.com/colhal
 [@Dejulia489]: https://github.com/Dejulia489
 [@ebekker]: https://github.com/ebekker
