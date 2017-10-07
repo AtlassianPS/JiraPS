@@ -39,4 +39,4 @@ function Get-JiraServerInformation {
     }
 }
 
-New-Alias -Name "Get-JiraServerInfo" -Value "Get-JiraServerInformation"
+New-Alias -Name "Get-JiraServerInfo" -Value "Get-JiraServerInformation" -ErrorAction SilentlyContinue
