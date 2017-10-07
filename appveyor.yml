@@ -16,7 +16,7 @@ environment:
         secure: Ezd2JjB6rbNZOiJmcek2bZSSdXB34fjoC6JXdXcICf6KZGoBOIRZAG9KfHAYiMa7
         # Must be updated to use contact@AtlassianPS.net user
 
-version: 2.2.0.{build}
+version: 2.3.{build}
 
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
