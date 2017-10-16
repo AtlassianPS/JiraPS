@@ -1,8 +1,8 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -18,8 +18,7 @@ InModuleScope PSJira {
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraIssue
 
-            function defParam($name)
-            {
+            function defParam($name) {
                 It "Has a -$name parameter" {
                     $command.Parameters.Item($name) | Should Not BeNullOrEmpty
                 }
@@ -37,12 +36,11 @@ InModuleScope PSJira {
 
         Context "Behavior testing" {
             Mock Invoke-JiraMethod {
-                if ($ShowMockData)
-                {
+                if ($ShowMockData) {
                     Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                     Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                     Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-#                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                    #                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
                 }
             }
 
@@ -57,17 +55,17 @@ InModuleScope PSJira {
 
             It "Obtains information about a provided issue in JIRA" {
                 { Get-JiraIssue -Key TEST-001 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
             }
 
             It "Uses JQL to search for issues if the -Query parameter is used" {
                 { Get-JiraIssue -Query $jql } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*" }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*" }
             }
 
             It "Supports the -StartIndex and -MaxResults parameters to page through search results" {
                 { Get-JiraIssue -Query $jql -StartIndex 10 -MaxResults 50 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*startAt=10&maxResults=50*" }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*startAt=10&maxResults=50*" }
             }
 
             It "Returns all issues via looping if -MaxResults is not specified" {
@@ -76,12 +74,11 @@ InModuleScope PSJira {
                 # mock that actually returns some data.
 
                 Mock Invoke-JiraMethod {
-                    if ($ShowMockData)
-                    {
+                    if ($ShowMockData) {
                         Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                         Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                         Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-#                        Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                        #                        Write-Host "         [Body]    $Body" -ForegroundColor Cyan
                     }
 
                     ConvertFrom-Json2 @'
@@ -105,29 +102,29 @@ InModuleScope PSJira {
                 { Get-JiraIssue -Query $jql -PageSize 25 } | Should Not Throw
 
                 # This should call Invoke-JiraMethod once for one issue (to get the MaxResults value)...
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*maxResults=1*" }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*maxResults=1*" }
 
                 # ...and once more with the MaxResults set to the PageSize parameter
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*startAt=0&maxResults=25" }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*startAt=0&maxResults=25" }
             }
         }
 
         Context "Input testing" {
             It "Accepts an issue key for the -Key parameter" {
                 { Get-JiraIssue -Key TEST-001 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
             }
 
             It "Accepts an issue object for the -InputObject parameter" {
                 $issue = [PSCustomObject] @{
-                    'Key'     = 'TEST-001'
-                    'ID'      = '12345'
+                    'Key' = 'TEST-001'
+                    'ID'  = '12345'
                 }
-                $issue.PSObject.TypeNames.Insert(0, 'PSJira.Issue')
+                $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
 
                 # Should call Get-JiraIssue using the -Key parameter, so our URL should reflect the key we provided
                 { Get-JiraIssue -InputObject $issue } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
             }
         }
     }

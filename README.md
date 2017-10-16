@@ -1,54 +1,83 @@
-# [PSJira](https://psjira.github.io/)
+---
+layout: module
+permalink: /module/JiraPS/
+---
 
-[![Build status](https://ci.appveyor.com/api/projects/status/utpel25via67xw3b?svg=true)](https://ci.appveyor.com/project/JoshuaT/psjira)
-[![Documentation Status](https://readthedocs.org/projects/psjira/badge/?version=latest)](http://psjira.readthedocs.io/en/latest/?badge=latest)
+# [JiraPS](https://atlassianps.org/module/JiraPS)
 
-PSJira is a Windows PowerShell module to interact with [Atlassian JIRA](https://www.atlassian.com/software/jira) via a REST API, while maintaining a consistent PowerShell look and feel.
+[![Build status](https://ci.appveyor.com/api/projects/status/9s62lxho77ukry8a/branch/master?svg=true)](https://ci.appveyor.com/project/AtlassianPS/jiraps/branch/master)
 
-Join the conversation on [![SlackLogo][] PSJira.Slack.com](https://slofile.com/slack/psjira)
+JiraPS is a Windows PowerShell module to interact with Atlassian [JIRA] via a REST API, while maintaining a consistent PowerShell look and feel.
 
-[SlackLogo]: assets/Slack_Mark_Web_28x28.png
+Join the conversation on [![SlackLogo][] AtlassianPS.Slack.com](https://atlassianps.org/slack)
+
+[SlackLogo]: https://atlassianps.org/assets/img/Slack_Mark_Web_28x28.png
+<!--more-->
 
 ---
 
-## Documentation on ReadTheDocs
+## Instructions
 
-Documentation for PSJira has moved to [ReadTheDocs.io](http://psjira.readthedocs.io). Check it out, and feel free to submit issues or PRs against the documentation as well!
+### Installation
 
----
-
-## Requirements
-
-This module has a hard dependency on PowerShell 3.0.  There are no plans to release a version compatible with PowerShell 2, as the module relies on several cmdlets and features added in version 3.0.
-
-## Downloading
-
-Due to the magic of continuous integration, the latest passing build of this project will always be on the PowerShell Gallery. If you have the Package Management module for PowerShell (which comes with PowerShell 5.0), you can install the latest build easily:
+Install JiraPS from the [PowerShell Gallery]! `Install-Module` requires PowerShellGet (included in PS v5, or download for v3/v4 via the gallery link)
 
 ```powershell
-Install-Module PSJira
+# One time only install: (requires an admin PowerShell window)
+Install-Module JiraPS
+
+# Check for updates occasionally:
+Update-Module JiraPS
+
+# To use each session:
+Import-Module JiraPS
+Set-JiraConfigServer 'https://YourCloud.atlassian.net'
+New-JiraSession -Credential $cred
 ```
 
-If you're using PowerShell 3 or 4, consider updating! If that's not an option, consider installing PackageManagement on PowerShell 3 or 4 (you can do so from the [PowerShell gallery](https://www.powershellgallery.com/) using the MSI installer link).
+### Usage
 
-You can also download this module from the Download Zip button on this page.  You'll need to extract the PSJira folder to your $PSModulePath (normally, this is at C:\Users\<username>\Documents\WindowsPowerShell\Modules).
+You can find the full documentation on our [homepage](https://atlassianps.org/docs/JiraPS) and in the console.
+```powershell
+# Review the help at any time!
+Get-Help about_JiraPS
+Get-Command -Module JiraPS
+Get-Help Get-JiraIssue -Full   # or any other command
+```
 
-Finally, you can check the releases page here on GitHub for "stable" versions, but again, PSGallery will always have the latest (tested) version of the module.
+For first steps to get up and running, check out the [Getting Started](https://atlassianps.org/docs/JiraPS/Getting_Started.html) page.
 
-## Usage
+### Contribute
 
-All the documentation for PSJira is on the [ReadTheDocs page](http://psjira.readthedocs.io).
+Want to contribute to AtlassianPS? Great!
+We appreciate [everyone](https://atlassianps.org/#people) who invests their time to make our modules the best they can be.
 
-For basic instructions to get up and running, check out the [Getting Started](http://psjira.readthedocs.io/en/latest/getting_started.html) page.
+Check out our guidelines on [Contributing](https://atlassianps.org/docs/Contributing.html) to our modules and documentation.
 
-## Contributing
+## Acknowledgments
 
-Want to contribute to PSJira?  Great! Start with the [Contributing](http://psjira.readthedocs.io/en/latest/contributing.html) page on the project documentation - it will explain how to work with PSJira's test and CI systems.
+* Thanks to [replicaJunction] for getting this module on it's feet
+* Thanks to everyone ([Our Contributors](https://atlassianps.org/#people)) that helped with this module
 
-**Pull requests for PSJira are expected to pass all Pester tests before being merged.** More details can be found on the project documentation site.
+## Useful links
 
-## Contact
+* [Source Code]
+* [Latest Release]
+* [Submit an Issue]
+* How you can help us: [List of Issues](https://github.com/AtlassianPS/JiraPS/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
 
-Feel free to comment on this project here on GitHub using the issues or discussion pages.  You can also check out [my blog](http://replicajunction.github.io/) or catch me on the [PowerShell subreddit](https://www.reddit.com/r/powershell).
+## Disclaimer
 
-*Note:* As with all community PowerShell modules and code, you use PSJira at your own risk.  I am not responsible if your JIRA instance causes a fire in your datacenter (literal or otherwise).
+Hopefully this is obvious, but:
+> This is an open source project (under the [MIT license]), and all contributors are volunteers. All commands are executed at your own risk. Please have good backups before you start, because you can delete a lot of stuff if you're not careful.
+
+  [JIRA]: <https://www.atlassian.com/software/jira>
+  [PowerShell Gallery]: <https://www.powershellgallery.com/>
+  [Source Code]: <https://github.com/AtlassianPS/JiraPS>
+  [Latest Release]: <https://github.com/AtlassianPS/JiraPS/releases/latest>
+  [Submit an Issue]: <https://github.com/AtlassianPS/JiraPS/issues/new>
+  [replicaJunction]: <https://github.com/replicaJunction>
+  [MIT license]: <https://github.com/brianbunke/JiraPS/blob/master/LICENSE>
+
+<!-- [//]: # (Sweet online markdown editor at http://dillinger.io) -->
+<!-- [//]: # ("GitHub Flavored Markdown" https://help.github.com/articles/github-flavored-markdown/) -->

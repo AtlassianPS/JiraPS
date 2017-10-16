@@ -1,6 +1,6 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraProject" {
         . $PSScriptRoot\Shared.ps1
 
@@ -12,22 +12,22 @@ InModuleScope PSJira {
 
         $sampleJson = @"
 {
-"self": "$jiraServer/rest/api/2/project/$projectId",
-"id": "$projectId",
-"key": "$projectKey",
-"name": "$projectName",
-"projectCategory": {
-    "self": "$jiraServer/rest/api/2/projectCategory/10000",
-    "id": "10000",
-    "description": "All Project Catagories",
-    "name": "All Project"
-},
-"components": {
-    "self": "$jiraServer/rest/api/2/component/11000",
-    "id": "11000",
-    "description": "A test component",
-    "name": "test component"
-}
+    "self": "$jiraServer/rest/api/2/project/$projectId",
+    "id": "$projectId",
+    "key": "$projectKey",
+    "name": "$projectName",
+    "projectCategory": {
+        "self": "$jiraServer/rest/api/2/projectCategory/10000",
+        "id": "10000",
+        "description": "All Project Catagories",
+        "name": "All Project"
+    },
+    "components": {
+        "self": "$jiraServer/rest/api/2/component/11000",
+        "id": "11000",
+        "description": "A test component",
+        "name": "test component"
+    }
 }
 "@
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
@@ -38,7 +38,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Project'
+        checkPsType $r 'JiraPS.Project'
 
         defProp $r 'Id' $projectId
         defProp $r 'Key' $projectKey

@@ -1,7 +1,7 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+InModuleScope JiraPS {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -10,7 +10,7 @@ InModuleScope PSJira {
         $testErrorKey = 'error'
         $testError = 'This is an error message.'
 
-$testJson = @"
+        $testJson = @"
 {
     "errorMessages": [],
     "errors":

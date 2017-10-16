@@ -8,12 +8,12 @@ In order to create a new issue in JIRA, you need to provide a certain amount of 
     :alt: The "Create issue" screen in JIRA shows information needed in order to create an issue in JIRA.
     :width: 406
 
-To create an issue using PSJira, you need to provide this information as well. Before you can provide the needed information to create an issue, though, you'll need to know what information your JIRA instance requires! This can be dramatically different from one JIRA instance to the next, and even from one project to another.
+To create an issue using JiraPS, you need to provide this information as well. Before you can provide the needed information to create an issue, though, you'll need to know what information your JIRA instance requires! This can be dramatically different from one JIRA instance to the next, and even from one project to another.
 
 Identifying "Create" Metadata
 =============================
 
-PSJira includes a command to make discorering this metadata as simple as possible. You will need to provide both a project and an issue type to this function, because each project and issue type can be configured to accept or require different fields when creating issues.
+JiraPS includes a command to make discovering this metadata as simple as possible. You will need to provide both a project and an issue type to this function, because each project and issue type can be configured to accept or require different fields when creating issues.
 
 .. code-block:: powershell
 

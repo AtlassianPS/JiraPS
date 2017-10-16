@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     $jiraServer = 'http://jiraserver.example.com'
 
@@ -132,11 +132,11 @@ InModuleScope PSJira {
 "@
 
     Describe "Get-JiraField" {
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/field"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/field"} {
             ConvertFrom-Json2 $restResult
         }
 
@@ -146,7 +146,7 @@ InModuleScope PSJira {
             $allResults = Get-JiraField
             $allResults | Should Not BeNullOrEmpty
             @($allResults).Count | Should Be @((ConvertFrom-Json2 -InputObject $restResult)).Count
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Gets a specified field if a field ID is provided" {
@@ -175,5 +175,3 @@ InModuleScope PSJira {
         }
     }
 }
-
-

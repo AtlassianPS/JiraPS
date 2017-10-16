@@ -1,15 +1,13 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
+InModuleScope JiraPS {
 
-InModuleScope PSJira {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     Describe 'Get-JiraFilter' {
-        if ($ShowDebugText)
-        {
+        if ($ShowDebugText) {
             Mock 'Write-Debug' {
                 Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
             }
@@ -21,9 +19,8 @@ InModuleScope PSJira {
 
         # If we don't override this in a context or test, we don't want it to
         # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod -ModuleName PSJira {
-            if ($ShowMockData)
-            {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
                 Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
                 Write-Host "         [Method]  $Method" -ForegroundColor Cyan
@@ -33,8 +30,7 @@ InModuleScope PSJira {
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraFilter
 
-            function defParam($name)
-            {
+            function defParam($name) {
                 It "Has a -$name parameter" {
                     $command.Parameters.Item($name) | Should Not BeNullOrEmpty
                 }
@@ -48,14 +44,14 @@ InModuleScope PSJira {
         Context "Behavior testing" {
             It "Queries JIRA for a filter with a given ID" {
                 { Get-JiraFilter -Id 12345 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
             }
 
             It "Uses ConvertTo-JiraFilter to output a Filter object if JIRA returns data" {
-                Mock Invoke-JiraMethod -ModuleName PSJira { $true }
-                Mock ConvertTo-JiraFilter -ModuleName PSJira {}
+                Mock Invoke-JiraMethod -ModuleName JiraPS { $true }
+                Mock ConvertTo-JiraFilter -ModuleName JiraPS {}
                 { Get-JiraFilter -Id 12345 } | Should Not Throw
-                Assert-MockCalled -CommandName ConvertTo-JiraFilter -ModuleName PSJira
+                Assert-MockCalled -CommandName ConvertTo-JiraFilter -ModuleName JiraPS
             }
         }
 
@@ -107,23 +103,23 @@ InModuleScope PSJira {
 
             It "Accepts a filter ID for the -Filter parameter" {
                 { Get-JiraFilter -Id 12345 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "Accepts multiple filter IDs to the -Filter parameter" {
-                { Get-JiraFilter -Id '12345','67890' } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/67890'}
+                { Get-JiraFilter -Id '12345', '67890' } | Should Not Throw
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/67890'}
             }
 
-            It "Accepts a PSJira.Filter object to the InputObject parameter" {
+            It "Accepts a JiraPS.Filter object to the InputObject parameter" {
                 { Get-JiraFilter -InputObject $sampleFilter } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844'}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844'}
             }
 
-            It "Accepts a PSJira.Filter object via pipeline" {
+            It "Accepts a JiraPS.Filter object via pipeline" {
                 { $sampleFilter | Get-JiraFilter } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName PSJira -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844'}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844'}
             }
         }
     }

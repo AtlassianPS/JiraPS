@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraStatus" {
         . $PSScriptRoot\Shared.ps1
 
@@ -12,18 +12,18 @@ InModuleScope PSJira {
 
         $sampleJson = @"
 {
-  "self": "$jiraServer/rest/api/2/status/$statusId",
-  "description": "$statusDesc",
-  "iconUrl": "$jiraServer/images/icons/statuses/inprogress.png",
-  "name": "$statusName",
-  "id": "$statusId",
-  "statusCategory": {
-    "self": "$jiraServer/rest/api/2/statuscategory/4",
-    "id": 4,
-    "key": "indeterminate",
-    "colorName": "yellow",
-    "name": "In Progress"
-  }
+    "self": "$jiraServer/rest/api/2/status/$statusId",
+    "description": "$statusDesc",
+    "iconUrl": "$jiraServer/images/icons/statuses/inprogress.png",
+    "name": "$statusName",
+    "id": "$statusId",
+    "statusCategory": {
+        "self": "$jiraServer/rest/api/2/statuscategory/4",
+        "id": 4,
+        "key": "indeterminate",
+        "colorName": "yellow",
+        "name": "In Progress"
+    }
 }
 "@
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
@@ -34,7 +34,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Status'
+        checkPsType $r 'JiraPS.Status'
 
         defProp $r 'Id' $statusId
         defProp $r 'Name' $statusName

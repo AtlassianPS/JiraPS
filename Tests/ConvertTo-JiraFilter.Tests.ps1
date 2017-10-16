@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraFilter" {
         . $PSScriptRoot\Shared.ps1
 
@@ -57,7 +57,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Filter'
+        checkPsType $r 'JiraPS.Filter'
 
         defProp $r 'Id' 12844
         defProp $r 'Name' 'All JIRA Bugs'
@@ -69,5 +69,3 @@ InModuleScope PSJira {
 
     }
 }
-
-

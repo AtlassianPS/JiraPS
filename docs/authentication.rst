@@ -9,7 +9,7 @@ At present, there are two main methods of authenticating to JIRA: HTTP basic aut
 HTTP Basic
 ==========
 
-Each PSJira function that queries a JIRA instance provides a -Credential parameter. Simply pass your JIRA credentials to this parameter.
+Each JiraPS function that queries a JIRA instance provides a -Credential parameter. Simply pass your JIRA credentials to this parameter.
 
 .. code-block:: powershell
 
@@ -32,7 +32,7 @@ To create a JIRA session, you can use the New-JiraSession function:
     $cred = Get-Credential 'powershell'
     New-JiraSession -Credential $cred
 
-Once you've created this session, you're done! You don't need to specify it when running other commands - PSJira will manage this session internally and provide the session cookie to JIRA when needed. This also means your credentials are only sent over the network once.
+Once you've created this session, you're done! You don't need to specify it when running other commands - JiraPS will manage this session internally and provide the session cookie to JIRA when needed. This also means your credentials are only sent over the network once.
 
 To close this session, use this command:
 
@@ -47,6 +47,6 @@ This will close the active "logged in" session with JIRA.
 What About OAuth?
 =================
 
-JIRA does support use of OAuth, but PSJira does not yet. This is a to-do item!
+JIRA does support use of OAuth, but JiraPS does not yet. This is a to-do item!
 
 .. _Basic Access Authentication: https://en.wikipedia.org/wiki/Basic_access_authentication

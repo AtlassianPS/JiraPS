@@ -5,9 +5,9 @@ param()
 
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -17,32 +17,31 @@ InModuleScope PSJira {
 
     $testUsername = 'powershell-test'
     $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
-    $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername,$testPassword
+    $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername, $testPassword
 
 
     $testJson = @"
 {
-  "session": {
-    "name": "JSESSIONID",
-    "value": "$jSessionId"
-  },
-  "loginInfo": {
-    "failedLoginCount": 5,
-    "loginCount": 10,
-    "lastFailedLoginTime": "2015-06-23T13:17:44.005-0500",
-    "previousLoginTime": "2015-06-23T10:22:03.514-0500"
-  }
+    "session": {
+        "name": "JSESSIONID",
+        "value": "$jSessionId"
+    },
+    "loginInfo": {
+        "failedLoginCount": 5,
+        "loginCount": 10,
+        "lastFailedLoginTime": "2015-06-23T13:17:44.005-0500",
+        "previousLoginTime": "2015-06-23T10:22:03.514-0500"
+    }
 }
 "@
     Describe "New-JiraSession" {
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'GET'} {
-            if ($showMockData)
-            {
+            if ($showMockData) {
                 Write-Host "       Mocked Invoke-WebRequest with GET method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]            $URI" -ForegroundColor Cyan
@@ -89,5 +88,3 @@ InModuleScope PSJira {
         }
     }
 }
-
-

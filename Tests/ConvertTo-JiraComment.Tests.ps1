@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraComment" {
         . $PSScriptRoot\Shared.ps1
 
@@ -59,7 +59,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Comment'
+        checkPsType $r 'JiraPS.Comment'
 
 
         defProp $r 'Id' $commentId
@@ -69,5 +69,3 @@ InModuleScope PSJira {
         defProp $r 'Updated' (Get-Date '2015-05-01T16:24:38.000-0500')
     }
 }
-
-

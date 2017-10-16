@@ -1,8 +1,8 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -14,41 +14,39 @@ InModuleScope PSJira {
 
     Describe "Remove-JiraGroupMember" {
 
-        Mock Write-Debug -ModuleName PSJira {
-            if ($ShowDebugData)
-            {
+        Mock Write-Debug -ModuleName JiraPS {
+            if ($ShowDebugData) {
                 Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraGroup -ModuleName PSJira {
+        Mock Get-JiraGroup -ModuleName JiraPS {
             [PSCustomObject] @{
                 'Name' = $testGroupName;
                 'Size' = 2;
             }
         }
 
-        Mock Get-JiraUser -ModuleName PSJira {
+        Mock Get-JiraUser -ModuleName JiraPS {
             [PSCustomObject] @{
                 'Name' = "$InputObject";
             }
         }
 
-        Mock Get-JiraGroupMember -ModuleName PSJira {
+        Mock Get-JiraGroupMember -ModuleName JiraPS {
             @(
                 [PSCustomObject] @{
-                    'Name'=$testUsername1;
+                    'Name' = $testUsername1;
                 }
             )
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira {
-            if ($ShowMockData)
-            {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
+            if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
                 Write-Host "         [Method] $Method" -ForegroundColor Cyan
                 Write-Host "         [URI]    $URI" -ForegroundColor Cyan
@@ -65,7 +63,7 @@ InModuleScope PSJira {
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$URI -match $testGroupName} -Exactly -Times 1 -Scope It
             }
 
-            It "Accepts a PSJira.Group object to the -Group parameter" {
+            It "Accepts a JiraPS.Group object to the -Group parameter" {
                 $group = Get-JiraGroup -GroupName $testGroupName
                 { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$URI -match $testGroupName} -Exactly -Times 1 -Scope It
@@ -92,30 +90,28 @@ InModuleScope PSJira {
             It "Removes multiple users to a JIRA group if they are passed to the -User parameter" {
 
                 # Override our previous mock so we have two group members
-                Mock Get-JiraGroupMember -ModuleName PSJira {
+                Mock Get-JiraGroupMember -ModuleName JiraPS {
                     @(
                         [PSCustomObject] @{
-                            'Name'=$testUsername1;
+                            'Name' = $testUsername1;
                         },
                         [PSCustomObject] @{
-                            'Name'=$testUsername2;
+                            'Name' = $testUsername2;
                         }
                     )
                 }
 
                 # Should use the REST method twice, since at present, you can only delete one group member per API call
-                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1,$testUsername2 -Force } | Should Not Throw
+                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 -Force } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Delete' -and $URI -like "*/rest/api/*/group/user?groupname=$testGroupName&username=*"} -Exactly -Times 2 -Scope It
             }
         }
 
         Context "Error checking" {
             It "Gracefully handles cases where a provided user is not currently in the provided group" {
-                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1,$testUsername2 -Force } | Should Not Throw
+                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 -Force } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Delete' -and $URI -like "*/rest/api/*/group/user?groupname=$testGroupName&username=*"} -Exactly -Times 1 -Scope It
             }
         }
     }
 }
-
-

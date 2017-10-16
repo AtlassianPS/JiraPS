@@ -1,5 +1,5 @@
 . $PSScriptRoot\Shared.ps1
-InModuleScope PSJira {
+InModuleScope JiraPS {
     Describe "ConvertTo-JiraIssueType" {
         . $PSScriptRoot\Shared.ps1
 
@@ -17,7 +17,7 @@ InModuleScope PSJira {
     "iconUrl": "$jiraServer/images/icons/issuetypes/newfeature.png",
     "name": "$issueTypeName",
     "subtask": false
-  }
+}
 "@
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 
@@ -26,7 +26,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.IssueType'
+        checkPsType $r 'JiraPS.IssueType'
 
         defProp $r 'Id' $issueTypeId
         defProp $r 'Name' $issueTypeName

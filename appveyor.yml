@@ -11,30 +11,73 @@
 os: WMF 5
 
 environment:
-    ModuleName: $(APPVEYOR_PROJECT_NAME)
-    Tags: 'JIRA'
-    LicenseUri: 'https://github.com/PSJira/PSJira/blob/master/LICENSE'
-    ProjectUri: 'https://github.com/PSJira/PSJira/'
-
     # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
     PSGalleryAPIKey:
-        secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
+        secure: Ezd2JjB6rbNZOiJmcek2bZSSdXB34fjoC6JXdXcICf6KZGoBOIRZAG9KfHAYiMa7
+        # Must be updated to use contact@AtlassianPS.net user
 
-version: 1.2.5.{build}
-
-# Only build commits to these branches
-branches:
-    only:
-        - master
-        - dev
+version: 2.3.{build}
 
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
 
+# Ignore testing a commit if only the readme changed
+# Or if I include "skip-tests" in the commit message
 skip_commits:
-    message: /readme*/
+    message: /skip\-tests/
+    files:
+        - .github/
+        - .vscode/
+        - assets/
+        - docs/
+        - Tools/
+        - README.md
+        - .gitattributes
+        - .gitignore
+
+# PRs, by definition, don't change anything and therefore should not increment the version
+# To be fair, this is not important, and is really just AppVeyor enabling my pedantry
+pull_requests:
+  do_not_increment_build_number: true
+
+install:
+    - cmd: git config --global core.autocrlf true
+    - cmd: npm install -g markdown-spellcheck
+    - ps: |
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
+        Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force | Out-Null
+        Install-Module BuildHelpers -Scope CurrentUser -Force | Out-Null
+        Install-Module platyPS -Scope CurrentUser -Force | Out-Null
+        Install-Module Pester -Scope CurrentUser -Force | Out-Null
+        Install-Module PSScriptAnalyzer -Scope CurrentUser -Force | Out-Null
+        $env:releasePath = "$($pwd.Path)\Release"
+
+before_build:
+    - ps: Invoke-Build -Task ShowDebug
+
+build_script:
+    - ps: Invoke-Build -Task Build
+
+# after_build:
+    # - cmd: mdspell %releasePath%\**/*.md --ignore-numbers --ignore-acronyms --report
 
 test_script:
-    - ps: . .\Tools\Appveyor.ps1
+    - ps: Invoke-Build -Task Test
 
-build: false
+before_deploy:
+    - ps: Invoke-Build -Task Deploy
+
+deploy:
+    provider: GitHub
+    release: v$(appveyor_build_version)
+    description: ''
+    auth_token:
+        secure: ekVji7s19g/3zxpVQMX9gG1CldaXdOudCdY8a057AwcK5HyKZC0lFBE1Ou9iwBpu
+    draft: false
+    prerelease: false
+    on:
+        branch: master                 # release from master branch only
+        appveyor_repo_tag: false        # deploy on tag push only
+
+# on_failure:
+    # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

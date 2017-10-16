@@ -1,6 +1,6 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
     . $PSScriptRoot\Shared.ps1
     Describe "ConvertTo-JiraSession" {
 
@@ -9,14 +9,14 @@ InModuleScope PSJira {
         $sampleSession = @{}
         $sampleWebResponse = @"
 {
-  "session": {
-    "name": "JSESSIONID",
-    "value": "$sampleJSessionID"
-  },
-  "loginInfo": {
-    "failedLoginCount": 5,
-    "loginCount": 50
-  }
+    "session": {
+        "name": "JSESSIONID",
+        "value": "$sampleJSessionID"
+    },
+    "loginInfo": {
+        "failedLoginCount": 5,
+        "loginCount": 50
+    }
 }
 "@
 
@@ -26,7 +26,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Session'
+        checkPsType $r 'JiraPS.Session'
 
         defProp $r 'Username' $sampleUsername
         defProp $r 'JSessionID' $sampleJSessionID

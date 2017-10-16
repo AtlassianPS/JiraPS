@@ -1,8 +1,8 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope='*', Target='SuppressImportModule')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -18,82 +18,82 @@ InModuleScope PSJira {
 
     $restResultAll = @"
 [
-  {
-    "self": "$jiraServer/rest/api/2/project/10003",
-    "id": "$projectId",
-    "key": "$projectKey",
-    "name": "$projectName",
-    "projectCategory": {
-      "self": "$jiraServer/rest/api/2/projectCategory/10000",
-      "id": "10000",
-      "description": "All Project Catagories",
-      "name": "All Project"
+    {
+        "self": "$jiraServer/rest/api/2/project/10003",
+        "id": "$projectId",
+        "key": "$projectKey",
+        "name": "$projectName",
+        "projectCategory": {
+            "self": "$jiraServer/rest/api/2/projectCategory/10000",
+            "id": "10000",
+            "description": "All Project Catagories",
+            "name": "All Project"
+        }
+    },
+    {
+        "self": "$jiraServer/rest/api/2/project/10121",
+        "id": "$projectId2",
+        "key": "$projectKey2",
+        "name": "$projectName2",
+        "projectCategory": {
+            "self": "$jiraServer/rest/api/2/projectCategory/10000",
+            "id": "10000",
+            "description": "All Project Catagories",
+            "name": "All Project"
+        }
     }
-  },
-  {
-    "self": "$jiraServer/rest/api/2/project/10121",
-    "id": "$projectId2",
-    "key": "$projectKey2",
-    "name": "$projectName2",
-    "projectCategory": {
-      "self": "$jiraServer/rest/api/2/projectCategory/10000",
-      "id": "10000",
-      "description": "All Project Catagories",
-      "name": "All Project"
-    }
-  }
 ]
 "@
 
     $restResultOne = @"
 [
-  {
-    "self": "$jiraServer/rest/api/2/project/10003",
-    "id": "$projectId",
-    "key": "$projectKey",
-    "name": "$projectName",
-    "projectCategory": {
-      "self": "$jiraServer/rest/api/2/projectCategory/10000",
-      "id": "10000",
-      "description": "All Project Catagories",
-      "name": "All Project"
+    {
+        "self": "$jiraServer/rest/api/2/project/10003",
+        "id": "$projectId",
+        "key": "$projectKey",
+        "name": "$projectName",
+        "projectCategory": {
+            "self": "$jiraServer/rest/api/2/projectCategory/10000",
+            "id": "10000",
+            "description": "All Project Catagories",
+            "name": "All Project"
+        }
     }
-  }
 ]
 "@
 
     Describe "Get-JiraProject" {
-        Mock Get-JiraConfigServer -ModuleName PSJira {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project"} {
             ConvertFrom-Json2 $restResultAll
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project/${projectKey}?expand=projectKeys"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project/${projectKey}?expand=projectKeys"} {
             ConvertFrom-Json2 $restResultOne
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project/${projectId}?expand=projectKeys"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project/${projectId}?expand=projectKeys"} {
             ConvertFrom-Json2 $restResultOne
         }
 
-        Mock Invoke-JiraMethod -ModuleName PSJira -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project/${projectKey}expand=projectKeys"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/project/${projectKey}expand=projectKeys"} {
             ConvertFrom-Json2 $restResultOne
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName PSJira {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
             Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
             Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-#        Mock Write-Debug {
-#            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-#        }
+        #        Mock Write-Debug {
+        #            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
+        #        }
 
         #############
         # Tests
@@ -128,5 +128,3 @@ InModuleScope PSJira {
         }
     }
 }
-
-
