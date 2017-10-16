@@ -87,7 +87,7 @@ function Add-JiraIssueAttachment {
             $bodyLines = @'
 --{0}
 Content-Disposition: form-data; name="file"; filename="{1}"
-Content-Type: '{2}'
+Content-Type: {2}
 
 {3}
 --{0}--
