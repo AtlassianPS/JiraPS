@@ -93,14 +93,14 @@ function Add-JiraIssueAttachment {
 
         $headers = @{
             'X-Atlassian-Token' = 'nocheck'
-            'Content-Type' = "multipart/form-data; boundary=`"$boundary`""
+            'Content-Type'      = "multipart/form-data; boundary=`"$boundary`""
         }
         $parameter = @{
             URI        = $url
             Method     = "POST"
             Body       = $bodyLines
             Headers    = $headers
-            RawBody = $true
+            RawBody    = $true
             Credential = $Credential
         }
         Write-Debug "[Add-JiraIssueAttachment] Preparing for blastoff!"
