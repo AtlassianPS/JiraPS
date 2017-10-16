@@ -1,6 +1,6 @@
 . $PSScriptRoot\Shared.ps1
 
-InModuleScope PSJira {
+InModuleScope JiraPS {
 
     Describe "ConvertTo-JiraAttachment" {
 
@@ -64,7 +64,7 @@ InModuleScope PSJira {
             $r | Should Not BeNullOrEmpty
         }
 
-        checkPsType $r 'PSJira.Attachment'
+        checkPsType $r 'JiraPS.Attachment'
 
         defProp $r[0] 'Id' $attachmentID1
         defProp $r[0] 'FileName' $attachmentName1
@@ -74,7 +74,7 @@ InModuleScope PSJira {
         }
         It "Defines Author field as User objects" {
             $r[0].author | Should Not BeNullOrEmpty
-            checkType $r[0].author 'PSJira.User'
+            checkType $r[0].author 'JiraPS.User'
         }
         It "Defines the 'self' property" {
             $r[0].self | Should Not BeNullOrEmpty
