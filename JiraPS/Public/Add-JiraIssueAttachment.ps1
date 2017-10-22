@@ -21,15 +21,14 @@ function Add-JiraIssueAttachment {
     param(
         # Issue to which to attach the file
         [Parameter(
-            Position = 0,
             Mandatory = $true
         )]
+        [ValidateNotNullOrEmpty()]
         [Alias('Key')]
         [Object] $Issue,
 
         # Path of the file to upload and attach
         [Parameter(
-            Position = 1,
             Mandatory = $true,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
@@ -38,9 +37,10 @@ function Add-JiraIssueAttachment {
         [Alias('InFile', 'FullName')]
         [String[]] $FilePath,
 
-        # Credentials to use to connect to Jira.
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential,
+        [PSCredential] $Credential,
 
         # Whether output should be provided after invoking this function
         [Switch] $PassThru
@@ -75,12 +75,12 @@ function Add-JiraIssueAttachment {
 
             $url = "$($issueObj.RestURL)/attachments"
 
-            $fileName = Split-Path -Path $FilePath -Leaf
-            $readFile = [System.IO.File]::ReadAllBytes($FilePath)
+            $fileName = Split-Path -Path $file -Leaf
+            $readFile = [System.IO.File]::ReadAllBytes($file)
             $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
             $fileEnc = $enc.GetString($readFile)
             $boundary = [System.Guid]::NewGuid().ToString()
-            $mimeType = [System.Web.MimeMapping]::GetMimeMapping($FilePath)
+            $mimeType = [System.Web.MimeMapping]::GetMimeMapping($file)
             if ($mimeType) { $ContentType = $mimeType }
             else { $ContentType = "application/octet-stream" }
 
