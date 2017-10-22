@@ -46,20 +46,23 @@ function Add-JiraIssueAttachment {
         [Switch] $PassThru
     )
 
-    begin {
+    Begin {
         Write-Debug "[Add-JiraIssueAttachment] Begin"
         # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
     }
 
-    process {
-        foreach ($file in $FilePath) {
-            # Validate input object
-            if (($Issue.PSObject.TypeNames[0] -ne "JiraPS.Issue") -and (($Issue -isnot [String]))) {
-                $message = "Wrong object type provided for Issue. Was $($Issue.GetType().Name)"
-                $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-                Throw $exception
-            }
+    Process {
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
+        # Validate input object
+        if (($Issue.PSObject.TypeNames[0] -ne "JiraPS.Issue") -and (($Issue -isnot [String]))) {
+            $message = "Wrong object type provided for Issue. Was $($Issue.GetType().Name)"
+            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
+            Throw $exception
+        }
+
+        foreach ($file in $FilePath) {
             # As we are not able to use proper type casting in the parameters, this is a workaround
             # to extract the data from a JiraPS.Issue object
             Write-Debug "[Add-JiraIssueAttachment] Obtaining a reference to Jira issue [$Issue]"
@@ -119,7 +122,8 @@ Content-Type: {2}
             }
         }
     }
-    end {
+
+    End {
         Write-Debug "[Add-JiraIssueAttachment] Complete"
     }
 }

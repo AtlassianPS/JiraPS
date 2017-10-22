@@ -22,7 +22,7 @@ InModuleScope JiraPS {
         "self": "$jiraServer/rest/api/2/user?username=admin",
         "name": "admin",
         "key": "admin",
-        "accountId": "000000:000000-0000-0000-0000-ab899c878d00",
+        "accountId": "0000:000000-0000-0000-0000-ab899c878d00",
         "emailAddress": "admin@example.com",
         "avatarUrls": { },
         "displayName": "Admin",
@@ -31,7 +31,7 @@ InModuleScope JiraPS {
     },
     "created": "2017-10-16T09:06:48.070+0200",
     "size": 438098,
-    "mimeType": "'application/pdf'",
+    "mimeType": "'applation/pdf'",
     "content": "$jiraServer/secure/attachment/$attachmentId/$fileName"
 }
 "@
@@ -69,7 +69,6 @@ InModuleScope JiraPS {
 
         #region Tests
         Context "Sanity checking" {
-            Write-Output "a"
             $command = Get-Command -Name Add-JiraIssueAttachment
 
             defParam $command 'Issue'
@@ -92,7 +91,7 @@ InModuleScope JiraPS {
                 # Issue can't be null or empty
                 { Add-JiraIssueAttachment -Issue "" -FilePath $filePath } | Should Throw
                 # Issue must be an Issue or a String
-                { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath } | Should Throw
+                { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath -verbose } | Should Throw
                 # Issue can't be an array
                 { Add-JiraIssueAttachment -Issue $issueKey, $issueKey -FilePath $filePath } | Should Throw
                 # File must exist

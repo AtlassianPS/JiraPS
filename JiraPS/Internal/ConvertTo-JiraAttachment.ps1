@@ -31,11 +31,11 @@ function ConvertTo-JiraAttachment
             $result = New-Object -TypeName PSObject -Property $props
 
 #            Write-Debug "Inserting type name information"
-            $result.PSObject.TypeNames.Insert(0, 'PSJira.Attachment')
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Attachment')
 
 #            Write-Debug "[ConvertTo-JiraProject] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
+                Write-Output "$($this.fileName)"
             }
 
 #            Write-Debug "Outputting object"

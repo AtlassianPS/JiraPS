@@ -35,17 +35,19 @@ function Remove-JiraIssueAttachment {
 
         # Issue from which to delete on or more attachments
         [Parameter(
+            Position = 0,
             Mandatory = $true,
             ParameterSetName = 'byIssue'
         )]
         [ValidateNotNullOrEmpty()]
-        [Object[]] $Issue,
+        [Alias('Key')]
+        [Object] $Issue,
 
         # Name of the File to delete
         [Parameter(
             ParameterSetName = 'byIssue'
         )]
-        [String] $FileName,
+        [String[]] $FileName,
 
         # Credentials to use to connect to Jira
         [Parameter(Mandatory = $false)]
@@ -73,15 +75,6 @@ function Remove-JiraIssueAttachment {
         Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        # Validate pipeline
-        if ($_) {
-            if (($AttachmentId) -and ($_.PSObject.TypeNames[0] -ne "JiraPS.Attachment")) {
-                $message = "Wrong object type provided for ID. Only JiraPS.Attachment is accepted"
-                $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-                Throw $exception
-            }
-        }
-
         switch ($PsCmdlet.ParameterSetName) {
             "byId" {
                 foreach ($_id in $AttachmentId) {
@@ -95,25 +88,41 @@ function Remove-JiraIssueAttachment {
                 }
             }
             "byIssue" {
-                foreach ($_issue in $Issue) {
-                    if ($_issue.PSObject.TypeNames[0] -eq "JiraPS.Issue") {
-                        $_issue = $_issue.Key
+                # Validate input object
+                if (
+                    ($Issue) -and
+                    (!(
+                            ("JiraPS.Issue" -in $Issue.PSObject.TypeNames) -or
+                            ($Issue -is [String])
+                        ))
+                ) {
+                    $message = "Wrong object type provided for Issue. Was $($Issue.GetType().Name)"
+                    $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
+                    Throw $exception
+                }
+
+                Write-Verbose "Deleting Attachment from Issue: $Issue"
+
+                $attachments = Get-JiraIssueAttachment -Issue $Issue
+
+                if ("JiraPS.Issue" -in $Issue.PSObject.TypeNames) {
+                    $Issue = $Issue.Key
+                }
+
+                if ($FileName) {
+                    $_attachments = @()
+                    foreach ($file in $FileName) {
+                        $_attachments += $attachments | Where-Object {$_.FileName -like $file}
                     }
-                    Write-Verbose "Deleting Attachment from Issue: $_issue"
+                    $attachments = $_attachments
+                }
 
-                    $attachments = Get-JiraIssueAttachment -Issue $_issue
+                foreach ($attachment in $attachments) {
+                    $thisUrl = $restUrl -f $attachment.Id
 
-                    if ($FileName) {
-                        $attachments = $attachments | Where-Object {$_.FileName -like $FileName}
-                    }
-
-                    foreach ($attachment in $attachments) {
-                        $thisUrl = $restUrl -f $attachment.Id
-
-                        if ($PSCmdlet.ShouldProcess($attachment.FileName, "Removing an attachment from Issue $($_issue)")) {
-                            Write-Debug "[Remove-JiraIssueAttachment] Preparing for blastoff!"
-                            Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
-                        }
+                    if ($PSCmdlet.ShouldProcess($attachment.FileName, "Removing an attachment from Issue $($Issue)")) {
+                        Write-Debug "[Remove-JiraIssueAttachment] Preparing for blastoff!"
+                        Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
                     }
                 }
             }

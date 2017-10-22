@@ -939,7 +939,7 @@ InModuleScope JiraPS {
             }
 
             It "Uses ConvertTo-JiraAttachment to return the issue's attachments as an object" {
-                checkType $r.Attachment 'PSJira.Attachment'
+                checkType $r.Attachment 'JiraPS.Attachment'
             }
         }
     }
