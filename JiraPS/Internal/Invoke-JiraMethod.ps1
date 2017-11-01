@@ -71,9 +71,6 @@ function Invoke-JiraMethod {
             $_headers.Remove("Content-Type")
             $iwrSplat["Headers"] = $_headers
         }
-        else {
-            $iwrSplat["ContentType"] = 'application/json; charset=utf-8'
-        }
 
         if ($Body) {
             # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json

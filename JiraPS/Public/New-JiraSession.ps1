@@ -25,20 +25,16 @@ function New-JiraSession {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # Credentials to use to connect to JIRA.
-        [Parameter(Mandatory = $true,
-            Position = 0)]
+        [Parameter(
+            Mandatory = $true
+        )]
         [System.Management.Automation.PSCredential] $Credential
     )
 
     begin {
-        try {
-            Write-Debug "[New-JiraSession] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
-            $err = $_
-            Write-Debug "[New-JiraSession] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $uri = "$server/rest/api/2/mypermissions"
 
@@ -46,21 +42,40 @@ function New-JiraSession {
         # as the global PSDefaultParameterValues is not used
         $PSDefaultParameterValues = $global:PSDefaultParameterValues
 
-        [String] $Username = $Credential.UserName
-        $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${Username}:$($Credential.GetNetworkCredential().Password)"))
+        $Headers = {}
 
         $headers = @{
             'Authorization' = "Basic $token"
         }
+        $SecureCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(
+                $('{0}:{1}' -f $Credential.UserName, $Credential.GetNetworkCredential().Password)
+            ))
+        $Headers.Add('Authorization', "Basic $SecureCreds")
     }
 
     process {
+        $iwrSplat = @{
+            Uri             = $uri
+            Headers         = $_headers
+            Method          = "GET"
+            ContentType     = 'application/json; charset=utf-8'
+            UseBasicParsing = $true
+            SessionVariable = "newSessionVar"
+            ErrorAction     = 'SilentlyContinue'
+        }
+
+        if ($_headers.ContainsKey("Content-Type")) {
+            $iwrSplat["ContentType"] = $_headers["Content-Type"]
+            $_headers.Remove("Content-Type")
+            $iwrSplat["Headers"] = $_headers
+        }
+
         try {
             Write-Debug "[New-JiraSession] Preparing for blastoff!"
-            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Get -Body $json -ContentType 'application/json' -UseBasicParsing -SessionVariable newSessionVar
+            $webResponse = Invoke-WebRequest @iwrSplat
 
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
-            $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
+            $result = ConvertTo-JiraSession -Session $newSessionVar -Username $Credential.UserName
 
             Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
             if ($MyInvocation.MyCommand.Module.PrivateData) {
@@ -76,14 +91,15 @@ function New-JiraSession {
 
             Write-Debug "[New-JiraSession] Outputting result"
             Write-Output $result
-        } catch {
+        }
+        catch {
             $err = $_
             $webResponse = $err.Exception.Response
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
 
             # Test HEADERS if Jira requires a CAPTCHA
-            $tokenRequiresCaptcha = "AUTHENTICATION_DENIED"
             $headerRequiresCaptcha = "X-Seraph-LoginReason"
+            $tokenRequiresCaptcha = "AUTHENTICATION_DENIED"
             if (
                 $webResponse.Headers[$headerRequiresCaptcha] -and
                 ($webResponse.Headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha
