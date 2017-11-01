@@ -11,22 +11,28 @@ function ConvertTo-JiraLink {
 
     process {
         foreach ($i in $InputObject) {
-            # Write-Debug "[ConvertTo-JiraLink] Processing object: '$i'"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
-            # Write-Debug "[ConvertTo-JiraLink] Defining standard properties"
             $props = @{
-                'Id'      = $i.id;
-                'RestUrl' = $i.self;
+                'Id'      = $i.id
+                'RestUrl' = $i.self
             }
 
-            if ($i.globalId) {$props.globalId = $i.globalId}
+            if ($i.globalId) {
+                $props.globalId = $i.globalId
+            }
+
             if ($i.application) {
                 $props.application = New-Object PSObject -Prop @{
                     type = $i.application.type
                     name = $i.application.name
                 }
             }
-            if ($i.relationship) {$props.relationship = $i.relationship}
+
+            if ($i.relationship) {
+                $props.relationship = $i.relationship
+            }
+
             if ($i.object) {
                 if ($i.object.icon) {
                     $icon = New-Object PSObject -Prop @{
@@ -62,23 +68,13 @@ function ConvertTo-JiraLink {
                 }
             }
 
-            # Write-Debug "[ConvertTo-JiraLink] Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
-
-            # Write-Debug "[ConvertTo-JiraLink] Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Link')
-
-            # Write-Debug "[ConvertTo-JiraLink] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
                 Write-Output "$($this.Id)"
             }
 
-            # Write-Debug "[ConvertTo-JiraLink] Outputting object"
             Write-Output $result
         }
-    }
-
-    end {
-        # Write-Debug "[ConvertTo-JiraLink] Complete"
     }
 }

@@ -1,11 +1,10 @@
 function ConvertFrom-Json2 {
     [CmdletBinding()]
-    param
-    (
+    param(
         [Parameter(
+            Position = 0,
             Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position = 0
+            ValueFromPipeline = $true
         )]
         [Object[]] $InputObject,
 
@@ -15,8 +14,7 @@ function ConvertFrom-Json2 {
 
     begin {
         function ConvertFrom-Dictionary {
-            param
-            (
+            param(
                 [System.Collections.Generic.IDictionary`2[String, Object]]$InputObject
             )
 
@@ -41,8 +39,7 @@ function ConvertFrom-Json2 {
         }
 
         function ConvertFrom-Collection {
-            param
-            (
+            param(
                 [System.Collections.Generic.ICollection`1[Object]]$InputObject
             )
 

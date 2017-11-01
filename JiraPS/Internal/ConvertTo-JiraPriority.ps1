@@ -2,69 +2,31 @@ function ConvertTo-JiraPriority {
     [CmdletBinding()]
     param(
         [Parameter(
-            Mandatory = $true,
-            Position = 0,
             ValueFromPipeline = $true
         )]
-        [PSObject[]] $InputObject,
-
-        [ValidateScript( {Test-Path $_})]
-        [String] $ConfigFile,
-
-        [Switch] $ReturnError
+        [PSObject[]] $InputObject
     )
 
     process {
         foreach ($i in $InputObject) {
-            # Write-Debug "[ConvertTo-JiraPriority] Processing object: '$i'"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
-            if ($i.errorMessages) {
-                # Write-Debug "[ConvertTo-JiraPriority] Detected an errorMessages property. This is an error result."
-
-                if ($ReturnError) {
-                    # Write-Debug "[ConvertTo-JiraPriority] Outputting details about error message"
-                    $props = @{
-                        'ErrorMessages' = $i.errorMessages;
-                    }
-
-                    $result = New-Object -TypeName PSObject -Property $props
-                    $result.PSObject.TypeNames.Insert(0, 'JiraPS.Error')
-
-                    Write-Output $result
-                }
+            $props = @{
+                'ID'          = $i.id
+                'Name'        = $i.name
+                'Description' = $i.description
+                'StatusColor' = $i.statusColor
+                'IconUrl'     = $i.iconUrl
+                'RestUrl'     = $i.self
             }
-            else {
-                # $server = ($InputObject.self -split 'rest')[0]
-                # $http = "${server}browse/$($i.key)"
 
-                # Write-Debug "[ConvertTo-JiraPriority] Defining standard properties"
-                $props = @{
-                    'ID'          = $i.id;
-                    'Name'        = $i.name;
-                    'Description' = $i.description;
-                    'StatusColor' = $i.statusColor;
-                    'IconUrl'     = $i.iconUrl;
-                    'RestUrl'     = $i.self;
-                }
-
-                # Write-Debug "[ConvertTo-JiraPriority] Creating PSObject out of properties"
-                $result = New-Object -TypeName PSObject -Property $props
-
-                # Write-Debug "[ConvertTo-JiraPriority] Inserting type name information"
-                $result.PSObject.TypeNames.Insert(0, 'JiraPS.Priority')
-
-                # Write-Debug "[ConvertTo-JiraPriority] Inserting custom toString() method"
-                $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                    Write-Output "$($this.Name)"
-                }
-
-                # Write-Debug "[ConvertTo-JiraPriority] Outputting object"
-                Write-Output $result
+            $result = New-Object -TypeName PSObject -Property $props
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Priority')
+            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
+                Write-Output "$($this.Name)"
             }
+
+            Write-Output $result
         }
-    }
-
-    end {
-        # Write-Debug "[ConvertTo-JiraPriority] Complete"
     }
 }
