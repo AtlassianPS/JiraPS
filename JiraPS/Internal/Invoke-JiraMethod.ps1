@@ -13,6 +13,10 @@ function Invoke-JiraMethod {
         [ValidateNotNullOrEmpty()]
         [String] $Body,
 
+        [Switch] $RawBody,
+
+        [Hashtable] $Headers = @{},
+
         [Parameter(
             Mandatory = $false,
             ParameterSetName = 'UseCredential'
@@ -29,13 +33,11 @@ function Invoke-JiraMethod {
     # TODO: find out why JiraPS doesn't need this
     $PSDefaultParameterValues = $global:PSDefaultParameterValues
 
-    $headers = @{}
-
     if ($Credential) {
         Write-Debug "[Invoke-JiraMethod] Using HTTP Basic authentication with provided credentials for $($Credential.UserName)"
         [String] $Username = $Credential.UserName
         $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${Username}:$($Credential.GetNetworkCredential().Password)"))
-        $headers.Add('Authorization', "Basic $token")
+        $Headers.Add('Authorization', "Basic $token")
         Write-Verbose "Using HTTP Basic authentication with username $($Credential.UserName)"
     }
     else {
@@ -53,17 +55,28 @@ function Invoke-JiraMethod {
 
     $iwrSplat = @{
         Uri             = $Uri
-        Headers         = $headers
+        Headers         = $Headers
         Method          = $Method
-        ContentType     = 'application/json; charset=utf-8'
         UseBasicParsing = $true
         ErrorAction     = 'SilentlyContinue'
     }
+    if (!($Headers.ContainsKey("Content-Type"))) {
+        $iwrSplat["ContentType"] = 'application/json; charset=utf-8'
+    }
+    else {
+        $iwrSplat["ContentType"] = $Headers["Content-Type"]
+        $Headers.Remove("Content-Type")
+        $iwrSplat["Headers"] = $Headers
+    }
 
     if ($Body) {
-        # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
-        $cleanBody = [System.Text.Encoding]::UTF8.GetBytes($Body)
-        $iwrSplat.Add('Body', $cleanBody)
+        if ($RawBody) {
+            $iwrSplat.Add('Body', $Body)
+        }
+        else {
+            # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
+            $iwrSplat.Add('Body', [System.Text.Encoding]::UTF8.GetBytes($Body))
+        }
     }
 
     if ($Session) {
@@ -73,7 +86,6 @@ function Invoke-JiraMethod {
     # We don't need to worry about $Credential, because it's part of the headers being sent to Jira
 
     try {
-
         Write-Debug "[Invoke-JiraMethod] Invoking JIRA method $Method to URI $URI"
         $webResponse = Invoke-WebRequest @iwrSplat
     }

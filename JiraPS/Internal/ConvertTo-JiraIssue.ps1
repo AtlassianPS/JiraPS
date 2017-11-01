@@ -59,6 +59,10 @@ function ConvertTo-JiraIssue {
                 }
                 if ($i.fields.issuelinks) { $props['IssueLinks'] = (ConvertTo-JiraIssueLink $i.fields.issuelinks)}
 
+                if ($i.fields.attachment) {
+                    $props["Attachment"] = ConvertTo-JiraAttachment $i.fields.attachment
+                }
+
                 if ($i.fields.project) {
                     # Write-Debug "[ConvertTo-JiraIssue] Obtaining reference to project"
                     $props.Project = ConvertTo-JiraProject -InputObject $i.fields.project
