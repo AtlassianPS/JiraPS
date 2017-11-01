@@ -1,5 +1,15 @@
 # Change Log
 
+## 2.4 (Nov 01, 2017)
+
+FEATURES:
+  - `Add-JiraIssueAttachment`: Add an attachment to an issue (#137, [@beaudryj][])
+  - `Get-JiraIssueAttachment`: Get attachments from issues (#137, [@beaudryj][])
+  - `Remove-JiraIssueAttachment`: Remove attachments from issues (#137, [@beaudryj][])
+
+IMPROVEMENTS:
+  - `JiraPS.Issue` now has a property for Attachments `JiraPS.Attachment` (#137, [@beaudryj][])
+
 ## 2.3 (Okt 07, 2017)
 
 FEATURES:
@@ -15,9 +25,9 @@ IMPROVEMENTS:
 
 FEATURES:
   - `New-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
-  - `Get-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
-  - `Set-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
-  - `Remove-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
+  - `Get-JiraVerion`: Get Versions of a project (#158, [@Dejulia489][])
+  - `Set-JiraVerion`: Changes a Version of a project (#158, [@Dejulia489][])
+  - `Remove-JiraVerion`: Removes a Version of a project (#158, [@Dejulia489][])
   - New custom object for Versions (#158, [@Dejulia489][])
 
 ## 2.1.0 (Jul 25, 2017)
@@ -161,6 +171,7 @@ BUG FIXES:
 
 [@alexsuslin]: https://github.com/alexsuslin
 [@axxelG]: https://github.com/axxelG
+[@beaudryj]: https://github.com/beaudryj
 [@brianbunke]: https://github.com/brianbunke
 [@Clijsters]: https://github.com/Clijsters
 [@colhal]: https://github.com/colhal
