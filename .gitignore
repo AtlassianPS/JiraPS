@@ -3,6 +3,7 @@
 *.conf
 *.config
 config.xml
+Tests/test.txt
 
 # Ignore all files beginning with a dot (.)
 .*
