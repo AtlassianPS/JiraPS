@@ -1,14 +1,12 @@
-function ConvertTo-JiraVersion {
+function ConvertTo-JiraServerInfo {
     [CmdletBinding()]
     param(
         [Parameter(
             Position = 0,
+            Mandatory = $false,
             ValueFromPipeline = $true
         )]
-        [PSObject[]] $InputObject,
-
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSObject[]] $InputObject
     )
 
     process {
@@ -17,27 +15,26 @@ function ConvertTo-JiraVersion {
 
             # Write-Debug "Defining standard properties"
             $props = @{
-                'ID'          = $i.id
-                'Project'     = $i.projectId
-                'Name'        = $i.name
-                'Description' = $i.description
-                'Archived'    = $i.archived
-                'Released'    = $i.released
-                'Overdue'     = $i.overdue
-                'RestUrl'     = $i.self
+                'BaseURL'        = $i.baseUrl
+                # With PoSh v6, the version shall be casted to [SemanticVersion]
+                'Version'        = $i.version
+                'DeploymentType' = $i.deploymentType
+                'BuildNumber'    = $i.buildNumber
+                'BuildDate'      = (Get-Date $i.buildDate)
+                'ServerTime'     = (Get-Date $i.serverTime)
+                'ScmInfo'        = $i.scmInfo
+                'ServerTitle'    = $i.serverTitle
             }
-            if ($i.startDate) { $props["StartDate"] = (Get-Date $i.startDate) } else { $props["StartDate"] = "" }
-            if ($i.releaseDate) { $props["ReleaseDate"] = (Get-Date $i.releaseDate) } else { $props["ReleaseDate"] = "" }
 
             # Write-Debug "Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
 
             # Write-Debug "Inserting type name information"
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.ServerInfo')
 
             # Write-Debug "[ConvertTo-JiraProject] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
+                Write-Output "[$($this.DeploymentType)] $($this.Version)"
             }
 
             # Write-Debug "Outputting object"

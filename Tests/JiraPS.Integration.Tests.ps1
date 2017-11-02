@@ -99,11 +99,8 @@ InModuleScope JiraPS {
             # ASSERT
             It 'returns an object with specific properties' {
                 checkType $result1 'JiraPS.Version'
-                checkType $result1.Project 'JiraPS.Project'
                 checkType $result2 'JiraPS.Version'
-                checkType $result2.Project 'JiraPS.Project'
                 checkType $result3 'JiraPS.Version'
-                checkType $result3.Project 'JiraPS.Project'
             }
             defProp $result1 'Name' $versionName1
             defProp $result2 'Name' $versionName2
@@ -135,15 +132,10 @@ InModuleScope JiraPS {
             # ASSERT
             It 'returns an object with specific properties' {
                 checkType $result1 'JiraPS.Version'
-                checkType $result1.Project 'JiraPS.Project'
                 checkType $result2 'JiraPS.Version'
-                checkType $result2.Project 'JiraPS.Project'
                 checkType $result3 'JiraPS.Version'
-                checkType $result3.Project 'JiraPS.Project'
                 checkType $result4 'JiraPS.Version'
-                checkType $result4.Project 'JiraPS.Project'
                 checkType $result5 'JiraPS.Version'
-                checkType $result5.Project 'JiraPS.Project'
             }
             It 'returns the expected objects' {
                 $result1.Name -contains $versionName1 | Should Be $true

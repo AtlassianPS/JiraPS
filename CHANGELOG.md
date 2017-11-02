@@ -1,12 +1,33 @@
 # Change Log
 
+## 2.4 (Nov 01, 2017)
+
+FEATURES:
+  - `Add-JiraIssueAttachment`: Add an attachment to an issue (#137, [@beaudryj][])
+  - `Get-JiraIssueAttachment`: Get attachments from issues (#137, [@beaudryj][])
+  - `Remove-JiraIssueAttachment`: Remove attachments from issues (#137, [@beaudryj][])
+
+IMPROVEMENTS:
+  - `JiraPS.Issue` now has a property for Attachments `JiraPS.Attachment` (#137, [@beaudryj][])
+
+## 2.3 (Okt 07, 2017)
+
+FEATURES:
+  - `Get-JiraServerInformation`: Fetches the information about the server (#187, [@lipkau][])
+
+IMPROVEMENTS:
+  - Added `-AddComment` to `Set-JiraIssue`. Allowing the user to write a comment for the changes to the issue (#167, [@Clijsters][])
+  - Changed the default visibility of comments (#172, [@lipkau][])
+  - Added more properties to `JiraPS.User` objects (#152, [@lipkau][])
+
+
 ## 2.2.0 (Aug 05, 2017)
 
 FEATURES:
   - `New-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
-  - `Get-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
-  - `Set-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
-  - `Remove-JiraVerion`: Create a new Version in a project (#158, [@Dejulia489][])
+  - `Get-JiraVerion`: Get Versions of a project (#158, [@Dejulia489][])
+  - `Set-JiraVerion`: Changes a Version of a project (#158, [@Dejulia489][])
+  - `Remove-JiraVerion`: Removes a Version of a project (#158, [@Dejulia489][])
   - New custom object for Versions (#158, [@Dejulia489][])
 
 ## 2.1.0 (Jul 25, 2017)
@@ -150,7 +171,9 @@ BUG FIXES:
 
 [@alexsuslin]: https://github.com/alexsuslin
 [@axxelG]: https://github.com/axxelG
+[@beaudryj]: https://github.com/beaudryj
 [@brianbunke]: https://github.com/brianbunke
+[@Clijsters]: https://github.com/Clijsters
 [@colhal]: https://github.com/colhal
 [@Dejulia489]: https://github.com/Dejulia489
 [@ebekker]: https://github.com/ebekker

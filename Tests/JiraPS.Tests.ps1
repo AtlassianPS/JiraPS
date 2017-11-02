@@ -32,7 +32,7 @@ Describe "JiraPS" {
         $script:manifest = $null
 
         foreach ($line in (Get-Content $changelogFile)) {
-            if ($line -match "^\D*(?<Version>(\d+\.){1,3}\d+)") {
+            if ($line -match "^\D*(?<Version>(\d+\.){1,2}\d+)") {
                 $changelogVersion = $matches.Version
                 break
             }
@@ -42,7 +42,7 @@ Describe "JiraPS" {
             # (?<Version>()) - non-capturing group, but named Version. This makes it
             # easy to reference the inside group later.
 
-            if ($line -match '^\D*(?<Version>(\d+\.){1,3}\d+).\{build\}') {
+            if ($line -match '^\D*(?<Version>(\d+\.){1,2}\d+).\{build\}') {
                 $appveyorVersion = $matches.Version
                 break
             }

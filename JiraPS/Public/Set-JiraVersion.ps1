@@ -95,7 +95,7 @@
                         }
                     }
                     else {
-                        $props["projectId"] = (Get-JiraProject $Project).Id
+                        $props["projectId"] = (Get-JiraProject $Project -Credential $Credential).Id
                     }
                 }
                 if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("ReleaseDate")) {
@@ -110,7 +110,7 @@
 
                 if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
                     Write-Debug -Message '[Set-JiraVersion] Preparing for blastoff!'
-                    Invoke-JiraMethod -Method Put -URI $restUrl -Body $json -Credential $Credential | ConvertTo-JiraVersion
+                    Invoke-JiraMethod -Method Put -URI $restUrl -Body $json -Credential $Credential | ConvertTo-JiraVersion -Credential $Credential
                 }
             }
             catch {

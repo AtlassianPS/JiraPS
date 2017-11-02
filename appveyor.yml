@@ -11,16 +11,12 @@
 os: WMF 5
 
 environment:
-    ModuleName: $(APPVEYOR_PROJECT_NAME)
-    Tags: 'JIRA'
-    LicenseUri: 'https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE'
-    ProjectUri: 'https://github.com/AtlassianPS/JiraPS/'
-
     # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
     PSGalleryAPIKey:
-        secure: 5WCRuuF+sk5Mjnt5cL6uJw4cMU2QzDNE8uBXOw2hXSujE93zxRcROS3ZM1w85ui3
+        secure: Ezd2JjB6rbNZOiJmcek2bZSSdXB34fjoC6JXdXcICf6KZGoBOIRZAG9KfHAYiMa7
+        # Must be updated to use contact@AtlassianPS.net user
 
-version: 2.2.0.{build}
+version: 2.4.{build}
 
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
@@ -76,7 +72,7 @@ deploy:
     release: v$(appveyor_build_version)
     description: ''
     auth_token:
-        secure: GPFmkrGf5ufcdQZiGVbfdBefIjcgVRJFutY8xf5+98B/jf18ZiiRZclAps3jFFLd
+        secure: ekVji7s19g/3zxpVQMX9gG1CldaXdOudCdY8a057AwcK5HyKZC0lFBE1Ou9iwBpu
     draft: false
     prerelease: false
     on:
