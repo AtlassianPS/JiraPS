@@ -34,7 +34,8 @@ function New-JiraSession {
         try {
             Write-Debug "[New-JiraSession] Reading Jira server from config file"
             $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
+        }
+        catch {
             $err = $_
             Write-Debug "[New-JiraSession] Encountered an error reading configuration data."
             throw $err
@@ -76,21 +77,26 @@ function New-JiraSession {
 
             Write-Debug "[New-JiraSession] Outputting result"
             Write-Output $result
-        } catch {
+        }
+        catch {
             $err = $_
             $webResponse = $err.Exception.Response
+            If ($null -eq $webResponse) {
+                Write-Error -Exception $err.exception -Message $err.Exception -ErrorId $err.FullyQualifiedErrorId -TargetObject $err.TargetObject -ErrorAction stop
+            }
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
 
             # Test HEADERS if Jira requires a CAPTCHA
             $tokenRequiresCaptcha = "AUTHENTICATION_DENIED"
             $headerRequiresCaptcha = "X-Seraph-LoginReason"
-            if (
-                $webResponse.Headers[$headerRequiresCaptcha] -and
-                ($webResponse.Headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha
-            ) {
-                Write-Warning "JIRA requires you to log on to the website before continuing for security reasons."
+            If ($webResponse.Headers) {
+                if (
+                    $webResponse.Headers[$headerRequiresCaptcha] -and
+                    ($webResponse.Headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha
+                ) {
+                    Write-Warning "JIRA requires you to log on to the website before continuing for security reasons."
+                }
             }
-
             Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
 
             # Retrieve body of HTTP response - this contains more useful information about exactly why the error

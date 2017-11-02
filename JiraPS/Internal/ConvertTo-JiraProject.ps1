@@ -15,14 +15,19 @@ function ConvertTo-JiraProject {
 
             # Write-Debug "Defining standard properties"
             $props = @{
-                'ID'          = $i.id
-                'Key'         = $i.key
-                'Name'        = $i.name
-                'Description' = $i.description
-                'IssueTypes'  = $i.issueTypes
-                'Roles'       = $i.roles
-                'RestUrl'     = $i.self
-                'Components'  = $i.components
+                'ID'             = $i.id
+                'Key'            = $i.key
+                'Name'           = $i.name
+                'Description'    = $i.description
+                'Lead'           = $i.Lead
+                'IssueTypes'     = $i.issueTypes
+                'AssigneeType'   = $i.assigneeType
+                'Versions'       = $i.Versions
+                'AvatarURLs'     = $i.AvatarURLs
+                'ProjectTypeKey' = $i.ProjectTypeKey
+                'Roles'          = $i.roles
+                'RestUrl'        = $i.self
+                'Components'     = $i.components
             }
 
             if ($i.projectCategory) {
