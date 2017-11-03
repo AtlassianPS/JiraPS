@@ -1,4 +1,3 @@
-
 $Params2 = {
     key= "EX",
     name= "Example",
@@ -14,4 +13,4 @@ $Params2 = {
     categoryId= 10000
 }
 
-New-jiraProject @Params2 -Verbose
+Set-JiraProject @Params2

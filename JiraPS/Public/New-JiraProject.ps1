@@ -76,7 +76,7 @@ function New-JiraProject {
 
         # Category ID
         [Parameter(Mandatory = $FALSE)]
-        [int] $categoryId,
+        [int] $CategoryId,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
@@ -87,7 +87,7 @@ function New-JiraProject {
         Write-Debug -Message '[New-JiraProject] Reading information from config file'
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $restUrl = "$server/rest/api/2/project"
+        $uri = "$server/rest/api/2/project"
     }
 
     process {
@@ -95,14 +95,11 @@ function New-JiraProject {
             PROJECT_LEAD
             UNASSIGNED
         }
-        Switch($AssigneeType)
-        {
-            'ProjectLead'
-            {
+        Switch ($AssigneeType) {
+            'ProjectLead' {
                 $AssigneeTypeEnum = [assigneeType]::PROJECT_LEAD
             }
-            'Unassigned'
-            {
+            'Unassigned' {
                 $AssigneeType = [assigneeType]::UNASSIGNED
             }
         }
@@ -128,7 +125,7 @@ function New-JiraProject {
 
         if ($PSCmdlet.ShouldProcess($Name, "Creating new Project in JIRA")) {
             Write-Debug -Message '[New-JiraProject] Preparing for blastoff!'
-            $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
+            $result = Invoke-JiraMethod -Method Post -URI $uri -RawBody -Body $json -Credential $Credential
         }
         $result
         If ($result) {
