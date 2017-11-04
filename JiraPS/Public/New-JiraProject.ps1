@@ -30,53 +30,57 @@ function New-JiraProject {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         # Project Key
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [String] $Key,
 
         # Name of the Project
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [String] $Name,
 
         # Project Type Key
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [String] $ProjectTypeKey,
 
         # Project Template Key
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [String] $ProjectTemplateKey,
 
         # Long description of the Project.
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $false)]
         [String] $Description,
 
         # Project Lead
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [String] $Lead,
 
         # Assignee Type
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [ValidateSet('ProjectLead', 'Unassigned')]
         [String] $AssigneeType,
 
         # Avatar ID
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [int] $AvatarId,
 
         # Issue Security Scheme ID
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [int] $IssueSecurityScheme,
 
         # Permission Scheme ID
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [int] $PermissionScheme,
 
         # Notification Scheme ID
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [int] $NotificationScheme,
 
         # Category ID
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [int] $CategoryId,
+
+        # Category ID
+        [Parameter(Mandatory = $false)]
+        [string] $Url,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
@@ -111,7 +115,7 @@ function New-JiraProject {
             projectTemplateKey  = $ProjectTemplateKey
             description         = $Description
             lead                = $lead
-            url                 = $server
+            url                 = $Url
             assigneeType        = $AssigneeTypeEnum
             avatarId            = $AvatarId
             issueSecurityScheme = $IssueSecurityScheme
@@ -127,7 +131,6 @@ function New-JiraProject {
             Write-Debug -Message '[New-JiraProject] Preparing for blastoff!'
             $result = Invoke-JiraMethod -Method Post -URI $uri -RawBody -Body $json -Credential $Credential
         }
-        $result
         If ($result) {
             $result | ConvertTo-JiraProject
         }
