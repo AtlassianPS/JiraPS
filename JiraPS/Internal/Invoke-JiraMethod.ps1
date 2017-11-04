@@ -15,6 +15,12 @@ function Invoke-JiraMethod {
         [ValidateNotNullOrEmpty()]
         [String] $Body,
 
+        # Body of the request should not be encoded
+        [Switch] $RawBody,
+
+        # Custom headers for the HTTP request
+        [Hashtable] $Headers = @{},
+        
         # Authentication credentials
         [PSCredential] $Credential
     )
@@ -73,10 +79,14 @@ function Invoke-JiraMethod {
         }
 
         if ($Body) {
-            # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
-            $cleanBody = [System.Text.Encoding]::UTF8.GetBytes($Body)
-            $iwrSplat.Add('Body', $cleanBody)
+        if ($RawBody) {
+            $iwrSplat.Add('Body', $Body)
         }
+        else {
+            # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
+            $iwrSplat.Add('Body', [System.Text.Encoding]::UTF8.GetBytes($Body))
+        }
+    }
 
         if ($session) {
             $iwrSplat.Add('WebSession', $session.WebSession)
