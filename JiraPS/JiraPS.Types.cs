@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 
-namespace JiraPS {
+namespace JiraPS
+{
 
-    public enum AssigneeType {
+    public enum AssigneeType
+    {
         PROJECT_LEAD,
         UNASSIGNED
     }
