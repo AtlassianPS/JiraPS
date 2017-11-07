@@ -12,7 +12,16 @@ function Get-JiraPermissionScheme {
     #>
     [CmdletBinding()]
     param(
+        # Parameter help description
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('Permissions', 'user', 'group', 'projectRole', 'field', 'all')]
+        [string[]]
+        $Expand,
 
+        # Parameter help description
+        [Parameter(Mandatory = $false)]
+        [int]
+        $ID,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
@@ -31,9 +40,15 @@ function Get-JiraPermissionScheme {
     }
 
     process {
-
-        #Function Logic
-
+        If($ID)
+        {
+            $restUri = '{0}/{1}' -f $restUri, $ID
+        }
+        if($Expand)
+        {
+            $restUri = '{0}?expand={1}' -f $restUri, ($Expand -join ',')
+        }
+        Write-Verbose "Rest URI: [$restUri]"
         Write-Debug "[Get-JiraPermissionScheme] Preparing for blastoff!"
         $results = Invoke-JiraMethod -Method GET -URI $restUri -Credential $Credential
         If($results)

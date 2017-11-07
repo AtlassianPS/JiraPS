@@ -10,7 +10,10 @@ function ConvertTo-JiraPermissionScheme {
     )
 
     process {
-        $InputObject = $InputObject | Select-Object -ExpandProperty permissionSchemes
+        If($InputObject.permissionSchemes)
+        {
+            $InputObject = $InputObject | Select-Object -ExpandProperty permissionSchemes
+        }
         foreach ($i in $InputObject) {
             # Write-Debug "Processing object: '$i'"
 
