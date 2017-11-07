@@ -42,17 +42,18 @@ function ConvertTo-JiraPermissionScheme {
                 }
                 $props.PermissionScheme = $permissionObject
             }
-
             # Write-Debug "Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
 
+            If ($result.PermissionScheme) {
+                # Write-Debug "[ConvertTo-JiraPermissionScheme] Inserting custom toString() method"
+                $result.PermissionScheme | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
+                    Write-Output "JiraPS.PermissionSchemeProperty"
+                }
+            }
+
             # Write-Debug "Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.JiraPermissionScheme')
-
-            # Write-Debug "[ConvertTo-JiraPermissionScheme] Inserting custom toString() method"
-            $result.PermissionScheme | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "JiraPS.PermissionSchemeProperty"
-            }
 
             # Write-Debug "Outputting object"
             Write-Output $result

@@ -10,18 +10,26 @@ function Get-JiraPermissionScheme {
     .INPUTS
     .OUTPUTS
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
-        # Parameter help description
+        # Switch to expand all properties of the scheme
         [Parameter(Mandatory = $false)]
-        [ValidateSet('Permissions', 'user', 'group', 'projectRole', 'field', 'all')]
-        [string[]]
+        [switch]
         $Expand,
 
-        # Parameter help description
-        [Parameter(Mandatory = $false)]
+        # ID of the permission scheme
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'ByID'
+        )]
         [int]
         $ID,
+
+        # Name of the permission scheme
+        [Parameter(Mandatory = $false,
+            ParameterSetName = 'ByName'
+        )]
+        [string]
+        $Name,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
@@ -40,11 +48,14 @@ function Get-JiraPermissionScheme {
     }
 
     process {
+        If ($PSCmdlet.ParameterSetName -eq 'ByName') {
+            $ID = Get-JiraPermissionScheme | Where-Object 'Name' -eq $Name | Select-Object -ExpandProperty ID
+        }
         If ($ID) {
             $restUri = '{0}/{1}' -f $restUri, $ID
         }
         if ($Expand) {
-            $restUri = '{0}?expand={1}' -f $restUri, ($Expand -join ',')
+            $restUri = '{0}?expand={1}' -f $restUri, 'all'
         }
         Write-Debug "[Get-JiraPermissionScheme] Preparing for blastoff!"
         $results = Invoke-JiraMethod -Method GET -URI $restUri -Credential $Credential
