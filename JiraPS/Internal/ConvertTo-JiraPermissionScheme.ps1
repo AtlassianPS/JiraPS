@@ -21,14 +21,18 @@ function ConvertTo-JiraPermissionScheme {
                 'ID'   = $i.id
                 'Name' = $i.Name
             }
+            If ($i.description) {
+                $props.description = $i.description
+            }
             If ($i.permissions) {
-                $permissionObject = foreach ($p in $i.permissions) {
+                $permissionObject = @()
+                foreach ($p in $i.permissions) {
                     $parentObject = @{
-                        'ID'         = $p.id
-                        'Holder'     = @{}
+                        #'ID'         = $p.id
+                        'holder'     = @{}
                         'permission' = $p.permission
                     }
-                    $childObject = Foreach ($h in $p.Holder) {
+                    $childObject = Foreach ($h in $p.holder) {
                         @{
                             'type'      = $h.type
                             'parameter' = $h.parameter
@@ -37,7 +41,7 @@ function ConvertTo-JiraPermissionScheme {
                     $parentObject.Holder = $childObject
                     # Write-Debug "Inserting type name information"
                     $parentObject.PSObject.TypeNames.Insert(0, 'JiraPS.JiraPermissionSchemeProperty')
-                    $parentObject
+                    $permissionObject += $parentObject
 
                 }
                 $props.PermissionScheme = $permissionObject
