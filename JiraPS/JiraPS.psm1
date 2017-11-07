@@ -2,6 +2,21 @@
 $functions = Join-Path -Path $moduleRoot -ChildPath 'Public'
 $internal = Join-Path -Path $moduleRoot -ChildPath 'Internal'
 
+try {
+    Add-Type -Path (Join-Path $PSScriptRoot JiraPS.Types.cs) -ReferencedAssemblies Microsoft.CSharp
+}
+catch {
+    if (!(("JiraPS.AssigneeType" -as [Type]))) {
+        $errorMessage = @{
+            Category         = "OperationStopped"
+            CategoryActivity = "Loading custom classes"
+            ErrorId          = 1001
+            Message          = "Failed to load module JiraPS. [Could not import JiraPS classes]"
+        }
+        Write-Error @errorMessage
+    }
+}
+
 # Import all .ps1 files that aren't Pester tests, and export the names of each one as a module function
 $items = Resolve-Path "$functions\*.ps1" | Where-Object -FilterScript { -not ($_.ProviderPath.Contains(".Tests.")) }
 foreach ($i in $items) {

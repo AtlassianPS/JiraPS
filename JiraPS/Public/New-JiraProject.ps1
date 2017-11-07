@@ -30,15 +30,15 @@ function New-JiraProject {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         # Project Key
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [String] $Key,
 
         # Name of the Project
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [String] $Name,
 
         # Project Type Key
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [String] $ProjectTypeKey,
 
         # Project Template Key
@@ -46,37 +46,40 @@ function New-JiraProject {
         [String] $ProjectTemplateKey,
 
         # Long description of the Project.
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $false)]
         [String] $Description,
 
         # Project Lead
-        [Parameter(Mandatory = $FALSE)]
+        [Parameter(Mandatory = $true)]
         [String] $Lead,
 
         # Assignee Type
-        [Parameter(Mandatory = $FALSE)]
-        [ValidateSet('ProjectLead', 'Unassigned')]
-        [String] $AssigneeType,
+        [Parameter(Mandatory = $false)]
+        [JiraPS.AssigneeType] $AssigneeType,
 
         # Avatar ID
         [Parameter(Mandatory = $false)]
-        [int] $AvatarId,
+        [Int] $AvatarId,
 
         # Issue Security Scheme ID
-        [Parameter(Mandatory = $FALSE)]
-        [int] $IssueSecurityScheme,
+        [Parameter(Mandatory = $false)]
+        [Int] $IssueSecurityScheme,
 
         # Permission Scheme ID
-        [Parameter(Mandatory = $FALSE)]
-        [int] $PermissionScheme,
+        [Parameter(Mandatory = $false)]
+        [Int] $PermissionScheme,
 
         # Notification Scheme ID
-        [Parameter(Mandatory = $FALSE)]
-        [int] $NotificationScheme,
+        [Parameter(Mandatory = $false)]
+        [Int] $NotificationScheme,
 
         # Category ID
-        [Parameter(Mandatory = $FALSE)]
-        [int] $CategoryId,
+        [Parameter(Mandatory = $false)]
+        [Int] $CategoryId,
+
+        # Category ID
+        [Parameter(Mandatory = $false)]
+        [string] $Url,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
@@ -91,43 +94,30 @@ function New-JiraProject {
     }
 
     process {
-        enum assigneeType {
-            PROJECT_LEAD
-            UNASSIGNED
-        }
-        Switch ($AssigneeType) {
-            'ProjectLead' {
-                $AssigneeTypeEnum = [assigneeType]::PROJECT_LEAD
-            }
-            'Unassigned' {
-                $AssigneeType = [assigneeType]::UNASSIGNED
-            }
+        $parameters = @{
+            key            = $Key
+            name           = $Name
+            lead           = $Lead
+            projectTypeKey = $ProjectTypeKey
         }
 
-        $iwrSplat = @{
-            key                 = $Key
-            name                = $Name
-            projectTypeKey      = $ProjectTypeKey
-            projectTemplateKey  = $ProjectTemplateKey
-            description         = $Description
-            lead                = $lead
-            url                 = $server
-            assigneeType        = $AssigneeTypeEnum
-            avatarId            = $AvatarId
-            issueSecurityScheme = $IssueSecurityScheme
-            permissionScheme    = $PermissionScheme
-            notificationScheme  = $NotificationScheme
-            categoryId          = $categoryId
+        if ($ProjectTemplateKey) { $parameters["projectTemplateKey"] = $ProjectTemplateKey }
+        if ($Description) { $parameters["description"] = $Description }
+        if ($Url) { $parameters["url"] = $Url }
+        if ($AssigneeTypeEnum) { $parameters["assigneeType"] = $AssigneeTypeEnum }
+        if ($AvatarId) { $parameters["avatarId"] = $AvatarId }
+        if ($IssueSecurityScheme) { $parameters["issueSecurityScheme"] = $IssueSecurityScheme }
+        if ($PermissionScheme) { $parameters["permissionScheme"] = $PermissionScheme }
+        if ($NotificationScheme) { $parameters["notificationScheme"] = $NotificationScheme }
+        if ($categoryId) { $parameters["categoryId"] = $categoryId }
 
-        }
         Write-Debug -Message '[New-JiraProject] Converting to JSON'
-        $json = ConvertTo-Json -InputObject $iwrSplat
+        $json = ConvertTo-Json -InputObject $parameters
 
         if ($PSCmdlet.ShouldProcess($Name, "Creating new Project in JIRA")) {
             Write-Debug -Message '[New-JiraProject] Preparing for blastoff!'
             $result = Invoke-JiraMethod -Method Post -URI $uri -RawBody -Body $json -Credential $Credential
         }
-        $result
         If ($result) {
             $result | ConvertTo-JiraProject
         }

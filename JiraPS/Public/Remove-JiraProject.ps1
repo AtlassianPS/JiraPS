@@ -14,13 +14,13 @@ function Remove-JiraProject {
     [CmdletBinding(SupportsShouldProcess = $true,
         ConfirmImpact = 'High')]
     param(
-        # Project Object or Key to delete.
+        # Project Key
         [Parameter(
-            Position = 0,
             Mandatory = $true,
-            ValueFromPipeline = $true
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
         )]
-        [Object[]] $Project,
+        [String] $Key,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
@@ -53,7 +53,7 @@ function Remove-JiraProject {
     }
 
     process {
-        foreach ($p in $Project) {
+        foreach ($p in $Key) {
             Write-Debug "[Remove-JiraProject] Obtaining reference to project [$p]"
             $projectObj = Get-JiraProject -Project $p -Credential $Credential
 
@@ -72,7 +72,6 @@ function Remove-JiraProject {
             }
         }
     }
-
     end {
         if ($Force) {
             Write-Debug "[Remove-JiraProjectMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
