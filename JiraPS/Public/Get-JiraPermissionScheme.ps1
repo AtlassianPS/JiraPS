@@ -40,19 +40,15 @@ function Get-JiraPermissionScheme {
     }
 
     process {
-        If($ID)
-        {
+        If ($ID) {
             $restUri = '{0}/{1}' -f $restUri, $ID
         }
-        if($Expand)
-        {
+        if ($Expand) {
             $restUri = '{0}?expand={1}' -f $restUri, ($Expand -join ',')
         }
-        Write-Verbose "Rest URI: [$restUri]"
         Write-Debug "[Get-JiraPermissionScheme] Preparing for blastoff!"
         $results = Invoke-JiraMethod -Method GET -URI $restUri -Credential $Credential
-        If($results)
-        {
+        If ($results) {
             ($results | ConvertTo-JiraPermissionScheme)
         }
         else {
