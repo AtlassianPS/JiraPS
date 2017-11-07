@@ -1,4 +1,3 @@
-
 $Params1 =  @{
     key= "EX"
     name= "Example"
@@ -16,4 +15,4 @@ $Params1 =  @{
 }
 $Project = @()
 $Project += New-jiraProject @Params1 -Verbose
-#$project | Remove-JiraProject
+$project | Remove-JiraProject
