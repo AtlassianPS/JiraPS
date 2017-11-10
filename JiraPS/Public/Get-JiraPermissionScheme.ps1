@@ -1,14 +1,24 @@
-function Get-JiraPermissionScheme {
+function Get-JiraPermissionScheme
+{
     <#
     .Synopsis
-
+        Get permission scheme
     .DESCRIPTION
-       Create permission scheme
+        Get permission scheme by name or ID
     .EXAMPLE
-       Get-JiraPermissionScheme
+        Get-JiraPermissionScheme
     .EXAMPLE
-    .INPUTS
+        Get-JiraPermissionScheme -Expand
+    .EXAMPLE
+        Get-JiraPermissionScheme -ID 0
+    .EXAMPLE
+        Get-JiraPermissionScheme -ID 0 -Expand
+    .EXAMPLE
+        Get-JiraPermissionScheme -Name 'Default Permission Scheme'
+    .EXAMPLE
+        Get-JiraPermissionScheme -Name 'Default Permission Scheme' -Expand
     .OUTPUTS
+        [JiraPS.PermissionsScheme]
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
@@ -37,7 +47,8 @@ function Get-JiraPermissionScheme {
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin {
+    begin
+    {
         Write-Debug "[Get-JiraPermissionScheme] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
@@ -47,27 +58,43 @@ function Get-JiraPermissionScheme {
         $restUri = "$server/rest/api/2/permissionscheme"
     }
 
-    process {
-        If ($PSCmdlet.ParameterSetName -eq 'ByName') {
+    process
+    {
+        If ($PSCmdlet.ParameterSetName -eq 'ByName')
+        {
             $ID = Get-JiraPermissionScheme | Where-Object 'Name' -eq $Name | Select-Object -ExpandProperty ID
+            If ($ID -eq 0)
+            {
+                Write-Verbose "JIRA returned no results."
+                return
+            }
+            else
+            {
+                $restUri = '{0}/{1}' -f $restUri, $ID
+            }
         }
-        If ($ID) {
+        If ($PSBoundParameters.ContainsKey('ID'))
+        {
             $restUri = '{0}/{1}' -f $restUri, $ID
         }
-        if ($Expand) {
+        if ($Expand)
+        {
             $restUri = '{0}?expand={1}' -f $restUri, 'all'
         }
         Write-Debug "[Get-JiraPermissionScheme] Preparing for blastoff!"
         $results = Invoke-JiraMethod -Method GET -URI $restUri -Credential $Credential
-        If ($results) {
+        If ($results)
+        {
             ($results | ConvertTo-JiraPermissionScheme)
         }
-        else {
+        else
+        {
             Write-Debug "[Get-JiraPermissionScheme] JIRA returned no results."
             Write-Verbose "JIRA returned no results."
         }
     }
-    end {
+    end
+    {
         Write-Debug "[Get-JiraPermissionScheme] Complete"
     }
 }

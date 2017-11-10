@@ -41,18 +41,18 @@ function ConvertTo-JiraProject {
             }
 
             # Write-Debug "Creating PSObject out of properties"
-            $result = New-Object -TypeName PSObject -Property $props
+            $projectObj = New-Object -TypeName PSObject -Property $props
 
             # Write-Debug "Inserting type name information"
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+            $projectObj.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
 
             # Write-Debug "[ConvertTo-JiraProject] Inserting custom toString() method"
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
+            $projectObj | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
                 Write-Output "$($this.Name)"
             }
 
             # Write-Debug "Outputting object"
-            Write-Output $result
+            Write-Output $projectObj
         }
     }
 

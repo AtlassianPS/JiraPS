@@ -1,4 +1,5 @@
-function New-JiraPermissionScheme {
+function New-JiraPermissionScheme
+{
     <#
     .Synopsis
 
@@ -24,7 +25,7 @@ function New-JiraPermissionScheme {
 
         # JiraPS.PermissionScheme Object, Use Get-JiraPermissionScheme
         [Parameter(Mandatory = $true)]
-        [object]
+        [Array]
         $InputObject,
 
         # Credentials to use to connect to JIRA.
@@ -33,7 +34,8 @@ function New-JiraPermissionScheme {
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin {
+    begin
+    {
         Write-Debug "[New-JiraPermissionScheme] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
@@ -43,7 +45,8 @@ function New-JiraPermissionScheme {
         $restUri = "$server/rest/api/2/permissionscheme?expand=all"
     }
 
-    process {
+    process
+    {
         $props = @{
             name        = $Name
             description = $Description
@@ -55,15 +58,19 @@ function New-JiraPermissionScheme {
 
         Write-Debug "[New-JiraPermissionScheme] Preparing for blastoff!"
         $results = Invoke-JiraMethod -Method POST -URI $restUri -Body $json -Credential $Credential
-        If ($results) {
-            $results | ConvertTo-JiraPermissionScheme
+        If ($results)
+        {
+            $results = ConvertTo-JiraPermissionScheme -InputObject $results
         }
-        else {
+        else
+        {
             Write-Debug "[New-JiraPermissionScheme] JIRA returned no results."
             Write-Verbose "JIRA returned no results."
         }
     }
-    end {
+    end
+    {
+        $results
         Write-Debug "[New-JiraPermissionScheme] Complete"
     }
 }
