@@ -39,21 +39,21 @@ function Add-JiraIssueAttachment {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
         # Whether output should be provided after invoking this function
         [Switch] $PassThru
     )
 
-    Begin {
-        Write-Debug "[Add-JiraIssueAttachment] Begin"
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+    begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $resourceURi = "{0}/attachments"
     }
 
-    Process {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+    process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # Validate input object
         if (($Issue.PSObject.TypeNames[0] -ne "JiraPS.Issue") -and (($Issue -isnot [String]))) {
@@ -63,20 +63,8 @@ function Add-JiraIssueAttachment {
         }
 
         foreach ($file in $FilePath) {
-            # As we are not able to use proper type casting in the parameters, this is a workaround
-            # to extract the data from a JiraPS.Issue object
-            Write-Debug "[Add-JiraIssueAttachment] Obtaining a reference to Jira issue [$Issue]"
-            if ($Issue.PSObject.TypeNames[0] -eq "JiraPS.Issue" -and $Issue.RestURL) {
-                $issueObj = $Issue
-            }
-            elseif ($Issue.PSObject.TypeNames[0] -eq "JiraPS.Issue" -and $Issue.Key) {
-                $issueObj = Get-JiraIssue -InputObject $Issue.Key -Credential $Credential -ErrorAction Stop
-            }
-            else {
-                $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential -ErrorAction Stop
-            }
-
-            $url = "$($issueObj.RestURL)/attachments"
+            # Find the porper object for the Issue
+            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
             $fileName = Split-Path -Path $file -Leaf
             $readFile = [System.IO.File]::ReadAllBytes($file)
@@ -101,29 +89,25 @@ Content-Type: {2}
                 'X-Atlassian-Token' = 'nocheck'
                 'Content-Type'      = "multipart/form-data; boundary=`"$boundary`""
             }
+
             $parameter = @{
-                URI        = $url
+                URI        = $resourceURi -f $issueObj.RestURL
                 Method     = "POST"
                 Body       = $bodyLines
                 Headers    = $headers
                 RawBody    = $true
                 Credential = $Credential
             }
-            Write-Debug "[Add-JiraIssueAttachment] Preparing for blastoff!"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $rawResult = Invoke-JiraMethod @parameter
 
             if ($PassThru) {
-                Write-Debug "[Add-JiraIssueAttachment] -PassThru specified."
-                Write-Debug "[Add-JiraIssueAttachment] Converting to custom object"
                 ConvertTo-JiraAttachment -InputObject $rawResult
-
-                Write-Debug "[Add-JiraIssueAttachment] Outputting result"
-                Write-Output $result
             }
         }
     }
 
-    End {
-        Write-Debug "[Add-JiraIssueAttachment] Complete"
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

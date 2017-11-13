@@ -28,14 +28,12 @@ function Add-JiraIssueComment {
     param(
         # Comment that should be added to JIRA.
         [Parameter(
-            Position = 0,
             Mandatory = $true
         )]
         [String] $Comment,
 
         # Issue that should be commented upon.
         [Parameter(
-            Position = 1,
             Mandatory = $true,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
@@ -49,74 +47,49 @@ function Add-JiraIssueComment {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Add-JiraIssueComment] Begin"
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $resourceURi = "{0}/comment"
     }
 
     process {
-        # Write-Debug "[Add-JiraIssueComment] Checking Issue parameter"
-        # if ($Issue.PSObject.TypeNames[0] -eq 'JiraPS.Issue') {
-        #     Write-Debug "[Add-JiraIssueComment] Issue parameter is a JiraPS.Issue object"
-        #     $issueObj = $Issue
-        # }
-        # else {
-        #     $issueKey = $Issue.ToString()
-        #     Write-Debug "[Add-JiraIssueComment] Issue key is assumed to be [$issueKey] via ToString()"
-        #     Write-Verbose "Searching for issue [$issueKey]"
-        #     try {
-        #         $issueObj = Get-JiraIssue -Key $issueKey -Credential $Credential
-        #     }
-        #     catch {
-        #         $err = $_
-        #         Write-Debug 'Encountered an error searching for Jira issue. An exception will be thrown.'
-        #         throw $err
-        #     }
-        # }
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        # if (-not $issueObj) {
-        #     Write-Debug "[Add-JiraIssueComment] No Jira issues were found for parameter [$Issue]. An exception will be thrown."
-        #     throw "Unable to identify Jira issue [$Issue]. Does this issue exist?"
-        # }
+        # Find the porper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        Write-Debug "[Add-JiraIssueComment] Obtaining a reference to Jira issue [$Issue]"
-        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
-
-        $url = "$($issueObj.RestURL)/comment"
-
-        Write-Debug "[Add-JiraIssueComment] Creating request body from comment"
-        $props = @{
-            'body' = $Comment;
+        $requestBody = @{
+            'body' = $Comment
         }
 
         # If the visible role should be all users, the visibility block shouldn't be passed at
         # all. JIRA returns a 500 Internal Server Error if you try to pass this block with a
         # value of "All Users".
         if ($VisibleRole -ne 'All Users') {
-            $props.visibility = @{
-                'type'  = 'role';
-                'value' = $VisibleRole;
+            $requestBody.visibility = @{
+                'type'  = 'role'
+                'value' = $VisibleRole
             }
         }
 
-        Write-Debug "[Add-JiraIssueComment] Converting to JSON"
-        $json = ConvertTo-Json -InputObject $props
+        $parameter = @{
+            URI        = $resourceURi -f $issueObj.RestURL
+            Method     = "POST"
+            Body       = ConvertTo-Json -InputObject $requestBody
+            Credential = $Credential
+        }
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        $rawResult = Invoke-JiraMethod @parameter
 
-        Write-Debug "[Add-JiraIssueComment] Preparing for blastoff!"
-        $rawResult = Invoke-JiraMethod -Method Post -URI $url -Body $json -Credential $Credential
-
-        Write-Debug "[Add-JiraIssueComment] Converting to custom object"
-        $result = ConvertTo-JiraComment -InputObject $rawResult
-
-        Write-Debug "[Add-JiraIssueComment] Outputting result"
-        Write-Output $result
+        ConvertTo-JiraComment -InputObject $rawResult
     }
 
     end {
-        Write-Debug "[Add-JiraIssueComment] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

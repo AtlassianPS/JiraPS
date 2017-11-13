@@ -19,7 +19,6 @@ function Add-JiraIssueLink {
     param(
         # Issue key or JiraPS.Issue object returned from Get-JiraIssue
         [Parameter(
-            Position = 0,
             Mandatory = $true,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
@@ -34,24 +33,29 @@ function Add-JiraIssueLink {
         # Write a comment to the issue
         [String] $Comment,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential<#,
-
-        [Switch] $PassThru#>
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Add-JiraIssueLink] Reading server from config file"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $issueLinkURL = "$($server)/rest/api/latest/issueLink"
+        $resourceURi = "$server/rest/api/latest/issueLink"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         # Validate IssueLink object
         $objectProperties = $IssueLink | Get-Member -MemberType *Property
-        if (-not(($objectProperties.Name -contains "type") -and (($objectProperties.Name -contains "outwardIssue") -or ($objectProperties.Name -contains "inwardIssue")))) {
+        if (-not(
+                ($objectProperties.Name -contains "type") -and
+                (($objectProperties.Name -contains "outwardIssue") -or ($objectProperties.Name -contains "inwardIssue"))
+            )) {
             $message = "The IssueLink provided does not contain the information needed."
             $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
             Throw $exception
@@ -65,38 +69,48 @@ function Add-JiraIssueLink {
         }
 
         foreach ($i in $Issue) {
-            Write-Debug "[Add-JiraIssueLink] Obtaining reference to issue"
-            $issueObj = Get-JiraIssue -InputObject $i -Credential $Credential
+            # Find the porper object for the Issue
+            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
             foreach ($link in $IssueLink) {
+
                 if ($link.inwardIssue) {
-                    $inwardIssue = [PSCustomObject]@{key = $link.inwardIssue.key}
+                    $inwardIssue = @{ key = $link.inwardIssue.key }
                 }
                 else {
-                    $inwardIssue = [PSCustomObject]@{key = $issueObj.key}
+                    $inwardIssue = @{ key = $issueObj.key }
                 }
 
                 if ($link.outwardIssue) {
-                    $outwardIssue = [PSCustomObject]@{key = $link.outwardIssue.key}
+                    $outwardIssue = @{ key = $link.outwardIssue.key }
                 }
                 else {
-                    $outwardIssue = [PSCustomObject]@{key = $issueObj.key}
+                    $outwardIssue = @{ key = $issueObj.key }
                 }
 
-                $body = [PSCustomObject]@{
-                    type         = [PSCustomObject]@{name = $link.type.name}
+                $body = @{
+                    type         = @{ name = $link.type.name }
                     inwardIssue  = $inwardIssue
                     outwardIssue = $outwardIssue
                 }
-                if ($Comment) {$body["comment"] = [PSCustomObject]@{body = $Comment}}
-                $json = ConvertTo-Json $body
 
-                $null = Invoke-JiraMethod -Method POST -URI $issueLinkURL -Body $json -Credential $Credential
+                if ($Comment) {
+                    $body.comment = @{ body = $Comment }
+                }
+
+                $parameter = @{
+                    URI        = $resourceURi
+                    Method     = "POST"
+                    Body       = ConvertTo-Json -InputObject $body
+                    Credential = $Credential
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
             }
         }
     }
 
     end {
-        Write-Debug "[Add-JiraIssueLink] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
