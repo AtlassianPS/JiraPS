@@ -33,7 +33,7 @@ function Get-JiraComponent {
             ValueFromPipeline = $true,
             ParameterSetName = 'ByProject'
         )]
-        $Project,
+        [Object[]] $Project,
 
         # The Component ID.
         [Parameter(
@@ -42,81 +42,67 @@ function Get-JiraComponent {
             ParameterSetName = 'ByID'
         )]
         [Alias("Id")]
-        [int[]] $ComponentId,
+        [Int[]] $ComponentId,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraComponent] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraComponent] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $uri = "$server/rest/api/latest"
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest{0}"
     }
 
     process {
-        if ($Project) {
-            if ($Project.PSObject.TypeNames[0] -eq 'JiraPS.Project') {
-                $ComponentId = @($Project.Components | Select-Object -ExpandProperty id)
-            }
-            else {
-                foreach ($p in $Project) {
-                    if ($p -is [string]) {
-                        Write-Debug "[Get-JiraComponent] Processing project [$p]"
-                        $thisUri = "$uri/project/${p}/components"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-                        Write-Debug "[Get-JiraComponent] Preparing for blastoff!"
+        switch ($PSCmdlet.ParameterSetName) {
+            "ByProject" {
+                if ($Project.PSObject.TypeNames -contains 'JiraPS.Project') {
+                    Get-JiraComponent -ComponentId ($Project.Components).id
+                }
+                else {
+                    foreach ($p in $Project) {
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing project [$p]"
 
-                        $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
-                        if ($result) {
-                            Write-Debug "[Get-JiraComponent] Converting to object"
-                            $obj = ConvertTo-JiraComponent -InputObject $result
+                        if ($p -is [string]) {
+                            $parameter = @{
+                                URI        = $resourceURi -f "/project/${p}/components"
+                                Method     = "GET"
+                                Credential = $Credential
+                            }
+                            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                            $result = Invoke-JiraMethod @parameter
 
-                            Write-Debug "[Get-JiraComponent] Outputting result"
-                            Write-Output $obj
-                        }
-                        else {
-                            Write-Debug "[Get-JiraComponent] No results were returned from Jira"
-                            Write-Debug "[Get-JiraComponent] No results were returned from Jira for component [$i]"
+                            ConvertTo-JiraComponent -InputObject $result
                         }
                     }
                 }
             }
-        }
-        if ($ComponentId) {
-            foreach ($i in $ComponentId) {
-                Write-Debug "[Get-JiraComponent] Processing component [$i]"
-                $thisUri = "$uri/component/${i}"
+            "ByID" {
+                foreach ($i in $ComponentId) {
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing component [$i]"
 
-                Write-Debug "[Get-JiraComponent] Preparing for blastoff!"
+                    $parameter = @{
+                        URI        = $resourceURi -f "/component/${i}"
+                        Method     = "GET"
+                        Credential = $Credential
+                    }
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraMethod @parameter
 
-                $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
-                if ($result) {
-                    Write-Debug "[Get-JiraComponent] Converting to object"
-                    $obj = ConvertTo-JiraComponent -InputObject $result
-
-                    Write-Debug "[Get-JiraComponent] Outputting result"
-                    Write-Output $obj
-                }
-                else {
-                    Write-Debug "[Get-JiraComponent] No results were returned from Jira"
-                    Write-Debug "[Get-JiraComponent] No results were returned from Jira for component [$i]"
+                    ConvertTo-JiraComponent -InputObject $result
                 }
             }
         }
     }
 
     end {
-        Write-Debug "[Get-JiraComponent] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

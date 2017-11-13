@@ -24,14 +24,12 @@
     param(
         # Watcher that should be added to JIRA
         [Parameter(
-            Position = 0,
             Mandatory = $true
         )]
-        [string[]] $Watcher,
+        [String[]] $Watcher,
 
         # Issue that should be watched
         [Parameter(
-            Position = 1,
             Mandatory = $true,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
@@ -39,31 +37,39 @@
         [Alias('Key')]
         [Object] $Issue,
 
-        # Credentials to use to connect to Jira. If not specified, this function will use
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Add-JiraIssueWatcher] Begin"
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $resourceURi = "{0}/watchers"
     }
 
     process {
-        Write-Debug "[Add-JiraIssueWatcher] Obtaining a reference to Jira issue [$Issue]"
-        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        # Find the porper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         $url = "$($issueObj.RestURL)/watchers"
 
         foreach ($w in $Watcher) {
-            $body = """$w"""
-
-            Write-Debug "[Add-JiraIssueWatcher] Preparing for blastoff!"
-            Invoke-JiraMethod -Method Post -URI $url -Body $body -Credential $Credential
+            $parameter = @{
+                URI = $resourceURi -f $issueObj.RestURL
+                Method = "POST"
+                Body   = '"{0}"' -f $w
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Invoke-JiraMethod @parameter
         }
     }
 
     end {
-        Write-Debug "[Add-JiraIssueWatcher] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
