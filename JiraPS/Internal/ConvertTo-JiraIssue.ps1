@@ -40,9 +40,9 @@ function ConvertTo-JiraIssue {
                 $props['IssueLinks'] = ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks
             }
 
-                if ($i.fields.attachment) {
-                    $props["Attachment"] = ConvertTo-JiraAttachment $i.fields.attachment
-                }
+            if ($i.fields.attachment) {
+                $props["Attachment"] = ConvertTo-JiraAttachment $i.fields.attachment
+            }
 
             if ($i.fields.project) {
                 $props.Project = ConvertTo-JiraProject -InputObject $i.fields.project
