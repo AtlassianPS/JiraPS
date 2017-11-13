@@ -38,31 +38,27 @@
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraFilter] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraFilter] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $uri = "$server/rest/api/latest/filter/{0}"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         if ($PSCmdlet.ParameterSetName -eq 'ByFilterID') {
             foreach ($i in $Id) {
                 Write-Debug "[Get-JiraFilter] Processing filter [$i]"
                 $thisUri = $uri -f $i
-                Write-Debug "[Get-JiraFilter] Filter URI: [$thisUri]"
-                Write-Debug "[Get-JiraFilter] Preparing for blast off!"
+
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
 
                 if ($result) {
@@ -99,6 +95,6 @@
     }
 
     end {
-        Write-Debug "[Get-JiraFilter] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

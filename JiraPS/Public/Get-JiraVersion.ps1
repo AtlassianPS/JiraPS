@@ -56,17 +56,23 @@
         )]
         [Int[]] $Id,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential] $Credential
     )
+
     begin {
-        Write-Debug "[Get-JiraVersion] Reading server from config file"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Get-JiraVersion] Completed Begin block."
     }
+
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         Switch ($PSCmdlet.ParameterSetName) {
             'byProject' {
                 foreach ($_project in $Project) {
@@ -74,7 +80,7 @@
                     $projectData = Get-JiraProject -Project $_project -Credential $Credential
                     $restUrl = "$server/rest/api/latest/project/$($projectData.key)/versions"
 
-                    Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
 
                     If ($Name) {
@@ -87,13 +93,13 @@
                 foreach ($_id in $ID) {
                     $restUrl = "$server/rest/api/latest/version/$_id"
 
-                    Write-Debug -Message '[Get-JiraVersion] Preparing for blastoff!'
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential | ConvertTo-JiraVersion -Credential $Credential
                 }
             }
         }
     }
     end {
-        Write-Debug "[Get-JiraVersion] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

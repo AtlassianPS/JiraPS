@@ -72,24 +72,13 @@ function New-JiraIssue {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[New-JiraIssue] Reading information from config file"
-        try {
-            Write-Debug "[New-JiraIssue] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-            Write-Debug "[New-JiraIssue] Reading Jira issue create metadata"
-            $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -ConfigFile $ConfigFile -Credential $Credential -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[New-JiraIssue] Encountered an error reading configuration data."
-            throw $err
-        }
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $issueURL = "$server/rest/api/latest/issue"
 
@@ -107,6 +96,9 @@ function New-JiraIssue {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         $ProjectParam = New-Object -TypeName PSObject -Property @{"id" = $ProjectObj.Id}
         $IssueTypeParam = New-Object -TypeName PSObject -Property @{"id" = [String] $IssueTypeObj.Id}
 
@@ -198,7 +190,7 @@ function New-JiraIssue {
 
         Write-Debug "[New-JiraIssue] Checking for -WhatIf and Confirm"
         if ($PSCmdlet.ShouldProcess($Summary, "Creating new Issue on JIRA")) {
-            Write-Debug "[New-JiraIssue] Preparing for blastoff!"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod -Method Post -URI $issueURL -Body $json -Credential $Credential
         }
 
@@ -218,6 +210,6 @@ function New-JiraIssue {
     }
 
     end {
-        Write-Debug "[New-JiraIssue] Completing New-JiraIssue"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

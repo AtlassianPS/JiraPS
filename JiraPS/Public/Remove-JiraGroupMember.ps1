@@ -41,7 +41,6 @@ function Remove-JiraGroupMember {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
         # Whether output should be provided after invoking this function
@@ -52,16 +51,9 @@ function Remove-JiraGroupMember {
     )
 
     begin {
-        Write-Debug "[Remove-JiraGroupMember] Reading information from config file"
-        try {
-            Write-Debug "[Remove-JiraGroupMember] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Remove-JiraGroupMember] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $restUrl = "$server/rest/api/latest/group/user?groupname={0}&username={1}"
 
@@ -73,6 +65,9 @@ function Remove-JiraGroupMember {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($g in $Group) {
             Write-Debug "[Remove-JiraGroupMember] Obtaining reference to group [$g]"
             $groupObj = Get-JiraGroup -InputObject $g -Credential $Credential
@@ -94,7 +89,7 @@ function Remove-JiraGroupMember {
 
                             Write-Debug "[Remove-JiraGroupMember] Checking for -WhatIf and Confirm"
                             if ($PSCmdlet.ShouldProcess("$groupObj", "Remove $userObj from group")) {
-                                Write-Debug "[Remove-JiraGroupMember] Preparing for blastoff!"
+                                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                                 Invoke-JiraMethod -Method Delete -URI $thisRestUrl -Credential $Credential
                             }
                             else {
@@ -132,6 +127,6 @@ function Remove-JiraGroupMember {
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        Write-Debug "[Remove-JiraGroupMember] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

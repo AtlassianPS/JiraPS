@@ -40,20 +40,13 @@ function Get-JiraIssueCreateMetadata {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraIssueCreateMetadata] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraIssueCreateMetadata] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Get-JiraIssueCreateMetadata] Building URI for REST call based on parameters"
         $uri = "$server/rest/api/latest/issue/createmeta?"
@@ -82,7 +75,10 @@ function Get-JiraIssueCreateMetadata {
     }
 
     process {
-        Write-Debug "[Get-JiraIssueCreateMetadata] Preparing for blastoff!"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $jiraResult = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
 
         if ($jiraResult) {
@@ -120,5 +116,9 @@ function Get-JiraIssueCreateMetadata {
         else {
             Write-Debug "[Get-JiraIssueCreateMetadata] No results were returned from JIRA."
         }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

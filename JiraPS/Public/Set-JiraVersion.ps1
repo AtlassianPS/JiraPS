@@ -49,19 +49,23 @@
         # This can be the ID of the Project, or the Project Object
         [Object] $Project,
 
-        # Credentials to use to connect to Jira.
-        [Parameter(Mandatory = $false)]
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug -Message '[Set-JiraVersion] Reading information from config file'
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Set-JiraVersion] Completed Begin block."
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($_version in $Version) {
             try {
                 # Validate InputObject type
@@ -109,7 +113,7 @@
                 $json = ConvertTo-Json -InputObject $props
 
                 if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
-                    Write-Debug -Message '[Set-JiraVersion] Preparing for blastoff!'
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     Invoke-JiraMethod -Method Put -URI $restUrl -Body $json -Credential $Credential | ConvertTo-JiraVersion -Credential $Credential
                 }
             }
@@ -120,6 +124,6 @@
     }
 
     end {
-        Write-Debug "[Set-JiraVersion] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

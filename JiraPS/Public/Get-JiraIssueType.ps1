@@ -34,27 +34,24 @@
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraIssueType] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraIssueType] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $uri = "$server/rest/api/latest/issuetype"
-        Write-Debug "[Get-JiraIssueType] Obtaining all issue types from Jira"
+
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $allIssueTypes = ConvertTo-JiraIssueType -InputObject (Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential)
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         if ($IssueType) {
             foreach ($i in $IssueType) {
                 Write-Debug "[Get-JiraIssueType] Processing issue type [$i]"
@@ -85,6 +82,6 @@
     }
 
     end {
-        Write-Debug "Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

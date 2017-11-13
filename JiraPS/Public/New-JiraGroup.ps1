@@ -24,26 +24,21 @@
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[New-JiraGroup] Reading information from config file"
-        try {
-            Write-Debug "[New-JiraGroup] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[New-JiraGroup] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $restUrl = "$server/rest/api/latest/group"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         Write-Debug "[New-JiraGroup] Defining properties"
         $props = @{
             "name" = $GroupName;
@@ -54,7 +49,7 @@
 
         Write-Debug "[New-JiraGroup] Checking for -WhatIf and Confirm"
         if ($PSCmdlet.ShouldProcess($GroupName, "Creating group [$GroupName] to JIRA")) {
-            Write-Debug "[New-JiraGroup] Preparing for blastoff!"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
         }
         if ($result) {
@@ -64,5 +59,9 @@
         else {
             Write-Debug "[New-JiraGroup] Jira returned no results to output."
         }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

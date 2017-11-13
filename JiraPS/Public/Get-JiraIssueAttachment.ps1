@@ -38,15 +38,17 @@ function Get-JiraIssueAttachment {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         # Validate input object
         if (
             # from Pipeline
@@ -85,7 +87,7 @@ function Get-JiraIssueAttachment {
     }
 
     end {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Completed"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
 

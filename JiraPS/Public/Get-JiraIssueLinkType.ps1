@@ -29,26 +29,23 @@ function Get-JiraIssueLinkType {
         )]
         [Object] $LinkType,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraIssueLinkType] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraIssueLinkType] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $uri = "$server/rest/api/latest/issueLinkType"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         $searchLinks = $false
         if ($LinkType) {
             # If the link type provided is an int, we can assume it's an ID number.
@@ -66,6 +63,7 @@ function Get-JiraIssueLinkType {
             Write-Debug "[Get-JiraIssueLinkType] Obtaining all issue link types from Jira"
         }
 
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $jiraResult = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
 
         if ($jiraResult -and $jiraResult.issueLinkTypes) {
@@ -93,5 +91,9 @@ function Get-JiraIssueLinkType {
         else {
             Write-Debug "[Get-JiraIssueLinkType] No issue link types were found."
         }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

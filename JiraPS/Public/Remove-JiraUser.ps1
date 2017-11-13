@@ -33,7 +33,6 @@ function Remove-JiraUser {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
         # Suppress user confirmation.
@@ -41,16 +40,9 @@ function Remove-JiraUser {
     )
 
     begin {
-        Write-Debug "[Remove-JiraUser] Reading information from config file"
-        try {
-            Write-Debug "[Remove-JiraUser] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Remove-JiraUser] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $userURL = "$server/rest/api/latest/user?username={0}"
 
@@ -62,6 +54,9 @@ function Remove-JiraUser {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($u in $User) {
             Write-Debug "[Remove-JiraUser] Obtaining reference to user [$u]"
             $userObj = Get-JiraUser -InputObject $u -Credential $Credential
@@ -72,7 +67,7 @@ function Remove-JiraUser {
 
                 Write-Debug "[Remove-JiraUser] Checking for -WhatIf and Confirm"
                 if ($PSCmdlet.ShouldProcess($userObj.Name, 'Completely remove user from JIRA')) {
-                    Write-Debug "[Remove-JiraUser] Preparing for blastoff!"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
                 }
                 else {
@@ -88,6 +83,6 @@ function Remove-JiraUser {
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        Write-Debug "[Remove-JiraUser] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

@@ -41,26 +41,21 @@ function New-JiraUser {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[New-JiraUser] Reading information from config file"
-        try {
-            Write-Debug "[New-JiraUser] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[New-JiraUser] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $userURL = "$server/rest/api/latest/user"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         Write-Debug "[New-JiraUser] Defining properties"
         $props = @{
             "name"         = $UserName;
@@ -83,7 +78,7 @@ function New-JiraUser {
 
         Write-Debug "[New-JiraUser] Checking for -WhatIf and Confirm"
         if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {
-            Write-Debug "[New-JiraUser] Preparing for blastoff!"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod -Method Post -URI $userURL -Body $json -Credential $Credential
         }
 
@@ -105,5 +100,9 @@ function New-JiraUser {
         else {
             Write-Debug "[New-JiraUser] Jira returned no results to output."
         }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

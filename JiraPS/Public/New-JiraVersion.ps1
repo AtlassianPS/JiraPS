@@ -99,18 +99,23 @@
         )]
         [Object] $Project,
 
-        # Credentials to use to connect to Jira.
-        [Parameter(Mandatory = $false)]
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [PSCredential] $Credential
     )
+
     begin {
-        Write-Debug -Message '[New-JiraVersion] Reading information from config file'
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $restUrl = "$server/rest/api/latest/version"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         $iwrSplat = @{}
         Switch ($PSCmdlet.ParameterSetName) {
             'byObject' {
@@ -185,7 +190,7 @@
         $json = ConvertTo-Json -InputObject $iwrSplat
 
         if ($PSCmdlet.ShouldProcess($Name, "Creating new Version on JIRA")) {
-            Write-Debug -Message '[New-JiraVersion] Preparing for blastoff!'
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
         }
 
@@ -198,6 +203,6 @@
     }
 
     end {
-        Write-Debug "[New-JiraVersion] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

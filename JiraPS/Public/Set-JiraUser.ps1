@@ -63,15 +63,15 @@ function Set-JiraUser {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential,
+        [PSCredential] $Credential,
 
         # Whether output should be provided after invoking this function.
         [Switch] $PassThru
     )
 
     begin {
-        Write-Debug "[Set-JiraUser] Reading server from config file"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Set-JiraIssue] ParameterSetName=$($PSCmdlet.ParameterSetName)"
@@ -103,6 +103,9 @@ function Set-JiraUser {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($u in $User) {
             Write-Debug "[Set-JiraUser] Obtaining reference to user [$u]"
             $userObj = Get-JiraUser -InputObject $u -Credential $Credential
@@ -113,7 +116,7 @@ function Set-JiraUser {
 
                 Write-Debug "[Set-JiraUser] Checking for -WhatIf and Confirm"
                 if ($PSCmdlet.ShouldProcess($User, "Updating user [$User] from JIRA")) {
-                    Write-Debug "Preparing for blastoff!"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -Method Put -URI $thisUrl -Body $updateProps -Credential $Credential
                 }
                 if ($result) {
@@ -135,6 +138,6 @@ function Set-JiraUser {
     }
 
     end {
-        Write-Debug "[Set-JiraUser] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

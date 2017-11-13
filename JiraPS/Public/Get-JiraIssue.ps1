@@ -89,12 +89,12 @@ function Get-JiraIssue {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraIssue] Reading server from config file"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Get-JiraIssue] ParameterSetName=$($PSCmdlet.ParameterSetName)"
@@ -112,12 +112,15 @@ function Get-JiraIssue {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         if ($PSCmdlet.ParameterSetName -eq 'ByIssueKey') {
             foreach ($k in $Key) {
                 Write-Debug "[Get-JiraIssue] Processing issue key [$k]"
                 $issueURL = "$($server)/rest/api/latest/issue/${k}?expand=transitions"
 
-                Write-Debug "[Get-JiraIssue] Preparing for blastoff!"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -Method Get -URI $issueURL -Credential $Credential
 
                 if ($result) {
@@ -156,7 +159,7 @@ function Get-JiraIssue {
             $escapedQuery = [System.Web.HttpUtility]::UrlPathEncode($Query)
             $issueURL = "$($server)/rest/api/latest/search?jql=$escapedQuery&validateQuery=true&expand=transitions&startAt=$StartIndex&maxResults=$MaxResults"
 
-            Write-Debug "[Get-JiraIssue] Preparing for blastoff!"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod -Method Get -URI $issueURL -Credential $Credential
 
             if ($result) {
@@ -228,6 +231,6 @@ function Get-JiraIssue {
     }
 
     end {
-        Write-Debug "[Get-JiraIssue] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

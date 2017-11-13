@@ -36,23 +36,16 @@ function Remove-JiraRemoteLink {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
         # Suppress user confirmation.
         [Switch] $Force
     )
 
-    Begin {
-        try {
-            Write-Debug "[Remove-JiraRemoteLink] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Remove-JiraRemoteLink] Encountered an error reading configuration data."
-            throw $err
-        }
+    begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $restUrl = "$server/rest/api/latest/issue/{0}/remotelink/{1}"
 
@@ -63,7 +56,9 @@ function Remove-JiraRemoteLink {
         }
     }
 
-    Process {
+    process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         foreach ($k in $Issue) {
             Write-Debug "[Remove-JiraRemoteLink] Processing issue key [$k]"
@@ -75,7 +70,7 @@ function Remove-JiraRemoteLink {
 
                 Write-Debug "[Remove-JiraRemoteLink] Checking for -WhatIf and Confirm"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink from [$issueObj] from JIRA")) {
-                    Write-Debug "[Remove-JiraRemoteLink] Preparing for blastoff!"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
                 }
                 else {
@@ -85,12 +80,12 @@ function Remove-JiraRemoteLink {
         }
     }
 
-    End {
+    end {
         if ($Force) {
             Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        Write-Debug "[Remove-JiraRemoteLink] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

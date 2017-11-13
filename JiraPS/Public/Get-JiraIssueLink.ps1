@@ -32,19 +32,23 @@ function Get-JiraIssueLink {
         )]
         [Int[]] $Id,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraIssueLink] Reading server from config file"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $uri = "$server/rest/api/2/issueLink/{0}"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         # Validate input object from Pipeline
         if (($_) -and ($_.PSObject.TypeNames[0] -ne "JiraPS.IssueLink")) {
             $message = "Wrong object type provided for IssueLink."
@@ -56,9 +60,9 @@ function Get-JiraIssueLink {
             Write-Debug "[Get-JiraIssueLink] Processing project [$ilink]"
             $thisUri = $uri -f $ilink
 
-            Write-Debug "[Get-JiraIssueLink] Preparing for blastoff!"
-
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
+
             if ($result) {
                 Write-Debug "[Get-JiraIssueLink] Converting to object"
                 $obj = ConvertTo-JiraIssueLink -InputObject $result
@@ -74,6 +78,6 @@ function Get-JiraIssueLink {
     }
 
     end {
-        Write-Debug "[Get-JiraIssueLink] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

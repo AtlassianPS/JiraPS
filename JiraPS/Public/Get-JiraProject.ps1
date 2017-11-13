@@ -34,33 +34,29 @@ function Get-JiraProject {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraProject] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraProject] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $uri = "$server/rest/api/latest/project"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         if ($Project) {
             foreach ($p in $Project) {
                 Write-Debug "[Get-JiraProject] Processing project [$p]"
                 $thisUri = "$uri/${p}?expand=projectKeys"
 
-                Write-Debug "[Get-JiraProject] Preparing for blastoff!"
-
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
+
                 if ($result) {
                     Write-Debug "[Get-JiraProject] Converting to object"
                     $obj = ConvertTo-JiraProject -InputObject $result
@@ -78,8 +74,9 @@ function Get-JiraProject {
             Write-Debug "[Get-JiraProject] Attempting to search for all projects"
             $thisUri = "$uri"
 
-            Write-Debug "[Get-JiraProject] Preparing for blastoff!"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
+
             if ($result) {
                 Write-Debug "[Get-JiraProject] Converting to object"
                 $obj = ConvertTo-JiraProject -InputObject $result
@@ -95,6 +92,6 @@ function Get-JiraProject {
     }
 
     end {
-        Write-Debug "Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

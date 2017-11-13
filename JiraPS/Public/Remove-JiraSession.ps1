@@ -39,15 +39,9 @@ function Remove-JiraSession {
     )
 
     begin {
-        try {
-            Write-Debug "[Remove-JiraSession] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Remove-JiraSession] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $uri = "$server/rest/auth/1/session"
 
@@ -57,6 +51,9 @@ function Remove-JiraSession {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         if ($Session) {
             Write-Debug "[Remove-JiraSession] Validating Session parameter"
             if ((Get-Member -InputObject $Session).TypeName -eq 'JiraPS.Session') {
@@ -107,7 +104,7 @@ function Remove-JiraSession {
             }
         }
         else {
-            Write-Verbose "No Jira session is saved."
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
         }
     }
 }
