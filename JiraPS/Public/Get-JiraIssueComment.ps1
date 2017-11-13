@@ -32,21 +32,23 @@ function Get-JiraIssueComment {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         Write-Debug "Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
         $url = "$($issueObj.RestURL)/comment"
 
-        Write-Debug "Preparing for blastoff!"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
 
         if ($result) {
@@ -68,6 +70,6 @@ function Get-JiraIssueComment {
     }
 
     end {
-        Write-Debug "Completed Get-JiraIssueComment"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

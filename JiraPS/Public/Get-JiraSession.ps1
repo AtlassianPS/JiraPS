@@ -17,7 +17,14 @@ function Get-JiraSession {
     [CmdletBinding()]
     param()
 
+    begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+    }
+
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         if ($MyInvocation.MyCommand.Module.PrivateData) {
             Write-Debug "[Get-JiraSession] Module private data exists"
             if ($MyInvocation.MyCommand.Module.PrivateData.Session) {
@@ -33,5 +40,9 @@ function Get-JiraSession {
             Write-Debug "[Get-JiraSession] No module private data is defined. No saved sessions exist."
             Write-Verbose "No Jira sessions have been saved."
         }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

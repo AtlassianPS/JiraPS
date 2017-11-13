@@ -28,7 +28,9 @@ function New-JiraSession {
         [Parameter(
             Mandatory = $true
         )]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential,
+
+        [Hashtable] $Headers = @{}
     )
 
     begin {
@@ -42,11 +44,6 @@ function New-JiraSession {
         # as the global PSDefaultParameterValues is not used
         $PSDefaultParameterValues = $global:PSDefaultParameterValues
 
-        $Headers = {}
-
-        $headers = @{
-            'Authorization' = "Basic $token"
-        }
         $SecureCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(
                 $('{0}:{1}' -f $Credential.UserName, $Credential.GetNetworkCredential().Password)
             ))
@@ -54,9 +51,12 @@ function New-JiraSession {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         $iwrSplat = @{
             Uri             = $uri
-            Headers         = $_headers
+            Headers         = $Headers
             Method          = "GET"
             ContentType     = 'application/json; charset=utf-8'
             UseBasicParsing = $true
@@ -64,14 +64,14 @@ function New-JiraSession {
             ErrorAction     = 'SilentlyContinue'
         }
 
-        if ($_headers.ContainsKey("Content-Type")) {
-            $iwrSplat["ContentType"] = $_headers["Content-Type"]
-            $_headers.Remove("Content-Type")
-            $iwrSplat["Headers"] = $_headers
+        if ($Headers.ContainsKey("Content-Type")) {
+            $iwrSplat["ContentType"] = $Headers["Content-Type"]
+            $Headers.Remove("Content-Type")
+            $iwrSplat["Headers"] = $Headers
         }
 
         try {
-            Write-Debug "[New-JiraSession] Preparing for blastoff!"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $webResponse = Invoke-WebRequest @iwrSplat
 
             Write-Debug "[New-JiraSession] Converting result to JiraSession object"
@@ -122,5 +122,9 @@ function New-JiraSession {
             $result = ConvertFrom-Json2 -InputObject $body
             Write-Debug "Converted body from JSON into PSCustomObject (`$result)"
         }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

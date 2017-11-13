@@ -18,24 +18,27 @@ function Get-JiraServerInformation {
     param(
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraServerInformation] Reading server from config file"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $url = "$server/rest/api/latest/serverInfo"
     }
 
     process {
-        Write-Debug "[Get-JiraServerInformation] Preparing for blastoff!"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         Invoke-JiraMethod -Method Get -URI $url -Credential $Credential | ConvertTo-JiraServerInfo
     }
 
     end {
-        Write-Debug "[Get-JiraServerInformation] Complete."
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
 

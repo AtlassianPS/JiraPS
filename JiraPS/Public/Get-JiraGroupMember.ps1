@@ -51,11 +51,12 @@ function Get-JiraGroupMember {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         # This is a parameter in Get-JiraIssue, but in testing, JIRA doesn't
         # reliably return more than 50 results at a time.
         $pageSize = 50
@@ -73,6 +74,9 @@ function Get-JiraGroupMember {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         Write-Debug "[Get-JiraGroupMember] Obtaining a reference to Jira group [$Group]"
         $groupObj = Get-JiraGroup -GroupName $Group -Credential $Credential
 
@@ -113,7 +117,7 @@ function Get-JiraGroupMember {
                     # expand=users[0:15] for users 0-15 (inclusive).
                     $url = '{0}&expand=users[{1}:{2}]' -f $g.RestUrl, $StartIndex, ($StartIndex + $MaxResults)
 
-                    Write-Debug "[Get-JiraGroupMember] Preparing for blastoff!"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $groupResult = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
 
                     if ($groupResult) {
@@ -138,5 +142,9 @@ function Get-JiraGroupMember {
         else {
             throw "Unable to identify group [$Group]. Use Get-JiraGroup to make sure this is a valid JIRA group."
         }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

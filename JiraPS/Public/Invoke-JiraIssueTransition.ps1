@@ -64,16 +64,19 @@ function Invoke-JiraIssueTransition {
         [Parameter(Mandatory = $false)]
         [String] $Comment,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential] $Credential
     )
 
     begin {
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         Write-Debug "[Invoke-JiraIssueTransition] Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
@@ -202,7 +205,7 @@ function Invoke-JiraIssueTransition {
         $json = ConvertTo-Json -InputObject $props -Depth 4
         Write-Debug "[Invoke-JiraIssueTransition] Converted properties to JSON"
 
-        Write-Debug "[Invoke-JiraIssueTransition] Preparing for blastoff!"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod -Method Post -URI $transitionUrl -Body $json -Credential $Credential
 
         if ($result) {
@@ -218,6 +221,6 @@ function Invoke-JiraIssueTransition {
     }
 
     end {
-        Write-Debug "Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

@@ -39,17 +39,19 @@
         [Alias('Key')]
         [Object] $Issue,
 
-        # Credentials to use to connect to Jira. If not specified, this function will use
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Remove-JiraIssueWatcher] Begin"
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         Write-Debug "[Remove-JiraIssueWatcher] Obtaining a reference to Jira issue [$Issue]"
         $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
 
@@ -57,13 +59,13 @@
             $url = "$($issueObj.RestURL)/watchers?username=$username"
 
             if ($PSCmdlet.ShouldProcess($username, "Removing a watcher of issue [$($Issue.Key)]")) {
-                Write-Debug "[Remove-JiraIssueWatcher] Preparing for blastoff!"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod -Method Delete -URI $url -Credential $Credential
             }
         }
     }
 
     end {
-        Write-Debug "[Remove-JiraIssueWatcher] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

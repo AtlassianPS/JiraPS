@@ -25,13 +25,14 @@ function Get-JiraPriority {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraPriority] Reading server from config file"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+
         $priorityUrl = "$($server)/rest/api/latest/priority"
 
         if ($Id) {
@@ -40,7 +41,10 @@ function Get-JiraPriority {
     }
 
     process {
-        Write-Debug "[Get-JiraPriority] Preparing for blastoff!"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod -Method Get -URI $priorityUrl -Credential $Credential
 
         if ($result) {
@@ -56,6 +60,6 @@ function Get-JiraPriority {
     }
 
     end {
-        Write-Debug "[Get-JiraPriority] Complete."
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

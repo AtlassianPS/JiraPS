@@ -28,19 +28,23 @@ function Remove-JiraIssueLink {
         )]
         [Object[]] $IssueLink,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
         [PSCredential] $Credential
     )
 
-    Begin {
-        Write-Debug "[Remove-JiraIssueLink] Reading Jira server from config file"
+    begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $restUrl = "$server/rest/api/latest/issueLink/{0}"
     }
 
-    Process {
+    process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
 
         # As we are not able to use proper type casting in the parameters, this is a workaround
         # to extract the data from a JiraPS.Issue object
@@ -67,13 +71,13 @@ function Remove-JiraIssueLink {
             Write-Debug "[Remove-JiraIssueLink] Processing issue key [$k]"
             $thisUrl = $restUrl -f $link.id
             if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) {
-                Write-Debug "[Remove-JiraIssueLink] Preparing for blastoff!"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
             }
         }
     }
 
-    End {
-        Write-Debug "[Remove-JiraIssueLink] Complete"
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

@@ -74,14 +74,15 @@ function Set-JiraIssue {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential,
+        [PSCredential] $Credential,
 
         # Whether output should be provided after invoking this function.
         [Switch] $PassThru
     )
 
     begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         Write-Debug "[Set-JiraIssue] Checking to see if we have any operations to perform"
         $fieldNames = $Fields.Keys
         if (-not ($Summary -or $Description -or $Assignee -or $Label -or $FixVersion -or $fieldNames)) {
@@ -115,6 +116,9 @@ function Set-JiraIssue {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($i in $Issue) {
             $actOnIssueUri = $false
             $actOnAssigneeUri = $false
@@ -212,7 +216,7 @@ function Set-JiraIssue {
 
                     Write-Debug "[Set-JiraIssue] Checking for -WhatIf and Confirm"
                     if ($PSCmdlet.ShouldProcess($Issue, "Updating Issue [$IssueObj] from JIRA")) {
-                        Write-Debug "[Set-JiraIssue] Preparing for blastoff!"
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                         Invoke-JiraMethod -Method Put -URI $issueObjURL -Body $json -Credential $Credential
                     }
                 }
@@ -226,7 +230,7 @@ function Set-JiraIssue {
 
                     Write-Debug "[Set-JiraIssue] Checking for -WhatIf and Confirm"
                     if ($PSCmdlet.ShouldProcess($Issue, "Updating Issue [Assignee] from JIRA")) {
-                        Write-Debug "[Set-JiraIssue] Preparing for blastoff!"
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                         Invoke-JiraMethod -Method Put -URI $assigneeUrl -Body $json -Credential $Credential
                     }
                 }
@@ -249,6 +253,6 @@ function Set-JiraIssue {
     }
 
     end {
-        Write-Debug "[Set-JiraIssue] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

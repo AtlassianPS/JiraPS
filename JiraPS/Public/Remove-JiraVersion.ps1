@@ -36,16 +36,17 @@
         )]
         [Object[]] $Version,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential,
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential] $Credential,
 
         # Suppress user confirmation.
         [Switch] $Force
     )
 
     begin {
-        Write-Debug -Message '[Remove-JiraVersion] Reading information from config file'
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         if ($Force) {
@@ -56,6 +57,9 @@
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($_version in $Version) {
             Write-Debug "[Remove-JiraVersion] Obtaining reference to Version [$_version]"
             if ($_version.PSObject.TypeNames[0] -eq "JiraPS.Version") {
@@ -74,7 +78,7 @@
                 $restUrl = "$server/rest/api/latest/version/$($versionObject.Id)"
 
                 if ($PSCmdlet.ShouldProcess($versionObject.Name, "Removing Version on JIRA")) {
-                    Write-Debug -Message '[Remove-JiraVersion] Preparing for blastoff!'
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     Invoke-JiraMethod -Method Delete -URI $restUrl -Credential $Credential
                 }
             }
@@ -90,6 +94,6 @@
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        Write-Debug "[Remove-JiraVersion] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

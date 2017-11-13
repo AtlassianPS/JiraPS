@@ -43,12 +43,12 @@ function Get-JiraGroup {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraGroup] Reading server from config file"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Get-JiraIssue] ParameterSetName=$($PSCmdlet.ParameterSetName)"
@@ -58,6 +58,9 @@ function Get-JiraGroup {
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         if ($PSCmdlet.ParameterSetName -eq 'ByGroupName') {
             foreach ($g in $GroupName) {
                 Write-Debug "[Get-JiraGroup] Escaping group name [$g]"
@@ -66,7 +69,7 @@ function Get-JiraGroup {
                 Write-Debug "[Get-JiraGroup] Escaped group name: [$escapedGroupName]"
                 $thisUrl = $groupUrl -f $escapedGroupName
 
-                Write-Debug "[Get-JiraGroup] Preparing for blastoff!"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
 
                 if ($result) {
@@ -103,6 +106,6 @@ function Get-JiraGroup {
     }
 
     end {
-        Write-Debug "[Get-JiraGroup] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

@@ -66,17 +66,20 @@
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential,
+        [PSCredential] $Credential,
 
         # Whether output should be provided after invoking this function.
         [Switch] $PassThru
     )
 
     begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($i in $Issue) {
             Write-Debug "[Set-JiraIssueLabel] Obtaining reference to issue"
             $issueObj = Get-JiraIssue -InputObject $i -Credential $Credential
@@ -141,8 +144,7 @@
                     Write-Debug "[Set-JiraIssueLabel] JSON:`n$json"
                     Write-Debug "[Remove-JiraGroup] Checking for -WhatIf and Confirm"
                     if ($PSCmdlet.ShouldProcess($Issue, "Updating Issue [labels] from JIRA")) {
-                        Write-Debug "[Set-JiraIssueLabel] Preparing for blastoff!"
-                        # Should return no results
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                         Invoke-JiraMethod -Method Put -URI $url -Body $json -Credential $Credential
                     }
                 }
@@ -163,6 +165,6 @@
     }
 
     end {
-        Write-Debug "[Set-JiraIssueLabel] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

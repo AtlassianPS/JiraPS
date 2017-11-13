@@ -32,12 +32,12 @@ function Get-JiraRemoteLink {
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
 
-    Begin {
-        Write-Debug "[Get-JiraRemoteLink] Reading server from config file"
+    begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         Write-Debug "[Get-JiraRemoteLink] ParameterSetName=$($PSCmdlet.ParameterSetName)"
@@ -46,7 +46,10 @@ function Get-JiraRemoteLink {
         $linkUrl = "$server/rest/api/latest/issue/{0}/remotelink"
     }
 
-    Process {
+    process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($k in $Issue) {
             Write-Debug "[Get-JiraRemoteLink] Processing issue key [$k]"
             $thisUrl = $linkUrl -f $k
@@ -55,7 +58,7 @@ function Get-JiraRemoteLink {
                 $thisUrl += "/$l"
             }
 
-            Write-Debug "[Get-JiraRemoteLink] Preparing for blastoff!"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
 
             if ($result) {
@@ -72,7 +75,7 @@ function Get-JiraRemoteLink {
         }
     }
 
-    End {
-        Write-Debug "[Get-JiraRemoteLink] Complete"
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

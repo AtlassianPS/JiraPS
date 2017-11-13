@@ -28,7 +28,6 @@
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
         [PSCredential] $Credential,
 
         # Suppress user confirmation.
@@ -36,16 +35,9 @@
     )
 
     begin {
-        Write-Debug "[Remove-JiraGroup] Reading information from config file"
-        try {
-            Write-Debug "[Remove-JiraGroup] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Remove-JiraGroup] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $restUrl = "$server/rest/api/latest/group?groupname={0}"
 
@@ -57,6 +49,9 @@
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($g in $Group) {
             Write-Debug "[Remove-JiraGroup] Obtaining reference to group [$g]"
             $groupObj = Get-JiraGroup -InputObject $g -Credential $Credential
@@ -67,7 +62,7 @@
 
                 Write-Debug "[Remove-JiraGroup] Checking for -WhatIf and Confirm"
                 if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove group [$groupObj] from JIRA")) {
-                    Write-Debug "[Remove-JiraGroup] Preparing for blastoff!"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
                 }
                 else {
@@ -83,6 +78,6 @@
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        Write-Debug "[Remove-JiraGroup] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
