@@ -12,7 +12,6 @@ function Invoke-JiraMethod {
         [String] $Method = "GET",
 
         # Body of the request
-        [ValidateNotNullOrEmpty()]
         [String] $Body,
 
         # Body of the request should not be encoded
@@ -20,7 +19,7 @@ function Invoke-JiraMethod {
 
         # Custom headers for the HTTP request
         [Hashtable] $Headers = @{},
-        
+
         # Authentication credentials
         [PSCredential] $Credential
     )
@@ -29,7 +28,10 @@ function Invoke-JiraMethod {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         # Validation of parameters
-        if (($Method -in ("POST", "PUT")) -and (!($Body))) {
+        if (
+            ($Method -in ("POST", "PUT")) -and
+            (!($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Body")))
+        ) {
             $message = "The following parameters are required when using the ${Method} parameter: Body."
             $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
             Throw $exception
@@ -44,7 +46,7 @@ function Invoke-JiraMethod {
         $_headers = $Headers
 
         # Check if a Session is available
-        $session = Get-JiraSession
+        $session = Get-JiraSession -ErrorAction SilentlyContinue
 
         if ($Credential) {
             $SecureCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(
@@ -60,9 +62,14 @@ function Invoke-JiraMethod {
             $session = $null
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Credentials or WebSession provided; using anonymous access"
         }
+
+        $invokingCommand = (Get-Variable PSCmdlet -Scope 1).Value
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         $iwrSplat = @{
             Uri             = $Uri
             Headers         = $_headers
@@ -79,21 +86,21 @@ function Invoke-JiraMethod {
         }
 
         if ($Body) {
-        if ($RawBody) {
-            $iwrSplat.Add('Body', $Body)
+            if ($RawBody) {
+                $iwrSplat.Add('Body', $Body)
+            }
+            else {
+                # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
+                $iwrSplat.Add('Body', [System.Text.Encoding]::UTF8.GetBytes($Body))
+            }
         }
-        else {
-            # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
-            $iwrSplat.Add('Body', [System.Text.Encoding]::UTF8.GetBytes($Body))
-        }
-    }
 
         if ($session) {
             $iwrSplat.Add('WebSession', $session.WebSession)
         }
 
         try {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with: $($iwrSplat | Out-String)"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$iwrSplat: $($iwrSplat | Out-String)"
             $webResponse = Invoke-WebRequest @iwrSplat
         }
         catch {
