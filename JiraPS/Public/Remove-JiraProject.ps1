@@ -20,7 +20,7 @@ function Remove-JiraProject {
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
         )]
-        [String] $Key,
+        [String[]] $Key,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.

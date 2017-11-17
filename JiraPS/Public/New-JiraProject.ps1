@@ -1,24 +1,16 @@
-function New-JiraProject {
+function New-JiraProject
+{
     <#
     .Synopsis
         Creates a new Project in JIRA
     .DESCRIPTION
          This function creates a new project in JIRA.
     .EXAMPLE
-        New-JiraProject
-        Description
-        -----------
-        Create a
+        New-JiraProject-Key MNP -Name 'My New Project' -ProjectTypeKey Software -Lead 'JDoe' -AssigneType 'PROJECT_LEAD'
     .EXAMPLE
-       New-JiraProject
-        Description
-        -----------
-        Create a
+       New-JiraProject -Key MSP -Name 'My Second Project' -ProjectTypeKey Software -Lead 'JaneDoe' -AvatarID 100005
     .EXAMPLE
-       New-JiraProject
-        Description
-        -----------
-        Create a
+       New-JiraProject -Key MTP -Name 'My Third Project' -ProjectTypeKey Business -Lead 'JDoe' -CategoryId 100002 -PermissionScheme 100003
     .OUTPUTS
         [JiraPS.Project]
     .LINK
@@ -49,12 +41,13 @@ function New-JiraProject {
         [Parameter(Mandatory = $false)]
         [String] $Description,
 
-        # Project Lead
+        # Username of Project Lead
         [Parameter(Mandatory = $true)]
         [String] $Lead,
 
         # Assignee Type
         [Parameter(Mandatory = $false)]
+        [ValidateSet('PROJECT_LEAD', 'UNASSIGNED')]
         [JiraPS.AssigneeType] $AssigneeType,
 
         # Avatar ID
@@ -86,14 +79,16 @@ function New-JiraProject {
         [Parameter(Mandatory = $false)]
         [PSCredential] $Credential
     )
-    begin {
+    begin
+    {
         Write-Debug -Message '[New-JiraProject] Reading information from config file'
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $uri = "$server/rest/api/2/project"
     }
 
-    process {
+    process
+    {
         $parameters = @{
             key            = $Key
             name           = $Name
@@ -114,19 +109,23 @@ function New-JiraProject {
         Write-Debug -Message '[New-JiraProject] Converting to JSON'
         $json = ConvertTo-Json -InputObject $parameters
 
-        if ($PSCmdlet.ShouldProcess($Name, "Creating new Project in JIRA")) {
+        if ($PSCmdlet.ShouldProcess($Name, "Creating new Project in JIRA"))
+        {
             Write-Debug -Message '[New-JiraProject] Preparing for blastoff!'
             $result = Invoke-JiraMethod -Method Post -URI $uri -RawBody -Body $json -Credential $Credential
         }
-        If ($result) {
+        If ($result)
+        {
             $result | ConvertTo-JiraProject
         }
-        Else {
+        Else
+        {
             Write-Debug -Message '[New-JiraProject] Jira returned no results to output.'
         }
     }
 
-    end {
+    end
+    {
         Write-Debug "[New-JiraProject] Complete"
     }
 }

@@ -1,12 +1,18 @@
-﻿function Get-JiraWorkflow {
+﻿function Get-JiraWorkflow
+{
     <#
     .Synopsis
 
     .DESCRIPTION
-       Get workflow
+       Get workflow from Jira
     .EXAMPLE
-       Get-JiraWorkflow
+       Get-JiraWorkflow -WorkFlowName 'My New WorkFlow'
+
+       Returns a single workflow
     .EXAMPLE
+        Get-JiraWorkflow
+
+        Lists all workflows
     .INPUTS
     .OUTPUTS
     #>
@@ -22,7 +28,8 @@
         [System.Management.Automation.PSCredential] $Credential
     )
 
-    begin {
+    begin
+    {
         Write-Debug "[Get-JiraWorkflow] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
@@ -32,22 +39,27 @@
         $restUri = "$server/rest/api/2/workflow"
     }
 
-    process {
-        If ($WorkflowName) {
+    process
+    {
+        If ($WorkflowName)
+        {
             [uri]$restUri = '{0}?workflowName={1}' -f $restUri, $WorkflowName
         }
         Write-Verbose "rest URI: [$restUri]"
         Write-Debug "[Get-JiraWorkflow] Preparing for blastoff!"
         $results = Invoke-JiraMethod -Method GET -URI $restUri -Credential $Credential
-        If ($results) {
+        If ($results)
+        {
             Write-Output $results
         }
-        else {
+        else
+        {
             Write-Debug "[Get-JiraWorkflow] JIRA returned no results."
             Write-Verbose "JIRA returned no results."
         }
     }
-    end {
+    end
+    {
         Write-Debug "[Get-JiraWorkflow] Complete"
     }
 }

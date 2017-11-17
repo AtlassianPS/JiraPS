@@ -1,11 +1,11 @@
 function Get-JiraApplicationProperty {
     <#
     .Synopsis
-
+        Get Jira Application Property
     .DESCRIPTION
-       Get workflow
+       Get Jira Application Property
     .EXAMPLE
-       Get-JiraApplicationProperty
+       Get-JiraApplicationProperty -key
     .EXAMPLE
     .INPUTS
     .OUTPUTS

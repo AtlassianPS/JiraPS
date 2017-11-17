@@ -1,14 +1,17 @@
 function Remove-JiraPermissionScheme {
     <#
     .Synopsis
-
+        Removes a permission scheme
     .DESCRIPTION
-       Create permission scheme
+       Remove permission scheme from Jira
     .EXAMPLE
-       Remove-JiraPermissionScheme
+       Remove-JiraPermissionScheme -Name 'My New Permission Scheme'
     .EXAMPLE
+        Remove-JiraPermissionScheme -ID 0
     .INPUTS
+
     .OUTPUTS
+       This function returns no output.
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
