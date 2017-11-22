@@ -13,21 +13,20 @@ function Get-JiraApplicationProperty {
     [CmdletBinding()]
     param(
         # Property key
-        [Parameter(Mandatory = $false)]
-        [string] $Key,
+        [String] $Key,
 
-        # When fetching a list allows the list to be filtered by the property's start of key e.g. "jira.lf.*" whould fetch only those permissions that are editable and whose keys start with "jira.lf.". This is a regex.
-        [Parameter(Mandatory = $false)]
-        [string] $KeyFilter,
+        # When fetching a list allows the list to be filtered by the property's start of key
+        # e.g. "jira.lf.*" whould fetch only those permissions that are editable and whose keys start with "jira.lf.".
+        # This is a regex.
+        [String] $Filter,
 
-        # When fetching a list specifies the permission level of all items in the list see {@link com.atlassian.jira.bc.admin.ApplicationPropertiesService.EditPermissionLevel}
-        [Parameter(Mandatory = $false)]
-        [string] $PermissionLevel,
+        # When fetching a list specifies the permission level of all items in the list.
+        # see https://docs.atlassian.com/jira/7.0.5/com/atlassian/jira/bc/admin/ApplicationPropertiesService.EditPermissionLevel.html
+        [String] $PermissionLevel,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential] $Credential
     )
 
     begin {
@@ -44,22 +43,19 @@ function Get-JiraApplicationProperty {
         If ($Key) {
             [uri]$restUri = '{0}?key={1}' -f $restUri, $Key
         }
-        If ($KeyFilter) {
-            [uri]$restUri = '{0}?keyFilter={1}' -f $restUri, $KeyFilter
+        If ($Filter) {
+            [uri]$restUri = '{0}?Filter={1}' -f $restUri, $Filter
         }
-        If ($KeyFilter) {
+        If ($PermissionLevel) {
             [uri]$restUri = '{0}?permissionLevel={1}' -f $restUri, $PermissionLevel
         }
-        Write-Verbose "rest URI: [$restUri]"
+        $parameter = @{
+            URI = $restUri
+            Method = "GET"
+            Credential = $Credential
+        }
         Write-Debug "[Get-JiraApplicationProperty] Preparing for blastoff!"
-        $results = Invoke-JiraMethod -Method GET -URI $restUri -Credential $Credential
-        If ($results) {
-            Write-Output $results
-        }
-        else {
-            Write-Debug "[Get-JiraApplicationProperty] JIRA returned no results."
-            Write-Verbose "JIRA returned no results."
-        }
+        Write-Output (Invoke-JiraMethod @parameter)
     }
     end {
         Write-Debug "[Get-JiraApplicationProperty] Complete"
