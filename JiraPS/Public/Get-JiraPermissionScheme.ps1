@@ -19,10 +19,11 @@ function Get-JiraPermissionScheme {
     .OUTPUTS
         [JiraPS.PermissionsScheme]
     #>
-    [CmdletBinding(DefaultParameterSetName = 'ByID')]
+    [CmdletBinding(DefaultParameterSetName = 'All')]
     param(
         # ID of the permission scheme
         [Parameter(
+            Position = 0,
             Mandatory = $true,
             ParameterSetName = 'ByID'
         )]
@@ -31,8 +32,8 @@ function Get-JiraPermissionScheme {
 
         # Name of the permission scheme
         [Parameter(
-            Mandatory = $true,
-            ParameterSetName = 'ByName'
+            Position = 0,
+            ParameterSetName = 'All'
         )]
         [String[]] $Name,
 
@@ -56,13 +57,32 @@ function Get-JiraPermissionScheme {
 
     process {
         switch ($PSCmdlet.ParameterSetName) {
+            "All" {
+                if ($Expand) {
+                    $resourceURi = '{0}?expand={1}' -f $resourceURi, 'all'
+                }
+
+                $parameter = @{
+                    URI        = $resourceURi
+                    Method     = "GET"
+                    Credential = $Credential
+                }
+                Write-Debug "[Get-JiraPermissionScheme] Preparing for blastoff!"
+                $result = ConvertTo-JiraPermissionScheme (Invoke-JiraMethod @parameter)
+
+                if ($Name) {
+                    foreach ($_name in $Name) {
+                        Write-Verbose "Filtering $_name"
+                        Write-Output ($result | Where-Object {$_.Name -like $_name})
+                    }
+                } else {
+                    Write-Output $result
+                }
+            }
             "ByID" {
                 foreach ($_id in $Id) {
-                    $restUri = '{0}/{1}' -f $resourceURi, $ID
+                    $restUri = '{0}/{1}' -f $resourceURi, $_id
 
-                    if ($Expand) {
-                        $restUri = '{0}?expand={1}' -f $restUri, 'all'
-                    }
 
                     $parameter = @{
                         URI        = $restUri
@@ -70,11 +90,10 @@ function Get-JiraPermissionScheme {
                         Credential = $Credential
                     }
                     Write-Debug "[Get-JiraPermissionScheme] Preparing for blastoff!"
-                    Write-Output (ConvertTo-JiraPermissionScheme (Invoke-JiraMethod @parameter))
+                    $result = Invoke-JiraMethod @parameter
+
+                    Write-Output (ConvertTo-JiraPermissionScheme $result)
                 }
-            }
-            "ByName" {
-                Get-JiraPermissionScheme -Expand:$Expand | Where-Object { $_.Name -in $Name }
             }
         }
     }
