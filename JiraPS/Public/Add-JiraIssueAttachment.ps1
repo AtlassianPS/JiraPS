@@ -57,9 +57,14 @@ function Add-JiraIssueAttachment {
 
         # Validate input object
         if (($Issue.PSObject.TypeNames[0] -ne "JiraPS.Issue") -and (($Issue -isnot [String]))) {
-            $message = "Wrong object type provided for Issue. Was $($Issue.GetType().Name)"
-            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-            Throw $exception
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Invalid Type for Parameter"),
+                'ParameterType.NotJiraIssue',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $Issue
+            )
+            $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($Issue.GetType().Name)"
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
         foreach ($file in $FilePath) {
@@ -102,7 +107,7 @@ Content-Type: {2}
             $rawResult = Invoke-JiraMethod @parameter
 
             if ($PassThru) {
-                ConvertTo-JiraAttachment -InputObject $rawResult
+                Write-Output (ConvertTo-JiraAttachment -InputObject $rawResult)
             }
         }
     }

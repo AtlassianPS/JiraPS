@@ -38,35 +38,50 @@ function Get-JiraConfigServer {
         # provided at all.
 
         if (-not ($ConfigFile)) {
-            # Write-Debug "[Get-JiraConfigServer] ConfigFile was not provided, or provided with a null value"
             # This file should be in $moduleRoot/Functions/Internal, so PSScriptRoot will be $moduleRoot/Functions
             $moduleFolder = Split-Path -Path $PSScriptRoot -Parent
-            # Write-Debug "[Get-JiraConfigServer] Module folder: $moduleFolder"
             $ConfigFile = Join-Path -Path $moduleFolder -ChildPath 'config.xml'
-            # Write-Debug "[Get-JiraConfigServer] Using default config file at [$ConfigFile]"
         }
 
         if (-not (Test-Path -Path $ConfigFile)) {
-            throw "Config file [$ConfigFile] does not exist. Use Set-JiraConfigServer first to define the configuration file."
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.IO.FileNotFoundException]"Could not find $ConfigFile"),
+                'ConfigFile.NotFound',
+                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                $ConfigFile
+            )
+            $errorItem.ErrorDetails = "Config file [$ConfigFile] does not exist. Use Set-JiraConfigServer first to define the configuration file."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
-        # Write-Debug "Loading config file '$ConfigFile'"
+        Write-Debug "Loading config file `$ConfigFile [$ConfigFile]"
         $xml = New-Object -TypeName XML
         $xml.Load($ConfigFile)
 
         $xmlConfig = $xml.DocumentElement
         if ($xmlConfig.LocalName -ne 'Config') {
-            throw "Unexpected document element [$($xmlConfig.LocalName)] in configuration file [$ConfigFile]. You may need to delete the config file and recreate it using Set-JiraConfigServer."
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.IO.FileFormatException]"XML had not the expected format"),
+                'ConfigFile.UnexpectedElement',
+                [System.Management.Automation.ErrorCategory]::ParserError,
+                $ConfigFile
+            )
+            $errorItem.ErrorDetails = "Unexpected document element [$($xmlConfig.LocalName)] in configuration file [$ConfigFile]. You may need to delete the config file and recreate it using Set-JiraConfigServer."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
-        # Write-Debug "[Get-JiraConfigServer] Checking for Server element"
         if ($xmlConfig.Server) {
-            Write-Debug "[Get-JiraConfigServer] Found Server element. Outputting."
             Write-Output $xmlConfig.Server
         }
         else {
-            # Write-Debug "[Get-JiraConfigServer] No Server element is defined in the config file.  Throwing exception."
-            throw "No Server element is defined in the config file.  Use Set-JiraConfigServer to define one."
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.UriFormatException]"Could not find URI"),
+                'ConfigFile.EmptyElement',
+                [System.Management.Automation.ErrorCategory]::OpenError,
+                $ConfigFile
+            )
+            $errorItem.ErrorDetails = "No Server element is defined in the config file.  Use Set-JiraConfigServer to define one."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
     }
 
