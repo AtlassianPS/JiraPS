@@ -19,27 +19,17 @@ function Get-JiraGroup {
     .OUTPUTS
        [JiraPS.Group]
     #>
-    [CmdletBinding(DefaultParameterSetName = 'ByGroupName')]
+    [CmdletBinding()]
     param(
         # Name of the group to search for.
         [Parameter(
-            Position = 0,
             Mandatory = $true,
-            ParameterSetName = 'ByGroupName'
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
         )]
         [ValidateNotNullOrEmpty()]
         [Alias('Name')]
         [String[]] $GroupName,
-
-        # Object of the group to search for.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ParameterSetName = 'ByInputObject',
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [Object[]] $InputObject,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
@@ -51,57 +41,28 @@ function Get-JiraGroup {
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        Write-Debug "[Get-JiraIssue] ParameterSetName=$($PSCmdlet.ParameterSetName)"
-
-        Write-Debug "[Get-JiraGroup] Building URI for REST call"
-        $groupUrl = "$server/rest/api/latest/group?groupname={0}"
+        $resourceURi = "$server/rest/api/latest/group?groupname={0}"
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($PSCmdlet.ParameterSetName -eq 'ByGroupName') {
-            foreach ($g in $GroupName) {
-                Write-Debug "[Get-JiraGroup] Escaping group name [$g]"
-                $escapedGroupName = [System.Web.HttpUtility]::UrlPathEncode($g)
+        foreach ($group in $GroupName) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing filterId [${group}]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing filterId [${group}]"
 
-                Write-Debug "[Get-JiraGroup] Escaped group name: [$escapedGroupName]"
-                $thisUrl = $groupUrl -f $escapedGroupName
+            $escapedGroupName = [System.Web.HttpUtility]::UrlPathEncode($group)
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
-
-                if ($result) {
-                    Write-Debug "[Get-JiraGroup] Converting results to JiraPS.Group"
-                    $obj = ConvertTo-JiraGroup -InputObject $result
-
-                    Write-Debug "[Get-JiraGroup] Outputting results"
-                    Write-Output $obj
-                }
-                else {
-                    Write-Debug "[Get-JiraGroup] No results were returned from JIRA"
-                    Write-Verbose "No results were returned from JIRA."
-                }
+            $parameter = @{
+                URI = $resourceURi -f $escapedGroupName
+                Method = "GET"
+                Credential = $Credential
             }
-        }
-        else {
-            foreach ($i in $InputObject) {
-                Write-Debug "[Get-JiraGroup] Processing InputObject [$i]"
-                if ((Get-Member -InputObject $i).TypeName -eq 'JiraPS.Group') {
-                    Write-Debug "[Get-JiraGroup] User parameter is a JiraPS.Group object"
-                    $thisGroupName = $i.Name
-                }
-                else {
-                    $thisGroupName = $i.ToString()
-                    Write-Debug "[Get-JiraGroup] Username is assumed to be [$thisGroupName] via ToString()"
-                }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraMethod @parameter
 
-                Write-Debug "[Get-JiraGroup] Invoking myself with the UserName parameter set to search for user [$thisGroupName]"
-                $groupObj = Get-JiraGroup -GroupName $thisGroupName -Credential $Credential
-                Write-Debug "[Get-JiraGroup] Returned from invoking myself; outputting results"
-                Write-Output $groupObj
-            }
+            Write-Output (ConvertTo-JiraGroup -InputObject $result)
         }
     }
 

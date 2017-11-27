@@ -30,12 +30,11 @@ function Get-JiraGroupMember {
     param(
         # Group object of which to display the members.
         [Parameter(
-            Position = 0,
             Mandatory = $true,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true
         )]
-        [Object] $Group,
+        [Object[]] $Group,
 
         # Index of the first user to return. This can be used to "page" through
         # users in a large group or a slow connection.

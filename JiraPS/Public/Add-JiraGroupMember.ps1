@@ -67,14 +67,14 @@ function Add-JiraGroupMember {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($g in $Group) {
+        foreach ($_group in $Group) {
 
-            if ($groupObj = Get-JiraGroup -InputObject $g -Credential $Credential) {
-                $groupMembers = (Get-JiraGroupMember -Group $g -Credential $Credential).Name
+            if ($groupObj = Get-JiraGroup -InputObject $_group -Credential $Credential) {
+                $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential).Name
 
                 foreach ($user in $users) {
                     if ($groupMembers -notcontains $user.Name) {
-                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User [${user.Name}] is not already in group [$g]. Adding user."
+                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User [${user.Name}] is not already in group [${_group}]. Adding user."
 
                         $userJson = ConvertTo-Json -InputObject @{
                             'name' = $user.Name;
@@ -92,15 +92,15 @@ function Add-JiraGroupMember {
                     else {
                         $errorMessage = @{
                             Category         = "ObjectNotFound"
-                            CategoryActivity = "Adding [$user] to [$g]"
-                            Message          = "User [$user] is already a member of group [$g]"
+                            CategoryActivity = "Adding [$user] to [${_group}]"
+                            Message          = "User [$user] is already a member of group [${_group}]"
                         }
                         Write-Error @errorMessage
                     }
                 }
 
                 if ($PassThru) {
-                    ConvertTo-JiraGroup -InputObject $result
+                    Write-Output (ConvertTo-JiraGroup -InputObject $result)
                 }
             }
             else {

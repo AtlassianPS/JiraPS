@@ -22,11 +22,6 @@
     [CmdletBinding()]
     param(
         # The Field name or ID to search.
-        [Parameter(
-            Position = 0,
-            Mandatory = $false,
-            ValueFromRemainingArguments = $true
-        )]
         [String[]] $Field,
 
         # Credentials to use to connect to JIRA.
@@ -39,10 +34,17 @@
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $uri = "$server/rest/api/latest/field"
+        $resourceURi = "$server/rest/api/latest/field"
 
+        $parameter = @{
+            URI = $resourceURi
+            Method = "GET"
+            Credential = $Credential
+        }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $allFields = ConvertTo-JiraField -InputObject (Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential)
+        $result = Invoke-JiraMethod @parameter
+
+        $allFields = ConvertTo-JiraField -InputObject $result
     }
 
     process {
@@ -50,30 +52,14 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         if ($Field) {
-            foreach ($f in $Field) {
-                Write-Debug "[Get-JiraField] Processing field [$f]"
-                Write-Debug "[Get-JiraField] Searching for field (name=[$f])"
-                $thisField = $allFields | Where-Object -FilterScript {$_.Name -eq $f}
-                if ($thisField) {
-                    Write-Debug "[Get-JiraField] Found results; outputting"
-                    Write-Output $thisField
-                }
-                else {
-                    Write-Debug "[Get-JiraField] No results were found for issue type by name. Searching for issue type (id=[$i])"
-                    $thisField = $allFields | Where-Object -FilterScript {$_.Id -eq $f}
-                    if ($thisField) {
-                        Write-Debug "[Get-JiraField] Found results; outputting"
-                        Write-Output $thisField
-                    }
-                    else {
-                        Write-Debug "[Get-JiraField] No results were found for issue type by ID. This issue type appears to be unknown."
-                        Write-Verbose "Unable to identify Jira field [$f]"
-                    }
-                }
+            foreach ($_field in $Field) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing field [${_field}]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing field [${_field}]"
+                Write-Output ($allFields | Where-Object -FilterScript {$_.Id -eq $_field})
+                Write-Output ($allFields | Where-Object -FilterScript {$_.Name -like $_field})
             }
         }
         else {
-            Write-Debug "[Get-JiraField] No Field was supplied. Outputting all fields."
             Write-Output $allFields
         }
     }

@@ -86,7 +86,7 @@ function Add-JiraIssueComment {
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $rawResult = Invoke-JiraMethod @parameter
 
-        ConvertTo-JiraComment -InputObject $rawResult
+        Write-Output (ConvertTo-JiraComment -InputObject $rawResult)
     }
 
     end {

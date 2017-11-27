@@ -5,11 +5,11 @@ function Add-JiraIssueLink {
     .DESCRIPTION
         Creates a new link of the specified type between two Issue.
     .EXAMPLE
-        $link = [PSCustomObject]@{
+        $_issueLink = [PSCustomObject]@{
             outwardIssue = [PSCustomObject]@{key = "TEST-10"}
             type = [PSCustomObject]@{name = "Composition"}
         }
-        Add-JiraIssueLink -Issue TEST-01 -IssueLink $link
+        Add-JiraIssueLink -Issue TEST-01 -IssueLink $_issueLink
         Creates a link "is part of" between TEST-01 and TEST-10
     .INPUTS
         [JiraPS.Issue[]] The JIRA issue that should be linked
@@ -56,40 +56,50 @@ function Add-JiraIssueLink {
                 ($objectProperties.Name -contains "type") -and
                 (($objectProperties.Name -contains "outwardIssue") -or ($objectProperties.Name -contains "inwardIssue"))
             )) {
-            $message = "The IssueLink provided does not contain the information needed."
-            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-            Throw $exception
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Invalid Parameter"),
+                'ParameterProperties.Incomplete',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $IssueLink
+            )
+            $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
         # Validate input object from Pipeline
         if (($_) -and ($_.PSObject.TypeNames[0] -ne "JiraPS.Issue")) {
-            $message = "Wrong object type provided for Issue. Only JiraPS.Issue is accepted"
-            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-            Throw $exception
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Invalid Type for Parameter"),
+                'ParameterType.NotJiraIssue',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $_
+            )
+            $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], but was $($_.GetType().Name)"
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
-        foreach ($i in $Issue) {
+        foreach ($_issue in $Issue) {
             # Find the porper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
-            foreach ($link in $IssueLink) {
+            foreach ($_issueLink in $IssueLink) {
 
-                if ($link.inwardIssue) {
-                    $inwardIssue = @{ key = $link.inwardIssue.key }
+                if ($_issueLink.inwardIssue) {
+                    $inwardIssue = @{ key = $_issueLink.inwardIssue.key }
                 }
                 else {
                     $inwardIssue = @{ key = $issueObj.key }
                 }
 
-                if ($link.outwardIssue) {
-                    $outwardIssue = @{ key = $link.outwardIssue.key }
+                if ($_issueLink.outwardIssue) {
+                    $outwardIssue = @{ key = $_issueLink.outwardIssue.key }
                 }
                 else {
                     $outwardIssue = @{ key = $issueObj.key }
                 }
 
                 $body = @{
-                    type         = @{ name = $link.type.name }
+                    type         = @{ name = $_issueLink.type.name }
                     inwardIssue  = $inwardIssue
                     outwardIssue = $outwardIssue
                 }

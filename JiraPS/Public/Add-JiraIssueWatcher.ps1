@@ -55,17 +55,15 @@
         # Find the porper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        $url = "$($issueObj.RestURL)/watchers"
-
-        foreach ($w in $Watcher) {
+        foreach ($_watcher in $Watcher) {
             $parameter = @{
                 URI = $resourceURi -f $issueObj.RestURL
                 Method = "POST"
-                Body   = '"{0}"' -f $w
+                Body   = '"{0}"' -f $_watcher
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            Invoke-JiraMethod @parameter
+            $result = Invoke-JiraMethod @parameter
         }
     }
 

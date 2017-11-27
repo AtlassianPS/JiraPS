@@ -64,29 +64,29 @@ function Get-JiraComponent {
         switch ($PSCmdlet.ParameterSetName) {
             "ByProject" {
                 if ($Project.PSObject.TypeNames -contains 'JiraPS.Project') {
-                    Get-JiraComponent -ComponentId ($Project.Components).id
+                    Write-Output (Get-JiraComponent -ComponentId ($Project.Components).id)
                 }
                 else {
-                    foreach ($p in $Project) {
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing project [$p]"
+                    foreach ($_project in $Project) {
+                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Processing project [${_project}]"
 
-                        if ($p -is [string]) {
+                        if ($_project -is [string]) {
                             $parameter = @{
-                                URI        = $resourceURi -f "/project/${p}/components"
+                                URI        = $resourceURi -f "/project/${_project}/components"
                                 Method     = "GET"
                                 Credential = $Credential
                             }
                             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                             $result = Invoke-JiraMethod @parameter
 
-                            ConvertTo-JiraComponent -InputObject $result
+                            Write-Output (ConvertTo-JiraComponent -InputObject $result)
                         }
                     }
                 }
             }
             "ByID" {
                 foreach ($i in $ComponentId) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing component [$i]"
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Processing component [$i]"
 
                     $parameter = @{
                         URI        = $resourceURi -f "/component/${i}"
@@ -96,7 +96,7 @@ function Get-JiraComponent {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter
 
-                    ConvertTo-JiraComponent -InputObject $result
+                    Write-Output (ConvertTo-JiraComponent -InputObject $result)
                 }
             }
         }

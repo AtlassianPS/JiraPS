@@ -113,7 +113,7 @@ function Add-JiraIssueWorklog {
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $rawResult = Invoke-JiraMethod @parameter
 
-        ConvertTo-JiraWorklogitem -InputObject $rawResult
+        Write-Output (ConvertTo-JiraWorklogitem -InputObject $rawResult)
     }
 
     end {
