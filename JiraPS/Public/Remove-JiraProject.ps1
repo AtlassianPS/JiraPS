@@ -62,7 +62,7 @@ function Remove-JiraProject {
                 Write-Debug "[Remove-JiraProject] Project URL: [$thisUrl]"
 
                 Write-Debug "[Remove-JiraProject] Checking for -WhatIf and Confirm"
-                if ($PSCmdlet.ShouldProcess($projectObj.Name, "Remove project [$projectObj] from JIRA")) {
+                if ($PSCmdlet.ShouldProcess($projectObj.Name, "Remove project [$($projectObj.Name)] from JIRA")) {
                     Write-Debug "[Remove-JiraProject] Preparing for blastoff!"
                     Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
                 }
@@ -74,7 +74,7 @@ function Remove-JiraProject {
     }
     end {
         if ($Force) {
-            Write-Debug "[Remove-JiraProjectMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
+            Write-Debug "[Remove-JiraProject] Restoring ConfirmPreference to [$oldConfirmPreference]"
             $ConfirmPreference = $oldConfirmPreference
         }
 
