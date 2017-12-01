@@ -162,7 +162,7 @@ foreach ($command in $commands) {
                     $parameterHelp = $Help.parameters.parameter | Where-Object Name -EQ $parameterName
 
                     # Should be a description for every parameter
-                    If ($parameterName -notmatch 'Confirm|WhatIf') {
+                    if ($parameterName -notmatch 'Confirm|WhatIf') {
                         It "gets help for parameter: $parameterName : in $commandName" {
                             $parameterHelp.Description.Text | Should Not BeNullOrEmpty
                         }

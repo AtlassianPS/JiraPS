@@ -21,7 +21,8 @@ function Add-JiraIssueAttachment {
     param(
         # Issue to which to attach the file
         [Parameter(
-            Mandatory = $true
+            Mandatory = $true,
+            ValueFromPipeline = $true
         )]
         [ValidateNotNullOrEmpty()]
         [Alias('Key')]
@@ -34,8 +35,8 @@ function Add-JiraIssueAttachment {
             ValueFromPipelineByPropertyName = $true
         )]
         [ValidateScript( { Test-Path $_ })]
-        [Alias('InFile', 'FullName')]
-        [String[]] $FilePath,
+        [Alias('InFile', 'FullName', 'Path')]
+        [System.IO.FileInfo[]] $FilePath,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
@@ -52,6 +53,8 @@ function Add-JiraIssueAttachment {
     }
 
     process {
+        Write-Debug "oi!"
+        return
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 

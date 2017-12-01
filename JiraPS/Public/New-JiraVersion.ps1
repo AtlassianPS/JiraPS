@@ -194,10 +194,10 @@
             $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
         }
 
-        If ($result) {
+        if ($result) {
             $result | ConvertTo-JiraVersion -Credential $Credential
         }
-        Else {
+        else {
             Write-Debug -Message '[New-JiraVersion] Jira returned no results to output.'
         }
     }

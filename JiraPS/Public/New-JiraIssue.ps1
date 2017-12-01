@@ -128,7 +128,7 @@ function New-JiraIssue {
         }
 
         Write-Debug "[New-JiraIssue] Processing FixVersion parameter"
-        If ($FixVersion) {
+        if ($FixVersion) {
             $fixVersionHash = @()
             Foreach ($f in $FixVersion) {
                 $fixVersionHash += @{
