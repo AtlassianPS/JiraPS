@@ -149,8 +149,8 @@ InModuleScope JiraPS {
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 2 -Scope It
             }
-            It "assert VerifiableMocks" {
-                Assert-VerifiableMocks
+            It "assert VerifiableMock" {
+                Assert-VerifiableMock
             }
         }
         #endregion Tests
