@@ -97,15 +97,8 @@ function New-JiraSession {
             $webResponse = $err.Exception.Response
             Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
 
-            # Test HEADERS if Jira requires a CAPTCHA
-            $headerRequiresCaptcha = "X-Seraph-LoginReason"
-            $tokenRequiresCaptcha = "AUTHENTICATION_DENIED"
-            if (
-                $webResponse.Headers[$headerRequiresCaptcha] -and
-                ($webResponse.Headers[$headerRequiresCaptcha] -split ",") -contains $tokenRequiresCaptcha
-            ) {
-                Write-Warning "JIRA requires you to log on to the website before continuing for security reasons."
-            }
+            # Test response Headers if Jira requires a CAPTCHA
+            Test-Captcha -InputObject $webResponse
 
             Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
 
