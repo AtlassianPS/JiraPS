@@ -160,8 +160,8 @@ InModuleScope JiraPS {
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID1" }
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID2" }
             }
-            It "assert VerifiableMocks" {
-                Assert-VerifiableMocks
+            It "assert VerifiableMock" {
+                Assert-VerifiableMock
             }
         }
     }
