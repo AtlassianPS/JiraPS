@@ -108,8 +108,8 @@ InModuleScope JiraPS {
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID" }
             }
-            It "assert VerifiableMocks" {
-                Assert-VerifiableMocks
+            It "assert VerifiableMock" {
+                Assert-VerifiableMock
             }
         }
     }
