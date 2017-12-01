@@ -191,8 +191,8 @@ InModuleScope JiraPS {
                 Assert-MockCalled 'Get-JiraProject' -Times 1 -Scope It -ModuleName JiraPS
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
             }
-            It "assert VerifiableMocks" {
-                Assert-VerifiableMocks
+            It "assert VerifiableMock" {
+                Assert-VerifiableMock
             }
         }
     }
