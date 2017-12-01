@@ -83,7 +83,7 @@
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
 
-                    If ($Name) {
+                    if ($Name) {
                         $result = $result | Where-Object {$_.Name -in $Name}
                     }
                     $result | ConvertTo-JiraVersion -Credential $Credential

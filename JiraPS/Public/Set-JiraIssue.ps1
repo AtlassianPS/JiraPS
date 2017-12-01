@@ -148,7 +148,7 @@ function Set-JiraIssue {
                     $actOnIssueUri = $true
                 }
 
-                If ($FixVersion) {
+                if ($FixVersion) {
                     $fixVersionSet = @()
                     Foreach ($f in $FixVersion) {
                         $fixVersionSet += @{
