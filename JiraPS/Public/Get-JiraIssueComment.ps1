@@ -21,18 +21,15 @@ function Get-JiraIssueComment {
     param(
         # JIRA issue to check for comments.
         # Can be a JiraPS.Issue object, issue key, or internal issue ID.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Key')]
-        [Object] $Issue,
+        [Object]
+        $Issue,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -43,30 +40,20 @@ function Get-JiraIssueComment {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        Write-Debug "Obtaining a reference to Jira issue [$Issue]"
-        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
         $url = "$($issueObj.RestURL)/comment"
 
+        $parameter = @{
+            URI        = $url
+            Method     = "GET"
+            Credential = $Credential
+        }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
+        $result = Invoke-JiraMethod @parameter
 
-        if ($result) {
-            if ($result.comments) {
-                Write-Debug "Converting result to Jira comment objects"
-                $obj = ConvertTo-JiraComment -InputObject $result.comments
-
-                Write-Debug "Outputting results"
-                Write-Output $obj
-            }
-            else {
-                Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
-                Write-Output $result
-            }
-        }
-        else {
-            Write-Debug "Invoke-JiraMethod returned no results to output."
-        }
+        Write-Output (ConvertTo-JiraComment -InputObject $result)
     }
 
     end {

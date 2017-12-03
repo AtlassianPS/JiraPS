@@ -17,33 +17,30 @@ function Add-JiraIssueAttachment {
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding()]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Issue to which to attach the file
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
         [Alias('Key')]
-        [Object] $Issue,
+        [Object]
+        $Issue,
 
         # Path of the file to upload and attach
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateScript( { Test-Path $_ })]
         [Alias('InFile', 'FullName', 'Path')]
-        [System.IO.FileInfo[]] $FilePath,
+        [String[]]
+        $FilePath,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential,
+        [PSCredential]
+        $Credential,
 
         # Whether output should be provided after invoking this function
-        [Switch] $PassThru
+        [Switch]
+        $PassThru
     )
 
     begin {
@@ -53,8 +50,6 @@ function Add-JiraIssueAttachment {
     }
 
     process {
-        Write-Debug "oi!"
-        return
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
@@ -71,7 +66,7 @@ function Add-JiraIssueAttachment {
         }
 
         foreach ($file in $FilePath) {
-            # Find the porper object for the Issue
+            # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
             $fileName = Split-Path -Path $file -Leaf
@@ -107,10 +102,12 @@ Content-Type: {2}
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $rawResult = Invoke-JiraMethod @parameter
+            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Adding attachment '$($fileName)'.")) {
+                $rawResult = Invoke-JiraMethod @parameter
 
-            if ($PassThru) {
-                Write-Output (ConvertTo-JiraAttachment -InputObject $rawResult)
+                if ($PassThru) {
+                    Write-Output (ConvertTo-JiraAttachment -InputObject $rawResult)
+                }
             }
         }
     }

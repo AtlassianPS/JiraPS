@@ -28,25 +28,24 @@ function Get-JiraComponent {
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
         # The Project ID or project key of a project to search.
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ParameterSetName = 'ByProject'
-        )]
-        [Object[]] $Project,
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByProject' )]
+        [Object[]]
+        $Project,
+        <#
+          #ToDo:CustomClass
+          Once we have custom classes, these two parameters can be one
+        #>
 
         # The Component ID.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ParameterSetName = 'ByID'
-        )]
+        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByID' )]
         [Alias("Id")]
-        [Int[]] $ComponentId,
+        [Int[]]
+        $ComponentId,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -68,11 +67,12 @@ function Get-JiraComponent {
                 }
                 else {
                     foreach ($_project in $Project) {
-                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Processing project [${_project}]"
+                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
                         if ($_project -is [string]) {
                             $parameter = @{
-                                URI        = $resourceURi -f "/project/${_project}/components"
+                                URI        = $resourceURi -f "/project/$_project/components"
                                 Method     = "GET"
                                 Credential = $Credential
                             }
@@ -85,11 +85,12 @@ function Get-JiraComponent {
                 }
             }
             "ByID" {
-                foreach ($i in $ComponentId) {
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Processing component [$i]"
+                foreach ($_id in $ComponentId) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f "/component/${i}"
+                        URI        = $resourceURi -f "/component/$_id"
                         Method     = "GET"
                         Credential = $Credential
                     }

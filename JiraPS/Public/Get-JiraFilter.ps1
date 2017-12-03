@@ -20,24 +20,25 @@
     [CmdletBinding(DefaultParameterSetName = 'ByFilterID')]
     param(
         # ID of the filter to search for.
-        [Parameter(
-            Mandatory = $true,
-            ParameterSetName = 'ByFilterID'
-        )]
-        [String[]] $Id,
+        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByFilterID' )]
+        [String[]]
+        $Id,
+        <#
+          #ToDo:CustomClass
+          Once we have custom classes for the module,
+          this can use ValueFromPipelineByPropertyName
+          and we will no longer need the InputObject
+        #>
 
         # Object of the filter to search for.
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ParameterSetName = 'ByInputObject',
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [Object[]] $InputObject,
+        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Object[]]
+        $InputObject,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -55,8 +56,8 @@
         switch ($PSCmdlet.ParameterSetName) {
             "ByFilterID" {
                 foreach ($_id in $Id) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing filterId [${_id}]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing filterId [${_id}]"
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
 
                     $parameter = @{
                         URI        = $resourceURi -f $_id
@@ -71,8 +72,8 @@
             }
             "ByInputObject" {
                 foreach ($object in $InputObject) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing InputObject [${object}]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing InputObject [${object}]"
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$object]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$object [$object]"
 
                     if ((Get-Member -InputObject $object).TypeName -eq 'JiraPS.Filter') {
                         $thisId = $object.ID

@@ -24,13 +24,9 @@ function Get-JiraIssueLink {
         # The IssueLink ID to search
         #
         # Accepts input from pipeline when the object is of type JiraPS.IssueLink
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [Int[]] $Id,
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [Int[]]
+        $Id,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
@@ -42,7 +38,7 @@ function Get-JiraIssueLink {
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $uri = "$server/rest/api/2/issueLink/{0}"
+        $resourceURi = "$server/rest/api/2/issueLink/{0}"
     }
 
     process {
@@ -50,30 +46,30 @@ function Get-JiraIssueLink {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # Validate input object from Pipeline
-        if (($_) -and ($_.PSObject.TypeNames[0] -ne "JiraPS.IssueLink")) {
-            $message = "Wrong object type provided for IssueLink."
-            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-            Throw $exception
+        if (($_) -and ("JiraPS.IssueLink" -notin $_.PSObject.TypeNames)) {
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Invalid Parameter"),
+                'ParameterProperties.WrongObjectType',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $Id
+            )
+            $errorItem.ErrorDetails = "The IssueLink provided did not match the constraints."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
-        foreach ($ilink in $Id) {
-            Write-Debug "[Get-JiraIssueLink] Processing project [$ilink]"
-            $thisUri = $uri -f $ilink
+        foreach ($_id in $Id) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
 
+            $parameter = @{
+                URI        = $resourceURi -f $_id
+                Method     = "GET"
+                Credential = $Credential
+            }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
+            $result = Invoke-JiraMethod @parameter
 
-            if ($result) {
-                Write-Debug "[Get-JiraIssueLink] Converting to object"
-                $obj = ConvertTo-JiraIssueLink -InputObject $result
-
-                Write-Debug "[Get-JiraIssueLink] Outputting result"
-                Write-Output $obj
-            }
-            else {
-                Write-Debug "[Get-JiraIssueLink] No results were returned from Jira"
-                Write-Debug "[Get-JiraIssueLink] No results were returned from Jira for project [$ilink]"
-            }
+            Write-Output (ConvertTo-JiraIssueLink -InputObject $result)
         }
     }
 

@@ -25,19 +25,14 @@ function Format-Jira {
         # List of properties to display. If omitted, only the default properties will be shown.
         #
         # To display all properties, use -Property *.
-        [Parameter(
-            Mandatory = $false
-        )]
-        [Object[]] $Property,
+        [Object[]]
+        $Property,
 
         # Object to format.
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromRemainingArguments = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromRemainingArguments )]
         [ValidateNotNull()]
-        [PSObject[]] $InputObject
+        [PSObject[]]
+        $InputObject
     )
 
     begin {

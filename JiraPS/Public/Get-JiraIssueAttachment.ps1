@@ -23,22 +23,20 @@ function Get-JiraIssueAttachment {
     [CmdletBinding()]
     param(
         # JIRA issue to check for attachments. Can be a JiraPS.Issue object, issue key, or internal issue ID.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Key')]
-        [Object] $Issue,
+        [Object]
+        $Issue,
 
         # Name of the file(s) to filter.
         # This parameter supports wildchards.
-        [String] $FileName,
+        [String]
+        $FileName,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -56,33 +54,37 @@ function Get-JiraIssueAttachment {
             # by parameter
             ($Issue.PSObject.TypeNames[0] -ne "JiraPS.Issue") -and (($Issue -isnot [String]))
         ) {
-            $message = "Wrong object type provided for Issue. Only JiraPS.Issue and String is allowed"
-            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-            Throw $exception
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Invalid Type for Parameter"),
+                'ParameterType.NotJiraIssue',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $Issue
+            )
+            $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($Issue.GetType().Name)"
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
-        # As we are not able to use proper type casting in the parameters, this is a workaround
-        # to extract the data from a JiraPS.Issue object
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Obtaining a reference to Jira issue [$Issue]"
-        if ($Issue.PSObject.TypeNames[0] -eq "JiraPS.Issue" -and $Issue.RestURL) {
-            $issueObj = $Issue
-        }
-        else {
-            $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential -ErrorAction Stop
-        }
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
         if ($issueObj.Attachment) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Found Attachments on the Issue."
             if ($FileName) {
                 $attachments = $issueObj.Attachment | Where-Object {$_.Filename -like $FileName}
             }
-            else { $attachments = $issueObj.Attachment }
+            else {
+                $attachments = $issueObj.Attachment
+            }
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting result to Jira Attachment objects."
             ConvertTo-JiraAttachment -InputObject $attachments
         }
         else {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Issue seems to have no Attachments. No output."
+            $errorMessage = @{
+                Category         = "ObjectNotFound"
+                CategoryActivity = "Searching for resource"
+                Message          = "This issue does not have any attachments"
+            }
+            Write-Error @errorMessage
         }
     }
 

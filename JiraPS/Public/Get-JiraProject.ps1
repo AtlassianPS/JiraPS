@@ -52,7 +52,7 @@ function Get-JiraProject {
         if ($Project) {
             foreach ($p in $Project) {
                 Write-Debug "[Get-JiraProject] Processing project [$p]"
-                $thisUri = "$uri/${p}?expand=projectKeys"
+                $thisUri = "$uri/$p?expand=projectKeys"
 
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential

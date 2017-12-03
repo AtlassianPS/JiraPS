@@ -24,46 +24,38 @@ function Add-JiraIssueWorklog {
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding()]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Worklog item that should be added to JIRA
-        [Parameter(
-            Mandatory = $true
-        )]
-        [String] $Comment,
+        [Parameter( Mandatory )]
+        [String]
+        $Comment,
 
         # Issue to receive the new worklog item
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Key')]
-        [Object] $Issue,
+        [Object]
+        $Issue,
 
         # Time spent to be logged
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [TimeSpan] $TimeSpent,
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [TimeSpan]
+        $TimeSpent,
 
         # Date/time started to be logged
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [DateTime] $DateStarted,
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [DateTime]
+        $DateStarted,
 
         # Visibility of the comment - should it be publicly visible, viewable to only developers, or only administrators?
         [ValidateSet('All Users', 'Developers', 'Administrators')]
-        [String] $VisibleRole = 'All Users',
+        [String]
+        $VisibleRole = 'All Users',
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -76,7 +68,7 @@ function Add-JiraIssueWorklog {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        # Find the porper object for the Issue
+        # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         if (-not $issueObj) {
@@ -105,15 +97,17 @@ function Add-JiraIssueWorklog {
         }
 
         $parameter = @{
-            URI = $resourceURi -f $issueObj.RestURL
-            Method = "POST"
-            Body   = ConvertTo-Json -InputObject $requestBody
+            URI        = $resourceURi -f $issueObj.RestURL
+            Method     = "POST"
+            Body       = ConvertTo-Json -InputObject $requestBody
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $rawResult = Invoke-JiraMethod @parameter
+        if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
+            $result = Invoke-JiraMethod @parameter
 
-        Write-Output (ConvertTo-JiraWorklogitem -InputObject $rawResult)
+            Write-Output (ConvertTo-JiraWorklogitem -InputObject $result)
+        }
     }
 
     end {

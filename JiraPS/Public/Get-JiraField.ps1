@@ -22,11 +22,13 @@
     [CmdletBinding()]
     param(
         # The Field name or ID to search.
-        [String[]] $Field,
+        [String[]]
+        $Field,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -37,8 +39,8 @@
         $resourceURi = "$server/rest/api/latest/field"
 
         $parameter = @{
-            URI = $resourceURi
-            Method = "GET"
+            URI        = $resourceURi
+            Method     = "GET"
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
@@ -53,8 +55,9 @@
 
         if ($Field) {
             foreach ($_field in $Field) {
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing field [${_field}]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing field [${_field}]"
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
+
                 Write-Output ($allFields | Where-Object -FilterScript {$_.Id -eq $_field})
                 Write-Output ($allFields | Where-Object -FilterScript {$_.Name -like $_field})
             }
