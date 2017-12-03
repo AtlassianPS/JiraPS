@@ -21,7 +21,8 @@ function Get-JiraConfigServer {
     [OutputType([System.String])]
     param(
         # Path to the configuration file, if not the default.
-        [String] $ConfigFile
+        [String]
+        $ConfigFile
     )
 
     begin {

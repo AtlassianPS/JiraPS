@@ -20,26 +20,27 @@
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding()]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Watcher that should be added to JIRA
-        [Parameter(
-            Mandatory = $true
-        )]
-        [String[]] $Watcher,
+        [Parameter( Mandatory )]
+        [String[]]
+        $Watcher,
+        <#
+          #ToDo:CustomClass
+          Once we have custom classes, this can also accept ValueFromPipeline
+        #>
 
         # Issue that should be watched
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Key')]
-        [Object] $Issue,
+        [Object]
+        $Issue,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -52,18 +53,23 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        # Find the porper object for the Issue
+        # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         foreach ($_watcher in $Watcher) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_watcher]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_watcher [$_watcher]"
+
             $parameter = @{
-                URI = $resourceURi -f $issueObj.RestURL
-                Method = "POST"
-                Body   = '"{0}"' -f $_watcher
+                URI        = $resourceURi -f $issueObj.RestURL
+                Method     = "POST"
+                Body       = '"{0}"' -f $_watcher
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod @parameter
+            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Adding user '$_watcher' as watcher.")) {
+                $result = Invoke-JiraMethod @parameter
+            }
         }
     }
 

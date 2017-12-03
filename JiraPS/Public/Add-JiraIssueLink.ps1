@@ -15,27 +15,27 @@ function Add-JiraIssueLink {
         [JiraPS.Issue[]] The JIRA issue that should be linked
         [JiraPS.IssueLink[]] The JIRA issue link that should be used
     #>
-    [CmdletBinding()]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Issue key or JiraPS.Issue object returned from Get-JiraIssue
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Key')]
-        [Object[]] $Issue,
+        [Object[]]
+        $Issue,
 
         # Issue Link to be created.
-        [Parameter(Mandatory = $true)]
-        [Object[]] $IssueLink,
+        [Parameter( Mandatory )]
+        [Object[]]
+        $IssueLink,
 
         # Write a comment to the issue
-        [String] $Comment,
+        [String]
+        $Comment,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -79,11 +79,10 @@ function Add-JiraIssueLink {
         }
 
         foreach ($_issue in $Issue) {
-            # Find the porper object for the Issue
+            # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
             foreach ($_issueLink in $IssueLink) {
-
                 if ($_issueLink.inwardIssue) {
                     $inwardIssue = @{ key = $_issueLink.inwardIssue.key }
                 }
@@ -115,7 +114,9 @@ function Add-JiraIssueLink {
                     Credential = $Credential
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
+                if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
+                    $result = Invoke-JiraMethod @parameter
+                }
             }
         }
     }

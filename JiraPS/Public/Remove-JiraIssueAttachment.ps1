@@ -92,7 +92,7 @@ function Remove-JiraIssueAttachment {
                 # Validate input object
                 if (
                     ($Issue) -and
-                    (!(
+                    (-not (
                             ("JiraPS.Issue" -in $Issue.PSObject.TypeNames) -or
                             ($Issue -is [String])
                         ))

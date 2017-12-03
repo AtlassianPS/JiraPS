@@ -22,18 +22,16 @@ function Get-JiraGroup {
     [CmdletBinding()]
     param(
         # Name of the group to search for.
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [Alias('Name')]
-        [String[]] $GroupName,
+        [String[]]
+        $GroupName,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -49,14 +47,14 @@ function Get-JiraGroup {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         foreach ($group in $GroupName) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing filterId [${group}]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing filterId [${group}]"
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$group]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$group [$group]"
 
-            $escapedGroupName = [System.Web.HttpUtility]::UrlPathEncode($group)
+            $escapedGroupName = ConvertTo-URLEncoded $group
 
             $parameter = @{
-                URI = $resourceURi -f $escapedGroupName
-                Method = "GET"
+                URI        = $resourceURi -f $escapedGroupName
+                Method     = "GET"
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
