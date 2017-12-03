@@ -1,12 +1,12 @@
 function ConvertTo-JiraIssue {
     [CmdletBinding()]
     param(
-        [Parameter(
-            ValueFromPipeline = $true
-        )]
-        [PSObject[]] $InputObject,
+        [Parameter( ValueFromPipeline )]
+        [PSObject[]]
+        $InputObject,
 
-        [Switch] $IncludeDebug
+        [Switch]
+        $IncludeDebug
     )
 
     begin {

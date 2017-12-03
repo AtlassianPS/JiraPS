@@ -1,17 +1,22 @@
 function Resolve-JiraIssueObject {
+    <#
+      #ToDo:CustomClass
+      Once we have custom classes, this will no longer be necessary
+    #>
     [CmdletBinding()]
     param(
-        [Parameter(
-            ValueFromPipeline = $true
-        )]
-        [Object] $InputObject,
+        [Parameter( ValueFromPipeline )]
+        [Object]
+        $InputObject,
 
         # Authentication credentials
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     # As we are not able to use proper type casting in the parameters, this is a workaround
     # to extract the data from a JiraPS.Issue object
+    # This shall be removed once we have custom classes for the module
     if ($InputObject.PSObject.TypeNames[0] -eq "JiraPS.Issue" -and $InputObject.RestURL) {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$Issue as object"
         return $Issue

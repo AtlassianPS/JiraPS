@@ -1,15 +1,12 @@
 function ConvertFrom-Json2 {
     [CmdletBinding()]
     param(
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true
-        )]
-        [Object[]] $InputObject,
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [Object[]]
+        $InputObject,
 
-        [Parameter()]
-        [int] $MaxJsonLength = [int]::MaxValue
+        [Int]
+        $MaxJsonLength = [int]::MaxValue
     )
 
     begin {

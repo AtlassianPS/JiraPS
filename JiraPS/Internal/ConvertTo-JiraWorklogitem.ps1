@@ -1,10 +1,9 @@
 function ConvertTo-JiraWorklogItem {
     [CmdletBinding()]
     param(
-        [Parameter(
-            ValueFromPipeline = $true
-        )]
-        [PSObject[]] $InputObject
+        [Parameter( ValueFromPipeline )]
+        [PSObject[]]
+        $InputObject
     )
 
     process {
