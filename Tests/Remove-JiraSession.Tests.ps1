@@ -43,9 +43,9 @@ InModuleScope JiraPS {
 
         Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'GET'} {
             if ($showMockData) {
-                Write-Host "       Mocked Invoke-WebRequest with GET method" -ForegroundColor Cyan
-                Write-Host "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]            $URI" -ForegroundColor Cyan
+                Write-Output "       Mocked Invoke-WebRequest with GET method" -ForegroundColor Cyan
+                Write-Output "         [Method]         $Method" -ForegroundColor Cyan
+                Write-Output "         [URI]            $URI" -ForegroundColor Cyan
             }
             $global:newSessionVar = @{}
             Write-Output $testJson
@@ -53,16 +53,16 @@ InModuleScope JiraPS {
 
         Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $sessionUri -and $Method -eq 'DELETE'} {
             if ($showMockData) {
-                Write-Host "       Mocked Invoke-WebRequest with DELETE method" -ForegroundColor Cyan
-                Write-Host "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]            $URI" -ForegroundColor Cyan
+                Write-Output "       Mocked Invoke-WebRequest with DELETE method" -ForegroundColor Cyan
+                Write-Output "         [Method]         $Method" -ForegroundColor Cyan
+                Write-Output "         [URI]            $URI" -ForegroundColor Cyan
             }
         }
 
         Mock Invoke-WebRequest {
-            Write-Host "       Mocked Invoke-WebRequest with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            Write-Output "       Mocked Invoke-WebRequest with no parameter filter." -ForegroundColor DarkRed
+            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
+            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
             throw "Unidentified call to Invoke-JiraMethod"
         }
 

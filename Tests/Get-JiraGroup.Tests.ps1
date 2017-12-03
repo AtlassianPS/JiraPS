@@ -7,7 +7,7 @@ InModuleScope JiraPS {
     $jiraServer = 'http://jiraserver.example.com'
 
     $testGroupName = 'Test Group'
-    $testGroupNameEscaped = [System.Web.HttpUtility]::UrlPathEncode($testGroupName)
+    $testGroupNameEscaped = ConvertTo-URLEncoded $testGroupName
     $testGroupSize = 1
 
     $restResult = @"
@@ -34,25 +34,25 @@ InModuleScope JiraPS {
         # Searching for a group.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupNameEscaped"} {
             if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+                Write-Output "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
+                Write-Output "         [Method] $Method" -ForegroundColor Cyan
+                Write-Output "         [URI]    $URI" -ForegroundColor Cyan
             }
             ConvertFrom-Json2 -InputObject $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
+            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
+            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
         Mock ConvertTo-JiraGroup { $InputObject }
 
         #        Mock Write-Debug {
-        #            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
+        #            Write-Output "DEBUG: $Message" -ForegroundColor Yellow
         #        }
 
         #############

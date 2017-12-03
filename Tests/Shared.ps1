@@ -10,7 +10,7 @@ $RootModule = "$PSScriptRoot\..\$ModuleName\$ModuleName.psm1"
 # After importing it once, the $SuppressImportModule flag should prevent
 # the module from being imported again for each test file.
 
-if (-not (Get-Module -Name $ModuleName -ErrorAction SilentlyContinue) -or (!$SuppressImportModule)) {
+if (-not (Get-Module -Name $ModuleName -ErrorAction SilentlyContinue) -or (-not $SuppressImportModule)) {
     # If we import the .psd1 file, Pester has issues where it detects multiple
     # modules named JiraPS. Importing the .psm1 file seems to correct this.
 
@@ -85,15 +85,15 @@ function checkPsType($obj, $typeName) {
 
 function ShowMockInfo($functionName, [String[]] $params) {
     if ($ShowMockData) {
-        Write-Host "       Mocked $functionName" -ForegroundColor Cyan
+        Write-Output "       Mocked $functionName" -ForegroundColor Cyan
         foreach ($p in $params) {
-            Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly -ErrorAction SilentlyContinue)" -ForegroundColor Cyan
+            Write-Output "         [$p]  $(Get-Variable -Name $p -ValueOnly -ErrorAction SilentlyContinue)" -ForegroundColor Cyan
         }
     }
 }
 
 if ($ShowDebugText) {
     Mock "Write-Debug" {
-        Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
+        Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
     }
 }

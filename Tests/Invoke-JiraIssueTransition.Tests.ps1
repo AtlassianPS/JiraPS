@@ -38,23 +38,23 @@ InModuleScope JiraPS {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/transitions"} {
             if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+                Write-Output "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
+                Write-Output "         [Method] $Method" -ForegroundColor Cyan
+                Write-Output "         [URI]    $URI" -ForegroundColor Cyan
             }
             # This should return a 204 status code, so no data should actually be returned
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
+            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
+            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
         # Mock Write-Debug {
-        #     Write-Host "DEBUG: $Message" -ForegroundColor Yellow
+        #     Write-Output "DEBUG: $Message" -ForegroundColor Yellow
         # }
         #
         #############
