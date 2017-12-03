@@ -9,7 +9,7 @@ InModuleScope JiraPS {
     Describe 'Get-JiraFilter' {
         if ($ShowDebugText) {
             Mock 'Write-Debug' {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
+                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 
@@ -21,9 +21,9 @@ InModuleScope JiraPS {
         # actually try to query a JIRA instance
         Mock Invoke-JiraMethod -ModuleName JiraPS {
             if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
-                Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                Write-Host "         [Method]  $Method" -ForegroundColor Cyan
+                Write-Output "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
+                Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
+                Write-Output "         [Method]  $Method" -ForegroundColor Cyan
             }
         }
 

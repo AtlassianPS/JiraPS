@@ -10,7 +10,7 @@ InModuleScope JiraPS {
 
         if ($ShowDebugText) {
             Mock "Write-Debug" {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
+                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 

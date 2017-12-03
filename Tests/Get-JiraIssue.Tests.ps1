@@ -37,10 +37,10 @@ InModuleScope JiraPS {
         Context "Behavior testing" {
             Mock Invoke-JiraMethod {
                 if ($ShowMockData) {
-                    Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                    #                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                    Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
+                    Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
+                    Write-Output "         [Method]  $Method" -ForegroundColor Cyan
+                    #                    Write-Output "         [Body]    $Body" -ForegroundColor Cyan
                 }
             }
 
@@ -51,7 +51,7 @@ InModuleScope JiraPS {
             }
 
             $jql = 'reporter in (testuser)'
-            $jqlEscaped = [System.Web.HttpUtility]::UrlPathEncode($jql)
+            $jqlEscaped = ConvertTo-URLEncoded $jql
 
             It "Obtains information about a provided issue in JIRA" {
                 { Get-JiraIssue -Key TEST-001 } | Should Not Throw
@@ -75,10 +75,10 @@ InModuleScope JiraPS {
 
                 Mock Invoke-JiraMethod {
                     if ($ShowMockData) {
-                        Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                        Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                        Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                        #                        Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                        Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
+                        Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
+                        Write-Output "         [Method]  $Method" -ForegroundColor Cyan
+                        #                        Write-Output "         [Body]    $Body" -ForegroundColor Cyan
                     }
 
                     ConvertFrom-Json2 @'

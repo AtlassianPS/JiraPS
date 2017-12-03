@@ -9,7 +9,7 @@ InModuleScope JiraPS {
     Describe "New-JiraIssue" {
         if ($ShowDebugText) {
             Mock "Write-Debug" {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
+                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 
@@ -80,10 +80,10 @@ InModuleScope JiraPS {
         Context "Behavior testing" {
             Mock Invoke-JiraMethod {
                 if ($ShowMockData) {
-                    Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
+                    Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
+                    Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
+                    Write-Output "         [Method]  $Method" -ForegroundColor Cyan
+                    Write-Output "         [Body]    $Body" -ForegroundColor Cyan
                 }
             }
 

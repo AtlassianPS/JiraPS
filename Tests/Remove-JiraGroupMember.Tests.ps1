@@ -16,7 +16,7 @@ InModuleScope JiraPS {
 
         Mock Write-Debug -ModuleName JiraPS {
             if ($ShowDebugData) {
-                Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
+                Write-Output -Object "[DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 
@@ -47,9 +47,9 @@ InModuleScope JiraPS {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS {
             if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
+                Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
+                Write-Output "         [Method] $Method" -ForegroundColor Cyan
+                Write-Output "         [URI]    $URI" -ForegroundColor Cyan
             }
         }
 
