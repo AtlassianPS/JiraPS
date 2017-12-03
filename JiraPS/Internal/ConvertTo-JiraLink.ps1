@@ -1,12 +1,9 @@
 function ConvertTo-JiraLink {
     [CmdletBinding()]
     param(
-        [Parameter(
-            Mandatory = $true,
-            Position = 0,
-            ValueFromPipeline = $true
-        )]
-        [PSObject[]] $InputObject
+        [Parameter( ValueFromPipeline )]
+        [PSObject[]]
+        $InputObject
     )
 
     process {

@@ -1,15 +1,14 @@
 function Write-DebugMessage {
     [CmdletBinding()]
     param(
-        [Parameter(
-            ValueFromPipeline = $true
-        )]
+        [Parameter( ValueFromPipeline )]
+        [String]
         $Message
     )
 
     begin {
         $oldDebugPreference = $DebugPreference
-        if (!($DebugPreference -eq "SilentlyContinue")) {
+        if (-not ($DebugPreference -eq "SilentlyContinue")) {
             $DebugPreference = 'Continue'
         }
     }

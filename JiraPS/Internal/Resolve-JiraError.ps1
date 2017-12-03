@@ -1,11 +1,13 @@
 ﻿function Resolve-JiraError {
     [CmdletBinding()]
     param(
-        [Parameter()]
-        [Object[]] $InputObject,
+        [Parameter( ValueFromPipeline )]
+        [Object[]]
+        $InputObject,
 
         # Write error results to the error stream (Write-Error) instead of to the output stream
-        [Switch] $WriteError
+        [Switch]
+        $WriteError
     )
 
     process {

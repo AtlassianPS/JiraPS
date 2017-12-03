@@ -4,24 +4,30 @@ function Invoke-JiraMethod {
     param
     (
         # REST API to invoke
-        [Parameter(Mandatory = $true)]
-        [Uri] $URI,
+        [Parameter( Mandatory )]
+        [Uri]
+        $URI,
 
         # Method of the invokation
         [ValidateSet('GET', 'POST', 'PUT', 'DELETE')]
-        [String] $Method = "GET",
+        [String]
+        $Method = "GET",
 
         # Body of the request
-        [String] $Body,
+        [String]
+        $Body,
 
         # Body of the request should not be encoded
-        [Switch] $RawBody,
+        [Switch]
+        $RawBody,
 
         # Custom headers for the HTTP request
-        [Hashtable] $Headers = @{},
+        [Hashtable]
+        $Headers = @{},
 
         # Authentication credentials
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -30,9 +36,9 @@ function Invoke-JiraMethod {
         # Validation of parameters
         if (
             ($Method -in ("POST", "PUT")) -and
-            (!($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Body")))
+            (-not ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Body")))
         ) {
-            $message = "The following parameters are required when using the ${Method} parameter: Body."
+            $message = "The following parameters are required when using the $Method parameter: Body."
             $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
             Throw $exception
         }
@@ -62,8 +68,6 @@ function Invoke-JiraMethod {
             $session = $null
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Credentials or WebSession provided; using anonymous access"
         }
-
-        $invokingCommand = (Get-Variable PSCmdlet -Scope 1).Value
     }
 
     process {
