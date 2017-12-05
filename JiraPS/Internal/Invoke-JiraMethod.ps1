@@ -119,13 +119,15 @@ function Invoke-JiraMethod {
             }
         }
 
-        if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
-            Write-Debug "[Invoke-JiraMethod] An error response was received from JIRA; resolving"
-            Resolve-JiraError $result -WriteError
-        }
-        else {
-            Write-Debug "[Invoke-JiraMethod] Outputting results from JIRA"
-            Write-Output $result
+        if ($result) {
+            if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
+                Write-Debug "[Invoke-JiraMethod] An error response was received from JIRA; resolving"
+                Resolve-JiraError $result -WriteError
+            }
+            else {
+                Write-Debug "[Invoke-JiraMethod] Outputting results from JIRA"
+                Write-Output $result
+            }
         }
     }
     else {
