@@ -17,11 +17,13 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraIssue -ModuleName JiraPS {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
                 RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers?username=fred"} {

@@ -22,29 +22,37 @@ InModuleScope JiraPS {
         Mock Invoke-JiraMethod {}
 
         Mock Get-JiraProject {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 'ID' = $Project;
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+            return $object
         }
 
         Mock Get-JiraIssueType {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 'ID' = $IssueType;
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.IssueType')
+            return $object
         }
 
         Mock Get-JiraUser {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 'Name' = $UserName;
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+            return $object
         }
 
         # This one needs to be able to output multiple objects
         Mock Get-JiraField {
             $Field | % {
-                [PSCustomObject] @{
+                $object = [PSCustomObject] @{
                     'ID' = $_;
                 }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                $object
             }
         }
 

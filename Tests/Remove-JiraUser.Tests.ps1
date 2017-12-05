@@ -37,7 +37,9 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraUser -ModuleName JiraPS {
-            ConvertTo-JiraUser (ConvertFrom-Json2 $testJsonGet)
+            $object = ConvertFrom-Json2 $testJsonGet)
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/user?username=$testUsername"} {

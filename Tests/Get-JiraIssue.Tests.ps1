@@ -18,12 +18,6 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraIssue
 
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
             defParam 'Key'
             defParam 'InputObject'
             defParam 'Query'
@@ -45,9 +39,11 @@ InModuleScope JiraPS {
             }
 
             Mock Get-JiraUser {
-                [PSCustomObject] @{
+                $object = [PSCustomObject] @{
                     'Name' = 'username'
                 }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                return $object
             }
 
             $jql = 'reporter in (testuser)'

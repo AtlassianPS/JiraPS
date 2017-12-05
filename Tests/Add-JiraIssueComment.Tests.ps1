@@ -33,11 +33,13 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraIssue {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
                 RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
         Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {

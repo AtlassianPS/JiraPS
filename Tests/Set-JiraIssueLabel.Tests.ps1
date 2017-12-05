@@ -18,24 +18,25 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraIssue {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
                 'Labels'  = @('existingLabel1', 'existingLabel2')
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
-        # If we don't override this in a context or test, we don't want it to
-        # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod {}
+        Mock Invoke-JiraMethod {
+            if ($ShowMockData) {
+                Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
+                Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
+                Write-Output "         [Method]  $Method" -ForegroundColor Cyan
+                Write-Output "         [Body]    $Body" -ForegroundColor Cyan
+            }
+        }
 
         Context "Sanity checking" {
             $command = Get-Command -Name Set-JiraIssueLabel
-
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
 
             function defAlias($name, $definition) {
                 It "Supports the $name alias for the $definition parameter" {
@@ -43,13 +44,13 @@ InModuleScope JiraPS {
                 }
             }
 
-            defParam 'Issue'
-            defParam 'Set'
-            defParam 'Add'
-            defParam 'Remove'
-            defParam 'Clear'
-            defParam 'Credential'
-            defParam 'PassThru'
+            defParam $command 'Issue'
+            defParam $command 'Set'
+            defParam $command 'Add'
+            defParam $command 'Remove'
+            defParam $command 'Clear'
+            defParam $command 'Credential'
+            defParam $command 'PassThru'
 
             defAlias 'Key' 'Issue'
             defAlias 'Label' 'Set'
@@ -57,15 +58,6 @@ InModuleScope JiraPS {
         }
 
         Context "Behavior testing" {
-            Mock Invoke-JiraMethod {
-                if ($ShowMockData) {
-                    Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Output "         [Method]  $Method" -ForegroundColor Cyan
-                    Write-Output "         [Body]    $Body" -ForegroundColor Cyan
-                }
-            }
-
             It "Replaces all issue labels if the Set parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1', 'testLabel2' } | Should Not Throw
                 # The String in the ParameterFilter is made from the keywords

@@ -37,11 +37,13 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraIssue -ModuleName JiraPS {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
                 RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
         # Obtaining comments from an issue...this is IT-3676 in the test environment

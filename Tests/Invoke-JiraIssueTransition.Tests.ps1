@@ -28,12 +28,14 @@ InModuleScope JiraPS {
             }
             $t2.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
 
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 ID         = $issueID
                 Key        = $issueKey
                 RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID"
                 Transition = @($t1, $t2)
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/transitions"} {

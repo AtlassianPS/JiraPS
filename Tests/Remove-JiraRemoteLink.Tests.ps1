@@ -46,14 +46,18 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraIssue {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
                 'Key'     = $testIssueKey
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
         Mock Get-JiraRemoteLink {
-            ConvertFrom-Json2 $testLink
+            $object = ConvertFrom-Json2 $testLink
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.IssueLinkType')
+            return $object
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE'} {

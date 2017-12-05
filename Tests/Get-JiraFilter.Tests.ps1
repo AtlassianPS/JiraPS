@@ -30,12 +30,6 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraFilter
 
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
             defParam 'Id'
             defParam 'InputObject'
             defParam 'Credential'

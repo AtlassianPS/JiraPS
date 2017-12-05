@@ -60,7 +60,7 @@ InModuleScope JiraPS {
             }
 
             It "Accepts pipeline input from Get-JiraIssue" {
-                $WatcherResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueWatcher -Watcher 'fred'
+                $WatcherResult = Get-JiraIssue -Key $issueKey | Add-JiraIssueWatcher -Watcher 'fred'
                 $WatcherResult | Should BeNullOrEmpty
 
                 # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
