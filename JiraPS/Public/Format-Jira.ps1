@@ -22,17 +22,17 @@ function Format-Jira {
     [CmdletBinding()]
     [OutputType([System.String])]
     param(
-        # List of properties to display. If omitted, only the default properties will be shown.
-        #
-        # To display all properties, use -Property *.
-        [Object[]]
-        $Property,
-
         # Object to format.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromRemainingArguments )]
         [ValidateNotNull()]
         [PSObject[]]
-        $InputObject
+        $InputObject,
+
+        # List of properties to display. If omitted, only the default properties will be shown.
+        #
+        # To display all properties, use -Property *.
+        [Object[]]
+        $Property
     )
 
     begin {

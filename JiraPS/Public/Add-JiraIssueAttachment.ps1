@@ -20,15 +20,56 @@ function Add-JiraIssueAttachment {
     [CmdletBinding( SupportsShouldProcess )]
     param(
         # Issue to which to attach the file
-        [Parameter( Mandatory, ValueFromPipeline )]
+        [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Alias('Key')]
         [Object]
         $Issue,
+        <#
+          #ToDo:CustomClass
+          Once we have custom classes, this can also accept ValueFromPipeline
+        #>
 
         # Path of the file to upload and attach
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [ValidateScript( { Test-Path $_ })]
+        [ValidateScript(
+            {
+                if (-not (Test-Path $_ -PathType Leaf)) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"File not found"),
+                        'ParameterValue.FileNotFound',
+                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "No file could be found with the provided path '$_'."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Alias('InFile', 'FullName', 'Path')]
         [String[]]
         $FilePath,
@@ -53,22 +94,10 @@ function Add-JiraIssueAttachment {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        # Validate input object
-        if (("JiraPS.Issue" -notin $Issue.PSObject.TypeNames) -and (($Issue -isnot [String]))) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid Type for Parameter"),
-                'ParameterType.NotJiraIssue',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $Issue
-            )
-            $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($Issue.GetType().Name)"
-            $PSCmdlet.ThrowTerminatingError($errorItem)
-        }
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         foreach ($file in $FilePath) {
-            # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
-
             $fileName = Split-Path -Path $file -Leaf
             $readFile = [System.IO.File]::ReadAllBytes($file)
             $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")

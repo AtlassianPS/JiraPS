@@ -24,6 +24,28 @@ function Get-JiraIssueAttachment {
     param(
         # JIRA issue to check for attachments. Can be a JiraPS.Issue object, issue key, or internal issue ID.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Alias('Key')]
         [Object]
         $Issue,
@@ -46,23 +68,6 @@ function Get-JiraIssueAttachment {
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        # Validate input object
-        if (
-            # from Pipeline
-            (($_) -and ("JiraPS.Issue" -notin $_.PSObject.TypeNames)) -or
-            # by parameter
-            ("JiraPS.Issue" -notin $Issue.PSObject.TypeNames) -and (($Issue -isnot [String]))
-        ) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid Type for Parameter"),
-                'ParameterType.NotJiraIssue',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $Issue
-            )
-            $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($Issue.GetType().Name)"
-            $PSCmdlet.ThrowTerminatingError($errorItem)
-        }
 
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential

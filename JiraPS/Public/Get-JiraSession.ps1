@@ -29,9 +29,6 @@ function Get-JiraSession {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using Session saved in PrivateData"
             Write-Output $MyInvocation.MyCommand.Module.PrivateData.Session
         }
-        else {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Session objects are saved"
-        }
     }
 
     end {

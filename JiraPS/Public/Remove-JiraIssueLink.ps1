@@ -19,6 +19,48 @@ function Remove-JiraIssueLink {
     param(
         # IssueLink to delete
         [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                $objectProperties = $_ | Get-Member -InputObject $_ -MemberType *Property
+                if (
+                    ($_ -isnot [String]) -and (
+                        ("JiraPS.Issue" -notin $_.PSObject.TypeNames) -or
+                        ("JiraPS.IssueLink" -notin $_.PSObject.TypeNames)
+                    )
+                 ) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                elseif (-not($objectProperties.Name -contains "id")) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Parameter"),
+                        'ParameterType.MissingProperty',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed. $($objectProperties | Out-String)."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object[]]
         $IssueLink,
 
@@ -48,40 +90,6 @@ function Remove-JiraIssueLink {
         #>
         if (($_) -and ("JiraPS.Issue" -in $_.PSObject.TypeNames)) {
             $IssueLink = $_.issueLinks
-        }
-
-        # Validate IssueLink object
-        <#
-          #ToDo:CustomClass
-          Once we have custom classes, this will no longer be necessary
-        #>
-        $objectProperties = $IssueLink | Get-Member -MemberType *Property
-        if (-not($objectProperties.Name -contains "id")) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid Parameter"),
-                'ParameterType.MissingProperty',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $IssueLink
-            )
-            $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed. $($objectProperties | Out-String)."
-            $PSCmdlet.ThrowTerminatingError($errorItem)
-        }
-
-        # Validate input object from Pipeline
-        if (
-            ($_) -and (
-                ("JiraPS.Issue" -notin $_.PSObject.TypeNames) -or
-                ("JiraPS.IssueLink" -notin $_.PSObject.TypeNames)
-            )
-        ) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid Type for Parameter"),
-                'ParameterType.NotJiraIssue',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $_
-            )
-            $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [JiraPS.IssueLink], but was $($_.GetType().Name)"
-            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
         foreach ($link in $IssueLink) {

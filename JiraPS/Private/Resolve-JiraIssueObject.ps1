@@ -6,6 +6,24 @@ function Resolve-JiraIssueObject {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object]
         $InputObject,
 
@@ -23,10 +41,10 @@ function Resolve-JiraIssueObject {
     }
     elseif ("JiraPS.Issue" -in $InputObject.PSObject.TypeNames -and $InputObject.Key) {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
-        return Get-JiraIssue -InputObject $InputObject.Key -Credential $Credential -ErrorAction Stop
+        return Get-JiraIssue -Key $InputObject.Key -Credential $Credential -ErrorAction Stop
     }
     else {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
-        return Get-JiraIssue -InputObject $InputObject -Credential $Credential -ErrorAction Stop
+        return Get-JiraIssue -Key $InputObject.ToString() -Credential $Credential -ErrorAction Stop
     }
 }

@@ -39,6 +39,28 @@
     param(
         # Version object that should be created on the server.
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byObject' )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraVersion',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object]
         $InputObject,
 
@@ -49,6 +71,28 @@
 
         # The Project ID
         [Parameter( Position = 1, Mandatory, ParameterSetName = 'byParameters' )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Project" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraProject',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object]
         $Project,
 
@@ -98,30 +142,6 @@
         $requestBody = @{}
         Switch ($PSCmdlet.ParameterSetName) {
             'byObject' {
-                # Validate InputObject type
-                if ("JiraPS.Version" -notin $InputObject.PSObject.TypeNames) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Parameter"),
-                        'ParameterType.NotJiraVersion',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $InputObject
-                    )
-                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Only JiraPS.Version is accepted."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-
-                # Validate mandatory properties
-                if (-not ($InputObject.Project -and $InputObject.Name)) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Parameter"),
-                        'ParameterMissing',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $InputObject
-                    )
-                    $errorItem.ErrorDetails = "The Version provided does not contain all necessary information. Mandatory properties: 'Project', 'Name'."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-
                 $requestBody["name"] = $InputObject.Name
                 $requestBody["description"] = $InputObject.Description
                 $requestBody["archived"] = [bool]($InputObject.Archived)

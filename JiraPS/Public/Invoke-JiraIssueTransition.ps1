@@ -40,6 +40,28 @@ function Invoke-JiraIssueTransition {
     param(
         # The Issue Object or ID to transition.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Alias('Key')]
         [Object]
         $Issue,
@@ -49,15 +71,22 @@ function Invoke-JiraIssueTransition {
         [Object]
         $Transition,
 
-        # Any additional fields that should be updated. Fields must be configured to appear on the transition screen to use this parameter.
+        # Any additional fields that should be updated.
+        #
+        # Fields must be configured to appear on the transition screen to use this parameter.
         [System.Collections.Hashtable]
         $Fields,
 
-        # New assignee of the issue. Enter 'Unassigned' to unassign the issue. Assignee field must be configured to appear on the transition screen to use this parameter.
+        # New assignee of the issue
+        #
+        # Enter 'Unassigned' to unassign the issue.
+        # Assignee field must be configured to appear on the transition screen to use this parameter.
         [Object]
         $Assignee,
 
-        # Comment that should be added to JIRA. Comment field must be configured to appear on the transition screen to use this parameter.
+        # Comment that should be added to JIRA.
+        #
+        # Comment field must be configured to appear on the transition screen to use this parameter.
         [String]
         $Comment,
 
