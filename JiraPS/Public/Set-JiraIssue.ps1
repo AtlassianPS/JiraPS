@@ -122,7 +122,7 @@ function Set-JiraIssue {
                 $validAssignee = $true
             }
             else {
-                if ($assigneeObj = Get-JiraUser -InputObject $Assignee -Credential $Credential) {
+                if ($assigneeObj = Get-JiraUser -UserName $Assignee -Credential $Credential) {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                     $assigneeString = $assigneeObj.Name
                     $validAssignee = $true
@@ -188,24 +188,14 @@ function Set-JiraIssue {
                     $value = $Fields.$_key
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
 
-                    if ($field = Get-JiraField -Field $name -Credential $Credential) {
-                        # For some reason, this was coming through as a hashtable instead of a String,
-                        # which was causing ConvertTo-Json to crash later.
-                        # Not sure why, but this forces $id to be a String and not a hashtable.
-                        $id = $field.Id
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Field [$name] was identified as ID [$id]"
-                        $issueProps.update.$id = @(@{ 'set' = $value })
-                    }
-                    else {
-                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                            ([System.ArgumentException]"Invalid value for Parameter"),
-                            'ParameterValue.InvalidFields',
-                            [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                            $Fields
-                        )
-                        $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
-                        $PSCmdlet.ThrowTerminatingError($errorItem)
-                    }
+                    $field = Get-JiraField -Field $name -Credential $Credential -ErrorAction Stop
+
+                    # For some reason, this was coming through as a hashtable instead of a String,
+                    # which was causing ConvertTo-Json to crash later.
+                    # Not sure why, but this forces $id to be a String and not a hashtable.
+                    $id = $field.Id
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Field [$name] was identified as ID [$id]"
+                    $issueProps.update.$id = @(@{ 'set' = $value })
                 }
             }
 

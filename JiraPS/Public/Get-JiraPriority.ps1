@@ -33,8 +33,7 @@ function Get-JiraPriority {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        # TODO: remove -ConfigFile parameter
+        $server = Get-JiraConfigServer -ErrorAction Stop
 
         $resourceURi = "$server/rest/api/latest/priority{0}"
     }

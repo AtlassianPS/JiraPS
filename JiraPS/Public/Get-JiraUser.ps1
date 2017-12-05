@@ -45,24 +45,13 @@ function Get-JiraUser {
         $resourceURi = "$server/rest/api/latest/user/search?username={0}"
 
         if ($IncludeInactive) {
-            $resourceURi = "$resourceURi&includeInactive=true"
+            $resourceURi = "$($resourceURi)&includeInactive=true"
         }
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        if ( ($_) -and ( "JiraPS.User" -notin $_.PSObject.TypeNames ) ) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid Type for Parameter"),
-                'ParameterType.NotJiraUser',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $_
-            )
-            $errorItem.ErrorDetails = "Wrong object type provided for UserName. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
-            $PSCmdlet.ThrowTerminatingError($errorItem)
-        }
 
         foreach ($user in $UserName) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"

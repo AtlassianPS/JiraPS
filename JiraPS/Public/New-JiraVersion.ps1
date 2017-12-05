@@ -130,7 +130,7 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        $server = Get-JiraConfigServer -ErrorAction Stop
 
         $resourceURi = "$server/rest/api/latest/version"
     }
@@ -156,18 +156,6 @@
                 }
             }
             'byParameters' {
-                # Validate Project parameter
-                if (-not(("JiraPS.Project" -notin $Project.PSObject.TypeNames) -or ($Project -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Parameter"),
-                        'ParameterType.NotJiraProject',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $Project
-                    )
-                    $errorItem.ErrorDetails = "The Project provided is invalid."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-
                 $requestBody["name"] = $Name
                 if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
                     $requestBody["description"] = $Description

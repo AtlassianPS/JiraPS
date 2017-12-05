@@ -55,15 +55,6 @@ function Add-JiraGroupMember {
         $server = Get-JiraConfigServer -ErrorAction Stop
 
         $resourceURi = "$server/rest/api/latest/group/user?groupname={0}"
-
-        # At present, it looks like this REST method doesn't support arrays in the Name property...
-        # in other words, a single REST call can only add a single group member to a single group.
-
-        # That's kind of annoying.
-
-        # Anyway, this builds a bunch of individual JSON strings with each username in its own Web
-        # request, which we'll loop through again in the Process block.
-        $users = Get-JiraUser -InputObject $UserName -Credential $Credential
     }
 
     process {
@@ -74,10 +65,19 @@ function Add-JiraGroupMember {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -InputObject $_group -Credential $Credential -ErrorAction Stop
+            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
             $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop).Name
 
             foreach ($user in $users) {
+                # At present, it looks like this REST method doesn't support arrays in the Name property...
+                # in other words, a single REST call can only add a single group member to a single group.
+
+                # That's kind of annoying.
+
+                # Anyway, this builds a bunch of individual JSON strings with each username in its own Web
+                # request, which we'll loop through again in the Process block.
+                $users = Get-JiraUser -UserName $UserName -Credential $Credential
+
                 if ($groupMembers -notcontains $user.Name) {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User [$(user.Name)] is not already in group [$_group]. Adding user."
 

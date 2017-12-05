@@ -57,8 +57,6 @@ function Get-JiraRemoteLink {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
     }
 
     process {

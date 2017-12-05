@@ -102,7 +102,7 @@ function Set-JiraUser {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        $server = Get-JiraConfigServer -ErrorAction Stop
 
         $resourceURi = "$server/rest/api/latest/user?username={0}"
     }
@@ -115,7 +115,7 @@ function Set-JiraUser {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-            $userObj = Get-JiraUser -InputObject $_user -Credential $Credential -ErrorAction Stop
+            $userObj = Get-JiraUser -UserName $_user -Credential $Credential -ErrorAction Stop
 
             $requestBody = @{}
 

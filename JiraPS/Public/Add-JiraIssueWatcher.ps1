@@ -90,7 +90,7 @@
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($issueObj.Key, "Adding user '$_watcher' as watcher.")) {
-                $result = Invoke-JiraMethod @parameter
+                Invoke-JiraMethod @parameter
             }
         }
     }

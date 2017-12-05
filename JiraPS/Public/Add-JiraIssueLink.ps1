@@ -88,7 +88,7 @@ function Add-JiraIssueLink {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        $server = Get-JiraConfigServer -ErrorAction Stop
 
         $resourceURi = "$server/rest/api/latest/issueLink"
     }
