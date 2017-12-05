@@ -21,7 +21,7 @@
                     }
                     else {
                         $obj = [PSCustomObject] @{
-                            'Message' = $e;
+                            'Message' = $e
                         }
 
                         $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Error')
@@ -41,8 +41,8 @@
                     }
                     else {
                         $obj = [PSCustomObject] @{
-                            'Key'     = $k;
-                            'Message' = $i.errors.$k;
+                            'Key'     = $k
+                            'Message' = $i.errors.$k
                         }
 
                         $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Error')

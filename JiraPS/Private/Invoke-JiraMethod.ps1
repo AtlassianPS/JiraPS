@@ -81,6 +81,7 @@ function Invoke-JiraMethod {
             ContentType     = 'application/json; charset=utf-8'
             UseBasicParsing = $true
             ErrorAction     = 'SilentlyContinue'
+            Verbose = $false
         }
 
         if ($_headers.ContainsKey("Content-Type")) {
@@ -104,6 +105,7 @@ function Invoke-JiraMethod {
         }
 
         try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($iwrSplat.Method) $($iwrSplat.Uri)"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$iwrSplat: $($iwrSplat | Out-String)"
             $webResponse = Invoke-WebRequest @iwrSplat
         }
