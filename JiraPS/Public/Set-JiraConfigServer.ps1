@@ -24,7 +24,7 @@ function Set-JiraConfigServer {
         [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
         [Alias('Uri')]
-        [String]
+        [Uri]
         $Server,
 
         # Path where the file with the configuration will be stored.

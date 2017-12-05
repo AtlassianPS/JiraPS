@@ -27,6 +27,28 @@
     param(
         # Version Object or ID to delete.
         [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [Int]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraVersion',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [Int], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object[]]
         $Version,
 
@@ -59,17 +81,6 @@
         foreach ($_version in $Version) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
-
-            if (-not (($_version -is [Int]) -or ("JiraPS.Version" -in $_version.PSObject.TypeNames))) {
-                $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                    ([System.ArgumentException]"Invalid Type for Parameter"),
-                    'ParameterType.NotJiraVersion',
-                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                    $_
-                )
-                $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [Int], but was $($_.GetType().Name)"
-                $PSCmdlet.ThrowTerminatingError($errorItem)
-            }
 
             $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
 

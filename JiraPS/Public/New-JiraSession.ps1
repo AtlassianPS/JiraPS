@@ -21,7 +21,7 @@ function New-JiraSession {
     .OUTPUTS
        [JiraPS.Session] An object representing the Jira session
     #>
-    [CmdletBinding( SupportsShouldProcess )]
+    [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # Credentials to use to connect to JIRA.

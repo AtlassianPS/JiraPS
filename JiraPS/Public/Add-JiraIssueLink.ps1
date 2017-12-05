@@ -19,12 +19,59 @@ function Add-JiraIssueLink {
     param(
         # Issue key or JiraPS.Issue object returned from Get-JiraIssue
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Alias('Key')]
         [Object[]]
         $Issue,
 
         # Issue Link to be created.
         [Parameter( Mandatory )]
+        [ValidateScript(
+            {
+                $objectProperties = Get-Member -InputObject $_ -MemberType *Property
+                if (-not(
+                        ($objectProperties.Name -contains "type") -and
+                        (($objectProperties.Name -contains "outwardIssue") -or ($objectProperties.Name -contains "inwardIssue"))
+                    )) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Parameter"),
+                        'ParameterProperties.Incomplete',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object[]]
         $IssueLink,
 
@@ -49,34 +96,6 @@ function Add-JiraIssueLink {
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        # Validate IssueLink object
-        $objectProperties = $IssueLink | Get-Member -MemberType *Property
-        if (-not(
-                ($objectProperties.Name -contains "type") -and
-                (($objectProperties.Name -contains "outwardIssue") -or ($objectProperties.Name -contains "inwardIssue"))
-            )) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid Parameter"),
-                'ParameterProperties.Incomplete',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $IssueLink
-            )
-            $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed."
-            $PSCmdlet.ThrowTerminatingError($errorItem)
-        }
-
-        # Validate input object from Pipeline
-        if (($_) -and ("JiraPS.Issue" -notin $_.PSObject.TypeNames)) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid Type for Parameter"),
-                'ParameterType.NotJiraIssue',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $_
-            )
-            $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], but was $($_.GetType().Name)"
-            $PSCmdlet.ThrowTerminatingError($errorItem)
-        }
 
         foreach ($_issue in $Issue) {
             # Find the proper object for the Issue
@@ -115,7 +134,7 @@ function Add-JiraIssueLink {
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
-                    $result = Invoke-JiraMethod @parameter
+                    Invoke-JiraMethod @parameter
                 }
             }
         }

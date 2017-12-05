@@ -29,6 +29,28 @@ function Get-JiraComponent {
     param(
         # The Project ID or project key of a project to search.
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByProject' )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Project" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraProject',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Project] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object[]]
         $Project,
         <#

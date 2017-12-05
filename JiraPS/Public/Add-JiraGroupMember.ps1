@@ -72,47 +72,38 @@ function Add-JiraGroupMember {
 
         foreach ($_group in $Group) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            if ($groupObj = Get-JiraGroup -InputObject $_group -Credential $Credential) {
-                $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential).Name
+            $groupObj = Get-JiraGroup -InputObject $_group -Credential $Credential -ErrorAction Stop
+            $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop).Name
 
-                foreach ($user in $users) {
-                    if ($groupMembers -notcontains $user.Name) {
-                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User [$(user.Name)] is not already in group [$_group]. Adding user."
+            foreach ($user in $users) {
+                if ($groupMembers -notcontains $user.Name) {
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User [$(user.Name)] is not already in group [$_group]. Adding user."
 
-                        $parameter = @{
-                            URI        = $resourceURi -f $groupObj.Name
-                            Method     = "POST"
-                            Body       = ConvertTo-Json -InputObject @{ 'name' = $user.Name }
-                            Credential = $Credential
-                        }
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                        if ($PSCmdlet.ShouldProcess($GroupName, "Adding user '$($user.Name)'.")) {
-                            $result = Invoke-JiraMethod @parameter
-                        }
+                    $parameter = @{
+                        URI        = $resourceURi -f $groupObj.Name
+                        Method     = "POST"
+                        Body       = ConvertTo-Json -InputObject @{ 'name' = $user.Name }
+                        Credential = $Credential
                     }
-                    else {
-                        $errorMessage = @{
-                            Category         = "ObjectNotFound"
-                            CategoryActivity = "Adding [$user] to [$_group]"
-                            Message          = "User [$user] is already a member of group [$_group]"
-                        }
-                        Write-Error @errorMessage
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    if ($PSCmdlet.ShouldProcess($GroupName, "Adding user '$($user.Name)'.")) {
+                        $result = Invoke-JiraMethod @parameter
                     }
                 }
-
-                if ($PassThru) {
-                    Write-Output (ConvertTo-JiraGroup -InputObject $result)
+                else {
+                    $errorMessage = @{
+                        Category         = "ResourceExists"
+                        CategoryActivity = "Adding [$user] to [$_group]"
+                        Message          = "User [$user] is already a member of group [$_group]"
+                    }
+                    Write-Error @errorMessage
                 }
             }
-            else {
-                $errorMessage = @{
-                    Category          = "ObjectNotFound"
-                    CategoryActivity  = "Searching for group"
-                    Message           = "Unable to identify group $_group."
-                    RecommendedAction = "Check the spelling of this group and ensure that you can access it via Get-JiraGroup."
-                }
-                Write-Error @errorMessage
+
+            if ($PassThru) {
+                Write-Output (ConvertTo-JiraGroup -InputObject $result)
             }
         }
     }

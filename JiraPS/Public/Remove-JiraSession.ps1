@@ -30,6 +30,8 @@ function Remove-JiraSession {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # A Jira session to be closed. If not specified, this function will use a saved session.
+        #
+        # This parameter has currently no meaning.
         [Parameter( ValueFromPipeline )]
         [Object]
         $Session
@@ -43,16 +45,7 @@ function Remove-JiraSession {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($Session) {
-            if ((Get-Member -InputObject $Session).TypeName -ne 'JiraPS.Session') {
-                throw "Unable to parse parameter [$Session] as a JiraPS.Session object"
-            }
-        }
-        else {
-            $Session = Get-JiraSession
-        }
-
-        if ($Session) {
+        if ($Session = Get-JiraSession) {
             $MyInvocation.MyCommand.Module.PrivateData.Session = $null
         }
     }

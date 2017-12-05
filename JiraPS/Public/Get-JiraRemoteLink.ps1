@@ -18,9 +18,31 @@ function Get-JiraRemoteLink {
     [CmdletBinding()]
     param(
         # The Issue Object or ID to link.
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Alias("Key")]
-        [String[]]
+        [Object]
         $Issue,
 
         # Get a single link by it's id.
@@ -37,8 +59,6 @@ function Get-JiraRemoteLink {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/issue/{0}/remotelink{1}"
     }
 
     process {
@@ -49,13 +69,16 @@ function Get-JiraRemoteLink {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
+            # Find the proper object for the Issue
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+
             $urlAppendix = ""
             if ($LinkId) {
                 $urlAppendix = "/$LinkId"
             }
 
             $parameter = @{
-                URI        = $resourceURi -f $_issue, $urlAppendix
+                URI        = "{0}/remotelink{1}" -f $issueObj.RestUrl, $urlAppendix
                 Method     = "GET"
                 Credential = $Credential
             }

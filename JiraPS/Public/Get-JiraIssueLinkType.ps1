@@ -23,6 +23,28 @@ function Get-JiraIssueLinkType {
     param(
         # The Issue Type name or ID to search
         [Parameter( Position = 0, Mandatory, ParameterSetName = '_Search' )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.IssueLinkType" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssueLinkType',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for IssueLinkType. Expected [JiraPS.IssueLinkType] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object]
         $LinkType,
 

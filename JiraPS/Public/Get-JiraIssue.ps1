@@ -46,8 +46,32 @@ function Get-JiraIssue {
 
         # Object of an issue to search for.
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object[]]
         $InputObject,
+        <#
+          #ToDo:Deprecate
+          This is not necessary if $Key uses ValueFromPipelineByPropertyName
+          #ToDo:CustomClass
+          Once we have custom classes, this check can be done with Type declaration
+        #>
 
         # JQL query for which to search for.
         [Parameter( Mandatory, ParameterSetName = 'ByJQL' )]
@@ -57,6 +81,28 @@ function Get-JiraIssue {
 
         # Object of an existing JIRA filter from which the results will be returned.
         [Parameter( Mandatory, ParameterSetName = 'ByFilter' )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Filter" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraFilter',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Filter. Expected [JiraPS.Filter] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Object]
         $Filter,
 
@@ -129,14 +175,12 @@ function Get-JiraIssue {
                 }
             }
             'ByInputObject' {
+                Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-InputObject' has been marked as deprecated."
                 foreach ($_issue in $InputObject) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
-                    # Find the proper object for the Issue
-                    $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
-
-                    Write-Output (Get-JiraIssue -Key $issueObj.Key -Credential $Credential)
+                    Write-Output (Get-JiraIssue -Key $_issue.Key -Credential $Credential)
                 }
             }
             'ByJQL' {
