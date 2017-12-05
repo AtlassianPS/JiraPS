@@ -9,9 +9,9 @@ InModuleScope JiraPS {
     Describe "Format-Jira" {
         $n = [System.Environment]::NewLine
         $obj = [PSCustomObject] @{
-            A = '123';
-            B = '456';
-            C = '789';
+            A = '123'
+            B = '456'
+            C = '789'
         }
 
         $obj2 = [PSCustomObject] @{
@@ -58,11 +58,11 @@ InModuleScope JiraPS {
                 # its output *could* be, so we can produce repeatable results.
                 [PSCustomObject] @{
                     CompanyName = 'Microsoft Corporation'
-                    Handle      = 5368;
-                    Id          = 4496;
+                    Handle      = 5368
+                    Id          = 4496
                     MachineName = '.'
-                    Name        = 'explorer';
-                    Path        = 'C:\Windows\Explorer.EXE';
+                    Name        = 'explorer'
+                    Path        = 'C:\Windows\Explorer.EXE'
                 }
             }
 
@@ -77,11 +77,11 @@ InModuleScope JiraPS {
             Mock Get-Process {
                 $obj = [PSCustomObject] @{
                     CompanyName = 'Microsoft Corporation'
-                    Handle      = 5368;
-                    Id          = 4496;
+                    Handle      = 5368
+                    Id          = 4496
                     MachineName = '.'
-                    Name        = 'explorer';
-                    Path        = 'C:\Windows\Explorer.EXE';
+                    Name        = 'explorer'
+                    Path        = 'C:\Windows\Explorer.EXE'
                 }
 
                 # Since we're mocking this with a PSCustomObject, we need to define its default property set
@@ -102,11 +102,11 @@ InModuleScope JiraPS {
             Mock Get-Process {
                 $obj = [PSCustomObject] @{
                     CompanyName = 'Microsoft Corporation'
-                    Handle      = 5368;
-                    Id          = 4496;
+                    Handle      = 5368
+                    Id          = 4496
                     MachineName = '.'
-                    Name        = 'explorer';
-                    Path        = 'C:\Windows\Explorer.EXE';
+                    Name        = 'explorer'
+                    Path        = 'C:\Windows\Explorer.EXE'
                 }
 
                 [String[]] $DefaultProperties = @('Name', 'Id')

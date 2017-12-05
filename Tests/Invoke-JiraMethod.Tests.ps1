@@ -457,7 +457,7 @@ InModuleScope JiraPS {
 
         Context "Output handling - JIRA error returned (HTTP 400 and up)" {
             $invalidTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/1'
-            $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}';
+            $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}'
 
             Mock Invoke-WebRequest {
                 ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'

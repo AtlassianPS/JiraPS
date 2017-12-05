@@ -229,15 +229,15 @@ InModuleScope JiraPS {
 
             Mock Get-JiraProject -ModuleName JiraPS {
                 [PSCustomObject] @{
-                    ID   = 10003;
-                    Name = 'Test Project';
+                    ID   = 10003
+                    Name = 'Test Project'
                 }
             }
 
             Mock Get-JiraIssueType -ModuleName JiraPS {
                 [PSCustomObject] @{
-                    ID   = 2;
-                    Name = 'Test Issue Type';
+                    ID   = 2
+                    Name = 'Test Issue Type'
                 }
             }
 
@@ -254,8 +254,8 @@ InModuleScope JiraPS {
                         projects = @{
                             issuetypes = @{
                                 fields = [PSCustomObject] @{
-                                    'a' = 1;
-                                    'b' = 2;
+                                    'a' = 1
+                                    'b' = 2
                                 }
                             }
                         }

@@ -111,8 +111,8 @@ InModuleScope JiraPS {
             It "Updates custom fields if provided to the -Fields parameter" {
                 Mock Get-JiraField {
                     [PSCustomObject] @{
-                        'Name' = $Field;
-                        'ID'   = $Field;
+                        'Name' = $Field
+                        'ID'   = $Field
                     }
                 }
                 { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345' = 'foo'; 'customfield_67890' = 'bar'; 'customfield_111222' = @(@{value = 'foobar'})} } | Should Not Throw

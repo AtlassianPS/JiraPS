@@ -59,9 +59,9 @@ InModuleScope JiraPS {
 
         Mock Get-JiraIssue -ModuleName JiraPS {
             $result = [PSCustomObject] @{
-                ID      = $issueID;
-                Key     = $issueKey;
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
+                ID      = $issueID
+                Key     = $issueKey
+                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
             }
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             Write-Output $result
