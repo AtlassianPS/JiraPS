@@ -43,39 +43,68 @@
                 }
             }
         )]
-        [Object[]] $Version,
+        [Object[]]
+        $Version,
 
         # New Name of the Version.
-        [String] $Name,
+        [String]
+        $Name,
 
         # New Description of the Version.
-        [String] $Description,
+        [String]
+        $Description,
 
         # New value for Archived.
-        [Bool] $Archived,
+        [Bool]
+        $Archived,
 
         # New value for Released.
-        [Bool] $Released,
+        [Bool]
+        $Released,
 
         # New Date of the release.
-        [DateTime] $ReleaseDate,
+        [DateTime]
+        $ReleaseDate,
 
         # New Date of the user release.
-        [DateTime] $StartDate,
+        [DateTime]
+        $StartDate,
 
         # The new Project where this version should be in.
         # This can be the ID of the Project, or the Project Object
-        [Object] $Project,
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Project" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraProject',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
+        [Object]
+        $Project,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
     }
 
     process {
@@ -86,7 +115,7 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
 
-            $versionObj = Get-JiraUser -InputObject $_version -Credential $Credential -ErrorAction Stop
+            $versionObj = Get-JiraVersion -Version $_version -Credential $Credential -ErrorAction Stop
 
             $requestBody = @{}
 
@@ -105,7 +134,7 @@
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Project")) {
                 $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
 
-                $requestBody["projectId"] = $Project.Id
+                $requestBody["projectId"] = $projectObj.Id
             }
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("ReleaseDate")) {
                 $requestBody["releaseDate"] = $ReleaseDate.ToString('yyyy-MM-dd')
@@ -113,9 +142,6 @@
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("StartDate")) {
                 $requestBody["startDate"] = $StartDate.ToString('yyyy-MM-dd')
             }
-
-            Write-Debug -Message '[Set-JiraVersion] Converting to JSON'
-            $json = ConvertTo-Json -InputObject $requestBody
 
             $parameter = @{
                 URI        = $versionObj.RestUrl

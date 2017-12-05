@@ -97,7 +97,7 @@ function Remove-JiraGroupMember {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        $server = Get-JiraConfigServer -ErrorAction Stop
 
         $resourceURi = "$server/rest/api/latest/group/user?groupname={0}&username={1}"
 
@@ -117,7 +117,7 @@ function Remove-JiraGroupMember {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
             $groupObj = Get-JiraGroup -InputObject $_group -Credential $Credential -ErrorAction Stop
-            $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop).Name
+            # $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop).Name
 
             foreach ($_user in $User) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"

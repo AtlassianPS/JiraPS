@@ -74,12 +74,7 @@ function Set-JiraConfigServer {
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
-        # Check for trailing slash and strip it if necessary
-        $fixedServer = $Server.Trim()
-
-        if ($fixedServer.EndsWith('/') -or $fixedServer.EndsWith('\')) {
-            $fixedServer = $Server.Substring(0, $Server.Length - 1)
-        }
+        $fixedServer = $Server.AbsoluteUri.Trim('/')
 
         if ($xmlConfig.Server) {
             $xmlConfig.Server = $fixedServer

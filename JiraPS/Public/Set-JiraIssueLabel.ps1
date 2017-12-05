@@ -66,12 +66,12 @@
         $Set,
 
         # Existing labels to be added.
-        [Parameter( Mandatory, ParameterSetName = 'ModifyLabels' )]
+        [Parameter( ParameterSetName = 'ModifyLabels' )]
         [String[]]
         $Add,
 
         # Existing labels to be removed.
-        [Parameter( Mandatory, ParameterSetName = 'ModifyLabels' )]
+        [Parameter( ParameterSetName = 'ModifyLabels' )]
         [String[]]
         $Remove,
 

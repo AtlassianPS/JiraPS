@@ -138,7 +138,7 @@ function Get-JiraIssue {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        $server = Get-JiraConfigServer -ErrorAction Stop
 
         if (($PSCmdlet.ParameterSetName -in @('ByJQL', 'ByFilter')) -and $MaxResults -eq 0) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using loop mode to obtain all results"
