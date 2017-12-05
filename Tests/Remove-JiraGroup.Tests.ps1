@@ -38,7 +38,9 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraGroup -ModuleName JiraPS {
-            ConvertTo-JiraGroup (ConvertFrom-Json2 $testJson)
+            $object = ConvertFrom-Json2 $testJson
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
+            return $object
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupName"} {

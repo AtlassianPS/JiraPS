@@ -44,12 +44,6 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraGroupMember
 
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
             defParam 'Group'
             defParam 'StartIndex'
             defParam 'MaxResults'
@@ -67,9 +61,11 @@ InModuleScope JiraPS {
             }
 
             Mock Get-JiraUser -ModuleName JiraPS {
-                [PSCustomObject] @{
+                $object = [PSCustomObject] @{
                     'Name' = 'username'
                 }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                return $object
             }
 
             It "Obtains members about a provided group in JIRA" {

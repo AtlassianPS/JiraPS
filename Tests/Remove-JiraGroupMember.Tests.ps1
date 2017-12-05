@@ -25,24 +25,28 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraGroup -ModuleName JiraPS {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 'Name' = $testGroupName
                 'Size' = 2
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
+            return $object
         }
 
         Mock Get-JiraUser -ModuleName JiraPS {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 'Name' = "$InputObject"
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+            return $object
         }
 
         Mock Get-JiraGroupMember -ModuleName JiraPS {
-            @(
-                [PSCustomObject] @{
-                    'Name' = $testUsername1
-                }
-            )
+            $object = [PSCustomObject] @{
+                'Name' = $testUsername1
+            }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
+            return $object
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS {

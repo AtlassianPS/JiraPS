@@ -42,13 +42,13 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraProject -ModuleName JiraPS {
-            $Projects = ConvertFrom-Json2 $JiraProjectData
+            $Projects = ConvertFrom-Json $JiraProjectData
             $Projects.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
             $Projects | Where-Object {$_.Key -in $Project}
         }
 
         Mock Get-JiraVersion -ModuleName JiraPS {
-            ConvertTo-JiraVersion -InputObject (ConvertFrom-Json2 $testJsonOne)
+            ConvertTo-JiraVersion -InputObject (ConvertFrom-Json $testJsonOne)
         }
 
         Mock ConvertTo-JiraVersion -ModuleName JiraPS {
@@ -90,7 +90,7 @@ InModuleScope JiraPS {
 
         Context "Behavior checking" {
             It "sets an Issue's Version Name" {
-                $version = Get-JiraVersion -Project $projectKey
+                $version = Get-JiraVersion -Project $projectKey -Name $versionName
                 $results = Set-JiraVersion -Version $version -Name "NewName" -ErrorAction Stop
                 $results | Should Not BeNullOrEmpty
                 checkType $results "JiraPS.Version"

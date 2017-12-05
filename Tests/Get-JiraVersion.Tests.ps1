@@ -88,7 +88,9 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraProject -ModuleName JiraPS {
-            ConvertFrom-Json2 $JiraProjectData | Where-Object {$_.Key -in $Project}
+            $object = ConvertFrom-Json2 $JiraProjectData | Where-Object {$_.Key -in $Project}
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+            return $object
         }
 
         Mock ConvertTo-JiraVersion -ModuleName JiraPS {

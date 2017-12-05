@@ -31,12 +31,6 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraIssueCreateMetadata
 
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
             defParam 'Project'
             defParam 'IssueType'
             defParam 'Credential'
@@ -228,17 +222,21 @@ InModuleScope JiraPS {
 '@
 
             Mock Get-JiraProject -ModuleName JiraPS {
-                [PSCustomObject] @{
+                $object = [PSCustomObject] @{
                     ID   = 10003
                     Name = 'Test Project'
                 }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+                return $object
             }
 
             Mock Get-JiraIssueType -ModuleName JiraPS {
-                [PSCustomObject] @{
+                $object = [PSCustomObject] @{
                     ID   = 2
                     Name = 'Test Issue Type'
                 }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.IssueType')
+                return $object
             }
 
             It "Queries Jira for metadata information about creating an issue" {

@@ -11,7 +11,7 @@ InModuleScope JiraPS {
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
-    $validMethods = @('Get', 'Post', 'Put', 'Delete')
+    $validMethods = @('GET', 'POST', 'PUT', 'DELETE')
 
     Describe "Invoke-JiraMethod" {
 

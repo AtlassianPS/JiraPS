@@ -19,7 +19,7 @@ InModuleScope JiraPS {
     }
 }
 "@
-        $testErrorMessage = "JIRA encountered an error: [$testErrorKey] - $testError"
+        $testErrorMessage = "Jira encountered an error: [$testErrorKey] - $testError"
 
         It "Converts a JIRA result into a PSObject with error results" {
             $obj = Resolve-JiraError -InputObject (ConvertFrom-Json2 $testJson)

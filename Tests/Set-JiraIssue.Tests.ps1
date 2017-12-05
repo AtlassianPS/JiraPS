@@ -18,9 +18,11 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraIssue {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
         # If we don't override this in a context or test, we don't want it to

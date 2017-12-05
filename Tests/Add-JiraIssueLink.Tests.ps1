@@ -22,9 +22,11 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraIssue -ParameterFilter { $Key -eq $issueKey } {
-            [PSCustomObject]@{
+            $object = [PSCustomObject]@{
                 Key = $issueKey
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
