@@ -211,9 +211,9 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue -ModuleName JiraPS {
                 [PSCustomObject] @{
-                    ID      = $issueID;
-                    Key     = $issueKey;
-                    RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
+                    ID      = $issueID
+                    Key     = $issueKey
+                    RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
                 }
             }
 
@@ -228,8 +228,8 @@ InModuleScope JiraPS {
                 Mock Invoke-JiraMethod -ModuleName JiraPS {
                     @{
                         fields = [PSCustomObject] @{
-                            'a' = 1;
-                            'b' = 2;
+                            'a' = 1
+                            'b' = 2
                         }
                     }
                 }

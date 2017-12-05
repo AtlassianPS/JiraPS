@@ -60,7 +60,7 @@ function checkType($obj, $typeName) {
         $o = $obj
     }
 
-    $o.PSObject.TypeNames[0] | Should Be $typeName
+    (Get-Member -InputObject $o).TypeName -contains $typeName | Should Be $true
 }
 
 function castsToString($obj) {

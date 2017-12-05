@@ -66,7 +66,7 @@ InModuleScope JiraPS {
 
         It "Sets the type name to JiraPS.WorklogItem" {
             $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject
-            $r.PSObject.TypeNames[0] | Should Be 'JiraPS.WorklogItem'
+            checkType $r "JiraPS.WorklogItem"
         }
 
         $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject

@@ -23,7 +23,7 @@ InModuleScope JiraPS {
 
         Mock Get-JiraIssue -ParameterFilter { $Key -eq $issueKey } {
             [PSCustomObject]@{
-                Key = $issueKey;
+                Key = $issueKey
             }
         }
 

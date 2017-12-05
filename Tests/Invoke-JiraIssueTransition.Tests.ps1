@@ -18,20 +18,20 @@ InModuleScope JiraPS {
 
         Mock Get-JiraIssue -ModuleName JiraPS {
             $t1 = [PSCustomObject] @{
-                Name = 'Start Progress';
-                ID   = 11;
+                Name = 'Start Progress'
+                ID   = 11
             }
             $t1.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
             $t2 = [PSCustomObject] @{
-                Name = 'Resolve';
-                ID   = 81;
+                Name = 'Resolve'
+                ID   = 81
             }
             $t2.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
 
             [PSCustomObject] @{
-                ID         = $issueID;
-                Key        = $issueKey;
-                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID";
+                ID         = $issueID
+                Key        = $issueKey
+                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID"
                 Transition = @($t1, $t2)
             }
         }
@@ -87,8 +87,8 @@ InModuleScope JiraPS {
         It "Updates custom fields if provided to the -Fields parameter" {
             Mock Get-JiraField {
                 [PSCustomObject] @{
-                    'Name' = $Field;
-                    'ID'   = $Field;
+                    'Name' = $Field
+                    'ID'   = $Field
                 }
             }
             { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{'customfield_12345' = 'foo'; 'customfield_67890' = 'bar'} } | Should Not Throw
@@ -99,8 +99,8 @@ InModuleScope JiraPS {
         It "Updates assignee name if provided to the -Assignee parameter" {
             Mock Get-JiraUser {
                 [PSCustomObject] @{
-                    'Name'    = 'powershell-user';
-                    'RestUrl' = "$jiraServer/rest/api/2/user?username=powershell-user";
+                    'Name'    = 'powershell-user'
+                    'RestUrl' = "$jiraServer/rest/api/2/user?username=powershell-user"
                 }
             }
             { $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'powershell-user'} | Should Not Throw

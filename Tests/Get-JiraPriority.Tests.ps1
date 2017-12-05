@@ -103,7 +103,7 @@ InModuleScope JiraPS {
         It "Converts the output object to type JiraPS.Priority" {
             $getResult = Get-JiraPriority -Id 1 -Credential $testCred
             $getResult | Should Not BeNullOrEmpty
-            $getResult.PSObject.TypeNames[0] | Should Be 'JiraPS.Priority'
+            checkType $getResult "JiraPS.Priority"
         }
     }
 }

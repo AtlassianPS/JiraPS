@@ -19,7 +19,7 @@ InModuleScope JiraPS {
 
         Mock Get-JiraIssue {
             [PSCustomObject] @{
-                'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345';
+                'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
                 'Labels'  = @('existingLabel1', 'existingLabel2')
             }
         }

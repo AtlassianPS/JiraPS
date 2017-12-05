@@ -29,7 +29,7 @@ InModuleScope JiraPS {
 
         It "Sets the type name to JiraPS.Project" {
             # (Get-Member -InputObject $r).TypeName | Should Be 'JiraPS.Component'
-            $r.PSObject.TypeNames[0] | Should Be 'JiraPS.Component'
+            checkType $r "JiraPS.Component"
         }
 
         defProp $r 'Id' '11000'
