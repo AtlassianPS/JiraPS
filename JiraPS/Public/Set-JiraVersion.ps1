@@ -17,14 +17,10 @@
      .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Version to be changed
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline )]
         [Object[]] $Version,
 
         # New Name of the Version.
@@ -58,8 +54,6 @@
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-
-        Write-Debug "[Set-JiraVersion] Completed Begin block."
     }
 
     process {
@@ -67,58 +61,51 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         foreach ($_version in $Version) {
-            try {
-                # Validate InputObject type
-                if ($_version.PSObject.TypeNames[0] -ne "JiraPS.Version") {
-                    Write-Error "Wrong object type provided for Version. Only JiraPS.Version is accepted"
-                }
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
 
-                $id = [Int]($_version.Id)
-                $restUrl = "$server/rest/api/latest/version/$id"
+            $versionObj = Get-JiraUser -InputObject $_version -Credential $Credential -ErrorAction Stop
 
-                $props = @{}
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) {
-                    $props["name"] = $Name
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
-                    $props["description"] = $Description
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Archived")) {
-                    $props["archived"] = $Archived
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Released")) {
-                    $props["released"] = $Released
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Project")) {
-                    if ($Project.PSObject.TypeNames[0] -eq "JiraPS.Project") {
-                        if ($Project.Id) {
-                            $props["projectId"] = $Project.Id
-                        }
-                        elseif ($Project.Key) {
-                            $props["project"] = $Project.Key
-                        }
-                    }
-                    else {
-                        $props["projectId"] = (Get-JiraProject $Project -Credential $Credential).Id
-                    }
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("ReleaseDate")) {
-                    $props["releaseDate"] = $ReleaseDate.ToString('yyyy-MM-dd')
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("StartDate")) {
-                    $props["startDate"] = $StartDate.ToString('yyyy-MM-dd')
-                }
+            $requestBody = @{}
 
-                Write-Debug -Message '[Set-JiraVersion] Converting to JSON'
-                $json = ConvertTo-Json -InputObject $props
-
-                if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    Invoke-JiraMethod -Method Put -URI $restUrl -Body $json -Credential $Credential | ConvertTo-JiraVersion -Credential $Credential
-                }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) {
+                $requestBody["name"] = $Name
             }
-            catch {
-                Write-Error "Id of the Version was not available or could not be converted to Integer. Value was $($_version.Id)"
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
+                $requestBody["description"] = $Description
+            }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Archived")) {
+                $requestBody["archived"] = $Archived
+            }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Released")) {
+                $requestBody["released"] = $Released
+            }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Project")) {
+                $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
+
+                $requestBody["projectId"] = $Project.Id
+            }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("ReleaseDate")) {
+                $requestBody["releaseDate"] = $ReleaseDate.ToString('yyyy-MM-dd')
+            }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("StartDate")) {
+                $requestBody["startDate"] = $StartDate.ToString('yyyy-MM-dd')
+            }
+
+            Write-Debug -Message '[Set-JiraVersion] Converting to JSON'
+            $json = ConvertTo-Json -InputObject $requestBody
+
+            $parameter = @{
+                URI        = $versionObj.RestUrl
+                Method     = "PUT"
+                Body       = ConvertTo-Json -InputObject $requestBody
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
+                $result = Invoke-JiraMethod @parameter
+
+                Write-Output (Get-JiraVersion -InputObject $result)
             }
         }
     }

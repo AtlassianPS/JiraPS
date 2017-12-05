@@ -21,27 +21,31 @@ function New-JiraUser {
     .OUTPUTS
        [JiraPS.User] The user object created
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Name of user.
-        [Parameter(Mandatory = $true)]
-        [String] $UserName,
+        [Parameter( Mandatory )]
+        [String]
+        $UserName,
 
         # E-mail address of the user.
-        [Parameter(Mandatory = $true)]
+        [Parameter( Mandatory )]
         [Alias('Email')]
-        [String] $EmailAddress,
+        [String]
+        $EmailAddress,
 
         # Display name of the user.
-        [Parameter(Mandatory = $false)]
-        [String] $DisplayName,
+        [String]
+        $DisplayName,
 
         # Should the user receive a notification e-mail?
-        [Boolean] $Notify = $true,
+        [Boolean]
+        $Notify = $true,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -49,56 +53,38 @@ function New-JiraUser {
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $userURL = "$server/rest/api/latest/user"
+        $resourceURi = "$server/rest/api/latest/user"
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        Write-Debug "[New-JiraUser] Defining properties"
-        $props = @{
-            "name"         = $UserName;
-            "emailAddress" = $EmailAddress;
+        $requestBody = @{
+            "name"         = $UserName
+            "emailAddress" = $EmailAddress
+            "notify"       = $Notify
         }
 
         if ($DisplayName) {
-            $props.displayName = $DisplayName
+            $requestBody.displayName = $DisplayName
         }
         else {
-            Write-Debug "[New-JiraUser] DisplayName was not specified; defaulting to UserName parameter [$UserName]"
-            $props.displayName = $UserName
+            Write-DebugMessage "[New-JiraUser] DisplayName was not specified; defaulting to UserName parameter [$UserName]"
+            $requestBody.displayName = $UserName
         }
 
-        Write-Debug "[New-JiraUser] Setting Notify property to $Notify"
-        $props.notify = $Notify
-
-        Write-Debug "[New-JiraUser] Converting to JSON"
-        $json = ConvertTo-Json -InputObject $props
-
-        Write-Debug "[New-JiraUser] Checking for -WhatIf and Confirm"
+        $parameter = @{
+            URI        = $resourceURi
+            Method     = "POST"
+            Body       = ConvertTo-Json -InputObject $requestBody
+            Credential = $Credential
+        }
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod -Method Post -URI $userURL -Body $json -Credential $Credential
-        }
+            $result = Invoke-JiraMethod @parameter
 
-        if ($result) {
-            if ($result.errors) {
-                Write-Debug "[New-JiraUser] Jira return an error result object."
-
-                $keys = (Get-Member -InputObject $result.errors | Where-Object -FilterScript {$_.MemberType -eq 'NoteProperty'}).Name
-                foreach ($k in $keys) {
-                    Write-Error "Jira encountered an error: [$($k)] - $($result.errors.$k)"
-                }
-            }
-            else {
-                # OK
-                Write-Debug "[New-JiraUser] Converting output object into a Jira user and outputting"
-                ConvertTo-JiraUser -InputObject $result
-            }
-        }
-        else {
-            Write-Debug "[New-JiraUser] Jira returned no results to output."
+            Write-Output (ConvertTo-JiraUser -InputObject $result)
         }
     }
 

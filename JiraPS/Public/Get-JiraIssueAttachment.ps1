@@ -50,9 +50,9 @@ function Get-JiraIssueAttachment {
         # Validate input object
         if (
             # from Pipeline
-            (($_) -and ($_.PSObject.TypeNames[0] -ne "JiraPS.Issue")) -or
+            (($_) -and ("JiraPS.Issue" -notin $_.PSObject.TypeNames)) -or
             # by parameter
-            ($Issue.PSObject.TypeNames[0] -ne "JiraPS.Issue") -and (($Issue -isnot [String]))
+            ("JiraPS.Issue" -notin $Issue.PSObject.TypeNames) -and (($Issue -isnot [String]))
         ) {
             $errorItem = [System.Management.Automation.ErrorRecord]::new(
                 ([System.ArgumentException]"Invalid Type for Parameter"),
@@ -65,7 +65,7 @@ function Get-JiraIssueAttachment {
         }
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         if ($issueObj.Attachment) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Found Attachments on the Issue."

@@ -41,12 +41,10 @@ function Get-JiraIssueComment {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
-
-        $url = "$($issueObj.RestURL)/comment"
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         $parameter = @{
-            URI        = $url
+            URI        = "{0}/comment" -f $issueObj.RestURL
             Method     = "GET"
             Credential = $Credential
         }

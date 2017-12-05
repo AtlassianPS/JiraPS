@@ -28,48 +28,44 @@
         If the -PassThru parameter is provided, this function will provide a reference
         to the JIRA issue modified.  Otherwise, this function does not provide output.
     #>
-    [CmdletBinding(
-        SupportsShouldProcess = $true,
-        DefaultParameterSetName = 'ReplaceLabels'
-    )]
+    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ReplaceLabels' )]
     param(
         # Issue key or JiraPS.Issue object returned from Get-JiraIssue
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias('Key')]
-        [Object[]] $Issue,
+        [Object[]]
+        $Issue,
 
         # List of labels that will be set to the issue.
         # Any label that was already assigned to the issue will be removed.
-        [Parameter(
-            Mandatory = $true,
-            ParameterSetName = 'ReplaceLabels'
-        )]
+        [Parameter( Mandatory, ParameterSetName = 'ReplaceLabels' )]
         [Alias('Label', 'Replace')]
-        [String[]] $Set,
+        [String[]]
+        $Set,
 
         # Existing labels to be added.
-        [Parameter(ParameterSetName = 'ModifyLabels')]
-        [String[]] $Add,
+        [Parameter( Mandatory, ParameterSetName = 'ModifyLabels' )]
+        [String[]]
+        $Add,
 
         # Existing labels to be removed.
-        [Parameter(ParameterSetName = 'ModifyLabels')]
-        [String[]] $Remove,
+        [Parameter( Mandatory, ParameterSetName = 'ModifyLabels' )]
+        [String[]]
+        $Remove,
 
         # Remove all labels.
-        [Parameter(ParameterSetName = 'ClearLabels')]
-        [Switch] $Clear,
+        [Parameter( Mandatory, ParameterSetName = 'ClearLabels' )]
+        [Switch]
+        $Clear,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential,
+        [PSCredential]
+        $Credential,
 
         # Whether output should be provided after invoking this function.
-        [Switch] $PassThru
+        [Switch]
+        $PassThru
     )
 
     begin {
@@ -80,87 +76,71 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($i in $Issue) {
-            Write-Debug "[Set-JiraIssueLabel] Obtaining reference to issue"
-            $issueObj = Get-JiraIssue -InputObject $i -Credential $Credential
+        foreach ($_issue in $Issue) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
-            if ($issueObj) {
-                $currentLabels = @($issueObj.labels)
-                $url = $issueObj.RestURL
-                $isDirty = $true
+            # Find the proper object for the Issue
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
-                # As of JIRA 6.4, the Add and Remove verbs in the REST API for
-                # updating issues do not support arrays of parameters - you
-                # need to pass a single label to add or remove per API call.
+            $labels = [System.Collections.ArrayList]@($issueObj.labels)
 
-                # Instead, we'll do some fancy footwork with the existing
-                # issue object and use the Set verb for everything, so we only
-                # have to make one call to JIRA.
+            # As of JIRA 6.4, the Add and Remove verbs in the REST API for
+            # updating issues do not support arrays of parameters - you
+            # need to pass a single label to add or remove per API call.
 
-                if ($Clear) {
-                    Write-Debug "[Set-JiraIssueLabel] Clearing all labels"
-                    $newLabels = @()
+            # Instead, we'll do some fancy footwork with the existing
+            # issue object and use the Set verb for everything, so we only
+            # have to make one call to JIRA.
+            switch ($PSCmdlet.ParameterSetName) {
+                'ClearLabels' {
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Clearing all labels"
+                    $labels = [System.Collections.ArrayList]@()
                 }
-                elseif ($PSCmdlet.ParameterSetName -eq 'ReplaceLabels') {
-                    Write-Debug "[Set-JiraIssueLabel] Set parameter was used; existing labels will be overwritten"
-                    $newLabels = $Set
+                'ReplaceLabels' {
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Replacing existing labels"
+                    $labels = [System.Collections.ArrayList]$Set
                 }
-                elseif ($null -eq $currentLabels -or $currentLabels.Count -eq 0) {
-                    Write-Debug "[Set-JiraIssueLabel] Issue currently has no labels"
+                'ModifyLabels' {
                     if ($Add) {
-                        Write-Debug "[Set-JiraIssueLabel] Setting labels to Add parameter"
-                        $newLabels = $Add
+                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding labels"
+                        $null = $labels.Add($Add)
                     }
-                    else {
-                        Write-Debug "[Set-JiraIssueLabel] No labels were specified to be added; nothing to do"
-                        $isDirty = $false
+                    if ($Remove) {
+                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Removing labels"
+                        @($Remove).ForEach(
+                            { $labels.Remove($_) }
+                        )
                     }
                 }
-                else {
-                    Write-Debug "[Set-JiraIssueLabel] Calculating new labels"
-                    # If $Add is not provided (null), this can end up with an
-                    # extra $null being added to the array, so we need to
-                    # account for that in the Where-Object as well as the
-                    # Remove parameter.
-                    $newLabels = $currentLabels + $Add | Where-Object -FilterScript {$_ -ne $null -and $Remove -notcontains $_}
-                }
+            }
 
-                if ($isDirty) {
-                    Write-Debug "[Set-JiraIssueLabel] New labels for the issue: [$($newLabels -join ',')]"
-
-                    $props = @{
-                        'update' = @{
-                            'labels' = @(
-                                @{
-                                    'set' = @($newLabels);
-                                }
-                            );
+            $requestBody = @{
+                'update' = @{
+                    'labels' = @(
+                        @{
+                            'set' = @($labels)
                         }
-                    }
-
-                    Write-Debug "[Set-JiraIssueLabel] Converting labels to JSON"
-                    $json = ConvertTo-Json -InputObject $props -Depth 4
-
-                    Write-Debug "[Set-JiraIssueLabel] JSON:`n$json"
-                    Write-Debug "[Remove-JiraGroup] Checking for -WhatIf and Confirm"
-                    if ($PSCmdlet.ShouldProcess($Issue, "Updating Issue [labels] from JIRA")) {
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                        Invoke-JiraMethod -Method Put -URI $url -Body $json -Credential $Credential
-                    }
+                    )
                 }
-                else {
-                    Write-Debug "[Set-JiraIssueLabel] No changes are necessary."
-                }
+            }
+
+            $parameter = @{
+                URI        = $issueObj.RestURL
+                Method     = "PUT"
+                Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Updating Issue labels")) {
+                Invoke-JiraMethod @parameter
 
                 if ($PassThru) {
-                    Write-Debug "[Set-JiraIssue] PassThru was specified. Obtaining updated reference to issue"
                     Get-JiraIssue -Key $issueObj.Key -Credential $Credential
                 }
             }
-            else {
-                Write-Debug "[Set-JiraIssue] Unable to identify issue [$i]. Writing error message."
-                Write-Error "Unable to identify issue [$i]"
-            }
+
+
         }
     }
 

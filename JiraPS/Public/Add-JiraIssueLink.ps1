@@ -67,7 +67,7 @@ function Add-JiraIssueLink {
         }
 
         # Validate input object from Pipeline
-        if (($_) -and ($_.PSObject.TypeNames[0] -ne "JiraPS.Issue")) {
+        if (($_) -and ("JiraPS.Issue" -notin $_.PSObject.TypeNames)) {
             $errorItem = [System.Management.Automation.ErrorRecord]::new(
                 ([System.ArgumentException]"Invalid Type for Parameter"),
                 'ParameterType.NotJiraIssue',

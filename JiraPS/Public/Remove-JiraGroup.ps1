@@ -14,24 +14,22 @@
     .OUTPUTS
        This function returns no output.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true,
-        ConfirmImpact = 'High')]
+    [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'High' )]
     param(
         # Group Object or ID to delete.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline )]
         [Alias('GroupName')]
-        [Object[]] $Group,
+        [Object[]]
+        $Group,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential,
+        [PSCredential]
+        $Credential,
 
         # Suppress user confirmation.
-        [Switch] $Force
+        [Switch]
+        $Force
     )
 
     begin {
@@ -39,10 +37,10 @@
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $restUrl = "$server/rest/api/latest/group?groupname={0}"
+        $resourceURi = "$server/rest/api/latest/group?groupname={0}"
 
         if ($Force) {
-            Write-Debug "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
             $oldConfirmPreference = $ConfirmPreference
             $ConfirmPreference = 'None'
         }
@@ -52,29 +50,27 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($g in $Group) {
-            Write-Debug "[Remove-JiraGroup] Obtaining reference to group [$g]"
-            $groupObj = Get-JiraGroup -InputObject $g -Credential $Credential
+        foreach ($_group in $Group) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            if ($groupObj) {
-                $thisUrl = $restUrl -f $groupObj.Name
-                Write-Debug "[Remove-JiraGroup] Group URL: [$thisUrl]"
+            $groupObj = Get-JiraGroup -InputObject $_group -Credential $Credential -ErrorAction Stop
 
-                Write-Debug "[Remove-JiraGroup] Checking for -WhatIf and Confirm"
-                if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove group [$groupObj] from JIRA")) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
-                }
-                else {
-                    Write-Debug "[Remove-JiraGroup] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
-                }
+            $parameter = @{
+                URI        = $resourceURi -f $groupObj.Name
+                Method     = "DELETE"
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove group")) {
+                Invoke-JiraMethod @parameter
             }
         }
     }
 
     end {
         if ($Force) {
-            Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
             $ConfirmPreference = $oldConfirmPreference
         }
 

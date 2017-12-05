@@ -54,7 +54,7 @@ function Add-JiraIssueAttachment {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # Validate input object
-        if (($Issue.PSObject.TypeNames[0] -ne "JiraPS.Issue") -and (($Issue -isnot [String]))) {
+        if (("JiraPS.Issue" -notin $Issue.PSObject.TypeNames) -and (($Issue -isnot [String]))) {
             $errorItem = [System.Management.Automation.ErrorRecord]::new(
                 ([System.ArgumentException]"Invalid Type for Parameter"),
                 'ParameterType.NotJiraIssue',

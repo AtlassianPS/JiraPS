@@ -35,73 +35,52 @@
     .NOTES
         This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding(
-        SupportsShouldProcess = $true,
-        DefaultParameterSetName = 'byObject'
-    )]
+    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'byObject' )]
     param(
         # Version object that should be created on the server.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ParameterSetName = 'byObject'
-        )]
-        [Object] $InputObject,
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byObject' )]
+        [Object]
+        $InputObject,
 
         # Name of the version to create.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ParameterSetName = 'byParameters'
-        )]
-        [String] $Name,
-
-        # Description of the version.
-        [Parameter(
-            Mandatory = $false,
-            ParameterSetName = 'byParameters'
-        )]
-        [String] $Description,
-
-        # Create the version as archived.
-        [Parameter(
-            Mandatory = $false,
-            ParameterSetName = 'byParameters'
-        )]
-        [Bool] $Archived,
-
-        # Create the version as released.
-        [Parameter(
-            Mandatory = $false,
-            ParameterSetName = 'byParameters'
-        )]
-        [Bool] $Released,
-
-        # Date of the release.
-        [Parameter(
-            Mandatory = $false,
-            ParameterSetName = 'byParameters'
-        )]
-        [DateTime] $ReleaseDate,
-
-        # Date of the release.
-        [Parameter(
-            Mandatory = $false,
-            ParameterSetName = 'byParameters'
-        )]
-        [DateTime] $StartDate,
+        [Parameter( Position = 0, Mandatory, ParameterSetName = 'byParameters' )]
+        [String]
+        $Name,
 
         # The Project ID
-        [Parameter(
-            Mandatory = $true,
-            ParameterSetName = 'byParameters'
-        )]
-        [Object] $Project,
+        [Parameter( Position = 1, Mandatory, ParameterSetName = 'byParameters' )]
+        [Object]
+        $Project,
+
+        # Description of the version.
+        [Parameter( ParameterSetName = 'byParameters' )]
+        [String]
+        $Description,
+
+        # Create the version as archived.
+        [Parameter( ParameterSetName = 'byParameters' )]
+        [Bool]
+        $Archived,
+
+        # Create the version as released.
+        [Parameter( ParameterSetName = 'byParameters' )]
+        [Bool]
+        $Released,
+
+        # Date of the release.
+        [Parameter( ParameterSetName = 'byParameters' )]
+        [DateTime]
+        $ReleaseDate,
+
+        # Date of the release.
+        [Parameter( ParameterSetName = 'byParameters' )]
+        [DateTime]
+        $StartDate,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -109,96 +88,108 @@
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $restUrl = "$server/rest/api/latest/version"
+        $resourceURi = "$server/rest/api/latest/version"
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $iwrSplat = @{}
+        $requestBody = @{}
         Switch ($PSCmdlet.ParameterSetName) {
             'byObject' {
                 # Validate InputObject type
-                if ($InputObject.PSObject.TypeNames[0] -ne "JiraPS.Version") {
-                    $message = "Wrong object type provided for Version. Only JiraPS.Version is accepted"
-                    $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-                    Throw $exception
+                if ("JiraPS.Version" -notin $InputObject.PSObject.TypeNames) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Parameter"),
+                        'ParameterType.NotJiraVersion',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $InputObject
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Only JiraPS.Version is accepted."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
 
                 # Validate mandatory properties
                 if (-not ($InputObject.Project -and $InputObject.Name)) {
-                    $message = "The Version provided does not contain all necessary information. Mandatory properties: 'Project', 'Name'"
-                    $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-                    Throw $exception
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Parameter"),
+                        'ParameterMissing',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $InputObject
+                    )
+                    $errorItem.ErrorDetails = "The Version provided does not contain all necessary information. Mandatory properties: 'Project', 'Name'."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
 
-                $iwrSplat["name"] = $InputObject.Name
-                $iwrSplat["description"] = $InputObject.Description
-                $iwrSplat["archived"] = [bool]($InputObject.Archived)
-                $iwrSplat["released"] = [bool]($InputObject.Released)
-                $iwrSplat["releaseDate"] = $InputObject.ReleaseDate.ToString('yyyy-MM-dd')
-                $iwrSplat["startDate"] = $InputObject.StartDate.ToString('yyyy-MM-dd')
+                $requestBody["name"] = $InputObject.Name
+                $requestBody["description"] = $InputObject.Description
+                $requestBody["archived"] = [bool]($InputObject.Archived)
+                $requestBody["released"] = [bool]($InputObject.Released)
+                $requestBody["releaseDate"] = $InputObject.ReleaseDate.ToString('yyyy-MM-dd')
+                $requestBody["startDate"] = $InputObject.StartDate.ToString('yyyy-MM-dd')
                 if ($InputObject.Project.Key) {
-                    $iwrSplat["project"] = $InputObject.Project.Key
+                    $requestBody["project"] = $InputObject.Project.Key
                 }
                 elseif ($InputObject.Project.Id) {
-                    $iwrSplat["projectId"] = $InputObject.Project.Id
+                    $requestBody["projectId"] = $InputObject.Project.Id
                 }
             }
             'byParameters' {
                 # Validate Project parameter
-                if (-not(($Project.PSObject.TypeNames[0] -ne "JiraPS.Project") -or ($Project -isnot [String]))) {
-                    $message = "The Project provided is invalid."
-                    $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-                    Throw $exception
+                if (-not(("JiraPS.Project" -notin $Project.PSObject.TypeNames) -or ($Project -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Parameter"),
+                        'ParameterType.NotJiraProject',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $Project
+                    )
+                    $errorItem.ErrorDetails = "The Project provided is invalid."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
 
-                Write-Debug -Message '[New-JiraVersion] Defining properties'
-                $iwrSplat["name"] = $Name
+                $requestBody["name"] = $Name
                 if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
-                    $iwrSplat["description"] = $Description
+                    $requestBody["description"] = $Description
                 }
                 if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Archived")) {
-                    $iwrSplat["archived"] = $Archived
+                    $requestBody["archived"] = $Archived
                 }
                 if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Released")) {
-                    $iwrSplat["released"] = $Released
+                    $requestBody["released"] = $Released
                 }
                 if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("ReleaseDate")) {
-                    $iwrSplat["releaseDate"] = Get-Date $ReleaseDate -Format 'yyyy-MM-dd'
+                    $requestBody["releaseDate"] = Get-Date $ReleaseDate -Format 'yyyy-MM-dd'
                 }
                 if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("StartDate")) {
-                    $iwrSplat["startDate"] = Get-Date $StartDate -Format 'yyyy-MM-dd'
+                    $requestBody["startDate"] = Get-Date $StartDate -Format 'yyyy-MM-dd'
                 }
 
-                if ($Project.PSObject.TypeNames[0] -eq "JiraPS.Project") {
+                if ("JiraPS.Project" -in $Project.PSObject.TypeNames) {
                     if ($Project.Id) {
-                        $iwrSplat["projectId"] = $Project.Id
+                        $requestBody["projectId"] = $Project.Id
                     }
                     elseif ($Project.Key) {
-                        $iwrSplat["project"] = $Project.Key
+                        $requestBody["project"] = $Project.Key
                     }
                 }
                 else {
-                    $iwrSplat["projectId"] = (Get-JiraProject $Project -Credential $Credential).Id
+                    $requestBody["projectId"] = (Get-JiraProject $Project -Credential $Credential).Id
                 }
             }
         }
 
-        Write-Debug -Message '[New-JiraVersion] Converting to JSON'
-        $json = ConvertTo-Json -InputObject $iwrSplat
-
+        $parameter = @{
+            URI        = $resourceURi
+            Method     = "POST"
+            Body       = ConvertTo-Json -InputObject $requestBody
+            Credential = $Credential
+        }
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($Name, "Creating new Version on JIRA")) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
-        }
+            $result = Invoke-JiraMethod @parameter
 
-        if ($result) {
-            $result | ConvertTo-JiraVersion -Credential $Credential
-        }
-        else {
-            Write-Debug -Message '[New-JiraVersion] Jira returned no results to output.'
+            Write-Output (ConvertTo-JiraVersion -InputObject $result)
         }
     }
 
