@@ -26,53 +26,59 @@ function New-JiraIssue {
     .OUTPUTS
        [JiraPS.Issue] The issue created in JIRA.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Project in which to create the issue.
-        [Parameter(Mandatory = $true)]
-        [String] $Project,
+        [Parameter( Mandatory )]
+        [String]
+        $Project,
 
         # Type of the issue.
-        [Parameter(Mandatory = $true)]
-        [String] $IssueType,
-
-        # ID of the Priority the issue shall have.
-        [Parameter(Mandatory = $false)]
-        [Int] $Priority,
+        [Parameter( Mandatory )]
+        [String]
+        $IssueType,
 
         # Summary of the issue.
-        [Parameter(Mandatory = $true)]
-        [String] $Summary,
+        [Parameter( Mandatory )]
+        [String]
+        $Summary,
+
+        # ID of the Priority the issue shall have.
+        [Int]
+        $Priority,
 
         # Long description of the issue.
-        [Parameter(Mandatory = $false)]
-        [String] $Description,
+        [String]
+        $Description,
 
         # User that shall be registed as the reporter.
         # If left empty, the currently authenticated user will be used.
-        [Parameter(Mandatory = $false)]
-        [String] $Reporter,
+        [AllowNull()]
+        [AllowEmpty()]
+        [String]
+        $Reporter,
 
         # List of labels which will be added to the issue.
-        [Parameter(Mandatory = $false)]
-        [String[]] $Labels,
+        [String[]]
+        $Labels,
 
         # Parent issue - in case of "Sub-Tasks".
-        [Parameter(Mandatory = $false)]
-        [String] $Parent,
+        [String]
+        $Parent,
 
         # Set the FixVersion of the issue.
-        [Parameter(Mandatory = $false)]
         [Alias('FixVersions')]
-        [String[]] $FixVersion,
+        [String[]]
+        $FixVersion,
 
         # Any additional fields.
-        [Parameter(Mandatory = $false)]
-        [Hashtable] $Fields,
+        [Hashtable]
+        $Fields,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -80,132 +86,117 @@ function New-JiraIssue {
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $issueURL = "$server/rest/api/latest/issue"
+        $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop
 
-        Write-Debug "[New-JiraIssue] Obtaining a reference to Jira project [$Project]"
-        $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential
-        if (-not ($ProjectObj)) {
-            throw "Unable to identify Jira project [$Project]. Use Get-JiraProject for more information."
-        }
-
-        Write-Debug "[New-JiraIssue] Obtaining a reference to Jira issue type [$IssueType]"
-        $IssueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential
-        if (-not ($IssueTypeObj)) {
-            throw "Unable to identify Jira issue type [$IssueType]. Use Get-JiraIssueType for more information."
-        }
+        $resourceURi = "$server/rest/api/latest/issue"
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $ProjectParam = New-Object -TypeName PSObject -Property @{"id" = $ProjectObj.Id}
-        $IssueTypeParam = New-Object -TypeName PSObject -Property @{"id" = [String] $IssueTypeObj.Id}
+        $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
+        $IssueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential -ErrorAction Stop
 
-        $props = @{
-            "project"   = $ProjectParam;
-            "summary"   = $Summary;
-            "issuetype" = $IssueTypeParam;
+        $requestBody = @{
+            "project"   = @{"id" = $ProjectObj.Id}
+            "issuetype" = @{"id" = [String] $IssueTypeObj.Id}
+            "summary"   = $Summary
         }
+
         if ($Priority) {
-            $props.priority = New-Object -TypeName PSObject -Property @{"id" = [String] $Priority}
+            $requestBody.priority = @{"id" = [String] $Priority}
         }
 
         if ($Description) {
-            $props.description = $Description
+            $requestBody.description = $Description
         }
 
-        if ($Reporter) {
-            $props.reporter = New-Object -TypeName PSObject -Property @{"name" = $Reporter}
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
+            $requestBody.reporter = @{"name" = "$Reporter"}
         }
 
         if ($Parent) {
-            $props.parent = New-Object -TypeName PSObject -Property @{"key" = $Parent}
+            $requestBody.parent = @{"key" = $Parent}
         }
 
         if ($Labels) {
-            [void] $props.Add('labels', $Labels)
+            $requestBody["labels"] = [System.Collections.ArrayList]@()
+            $null = @($Labels).foreach( { $requestBody["labels"].Add($_) } )
         }
 
-        Write-Debug "[New-JiraIssue] Processing FixVersion parameter"
         if ($FixVersion) {
-            $fixVersionHash = @()
-            Foreach ($f in $FixVersion) {
-                $fixVersionHash += @{
-                    'name' = $f
-                }
-            }
-            $props.fixVersions = New-Object -TypeName PSObject -Property @{}
-            $props.fixVersions = $fixVersionHash
+            $requestBody['fixVersions'] = [System.Collections.ArrayList]@()
+            $null = @($FixVersion).foreach( { $requestBody["fixVersions"].Add( @{ name = "$_" } ) } )
         }
 
-        Write-Debug "[New-JiraIssue] Processing Fields parameter"
-        foreach ($k in $Fields.Keys) {
-            $name = $k
-            $value = $Fields.$k
-            Write-Debug "[New-JiraIssue] Attempting to identify field (name=[$name], value=[$value])"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
+        foreach ($_key in $Fields.Keys) {
+            $name = $_key
+            $value = $Fields.$_key
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
 
-            $f = Get-JiraField -Field $name -Credential $Credential
-
-            if ($f) {
-                $id = $f.ID
-                Write-Debug "[New-JiraIssue] Field [$name] was identified as ID [$id]"
-                $props.$id = $value
+            if ($field = Get-JiraField -Field $name -Credential $Credential) {
+                # For some reason, this was coming through as a hashtable instead of a String,
+                # which was causing ConvertTo-Json to crash later.
+                # Not sure why, but this forces $id to be a String and not a hashtable.
+                $id = $field.Id
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Field [$name] was identified as ID [$id]"
+                $requestBody.$id = $value
             }
             else {
-                Write-Debug "[New-JiraIssue] Field [$name] could not be identified in Jira"
-                throw "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
+                $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                    ([System.ArgumentException]"Invalid value for Parameter"),
+                    'ParameterValue.InvalidFields',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $Fields
+                )
+                $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
             }
         }
 
-        Write-Verbose "Checking Jira createmeta to make sure all required fields are provided"
-        Write-Debug "[New-JiraIssue] Testing Jira createmeta"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Validating fields with metadata"
         foreach ($c in $createmeta) {
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Checking metadata for `$c [$c]"
             if ($c.Required) {
-                if ($props.ContainsKey($c.Id)) {
-                    Write-Debug "[New-JiraIssue] Required field (id=[$($c.Id)], name=[$($c.Name)]) was provided (value=[$($props.$($c.Id))])"
+                if ($requestBody.ContainsKey($c.Id)) {
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Required field (id=[$($c.Id)], name=[$($c.Name)]) was provided (value=[$($requestBody.$($c.Id))])"
                 }
                 else {
-                    Write-Debug "[New-JiraIssue] Required field (id=[$($c.Id)], name=[$($c.Name)]) was NOT provided. Writing error."
-                    if ($c.Id -eq 'Reporter') {
-                        throw "Jira's metadata for project [$Project] and issue type [$IssueType] requires a reporter. Provide a value for the -Reporter parameter when creating an issue."
-                    }
-                    else {
-                        throw "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided (name=[$($c.Name)], id=[$($c.Id)]). You must supply this field via the -Fields parameter. Use Get-JiraIssueCreateMetadata for more information."
-                    }
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid or missing value Parameter"),
+                        'ParameterValue.CreateMetaFailure',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $Fields
+                    )
+                    $errorItem.ErrorDetails = "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided (name=[$($c.Name)], id=[$($c.Id)]). Use Get-JiraIssueCreateMetadata for more information."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
             }
             else {
-                Write-Debug "[New-JiraIssue] Non-required field (id=[$($c.Id)], name=[$($c.Name)])"
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Non-required field (id=[$($c.Id)], name=[$($c.Name)])"
             }
         }
 
-        Write-Debug "[New-JiraIssue] Creating hashtable"
         $hashtable = @{
-            'fields' = $props
+            'fields' = $requestBody
         }
 
-        Write-Debug "[New-JiraIssue] Converting to JSON"
-        $json = ConvertTo-Json -InputObject $hashtable -Depth 3
-
-        Write-Debug "[New-JiraIssue] Checking for -WhatIf and Confirm"
+        $parameter = @{
+            URI        = $resourceURi
+            Method     = "POST"
+            Body       = ConvertTo-Json -InputObject $hashtable -Depth 3
+            Credential = $Credential
+        }
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($Summary, "Creating new Issue on JIRA")) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod -Method Post -URI $issueURL -Body $json -Credential $Credential
-        }
+            $result = Invoke-JiraMethod @parameter
 
-        if ($result) {
             # REST result will look something like this:
             # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/latest/issue/12345"}
-
-            Write-Debug "[New-JiraIssue] Obtaining a reference to the issue we just created"
-
-            $getResult = Get-JiraIssue -Key $result.Key -Credential $Credential
-            Write-Debug "[New-JiraIssue] Writing output from New-JiraIssue"
-            Write-Output $getResult
-        }
-        else {
-            Write-Debug "[New-JiraIssue] Jira returned no results to output."
+            # This will fetch the created issue to return it with all it'a properties
+            Write-Output (Get-JiraIssue -Key $result.Key -Credential $Credential)
         }
     }
 

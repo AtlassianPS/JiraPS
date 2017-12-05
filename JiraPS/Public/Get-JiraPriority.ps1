@@ -17,45 +17,60 @@ function Get-JiraPriority {
     .NOTES
         This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         # ID of the priority to get.
-        [Parameter(Mandatory = $false)]
-        [Int] $Id,
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
+        [Int[]]
+        $Id,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        # TODO: remove -ConfigFile parameter
 
-        $priorityUrl = "$($server)/rest/api/latest/priority"
-
-        if ($Id) {
-            $priorityUrl = "$priorityUrl/$Id"
-        }
+        $resourceURi = "$server/rest/api/latest/priority{0}"
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod -Method Get -URI $priorityUrl -Credential $Credential
+        switch ($PSCmdlet.ParameterSetName) {
+            '_All' {
+                $parameter = @{
+                    URI        = $resourceURi -f ""
+                    Method     = "GET"
+                    Credential = $Credential
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
 
-        if ($result) {
-            Write-Debug "[Get-JiraPriority] Converting REST result to JiraPriority object"
-            $obj = ConvertTo-JiraPriority -InputObject $result
+                Write-Output (ConvertTo-JiraPriority -InputObject $result)
+            }
+            '_Search' {
+                foreach ($_id in $Id) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
 
-            Write-Debug "[Get-JiraPriority] Outputting result"
-            Write-Output $obj
-        }
-        else {
-            Write-Debug "[Get-JiraPriority] Invoke-JiraMethod returned no results to output."
+                    $parameter = @{
+                        URI        = $resourceURi -f "/$_id"
+                        Method     = "GET"
+                        Credential = $Credential
+                    }
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraMethod @parameter
+
+                    Write-Output (ConvertTo-JiraPriority -InputObject $result)
+                }
+            }
         }
     }
 

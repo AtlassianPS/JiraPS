@@ -28,37 +28,29 @@
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding(DefaultParameterSetName = 'byId')]
+    [CmdletBinding( DefaultParameterSetName = 'byId' )]
     param(
         # Project key of a project to search
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ParameterSetName = 'byProject',
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'byProject' )]
         [Alias('Key')]
-        [String[]] $Project,
+        [String[]]
+        $Project,
 
         # Jira Version Name
-        [Parameter(
-            Mandatory = $false,
-            ParameterSetName = 'byProject'
-        )]
+        [Parameter( ParameterSetName = 'byProject' )]
         [Alias('Versions')]
-        [String[]] $Name,
+        [String[]]
+        $Name,
 
         # The Version ID
-        [Parameter(
-            Mandatory = $true,
-            ParameterSetName = 'byId',
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [Int[]] $Id,
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'byId' )]
+        [Int[]]
+        $Id,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -66,7 +58,7 @@
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        Write-Debug "[Get-JiraVersion] Completed Begin block."
+        $resourceURi = "$server/rest/api/latest/{0}"
     }
 
     process {
@@ -76,25 +68,40 @@
         Switch ($PSCmdlet.ParameterSetName) {
             'byProject' {
                 foreach ($_project in $Project) {
-                    Write-Debug "[Get-JiraVersion] Gathering project data for [$_project]."
-                    $projectData = Get-JiraProject -Project $_project -Credential $Credential
-                    $restUrl = "$server/rest/api/latest/project/$($projectData.key)/versions"
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
+                    $projectData = Get-JiraProject -Project $_project -Credential $Credential
+
+                    $parameter = @{
+                        URI        = $resourceURi -f "project/$($projectData.key)/versions"
+                        Method     = "GET"
+                        Credential = $Credential
+                    }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential
+                    $result = Invoke-JiraMethod @parameter
 
                     if ($Name) {
                         $result = $result | Where-Object {$_.Name -in $Name}
                     }
-                    $result | ConvertTo-JiraVersion -Credential $Credential
+
+                    Write-Output (ConvertTo-JiraVersion -InputObject $result)
                 }
             }
             'byId' {
                 foreach ($_id in $ID) {
-                    $restUrl = "$server/rest/api/latest/version/$_id"
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
 
+                    $parameter = @{
+                        URI        = $resourceURi -f "version/$_id"
+                        Method     = "GET"
+                        Credential = $Credential
+                    }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    Invoke-JiraMethod -Method Get -URI $restUrl -Credential $Credential | ConvertTo-JiraVersion -Credential $Credential
+                    $result = Invoke-JiraMethod @parameter
+
+                    Write-Output (ConvertTo-JiraVersion -InputObject $result)
                 }
             }
         }

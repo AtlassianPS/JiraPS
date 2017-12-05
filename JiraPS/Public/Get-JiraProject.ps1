@@ -23,18 +23,17 @@ function Get-JiraProject {
     .OUTPUTS
        [JiraPS.Project]
     #>
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         # The Project ID or project key of a project to search.
-        [Parameter(
-            Position = 0,
-            Mandatory = $false
-        )]
-        [String[]] $Project,
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
+        [String[]]
+        $Project,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -42,51 +41,40 @@ function Get-JiraProject {
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $uri = "$server/rest/api/latest/project"
+        $resourceURi = "$server/rest/api/latest/project{0}"
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($Project) {
-            foreach ($p in $Project) {
-                Write-Debug "[Get-JiraProject] Processing project [$p]"
-                $thisUri = "$uri/$p?expand=projectKeys"
-
+        switch ($PSCmdlet.ParameterSetName) {
+            '_All' {
+                $parameter = @{
+                    URI        = $resourceURi -f ""
+                    Method     = "GET"
+                    Credential = $Credential
+                }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
+                $result = Invoke-JiraMethod @parameter
 
-                if ($result) {
-                    Write-Debug "[Get-JiraProject] Converting to object"
-                    $obj = ConvertTo-JiraProject -InputObject $result
-
-                    Write-Debug "[Get-JiraProject] Outputting result"
-                    Write-Output $obj
-                }
-                else {
-                    Write-Debug "[Get-JiraProject] No results were returned from Jira"
-                    Write-Debug "[Get-JiraProject] No results were returned from Jira for project [$p]"
-                }
+                Write-Output (ConvertTo-JiraProject -InputObject $result)
             }
-        }
-        else {
-            Write-Debug "[Get-JiraProject] Attempting to search for all projects"
-            $thisUri = "$uri"
+            '_Search' {
+                foreach ($_project in $Project) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
+                    $parameter = @{
+                        URI        = $resourceURi -f "$_project?expand=projectKeys"
+                        Method     = "GET"
+                        Credential = $Credential
+                    }
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraMethod @parameter
 
-            if ($result) {
-                Write-Debug "[Get-JiraProject] Converting to object"
-                $obj = ConvertTo-JiraProject -InputObject $result
-
-                Write-Debug "[Get-JiraProject] Outputting result"
-                Write-Output $obj
-            }
-            else {
-                Write-Debug "[Get-JiraProject] No results were returned from Jira"
-                Write-Debug "[Get-JiraProject] No project results were returned from Jira"
+                    Write-Output (ConvertTo-JiraProject -InputObject $result)
+                }
             }
         }
     }

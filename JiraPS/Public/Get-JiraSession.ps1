@@ -25,20 +25,12 @@ function Get-JiraSession {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($MyInvocation.MyCommand.Module.PrivateData) {
-            Write-Debug "[Get-JiraSession] Module private data exists"
-            if ($MyInvocation.MyCommand.Module.PrivateData.Session) {
-                Write-Debug "[Get-JiraSession] A Session object is saved; outputting"
-                Write-Output $MyInvocation.MyCommand.Module.PrivateData.Session
-            }
-            else {
-                Write-Debug "[Get-JiraSession] No Session objects are saved"
-                Write-Verbose "No Jira sessions have been saved."
-            }
+        if ($MyInvocation.MyCommand.Module.PrivateData -and $MyInvocation.MyCommand.Module.PrivateData.Session) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using Session saved in PrivateData"
+            Write-Output $MyInvocation.MyCommand.Module.PrivateData.Session
         }
         else {
-            Write-Debug "[Get-JiraSession] No module private data is defined. No saved sessions exist."
-            Write-Verbose "No Jira sessions have been saved."
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Session objects are saved"
         }
     }
 

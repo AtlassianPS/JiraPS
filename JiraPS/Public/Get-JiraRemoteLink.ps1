@@ -18,21 +18,19 @@ function Get-JiraRemoteLink {
     [CmdletBinding()]
     param(
         # The Issue Object or ID to link.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Alias("Key")]
-        [String[]]$Issue,
+        [String[]]
+        $Issue,
 
         # Get a single link by it's id.
-        [Int]$LinkId,
+        [Int]
+        $LinkId,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -40,38 +38,31 @@ function Get-JiraRemoteLink {
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        Write-Debug "[Get-JiraRemoteLink] ParameterSetName=$($PSCmdlet.ParameterSetName)"
-
-        Write-Debug "[Get-JiraRemoteLink] Building URI for REST call"
-        $linkUrl = "$server/rest/api/latest/issue/{0}/remotelink"
+        $resourceURi = "$server/rest/api/latest/issue/{0}/remotelink{1}"
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($k in $Issue) {
-            Write-Debug "[Get-JiraRemoteLink] Processing issue key [$k]"
-            $thisUrl = $linkUrl -f $k
+        foreach ($_issue in $Issue) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
-            if ($linkId) {
-                $thisUrl += "/$l"
+            $urlAppendix = ""
+            if ($LinkId) {
+                $urlAppendix = "/$LinkId"
             }
 
+            $parameter = @{
+                URI        = $resourceURi -f $_issue, $urlAppendix
+                Method     = "GET"
+                Credential = $Credential
+            }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
+            $result = Invoke-JiraMethod @parameter
 
-            if ($result) {
-                Write-Debug "[Get-JiraRemoteLink] Converting results to JiraPS.Group"
-                $obj = ConvertTo-JiraLink -InputObject $result
-
-                Write-Debug "[Get-JiraRemoteLink] Outputting results"
-                Write-Output $obj
-            }
-            else {
-                Write-Debug "[Get-JiraRemoteLink] No results were returned from JIRA"
-                Write-Verbose "No results were returned from JIRA."
-            }
+            Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
         }
     }
 

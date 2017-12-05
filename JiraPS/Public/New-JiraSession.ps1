@@ -21,16 +21,16 @@ function New-JiraSession {
     .OUTPUTS
        [JiraPS.Session] An object representing the Jira session
     #>
-    [CmdletBinding(SupportsShouldProcess = $false)]
+    [CmdletBinding( SupportsShouldProcess )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # Credentials to use to connect to JIRA.
-        [Parameter(
-            Mandatory = $true
-        )]
-        [PSCredential] $Credential,
+        [Parameter( Mandatory )]
+        [PSCredential]
+        $Credential,
 
-        [Hashtable] $Headers = @{}
+        [Hashtable]
+        $Headers = @{}
     )
 
     begin {
@@ -38,7 +38,7 @@ function New-JiraSession {
 
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        $uri = "$server/rest/api/2/mypermissions"
+        $resourceURi = "$server/rest/api/2/mypermissions"
 
         # load DefaultParameters for Invoke-WebRequest
         # as the global PSDefaultParameterValues is not used
@@ -54,53 +54,49 @@ function New-JiraSession {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $iwrSplat = @{
-            Uri             = $uri
-            Headers         = $Headers
+        $parameters = @{
+            Uri             = $resourceURi
             Method          = "GET"
             ContentType     = 'application/json; charset=utf-8'
+            Headers         = $Headers
             UseBasicParsing = $true
             SessionVariable = "newSessionVar"
             ErrorAction     = 'SilentlyContinue'
         }
 
         if ($Headers.ContainsKey("Content-Type")) {
-            $iwrSplat["ContentType"] = $Headers["Content-Type"]
+            $parameters["ContentType"] = $Headers["Content-Type"]
             $Headers.Remove("Content-Type")
-            $iwrSplat["Headers"] = $Headers
+            $parameters["Headers"] = $Headers
         }
 
         try {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $webResponse = Invoke-WebRequest @iwrSplat
+            $webResponse = Invoke-WebRequest @parameters
 
-            Write-Debug "[New-JiraSession] Converting result to JiraSession object"
             $result = ConvertTo-JiraSession -Session $newSessionVar -Username $Credential.UserName
 
-            Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
             if ($MyInvocation.MyCommand.Module.PrivateData) {
-                Write-Debug "[New-JiraSession] Adding session result to existing module PrivateData"
-                $MyInvocation.MyCommand.Module.PrivateData.Session = $result;
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding session result to existing module PrivateData"
+                $MyInvocation.MyCommand.Module.PrivateData.Session = $result
             }
             else {
-                Write-Debug "[New-JiraSession] Creating module PrivateData"
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Creating module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData = @{
-                    'Session' = $result;
+                    'Session' = $result
                 }
             }
 
-            Write-Debug "[New-JiraSession] Outputting result"
             Write-Output $result
         }
         catch {
-            $err = $_
-            $webResponse = $err.Exception.Response
-            Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
+            $webResponse = $_.Exception.Response
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Encountered an exception from the Jira server: `$err"
 
             # Test response Headers if Jira requires a CAPTCHA
             Test-Captcha -InputObject $webResponse
 
-            Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
+            Write-Verbose "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
 
             # Retrieve body of HTTP response - this contains more useful information about exactly why the error
             # occurred

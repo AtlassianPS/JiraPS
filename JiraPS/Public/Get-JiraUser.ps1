@@ -17,33 +17,24 @@ function Get-JiraUser {
     .OUTPUTS
        [JiraPS.User]
     #>
-    [CmdletBinding(DefaultParameterSetName = 'ByUserName')]
+    [CmdletBinding()]
     param(
         # Username, name, or e-mail address of the user. Any of these should
         # return search results from Jira.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ParameterSetName = 'ByUserName'
-        )]
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [Alias('User', 'Name')]
-        [String[]] $UserName,
-
-        # User Object of the user.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ParameterSetName = 'ByInputObject'
-        )]
-        [Object[]] $InputObject,
+        [String[]]
+        $UserName,
 
         # Include inactive users in the search
-        [Switch] $IncludeInactive,
+        [Switch]
+        $IncludeInactive,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -51,78 +42,56 @@ function Get-JiraUser {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $userSearchUrl = "$server/rest/api/latest/user/search?username={0}"
-        if ($IncludeInactive) {
-            $userSearchUrl = "$userSearchUrl&includeInactive=true"
-        }
+        $resourceURi = "$server/rest/api/latest/user/search?username={0}"
 
-        # $userGetUrl = "$server/rest/api/latest/user?username={0}&expand=groups"
+        if ($IncludeInactive) {
+            $resourceURi = "$resourceURi&includeInactive=true"
+        }
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        switch ($PSCmdlet.ParameterSetName) {
-            "ByUserName" {
-                foreach ($user in $UserName) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing user [$user]"
+        if ( ($_) -and ( "JiraPS.User" -notin $_.PSObject.TypeNames ) ) {
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Invalid Type for Parameter"),
+                'ParameterType.NotJiraUser',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $_
+            )
+            $errorItem.ErrorDetails = "Wrong object type provided for UserName. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
+            $PSCmdlet.ThrowTerminatingError($errorItem)
+        }
 
-                    $thisSearchUrl = $userSearchUrl -f $user
+        foreach ($user in $UserName) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$user [$user]"
 
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Searching for $user"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $rawResult = Invoke-JiraMethod -Method Get -URI $thisSearchUrl -Credential $Credential
-
-                    if ($rawResult) {
-                        foreach ($r in $rawResult) {
-                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Retreiving user information for $r"
-
-                            $url = '{0}&expand=groups' -f $r.self
-
-                            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                            $thisUserResult = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
-
-                            if ($thisUserResult) {
-                                Write-Output (ConvertTo-JiraUser -InputObject $thisUserResult)
-                            }
-                            else {
-                                $errorMessage = @{
-                                    Category         = "InvalidData"
-                                    CategoryActivity = "Retrieving user data"
-                                    Message          = "No results when searching for user $user"
-                                }
-                                Write-Error @errorMessage
-                            }
-                        }
-                    }
-                    else {
-                        $errorMessage = @{
-                            Category         = "ObjectNotFound"
-                            CategoryActivity = "Searching for user"
-                            Message          = "No results when searching for user $user"
-                        }
-                        Write-Error @errorMessage
-                    }
-                }
-
+            $parameter = @{
+                URI        = $resourceURi -f $user
+                Method     = "GET"
+                Credential = $Credential
             }
-            "ByInputObject" {
-                foreach ($i in $InputObject) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing InputObject [$i]"
-
-                    if ('JiraPS.User' -in (Get-Member -InputObject $i).TypeName) {
-                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User parameter is a JiraPS.User object"
-                        $thisUserName = $i.Name
-                    }
-                    else {
-                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Username is assumed to be [$thisUserName] via ToString()"
-                        $thisUserName = $i.ToString()
-                    }
-
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Invoking myself with the UserName parameter set to search for user [$thisUserName]"
-                    Write-Output (Get-JiraUser -UserName $thisUserName -Credential $Credential)
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($result = Invoke-JiraMethod @parameter) {
+                $parameter = @{
+                    URI        = "{0}&expand=groups" -f $result.self
+                    Method     = "GET"
+                    Credential = $Credential
                 }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
+
+                Write-Output (ConvertTo-JiraUser -InputObject $result)
+            }
+            else {
+                $errorMessage = @{
+                    Category         = "ObjectNotFound"
+                    CategoryActivity = "Searching for user"
+                    Message          = "No results when searching for user $user"
+                }
+                Write-Error @errorMessage
             }
         }
     }

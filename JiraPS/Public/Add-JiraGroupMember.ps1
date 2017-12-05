@@ -80,14 +80,10 @@ function Add-JiraGroupMember {
                     if ($groupMembers -notcontains $user.Name) {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User [$(user.Name)] is not already in group [$_group]. Adding user."
 
-                        $userJson = ConvertTo-Json -InputObject @{
-                            'name' = $user.Name;
-                        }
-
                         $parameter = @{
                             URI        = $resourceURi -f $groupObj.Name
                             Method     = "POST"
-                            Body       = $userJson
+                            Body       = ConvertTo-Json -InputObject @{ 'name' = $user.Name }
                             Credential = $Credential
                         }
                         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

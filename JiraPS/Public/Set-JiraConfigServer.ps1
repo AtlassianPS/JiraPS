@@ -17,20 +17,19 @@ function Set-JiraConfigServer {
     .NOTES
        Support for multiple configuration files is limited at this point in time, but enhancements are planned for a future update.
     #>
-    [CmdletBinding(SupportsShouldProcess = $false)]
+    [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # The base URL of the Jira instance.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true
-        )]
+        [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
         [Alias('Uri')]
-        [String] $Server,
+        [String]
+        $Server,
 
         # Path where the file with the configuration will be stored.
-        [String] $ConfigFile
+        [String]
+        $ConfigFile
     )
 
     begin {
@@ -47,28 +46,32 @@ function Set-JiraConfigServer {
         # provided at all.
 
         if (-not ($ConfigFile)) {
-            #        Write-Debug "[Set-JiraConfigServer] ConfigFile was not provided, or provided with a null value"
             # This file should be in $moduleRoot/Functions/Internal, so PSScriptRoot will be $moduleRoot/Functions
             $moduleFolder = Split-Path -Path $PSScriptRoot -Parent
-            #        Write-Debug "[Set-JiraConfigServer] Module folder: $moduleFolder"
             $ConfigFile = Join-Path -Path $moduleFolder -ChildPath 'config.xml'
-            #        Write-Debug "[Set-JiraConfigServer] Using default config file at [$ConfigFile]"
         }
 
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Config file path: $ConfigFile"
         if (-not (Test-Path -Path $ConfigFile)) {
-            #        Write-Debug "[Set-JiraConfigServer] Creating config file '$ConfigFile'"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Creating new Config file"
             $xml = [XML] '<Config></Config>'
-
         }
         else {
-            #        Write-Debug "[Set-JiraConfigServer] Loading config file '$ConfigFile'"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using existing Config file"
             $xml = New-Object -TypeName XML
             $xml.Load($ConfigFile)
         }
 
         $xmlConfig = $xml.DocumentElement
         if ($xmlConfig.LocalName -ne 'Config') {
-            throw "Unexpected document element [$($xmlConfig.LocalName)] in configuration file. You may need to delete the config file and recreate it using this function."
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Invalid Document"),
+                'InvalidObject.InvalidDocument',
+                [System.Management.Automation.ErrorCategory]::InvalidData,
+                $_
+            )
+            $errorItem.ErrorDetails = "Unexpected document element [$($xmlConfig.LocalName)] in configuration file. You may need to delete the config file and recreate it using this function."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
         # Check for trailing slash and strip it if necessary
@@ -79,27 +82,19 @@ function Set-JiraConfigServer {
         }
 
         if ($xmlConfig.Server) {
-            #        Write-Debug "[Set-JiraConfigServer] Changing the existing Server element to the provided value '$Server'"
             $xmlConfig.Server = $fixedServer
         }
         else {
-            #        Write-Debug "[Set-JiraConfigServer] Creating new element Server"
             $xmlServer = $xml.CreateElement('Server')
-            #        Write-Debug "[Set-JiraConfigServer] Writing InnerText property with provided value '$Server'"
             $xmlServer.InnerText = $fixedServer
-            #        Write-Debug "[Set-JiraConfigServer] Adding element to existing XML file"
             [void] $xmlConfig.AppendChild($xmlServer)
         }
 
-        #    Write-Debug "[Set-JiraConfigServer] Saving XML file"
         try {
             $xml.Save($ConfigFile)
         }
         catch {
-            $err = $_
-            #        Write-Debug "[Set-JiraConfigServer] Encountered an error saving the XML file"
-            #        Write-Debug "[Set-JiraConfigServer] Throwing exception"
-            throw $err
+            throw $_
         }
     }
 
