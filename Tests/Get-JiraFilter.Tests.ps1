@@ -6,51 +6,7 @@ InModuleScope JiraPS {
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
-    Describe 'Get-JiraFilter' {
-        if ($ShowDebugText) {
-            Mock 'Write-Debug' {
-                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
-        Mock Get-JiraConfigServer {
-            'https://jira.example.com'
-        }
-
-        # If we don't override this in a context or test, we don't want it to
-        # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod -ModuleName JiraPS {
-            if ($ShowMockData) {
-                Write-Output "       Mocked Invoke-WebRequest" -ForegroundColor Cyan
-                Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
-                Write-Output "         [Method]  $Method" -ForegroundColor Cyan
-            }
-        }
-
-        Context "Sanity checking" {
-            $command = Get-Command -Name Get-JiraFilter
-
-            defParam 'Id'
-            defParam 'InputObject'
-            defParam 'Credential'
-        }
-
-        Context "Behavior testing" {
-            It "Queries JIRA for a filter with a given ID" {
-                { Get-JiraFilter -Id 12345 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
-            }
-
-            It "Uses ConvertTo-JiraFilter to output a Filter object if JIRA returns data" {
-                Mock Invoke-JiraMethod -ModuleName JiraPS { $true }
-                Mock ConvertTo-JiraFilter -ModuleName JiraPS {}
-                { Get-JiraFilter -Id 12345 } | Should Not Throw
-                Assert-MockCalled -CommandName ConvertTo-JiraFilter -ModuleName JiraPS
-            }
-        }
-
-        Context "Input testing" {
-            $sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json2 @'
+    $response = @'
 {
     "self": "https://jira.atlassian.com/rest/api/latest/filter/12844",
     "id": "12844",
@@ -93,7 +49,52 @@ InModuleScope JiraPS {
         "end-index": 0
     }
 }
-'@)
+'@
+
+    Describe 'Get-JiraFilter' {
+
+        Mock Get-JiraConfigServer {
+            'https://jira.example.com'
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/filter/12345"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json2 $response
+        }
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/filter/'67890'"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json2 $response
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
+        }
+
+        Context "Sanity checking" {
+            $command = Get-Command -Name Get-JiraFilter
+
+            defParam $command 'Id'
+            defParam $command 'InputObject'
+            defParam $command 'Credential'
+        }
+
+        Context "Behavior testing" {
+            It "Queries JIRA for a filter with a given ID" {
+                { Get-JiraFilter -Id 12345 } | Should Not Throw
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
+            }
+
+            It "Uses ConvertTo-JiraFilter to output a Filter object if JIRA returns data" {
+                Mock Invoke-JiraMethod -ModuleName JiraPS { $true }
+                Mock ConvertTo-JiraFilter -ModuleName JiraPS {}
+                { Get-JiraFilter -Id 12345 } | Should Not Throw
+                Assert-MockCalled -CommandName ConvertTo-JiraFilter -ModuleName JiraPS
+            }
+        }
+
+        Context "Input testing" {
+            $sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json2 )
 
             It "Accepts a filter ID for the -Filter parameter" {
                 { Get-JiraFilter -Id 12345 } | Should Not Throw

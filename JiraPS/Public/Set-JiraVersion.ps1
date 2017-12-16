@@ -72,7 +72,6 @@
 
         # The new Project where this version should be in.
         # This can be the ID of the Project, or the Project Object
-        [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
                 if (("JiraPS.Project" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {

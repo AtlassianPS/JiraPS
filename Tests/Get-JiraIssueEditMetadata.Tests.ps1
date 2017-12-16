@@ -6,47 +6,11 @@ InModuleScope JiraPS {
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
-    Describe "Get-JiraIssueEditMetadata" {
+    $jiraServer = 'https://jira.example.com'
+    $issueID = 41701
+    $issueKey = 'IT-3676'
 
-        if ($ShowDebugText) {
-            Mock 'Write-Debug' {
-                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
-        $issueID = 41701
-        $issueKey = 'IT-3676'
-
-        Mock Get-JiraConfigServer {
-            'https://jira.example.com'
-        }
-
-        # If we don't override this in a context or test, we don't want it to
-        # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod -ModuleName JiraPS {
-            if ($ShowMockData) {
-                Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
-                Write-Output "         [Method]  $Method" -ForegroundColor Cyan
-            }
-        }
-
-        Context "Sanity checking" {
-            $command = Get-Command -Name Get-JiraIssueEditMetadata
-
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
-            defParam 'Issue'
-            defParam 'Credential'
-        }
-
-        Context "Behavior testing" {
-
-            $restResult = ConvertFrom-Json2 @'
+    $restResult = ConvertFrom-Json2 @'
 {
     "fields": {
         "summary": {
@@ -209,34 +173,53 @@ InModuleScope JiraPS {
 }
 '@
 
-            Mock Get-JiraIssue -ModuleName JiraPS {
-                [PSCustomObject] @{
-                    ID      = $issueID
-                    Key     = $issueKey
-                    RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
-                }
+    Describe "Get-JiraIssueEditMetadata" {
+
+        Mock Get-JiraConfigServer {
+            $jiraServer
+        }
+
+        Mock Get-JiraIssue -ModuleName JiraPS {
+            [PSCustomObject] @{
+                ID      = $issueID
+                Key     = $issueKey
+                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
             }
+        }
+
+        Mock ConvertTo-JiraEditMetaField -ModuleName JiraPS {
+            $InputObject
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"}
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            # @{ fields = [PSCustomObject] @{ 'a' = 1 'b' = 2 } }
+            ConvertFrom-Json $restResult
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
+        }
+
+        Context "Sanity checking" {
+            $command = Get-Command -Name Get-JiraIssueEditMetadata
+
+            defParam $command 'Issue'
+            defParam $command 'Credential'
+        }
+
+        Context "Behavior testing" {
 
             It "Queries Jira for metadata information about editing an issue" {
                 { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
 
-                # This is a simplified version of what JIRA will give back
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
-                    @{
-                        fields = [PSCustomObject] @{
-                            'a' = 1
-                            'b' = 2
-                        }
-                    }
-                }
-                Mock ConvertTo-JiraEditMetaField -ModuleName JiraPS {}
-
                 { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
 
                 # There are 2 example fields in our mock above, but they should
                 # be passed to Convert-JiraCreateMetaField as a single object.

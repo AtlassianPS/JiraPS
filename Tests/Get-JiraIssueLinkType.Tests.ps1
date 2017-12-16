@@ -24,6 +24,16 @@ InModuleScope JiraPS {
         $filterAll = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType"}
         $filterOne = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType/10000"}
 
+        Mock ConvertTo-JiraIssueLinkType {
+            ShowMockInfo 'ConvertTo-JiraIssueLinkType'
+
+            # We also don't care what comes out of here - this function has its own tests
+            [PSCustomObject] @{
+                PSTypeName = 'JiraPS.IssueLinkType'
+                foo        = 'bar'
+            }
+        }
+
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
@@ -50,16 +60,6 @@ InModuleScope JiraPS {
         }
 
         Context "Behavior testing - returning all link types" {
-
-            Mock ConvertTo-JiraIssueLinkType {
-                ShowMockInfo 'ConvertTo-JiraIssueLinkType'
-
-                # We also don't care what comes out of here - this function has its own tests
-                [PSCustomObject] @{
-                    PSTypeName = 'JiraPS.IssueLinkType'
-                    foo        = 'bar'
-                }
-            }
 
             $output = Get-JiraIssueLinkType
 

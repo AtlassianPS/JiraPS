@@ -2,6 +2,10 @@
 
 InModuleScope JiraPS {
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
+
     $jiraServer = 'http://jiraserver.example.com'
 
     $issueTypeId = 2
@@ -82,15 +86,16 @@ InModuleScope JiraPS {
             Write-Output $jiraServer
         }
 
+        Mock ConvertTo-JiraIssueType {}
+
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/issuetype"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
@@ -123,8 +128,6 @@ InModuleScope JiraPS {
         }
 
         Context "Output Checking" {
-
-            Mock ConvertTo-JiraIssueType {}
 
             Get-JiraIssueType
 

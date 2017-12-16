@@ -7,11 +7,6 @@ InModuleScope JiraPS {
     . $PSScriptRoot\Shared.ps1
 
     Describe "Set-JiraIssueLabel" {
-        if ($ShowDebugText) {
-            Mock "Write-Debug" {
-                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
 
         Mock Get-JiraConfigServer {
             'https://jira.example.com'
@@ -19,6 +14,7 @@ InModuleScope JiraPS {
 
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{
+                'Id'      = 123
                 'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
                 'Labels'  = @('existingLabel1', 'existingLabel2')
             }
@@ -27,22 +23,12 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod {
-            if ($ShowMockData) {
-                Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
-                Write-Output "         [Method]  $Method" -ForegroundColor Cyan
-                Write-Output "         [Body]    $Body" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
         }
 
         Context "Sanity checking" {
             $command = Get-Command -Name Set-JiraIssueLabel
-
-            function defAlias($name, $definition) {
-                It "Supports the $name alias for the $definition parameter" {
-                    $command.Parameters.Item($definition).Aliases | Where-Object -FilterScript {$_ -eq $name} | Should Not BeNullOrEmpty
-                }
-            }
 
             defParam $command 'Issue'
             defParam $command 'Set'
@@ -52,9 +38,9 @@ InModuleScope JiraPS {
             defParam $command 'Credential'
             defParam $command 'PassThru'
 
-            defAlias 'Key' 'Issue'
-            defAlias 'Label' 'Set'
-            defAlias 'Replace' 'Set'
+            defAlias $command 'Key' 'Issue'
+            defAlias $command 'Label' 'Set'
+            defAlias $command 'Replace' 'Set'
         }
 
         Context "Behavior testing" {

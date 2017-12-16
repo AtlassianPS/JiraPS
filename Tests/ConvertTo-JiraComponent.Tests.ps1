@@ -1,12 +1,9 @@
 . $PSScriptRoot\Shared.ps1
 
-# This is a private function, so the test needs to be within the module's scope
 InModuleScope JiraPS {
 
-    # A bit counter-intuitive to import this twice, but otherwise its functions
-    # are outside the JiraPS module scope. We need it outside to make sure the
-    # module is loaded, and we need it inside to make sure functions are
-    # available.
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     Describe "ConvertTo-JiraComponent" {

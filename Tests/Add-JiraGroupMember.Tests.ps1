@@ -15,12 +15,6 @@ InModuleScope JiraPS {
 
     Describe "Add-JiraGroupMember" {
 
-        Mock Write-Debug -ModuleName JiraPS {
-            if ($ShowDebugData) {
-                Write-Output -Object "[DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
@@ -35,11 +29,13 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraUser -ModuleName JiraPS {
-            $object = [PSCustomObject] @{
-                'Name' = "$InputObject"
+            foreach ($user in $UserName) {
+                $object = [PSCustomObject] @{
+                    'Name' = "$user"
+                }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                Write-Output $object
             }
-            $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
-            return $object
         }
 
         Mock Get-JiraGroupMember -ModuleName JiraPS {
@@ -50,12 +46,13 @@ InModuleScope JiraPS {
             )
         }
 
+        Mock ConvertTo-JiraGroup -ModuleName JiraPS {
+            $InputObject
+        }
+
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            if ($ShowMockData) {
-                Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                Write-Output "         [Method] $Method" -ForegroundColor Cyan
-                Write-Output "         [URI]    $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+            return $true
         }
 
         #############
@@ -65,12 +62,17 @@ InModuleScope JiraPS {
 
             It "Accepts a group name as a String to the -Group parameter" {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$URI -match $testGroupName} -Exactly -Times 1 -Scope It
+                { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 -PassThru } | Should Not Throw
+                Assert-MockCalled -CommandName Get-JiraGroup -Exactly -Times 2 -Scope It
+                Assert-MockCalled -CommandName Get-JiraGroupMember -Exactly -Times 2 -Scope It
+                Assert-MockCalled -CommandName Get-JiraUser -Exactly -Times 2 -Scope It
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$URI -match $testGroupName} -Exactly -Times 2 -Scope It
+                Assert-MockCalled -CommandName ConvertTo-JiraGroup -Exactly -Times 1 -Scope It
             }
 
             It "Accepts a JiraPS.Group object to the -Group parameter" {
                 $group = Get-JiraGroup -GroupName $testGroupName
-                { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should Not Throw
+                { Add-JiraGroupMember -Group $group -User $testUsername2 } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$URI -match $testGroupName} -Exactly -Times 1 -Scope It
             }
 
@@ -83,21 +85,19 @@ InModuleScope JiraPS {
         Context "Behavior testing" {
 
             It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to add them" {
-                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1 } | Should Not Throw
+                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1 -ErrorAction Stop } | Should Throw
                 Assert-MockCalled -CommandName Get-JiraGroupMember -Exactly -Times 1 -Scope It
             }
 
             It "Adds a user to a JIRA group if the user is not a member" {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Post' -and $URI -match $testGroupName -and $Body -match $testUsername2} -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -match $testGroupName -and $Body -match $testUsername2} -Exactly -Times 1 -Scope It
             }
 
             It "Adds multiple users to a JIRA group if they are passed to the -User parameter" {
 
                 # Override our previous mock so we have no group members
-                Mock Get-JiraGroupMember -ModuleName JiraPS {
-                    @()
-                }
+                Mock Get-JiraGroupMember -ModuleName JiraPS { @() }
 
                 # Should use the REST method twice, since at present, you can only add one group member per API call
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 } | Should Not Throw
@@ -107,7 +107,7 @@ InModuleScope JiraPS {
 
         Context "Error checking" {
             It "Gracefully handles cases where a provided user is already in the provided group" {
-                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 } | Should Not Throw
+                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 -ErrorAction SilentlyContinue } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Post' -and $URI -match $testGroupName} -Exactly -Times 1 -Scope It
             }
         }

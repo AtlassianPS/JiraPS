@@ -7,11 +7,6 @@ InModuleScope JiraPS {
     . $PSScriptRoot\Shared.ps1
 
     Describe "New-JiraIssue" {
-        if ($ShowDebugText) {
-            Mock "Write-Debug" {
-                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
 
         Mock Get-JiraConfigServer {
             'https://jira.example.com'
@@ -68,31 +63,20 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name New-JiraIssue
 
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
-            defParam 'Project'
-            defParam 'IssueType'
-            defParam 'Priority'
-            defParam 'Summary'
-            defParam 'Description'
-            defParam 'Reporter'
-            defParam 'Labels'
-            defParam 'Fields'
-            defParam 'Credential'
+            defParam $command 'Project'
+            defParam $command 'IssueType'
+            defParam $command 'Priority'
+            defParam $command 'Summary'
+            defParam $command 'Description'
+            defParam $command 'Reporter'
+            defParam $command 'Labels'
+            defParam $command 'Fields'
+            defParam $command 'Credential'
         }
 
         Context "Behavior testing" {
             Mock Invoke-JiraMethod {
-                if ($ShowMockData) {
-                    Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Output "         [Method]  $Method" -ForegroundColor Cyan
-                    Write-Output "         [Body]    $Body" -ForegroundColor Cyan
-                }
+                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             }
 
             It "Creates an issue in JIRA" {

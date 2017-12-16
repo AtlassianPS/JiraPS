@@ -1,12 +1,12 @@
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope JiraPS {
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
+
     Describe "ConvertTo-JiraWorklogitem" {
-        function defProp($obj, $propName, $propValue) {
-            It "Defines the '$propName' property" {
-                $obj.$propName | Should Be $propValue
-            }
-        }
 
         $jiraServer = 'http://jiraserver.example.com'
         $jiraUsername = 'powershell-test'

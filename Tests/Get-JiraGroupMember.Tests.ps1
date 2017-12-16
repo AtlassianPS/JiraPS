@@ -7,11 +7,6 @@ InModuleScope JiraPS {
     . $PSScriptRoot\Shared.ps1
 
     Describe "Get-JiraGroupMember" {
-        if ($ShowDebugText) {
-            Mock "Write-Debug" {
-                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
 
         Mock Get-JiraConfigServer {
             'https://jira.example.com'
@@ -19,9 +14,13 @@ InModuleScope JiraPS {
 
         # If we don't override this in a context or test, we don't want it to
         # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod {}
+        Mock Invoke-JiraMethod {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
+        }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/group?groupname=testgroup*' } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 @'
 {
     "Name":  "testgroup",
@@ -38,7 +37,7 @@ InModuleScope JiraPS {
                 'Size'    = 2
             }
             $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
-            Write-Output $obj
+            Write-Host $obj
         }
 
         Context "Sanity checking" {
@@ -53,10 +52,10 @@ InModuleScope JiraPS {
         Context "Behavior testing" {
             Mock Invoke-JiraMethod -ModuleName JiraPS {
                 if ($ShowMockData) {
-                    Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Output "         [Method]  $Method" -ForegroundColor Cyan
-                    #                    Write-Output "         [Body]    $Body" -ForegroundColor Cyan
+                    Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
+                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
+                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
+                    #                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
                 }
             }
 
@@ -88,9 +87,9 @@ InModuleScope JiraPS {
 
                 Mock Invoke-JiraMethod -ModuleName JiraPS {
                     if ($ShowMockData) {
-                        Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                        Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
-                        Write-Output "         [Method]  $Method" -ForegroundColor Cyan
+                        Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
+                        Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
+                        Write-Host "         [Method]  $Method" -ForegroundColor Cyan
                     }
                     ConvertFrom-Json2 -InputObject @'
 {

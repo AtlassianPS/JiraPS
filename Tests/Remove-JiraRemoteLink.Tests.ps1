@@ -2,10 +2,9 @@
 
 InModuleScope JiraPS {
 
-    # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
-    # For the time being, we'll need to hard-code this and adjust it as desired.
-    $ShowMockData = $false
-    $ShowDebugData = $false
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
 
@@ -35,12 +34,6 @@ InModuleScope JiraPS {
 
     Describe "Remove-JiraRemoteLink" {
 
-        Mock Write-Debug -ModuleName JiraPS {
-            if ($ShowDebugData) {
-                Write-Output -Object "[DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
@@ -61,19 +54,13 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE'} {
-            if ($ShowMockData) {
-                Write-Output "       Mocked Invoke-JiraMethod with DELETE method" -ForegroundColor Cyan
-                Write-Output "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Output "         [URI]            $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This REST method should produce no output
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 

@@ -22,7 +22,6 @@ InModuleScope JiraPS {
 "@
 
     Describe "Remove-JiraIssueLink" {
-        $showMockData = $true
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
@@ -34,6 +33,7 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/issueLink/1234"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             return $null
         }
 
@@ -76,7 +76,6 @@ InModuleScope JiraPS {
         }
 
         Context "Functionality" {
-
 
             It "Accepts generic object with the correct properties" {
                 $issueLink = [PSCustomObject]@{ id = $issueLinkId }

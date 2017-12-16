@@ -2,6 +2,10 @@
 
 InModuleScope JiraPS {
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
+
     $jiraServer = 'http://jiraserver.example.com'
 
     # In my Jira instance, this returns 34 objects. I've stripped it down quite a bit for testing.
@@ -132,15 +136,19 @@ InModuleScope JiraPS {
 "@
 
     Describe "Get-JiraField" {
+
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/field"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $restResult
         }
 
-        Mock ConvertTo-JiraField { $InputObject }
+        Mock ConvertTo-JiraField {
+            $InputObject
+        }
 
         It "Gets all fields in Jira if called with no parameters" {
             $allResults = Get-JiraField

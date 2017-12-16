@@ -39,32 +39,23 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Put' -and $URI -eq "$jiraServer/rest/api/latest/user?username=$testUsername"} {
-            if ($ShowMockData) {
-                Write-Output "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
-                Write-Output "         [Method] $Method" -ForegroundColor Cyan
-                Write-Output "         [URI]    $URI" -ForegroundColor Cyan
-            }
-            ConvertFrom-Json2 $restResultGet
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json $restResultGet
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
-
-        # Mock Write-Debug {
-        #     Write-Output "DEBUG: $Message" -ForegroundColor Yellow
-        # }
 
         #############
         # Tests
         #############
 
         It "Accepts a username as a String to the -User parameter" {
-            { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should Not Throw
+            { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged -verbose } | Should Not Throw
+            Assert-MockCalled -CommandName Get-JiraUser -Exactly -Times 1 -Scope It
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 

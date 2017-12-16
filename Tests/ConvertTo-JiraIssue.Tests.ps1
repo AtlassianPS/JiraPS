@@ -2,6 +2,8 @@
 
 InModuleScope JiraPS {
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
@@ -10,7 +12,7 @@ InModuleScope JiraPS {
 
         if ($ShowDebugText) {
             Mock "Write-Debug" {
-                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
+                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
             }
         }
 
