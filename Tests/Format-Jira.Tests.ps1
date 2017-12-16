@@ -90,7 +90,7 @@ InModuleScope JiraPS {
                 $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
                 Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
 
-                Write-Output $obj
+                Write-Host $obj
             }
 
             $expected = "||Name||Id||$n|explorer|4496|"
@@ -114,7 +114,7 @@ InModuleScope JiraPS {
                 $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
                 Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
 
-                Write-Output $obj
+                Write-Host $obj
             }
 
             $expected = "||CompanyName||Handle||Id||MachineName||Name||Path||$n|Microsoft Corporation|5368|4496|.|explorer|C:\Windows\Explorer.EXE|"

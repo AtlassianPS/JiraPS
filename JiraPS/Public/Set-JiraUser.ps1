@@ -154,7 +154,9 @@ function Set-JiraUser {
             if ($PSCmdlet.ShouldProcess($UserObj.DisplayName, "Updating user")) {
                 $result = Invoke-JiraMethod @parameter
 
-                Write-Output (Get-JiraUser -InputObject $result)
+                if ($PassThru) {
+                    Write-Output (Get-JiraUser -inputObject $result)
+                }
             }
         }
     }

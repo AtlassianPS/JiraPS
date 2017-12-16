@@ -16,6 +16,15 @@ InModuleScope JiraPS {
             Write-Output $jiraServer
         }
 
+        Mock Get-JiraField {
+            $object = [PSCustomObject] @{
+                'Name' = $Field
+                'ID'   = $Field
+            }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+            return $object
+        }
+
         Mock Get-JiraIssue -ModuleName JiraPS {
             $t1 = [PSCustomObject] @{
                 Name = 'Start Progress'
@@ -39,26 +48,16 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/transitions"} {
-            if ($ShowMockData) {
-                Write-Output "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Output "         [Method] $Method" -ForegroundColor Cyan
-                Write-Output "         [URI]    $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This should return a 204 status code, so no data should actually be returned
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        # Mock Write-Debug {
-        #     Write-Output "DEBUG: $Message" -ForegroundColor Yellow
-        # }
-        #
         #############
         # Tests
         #############
@@ -75,7 +74,7 @@ InModuleScope JiraPS {
             { Invoke-JiraIssueTransition -Issue $issue -Transition $transition } | Should Not Throw
             # Get-JiraIssue should be called once here in the test, and once in Invoke-JiraIssueTransition to
             # obtain a reference to the issue object
-            Assert-MockCalled Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
+            Assert-MockCalled Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
             Assert-MockCalled Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
@@ -87,12 +86,6 @@ InModuleScope JiraPS {
 
 
         It "Updates custom fields if provided to the -Fields parameter" {
-            Mock Get-JiraField {
-                [PSCustomObject] @{
-                    'Name' = $Field
-                    'ID'   = $Field
-                }
-            }
             { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{'customfield_12345' = 'foo'; 'customfield_67890' = 'bar'} } | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_12345*set*foo*' }
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_67890*set*bar*' }

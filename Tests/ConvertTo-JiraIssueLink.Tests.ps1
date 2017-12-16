@@ -1,7 +1,12 @@
 . $PSScriptRoot\Shared.ps1
+
 InModuleScope JiraPS {
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
+
     Describe "ConvertTo-JiraIssueLink" {
-        . $PSScriptRoot\Shared.ps1
 
         $jiraServer = 'http://jiraserver.example.com'
 

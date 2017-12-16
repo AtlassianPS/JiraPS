@@ -2,7 +2,9 @@
 
 InModuleScope JiraPS {
 
-    $ShowMockData = $false
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
     $jiraUsername = 'powershell-test'
@@ -68,22 +70,13 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
-            if ($ShowMockData) {
-                Write-Output "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Output "         [Method] $Method" -ForegroundColor Cyan
-                Write-Output "         [URI]    $URI" -ForegroundColor Cyan
-            }
-
-            # This data was created from a GUI REST client, then sanitized. A lot of extra data was also removed to save space.
-            # Many Bothans died to bring us this information.
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $restResponse
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 

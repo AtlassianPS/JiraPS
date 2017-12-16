@@ -12,7 +12,6 @@ InModuleScope JiraPS {
 
     Describe "Get-JiraIssueWatcher" {
 
-
         ## Sample straight from the API:
         ##    https://docs.atlassian.com/jira/REST/cloud/#api/2/issue-getIssueWatchers
         $restResult = @"
@@ -46,7 +45,7 @@ InModuleScope JiraPS {
 
         # Obtaining watchers from an issue...this is IT-3676 in the test environment
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers"} {
-            ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri', 'Method'
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 -InputObject $restResult
         }
 

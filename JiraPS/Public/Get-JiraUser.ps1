@@ -17,15 +17,19 @@ function Get-JiraUser {
     .OUTPUTS
        [JiraPS.User]
     #>
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = 'ByUserName' )]
     param(
         # Username, name, or e-mail address of the user. Any of these should
         # return search results from Jira.
-        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByUserName' )]
         [ValidateNotNullOrEmpty()]
         [Alias('User', 'Name')]
         [String[]]
         $UserName,
+
+        # User Object of the user.
+        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
+        [Object[]] $InputObject,
 
         # Include inactive users in the search
         [Switch]
@@ -45,13 +49,17 @@ function Get-JiraUser {
         $resourceURi = "$server/rest/api/latest/user/search?username={0}"
 
         if ($IncludeInactive) {
-            $resourceURi = "$($resourceURi)&includeInactive=true"
+            $resourceURi += "&includeInactive=true"
         }
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        if ($InputObject) {
+            $UserName = $InputObject.Name
+        }
 
         foreach ($user in $UserName) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"

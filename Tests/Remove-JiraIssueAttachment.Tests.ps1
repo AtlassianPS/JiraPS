@@ -1,6 +1,7 @@
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope JiraPS {
+
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
@@ -52,14 +53,16 @@ InModuleScope JiraPS {
             $IssueObj
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId1" } { }
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId2" } { }
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId1" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+        }
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId2" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+        }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mock
@@ -117,7 +120,7 @@ InModuleScope JiraPS {
             }
             It 'accepts positional parameters' {
                 { Remove-JiraIssueAttachment $attachmentId1 -Force } | Should Not Throw
-                { Remove-JiraIssueAttachment $attachmentId1,$attachmentId2 -Force } | Should Not Throw
+                { Remove-JiraIssueAttachment $attachmentId1, $attachmentId2 -Force } | Should Not Throw
                 { Remove-JiraIssueAttachment $issueKey -Force } | Should Not Throw
 
                 # ensure the calls under the hood

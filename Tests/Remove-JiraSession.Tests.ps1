@@ -1,13 +1,9 @@
-# PSScriptAnalyzer - ignore creation of a SecureString using plain text for the contents of this script file
-# https://replicajunction.github.io/2016/09/19/suppressing-psscriptanalyzer-in-pester/
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-param()
-
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -42,27 +38,16 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'GET'} {
-            if ($showMockData) {
-                Write-Output "       Mocked Invoke-WebRequest with GET method" -ForegroundColor Cyan
-                Write-Output "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Output "         [URI]            $URI" -ForegroundColor Cyan
-            }
-            $global:newSessionVar = @{}
-            Write-Output $testJson
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Write-Host $testJson
         }
 
         Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $sessionUri -and $Method -eq 'DELETE'} {
-            if ($showMockData) {
-                Write-Output "       Mocked Invoke-WebRequest with DELETE method" -ForegroundColor Cyan
-                Write-Output "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Output "         [URI]            $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 
         Mock Invoke-WebRequest {
-            Write-Output "       Mocked Invoke-WebRequest with no parameter filter." -ForegroundColor DarkRed
-            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 

@@ -1,13 +1,9 @@
-# PSScriptAnalyzer - ignore creation of a SecureString using plain text for the contents of this script file
-# https://replicajunction.github.io/2016/09/19/suppressing-psscriptanalyzer-in-pester/
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-param()
-
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope JiraPS {
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
@@ -42,7 +38,13 @@ InModuleScope JiraPS {
 
             It "Correctly performs all necessary HTTP method requests [$($validMethods -join ',')] to a provided URI" {
                 foreach ($method in $validMethods) {
-                    { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
+                    if ($method -in ("POST", "PUT")) {
+                        { Invoke-JiraMethod -Method $method -URI $testUri } | Should Throw
+                        { Invoke-JiraMethod -Method $method -URI -Body "" $testUri } | Should Not Throw
+                    }
+                    else {
+                        { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
+                    }
                     Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Method -eq $method -and $Uri -eq $testUri} -Scope It
                 }
             }

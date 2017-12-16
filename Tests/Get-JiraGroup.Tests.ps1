@@ -2,7 +2,9 @@
 
 InModuleScope JiraPS {
 
-    $showMockData = $false
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    $SuppressImportModule = $true
+    . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
 
@@ -33,27 +35,17 @@ InModuleScope JiraPS {
 
         # Searching for a group.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupNameEscaped"} {
-            if ($ShowMockData) {
-                Write-Output "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
-                Write-Output "         [Method] $Method" -ForegroundColor Cyan
-                Write-Output "         [URI]    $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 -InputObject $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
         Mock ConvertTo-JiraGroup { $InputObject }
-
-        #        Mock Write-Debug {
-        #            Write-Output "DEBUG: $Message" -ForegroundColor Yellow
-        #        }
 
         #############
         # Tests

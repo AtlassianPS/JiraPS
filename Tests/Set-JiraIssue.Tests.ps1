@@ -1,21 +1,22 @@
 ﻿. $PSScriptRoot\Shared.ps1
 
 InModuleScope JiraPS {
-
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
     $SuppressImportModule = $true
     . $PSScriptRoot\Shared.ps1
 
     Describe "Set-JiraIssue" {
-        if ($ShowDebugText) {
-            Mock "Write-Debug" {
-                Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
 
         Mock Get-JiraConfigServer {
             'https://jira.example.com'
         }
+        Mock Get-JiraUser {
+            [PSCustomObject] @{
+                'Name' = 'username'
+            }
+        }
+
+        Mock Set-JiraIssueLabel {}
 
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{
@@ -27,26 +28,23 @@ InModuleScope JiraPS {
 
         # If we don't override this in a context or test, we don't want it to
         # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod {}
+        Mock Invoke-JiraMethod {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
+        }
 
         Context "Sanity checking" {
             $command = Get-Command -Name Set-JiraIssue
 
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
-            defParam 'Issue'
-            defParam 'Summary'
-            defParam 'Description'
-            defParam 'Assignee'
-            defParam 'Label'
-            defParam 'AddComment'
-            defParam 'Fields'
-            defParam 'Credential'
-            defParam 'PassThru'
+            defParam $command 'Issue'
+            defParam $command 'Summary'
+            defParam $command 'Description'
+            defParam $command 'Assignee'
+            defParam $command 'Label'
+            defParam $command 'AddComment'
+            defParam $command 'Fields'
+            defParam $command 'Credential'
+            defParam $command 'PassThru'
 
             It "Supports the Key alias for the Issue parameter" {
                 $command.Parameters.Item('Issue').Aliases | Where-Object -FilterScript {$_ -eq 'Key'} | Should Not BeNullOrEmpty
@@ -54,22 +52,6 @@ InModuleScope JiraPS {
         }
 
         Context "Behavior testing" {
-            Mock Invoke-JiraMethod {
-                if ($ShowMockData) {
-                    Write-Output "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Output "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Output "         [Method]  $Method" -ForegroundColor Cyan
-                    #                    Write-Output "         [Body]    $Body" -ForegroundColor Cyan
-                }
-            }
-
-            Mock Get-JiraUser {
-                [PSCustomObject] @{
-                    'Name' = 'username'
-                }
-            }
-
-            Mock Set-JiraIssueLabel {}
 
             It "Modifies the summary of an issue if the -Summary parameter is passed" {
                 { Set-JiraIssue -Issue TEST-001 -Summary 'New summary' } | Should Not Throw

@@ -18,14 +18,14 @@ if (-not (Get-Module -Name $ModuleName -ErrorAction SilentlyContinue) -or (-not 
     Import-Module $RootModule -Scope Global -Force
 
     # Set to true so we don't need to import it again for the next test
-    $global:SuppressImportModule = $true
+    $script:SuppressImportModule = $true
 }
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'ShowMockData')]
-$ShowMockData = $false
+$script:ShowMockData = $false
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'ShowDebugText')]
-$ShowDebugText = $false
+$script:ShowDebugText = $false
 
 function defProp($obj, $propName, $propValue) {
     It "Defines the '$propName' property" {
@@ -48,6 +48,12 @@ function hasNotProp($obj, $propName) {
 function defParam($command, $name) {
     It "Has a -$name parameter" {
         $command.Parameters.Item($name) | Should Not BeNullOrEmpty
+    }
+}
+
+function defAlias($name, $definition) {
+    It "Supports the $name alias for the $definition parameter" {
+        $command.Parameters.Item($definition).Aliases | Where-Object -FilterScript {$_ -eq $name} | Should Not BeNullOrEmpty
     }
 }
 
@@ -83,17 +89,32 @@ function checkPsType($obj, $typeName) {
     }
 }
 
-function ShowMockInfo($functionName, [String[]] $params) {
-    if ($ShowMockData) {
-        Write-Output "       Mocked $functionName" -ForegroundColor Cyan
+function ShowMockInfo {
+    [CmdletBinding()]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
+    param(
+        $functionName,
+        [String[]] $params
+    )
+    if ($script:ShowMockData) { #TODO
+        Write-Host "       Mocked $functionName" -ForegroundColor Cyan
         foreach ($p in $params) {
-            Write-Output "         [$p]  $(Get-Variable -Name $p -ValueOnly -ErrorAction SilentlyContinue)" -ForegroundColor Cyan
+            Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly -ErrorAction SilentlyContinue)" -ForegroundColor Cyan
         }
     }
 }
 
-if ($ShowDebugText) {
-    Mock "Write-Debug" {
-        Write-Output "       [DEBUG] $Message" -ForegroundColor Yellow
+Mock "Write-Debug" {
+    MockedDebug $Message
+}
+
+function MockedDebug {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
+    [CmdletBinding()]
+    param(
+        $Message
+    )
+    if ($ShowDebugText) {
+        Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
     }
 }
