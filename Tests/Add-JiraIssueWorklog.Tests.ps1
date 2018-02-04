@@ -1,10 +1,7 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     $jiraServer = 'http://jiraserver.example.com'
     $jiraUsername = 'powershell-test'
@@ -69,6 +66,10 @@ InModuleScope JiraPS {
             Write-Output $result
         }
 
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
+
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $restResponse
@@ -96,11 +97,11 @@ InModuleScope JiraPS {
         }
 
         It "Accepts pipeline input from Get-JiraIssue" {
-            $commentResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueWorklog -Comment 'This is a test worklog item from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
+            $commentResult = Get-JiraIssue -Key $IssueKey | Add-JiraIssueWorklog -Comment 'This is a test worklog item from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
             $commentResult | Should Not BeNullOrEmpty
 
             # Get-JiraIssue should be called once here to fetch the initial test issue
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
     }

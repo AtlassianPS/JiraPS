@@ -1,10 +1,9 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
+    . "$PSScriptRoot/Shared.ps1"
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    $jiraServer = "https://jira.example.com"
 
     $response = @'
 {
@@ -54,14 +53,18 @@ InModuleScope JiraPS {
     Describe 'Get-JiraFilter' {
 
         Mock Get-JiraConfigServer {
-            'https://jira.example.com'
+            $jiraServer
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/filter/12345"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $response
         }
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/filter/'67890'"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/filter/67890"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json2 $response
+        }
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/filter/*"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $response
         }
@@ -94,7 +97,7 @@ InModuleScope JiraPS {
         }
 
         Context "Input testing" {
-            $sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json2 )
+            $sampleFilter = ConvertTo-JiraFilter ( ConvertFrom-Json2 $response )
 
             It "Accepts a filter ID for the -Filter parameter" {
                 { Get-JiraFilter -Id 12345 } | Should Not Throw

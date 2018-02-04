@@ -1,10 +1,9 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
+    . "$PSScriptRoot/Shared.ps1"
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    $jiraServer = "https://jira.example.com"
 
     $jql = 'reporter in (testuser)'
     $jqlEscaped = ConvertTo-URLEncoded $jql
@@ -27,15 +26,15 @@ InModuleScope JiraPS {
 
     Describe "Get-JiraIssue" {
         Mock Get-JiraConfigServer {
-            'https://jira.example.com'
+            $jiraServer
         }
 
-        Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like '*rest/api/latest/issue/TEST-001*' } {
+        Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/issue/TEST-001*" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $response
         }
 
-        Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/latest/search?jql=$jqlEscaped*" } {
+        Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/search?jql=$jqlEscaped*" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $response
         }
@@ -108,7 +107,7 @@ InModuleScope JiraPS {
                 $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
 
                 # Should call Get-JiraIssue using the -Key parameter, so our URL should reflect the key we provided
-                { Get-JiraIssue -InputObject $issue } | Should Not Throw
+                { Get-JiraIssue -InputObject $Issue } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
             }
         }

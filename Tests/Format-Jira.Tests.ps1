@@ -1,10 +1,7 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     Describe "Format-Jira" {
         $n = [System.Environment]::NewLine
@@ -90,7 +87,7 @@ InModuleScope JiraPS {
                 $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
                 Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
 
-                Write-Host $obj
+                Write-Output $obj
             }
 
             $expected = "||Name||Id||$n|explorer|4496|"
@@ -114,7 +111,7 @@ InModuleScope JiraPS {
                 $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
                 Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
 
-                Write-Host $obj
+                Write-Output $obj
             }
 
             $expected = "||CompanyName||Handle||Id||MachineName||Name||Path||$n|Microsoft Corporation|5368|4496|.|explorer|C:\Windows\Explorer.EXE|"

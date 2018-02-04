@@ -1,10 +1,7 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     $jiraServer = 'http://jiraserver.example.com'
 
@@ -37,7 +34,7 @@ InModuleScope JiraPS {
             return $object
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupName"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -like "$jiraServer/rest/api/*/group?groupname=$testGroupName"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This REST method should produce no output
         }

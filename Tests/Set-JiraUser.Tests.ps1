@@ -1,10 +1,7 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     $jiraServer = 'http://jiraserver.example.com'
 
@@ -54,7 +51,7 @@ InModuleScope JiraPS {
         #############
 
         It "Accepts a username as a String to the -User parameter" {
-            { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged -verbose } | Should Not Throw
+            { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should Not Throw
             Assert-MockCalled -CommandName Get-JiraUser -Exactly -Times 1 -Scope It
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }

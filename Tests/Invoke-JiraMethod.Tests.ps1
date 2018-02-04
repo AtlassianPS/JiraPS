@@ -1,11 +1,7 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     $validMethods = @('GET', 'POST', 'PUT', 'DELETE')
 
@@ -26,6 +22,7 @@ InModuleScope JiraPS {
         }
 
         Context "Behavior testing" {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 
             $testUri = 'http://example.com'
             $testUsername = 'testUsername'
@@ -40,7 +37,7 @@ InModuleScope JiraPS {
                 foreach ($method in $validMethods) {
                     if ($method -in ("POST", "PUT")) {
                         { Invoke-JiraMethod -Method $method -URI $testUri } | Should Throw
-                        { Invoke-JiraMethod -Method $method -URI -Body "" $testUri } | Should Not Throw
+                        { Invoke-JiraMethod -Method $method -URI $testUri -Body "" } | Should Not Throw
                     }
                     else {
                         { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw

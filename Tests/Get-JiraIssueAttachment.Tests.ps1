@@ -1,10 +1,7 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     $jiraServer = 'http://jiraserver.example.com'
     $issueID = 41701
@@ -59,13 +56,17 @@ InModuleScope JiraPS {
 
         Mock Get-JiraIssue -ModuleName JiraPS {
             $IssueObj = [PSCustomObject]@{
-                ID      = $issueID
-                Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
+                ID         = $issueID
+                Key        = $issueKey
+                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID"
                 attachment = (ConvertFrom-Json2 -InputObject $attachments)
             }
             $IssueObj.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             $IssueObj
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
         }
 
         Mock ConvertTo-JiraAttachment -ModuleName JiraPS {
@@ -86,18 +87,14 @@ InModuleScope JiraPS {
 
         It 'only accepts String or JiraPS.Issue as input' {
             { Get-JiraIssueAttachment -Issue (Get-Date) } | Should Throw
-            { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should Throw
+            { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should Throw
+            { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should Not Throw
+            { Get-JiraIssueAttachment -Issue (Get-JiraIssue -Key "foo") } | Should Not Throw
         }
 
         It 'takes the issue input over the pipeline' {
             { $issueObject | Get-JiraIssueAttachment } | Should Not Throw
             { $issueKey | Get-JiraIssueAttachment } | Should Not Throw
-        }
-
-        It 'resolves the Issue only when necessary' {
-            $issueKey | Get-JiraIssueAttachment
-            $issueObject | Get-JiraIssueAttachment
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It 'converts the attachments to objects' {

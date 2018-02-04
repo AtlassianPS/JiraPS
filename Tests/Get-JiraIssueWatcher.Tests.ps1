@@ -1,12 +1,9 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
+    . "$PSScriptRoot/Shared.ps1"
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
-
-    $jiraServer = 'http://jiraserver.example.com'
+    $jiraServer = 'https://jiraserver.example.com'
     $issueID = 41701
     $issueKey = 'IT-3676'
 
@@ -43,6 +40,10 @@ InModuleScope JiraPS {
             return $object
         }
 
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
+
         # Obtaining watchers from an issue...this is IT-3676 in the test environment
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
@@ -74,7 +75,7 @@ InModuleScope JiraPS {
                 @($watchers).Count | Should Be 1
                 $watchers.Name | Should Be "fred"
                 $watchers.DisplayName | Should Be "Fred F. User"
-                $watchers.RestUrl | Should Be "$jiraServer/jira/rest/api/2/user?username=fred"
+                $watchers.self | Should Be "$jiraServer/jira/rest/api/2/user?username=fred"
 
                 # Get-JiraIssue should be called to identify the -Issue parameter
                 Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It

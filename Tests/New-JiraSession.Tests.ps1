@@ -1,15 +1,11 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
+    . "$PSScriptRoot/Shared.ps1"
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
 
     $jiraServer = 'http://jiraserver.example.com'
-    $authUri = "$jiraServer/rest/api/2/mypermissions"
-    $jSessionId = '76449957D8C863BE8D4F6F5507E980E8'
+    $authUri = "$jiraServer/rest/api/*/mypermissions"
 
     $testUsername = 'powershell-test'
     $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
@@ -17,26 +13,17 @@ InModuleScope JiraPS {
 
 
     $testJson = @"
-{
-    "session": {
-        "name": "JSESSIONID",
-        "value": "$jSessionId"
-    },
-    "loginInfo": {
-        "failedLoginCount": 5,
-        "loginCount": 10,
-        "lastFailedLoginTime": "2015-06-23T13:17:44.005-0500",
-        "previousLoginTime": "2015-06-23T10:22:03.514-0500"
+    {
     }
-}
 "@
+    $global:newSessionVar = @{}
     Describe "New-JiraSession" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'GET'} {
+        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Method -eq 'Get' -and $Uri -like $authUri} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             Write-Output $testJson
         }

@@ -1,19 +1,16 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
+    . "$PSScriptRoot/Shared.ps1"
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
-
-    $jiraServer = 'http://jiraserver.example.com'
+    $jiraServer = 'https://jiraserver.example.com'
 
     $issueKey = 'MKY-1'
 
     $restResult = @"
 {
     "id": 10000,
-    "self": "http://jiraserver.example.com/rest/api/issue/MKY-1/remotelink/10000",
+    "self": "$jiraServer/rest/api/latest/issue/MKY-1/remotelink/10000",
     "globalId": "system=http://www.mycompany.com/support&id=1",
     "application": {
         "type": "com.acme.tracker",
@@ -40,11 +37,19 @@ InModuleScope JiraPS {
 
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{
-                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
+                'RestURL' = "$jiraServer/rest/api/latest/issue/12345"
                 'Key'     = $issueKey
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
+
+        Mock ConvertTo-JiraIssueLinkType -ModuleName JiraPS {
+            $InputObject
         }
 
         # Searching for a group.
@@ -66,15 +71,15 @@ InModuleScope JiraPS {
         It "Gets information of all remote link from a Jira issue" {
             $getResult = Get-JiraRemoteLink -Issue $issueKey
             $getResult | Should Not BeNullOrEmpty
+
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq "Get" -and $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink"}
         }
 
-        It "Returns all available properties about the returned link object" {
-            $getResult = Get-JiraRemoteLink -Issue $issueKey
-            $restObj = ConvertFrom-Json2 -InputObject $restResult
+        It "Gets information of all remote link from a Jira issue" {
+            $getResult = Get-JiraRemoteLink -Issue $issueKey -LinkId 10000
+            $getResult | Should Not BeNullOrEmpty
 
-            $getResult.RestUrl | Should Be $restObj.self
-            $getResult.Id | Should Be $restObj.Id
-            $getResult.globalId | Should Be $restObj.globalId
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq "Get" -and $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink/10000"}
         }
     }
 }
