@@ -1,10 +1,7 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     $jiraServer = 'http://jiraserver.example.com'
     $versionName1 = '1.0.0.0'
@@ -148,18 +145,21 @@ InModuleScope JiraPS {
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
             }
             It "gets a Version using multiple IDs" {
-                $results = Get-JiraVersion -ID $versionID1, $versionID2
+                $results = Get-JiraVersion -Id $versionID1, $versionID2
                 $results | Should Not BeNullOrEmpty
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID1" }
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID2" }
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
             }
             It "gets a Version using the pipeline from another Version" {
-                $version = [PSCustomObject]@{Id = [int]($versionID2)}
-                $results = ($version | Get-JiraVersion)
-                $results | Should Not BeNullOrEmpty
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID2" }
-                Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
+                $version1 =  ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2)})
+                $version2 =  ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2); project = "lorem"})
+                $results1 = ($version1 | Get-JiraVersion)
+                $results2 = ($version1 | Get-JiraVersion)
+                $results1 | Should Not BeNullOrEmpty
+                $results2 | Should Not BeNullOrEmpty
+                Assert-MockCalled 'Invoke-JiraMethod' -Times 2 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID2" }
+                Assert-MockCalled 'ConvertTo-JiraVersion' -Times 4 -Scope It -ModuleName JiraPS -Exactly
             }
             It "gets all Versions using Project Parameter Set" {
                 $results = Get-JiraVersion -Project $projectKey

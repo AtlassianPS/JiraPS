@@ -1,10 +1,7 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     $jiraServer = 'http://jiraserver.example.com'
     $issueID = 41701
@@ -47,6 +44,10 @@ InModuleScope JiraPS {
             return $object
         }
 
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
+
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/transitions"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This should return a 204 status code, so no data should actually be returned
@@ -74,7 +75,7 @@ InModuleScope JiraPS {
             { Invoke-JiraIssueTransition -Issue $issue -Transition $transition } | Should Not Throw
             # Get-JiraIssue should be called once here in the test, and once in Invoke-JiraIssueTransition to
             # obtain a reference to the issue object
-            Assert-MockCalled Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
             Assert-MockCalled Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 

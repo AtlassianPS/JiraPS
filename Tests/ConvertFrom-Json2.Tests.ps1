@@ -1,6 +1,6 @@
-. $PSScriptRoot\Shared.ps1
-
 Describe "ConvertFrom-Json2" {
+    . "$PSScriptRoot/Shared.ps1"
+
     $sampleJson = '{"id":"issuetype","name":"Issue Type","custom":false,"orderable":true,"navigable":true,"searchable":true,"clauseNames":["issuetype","type"],"schema":{"type":"issuetype","system":"issuetype"}}'
     $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
 

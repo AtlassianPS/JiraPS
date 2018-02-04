@@ -1,24 +1,27 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     Describe "New-JiraIssue" {
 
+        $jiraServer = 'https://jira.example.com'
+
         Mock Get-JiraConfigServer {
-            'https://jira.example.com'
+            $jiraServer
         }
 
         # If we don't override this in a context or test, we don't want it to
         # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod {}
+        Mock Invoke-JiraMethod {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            @{ Key = "TEST-01"}
+        }
 
         Mock Get-JiraProject {
             $object = [PSCustomObject] @{
-                'ID' = $Project;
+                'ID'  = $Project
+                'Key' = "TEST"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
             return $object
@@ -44,11 +47,22 @@ InModuleScope JiraPS {
         Mock Get-JiraField {
             $Field | % {
                 $object = [PSCustomObject] @{
-                    'ID' = $_;
+                    'Id' = $_
                 }
                 $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
                 $object
             }
+        }
+
+        Mock Get-JiraIssueCreateMetadata {
+            @(
+                @{Name = 'Project'; ID = 'Project'; Required = $true}
+                @{Name = 'IssueType'; ID = 'IssueType'; Required = $true}
+                @{Name = 'Priority'; ID = 'Priority'; Required = $true}
+                @{Name = 'Summary'; ID = 'Summary'; Required = $true}
+                @{Name = 'Description'; ID = 'Description'; Required = $true}
+                @{Name = 'Reporter'; ID = 'Reporter'; Required = $true}
+            )
         }
 
         $newParams = @{
@@ -75,16 +89,12 @@ InModuleScope JiraPS {
         }
 
         Context "Behavior testing" {
-            Mock Invoke-JiraMethod {
-                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            }
-
             It "Creates an issue in JIRA" {
                 { New-JiraIssue @newParams } | Should Not Throw
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like '*/rest/api/*/issue' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/issue" }
             }
         }
 
@@ -93,18 +103,18 @@ InModuleScope JiraPS {
                 # We'll create a custom field that's required, then see what happens when we don't provide it
                 Mock Get-JiraIssueCreateMetadata {
                     @(
-                        @{Name = 'Project'; ID = 'Project'; Required = $true},
-                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true},
-                        @{Name = 'Priority'; ID = 'Priority'; Required = $true},
-                        @{Name = 'Summary'; ID = 'Summary'; Required = $true},
-                        @{Name = 'Description'; ID = 'Description'; Required = $true},
-                        @{Name = 'Reporter'; ID = 'Reporter'; Required = $true},
+                        @{Name = 'Project'; ID = 'Project'; Required = $true}
+                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true}
+                        @{Name = 'Priority'; ID = 'Priority'; Required = $true}
+                        @{Name = 'Summary'; ID = 'Summary'; Required = $true}
+                        @{Name = 'Description'; ID = 'Description'; Required = $true}
+                        @{Name = 'Reporter'; ID = 'Reporter'; Required = $true}
                         @{Name = 'CustomField'; ID = 'CustomField'; Required = $true}
                     )
                 }
 
                 { New-JiraIssue @newParams } | Should Throw
-                { New-JiraIssue @newParams -Fields @{CustomField = '.'} } | Should Not Throw
+                { New-JiraIssue @newParams -Fields @{'CustomField' = '.'} } | Should Not Throw
             }
         }
     }

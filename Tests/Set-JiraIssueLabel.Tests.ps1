@@ -1,25 +1,31 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     Describe "Set-JiraIssueLabel" {
 
+        $jiraServer = 'https://jira.example.com'
+
         Mock Get-JiraConfigServer {
-            'https://jira.example.com'
+            $jiraServer
         }
 
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{
                 'Id'      = 123
-                'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
+                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
                 'Labels'  = @('existingLabel1', 'existingLabel2')
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345"} {
         }
 
         Mock Invoke-JiraMethod {
@@ -90,7 +96,7 @@ InModuleScope JiraPS {
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
-            It "Accepts the output of Get-JiraIssue by pipeline for the -Issue paramete" {
+            It "Accepts the output of Get-JiraIssue by pipeline for the -Issue parameter" {
                 { Get-JiraIssue -Key TEST-001 | Set-JiraIssueLabel -Set 'testLabel1' } | Should Not Throw
                 Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It

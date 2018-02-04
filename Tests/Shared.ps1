@@ -2,28 +2,8 @@
 
 # Dot source this script in any Pester test script that requires the module to be imported.
 
-$ModuleName = 'JiraPS'
-$ModuleManifestPath = "$PSScriptRoot\..\$ModuleName\$ModuleName.psd1"
-$RootModule = "$PSScriptRoot\..\$ModuleName\$ModuleName.psm1"
-
-# The first time this is called, the module will be forcibly (re-)imported.
-# After importing it once, the $SuppressImportModule flag should prevent
-# the module from being imported again for each test file.
-
-if (-not (Get-Module -Name $ModuleName -ErrorAction SilentlyContinue) -or (-not $SuppressImportModule)) {
-    # If we import the .psd1 file, Pester has issues where it detects multiple
-    # modules named JiraPS. Importing the .psm1 file seems to correct this.
-
-    # -Scope Global is needed when running tests from within a CI environment
-    Import-Module $RootModule -Scope Global -Force
-
-    # Set to true so we don't need to import it again for the next test
-    $script:SuppressImportModule = $true
-}
-
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'ShowMockData')]
 $script:ShowMockData = $false
-
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'ShowDebugText')]
 $script:ShowDebugText = $false
 
@@ -51,7 +31,7 @@ function defParam($command, $name) {
     }
 }
 
-function defAlias($name, $definition) {
+function defAlias($command, $name, $definition) {
     It "Supports the $name alias for the $definition parameter" {
         $command.Parameters.Item($definition).Aliases | Where-Object -FilterScript {$_ -eq $name} | Should Not BeNullOrEmpty
     }
@@ -114,7 +94,7 @@ function MockedDebug {
     param(
         $Message
     )
-    if ($ShowDebugText) {
+    if ($script:ShowDebugText) {
         Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
     }
 }

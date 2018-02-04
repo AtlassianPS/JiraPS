@@ -1,10 +1,7 @@
-. $PSScriptRoot\Shared.ps1
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     $jiraServer = 'http://jiraserver.example.com'
 
@@ -73,12 +70,12 @@ InModuleScope JiraPS {
 
             It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to remove them" {
                 { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should Not Throw
-                Assert-MockCalled -CommandName Get-JiraGroupMember -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Get-JiraGroup -Exactly -Times 1 -Scope It
             }
 
             It "Removes a user from a JIRA group if the user is a member" {
                 { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Delete' -and $URI -like "*/rest/api/*/group/user?groupname=$testGroupName&username=$testUsername1"} -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/group/user?groupname=$testGroupName&username=$testUsername1"} -Exactly -Times 1 -Scope It
             }
 
             It "Removes multiple users to a JIRA group if they are passed to the -User parameter" {
@@ -97,15 +94,12 @@ InModuleScope JiraPS {
 
                 # Should use the REST method twice, since at present, you can only delete one group member per API call
                 { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 -Force } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Delete' -and $URI -like "*/rest/api/*/group/user?groupname=$testGroupName&username=*"} -Exactly -Times 2 -Scope It
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/group/user?groupname=$testGroupName&username=*"} -Exactly -Times 2 -Scope It
             }
         }
 
-        Context "Error checking" {
-            It "Gracefully handles cases where a provided user is not currently in the provided group" {
-                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 -Force } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter {$Method -eq 'Delete' -and $URI -like "*/rest/api/*/group/user?groupname=$testGroupName&username=*"} -Exactly -Times 1 -Scope It
-            }
-        }
+        # Context "Error checking" {
+
+        # }
     }
 }

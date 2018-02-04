@@ -1,10 +1,7 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     $jiraServer = 'http://jiraserver.example.com'
     $issueID = 41701
@@ -24,6 +21,10 @@ InModuleScope JiraPS {
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers?username=fred"} {
@@ -62,7 +63,7 @@ InModuleScope JiraPS {
             }
 
             It "Accepts pipeline input from Get-JiraIssue" {
-                $WatcherResult = Get-JiraIssue -InputObject $issueKey | Remove-JiraIssueWatcher -Watcher 'fred'
+                $WatcherResult = Get-JiraIssue -Key $IssueKey | Remove-JiraIssueWatcher -Watcher 'fred'
                 $WatcherResult | Should BeNullOrEmpty
 
                 # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)

@@ -1,10 +1,7 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
 InModuleScope JiraPS {
-
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     Describe "Get-JiraGroupMember" {
 
@@ -37,26 +34,21 @@ InModuleScope JiraPS {
                 'Size'    = 2
             }
             $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
-            Write-Host $obj
+            Write-Output $obj
         }
 
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraGroupMember
 
-            defParam 'Group'
-            defParam 'StartIndex'
-            defParam 'MaxResults'
-            defParam 'Credential'
+            defParam $command 'Group'
+            defParam $command 'StartIndex'
+            defParam $command 'MaxResults'
+            defParam $command 'Credential'
         }
 
         Context "Behavior testing" {
             Mock Invoke-JiraMethod -ModuleName JiraPS {
-                if ($ShowMockData) {
-                    Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                    #                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
-                }
+                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             }
 
             Mock Get-JiraUser -ModuleName JiraPS {
@@ -86,11 +78,7 @@ InModuleScope JiraPS {
                 # mock that actually returns some data.
 
                 Mock Invoke-JiraMethod -ModuleName JiraPS {
-                    if ($ShowMockData) {
-                        Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                        Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                        Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                    }
+                    ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                     ConvertFrom-Json2 -InputObject @'
 {
     "name": "testgroup",
