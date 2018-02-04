@@ -76,7 +76,7 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -InputObject $_group -Credential $Credential -ErrorAction Stop
+            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
 
             $parameter = @{
                 URI        = $resourceURi -f $groupObj.Name

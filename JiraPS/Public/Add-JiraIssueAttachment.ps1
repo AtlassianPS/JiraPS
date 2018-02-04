@@ -94,6 +94,17 @@ function Add-JiraIssueAttachment {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
+        if (@($Issue).Count -ne 1) {
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"invalid Issue provided"),
+                'ParameterValue.JiraIssue',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $_
+            )
+            $errorItem.ErrorDetails = "Only one Issue can be provided at a time."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
+        }
+
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 

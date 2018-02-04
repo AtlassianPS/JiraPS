@@ -18,46 +18,30 @@ function Remove-JiraIssueLink {
     [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'Medium' )]
     param(
         # IssueLink to delete
+        # If an Issue is provided, all issueLinks will be deleted.
         [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
-                $objectProperties = $_ | Get-Member -InputObject $_ -MemberType *Property
-                if (
-                    ($_ -isnot [String]) -and (
-                        ("JiraPS.Issue" -notin $_.PSObject.TypeNames) -or
-                        ("JiraPS.IssueLink" -notin $_.PSObject.TypeNames)
-                    )
-                 ) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraIssue',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                elseif (-not($objectProperties.Name -contains "id")) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Parameter"),
-                        'ParameterType.MissingProperty',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
-                    $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed. $($objectProperties | Out-String)."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
+                $Input = $_
+                $objectProperties = $Input | Get-Member -MemberType *Property
+                switch ($true) {
+                    {("JiraPS.Issue" -in $Input.PSObject.TypeNames) -and ("issueLinks" -in $objectProperties.Name)} { return $true }
+                    {("JiraPS.IssueLink" -in $Input.PSObject.TypeNames) -and ("Id" -in $objectProperties.Name)} { return $true }
+                    default {
+                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                            ([System.ArgumentException]"Invalid Type for Parameter"),
+                            'ParameterType.NotJiraIssue',
+                            [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                            $Input
+                        )
+                        $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($Input.GetType().Name)"
+                        $PSCmdlet.ThrowTerminatingError($errorItem)
+                        <#
+                          #ToDo:CustomClass
+                          Once we have custom classes, this check can be done with Type declaration
+                        #>
+                    }
                 }
             }
         )]
@@ -88,8 +72,8 @@ function Remove-JiraIssueLink {
           #ToDo:CustomClass
           Once we have custom classes, this will no longer be necessary
         #>
-        if (($_) -and ("JiraPS.Issue" -in $_.PSObject.TypeNames)) {
-            $IssueLink = $_.issueLinks
+        if ($IssueLink.issueLinks) {
+            $IssueLink = $IssueLink.issueLinks
         }
 
         foreach ($link in $IssueLink) {

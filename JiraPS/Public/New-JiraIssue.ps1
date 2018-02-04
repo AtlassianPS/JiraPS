@@ -54,7 +54,7 @@ function New-JiraIssue {
         # User that shall be registed as the reporter.
         # If left empty, the currently authenticated user will be used.
         [AllowNull()]
-        [AllowEmpty()]
+        [AllowEmptyString()]
         [String]
         $Reporter,
 
@@ -134,14 +134,12 @@ function New-JiraIssue {
         foreach ($_key in $Fields.Keys) {
             $name = $_key
             $value = $Fields.$_key
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
 
             if ($field = Get-JiraField -Field $name -Credential $Credential) {
                 # For some reason, this was coming through as a hashtable instead of a String,
                 # which was causing ConvertTo-Json to crash later.
                 # Not sure why, but this forces $id to be a String and not a hashtable.
                 $id = $field.Id
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Field [$name] was identified as ID [$id]"
                 $requestBody.$id = $value
             }
             else {
@@ -186,7 +184,7 @@ function New-JiraIssue {
         $parameter = @{
             URI        = $resourceURi
             Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $hashtable -Depth 3
+            Body       = (ConvertTo-Json -InputObject $hashtable -Depth 7)
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

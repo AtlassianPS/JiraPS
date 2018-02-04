@@ -80,7 +80,11 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
 
-            $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
+            if ($_version.id) {
+                $_version = $_version.Id
+            }
+
+            $versionObj = Get-JiraVersion -Id $_version -Credential $Credential -ErrorAction Stop
 
             $parameter = @{
                 URI        = $versionObj.RestUrl

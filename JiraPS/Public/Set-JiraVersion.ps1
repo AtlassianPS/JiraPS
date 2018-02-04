@@ -114,7 +114,7 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
 
-            $versionObj = Get-JiraVersion -Version $_version -Credential $Credential -ErrorAction Stop
+            $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
 
             $requestBody = @{}
 
@@ -152,7 +152,7 @@
             if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
                 $result = Invoke-JiraMethod @parameter
 
-                Write-Output (Get-JiraVersion -InputObject $result)
+                Write-Output (ConvertTo-JiraVersion -InputObject $result)
             }
         }
     }

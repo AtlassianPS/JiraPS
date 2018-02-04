@@ -66,7 +66,7 @@ function Get-JiraProject {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f "$_project?expand=projectKeys"
+                        URI        = $resourceURi -f "/$($_project)?expand=projectKeys"
                         Method     = "GET"
                         Credential = $Credential
                     }

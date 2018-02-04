@@ -26,7 +26,7 @@
 
                         $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Error')
                         $obj | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                            Write-Output "Jira error [$($this.Message)"
+                            Write-Output "Jira error [$($this.Message)]"
                         }
 
                         Write-Output $obj
@@ -37,7 +37,7 @@
                 $keys = (Get-Member -InputObject $i.errors | Where-Object -FilterScript {$_.MemberType -eq 'NoteProperty'}).Name
                 foreach ($k in $keys) {
                     if ($WriteError) {
-                        Write-Error "Jira encountered an error: [$k) - $($i.errors.$k)"
+                        Write-Error "Jira encountered an error: [$k] - $($i.errors.$k)"
                     }
                     else {
                         $obj = [PSCustomObject] @{

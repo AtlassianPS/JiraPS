@@ -52,8 +52,10 @@ function Get-JiraIssueEditMetadata {
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod @parameter
 
+        Write-Debug ($result | Out-String)
+
         if ($result) {
-            if (@($result.projects).Count -eq 0) {
+            if (@($result.fields.projects).Count -eq 0) {
                 $errorMessage = @{
                     Category         = "InvalidResult"
                     CategoryActivity = "Validating response"
@@ -61,7 +63,7 @@ function Get-JiraIssueEditMetadata {
                 }
                 Write-Error @errorMessage
             }
-            elseif (@($result.projects).Count -gt 1) {
+            elseif (@($result.fields.projects).Count -gt 1) {
                 $errorMessage = @{
                     Category         = "InvalidResult"
                     CategoryActivity = "Validating response"
@@ -70,7 +72,7 @@ function Get-JiraIssueEditMetadata {
                 Write-Error @errorMessage
             }
 
-            if (@($result.projects.issuetypes) -eq 0) {
+            if (@($result.fields.projects.issuetypes) -eq 0) {
                 $errorMessage = @{
                     Category         = "InvalidResult"
                     CategoryActivity = "Validating response"
@@ -78,7 +80,7 @@ function Get-JiraIssueEditMetadata {
                 }
                 Write-Error @errorMessage
             }
-            elseif (@($result.projects.issuetypes).Count -gt 1) {
+            elseif (@($result.fields.projects.issuetypes).Count -gt 1) {
                 $errorMessage = @{
                     Category         = "InvalidResult"
                     CategoryActivity = "Validating response"
@@ -87,7 +89,7 @@ function Get-JiraIssueEditMetadata {
                 Write-Error @errorMessage
             }
 
-            Write-Output (ConvertTo-JiraCreateMetaField -InputObject $result)
+            Write-Output (ConvertTo-JiraEditMetaField -InputObject $result)
         }
         else {
             $errorItem = [System.Management.Automation.ErrorRecord]::new(
