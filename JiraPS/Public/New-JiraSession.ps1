@@ -29,6 +29,7 @@ function New-JiraSession {
         [PSCredential]
         $Credential,
 
+        # Additional Headers
         [Hashtable]
         $Headers = @{}
     )

@@ -26,14 +26,14 @@ function Get-JiraIssueLinkType {
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
-                if (("JiraPS.IssueLinkType" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                if (("JiraPS.IssueLinkType" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String])) -and (($_ -isnot [Int]))) {
                     $errorItem = [System.Management.Automation.ErrorRecord]::new(
                         ([System.ArgumentException]"Invalid Type for Parameter"),
                         'ParameterType.NotJiraIssueLinkType',
                         [System.Management.Automation.ErrorCategory]::InvalidArgument,
                         $_
                     )
-                    $errorItem.ErrorDetails = "Wrong object type provided for IssueLinkType. Expected [JiraPS.IssueLinkType] or [String], but was $($_.GetType().Name)"
+                    $errorItem.ErrorDetails = "Wrong object type provided for IssueLinkType. Expected [JiraPS.IssueLinkType], [String] or [Int], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
                       #ToDo:CustomClass

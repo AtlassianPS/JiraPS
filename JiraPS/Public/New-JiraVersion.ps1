@@ -74,22 +74,25 @@
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
-                if (("JiraPS.Project" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraProject',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
-                    $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
+                $Input = $_
+
+                switch ($true) {
+                    {"JiraPS.Project" -in $Input.PSObject.TypeNames} { return $true }
+                    {$Input -is [String]} { return $true}
+                    Default {
+                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                            ([System.ArgumentException]"Invalid Type for Parameter"),
+                            'ParameterType.NotJiraProject',
+                            [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                            $Input
+                        )
+                        $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($Input.GetType().Name)"
+                        $PSCmdlet.ThrowTerminatingError($errorItem)
+                        <#
+                          #ToDo:CustomClass
+                          Once we have custom classes, this check can be done with Type declaration
+                        #>
+                    }
                 }
             }
         )]

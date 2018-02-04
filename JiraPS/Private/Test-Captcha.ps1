@@ -2,7 +2,7 @@ function Test-Captcha {
     [CmdletBinding()]
     param(
         # Response of Invoke-WebRequest
-        [Parameter( Mandatory, ValueFromPipeline )]
+        [Parameter( ValueFromPipeline )]
         [Microsoft.PowerShell.Commands.WebResponseObject]
         $InputObject
     )

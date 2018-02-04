@@ -116,7 +116,7 @@ function Remove-JiraGroupMember {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -InputObject $_group -Credential $Credential -ErrorAction Stop
+            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
             # $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop).Name
 
             foreach ($_user in $User) {

@@ -99,9 +99,8 @@ function Set-JiraIssue {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Checking to see if we have any operations to perform"
         $fieldNames = $Fields.Keys
-        if (-not ($Summary -or $Description -or $Assignee -or $Label -or $FixVersion -or $fieldNames)) {
+        if (-not ($Summary -or $Description -or $Assignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
             $errorMessage = @{
                 Category         = "InvalidArgument"
                 CategoryActivity = "Validating Arguments"
@@ -158,11 +157,11 @@ function Set-JiraIssue {
 
             if ($Summary) {
                 # Update properties need to be passed to JIRA as arrays
-                $issueProps.update.summary = @(@{ 'set' = $Summary })
+                $issueProps.update["summary"] = @(@{ 'set' = $Summary })
             }
 
             if ($Description) {
-                $issueProps.update.description = @(@{ 'set' = $Description })
+                $issueProps.update["description"] = @(@{ 'set' = $Description })
             }
 
             if ($FixVersion) {
@@ -172,7 +171,7 @@ function Set-JiraIssue {
             }
 
             if ($AddComment) {
-                $issueProps.update.comment = @(
+                $issueProps.update["comment"] = @(
                     @{
                         'add' = @{
                             'body' = $AddComment
@@ -186,16 +185,14 @@ function Set-JiraIssue {
                 foreach ($_key in $Fields.Keys) {
                     $name = $_key
                     $value = $Fields.$_key
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
 
                     $field = Get-JiraField -Field $name -Credential $Credential -ErrorAction Stop
 
                     # For some reason, this was coming through as a hashtable instead of a String,
                     # which was causing ConvertTo-Json to crash later.
                     # Not sure why, but this forces $id to be a String and not a hashtable.
-                    $id = $field.Id
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Field [$name] was identified as ID [$id]"
-                    $issueProps.update.$id = @(@{ 'set' = $value })
+                    $id = [string]$field.Id
+                    $issueProps.update[$id] = @(@{ 'set' = $value })
                 }
             }
 
@@ -211,7 +208,7 @@ function Set-JiraIssue {
                 $parameter = @{
                     URI        = $issueObj.RestUrl
                     Method     = "PUT"
-                    Body       = ConvertTo-Json -InputObject $issueProps -Depth 5
+                    Body       = ConvertTo-Json -InputObject $issueProps -Depth 10
                     Credential = $Credential
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

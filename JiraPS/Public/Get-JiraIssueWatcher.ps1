@@ -64,16 +64,18 @@
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        $parameter = @{
-            URI        = "{0}/watchers" -f $issueObj.RestURL
-            Method     = "GET"
-            Credential = $Credential
-        }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
+        foreach ($issue in $issueObj) {
+            $parameter = @{
+                URI        = "{0}/watchers" -f $issue.RestURL
+                Method     = "GET"
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraMethod @parameter
 
-        Write-Output $result.watchers
-        # TODO: are these users?
+            Write-Output $result.watchers
+            # TODO: are these users?
+        }
     }
 
     end {

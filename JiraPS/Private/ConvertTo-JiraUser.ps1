@@ -21,6 +21,7 @@ function ConvertTo-JiraUser {
                 'TimeZone'     = $i.timeZone
                 'Locale'       = $i.locale
                 'Groups'       = $i.groups.items
+                'RestUrl'      = $i.self
             }
 
             if ($i.groups) {
