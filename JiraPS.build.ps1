@@ -1,7 +1,6 @@
 [CmdletBinding()]
 param()
 
-$DebugPreference = "SilentlyContinue"
 $WarningPreference = "Continue"
 if ($PSBoundParameters.ContainsKey('Verbose')) {
     $VerbosePreference = "Continue"
@@ -69,37 +68,12 @@ task InstallPandoc -If (-not (Test-Path Tools\pandoc.exe)) {
 # endregion
 
 # region test
-task Test RapidTest
+task Test {
+    assert { Test-Path "Release/" -PathType Container }
 
-# Synopsis: Using the "Fast" Test Suit
-task RapidTest PesterTests
-# Synopsis: Using the complete Test Suit, which includes all supported Powershell versions
-task FullTest TestVersions
-
-# Synopsis: Warn about not empty git status if .git exists.
-task GitStatus -If (Test-Path .git) {
-    $status = exec { git status -s }
-    if ($status) {
-        Write-Warning "Git status: $($status -join ', ')"
-    }
-}
-
-task TestVersions TestPS3, TestPS4, TestPS4, TestPS5
-task TestPS3 {
-    exec {powershell.exe -Version 3 -NoProfile Invoke-Build PesterTests}
-}
-task TestPS4 {
-    exec {powershell.exe -Version 4 -NoProfile Invoke-Build PesterTests}
-}
-task TestPS5 {
-    exec {powershell.exe -Version 5 -NoProfile Invoke-Build PesterTests}
-}
-
-# Synopsis: Invoke Pester Tests
-task PesterTests {
-    # Ensure expected environment
+    Install-Module "Pester" -Scope CurrentUser
+    Install-Module "PSScriptAnalyzer" -Scope CurrentUser
     Remove-Module JiraPS -ErrorAction SilentlyContinue
-    $global:SuppressImportModule = $false
 
     try {
         $result = Invoke-Pester -PassThru -OutputFile "$BuildRoot\TestResult.xml" -OutputFormat "NUnitXml"
@@ -117,7 +91,7 @@ task PesterTests {
 
 # region build
 # Synopsis: Build shippable release
-task Build GenerateRelease, GenerateDocs, UpdateManifest
+task Build GenerateRelease, ConvertMarkdown, UpdateManifest
 
 # Synopsis: Generate .\Release structure
 task GenerateRelease {
@@ -169,17 +143,6 @@ task GetVersion {
     $newRevision
 }
 
-# Synopsis: Generate documentation
-task GenerateDocs GenerateMarkdown, ConvertMarkdown
-
-# Synopsis: Generate markdown documentation with platyPS
-task GenerateMarkdown {
-    Import-Module platyPS -Force
-    Import-Module "$releasePath\JiraPS\JiraPS.psd1" -Force
-    $null = New-MarkdownHelp -Module JiraPS -OutputFolder "$releasePath\JiraPS\docs" -Force
-    Remove-Module JiraPS, platyPS
-}
-
 # Synopsis: Convert markdown files to HTML.
 # <http://johnmacfarlane.net/pandoc/>
 $ConvertMarkdown = @{
@@ -198,28 +161,14 @@ task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
 # endregion
 
 # region publish
-task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) RemoveMarkdown, {
-    Remove-Module JiraPS -ErrorAction SilentlyContinue
-}, PublishToGallery
+task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) RemoveMarkdown, PublishToGallery
 
 task PublishToGallery {
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
 
+    Remove-Module JiraPS -ErrorAction SilentlyContinue
     Import-Module $releasePath\JiraPS\JiraPS.psd1 -ErrorAction Stop
     Publish-Module -Name JiraPS -NuGetApiKey $env:PSGalleryAPIKey
-}
-
-# Synopsis: Push with a version tag.
-task PushRelease GitStatus, GetVersion, {
-    # Done in appveyor.yml with deploy provider.
-    # This is needed, as I don't know how to athenticate (2-factor) in here.
-    exec { git checkout master }
-    $changes = exec { git status --short }
-    assert (!$changes) "Please, commit changes."
-
-    exec { git push }
-    exec { git tag -a "v$Version" -m "v$Version" }
-    exec { git push origin "v$Version" }
 }
 # endregion
 
@@ -241,4 +190,4 @@ task RemoveMarkdown -If { Get-ChildItem "$releasePath\JiraPS\*.md" -Recurse } {
 }
 # endregion
 
-task . ShowDebug, Test, Build, Deploy, Clean
+task . ShowDebug, Clean, Build, Test, Deploy
