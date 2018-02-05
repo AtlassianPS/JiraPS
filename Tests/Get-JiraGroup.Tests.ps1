@@ -1,15 +1,18 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraGroup" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $testGroupName = 'Test Group'
-    $testGroupNameEscaped = ConvertTo-URLEncoded $testGroupName
-    $testGroupSize = 1
+        . "$PSScriptRoot/Shared.ps1"
 
-    $restResult = @"
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $testGroupName = 'Test Group'
+        $testGroupNameEscaped = ConvertTo-URLEncoded $testGroupName
+        $testGroupSize = 1
+
+        $restResult = @"
 {
     "name": "$testGroupName",
     "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
@@ -23,8 +26,6 @@ InModuleScope JiraPS {
     "expand": "users"
 }
 "@
-
-    Describe "Get-JiraGroup" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

@@ -1,11 +1,14 @@
-﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+﻿Describe 'Get-JiraFilter' {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = "https://jira.example.com"
+    InModuleScope JiraPS {
 
-    $response = @'
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = "https://jira.example.com"
+
+        $response = @'
 {
     "self": "https://jira.atlassian.com/rest/api/latest/filter/12844",
     "id": "12844",
@@ -49,8 +52,6 @@ InModuleScope JiraPS {
     }
 }
 '@
-
-    Describe 'Get-JiraFilter' {
 
         Mock Get-JiraConfigServer {
             $jiraServer

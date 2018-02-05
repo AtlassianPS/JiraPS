@@ -1,11 +1,14 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraServerInformation" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $restResult = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $restResult = @"
 {
     "baseUrl":"$jiraServer",
     "version":"1000.1323.0",
@@ -18,8 +21,6 @@ InModuleScope JiraPS {
     "serverTitle":"JIRA"
 }
 "@
-
-    Describe "Get-JiraServerInformation" {
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }

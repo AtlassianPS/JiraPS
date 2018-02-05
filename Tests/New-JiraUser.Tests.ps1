@@ -1,16 +1,19 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "New-JiraUser" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $testUsername = 'powershell-test'
-    $testEmail = "$testUsername@example.com"
-    $testDisplayName = 'Test User'
+        . "$PSScriptRoot/Shared.ps1"
 
-    # Trimmed from this example JSON: expand, groups, avatarURL
-    $testJson = @"
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $testUsername = 'powershell-test'
+        $testEmail = "$testUsername@example.com"
+        $testDisplayName = 'Test User'
+
+        # Trimmed from this example JSON: expand, groups, avatarURL
+        $testJson = @"
 {
     "self": "$jiraServer/rest/api/2/user?username=testUser",
     "key": "$testUsername",
@@ -20,8 +23,6 @@ InModuleScope JiraPS {
     "active": true
 }
 "@
-
-    Describe "New-JiraUser" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

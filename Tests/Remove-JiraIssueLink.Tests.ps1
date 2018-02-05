@@ -1,14 +1,17 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Remove-JiraIssueLink" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $issueLinkId = 1234
+        . "$PSScriptRoot/Shared.ps1"
 
-    # We don't care about anything except for the id
-    $resultsJson = @"
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $issueLinkId = 1234
+
+        # We don't care about anything except for the id
+        $resultsJson = @"
 {
     "id": "$issueLinkId",
     "self": "",
@@ -18,7 +21,6 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Remove-JiraIssueLink" {
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }

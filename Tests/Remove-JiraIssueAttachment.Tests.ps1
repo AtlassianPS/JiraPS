@@ -1,16 +1,18 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Remove-JiraIssueAttachment" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueKey = "FOO-123"
-    $attachmentId1 = 1010
-    $attachmentId2 = 1011
-    $attachmentFile1 = 'foo.png'
-    $attachmentFile2 = 'bar.zip'
+    InModuleScope JiraPS {
 
-    Describe "Remove-JiraIssueAttachment" {
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueKey = "FOO-123"
+        $attachmentId1 = 1010
+        $attachmentId2 = 1011
+        $attachmentFile1 = 'foo.png'
+        $attachmentFile2 = 'bar.zip'
+
 
         #region Mock
         Mock Get-JiraConfigServer -ModuleName JiraPS {

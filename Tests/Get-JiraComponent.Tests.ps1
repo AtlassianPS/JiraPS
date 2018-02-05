@@ -1,20 +1,23 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraComponent" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $projectKey = 'TEST'
-    $projectId = '10004'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $componentId = '10001'
-    $componentName = 'Component 1'
-    $componentId2 = '10002'
-    $componentName2 = 'Component 2'
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $projectKey = 'TEST'
+        $projectId = '10004'
+
+        $componentId = '10001'
+        $componentName = 'Component 1'
+        $componentId2 = '10002'
+        $componentName2 = 'Component 2'
 
 
-    $restResultAll = @"
+        $restResultAll = @"
 [
     {
         "self": "$jiraServer/rest/api/2/component/$componentId",
@@ -33,7 +36,7 @@ InModuleScope JiraPS {
 ]
 "@
 
-    $restResultOne = @"
+        $restResultOne = @"
 [
     {
         "self": "$jiraServer/rest/api/2/component/$componentId",
@@ -44,8 +47,6 @@ InModuleScope JiraPS {
     }
 ]
 "@
-
-    Describe "Get-JiraComponent" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

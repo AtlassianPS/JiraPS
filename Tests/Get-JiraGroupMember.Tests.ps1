@@ -1,9 +1,10 @@
-﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+﻿Describe "Get-JiraGroupMember" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    Describe "Get-JiraGroupMember" {
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         Mock Get-JiraConfigServer {
             'https://jira.example.com'

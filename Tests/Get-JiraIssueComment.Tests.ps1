@@ -1,9 +1,11 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraIssueComment" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    Describe "Get-JiraIssueComment" {
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
+
 
         $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701

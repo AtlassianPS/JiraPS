@@ -1,13 +1,16 @@
-﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+﻿Describe "Get-JiraIssue" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = "https://jira.example.com"
+    InModuleScope JiraPS {
 
-    $jql = 'reporter in (testuser)'
-    $jqlEscaped = ConvertTo-URLEncoded $jql
-    $response = @'
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = "https://jira.example.com"
+
+        $jql = 'reporter in (testuser)'
+        $jqlEscaped = ConvertTo-URLEncoded $jql
+        $response = @'
 {
     "expand": "schema,names",
     "startAt": 0,
@@ -24,7 +27,6 @@ InModuleScope JiraPS {
 }
 '@
 
-    Describe "Get-JiraIssue" {
         Mock Get-JiraConfigServer {
             $jiraServer
         }

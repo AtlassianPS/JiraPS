@@ -1,11 +1,14 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraPriority" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $restResultAll = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $restResultAll = @"
 [
     {
         "self": "$jiraServer/rest/api/2/priority/1",
@@ -45,7 +48,7 @@ InModuleScope JiraPS {
 ]
 "@
 
-    $restResultOne = @"
+        $restResultOne = @"
 {
     "self": "$jiraServer/rest/api/2/priority/1",
     "statusColor": "#cc0000",
@@ -54,8 +57,6 @@ InModuleScope JiraPS {
     "id": "1"
 }
 "@
-
-    Describe "Get-JiraPriority" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

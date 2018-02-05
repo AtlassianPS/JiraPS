@@ -1,13 +1,16 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Remove-JiraRemoteLink" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $testIssueKey = 'EX-1'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $testLink = @"
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $testIssueKey = 'EX-1'
+
+        $testLink = @"
 {
     "id": 10000,
     "self": "http://www.example.com/jira/rest/api/issue/MKY-1/remotelink/10000",
@@ -28,8 +31,6 @@ InModuleScope JiraPS {
     }
 }
 "@
-
-    Describe "Remove-JiraRemoteLink" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

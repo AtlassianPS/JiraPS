@@ -1,18 +1,18 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe 'Add-JiraIssueLink' {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $issueKey = "TEST-01"
-    $issueLink = [PSCustomObject]@{
-        outwardIssue = [PSCustomObject]@{key = "TEST-10"}
-        type         = [PSCustomObject]@{name = "Composition"}
-    }
+        . "$PSScriptRoot/Shared.ps1"
 
+        $jiraServer = 'http://jiraserver.example.com'
 
-    Describe 'Add-JiraIssueLink' {
+        $issueKey = "TEST-01"
+        $issueLink = [PSCustomObject]@{
+            outwardIssue = [PSCustomObject]@{key = "TEST-10"}
+            type         = [PSCustomObject]@{name = "Composition"}
+        }
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

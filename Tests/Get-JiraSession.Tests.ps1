@@ -1,9 +1,11 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraSession" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    Describe "Get-JiraSession" {
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
+
         It "Obtains a saved JiraPS.Session object from module PrivateData" {
             # I don't know how to test this, since I can't access module PrivateData from Pester.
             # The tests for New-JiraSession use this function to validate that they work, so if

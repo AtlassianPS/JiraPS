@@ -1,17 +1,20 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraUser" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $testUsername = 'powershell-test'
-    $testEmail = "$testUsername@example.com"
+        . "$PSScriptRoot/Shared.ps1"
 
-    $testGroup1 = 'testGroup1'
-    $testGroup2 = 'testGroup2'
+        $jiraServer = 'http://jiraserver.example.com'
 
-    $restResult = @"
+        $testUsername = 'powershell-test'
+        $testEmail = "$testUsername@example.com"
+
+        $testGroup1 = 'testGroup1'
+        $testGroup2 = 'testGroup2'
+
+        $restResult = @"
 [
     {
         "self": "$jiraServer/rest/api/2/user?username=$testUsername",
@@ -24,8 +27,8 @@ InModuleScope JiraPS {
 ]
 "@
 
-    # Removed from JSON: avatarUrls, timeZone
-    $restResult2 = @"
+        # Removed from JSON: avatarUrls, timeZone
+        $restResult2 = @"
 {
     "self": "$jiraServer/rest/api/2/user?username=$testUsername",
     "key": "$testUsername",
@@ -49,8 +52,6 @@ InModuleScope JiraPS {
     "expand": "groups"
 }
 "@
-
-    Describe "Get-JiraUser" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
