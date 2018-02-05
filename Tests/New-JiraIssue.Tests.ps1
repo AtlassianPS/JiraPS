@@ -1,9 +1,11 @@
-﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+﻿Describe "New-JiraIssue" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    Describe "New-JiraIssue" {
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
+
 
         $jiraServer = 'https://jira.example.com'
 

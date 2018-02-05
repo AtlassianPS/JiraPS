@@ -1,19 +1,22 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraVersion" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $versionName1 = '1.0.0.0'
-    $versionName2 = '2.0.0.0'
-    $versionName3 = '3.0.0.0'
-    $versionID1 = 16740
-    $versionID2 = 16840
-    $versionID3 = 16940
-    $projectKey = 'LDD'
-    $projectId = '12101'
+    InModuleScope JiraPS {
 
-    $JiraProjectData = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $versionName1 = '1.0.0.0'
+        $versionName2 = '2.0.0.0'
+        $versionName3 = '3.0.0.0'
+        $versionID1 = 16740
+        $versionID2 = 16840
+        $versionID3 = 16940
+        $projectKey = 'LDD'
+        $projectId = '12101'
+
+        $JiraProjectData = @"
 [
     {
         "Key" : "$projectKey",
@@ -25,7 +28,7 @@ InModuleScope JiraPS {
     }
 ]
 "@
-    $testJson1 = @"
+        $testJson1 = @"
 {
     "self" : "$jiraServer/rest/api/latest/version/$versionID1",
     "id" : $versionID1,
@@ -36,7 +39,7 @@ InModuleScope JiraPS {
     "projectId" : "$projectId"
 }
 "@
-    $testJson2 = @"
+        $testJson2 = @"
 {
     "self" : "$jiraServer/rest/api/latest/version/$versionID2",
     "id" : $versionID2,
@@ -47,7 +50,7 @@ InModuleScope JiraPS {
     "projectId" : "$projectId"
 }
 "@
-    $testJsonAll = @"
+        $testJsonAll = @"
 [
     {
         "self" : "$jiraServer/rest/api/latest/version/$versionID1",
@@ -79,7 +82,6 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Get-JiraVersion" {
         #region Mock
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
@@ -152,8 +154,8 @@ InModuleScope JiraPS {
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
             }
             It "gets a Version using the pipeline from another Version" {
-                $version1 =  ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2)})
-                $version2 =  ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2); project = "lorem"})
+                $version1 = ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2)})
+                $version2 = ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2); project = "lorem"})
                 $results1 = ($version1 | Get-JiraVersion)
                 $results2 = ($version1 | Get-JiraVersion)
                 $results1 | Should Not BeNullOrEmpty

@@ -1,23 +1,23 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+param()
+
+Describe "New-JiraSession" {
+
 Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $authUri = "$jiraServer/rest/api/*/mypermissions"
+        . "$PSScriptRoot/Shared.ps1"
 
-    $testUsername = 'powershell-test'
-    $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
-    $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername, $testPassword
+        $jiraServer = 'http://jiraserver.example.com'
+        $authUri = "$jiraServer/rest/api/*/mypermissions"
 
+        $testUsername = 'powershell-test'
+        $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
+        $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername, $testPassword
 
-    $testJson = @"
-    {
-    }
-"@
-    $global:newSessionVar = @{}
-    Describe "New-JiraSession" {
+        $testJson = "{}"
+        $global:newSessionVar = @{}
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

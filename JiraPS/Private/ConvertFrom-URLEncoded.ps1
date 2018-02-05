@@ -7,13 +7,15 @@ function ConvertFrom-URLEncoded {
     [OutputType([String])]
     param (
         # String to decode
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline )]
-        [String]
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [String[]]
         $InputString
     )
 
     process {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Decoding string from URL"
-        Write-Output ([System.Web.HttpUtility]::UrlDecode($InputString))
+        @($InputString).ForEach( {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Decoding string from URL"
+                [System.Web.HttpUtility]::UrlDecode($_)
+            })
     }
 }

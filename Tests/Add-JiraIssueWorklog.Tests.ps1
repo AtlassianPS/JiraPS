@@ -1,17 +1,20 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Add-JiraIssueWorklog" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $jiraUsername = 'powershell-test'
-    $jiraUserDisplayName = 'PowerShell Test User'
-    $jiraUserEmail = 'noreply@example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
-    $worklogitemID = 73040
+    InModuleScope JiraPS {
 
-    $restResponse = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $jiraUsername = 'powershell-test'
+        $jiraUserDisplayName = 'PowerShell Test User'
+        $jiraUserEmail = 'noreply@example.com'
+        $issueID = 41701
+        $issueKey = 'IT-3676'
+        $worklogitemID = 73040
+
+        $restResponse = @"
 {
     "id": "$worklogitemID",
     "self": "$jiraServer/rest/api/latest/issue/$issueID/worklog/$worklogitemID",
@@ -49,8 +52,6 @@ InModuleScope JiraPS {
     }
 }
 "@
-
-    Describe "Add-JiraIssueWorklog" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

@@ -1,9 +1,11 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Format-Jira" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    Describe "Format-Jira" {
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
+
         $n = [System.Environment]::NewLine
         $obj = [PSCustomObject] @{
             A = '123'

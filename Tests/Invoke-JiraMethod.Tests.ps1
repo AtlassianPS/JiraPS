@@ -1,11 +1,13 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Invoke-JiraMethod" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $validMethods = @('GET', 'POST', 'PUT', 'DELETE')
+    InModuleScope JiraPS {
 
-    Describe "Invoke-JiraMethod" {
+        . "$PSScriptRoot/Shared.ps1"
+
+        $validMethods = @('GET', 'POST', 'PUT', 'DELETE')
+
 
         Context "Sanity checking" {
             $command = Get-Command -Name Invoke-JiraMethod

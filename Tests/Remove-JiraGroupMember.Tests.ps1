@@ -1,15 +1,16 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Remove-JiraGroupMember" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $testGroupName = 'testGroup'
-    $testUsername1 = 'testUsername1'
-    $testUsername2 = 'testUsername2'
+        . "$PSScriptRoot/Shared.ps1"
 
-    Describe "Remove-JiraGroupMember" {
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $testGroupName = 'testGroup'
+        $testUsername1 = 'testUsername1'
+        $testUsername2 = 'testUsername2'
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

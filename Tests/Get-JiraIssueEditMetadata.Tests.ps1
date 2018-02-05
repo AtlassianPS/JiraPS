@@ -1,13 +1,16 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraIssueEditMetadata" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = "https://jira.example.com"
-    $issueID = 41701
-    $issueKey = 'IT-3676'
+    InModuleScope JiraPS {
 
-    $restResult = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = "https://jira.example.com"
+        $issueID = 41701
+        $issueKey = 'IT-3676'
+
+        $restResult = @"
 {
     "fields": {
         "summary": {
@@ -164,8 +167,6 @@ InModuleScope JiraPS {
     }
 }
 "@
-
-    Describe "Get-JiraIssueEditMetadata" {
 
         Mock Get-JiraConfigServer {
             $jiraServer

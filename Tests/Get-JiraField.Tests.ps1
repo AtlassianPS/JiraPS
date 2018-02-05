@@ -1,12 +1,15 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraField" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    # In my Jira instance, this returns 34 objects. I've stripped it down quite a bit for testing.
-    $restResult = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+
+        # In my Jira instance, this returns 34 objects. I've stripped it down quite a bit for testing.
+        $restResult = @"
 [
     {
         "id": "issuetype",
@@ -131,8 +134,6 @@ InModuleScope JiraPS {
     }
 ]
 "@
-
-    Describe "Get-JiraField" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

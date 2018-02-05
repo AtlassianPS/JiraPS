@@ -1,11 +1,14 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraIssueCreateMetadata" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'https://jira.example.com'
+    InModuleScope JiraPS {
 
-    $restResult = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'https://jira.example.com'
+
+        $restResult = @"
 {
     "expand": "projects",
     "projects": [{
@@ -178,8 +181,6 @@ InModuleScope JiraPS {
     }]
 }
 "@
-
-    Describe "Get-JiraIssueCreateMetadata" {
 
         Mock Get-JiraConfigServer {
             $jiraserver

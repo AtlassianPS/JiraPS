@@ -1,13 +1,16 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Add-JiraIssueComment" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
+    InModuleScope JiraPS {
 
-    $restResponse = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueID = 41701
+        $issueKey = 'IT-3676'
+
+        $restResponse = @"
 {
     "self": "$jiraServer/rest/api/2/issue/$issueID/comment/90730",
     "id": "90730",
@@ -16,8 +19,6 @@ InModuleScope JiraPS {
     "updated": "2015-05-01T16:24:38.000-0500"
 }
 "@
-
-    Describe "Add-JiraIssueComment" {
 
         Mock Get-JiraConfigServer {
             Write-Output $jiraServer

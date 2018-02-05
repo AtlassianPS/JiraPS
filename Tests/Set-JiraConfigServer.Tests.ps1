@@ -1,11 +1,12 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Set-JiraConfigServer" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    Describe "Set-JiraConfigServer" {
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
 
         $configFile = Join-Path -Path $TestDrive -ChildPath 'config.xml'
         Set-JiraConfigServer -Server $jiraServer -ConfigFile $configFile

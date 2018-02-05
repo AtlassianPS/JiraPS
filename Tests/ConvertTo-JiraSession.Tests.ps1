@@ -1,9 +1,10 @@
-﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+﻿Describe "ConvertTo-JiraSession" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    Describe "ConvertTo-JiraSession" {
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         $sampleUsername = 'powershell-test'
         $sampleSession = @{}

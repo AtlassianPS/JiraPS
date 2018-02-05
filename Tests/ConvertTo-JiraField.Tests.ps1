@@ -1,9 +1,10 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "ConvertTo-JiraField" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    Describe "ConvertTo-JiraField" {
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         $sampleJson = '{"id":"issuetype","name":"Issue Type","custom":false,"orderable":true,"navigable":true,"searchable":true,"clauseNames":["issuetype","type"],"schema":{"type":"issuetype","system":"issuetype"}}'
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson

@@ -1,14 +1,17 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraIssueType" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $issueTypeId = 2
-    $issueTypeName = 'Desktop Support'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $restResult = @"
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $issueTypeId = 2
+        $issueTypeName = 'Desktop Support'
+
+        $restResult = @"
 [
     {
         "self": "$jiraServer/rest/api/latest/issuetype/12",
@@ -76,8 +79,6 @@ InModuleScope JiraPS {
     }
 ]
 "@
-
-    Describe "Get-JiraIssueType" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

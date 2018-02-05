@@ -1,16 +1,19 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraVersion" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $versionName = '$versionName'
-    $versionID1 = 16840
-    $versionID2 = 16940
-    $projectKey = 'LDD'
-    $projectId = '12101'
+    InModuleScope JiraPS {
 
-    $JiraProjectData = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $versionName = '$versionName'
+        $versionID1 = 16840
+        $versionID2 = 16940
+        $projectKey = 'LDD'
+        $projectId = '12101'
+
+        $JiraProjectData = @"
 [
     {
         "Key" : "$projectKey",
@@ -22,7 +25,7 @@ InModuleScope JiraPS {
     }
 ]
 "@
-    $testJsonOne = @"
+        $testJsonOne = @"
     {
         "self" : "$jiraServer/rest/api/latest/version/$versionID1",
         "id" : $versionID1,
@@ -33,7 +36,7 @@ InModuleScope JiraPS {
         "projectId" : "$projectId"
     }
 "@
-    $testJsonAll = @"
+        $testJsonAll = @"
 [
     {
         "self" : "$jiraServer/rest/api/latest/version/$versionID1",
@@ -65,7 +68,6 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Get-JiraVersion" {
         #region Mock
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

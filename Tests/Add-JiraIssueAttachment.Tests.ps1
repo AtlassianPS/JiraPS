@@ -1,17 +1,24 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+param()
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+Describe "Add-JiraIssueAttachment" {
 
-    $pass = ConvertTo-SecureString -AsPlainText -Force -String "passowrd"
-    $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("user", $pass)
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueKey = "FOO-1234"
-    $fileName = "test.txt"
-    $filePath = "$PSScriptRoot\$fileName"
-    $attachmentId = 10010
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $attachmentJson = @"
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
+
+        $pass = ConvertTo-SecureString -AsPlainText -Force -String "passowrd"
+        $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("user", $pass)
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueKey = "FOO-1234"
+        $file = New-Item -Path "TestDrive:\MyFile.txt" -ItemType File -Force
+        $fileName = $file.Name
+        $filePath = $file.FullName
+        $attachmentId = 10010
+
+        $attachmentJson = @"
 {
     "self": "$jiraServer/rest/api/2/attachment/$attachmentId",
     "id": "$attachmentId",
@@ -34,9 +41,7 @@ InModuleScope JiraPS {
 }
 "@
 
-    Set-Content $filePath -value "my test text."
-
-    Describe "Add-JiraIssueAttachment" {
+        Set-Content $filePath -value "my test text."
 
         #region Mock
         Mock ConvertTo-JiraAttachment -ModuleName JiraPS {

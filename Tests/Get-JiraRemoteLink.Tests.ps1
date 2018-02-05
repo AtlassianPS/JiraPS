@@ -1,13 +1,16 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraRemoteLink" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'https://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $issueKey = 'MKY-1'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $restResult = @"
+        $jiraServer = 'https://jiraserver.example.com'
+
+        $issueKey = 'MKY-1'
+
+        $restResult = @"
 {
     "id": 10000,
     "self": "$jiraServer/rest/api/latest/issue/MKY-1/remotelink/10000",
@@ -28,8 +31,6 @@ InModuleScope JiraPS {
     }
 }
 "@
-
-    Describe "Get-JiraRemoteLink" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer

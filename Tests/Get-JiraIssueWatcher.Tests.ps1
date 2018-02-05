@@ -1,13 +1,15 @@
-﻿Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+﻿Describe "Get-JiraIssueWatcher" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'https://jiraserver.example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
+    InModuleScope JiraPS {
 
-    Describe "Get-JiraIssueWatcher" {
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'https://jiraserver.example.com'
+        $issueID = 41701
+        $issueKey = 'IT-3676'
+
 
         ## Sample straight from the API:
         ##    https://docs.atlassian.com/jira/REST/cloud/#api/2/issue-getIssueWatchers

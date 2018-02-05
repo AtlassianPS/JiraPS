@@ -1,13 +1,16 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Get-JiraIssueAttachment" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
+    InModuleScope JiraPS {
 
-    $attachments = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueID = 41701
+        $issueKey = 'IT-3676'
+
+        $attachments = @"
 [
     {
         "self": "$jiraServer/rest/api/2/attachment/10013",
@@ -51,8 +54,6 @@ InModuleScope JiraPS {
     }
 ]
 "@
-
-    Describe "Get-JiraIssueAttachment" {
 
         Mock Get-JiraIssue -ModuleName JiraPS {
             $IssueObj = [PSCustomObject]@{

@@ -1,16 +1,17 @@
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Add-JiraGroupMember" {
 
-InModuleScope JiraPS {
-    . "$PSScriptRoot/Shared.ps1"
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    # In most test cases, user 1 is a member of the group and user 2 is not
-    $testGroupName = 'testGroup'
-    $testUsername1 = 'testUsername1'
-    $testUsername2 = 'testUsername2'
+        . "$PSScriptRoot/Shared.ps1"
 
-    Describe "Add-JiraGroupMember" {
+        $jiraServer = 'http://jiraserver.example.com'
+
+        # In most test cases, user 1 is a member of the group and user 2 is not
+        $testGroupName = 'testGroup'
+        $testUsername1 = 'testUsername1'
+        $testUsername2 = 'testUsername2'
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
