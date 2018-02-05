@@ -27,15 +27,14 @@ pull_requests:
   do_not_increment_build_number: true
 
 init:
+    - git config --global core.autocrlf true
     - git config --global credential.helper store
     - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
     - git config --global user.email "support@atlassianps.org"
     - git config --global user.name "AtlassianPS automation"
 
 install:
-    - cmd: git config --global core.autocrlf true
-    - cmd: git checkout %APPVEYOR_REPO_BRANCH%
-    - cmd: powershell -File ./Tools/setup.ps1
+    - powershell -File "./Tools/setup.ps1"
 
 before_build:
     - ps: Invoke-Build -Task ShowDebug
