@@ -1,20 +1,8 @@
-############################################################
-#
-# See http://www.appveyor.com/docs/appveyor-yml for many more options
-#
-# Credit for a lot of this file goes to RamblingCookieMonster:
-# https://github.com/RamblingCookieMonster/PSSQLite/blob/master/appveyor.yml
-#
-############################################################
-
-# This tells AppVeyor that we need WMF 5 and PowerShell 5.0
-os: WMF 5
-
 environment:
-    # To encrypt a value in AppVeyor, go to the Account menu and choose "Encrypt data"
     PSGalleryAPIKey:
         secure: Ezd2JjB6rbNZOiJmcek2bZSSdXB34fjoC6JXdXcICf6KZGoBOIRZAG9KfHAYiMa7
         # Must be updated to use contact@AtlassianPS.net user
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
 version: 2.4.{build}
 
@@ -28,35 +16,32 @@ skip_commits:
     files:
         - .github/
         - .vscode/
-        - assets/
-        - docs/
-        - Tools/
         - README.md
         - .gitattributes
         - .gitignore
+        - .env*
 
 # PRs, by definition, don't change anything and therefore should not increment the version
 # To be fair, this is not important, and is really just AppVeyor enabling my pedantry
 pull_requests:
   do_not_increment_build_number: true
 
+init:
+    - git config --global credential.helper store
+    - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+    - git config --global user.email "support@atlassianps.org"
+    - git config --global user.name "AtlassianPS automation"
+
 install:
     - cmd: git config --global core.autocrlf true
-    - cmd: npm install -g markdown-spellcheck
-    - ps: |
-        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
-        Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force | Out-Null
-        Install-Module BuildHelpers -Scope CurrentUser -Force | Out-Null
-        $env:releasePath = "$($pwd.Path)\Release"
+    - cmd: git checkout %APPVEYOR_REPO_BRANCH%
+    - cmd: powershell -File ./Tools/setup.ps1
 
 before_build:
     - ps: Invoke-Build -Task ShowDebug
 
 build_script:
     - ps: Invoke-Build -Task Build
-
-# after_build:
-    # - cmd: mdspell %releasePath%\**/*.md --ignore-numbers --ignore-acronyms --report
 
 test_script:
     - ps: Invoke-Build -Task Test
@@ -70,6 +55,7 @@ deploy:
     description: ''
     auth_token:
         secure: ekVji7s19g/3zxpVQMX9gG1CldaXdOudCdY8a057AwcK5HyKZC0lFBE1Ou9iwBpu
+    # artifact: /Release/JiraPS.zip
     draft: false
     prerelease: false
     on:
