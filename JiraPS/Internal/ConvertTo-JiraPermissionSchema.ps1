@@ -1,4 +1,4 @@
-function ConvertTo-JiraPermissionScheme {
+function ConvertTo-JiraPermissionSchema {
     [CmdletBinding()]
     param(
         [Parameter(
@@ -10,8 +10,8 @@ function ConvertTo-JiraPermissionScheme {
     )
 
     process {
-        If ($InputObject.permissionSchemes) {
-            $InputObject = $InputObject | Select-Object -ExpandProperty permissionSchemes
+        If ($InputObject.permissionSchemas) {
+            $InputObject = $InputObject | Select-Object -ExpandProperty permissionSchemas
         }
         foreach ($i in $InputObject) {
             $props = @{
@@ -35,20 +35,20 @@ function ConvertTo-JiraPermissionScheme {
                         }
                     }
                     $parentObject.Holder = $childObject
-                    $parentObject.PSObject.TypeNames.Insert(0, 'JiraPS.JiraPermissionSchemeProperty')
+                    $parentObject.PSObject.TypeNames.Insert(0, 'JiraPS.JiraPermissionSchemaProperty')
                     $permissionObject += $parentObject
 
                 }
-                $props.PermissionScheme = $permissionObject
+                $props.PermissionSchema = $permissionObject
             }
             $result = New-Object -TypeName PSObject -Property $props
 
-            If ($result.PermissionScheme) {
-                $result.PermissionScheme | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                    Write-Output "JiraPS.JiraPermissionSchemeProperty"
+            If ($result.PermissionSchema) {
+                $result.PermissionSchema | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
+                    Write-Output "JiraPS.JiraPermissionSchemaProperty"
                 }
             }
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.JiraPermissionScheme')
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.JiraPermissionSchema')
             Write-Output $result
         }
     }

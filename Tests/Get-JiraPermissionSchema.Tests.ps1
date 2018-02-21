@@ -8,17 +8,17 @@ InModuleScope JiraPS {
 
     $jiraServer = 'http://jiraserver.example.com'
 
-    $description1 = 'AP_Permission_Scheme'
+    $description1 = 'AP_Permission_Schema'
     $Name1 = 'AP'
     $ID1 = 13241
 
-    $description2 = 'PM_Permission_Scheme'
+    $description2 = 'PM_Permission_Schema'
     $Name2 = 'PM'
     $ID2 = 17243
 
     $restResultAll = @"
     {
-        "permissionSchemes":  [
+        "permissionSchemas":  [
                                   {
                                       "expand":  "permissions,user,group,projectRole,field,all",
                                       "id":  "$ID1",
@@ -37,7 +37,7 @@ InModuleScope JiraPS {
 
     $restResultOne = @"
     {
-        "permissionSchemes":  [
+        "permissionSchemas":  [
                                     {
                                         "expand":  "permissions,user,group,projectRole,field,all",
                                         "id":  "$ID1",
@@ -50,7 +50,7 @@ InModuleScope JiraPS {
 
     $restResultTwo = @"
     {
-        "permissionSchemes":  [
+        "permissionSchemas":  [
                                     {
                                         "id":  "$ID2",
                                         "name":  "$Name2",
@@ -71,18 +71,18 @@ InModuleScope JiraPS {
     }
 "@
 
-    Describe "Get-JiraPermissionScheme" {
+    Describe "Get-JiraPermissionSchema" {
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/permissionscheme"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/permissionSchema"} {
             $restResultAll | ConvertFrom-Json2
         }
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/permissionscheme/$ID1"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/permissionSchema/$ID1"} {
             $restResultOne | ConvertFrom-Json2
         }
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/permissionscheme/17243?expand=all"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/permissionSchema/17243?expand=all"} {
             $restResultTwo | ConvertFrom-Json2
         }
 
@@ -96,21 +96,21 @@ InModuleScope JiraPS {
         }
 
         # Tests
-        It "Returns all schemes if called with no parameters" {
-            $allResults = Get-JiraPermissionScheme
+        It "Returns all Schemas if called with no parameters" {
+            $allResults = Get-JiraPermissionSchema
             $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be ($restResultAll | ConvertFrom-Json2).PermissionSchemes.count
+            @($allResults).Count | Should Be ($restResultAll | ConvertFrom-Json2).PermissionSchemas.count
         }
 
-        It "Returns a specific scheme if the ID is supplied" {
-            $oneResult = Get-JiraPermissionScheme -Id $ID1
+        It "Returns a specific Schema if the ID is supplied" {
+            $oneResult = Get-JiraPermissionSchema -Id $ID1
             $oneResult | Should Not BeNullOrEmpty
             $oneResult.ID | Should be $ID1
         }
 
-        It "Returns a permission scheme object if expand switch is provided" {
-            $twoResult = Get-JiraPermissionScheme -Id $ID2 -Expand
-            $twoResult.PermissionScheme | Should Not BeNullOrEmpty
+        It "Returns a permission Schema object if expand switch is provided" {
+            $twoResult = Get-JiraPermissionSchema -Id $ID2 -Expand
+            $twoResult.PermissionSchema | Should Not BeNullOrEmpty
         }
     }
 }

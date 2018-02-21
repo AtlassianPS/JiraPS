@@ -1,13 +1,13 @@
-function Remove-JiraPermissionScheme {
+function Remove-JiraPermissionSchema {
     <#
     .Synopsis
-        Removes a permission scheme
+        Removes a permission Schema
     .DESCRIPTION
-       Remove permission scheme from Jira
+       Remove permission Schema from Jira
     .EXAMPLE
-       Remove-JiraPermissionScheme -Name 'My New Permission Scheme'
+       Remove-JiraPermissionSchema -Name 'My New Permission Schema'
     .EXAMPLE
-        Remove-JiraPermissionScheme -ID 10101
+        Remove-JiraPermissionSchema -ID 10101
     .INPUTS
 
     .OUTPUTS
@@ -15,14 +15,14 @@ function Remove-JiraPermissionScheme {
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
-        # ID of the permission scheme
+        # ID of the permission Schema
         [Parameter(Mandatory = $true,
             ParameterSetName = 'ByID'
         )]
         [int]
         $ID,
 
-        # Name of the permission scheme
+        # Name of the permission Schema
         [Parameter(Mandatory = $true,
             ParameterSetName = 'ByName'
         )]
@@ -37,19 +37,19 @@ function Remove-JiraPermissionScheme {
 
     begin {
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        $restUri = "$server/rest/api/2/permissionscheme"
+        $restUri = "$server/rest/api/2/permissionSchema"
     }
 
     process {
         If ($PSCmdlet.ParameterSetName -eq 'ByName') {
-            $ID = Get-JiraPermissionScheme | Where-Object {$PSitem.Name } | Select-Object -ExpandProperty ID
+            $ID = Get-JiraPermissionSchema | Where-Object {$PSitem.Name } | Select-Object -ExpandProperty ID
         }
         If ($ID) {
             $restUri = '{0}/{1}' -f $restUri, $ID
         }
         $results = Invoke-JiraMethod -Method DELETE -URI $restUri -Credential $Credential
         If ($results) {
-            ($results | ConvertTo-JiraPermissionScheme)
+            ($results | ConvertTo-JiraPermissionSchema)
         }
         else {
             Write-Verbose "JIRA returned no results."
