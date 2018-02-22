@@ -105,7 +105,7 @@ function Add-JiraIssueWorklog {
 
         $requestBody = @{
             'comment'   = $Comment
-            'started'   = $DateStarted.ToString()
+            'started'   = $DateStarted.ToString("o")
             'timeSpent' = $TimeSpent.TotalSeconds.ToString()
         }
 
