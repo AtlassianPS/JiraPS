@@ -41,7 +41,7 @@ function Get-JiraProject {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/project{0}"
+        $resourceURi = "$server/rest/api/latest/project{0}?expand=description,lead,issueTypes,url,projectKeys"
     }
 
     process {
@@ -66,7 +66,7 @@ function Get-JiraProject {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f "/$($_project)?expand=projectKeys"
+                        URI        = $resourceURi -f "/$($_project)"
                         Method     = "GET"
                         Credential = $Credential
                     }

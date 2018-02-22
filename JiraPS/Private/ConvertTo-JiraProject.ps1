@@ -15,7 +15,8 @@ function ConvertTo-JiraProject {
                 'Key'         = $i.key
                 'Name'        = $i.name
                 'Description' = $i.description
-                'IssueTypes'  = $i.issueTypes
+                'Lead'        = ConvertTo-JiraUser $i.lead
+                'IssueTypes'  = ConvertTo-JiraIssueType $i.issueTypes
                 'Roles'       = $i.roles
                 'RestUrl'     = $i.self
                 'Components'  = $i.components
