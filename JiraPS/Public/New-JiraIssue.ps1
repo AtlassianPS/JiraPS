@@ -122,12 +122,16 @@ function New-JiraIssue {
 
         if ($Labels) {
             $requestBody["labels"] = [System.Collections.ArrayList]@()
-            $null = @($Labels).foreach( { $requestBody["labels"].Add($_) } )
+            foreach ($item in $Labels) {
+                $null = $requestBody["labels"].Add($_item)
+            }
         }
 
         if ($FixVersion) {
             $requestBody['fixVersions'] = [System.Collections.ArrayList]@()
-            $null = @($FixVersion).foreach( { $requestBody["fixVersions"].Add( @{ name = "$_" } ) } )
+            foreach ($item in $FixVersion) {
+                $null = $requestBody["fixVersions"].Add( @{ name = "$item" } )
+            }
         }
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"

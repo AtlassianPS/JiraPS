@@ -130,9 +130,9 @@
                     }
                     if ($Remove) {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Removing labels"
-                        @($Remove).ForEach(
-                            { $labels.Remove($_) }
-                        )
+                        foreach ($item in $Remote) {
+                            $labels.Remove($item)
+                        }
                     }
                 }
             }
