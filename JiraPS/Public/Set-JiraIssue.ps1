@@ -166,7 +166,9 @@ function Set-JiraIssue {
 
             if ($FixVersion) {
                 $fixVersionSet = [System.Collections.ArrayList]@()
-                $null = @($FixVersion).foreach( { $fixVersionSet.Add( @{ 'name' = $_ } ) } )
+                foreach ($item in $FixVersion) {
+                    $null = $fixVersionSet.Add( @{ 'name' = $item } )
+                }
                 $issueProps.update["fixVersions"] = @( @{ set = $fixVersionSet } )
             }
 
