@@ -8,13 +8,13 @@ InModuleScope JiraPS {
 
     $jiraServer = 'http://jiraserver.example.com'
 
-    $description2 = 'PM_Permission_Schema'
+    $description2 = 'PM_Permission_Scheme'
     $name2 = 'PM'
     $id2 = 17243
 
     $inputObject = @"
     {
-        "permissionSchemas":  [
+        "permissionSchemes":  [
                                     {
                                         "id":  "$ID2",
                                         "name":  "$Name2",
@@ -43,13 +43,13 @@ InModuleScope JiraPS {
     }
 "@
 
-    Describe "New-JiraPermissionSchema" {
+    Describe "New-JiraPermissionScheme" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/permissionSchema"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/permissionscheme"} {
             $result | ConvertFrom-Json2
         }
 
@@ -61,8 +61,8 @@ InModuleScope JiraPS {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        It "New permission schema should return result" {
-            $newResult = New-JiraPermissionSchema -InputObject ($inputObject | ConvertFrom-Json2) -Name $name2 -Description $description2
+        It "New permission Scheme should return result" {
+            $newResult = New-JiraPermissionScheme -InputObject ($inputObject | ConvertFrom-Json2) -Name $name2 -Description $description2
             $newResult | Should Not BeNullOrEmpty
             $newResult.Name | Should Be $name2
             $newResult.Description | Should Be $description2

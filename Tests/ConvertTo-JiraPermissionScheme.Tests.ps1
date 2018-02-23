@@ -1,7 +1,7 @@
 . $PSScriptRoot\Shared.ps1
 
 InModuleScope JiraPS {
-    Describe "ConvertTo-JiraPermissionSchema" {
+    Describe "ConvertTo-JiraPermissionScheme" {
         . $PSScriptRoot\Shared.ps1
 
         $Name = 'PM'
@@ -9,7 +9,7 @@ InModuleScope JiraPS {
 
         $sampleJson = @"
         {
-            "permissionSchemas":  [
+            "permissionSchemes":  [
                                         {
                                             "id":  "$ID",
                                             "name":  "$Name",
@@ -30,11 +30,11 @@ InModuleScope JiraPS {
         }
 "@
         $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
-        $r = ConvertTo-JiraPermissionSchema -InputObject $sampleObject
+        $r = ConvertTo-JiraPermissionScheme -InputObject $sampleObject
         It "Creates a PSObject out of JSON input" {
-            $r.permissionSchema | Should Not BeNullOrEmpty
+            $r.permissionScheme | Should Not BeNullOrEmpty
         }
-        checkPsType $r.permissionSchema 'JiraPS.JiraPermissionSchemaProperty'
+        checkPsType $r.permissionScheme 'JiraPS.JiraPermissionSchemeProperty'
         defProp $r 'Name' $Name
         defProp $r 'ID' $ID
     }

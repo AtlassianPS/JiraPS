@@ -1,27 +1,27 @@
-function Get-JiraPermissionSchema {
+function Get-JiraPermissionScheme {
     <#
     .Synopsis
-        Get permission Schema
+        Get permission Scheme
     .DESCRIPTION
-        Get permission Schema by name or ID
+        Get permission Scheme by name or ID
     .EXAMPLE
-        Get-JiraPermissionSchema
+        Get-JiraPermissionScheme
     .EXAMPLE
-        Get-JiraPermissionSchema -Expand
+        Get-JiraPermissionScheme -Expand
     .EXAMPLE
-        Get-JiraPermissionSchema -ID 0
+        Get-JiraPermissionScheme -ID 0
     .EXAMPLE
-        Get-JiraPermissionSchema -ID 0 -Expand
+        Get-JiraPermissionScheme -ID 0 -Expand
     .EXAMPLE
-        Get-JiraPermissionSchema -Name 'Default Permission Schema'
+        Get-JiraPermissionScheme -Name 'Default Permission Scheme'
     .EXAMPLE
-        Get-JiraPermissionSchema -Name 'Default Permission Schema' -Expand
+        Get-JiraPermissionScheme -Name 'Default Permission Scheme' -Expand
     .OUTPUTS
-        [JiraPS.PermissionsSchema]
+        [JiraPS.PermissionsScheme]
     #>
     [CmdletBinding(DefaultParameterSetName = 'All')]
     param(
-        # ID of the permission Schema
+        # ID of the permission Scheme
         [Parameter(
             Position = 0,
             Mandatory = $true,
@@ -30,14 +30,14 @@ function Get-JiraPermissionSchema {
         [ValidateRange(1, [Int]::MaxValue)]
         [Int[]] $Id,
 
-        # Name of the permission Schema
+        # Name of the permission Scheme
         [Parameter(
             Position = 0,
             ParameterSetName = 'All'
         )]
         [String[]] $Name,
 
-        # Switch to expand all properties of the Schema
+        # Switch to expand all properties of the Scheme
         [Switch] $Expand,
 
         # Credentials to use to connect to JIRA.
@@ -46,13 +46,13 @@ function Get-JiraPermissionSchema {
     )
 
     begin {
-        Write-Debug "[Get-JiraPermissionSchema] Reading server from config file"
+        Write-Debug "[Get-JiraPermissionScheme] Reading server from config file"
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
-        Write-Debug "[Get-JiraPermissionSchema] ParameterSetName=$($PSCmdlet.ParameterSetName)"
+        Write-Debug "[Get-JiraPermissionScheme] ParameterSetName=$($PSCmdlet.ParameterSetName)"
 
-        Write-Debug "[Get-JiraPermissionSchema] Building URI for REST call"
-        $resourceURi = "$server/rest/api/2/permissionSchema"
+        Write-Debug "[Get-JiraPermissionScheme] Building URI for REST call"
+        $resourceURi = "$server/rest/api/2/permissionscheme"
     }
 
     process {
@@ -67,7 +67,10 @@ function Get-JiraPermissionSchema {
                     Credential = $Credential
                 }
                 $restResult = Invoke-JiraMethod @parameter
-                $result = ConvertTo-JiraPermissionSchema -InputObject $restResult
+                If($restResult)
+                {
+                    $result = ConvertTo-JiraPermissionScheme -InputObject $restResult
+                }
                 if ($Name) {
                     foreach ($_name in $Name) {
                         Write-Verbose "Filtering $_name"
@@ -88,8 +91,11 @@ function Get-JiraPermissionSchema {
                         Method     = "GET"
                         Credential = $Credential
                     }
-                    $result = Invoke-JiraMethod @parameter
-                    Write-Output (ConvertTo-JiraPermissionSchema -InputObject $result)
+                    $restResult = Invoke-JiraMethod @parameter
+                    If($restResult)
+                    {
+                        Write-Output (ConvertTo-JiraPermissionScheme -InputObject $result)
+                    }
                 }
             }
         }

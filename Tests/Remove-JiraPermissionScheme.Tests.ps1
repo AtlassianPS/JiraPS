@@ -8,12 +8,12 @@ InModuleScope JiraPS {
 
     $jiraServer = 'http://jiraserver.example.com'
     $id = 10101
-    $name = 'My Permission Schema'
+    $name = 'My Permission Scheme'
     $description = 'My Description'
 
     $restResultOne = @"
     {
-        "permissionSchemas":  [
+        "permissionSchemes":  [
                                     {
                                         "expand":  "permissions,user,group,projectRole,field,all",
                                         "id":  "$id",
@@ -23,17 +23,17 @@ InModuleScope JiraPS {
                                 ]
     }
 "@
-    Describe "Remove-JiraPermissionSchema" {
+    Describe "Remove-JiraPermissionScheme" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraPermissionSchema -ModuleName JiraPS {
+        Mock Get-JiraPermissionScheme -ModuleName JiraPS {
             Write-Output $restResultOne | ConvertFrom-Json
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/2/permissionSchema/$ID"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/2/permissionscheme/$ID"} {
             if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with DELETE method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
@@ -41,7 +41,7 @@ InModuleScope JiraPS {
             }
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/2/permissionSchema"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/2/permissionscheme"} {
             if ($ShowMockData) {
                 Write-Host "       Mocked Invoke-JiraMethod with DELETE method" -ForegroundColor Cyan
                 Write-Host "         [Method]         $Method" -ForegroundColor Cyan
@@ -49,8 +49,8 @@ InModuleScope JiraPS {
             }
         }
 
-        Mock Get-JiraPermissionSchema -ModuleName JiraPS {
-            $restResultOne | ConvertFrom-Json2 | ConvertTo-JiraPermissionSchema
+        Mock Get-JiraPermissionScheme -ModuleName JiraPS {
+            $restResultOne | ConvertFrom-Json2 | ConvertTo-JiraPermissionScheme
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
@@ -62,26 +62,26 @@ InModuleScope JiraPS {
         }
 
         It "Accepts -ID parameter" {
-            { Remove-JiraPermissionSchema -ID $id } | Should Not Throw
+            { Remove-JiraPermissionScheme -ID $id } | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 
         It "Accepts -Name parameter" {
-            { Remove-JiraPermissionSchema -Name $name } | Should Not Throw
+            { Remove-JiraPermissionScheme -Name $name } | Should Not Throw
         }
     <#
         It "Accepts pipeline input from Get-JiraUser" {
-            { Get-JiraUser -UserName $testUsername | Remove-JiraPermissionSchema -Force } | Should Not Throw
+            { Get-JiraUser -UserName $testUsername | Remove-JiraPermissionScheme -Force } | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 
         It "Removes a user from JIRA" {
-            { Remove-JiraPermissionSchema -User $testUsername -Force } | Should Not Throw
+            { Remove-JiraPermissionScheme -User $testUsername -Force } | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 
         It "Provides no output" {
-            Remove-JiraPermissionSchema -User $testUsername -Force | Should BeNullOrEmpty
+            Remove-JiraPermissionScheme -User $testUsername -Force | Should BeNullOrEmpty
         }
         #>
     }

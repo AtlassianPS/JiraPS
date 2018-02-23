@@ -1,29 +1,29 @@
-function New-JiraPermissionSchema
+function New-JiraPermissionScheme
 {
     <#
     .Synopsis
 
     .DESCRIPTION
-       Create permission Schema
+       Create permission Scheme
     .EXAMPLE
-       New-JiraPermissionSchema
+       New-JiraPermissionScheme
     .EXAMPLE
     .INPUTS
     .OUTPUTS
     #>
     [CmdletBinding()]
     param(
-        # Description of the permission Schema
+        # Description of the permission Scheme
         [Parameter(Mandatory = $false)]
         [String]
         $Description,
 
-        # Name of the permission Schema
+        # Name of the permission Scheme
         [Parameter(Mandatory = $true)]
         [string]
         $Name,
 
-        # JiraPS.PermissionSchema Object, Use Get-JiraPermissionSchema -ID $ID -Expand
+        # JiraPS.PermissionScheme Object, Use Get-JiraPermissionScheme -ID $ID -Expand
         [Parameter(Mandatory = $true)]
         [Array]
         $InputObject,
@@ -37,7 +37,7 @@ function New-JiraPermissionSchema
     begin
     {
         $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        $restUri = "$server/rest/api/2/permissionSchema"
+        $restUri = "$server/rest/api/2/permissionscheme"
     }
 
     process
@@ -51,7 +51,7 @@ function New-JiraPermissionSchema
         $results = Invoke-JiraMethod -Method POST -URI $restUri -Body $json -Credential $Credential
         If ($results)
         {
-            $results = ConvertTo-JiraPermissionSchema -InputObject $results
+            $results = ConvertTo-JiraPermissionScheme -InputObject $results
         }
         else
         {
