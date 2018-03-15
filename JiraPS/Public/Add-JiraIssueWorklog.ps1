@@ -106,7 +106,7 @@ function Add-JiraIssueWorklog {
         $requestBody = @{
             'comment'   = $Comment
             'started'   = $DateStarted.ToString("o")
-            'timeSpent' = $TimeSpent.TotalSeconds.ToString()
+            'timeSpentSeconds' = $TimeSpent.TotalSeconds.ToString()
         }
 
         # If the visible role should be all users, the visibility block shouldn't be passed at
