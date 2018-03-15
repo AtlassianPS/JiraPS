@@ -105,7 +105,7 @@ function Add-JiraIssueWorklog {
 
         $requestBody = @{
             'comment'   = $Comment
-            'started'   = $DateStarted.ToString("o")
+            'started'   = $DateStarted.ToString("o") -replace "\.(\d{3})\d*\+", ".`$1+"
             'timeSpentSeconds' = $TimeSpent.TotalSeconds.ToString()
         }
 
