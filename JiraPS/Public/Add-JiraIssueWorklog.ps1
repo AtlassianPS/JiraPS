@@ -104,8 +104,11 @@ function Add-JiraIssueWorklog {
         }
 
         $requestBody = @{
-            'comment'   = $Comment
-            'started'   = $DateStarted.ToString("o") -replace "\.(\d{3})\d*\+", ".`$1+"
+            'comment'          = $Comment
+            # We need to fix the date with a RegEx replace because the API does not like:
+            # * miliseconds with more than 3 digits
+            # * `:` in the TimeZone
+            'started'          = $DateStarted.ToString("o") -replace "\.(\d{3})\d*([\+\-]\d{2}):", ".`$1`$2"
             'timeSpentSeconds' = $TimeSpent.TotalSeconds.ToString()
         }
 
