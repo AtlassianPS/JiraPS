@@ -1,6 +1,6 @@
 function Set-JiraIssue {
     <#
-    .Synopsis
+    .SYNOPSIS
        Modifies an existing issue in JIRA
     .DESCRIPTION
        This function modifies an existing isue in JIRA.  This can include changing

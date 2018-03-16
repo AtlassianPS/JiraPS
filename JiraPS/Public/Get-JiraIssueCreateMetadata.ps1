@@ -1,6 +1,6 @@
 function Get-JiraIssueCreateMetadata {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns metadata required to create an issue in JIRA
     .DESCRIPTION
        This function returns metadata required to create an issue in JIRA - the fields that can be defined in the process of creating an issue.  This can be used to identify custom fields in order to pass them to New-JiraIssue.

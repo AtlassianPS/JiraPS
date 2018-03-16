@@ -1,6 +1,6 @@
 function Get-JiraPriority {
     <#
-    .Synopsis
+    .SYNOPSIS
         Returns information about the available priorities in JIRA.
     .DESCRIPTION
         This function retrieves all the available Priorities on the JIRA server an returns them as JiraPS.Priority.

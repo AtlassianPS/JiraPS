@@ -1,6 +1,6 @@
 ﻿function Set-JiraIssueLabel {
     <#
-    .Synopsis
+    .SYNOPSIS
         Modifies labels on an existing JIRA issue
     .DESCRIPTION
         This function modifies labels on an existing JIRA issue.  There are

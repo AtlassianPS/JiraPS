@@ -1,4 +1,11 @@
 function ConvertFrom-Json2 {
+    <#
+    .SYNOPSIS
+        Function to overwrite or be used instead of the native `ConvertFrom-Json` of PowerShell
+    .DESCRIPTION
+        ConvertFrom-Json implementation does not allow for overriding JSON maxlength.
+        The default limit is easy to exceed with large issue lists.
+    #>
     [CmdletBinding()]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
@@ -6,7 +13,7 @@ function ConvertFrom-Json2 {
         $InputObject,
 
         [Int]
-        $MaxJsonLength = [int]::MaxValue
+        $MaxJsonLength = [Int]::MaxValue
     )
 
     begin {

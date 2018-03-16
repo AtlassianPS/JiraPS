@@ -1,6 +1,6 @@
 function Get-JiraIssueLink {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a specific issueLink from Jira
     .DESCRIPTION
        This function returns information regarding a specified issueLink from Jira.

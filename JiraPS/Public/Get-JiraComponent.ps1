@@ -1,6 +1,6 @@
 function Get-JiraComponent {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a Component from Jira
     .DESCRIPTION
        This function returns information regarding a specified component from Jira.

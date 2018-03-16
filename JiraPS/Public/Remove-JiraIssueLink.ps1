@@ -1,6 +1,6 @@
 function Remove-JiraIssueLink {
     <#
-    .Synopsis
+    .SYNOPSIS
         Removes a issue link from a JIRA issue
     .DESCRIPTION
         This function removes a issue link from a JIRA issue.

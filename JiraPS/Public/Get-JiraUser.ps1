@@ -1,6 +1,6 @@
 function Get-JiraUser {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a user from Jira
     .DESCRIPTION
        This function returns information regarding a specified user from Jira.

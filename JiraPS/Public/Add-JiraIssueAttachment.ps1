@@ -1,6 +1,6 @@
 function Add-JiraIssueAttachment {
     <#
-    .Synopsis
+    .SYNOPSIS
        Adds a file attachment to an existing Jira Issue
     .DESCRIPTION
        This function adds an Attachment to an existing issue in JIRA.

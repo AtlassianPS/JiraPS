@@ -1,6 +1,6 @@
 function Invoke-JiraIssueTransition {
     <#
-    .Synopsis
+    .SYNOPSIS
        Performs an issue transition on a JIRA issue, changing its status
     .DESCRIPTION
        This function performs an issue transition on a JIRA issue.  Transitions are

@@ -1,6 +1,6 @@
 ﻿function Get-JiraFilter {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns information about a filter in JIRA
     .DESCRIPTION
        This function returns information about a filter in JIRA, including the JQL syntax of the filter, its owner, and sharing status.

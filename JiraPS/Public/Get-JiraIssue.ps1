@@ -1,6 +1,6 @@
 function Get-JiraIssue {
     <#
-    .Synopsis
+    .SYNOPSIS
         Returns information about an issue in JIRA.
     .DESCRIPTION
         This function obtains references to issues in JIRA.

@@ -1,6 +1,6 @@
 ﻿function Remove-JiraGroup {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes an existing group from JIRA
     .DESCRIPTION
        This function removes an existing group from JIRA.

@@ -1,6 +1,6 @@
 function Add-JiraIssueWorklog {
     <#
-    .Synopsis
+    .SYNOPSIS
        Adds a worklog item to an existing JIRA issue
     .DESCRIPTION
        This function adds a worklog item to an existing issue in JIRA. You can optionally set the visibility of the item (All Users, Developers, or Administrators).

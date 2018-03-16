@@ -1,6 +1,6 @@
 function Remove-JiraUser {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes an existing user from JIRA
     .DESCRIPTION
        This function removes an existing user from JIRA.

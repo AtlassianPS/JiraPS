@@ -1,6 +1,6 @@
 ﻿function Remove-JiraVersion {
     <#
-    .Synopsis
+    .SYNOPSIS
        This function removes an existing version.
     .DESCRIPTION
        This function removes an existing version in JIRA.

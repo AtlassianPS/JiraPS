@@ -1,6 +1,6 @@
 function Format-Jira {
     <#
-    .Synopsis
+    .SYNOPSIS
        Converts an object into a table formatted according to JIRA's markdown syntax
     .DESCRIPTION
        This function converts a PowerShell object into a table using JIRA's markdown syntax. This can then be added to a JIRA issue description or comment.

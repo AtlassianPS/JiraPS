@@ -1,6 +1,6 @@
 ﻿function Remove-JiraIssueWatcher {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes a watcher from an existing JIRA issue
     .DESCRIPTION
        This function removes a watcher from an existing issue in JIRA.

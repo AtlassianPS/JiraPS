@@ -1,6 +1,6 @@
 function Get-JiraProject {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a project from Jira
     .DESCRIPTION
        This function returns information regarding a specified project from Jira. If

@@ -1,6 +1,6 @@
 function New-JiraUser {
     <#
-    .Synopsis
+    .SYNOPSIS
        Creates a new user in JIRA
     .DESCRIPTION
        This function creates a new user in JIRA.  By default, the new user

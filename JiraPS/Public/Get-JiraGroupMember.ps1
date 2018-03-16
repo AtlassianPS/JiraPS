@@ -1,6 +1,6 @@
 function Get-JiraGroupMember {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns members of a given group in JIRA
     .DESCRIPTION
        This function returns members of a provided group in JIRA.

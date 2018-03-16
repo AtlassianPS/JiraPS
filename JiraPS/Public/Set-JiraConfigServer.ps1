@@ -1,6 +1,6 @@
 function Set-JiraConfigServer {
     <#
-    .Synopsis
+    .SYNOPSIS
        Defines the configured URL for the JIRA server
     .DESCRIPTION
        This function defines the configured URL for the JIRA server that JiraPS should manipulate. By default, this is stored in a config.xml file at the module's root path.

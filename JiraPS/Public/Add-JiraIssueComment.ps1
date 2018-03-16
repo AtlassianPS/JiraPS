@@ -1,6 +1,6 @@
 function Add-JiraIssueComment {
     <#
-    .Synopsis
+    .SYNOPSIS
        Adds a comment to an existing JIRA issue
     .DESCRIPTION
        This function adds a comment to an existing issue in JIRA. You can optionally set the visibility of the comment (All Users, Developers, or Administrators).

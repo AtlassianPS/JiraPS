@@ -1,6 +1,6 @@
 ﻿function Get-JiraIssueType {
     <#
-    .Synopsis
+    .SYNOPSIS
         Returns information about the available issue type in JIRA.
     .DESCRIPTION
         This function retrieves all the available IssueType on the JIRA server an returns them as JiraPS.IssueType.

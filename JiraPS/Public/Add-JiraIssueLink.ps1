@@ -1,6 +1,6 @@
 function Add-JiraIssueLink {
     <#
-    .Synopsis
+    .SYNOPSIS
         Adds a link between two Issues on Jira
     .DESCRIPTION
         Creates a new link of the specified type between two Issue.

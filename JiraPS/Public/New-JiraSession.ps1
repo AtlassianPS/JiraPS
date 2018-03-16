@@ -1,6 +1,6 @@
 function New-JiraSession {
     <#
-    .Synopsis
+    .SYNOPSIS
        Creates a persistent JIRA authenticated session which can be used by other JiraPS functions
     .DESCRIPTION
        This function creates a persistent, authenticated session in to JIRA which can be used by all other

@@ -1,6 +1,6 @@
 function Remove-JiraIssueAttachment {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes an attachment from a JIRA issue
     .DESCRIPTION
        This function removes an attachment from a JIRA issue.

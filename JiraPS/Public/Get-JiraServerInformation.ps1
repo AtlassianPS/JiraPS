@@ -1,6 +1,6 @@
 function Get-JiraServerInformation {
     <#
-    .Synopsis
+    .SYNOPSIS
        This function returns the information about the JIRA Server
     .DESCRIPTION
        This functions shows all the information about the JIRA server, such as version, time, etc
