@@ -1,6 +1,6 @@
 function Remove-JiraSession {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes a persistent JIRA authenticated session
     .DESCRIPTION
        This function removes a persistent JIRA authenticated session and closes the session for JIRA.

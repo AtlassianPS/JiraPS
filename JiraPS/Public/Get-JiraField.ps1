@@ -1,6 +1,6 @@
 ﻿function Get-JiraField {
     <#
-    .Synopsis
+    .SYNOPSIS
        This function returns information about JIRA fields
     .DESCRIPTION
        This function provides information about JIRA fields, or about one field in particular.  This is a good way to identify a field's ID by its name, or vice versa.

@@ -1,6 +1,6 @@
 ﻿function New-JiraVersion {
     <#
-    .Synopsis
+    .SYNOPSIS
         Creates a new FixVersion in JIRA
     .DESCRIPTION
          This function creates a new FixVersion in JIRA.

@@ -1,6 +1,6 @@
 ﻿function Add-JiraIssueWatcher {
     <#
-    .Synopsis
+    .SYNOPSIS
        Adds a watcher to an existing JIRA issue
     .DESCRIPTION
        This function adds a watcher to an existing issue in JIRA.

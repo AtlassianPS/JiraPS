@@ -1,7 +1,7 @@
 function ConvertTo-URLEncoded {
     <#
     .SYNOPSIS
-    Encode a string into URL (eg: %20 instead of " ")
+        Encode a string into URL (eg: %20 instead of " ")
     #>
     [CmdletBinding()]
     [OutputType([String])]

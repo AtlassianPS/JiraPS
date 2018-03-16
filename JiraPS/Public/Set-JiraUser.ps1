@@ -1,6 +1,6 @@
 function Set-JiraUser {
     <#
-    .Synopsis
+    .SYNOPSIS
        Modifies user properties in JIRA
     .DESCRIPTION
        This function modifies user properties in JIRA, allowing you to change a user's

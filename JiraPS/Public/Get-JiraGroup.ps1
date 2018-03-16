@@ -1,6 +1,6 @@
 function Get-JiraGroup {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a group from Jira
     .DESCRIPTION
        This function returns information regarding a specified group from JIRA.

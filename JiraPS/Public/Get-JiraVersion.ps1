@@ -1,6 +1,6 @@
 ﻿function Get-JiraVersion {
     <#
-    .Synopsis
+    .SYNOPSIS
        This function returns information about a JIRA Project's Version
     .DESCRIPTION
        This function provides information about JIRA Version

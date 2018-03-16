@@ -1,6 +1,6 @@
 function Remove-JiraGroupMember {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes a user from a JIRA group
     .DESCRIPTION
        This function removes a JIRA user from a JIRA group.

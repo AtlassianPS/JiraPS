@@ -1,6 +1,6 @@
 ﻿function Set-JiraVersion {
     <#
-    .Synopsis
+    .SYNOPSIS
         Modifies an existing Version in JIRA
     .DESCRIPTION
         This function modifies the Version for an existing Project in JIRA.

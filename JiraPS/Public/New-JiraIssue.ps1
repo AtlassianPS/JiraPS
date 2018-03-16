@@ -1,6 +1,6 @@
 function New-JiraIssue {
     <#
-    .Synopsis
+    .SYNOPSIS
        Creates an issue in JIRA
     .DESCRIPTION
        This function creates a new issue in JIRA.

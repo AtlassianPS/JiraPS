@@ -1,6 +1,6 @@
 function Get-JiraSession {
     <#
-    .Synopsis
+    .SYNOPSIS
        Obtains a reference to the currently saved JIRA session
     .DESCRIPTION
        This functio obtains a reference to the currently saved JIRA session.  This can provide

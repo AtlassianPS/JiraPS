@@ -1,6 +1,6 @@
 function Get-JiraRemoteLink {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a remote link from a Jira issue
     .DESCRIPTION
        This function returns information on remote links from a  JIRA issue.

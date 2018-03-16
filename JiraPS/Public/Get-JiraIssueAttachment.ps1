@@ -1,6 +1,6 @@
 function Get-JiraIssueAttachment {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns attachments of an issue in JIRA.
     .DESCRIPTION
        This function obtains attachments from existing issues in JIRA.

@@ -1,6 +1,6 @@
 function Remove-JiraRemoteLink {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes a remote link from a JIRA issue
     .DESCRIPTION
        This function removes a remote link from a JIRA issue.

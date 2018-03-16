@@ -1,6 +1,6 @@
 ﻿function New-JiraGroup {
     <#
-    .Synopsis
+    .SYNOPSIS
        Creates a new group in JIRA
     .DESCRIPTION
        This function creates a new group in JIRA.

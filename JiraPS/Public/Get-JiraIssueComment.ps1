@@ -1,6 +1,6 @@
 function Get-JiraIssueComment {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns comments on an issue in JIRA.
     .DESCRIPTION
        This function obtains comments from existing issues in JIRA.

@@ -1,6 +1,6 @@
 function Get-JiraConfigServer {
     <#
-    .Synopsis
+    .SYNOPSIS
        Obtains the configured URL for the JIRA server
     .DESCRIPTION
        This function returns the configured URL for the JIRA server that JiraPS should manipulate. By default, this is stored in a config.xml file at the module's root path.

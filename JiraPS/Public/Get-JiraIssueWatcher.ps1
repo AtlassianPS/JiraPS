@@ -1,6 +1,6 @@
 ﻿function Get-JiraIssueWatcher {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns watchers on an issue in JIRA.
     .DESCRIPTION
        This function obtains watchers from existing issues in JIRA.
