@@ -134,11 +134,13 @@ function Invoke-JiraMethod {
                 }
             }
 
-            if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
-                Resolve-JiraError $result -WriteError
-            }
-            else {
-                Write-Output $result
+            if ($result) {
+                if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
+                    Resolve-JiraError $result -WriteError
+                }
+                else {
+                    Write-Output $result
+                }
             }
         }
         else {
