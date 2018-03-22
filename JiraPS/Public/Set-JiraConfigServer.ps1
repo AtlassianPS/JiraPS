@@ -1,6 +1,6 @@
 function Set-JiraConfigServer {
     <#
-    .Synopsis
+    .SYNOPSIS
        Defines the configured URL for the JIRA server
     .DESCRIPTION
        This function defines the configured URL for the JIRA server that JiraPS should manipulate. By default, this is stored in a config.xml file at the module's root path.
@@ -17,82 +17,83 @@ function Set-JiraConfigServer {
     .NOTES
        Support for multiple configuration files is limited at this point in time, but enhancements are planned for a future update.
     #>
-    [CmdletBinding(SupportsShouldProcess = $false)]
+    [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # The base URL of the Jira instance.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true
-        )]
+        [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
         [Alias('Uri')]
-        [String] $Server,
+        [Uri]
+        $Server,
 
         # Path where the file with the configuration will be stored.
-        [String] $ConfigFile
+        [String]
+        $ConfigFile
     )
 
-    # Using a default value for this parameter wouldn't handle all cases. We want to make sure
-    # that the user can pass a $null value to the ConfigFile parameter...but if it's null, we
-    # want to default to the script variable just as we would if the parameter was not
-    # provided at all.
-
-    if (-not ($ConfigFile)) {
-        #        Write-Debug "[Set-JiraConfigServer] ConfigFile was not provided, or provided with a null value"
-        # This file should be in $moduleRoot/Functions/Internal, so PSScriptRoot will be $moduleRoot/Functions
-        $moduleFolder = Split-Path -Path $PSScriptRoot -Parent
-        #        Write-Debug "[Set-JiraConfigServer] Module folder: $moduleFolder"
-        $ConfigFile = Join-Path -Path $moduleFolder -ChildPath 'config.xml'
-        #        Write-Debug "[Set-JiraConfigServer] Using default config file at [$ConfigFile]"
+    begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
-    if (-not (Test-Path -Path $ConfigFile)) {
-        #        Write-Debug "[Set-JiraConfigServer] Creating config file '$ConfigFile'"
-        $xml = [XML] '<Config></Config>'
+    process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-    }
-    else {
-        #        Write-Debug "[Set-JiraConfigServer] Loading config file '$ConfigFile'"
-        $xml = New-Object -TypeName XML
-        $xml.Load($ConfigFile)
+        # Using a default value for this parameter wouldn't handle all cases. We want to make sure
+        # that the user can pass a $null value to the ConfigFile parameter...but if it's null, we
+        # want to default to the script variable just as we would if the parameter was not
+        # provided at all.
+
+        if (-not ($ConfigFile)) {
+            # This file should be in $moduleRoot/Functions/Internal, so PSScriptRoot will be $moduleRoot/Functions
+            $moduleFolder = Split-Path -Path $PSScriptRoot -Parent
+            $ConfigFile = Join-Path -Path $moduleFolder -ChildPath 'config.xml'
+        }
+
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Config file path: $ConfigFile"
+        if (-not (Test-Path -Path $ConfigFile)) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Creating new Config file"
+            $xml = [XML] '<Config></Config>'
+        }
+        else {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using existing Config file"
+            $xml = New-Object -TypeName XML
+            $xml.Load($ConfigFile)
+        }
+
+        $xmlConfig = $xml.DocumentElement
+        if ($xmlConfig.LocalName -ne 'Config') {
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Invalid Document"),
+                'InvalidObject.InvalidDocument',
+                [System.Management.Automation.ErrorCategory]::InvalidData,
+                $_
+            )
+            $errorItem.ErrorDetails = "Unexpected document element [$($xmlConfig.LocalName)] in configuration file. You may need to delete the config file and recreate it using this function."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
+        }
+
+        $fixedServer = $Server.AbsoluteUri.Trim('/')
+
+        if ($xmlConfig.Server) {
+            $xmlConfig.Server = $fixedServer
+        }
+        else {
+            $xmlServer = $xml.CreateElement('Server')
+            $xmlServer.InnerText = $fixedServer
+            [void] $xmlConfig.AppendChild($xmlServer)
+        }
+
+        try {
+            $xml.Save($ConfigFile)
+        }
+        catch {
+            throw $_
+        }
     }
 
-    $xmlConfig = $xml.DocumentElement
-    if ($xmlConfig.LocalName -ne 'Config') {
-        throw "Unexpected document element [$($xmlConfig.LocalName)] in configuration file. You may need to delete the config file and recreate it using this function."
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
-
-    # Check for trailing slash and strip it if necessary
-    $fixedServer = $Server.Trim()
-
-    if ($fixedServer.EndsWith('/') -or $fixedServer.EndsWith('\')) {
-        $fixedServer = $Server.Substring(0, $Server.Length - 1)
-    }
-
-    if ($xmlConfig.Server) {
-        #        Write-Debug "[Set-JiraConfigServer] Changing the existing Server element to the provided value '$Server'"
-        $xmlConfig.Server = $fixedServer
-    }
-    else {
-        #        Write-Debug "[Set-JiraConfigServer] Creating new element Server"
-        $xmlServer = $xml.CreateElement('Server')
-        #        Write-Debug "[Set-JiraConfigServer] Writing InnerText property with provided value '$Server'"
-        $xmlServer.InnerText = $fixedServer
-        #        Write-Debug "[Set-JiraConfigServer] Adding element to existing XML file"
-        [void] $xmlConfig.AppendChild($xmlServer)
-    }
-
-    #    Write-Debug "[Set-JiraConfigServer] Saving XML file"
-    try {
-        $xml.Save($ConfigFile)
-    }
-    catch {
-        $err = $_
-        #        Write-Debug "[Set-JiraConfigServer] Encountered an error saving the XML file"
-        #        Write-Debug "[Set-JiraConfigServer] Throwing exception"
-        throw $err
-    }
-    #    Write-Debug "[Set-JiraConfigServer] Complete"
-
 }

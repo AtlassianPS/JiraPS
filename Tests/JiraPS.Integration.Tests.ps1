@@ -12,8 +12,7 @@ Describe 'Load Module' {
 }
 
 InModuleScope JiraPS {
-
-    . $PSScriptRoot\Shared.ps1
+    . "$PSScriptRoot/Shared.ps1"
 
     Describe 'Authenticating' {
 
@@ -148,9 +147,7 @@ InModuleScope JiraPS {
                 $result3.Name -contains $versionName1 | Should Be $true
                 $result3.Name -contains $versionName2 | Should Be $true
                 $result1.ToString() | Should Be $result4.ToString()
-                $result1.ToString() | Should Be $result5.ToString()
                 $result4.ToString() | Should Be $result5.ToString()
-
             }
         }
 

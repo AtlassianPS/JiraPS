@@ -1,16 +1,16 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Add-JiraIssueComment" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $restResponse = @"
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueID = 41701
+        $issueKey = 'IT-3676'
+
+        $restResponse = @"
 {
     "self": "$jiraServer/rest/api/2/issue/$issueID/comment/90730",
     "id": "90730",
@@ -20,43 +20,32 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Add-JiraIssueComment" {
-
-        if ($ShowDebugText) {
-            Mock "Write-Debug" {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
         Mock Get-JiraConfigServer {
             Write-Output $jiraServer
         }
 
         Mock Get-JiraIssue {
-            [PSCustomObject] @{
-                ID      = $issueID;
-                Key     = $issueKey;
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
+            $object = [PSCustomObject] @{
+                ID      = $issueID
+                Key     = $issueKey
+                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
         }
 
         Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
-            if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
-            }
-
-            # This data was created from a GUI REST client, then sanitized. A lot of extra data was also removed to save space.
-            # Many Bothans died to bring us this information.
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $restResponse
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
@@ -68,20 +57,18 @@ InModuleScope JiraPS {
             $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
             $commentResult | Should Not BeNullOrEmpty
 
-            # Get-JiraIssue should be used to identify the issue parameter
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
-
-            # Invoke-JiraMethod should be used to add the comment
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Accepts pipeline input from Get-JiraIssue" {
-            $commentResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueComment -Comment 'This is a test comment from Pester, using the pipeline!'
+            $commentResult = Get-JiraIssue -Key $IssueKey | Add-JiraIssueComment -Comment 'This is a test comment from Pester, using the pipeline!'
             $commentResult | Should Not BeNullOrEmpty
 
-            # Get-JiraIssue should be called once here, and once inside Add-JiraIssueComment (to identify the InputObject parameter)
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 2 -Scope It
+            Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         Context "Output checking" {

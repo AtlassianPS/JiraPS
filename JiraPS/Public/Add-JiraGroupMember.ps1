@@ -22,119 +22,93 @@ function Add-JiraGroupMember {
        means that there is a high probability this will break in future
        versions of JIRA. The function will need to be re-written at that time.
     #>
-    [CmdletBinding()]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Group (or list of groups) to which the user(s) will be added.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true
-        )]
+        [Parameter( Mandatory, ValueFromPipeline )]
         [Alias('GroupName')]
-        [Object[]] $Group,
+        [Object[]]
+        $Group,
 
         # Username or user object obtained from Get-JiraUser.
-        [Parameter(Mandatory = $true)]
-        [Alias('UserName')]
-        [Object[]] $User,
+        [Parameter( Mandatory )]
+        [Object[]]
+        $UserName,
+        <#
+          #ToDo:CustomClass
+          Once we have custom classes, this can also accept ValueFromPipeline
+        #>
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [PSCredential] $Credential,
+        [PSCredential]
+        $Credential,
 
         # Whether output should be provided after invoking this function.
-        [Switch] $PassThru
+        [Switch]
+        $PassThru
     )
 
     begin {
-        Write-Debug "[Add-JiraGroupMember] Reading information from config file"
-        try {
-            Write-Debug "[Add-JiraGroupMember] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Add-JiraGroupMember] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        # At present, it looks like this REST method doesn't support arrays in the Name property...
-        # in other words, a single REST call can only add a single group member to a single group.
+        $server = Get-JiraConfigServer -ErrorAction Stop
 
-        # That's kind of annoying.
-
-        # Anyway, this builds a bunch of individual JSON strings with each username in its own Web
-        # request, which we'll loop through again in the Process block.
-
-        $userAL = New-Object -TypeName System.Collections.ArrayList
-        foreach ($u in $User) {
-            Write-Debug "[Add-JiraGroupMember] Obtaining reference to user [$u]"
-            $userObj = Get-JiraUser -InputObject $u -Credential $Credential
-
-            if ($userObj) {
-                Write-Debug "[Add-JiraGroupMember] Retrieved user reference [$userObj]"
-                # $thisUserJson = ConvertTo-Json -InputObject @{
-                #     'name' = $userObj.Name;
-                # }
-                # [void] $userAL.Add($thisUserJson)
-                [void] $userAL.Add($userObj.Name)
-            }
-            else {
-                Write-Debug "[Add-JiraGroupMember] Could not identify user [$u]. Writing error message."
-                Write-Error "Unable to identify user [$u]. Check the spelling of this user and ensure that you can access it via Get-JiraUser."
-            }
-        }
-
-        # $userJsons = $userAL.ToArray()
-        $userNames = $userAL.ToArray()
-
-        $restUrl = "$server/rest/api/latest/group/user?groupname={0}"
+        $resourceURi = "$server/rest/api/latest/group/user?groupname={0}"
     }
 
     process {
-        foreach ($g in $Group) {
-            Write-Debug "[Add-JiraGroupMember] Obtaining reference to group [$g]"
-            $groupObj = Get-JiraGroup -InputObject $g -Credential $Credential
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-            if ($groupObj) {
-                Write-Debug "[Add-JiraGroupMember] Obtaining members of group [$g]"
-                $groupMembers = Get-JiraGroupMember -Group $g -Credential $Credential | Select-Object -ExpandProperty Name
+        foreach ($_group in $Group) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-                $thisRestUrl = $restUrl -f $groupObj.Name
-                Write-Debug "[Add-JiraGroupMember] Group URL: [$thisRestUrl]"
-                # foreach ($json in $userJsons) {
-                #     Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
-                #     $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $json -Credential $Credential
-                # }
-                foreach ($u in $userNames) {
-                    if ($groupMembers -notcontains $u) {
-                        Write-Debug "[Add-JiraGroupMember] User [$u] is not already in group [$g]. Adding user."
-                        $userJson = ConvertTo-Json -InputObject @{
-                            'name' = $u;
-                        }
-                        Write-Debug "[Add-JiraGroupMember] Preparing for blastoff!"
-                        $result = Invoke-JiraMethod -Method Post -URI $thisRestUrl -Body $userJson -Credential $Credential
+            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
+            $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop).Name
+
+            # At present, it looks like this REST method doesn't support arrays in the Name property...
+            # in other words, a single REST call can only add a single group member to a single group.
+
+            # That's kind of annoying.
+
+            # Anyway, this builds a bunch of individual JSON strings with each username in its own Web
+            # request, which we'll loop through again in the Process block.
+            $users = Get-JiraUser -UserName $UserName -Credential $Credential
+            foreach ($user in $users) {
+
+                if ($groupMembers -notcontains $user.Name) {
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User [$($user.Name)] is not already in group [$_group]. Adding user."
+
+                    $parameter = @{
+                        URI        = $resourceURi -f $groupObj.Name
+                        Method     = "POST"
+                        Body       = ConvertTo-Json -InputObject @{ 'name' = $user.Name }
+                        Credential = $Credential
                     }
-                    else {
-                        Write-Debug "[Add-JiraGroupMember] User [$u] is already a member of group [$g]"
-                        Write-Verbose "User [$u] is already a member of group [$g]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    if ($PSCmdlet.ShouldProcess($GroupName, "Adding user '$($user.Name)'.")) {
+                        $result = Invoke-JiraMethod @parameter
                     }
                 }
-
-                if ($PassThru) {
-                    Write-Debug "[Add-JiraGroupMember] -PassThru specified. Obtaining a final reference to group [$g]"
-                    $result | ConvertTo-JiraGroup
+                else {
+                    $errorMessage = @{
+                        Category         = "ResourceExists"
+                        CategoryActivity = "Adding [$user] to [$_group]"
+                        Message          = "User [$user] is already a member of group [$_group]"
+                    }
+                    Write-Error @errorMessage
                 }
             }
-            else {
-                Write-Debug "[Add-JiraGroupMember] Could not identify group [$g]"
-                Write-Error "Unable to identify group [$g]. Check the spelling of this group and ensure that you can access it via Get-JiraGroup."
+
+            if ($PassThru) {
+                Write-Output (ConvertTo-JiraGroup -InputObject $result)
             }
         }
     }
 
     end {
-        Write-Debug "[Add-JiraGroupMember] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

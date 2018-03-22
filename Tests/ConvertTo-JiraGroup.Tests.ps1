@@ -1,8 +1,10 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Describe "ConvertTo-JiraGroup" {
 
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraGroup" {
-        . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
         $groupName = 'powershell-testgroup'

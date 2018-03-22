@@ -1,6 +1,6 @@
 function Remove-JiraIssueLink {
     <#
-    .Synopsis
+    .SYNOPSIS
         Removes a issue link from a JIRA issue
     .DESCRIPTION
         This function removes a issue link from a JIRA issue.
@@ -15,65 +15,84 @@ function Remove-JiraIssueLink {
     .OUTPUTS
         This function returns no output.
     #>
-    [CmdletBinding(
-        SupportsShouldProcess = $true,
-        ConfirmImpact = 'Medium'
-    )]
+    [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'Medium' )]
     param(
         # IssueLink to delete
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true
+        # If an Issue is provided, all issueLinks will be deleted.
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                $Input = $_
+                $objectProperties = $Input | Get-Member -MemberType *Property
+                switch ($true) {
+                    {("JiraPS.Issue" -in $Input.PSObject.TypeNames) -and ("issueLinks" -in $objectProperties.Name)} { return $true }
+                    {("JiraPS.IssueLink" -in $Input.PSObject.TypeNames) -and ("Id" -in $objectProperties.Name)} { return $true }
+                    default {
+                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                            ([System.ArgumentException]"Invalid Type for Parameter"),
+                            'ParameterType.NotJiraIssue',
+                            [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                            $Input
+                        )
+                        $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($Input.GetType().Name)"
+                        $PSCmdlet.ThrowTerminatingError($errorItem)
+                        <#
+                          #ToDo:CustomClass
+                          Once we have custom classes, this check can be done with Type declaration
+                        #>
+                    }
+                }
+            }
         )]
-        [Object[]] $IssueLink,
+        [Object[]]
+        $IssueLink,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential]
+        $Credential
     )
 
-    Begin {
-        Write-Debug "[Remove-JiraIssueLink] Reading Jira server from config file"
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+    begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $restUrl = "$server/rest/api/latest/issueLink/{0}"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest/issueLink/{0}"
     }
 
-    Process {
+    process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # As we are not able to use proper type casting in the parameters, this is a workaround
         # to extract the data from a JiraPS.Issue object
-        if (($_) -and ($_.PSObject.TypeNames[0] -eq "JiraPS.Issue")) {
-            $IssueLink = $_.issueLinks
-        }
-
-        # Validate IssueLink object
-        $objectProperties = $IssueLink | Get-Member -MemberType *Property
-        if (-not($objectProperties.Name -contains "id")) {
-            $message = "The IssueLink provided does not contain the information needed. $($objectProperties | Out-String)"
-            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-            Throw $exception
-        }
-
-        # Validate input object from Pipeline
-        if (($_) -and ($_.PSObject.TypeNames[0] -notin @("JiraPS.IssueLink", "JiraPS.Issue"))) {
-            $message = "Wrong object type provided for Issue. Only JiraPS.IssueLink is accepted"
-            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-            Throw $exception
+        <#
+          #ToDo:CustomClass
+          Once we have custom classes, this will no longer be necessary
+        #>
+        if ($IssueLink.issueLinks) {
+            $IssueLink = $IssueLink.issueLinks
         }
 
         foreach ($link in $IssueLink) {
-            Write-Debug "[Remove-JiraIssueLink] Processing issue key [$k]"
-            $thisUrl = $restUrl -f $link.id
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$link]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$link [$link]"
+
+            $parameter = @{
+                URI        = $resourceURi -f $link.id
+                Method     = "DELETE"
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) {
-                Write-Debug "[Remove-JiraIssueLink] Preparing for blastoff!"
-                Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
+                Invoke-JiraMethod @parameter
             }
         }
     }
 
-    End {
-        Write-Debug "[Remove-JiraIssueLink] Complete"
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

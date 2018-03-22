@@ -1,6 +1,6 @@
 function Remove-JiraRemoteLink {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes a remote link from a JIRA issue
     .DESCRIPTION
        This function removes a remote link from a JIRA issue.
@@ -15,82 +15,99 @@ function Remove-JiraRemoteLink {
     .OUTPUTS
        This function returns no output.
     #>
-    [CmdletBinding(
-        ConfirmImpact = 'High',
-        SupportsShouldProcess = $true
-    )]
+    [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
         # Issue from which to delete a remote link.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
         [Alias("Key")]
-        [Object[]] $Issue,
+        [Object[]]
+        $Issue,
 
         # Id of the remote link to delete.
-        [Parameter(Mandatory = $true)]
-        [Int[]] $LinkId,
+        [Parameter( Mandatory )]
+        [Int[]]
+        $LinkId,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [PSCredential] $Credential,
+        [PSCredential]
+        $Credential,
 
         # Suppress user confirmation.
-        [Switch] $Force
+        [Switch]
+        $Force
     )
 
-    Begin {
-        try {
-            Write-Debug "[Remove-JiraRemoteLink] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Remove-JiraRemoteLink] Encountered an error reading configuration data."
-            throw $err
-        }
+    begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $restUrl = "$server/rest/api/latest/issue/{0}/remotelink/{1}"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest/issue/{0}/remotelink/{1}"
 
         if ($Force) {
-            Write-Debug "[Remove-JiraRemoteLink] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
             $oldConfirmPreference = $ConfirmPreference
             $ConfirmPreference = 'None'
         }
     }
 
-    Process {
+    process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($k in $Issue) {
-            Write-Debug "[Remove-JiraRemoteLink] Processing issue key [$k]"
-            $issueObj = Get-JiraIssue $k -Credential $Credential
+        foreach ($_issue in $Issue) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
 
-            foreach ($l in $LinkId) {
-                $thisUrl = $restUrl -f $k, $l
-                Write-Debug "[Remove-JiraRemoteLink] RemoteLink URL: [$thisUrl]"
+            # Find the proper object for the Issue
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
-                Write-Debug "[Remove-JiraRemoteLink] Checking for -WhatIf and Confirm"
-                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink from [$issueObj] from JIRA")) {
-                    Write-Debug "[Remove-JiraRemoteLink] Preparing for blastoff!"
-                    Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
+            foreach ($_link in $LinkId) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_link]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_link [$_link]"
+
+                $parameter = @{
+                    URI        = $resourceURi -f $issueObj.Key, $_link
+                    Method     = "DELETE"
+                    Credential = $Credential
                 }
-                else {
-                    Write-Debug "[Remove-JiraRemoteLink] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) {
+                    Invoke-JiraMethod @parameter
                 }
             }
         }
     }
 
-    End {
+    end {
         if ($Force) {
-            Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
+            Write-DebugMessage "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        Write-Debug "[Remove-JiraRemoteLink] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

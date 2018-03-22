@@ -1,18 +1,18 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Remove-JiraIssueAttachment" {
 
-InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueKey = "FOO-123"
-    $attachmentId1 = 1010
-    $attachmentId2 = 1011
-    $attachmentFile1 = 'foo.png'
-    $attachmentFile2 = 'bar.zip'
+    InModuleScope JiraPS {
 
-    Describe "Remove-JiraIssueAttachment" {
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueKey = "FOO-123"
+        $attachmentId1 = 1010
+        $attachmentId2 = 1011
+        $attachmentFile1 = 'foo.png'
+        $attachmentFile2 = 'bar.zip'
+
 
         #region Mock
         Mock Get-JiraConfigServer -ModuleName JiraPS {
@@ -52,14 +52,20 @@ InModuleScope JiraPS {
             $IssueObj
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId1" } { }
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId2" } { }
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId1" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+        }
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId2" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+        }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mock
@@ -88,15 +94,15 @@ InModuleScope JiraPS {
 
             It 'validates the parameters' {
                 # AttachmentId can't be null or empty
-                { Remove-JiraIssueAttachment -AttachmentId $null -Force -Verbose } | Should Throw
+                { Remove-JiraIssueAttachment -AttachmentId $null -Force } | Should Throw
                 # Issue can't be null or empty
-                { Remove-JiraIssueAttachment -Issue "" -Force -Verbose } | Should Throw
+                { Remove-JiraIssueAttachment -Issue "" -Force } | Should Throw
                 # AttachmentId must be an Int
-                { Remove-JiraIssueAttachment -AttachmentId "a" -Force -Verbose } | Should Throw
+                { Remove-JiraIssueAttachment -AttachmentId "a" -Force } | Should Throw
                 # Issue must be an Issue or a String
-                { Remove-JiraIssueAttachment -Issue (Get-Date) -Force -Verbose } | Should Throw
+                { Remove-JiraIssueAttachment -Issue (Get-Date) -Force } | Should Throw
                 # Issue can't be an array
-                { Remove-JiraIssueAttachment -Issue $issueKey, $issueKey -Force -Verbose } | Should Throw
+                { Remove-JiraIssueAttachment -Issue $issueKey, $issueKey -Force } | Should Throw
 
                 # All Parameters for DefaultParameterSet
                 { Remove-JiraIssueAttachment -AttachmentId $attachmentId1 -Force } | Should Not Throw
@@ -106,7 +112,7 @@ InModuleScope JiraPS {
                 { Remove-JiraIssueAttachment -Issue $issueKey -FileName $attachmentFile1, $attachmentFile2 -Credential $Cred -Force } | Should Not Throw
 
                 # ensure the calls under the hood
-                Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 4 -Scope It
                 Assert-MockCalled 'Get-JiraIssueAttachment' -ModuleName JiraPS -Exactly -Times 3 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 0 -Scope It
@@ -117,7 +123,7 @@ InModuleScope JiraPS {
             }
             It 'accepts positional parameters' {
                 { Remove-JiraIssueAttachment $attachmentId1 -Force } | Should Not Throw
-                { Remove-JiraIssueAttachment $attachmentId1,$attachmentId2 -Force } | Should Not Throw
+                { Remove-JiraIssueAttachment $attachmentId1, $attachmentId2 -Force } | Should Not Throw
                 { Remove-JiraIssueAttachment $issueKey -Force } | Should Not Throw
 
                 # ensure the calls under the hood

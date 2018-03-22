@@ -1,11 +1,22 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "files.encoding": "utf8",
     "files.eol": "\r\n",
-    "files.trimTrailingWhitespace": true,
+    "files.encoding": "utf8",
     "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "files.defaultLanguage": "powershell",
+
     "editor.tabSize": 4,
-    "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
+    "editor.insertSpaces": true,
+
+    "search.exclude": {
+        "./Release": true
+    },
+    "files.watcherExclude": {
+        "./Release": true
+    },
+
+    "powershell.codeFormatting.ignoreOneLineBlock": true,
     "powershell.codeFormatting.openBraceOnSameLine": true,
     "powershell.codeFormatting.newLineAfterOpenBrace": false,
     "powershell.codeFormatting.newLineAfterCloseBrace": true,
@@ -13,5 +24,16 @@
     "powershell.codeFormatting.whitespaceBeforeOpenParen": true,
     "powershell.codeFormatting.whitespaceAroundOperator": true,
     "powershell.codeFormatting.whitespaceAfterSeparator": true,
-    "powershell.codeFormatting.ignoreOneLineBlock": true
+    "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
+
+    "[markdown]": {
+        "editor.tabSize": 2,
+        "editor.wordWrap": "on",
+        "editor.renderWhitespace": "all",
+        "editor.acceptSuggestionOnEnter": "off",
+        "editor.trimAutoWhitespace": false
+    },
+    "[yaml]": {
+        "editor.tabSize": 2
+    }
 }

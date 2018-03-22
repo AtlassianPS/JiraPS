@@ -1,6 +1,6 @@
 ﻿function New-JiraGroup {
     <#
-    .Synopsis
+    .SYNOPSIS
        Creates a new group in JIRA
     .DESCRIPTION
        This function creates a new group in JIRA.
@@ -12,57 +12,56 @@
     .OUTPUTS
        [JiraPS.Group] The user object created
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Name for the new group.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true
-        )]
+        [Parameter( Mandatory )]
         [Alias('Name')]
-        [String] $GroupName,
+        [String[]]
+        $GroupName,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        Write-Debug "[New-JiraGroup] Reading information from config file"
-        try {
-            Write-Debug "[New-JiraGroup] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[New-JiraGroup] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $restUrl = "$server/rest/api/latest/group"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest/group"
     }
 
     process {
-        Write-Debug "[New-JiraGroup] Defining properties"
-        $props = @{
-            "name" = $GroupName;
-        }
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        Write-Debug "[New-JiraGroup] Converting to JSON"
-        $json = ConvertTo-Json -InputObject $props
+        foreach ($_group in $GroupName) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-        Write-Debug "[New-JiraGroup] Checking for -WhatIf and Confirm"
-        if ($PSCmdlet.ShouldProcess($GroupName, "Creating group [$GroupName] to JIRA")) {
-            Write-Debug "[New-JiraGroup] Preparing for blastoff!"
-            $result = Invoke-JiraMethod -Method Post -URI $restUrl -Body $json -Credential $Credential
+            $requestBody = @{
+                "name" = $_group
+            }
+
+            $parameter = @{
+                URI        = $resourceURi
+                Method     = "POST"
+                Body       = ConvertTo-Json -InputObject $requestBody
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($GroupName, "Creating group [$GroupName] to JIRA")) {
+                $result = Invoke-JiraMethod @parameter
+
+                Write-Output (ConvertTo-JiraGroup -InputObject $result)
+            }
         }
-        if ($result) {
-            Write-Debug "[New-JiraGroup] Converting output object into a Jira user and outputting"
-            ConvertTo-JiraGroup -InputObject $result
-        }
-        else {
-            Write-Debug "[New-JiraGroup] Jira returned no results to output."
-        }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

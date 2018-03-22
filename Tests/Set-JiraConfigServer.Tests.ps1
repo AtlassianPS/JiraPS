@@ -1,14 +1,12 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Set-JiraConfigServer" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    Describe "Set-JiraConfigServer" {
+        $jiraServer = 'http://jiraserver.example.com'
 
         $configFile = Join-Path -Path $TestDrive -ChildPath 'config.xml'
         Set-JiraConfigServer -Server $jiraServer -ConfigFile $configFile

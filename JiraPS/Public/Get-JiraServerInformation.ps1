@@ -1,6 +1,6 @@
 function Get-JiraServerInformation {
     <#
-    .Synopsis
+    .SYNOPSIS
        This function returns the information about the JIRA Server
     .DESCRIPTION
        This functions shows all the information about the JIRA server, such as version, time, etc
@@ -18,24 +18,35 @@ function Get-JiraServerInformation {
     param(
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraServerInformation] Reading server from config file"
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $url = "$server/rest/api/latest/serverInfo"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest/serverInfo"
     }
 
     process {
-        Write-Debug "[Get-JiraServerInformation] Preparing for blastoff!"
-        Invoke-JiraMethod -Method Get -URI $url -Credential $Credential | ConvertTo-JiraServerInfo
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        $parameter = @{
+            URI        = $resourceURi
+            Method     = "GET"
+            Credential = $Credential
+        }
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        $result = Invoke-JiraMethod @parameter
+
+        Write-Output (ConvertTo-JiraServerInfo -InputObject $result)
     }
 
     end {
-        Write-Debug "[Get-JiraServerInformation] Complete."
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
 
