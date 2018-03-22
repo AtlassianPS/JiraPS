@@ -1,19 +1,24 @@
-. $PSScriptRoot\Shared.ps1
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+param()
 
-InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+Describe "Add-JiraIssueAttachment" {
 
-    $pass = ConvertTo-SecureString -AsPlainText -Force -String "passowrd"
-    $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("user", $pass)
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueKey = "FOO-1234"
-    $fileName = "test.txt"
-    $filePath = "$PSScriptRoot\$fileName"
-    $attachmentId = 10010
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $attachmentJson = @"
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
+
+        $pass = ConvertTo-SecureString -AsPlainText -Force -String "passowrd"
+        $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("user", $pass)
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueKey = "FOO-1234"
+        $file = New-Item -Path "TestDrive:\MyFile.txt" -ItemType File -Force
+        $fileName = $file.Name
+        $filePath = $file.FullName
+        $attachmentId = 10010
+
+        $attachmentJson = @"
 {
     "self": "$jiraServer/rest/api/2/attachment/$attachmentId",
     "id": "$attachmentId",
@@ -36,9 +41,7 @@ InModuleScope JiraPS {
 }
 "@
 
-    Set-Content $filePath -value "my test text."
-
-    Describe "Add-JiraIssueAttachment" {
+        Set-Content $filePath -value "my test text."
 
         #region Mock
         Mock ConvertTo-JiraAttachment -ModuleName JiraPS {
@@ -47,22 +50,25 @@ InModuleScope JiraPS {
 
         Mock Get-JiraIssue -ModuleName JiraPS {
             $Issue = [PSCustomObject]@{
-                Key   = $issueKey
-                RestURL   = "$jiraServer/rest/api/latest/issue/$issueKey"
+                Key     = $issueKey
+                RestURL = "$jiraServer/rest/api/latest/issue/$issueKey"
             }
             $Issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             $Issue
         }
 
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
+
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueKey/attachments" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json -InputObject $attachmentJson
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mock
@@ -103,6 +109,7 @@ InModuleScope JiraPS {
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 4 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 3 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 4 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
@@ -112,7 +119,8 @@ InModuleScope JiraPS {
                 { Add-JiraIssueAttachment $issueKey @($filePath, $filePath) } | Should Not Throw
 
                 # ensure the calls under the hood
-                Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 2 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
@@ -124,6 +132,7 @@ InModuleScope JiraPS {
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 1 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
@@ -135,6 +144,7 @@ InModuleScope JiraPS {
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 1 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
@@ -147,6 +157,7 @@ InModuleScope JiraPS {
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 4 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 4 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 4 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It

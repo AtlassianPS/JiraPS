@@ -1,6 +1,6 @@
 function Set-JiraIssue {
     <#
-    .Synopsis
+    .SYNOPSIS
        Modifies an existing issue in JIRA
     .DESCRIPTION
        This function modifies an existing isue in JIRA.  This can include changing
@@ -25,230 +25,228 @@ function Set-JiraIssue {
        If the -PassThru parameter is provided, this function will provide a reference
        to the JIRA issue modified.  Otherwise, this function does not provide output.
     #>
-    [CmdletBinding(
-        SupportsShouldProcess = $true
-    )]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Issue key or JiraPS.Issue object returned from Get-JiraIssue
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
         [Alias('Key')]
-        [Object[]] $Issue,
+        [Object[]]
+        $Issue,
 
         # New summary of the issue.
-        [Parameter(Mandatory = $false)]
-        [String] $Summary,
+        [String]
+        $Summary,
 
         # New description of the issue.
-        [Parameter(Mandatory = $false)]
-        [String] $Description,
+        [String]
+        $Description,
 
         # Set the FixVersion of the issue, this will overwrite any present FixVersions
-        [Parameter(Mandatory = $false)]
         [Alias('FixVersions')]
-        [String[]] $FixVersion,
+        [String[]]
+        $FixVersion,
 
         # New assignee of the issue. Enter 'Unassigned' to unassign the issue.
-        [Parameter(Mandatory = $false)]
-        [Object] $Assignee,
+        [Object]
+        $Assignee,
 
         # Labels to be set on the issue. These wil overwrite any existing
         # labels on the issue. For more granular control over issue labels,
         # use Set-JiraIssueLabel.
-        [String[]] $Label,
+        [String[]]
+        $Label,
 
         # Any additional fields that should be updated.
-        [System.Collections.Hashtable] $Fields,
+        [Hashtable]
+        $Fields,
 
         # Add a comment ad once with your changes
-        [Parameter(Mandatory = $false)]
-        [String] $AddComment,
-
-        # Path of the file where the configuration is stored.
-        [ValidateScript( {Test-Path $_})]
-        [String] $ConfigFile,
+        [String]
+        $AddComment,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential,
+        [PSCredential]
+        $Credential,
 
         # Whether output should be provided after invoking this function.
-        [Switch] $PassThru
+        [Switch]
+        $PassThru
     )
 
     begin {
-        Write-Debug "[Set-JiraIssue] Checking to see if we have any operations to perform"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $fieldNames = $Fields.Keys
-        if (-not ($Summary -or $Description -or $Assignee -or $Label -or $FixVersion -or $fieldNames)) {
-            Write-Verbose "Nothing to do."
+        if (-not ($Summary -or $Description -or $Assignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
+            $errorMessage = @{
+                Category         = "InvalidArgument"
+                CategoryActivity = "Validating Arguments"
+                Message          = "The parameters provided do not change the Issue. No action will be performed"
+            }
+            Write-Error @errorMessage
             return
         }
 
-        if ($Assignee) {
-            Write-Debug "[Set-JiraIssue] Testing Assignee type"
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
             if ($Assignee -eq 'Unassigned') {
-                Write-Debug "[Set-JiraIssue] 'Unassigned' String passed. Issue will be assigned to no one."
+                <#
+                  #ToDo:Deprecated
+                  This behavior should be deprecated
+                #>
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] 'Unassigned' String passed. Issue will be assigned to no one."
                 $assigneeString = ""
                 $validAssignee = $true
             }
             else {
-                Write-Debug "[Set-JiraIssue] Attempting to obtain Jira user [$Assignee]"
-                $assigneeObj = Get-JiraUser -InputObject $Assignee -Credential $Credential
-                if ($assigneeObj) {
-                    Write-Debug "[Set-JiraIssue] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
+                if ($assigneeObj = Get-JiraUser -UserName $Assignee -Credential $Credential) {
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                     $assigneeString = $assigneeObj.Name
                     $validAssignee = $true
                 }
                 else {
-                    Write-Debug "[Set-JiraIssue] Unable to obtain Assignee. Exception will be thrown."
-                    throw "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid value for Parameter"),
+                        'ParameterValue.InvalidAssignee',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $Assignee
+                    )
+                    $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
             }
         }
-
-        Write-Debug "[Set-JiraIssue] Completed Begin block."
     }
 
     process {
-        foreach ($i in $Issue) {
-            $actOnIssueUri = $false
-            $actOnAssigneeUri = $false
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-            Write-Debug "[Set-JiraIssue] Obtaining reference to issue"
-            $issueObj = Get-JiraIssue -InputObject $i -Credential $Credential
+        foreach ($_issue in $Issue) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
-            if ($issueObj) {
-                $issueProps = @{
-                    'update' = @{}
+            # Find the proper object for the Issue
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+
+            $issueProps = @{
+                'update' = @{}
+            }
+
+            if ($Summary) {
+                # Update properties need to be passed to JIRA as arrays
+                $issueProps.update["summary"] = @(@{ 'set' = $Summary })
+            }
+
+            if ($Description) {
+                $issueProps.update["description"] = @(@{ 'set' = $Description })
+            }
+
+            if ($FixVersion) {
+                $fixVersionSet = [System.Collections.ArrayList]@()
+                foreach ($item in $FixVersion) {
+                    $null = $fixVersionSet.Add( @{ 'name' = $item } )
                 }
+                $issueProps.update["fixVersions"] = @( @{ set = $fixVersionSet } )
+            }
 
-                if ($Summary) {
-                    # Update properties need to be passed to JIRA as arrays
-                    $issueProps.update.summary = @()
-                    $issueProps.update.summary += @{
-                        'set' = $Summary;
-                    }
-                    $actOnIssueUri = $true
-                }
-
-                if ($Description) {
-                    $issueProps.update.description = @()
-                    $issueProps.update.description += @{
-                        'set' = $Description;
-                    }
-                    $actOnIssueUri = $true
-                }
-
-                If ($FixVersion) {
-                    $fixVersionSet = @()
-                    Foreach ($f in $FixVersion) {
-                        $fixVersionSet += @{
-                            'name' = $f
-                        }
-                    }
-                    $issueProps.update.fixVersions = @()
-                    $issueProps.update.fixVersions += @{
-                        'set' = $fixVersionSet;
-                    }
-                    $actOnIssueUri = $true
-                }
-
-                if ($AddComment) {
-                    $issueProps.update.comment = @()
-                    $issueProps.update.comment += @{
+            if ($AddComment) {
+                $issueProps.update["comment"] = @(
+                    @{
                         'add' = @{
                             'body' = $AddComment
                         }
                     }
-                    $actOnIssueUri = $true
-                }
+                )
+            }
 
-                if ($Fields) {
-                    Write-Debug "[Set-JiraIssue] Validating field names"
-                    foreach ($k in $Fields.Keys) {
-                        $name = $k
-                        $value = $Fields.$k
-                        Write-Debug "[Set-JiraIssue] Attempting to identify field (name=[$name], value=[$value])"
+            if ($Fields) {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
+                foreach ($_key in $Fields.Keys) {
+                    $name = $_key
+                    $value = $Fields.$_key
 
-                        $f = Get-JiraField -Field $name -Credential $Credential
-                        if ($f) {
-                            # For some reason, this was coming through as a hashtable instead of a String,
-                            # which was causing ConvertTo-Json to crash later.
-                            # Not sure why, but this forces $id to be a String and not a hashtable.
-                            $id = "$($f.ID)"
-                            Write-Debug "[Set-JiraIssue] Field [$name] was identified as ID [$id]"
-                            $issueProps.update.$id = @()
-                            $issueProps.update.$id += @{
-                                'set' = $value;
-                            }
-                            $actOnIssueUri = $true
-                        }
-                        else {
-                            Write-Debug "[Set-JiraIssue] Field [$name] could not be identified in Jira"
-                            throw "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
-                        }
-                    }
-                }
+                    $field = Get-JiraField -Field $name -Credential $Credential -ErrorAction Stop
 
-                if ($validAssignee) {
-                    $assigneeProps = @{
-                        'name' = $assigneeString;
-                    }
-
-                    $actOnAssigneeUri = $true
-                }
-
-                if ($actOnIssueUri) {
-                    Write-Debug "[Set-JiraIssue] IssueProps: [$issueProps]"
-
-                    Write-Debug "[Set-JiraIssue] Converting results to JSON"
-                    $json = ConvertTo-Json -InputObject $issueProps -Depth 5
-                    $issueObjURL = $issueObj.RestUrl
-
-                    Write-Debug "[Set-JiraIssue] Checking for -WhatIf and Confirm"
-                    if ($PSCmdlet.ShouldProcess($Issue, "Updating Issue [$IssueObj] from JIRA")) {
-                        Write-Debug "[Set-JiraIssue] Preparing for blastoff!"
-                        Invoke-JiraMethod -Method Put -URI $issueObjURL -Body $json -Credential $Credential
-                    }
-                }
-
-                if ($actOnAssigneeUri) {
-                    # Jira handles assignee differently; you can't change it from the default "edit issues" screen unless
-                    # you customize the "Edit Issue" screen.
-
-                    $assigneeUrl = "{0}/assignee" -f $issueObj.RestUrl
-                    $json = ConvertTo-Json -InputObject $assigneeProps
-
-                    Write-Debug "[Set-JiraIssue] Checking for -WhatIf and Confirm"
-                    if ($PSCmdlet.ShouldProcess($Issue, "Updating Issue [Assignee] from JIRA")) {
-                        Write-Debug "[Set-JiraIssue] Preparing for blastoff!"
-                        Invoke-JiraMethod -Method Put -URI $assigneeUrl -Body $json -Credential $Credential
-                    }
-                }
-
-                if ($Label) {
-                    Write-Debug "[Set-JiraIssue] Invoking Set-JiraIssueLabel to set issue labels"
-                    Set-JiraIssueLabel -Issue $issueObj -Set $Label -Credential $Credential
-                }
-
-                if ($PassThru) {
-                    Write-Debug "[Set-JiraIssue] PassThru was specified. Obtaining updated reference to issue"
-                    Get-JiraIssue -Key $issueObj.Key -Credential $Credential
+                    # For some reason, this was coming through as a hashtable instead of a String,
+                    # which was causing ConvertTo-Json to crash later.
+                    # Not sure why, but this forces $id to be a String and not a hashtable.
+                    $id = [string]$field.Id
+                    $issueProps.update[$id] = @(@{ 'set' = $value })
                 }
             }
-            else {
-                Write-Debug "[Set-JiraIssue] Unable to identify issue [$i]. Writing error message."
-                Write-Error "Unable to identify issue [$i]"
+
+            if ($validAssignee) {
+                $assigneeProps = @{
+                    'name' = $assigneeString
+                }
+            }
+
+            if ( @($issueProps.update.Keys).Count -gt 0 ) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue fields"
+
+                $parameter = @{
+                    URI        = $issueObj.RestUrl
+                    Method     = "PUT"
+                    Body       = ConvertTo-Json -InputObject $issueProps -Depth 10
+                    Credential = $Credential
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue")) {
+                    Invoke-JiraMethod @parameter
+                }
+            }
+
+            if ($assigneeProps) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue assignee"
+                # Jira handles assignee differently; you can't change it from the default "edit issues" screen unless
+                # you customize the "Edit Issue" screen.
+
+                $parameter = @{
+                    URI        = "{0}/assignee" -f $issueObj.RestUrl
+                    Method     = "PUT"
+                    Body       = ConvertTo-Json -InputObject $assigneeProps
+                    Credential = $Credential
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue [Assignee] from JIRA")) {
+                    Invoke-JiraMethod @parameter
+                }
+            }
+
+            if ($Label) {
+                Set-JiraIssueLabel -Issue $issueObj -Set $Label -Credential $Credential
+            }
+
+            if ($PassThru) {
+                Get-JiraIssue -Key $issueObj.Key -Credential $Credential
             }
         }
     }
 
     end {
-        Write-Debug "[Set-JiraIssue] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

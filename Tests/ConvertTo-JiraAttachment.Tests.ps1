@@ -1,10 +1,10 @@
-. $PSScriptRoot\Shared.ps1
+Describe "ConvertTo-JiraAttachment" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    Describe "ConvertTo-JiraAttachment" {
+    InModuleScope JiraPS {
 
-        . $PSScriptRoot\Shared.ps1
+        . "$PSScriptRoot/Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
 

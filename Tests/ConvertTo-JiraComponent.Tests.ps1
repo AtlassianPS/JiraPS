@@ -1,15 +1,11 @@
-. $PSScriptRoot\Shared.ps1
+Describe "ConvertTo-JiraComponent" {
 
-# This is a private function, so the test needs to be within the module's scope
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    # A bit counter-intuitive to import this twice, but otherwise its functions
-    # are outside the JiraPS module scope. We need it outside to make sure the
-    # module is loaded, and we need it inside to make sure functions are
-    # available.
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    Describe "ConvertTo-JiraComponent" {
+        . "$PSScriptRoot/Shared.ps1"
+
         $jiraServer = 'http://jiraserver.example.com'
 
         $sampleJson = @"
@@ -29,7 +25,7 @@ InModuleScope JiraPS {
 
         It "Sets the type name to JiraPS.Project" {
             # (Get-Member -InputObject $r).TypeName | Should Be 'JiraPS.Component'
-            $r.PSObject.TypeNames[0] | Should Be 'JiraPS.Component'
+            checkType $r "JiraPS.Component"
         }
 
         defProp $r 'Id' '11000'

@@ -1,18 +1,20 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Add-JiraIssueWorklog" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $ShowMockData = $false
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $jiraUsername = 'powershell-test'
-    $jiraUserDisplayName = 'PowerShell Test User'
-    $jiraUserEmail = 'noreply@example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
-    $worklogitemID = 73040
+        . "$PSScriptRoot/Shared.ps1"
 
-    $restResponse = @"
+        $jiraServer = 'http://jiraserver.example.com'
+        $jiraUsername = 'powershell-test'
+        $jiraUserDisplayName = 'PowerShell Test User'
+        $jiraUserEmail = 'noreply@example.com'
+        $issueID = 41701
+        $issueKey = 'IT-3676'
+        $worklogitemID = 73040
+
+        $restResponse = @"
 {
     "id": "$worklogitemID",
     "self": "$jiraServer/rest/api/latest/issue/$issueID/worklog/$worklogitemID",
@@ -51,39 +53,32 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Add-JiraIssueWorklog" {
-
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Get-JiraIssue -ModuleName JiraPS {
             $result = [PSCustomObject] @{
-                ID      = $issueID;
-                Key     = $issueKey;
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
+                ID      = $issueID
+                Key     = $issueKey
+                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
             }
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             Write-Output $result
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
-            if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
-            }
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
 
-            # This data was created from a GUI REST client, then sanitized. A lot of extra data was also removed to save space.
-            # Many Bothans died to bring us this information.
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $restResponse
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
@@ -103,11 +98,11 @@ InModuleScope JiraPS {
         }
 
         It "Accepts pipeline input from Get-JiraIssue" {
-            $commentResult = Get-JiraIssue -InputObject $issueKey | Add-JiraIssueWorklog -Comment 'This is a test worklog item from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
+            $commentResult = Get-JiraIssue -Key $IssueKey | Add-JiraIssueWorklog -Comment 'This is a test worklog item from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
             $commentResult | Should Not BeNullOrEmpty
 
             # Get-JiraIssue should be called once here to fetch the initial test issue
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
     }

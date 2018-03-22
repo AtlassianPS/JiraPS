@@ -1,59 +1,35 @@
-# PSScriptAnalyzer - ignore creation of a SecureString using plain text for the contents of this script file
-# https://replicajunction.github.io/2016/09/19/suppressing-psscriptanalyzer-in-pester/
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 param()
 
-. $PSScriptRoot\Shared.ps1
+Describe "New-JiraSession" {
 
-InModuleScope JiraPS {
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $authUri = "$jiraServer/rest/api/2/mypermissions"
-    $jSessionId = '76449957D8C863BE8D4F6F5507E980E8'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $testUsername = 'powershell-test'
-    $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
-    $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername, $testPassword
+        $jiraServer = 'http://jiraserver.example.com'
+        $authUri = "$jiraServer/rest/api/*/mypermissions"
 
+        $testUsername = 'powershell-test'
+        $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
+        $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername, $testPassword
 
-    $testJson = @"
-{
-    "session": {
-        "name": "JSESSIONID",
-        "value": "$jSessionId"
-    },
-    "loginInfo": {
-        "failedLoginCount": 5,
-        "loginCount": 10,
-        "lastFailedLoginTime": "2015-06-23T13:17:44.005-0500",
-        "previousLoginTime": "2015-06-23T10:22:03.514-0500"
-    }
-}
-"@
-    Describe "New-JiraSession" {
+        $testJson = "{}"
+        $global:newSessionVar = @{}
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Uri -eq $authUri -and $Method -eq 'GET'} {
-            if ($showMockData) {
-                Write-Host "       Mocked Invoke-WebRequest with GET method" -ForegroundColor Cyan
-                Write-Host "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]            $URI" -ForegroundColor Cyan
-            }
-            $global:newSessionVar = @{}
+        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Method -eq 'Get' -and $Uri -like $authUri} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             Write-Output $testJson
         }
 
         Mock Invoke-WebRequest {
-            Write-Host "       Mocked Invoke-WebRequest with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 

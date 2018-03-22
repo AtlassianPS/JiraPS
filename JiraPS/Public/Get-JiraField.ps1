@@ -1,6 +1,6 @@
 ﻿function Get-JiraField {
     <#
-    .Synopsis
+    .SYNOPSIS
        This function returns information about JIRA fields
     .DESCRIPTION
        This function provides information about JIRA fields, or about one field in particular.  This is a good way to identify a field's ID by its name, or vice versa.
@@ -19,69 +19,58 @@
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         # The Field name or ID to search.
-        [Parameter(
-            Position = 0,
-            Mandatory = $false,
-            ValueFromRemainingArguments = $true
-        )]
-        [String[]] $Field,
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
+        [String[]]
+        $Field,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraField] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraField] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $uri = "$server/rest/api/latest/field"
-        Write-Debug "[Get-JiraField] Obtaining all fields from Jira"
-        $allFields = ConvertTo-JiraField -InputObject (Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential)
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest/field"
     }
 
     process {
-        if ($Field) {
-            foreach ($f in $Field) {
-                Write-Debug "[Get-JiraField] Processing field [$f]"
-                Write-Debug "[Get-JiraField] Searching for field (name=[$f])"
-                $thisField = $allFields | Where-Object -FilterScript {$_.Name -eq $f}
-                if ($thisField) {
-                    Write-Debug "[Get-JiraField] Found results; outputting"
-                    Write-Output $thisField
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        switch ($PSCmdlet.ParameterSetName) {
+            '_All' {
+                $parameter = @{
+                    URI        = $resourceURi
+                    Method     = "GET"
+                    Credential = $Credential
                 }
-                else {
-                    Write-Debug "[Get-JiraField] No results were found for issue type by name. Searching for issue type (id=[$i])"
-                    $thisField = $allFields | Where-Object -FilterScript {$_.Id -eq $f}
-                    if ($thisField) {
-                        Write-Debug "[Get-JiraField] Found results; outputting"
-                        Write-Output $thisField
-                    }
-                    else {
-                        Write-Debug "[Get-JiraField] No results were found for issue type by ID. This issue type appears to be unknown."
-                        Write-Verbose "Unable to identify Jira field [$f]"
-                    }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
+
+                Write-Output (ConvertTo-JiraField -InputObject $result)
+            }
+            '_Search' {
+                foreach ($_field in $Field) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_field]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_field [$_field]"
+
+                    $allFields = Get-JiraField -Credential $Credential
+
+                    Write-Output ($allFields | Where-Object -FilterScript {$_.Id -eq $_field})
+                    Write-Output ($allFields | Where-Object -FilterScript {$_.Name -like $_field})
                 }
             }
-        }
-        else {
-            Write-Debug "[Get-JiraField] No Field was supplied. Outputting all fields."
-            Write-Output $allFields
         }
     }
 
     end {
-        Write-Debug "[Get-JiraField] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

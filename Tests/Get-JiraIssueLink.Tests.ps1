@@ -1,17 +1,17 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Get-JiraIssueLink" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $issueLinkId = 1234
+        $jiraServer = 'http://jiraserver.example.com'
 
-    # We don't care about anything except for the id
-    $resultsJson = @"
+        $issueLinkId = 1234
+
+        # We don't care about anything except for the id
+        $resultsJson = @"
 {
     "id": "$issueLinkId",
     "self": "",
@@ -21,7 +21,6 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Get-JiraIssueLink" {
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }

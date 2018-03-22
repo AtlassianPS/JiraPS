@@ -1,22 +1,25 @@
-﻿$moduleRoot = Split-Path -Path $MyInvocation.MyCommand.Path -Parent
-$functions = Join-Path -Path $moduleRoot -ChildPath 'Public'
-$internal = Join-Path -Path $moduleRoot -ChildPath 'Internal'
+﻿# Import custom Classes/Objects
+# if (!("" -as [Type])) {
+#     Add-Type -Path (Join-Path $PSScriptRoot JiraPS.Types.cs) -ReferencedAssemblies Microsoft.CSharp
+# }
 
-# Import all .ps1 files that aren't Pester tests, and export the names of each one as a module function
-$items = Resolve-Path "$functions\*.ps1" | Where-Object -FilterScript { -not ($_.ProviderPath.Contains(".Tests.")) }
-foreach ($i in $items) {
-    . $i.ProviderPath
+# Gather all files
+$PublicFunctions = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue )
+$PrivateFunctions = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue )
+
+# Dot source the functions
+foreach ($File in @($PublicFunctions + $PrivateFunctions)) {
+    Try {
+        . $File.FullName
+    }
+    Catch {
+        $errorItem = [System.Management.Automation.ErrorRecord]::new(
+            ([System.ArgumentException]"Function not found"),
+            'Load.Function',
+            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+            $File
+        )
+        $errorItem.ErrorDetails = "Failed to import function $($File.BaseName)"
+        $PSCmdlet.ThrowTerminatingError($errorItem)
+    }
 }
-
-# Same logic here, but don't export these. These functions should be private.
-$items = Resolve-Path "$internal\*.ps1" | Where-Object -FilterScript { -not ($_.ProviderPath.Contains(".Tests.")) }
-foreach ($i in $items) {
-    . $i.ProviderPath
-}
-
-# Apparently, PowerShell only automatically loads format files from modules within PSModulePath.
-# This line forces the current PowerShell session to load the module format file, even if the module is saved in an unusual location.
-# If this module lives somewhere in your PSModulePath, this line is unnecessary (but it doesn't do any harm either).
-$formatFile = Join-Path -Path $moduleRoot -ChildPath 'JiraPS.format.ps1xml'
-Write-Verbose "Updating format data with file '$formatFile'"
-Update-FormatData -AppendPath $formatFile -ErrorAction Continue

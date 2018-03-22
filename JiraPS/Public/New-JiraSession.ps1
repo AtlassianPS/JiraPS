@@ -1,6 +1,6 @@
 function New-JiraSession {
     <#
-    .Synopsis
+    .SYNOPSIS
        Creates a persistent JIRA authenticated session which can be used by other JiraPS functions
     .DESCRIPTION
        This function creates a persistent, authenticated session in to JIRA which can be used by all other
@@ -21,70 +21,83 @@ function New-JiraSession {
     .OUTPUTS
        [JiraPS.Session] An object representing the Jira session
     #>
-    [CmdletBinding(SupportsShouldProcess = $false)]
+    [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # Credentials to use to connect to JIRA.
-        [Parameter(Mandatory = $true,
-            Position = 0)]
-        [System.Management.Automation.PSCredential] $Credential
+        [Parameter( Mandatory )]
+        [PSCredential]
+        $Credential,
+
+        # Additional Headers
+        [Hashtable]
+        $Headers = @{}
     )
 
     begin {
-        try {
-            Write-Debug "[New-JiraSession] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        } catch {
-            $err = $_
-            Write-Debug "[New-JiraSession] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $uri = "$server/rest/api/2/mypermissions"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/2/mypermissions"
 
         # load DefaultParameters for Invoke-WebRequest
         # as the global PSDefaultParameterValues is not used
         $PSDefaultParameterValues = $global:PSDefaultParameterValues
 
-        [String] $Username = $Credential.UserName
-        $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${Username}:$($Credential.GetNetworkCredential().Password)"))
-
-        $headers = @{
-            'Authorization' = "Basic $token"
-        }
+        $SecureCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(
+                $('{0}:{1}' -f $Credential.UserName, $Credential.GetNetworkCredential().Password)
+            ))
+        $Headers.Add('Authorization', "Basic $SecureCreds")
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        $parameters = @{
+            Uri             = $resourceURi
+            Method          = "GET"
+            ContentType     = 'application/json; charset=utf-8'
+            Headers         = $Headers
+            UseBasicParsing = $true
+            SessionVariable = "newSessionVar"
+            ErrorAction     = 'SilentlyContinue'
+        }
+
+        if ($Headers.ContainsKey("Content-Type")) {
+            $parameters["ContentType"] = $Headers["Content-Type"]
+            $Headers.Remove("Content-Type")
+            $parameters["Headers"] = $Headers
+        }
+
         try {
-            Write-Debug "[New-JiraSession] Preparing for blastoff!"
-            $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Get -Body $json -ContentType 'application/json' -UseBasicParsing -SessionVariable newSessionVar
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            $webResponse = Invoke-WebRequest @parameters
 
-            Write-Debug "[New-JiraSession] Converting result to JiraSession object"
-            $result = ConvertTo-JiraSession -WebResponse $webResponse -Session $newSessionVar -Username $Credential.UserName
+            $result = ConvertTo-JiraSession -Session $newSessionVar -Username $Credential.UserName
 
-            Write-Debug "[New-JiraSession] Saving session in module's PrivateData"
             if ($MyInvocation.MyCommand.Module.PrivateData) {
-                Write-Debug "[New-JiraSession] Adding session result to existing module PrivateData"
-                $MyInvocation.MyCommand.Module.PrivateData.Session = $result;
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding session result to existing module PrivateData"
+                $MyInvocation.MyCommand.Module.PrivateData.Session = $result
             }
             else {
-                Write-Debug "[New-JiraSession] Creating module PrivateData"
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Creating module PrivateData"
                 $MyInvocation.MyCommand.Module.PrivateData = @{
-                    'Session' = $result;
+                    'Session' = $result
                 }
             }
 
-            Write-Debug "[New-JiraSession] Outputting result"
             Write-Output $result
-        } catch {
-            $err = $_
-            $webResponse = $err.Exception.Response
-            Write-Debug "[New-JiraSession] Encountered an exception from the Jira server: $err"
+        }
+        catch {
+            $webResponse = $_.Exception.Response
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Encountered an exception from the Jira server: `$err"
 
             # Test response Headers if Jira requires a CAPTCHA
             Test-Captcha -InputObject $webResponse
 
-            Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
+            Write-Verbose "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
 
             # Retrieve body of HTTP response - this contains more useful information about exactly why the error
             # occurred
@@ -99,5 +112,9 @@ function New-JiraSession {
             $result = ConvertFrom-Json2 -InputObject $body
             Write-Debug "Converted body from JSON into PSCustomObject (`$result)"
         }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

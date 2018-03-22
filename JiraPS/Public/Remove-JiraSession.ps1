@@ -1,6 +1,6 @@
 function Remove-JiraSession {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes a persistent JIRA authenticated session
     .DESCRIPTION
        This function removes a persistent JIRA authenticated session and closes the session for JIRA.
@@ -26,88 +26,31 @@ function Remove-JiraSession {
     .OUTPUTS
        [JiraPS.Session] An object representing the Jira session
     #>
-    [CmdletBinding(SupportsShouldProcess = $false)]
+    [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         # A Jira session to be closed. If not specified, this function will use a saved session.
-        [Parameter(
-            Position = 0,
-            Mandatory = $false,
-            ValueFromPipeline = $true
-        )]
-        [Object] $Session
+        #
+        # This parameter has currently no meaning.
+        [Parameter( ValueFromPipeline )]
+        [Object]
+        $Session
     )
 
     begin {
-        try {
-            Write-Debug "[Remove-JiraSession] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Remove-JiraSession] Encountered an error reading configuration data."
-            throw $err
-        }
-
-        $uri = "$server/rest/auth/1/session"
-
-        $headers = @{
-            'Content-Type' = 'application/json';
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
-        if ($Session) {
-            Write-Debug "[Remove-JiraSession] Validating Session parameter"
-            if ((Get-Member -InputObject $Session).TypeName -eq 'JiraPS.Session') {
-                Write-Debug "[Remove-JiraSession] Successfully parsed Session parameter as a JiraPS.Session object"
-            }
-            else {
-                Write-Debug "[Remove-JiraSession] Session parameter is not a JiraPS.Session object. Throwing exception"
-                throw "Unable to parse parameter [$Session] as a JiraPS.Session object"
-            }
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        if ($Session = Get-JiraSession) {
+            $MyInvocation.MyCommand.Module.PrivateData.Session = $null
         }
-        else {
-            Write-Debug "[Remove-JiraSession] Session parameter was not supplied. Checking for saved session in module PrivateData"
-            $Session = Get-JiraSession
-        }
+    }
 
-        if ($Session) {
-            Write-Debug "[Remove-JiraSession] Preparing for blastoff!"
-
-            try {
-                $webResponse = Invoke-WebRequest -Uri $uri -Headers $headers -Method Delete -WebSession $Session.WebSession
-
-                Write-Debug "[Remove-JiraSession] Removing session from module's PrivateData"
-                if ($MyInvocation.MyCommand.Module.PrivateData) {
-                    Write-Debug "[Remove-JiraSession] Removing session from existing module PrivateData"
-                    $MyInvocation.MyCommand.Module.PrivateData.Session = $null;
-                }
-                else {
-                    Write-Debug "[Remove-JiraSession] Creating module PrivateData"
-                    $MyInvocation.MyCommand.Module.PrivateData = @{
-                        'Session' = $null;
-                    }
-                }
-            }
-            catch {
-                $err = $_
-                $webResponse = $err.Exception.Response
-                Write-Debug "[Remove-JiraSession] Encountered an exception from the Jira server: $err"
-
-                Write-Warning "JIRA returned HTTP error $($webResponse.StatusCode.value__) - $($webResponse.StatusCode)"
-
-                # Retrieve body of HTTP response - this contains more useful information about exactly why the error
-                # occurred
-                $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
-                $body = $readStream.ReadToEnd()
-                $readStream.Close()
-                Write-Debug "Retrieved body of HTTP response for more information about the error (`$body)"
-                ConvertFrom-Json2 -InputObject $body
-            }
-        }
-        else {
-            Write-Verbose "No Jira session is saved."
-        }
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

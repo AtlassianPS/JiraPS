@@ -1,30 +1,33 @@
-. $PSScriptRoot\Shared.ps1
+Describe 'Add-JiraIssueLink' {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $issueKey = "TEST-01"
-    $issueLink = [PSCustomObject]@{
-        outwardIssue = [PSCustomObject]@{key = "TEST-10"}
-        type         = [PSCustomObject]@{name = "Composition"}
-    }
+        $jiraServer = 'http://jiraserver.example.com'
 
-
-    Describe 'Add-JiraIssueLink' {
+        $issueKey = "TEST-01"
+        $issueLink = [PSCustomObject]@{
+            outwardIssue = [PSCustomObject]@{key = "TEST-10"}
+            type         = [PSCustomObject]@{name = "Composition"}
+        }
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Get-JiraIssue -ParameterFilter { $Key -eq $issueKey } {
-            [PSCustomObject]@{
-                Key = $issueKey;
+            $object = [PSCustomObject]@{
+                Key = $issueKey
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

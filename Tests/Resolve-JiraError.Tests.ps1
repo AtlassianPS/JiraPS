@@ -1,11 +1,10 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Describe "Resolve-JiraError" {
 
-InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    Describe "Resolve-JiraError" {
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         $testErrorKey = 'error'
         $testError = 'This is an error message.'
@@ -19,7 +18,7 @@ InModuleScope JiraPS {
     }
 }
 "@
-        $testErrorMessage = "JIRA encountered an error: [$testErrorKey] - $testError"
+        $testErrorMessage = "Jira encountered an error: [$testErrorKey] - $testError"
 
         It "Converts a JIRA result into a PSObject with error results" {
             $obj = Resolve-JiraError -InputObject (ConvertFrom-Json2 $testJson)

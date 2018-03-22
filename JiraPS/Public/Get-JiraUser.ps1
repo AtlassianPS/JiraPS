@@ -1,6 +1,6 @@
 function Get-JiraUser {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a user from Jira
     .DESCRIPTION
        This function returns information regarding a specified user from Jira.
@@ -17,105 +17,83 @@ function Get-JiraUser {
     .OUTPUTS
        [JiraPS.User]
     #>
-    [CmdletBinding(DefaultParameterSetName = 'ByUserName')]
+    [CmdletBinding( DefaultParameterSetName = 'ByUserName' )]
     param(
         # Username, name, or e-mail address of the user. Any of these should
         # return search results from Jira.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ParameterSetName = 'ByUserName'
-        )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByUserName' )]
         [ValidateNotNullOrEmpty()]
         [Alias('User', 'Name')]
-        [String[]] $UserName,
+        [String[]]
+        $UserName,
 
         # User Object of the user.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ParameterSetName = 'ByInputObject'
-        )]
+        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
         [Object[]] $InputObject,
 
         # Include inactive users in the search
-        [Switch] $IncludeInactive,
+        [Switch]
+        $IncludeInactive,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraUser] Reading server from config file"
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        Write-Debug "[Get-JiraUser] ParameterSetName=$($PSCmdlet.ParameterSetName)"
+        $server = Get-JiraConfigServer -ErrorAction Stop
 
-        Write-Debug "[Get-JiraUser] Building URI for REST call"
-        $userSearchUrl = "$server/rest/api/latest/user/search?username={0}"
+        $resourceURi = "$server/rest/api/latest/user/search?username={0}"
+
         if ($IncludeInactive) {
-            $userSearchUrl = "$userSearchUrl&includeInactive=true"
+            $resourceURi += "&includeInactive=true"
         }
-
-        # $userGetUrl = "$server/rest/api/latest/user?username={0}&expand=groups"
     }
 
     process {
-        if ($PSCmdlet.ParameterSetName -eq 'ByUserName') {
-            foreach ($u in $UserName) {
-                Write-Debug "[Get-JiraUser] Processing user [$u]"
-                $thisSearchUrl = $userSearchUrl -f $u
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-                Write-Debug "[Get-JiraUser] Preparing for blastoff!"
-                $rawResult = Invoke-JiraMethod -Method Get -URI $thisSearchUrl -Credential $Credential
-
-                if ($rawResult) {
-                    Write-Debug "[Get-JiraUser] Processing raw results from JIRA"
-                    foreach ($r in $rawResult) {
-                        Write-Debug "[Get-JiraUser] Re-obtaining user information for user [$r]"
-                        $url = '{0}&expand=groups' -f $r.self
-                        Write-Debug "[Get-JiraUser] Preparing for blastoff!"
-                        $thisUserResult = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
-
-                        if ($thisUserResult) {
-                            Write-Debug "[Get-JiraUser] Converting result to JiraPS.User object"
-                            $thisUserObject = ConvertTo-JiraUser -InputObject $thisUserResult
-                            Write-Output $thisUserObject
-                        }
-                        else {
-                            Write-Debug "[Get-JiraUser] User [$r] could not be found in JIRA."
-                        }
-                    }
-                }
-                else {
-                    Write-Debug "[Get-JiraUser] JIRA returned no results."
-                    Write-Verbose "JIRA returned no results for user [$u]."
-                }
-            }
+        if ($InputObject) {
+            $UserName = $InputObject.Name
         }
-        else {
-            foreach ($i in $InputObject) {
-                Write-Debug "[Get-JiraUser] Processing InputObject [$i]"
-                if ((Get-Member -InputObject $i).TypeName -eq 'JiraPS.User') {
-                    Write-Debug "[Get-JiraUser] User parameter is a JiraPS.User object"
-                    $thisUserName = $i.Name
-                }
-                else {
-                    $thisUserName = $i.ToString()
-                    Write-Debug "[Get-JiraUser] Username is assumed to be [$thisUserName] via ToString()"
-                }
 
-                Write-Debug "[Get-JiraUser] Invoking myself with the UserName parameter set to search for user [$thisUserName]"
-                $userObj = Get-JiraUser -UserName $thisUserName -Credential $Credential
-                Write-Debug "[Get-JiraUser] Returned from invoking myself; outputting results"
-                Write-Output $userObj
+        foreach ($user in $UserName) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$user [$user]"
+
+            $parameter = @{
+                URI        = $resourceURi -f $user
+                Method     = "GET"
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($result = Invoke-JiraMethod @parameter) {
+                $parameter = @{
+                    URI        = "{0}&expand=groups" -f $result.self
+                    Method     = "GET"
+                    Credential = $Credential
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
+
+                Write-Output (ConvertTo-JiraUser -InputObject $result)
+            }
+            else {
+                $errorMessage = @{
+                    Category         = "ObjectNotFound"
+                    CategoryActivity = "Searching for user"
+                    Message          = "No results when searching for user $user"
+                }
+                Write-Error @errorMessage
             }
         }
     }
 
     end {
-        Write-Debug "[Get-JiraUser] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

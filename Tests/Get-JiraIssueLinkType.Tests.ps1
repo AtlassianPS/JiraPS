@@ -1,14 +1,13 @@
-. $PSScriptRoot\Shared.ps1
+Describe 'Get-JiraIssueLinkType' {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    Describe 'Get-JiraIssueLinkType' {
+        $jiraServer = 'http://jiraserver.example.com'
+
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
@@ -23,6 +22,16 @@ InModuleScope JiraPS {
 
         $filterAll = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType"}
         $filterOne = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType/10000"}
+
+        Mock ConvertTo-JiraIssueLinkType {
+            ShowMockInfo 'ConvertTo-JiraIssueLinkType'
+
+            # We also don't care what comes out of here - this function has its own tests
+            [PSCustomObject] @{
+                PSTypeName = 'JiraPS.IssueLinkType'
+                foo        = 'bar'
+            }
+        }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
@@ -50,16 +59,6 @@ InModuleScope JiraPS {
         }
 
         Context "Behavior testing - returning all link types" {
-
-            Mock ConvertTo-JiraIssueLinkType {
-                ShowMockInfo 'ConvertTo-JiraIssueLinkType'
-
-                # We also don't care what comes out of here - this function has its own tests
-                [PSCustomObject] @{
-                    PSTypeName = 'JiraPS.IssueLinkType'
-                    foo        = 'bar'
-                }
-            }
 
             $output = Get-JiraIssueLinkType
 

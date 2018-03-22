@@ -95,20 +95,24 @@ function Get-ParametersDefaultFirst {
     END { }
 }
 
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectRoot = Split-Path -Parent $here
-$moduleName = "JiraPS"
-$moduleRoot = "$projectRoot\$moduleName"
+$ModuleBase = "$PSScriptRoot\..\JiraPS"
+
+# Handles modules in version directories
+$leaf = Split-Path $ModuleBase -Leaf
+$parent = Split-Path $ModuleBase -Parent
+$parsedVersion = $null
+if ([System.Version]::TryParse($leaf, [ref]$parsedVersion)) {
+    $ModuleName = Split-Path $parent -Leaf
+}
+else {
+    $ModuleName = $leaf
+}
 
 # Removes all versions of the module from the session before importing
 Get-Module $moduleName | Remove-Module
 
-# Dot source all public functions
-$commands = @()
-Get-ChildItem -Path "$moduleRoot\Public\*.ps1" | ForEach-Object {
-    . $_.FullName
-    $commands += Get-Command ($_.BaseName).Replace(".ps1", "")
-}
+$Module = Import-Module $ModuleBase\$ModuleName.psd1 -PassThru -ErrorAction Stop
+$commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
 
 ## When testing help, remember that help is cached at the beginning of each session.
 ## To test, restart session.
@@ -162,7 +166,7 @@ foreach ($command in $commands) {
                     $parameterHelp = $Help.parameters.parameter | Where-Object Name -EQ $parameterName
 
                     # Should be a description for every parameter
-                    If ($parameterName -notmatch 'Confirm|WhatIf') {
+                    if ($parameterName -notmatch 'Confirm|WhatIf') {
                         It "gets help for parameter: $parameterName : in $commandName" {
                             $parameterHelp.Description.Text | Should Not BeNullOrEmpty
                         }

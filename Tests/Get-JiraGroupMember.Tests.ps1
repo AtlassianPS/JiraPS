@@ -1,17 +1,10 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Describe "Get-JiraGroupMember" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    Describe "Get-JiraGroupMember" {
-        if ($ShowDebugText) {
-            Mock "Write-Debug" {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
+        . "$PSScriptRoot/Shared.ps1"
 
         Mock Get-JiraConfigServer {
             'https://jira.example.com'
@@ -19,9 +12,13 @@ InModuleScope JiraPS {
 
         # If we don't override this in a context or test, we don't want it to
         # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod {}
+        Mock Invoke-JiraMethod {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
+        }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/group?groupname=testgroup*' } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 @'
 {
     "Name":  "testgroup",
@@ -44,32 +41,23 @@ InModuleScope JiraPS {
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraGroupMember
 
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
-            defParam 'Group'
-            defParam 'StartIndex'
-            defParam 'MaxResults'
-            defParam 'Credential'
+            defParam $command 'Group'
+            defParam $command 'StartIndex'
+            defParam $command 'MaxResults'
+            defParam $command 'Credential'
         }
 
         Context "Behavior testing" {
             Mock Invoke-JiraMethod -ModuleName JiraPS {
-                if ($ShowMockData) {
-                    Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                    #                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
-                }
+                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             }
 
             Mock Get-JiraUser -ModuleName JiraPS {
-                [PSCustomObject] @{
+                $object = [PSCustomObject] @{
                     'Name' = 'username'
                 }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                return $object
             }
 
             It "Obtains members about a provided group in JIRA" {
@@ -91,11 +79,7 @@ InModuleScope JiraPS {
                 # mock that actually returns some data.
 
                 Mock Invoke-JiraMethod -ModuleName JiraPS {
-                    if ($ShowMockData) {
-                        Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                        Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                        Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                    }
+                    ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                     ConvertFrom-Json2 -InputObject @'
 {
     "name": "testgroup",

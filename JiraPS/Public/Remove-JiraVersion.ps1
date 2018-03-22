@@ -1,6 +1,6 @@
 ﻿function Remove-JiraVersion {
     <#
-    .Synopsis
+    .SYNOPSIS
        This function removes an existing version.
     .DESCRIPTION
        This function removes an existing version in JIRA.
@@ -23,63 +23,77 @@
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding(
-        ConfirmImpact = 'High',
-        SupportsShouldProcess = $true
-    )]
+    [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
         # Version Object or ID to delete.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [Int]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraVersion',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [Int], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
-        [Object[]] $Version,
+        [Object[]]
+        $Version,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential,
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential]
+        $Credential,
 
         # Suppress user confirmation.
-        [Switch] $Force
+        [Switch]
+        $Force
     )
 
     begin {
-        Write-Debug -Message '[Remove-JiraVersion] Reading information from config file'
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         if ($Force) {
-            Write-Debug "[Remove-JiraVersion] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+            Write-DebugMessage "[Remove-JiraVersion] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
             $oldConfirmPreference = $ConfirmPreference
             $ConfirmPreference = 'None'
         }
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($_version in $Version) {
-            Write-Debug "[Remove-JiraVersion] Obtaining reference to Version [$_version]"
-            if ($_version.PSObject.TypeNames[0] -eq "JiraPS.Version") {
-                $versionObject = Get-JiraVersion -Id $_version.Id -Credential $Credential
-            }
-            elseif ($_version -is [Int]) {
-                $versionObject = Get-JiraVersion -Id $_version -Credential $Credential
-            }
-            else {
-                $message = "Invalid Version provided."
-                $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-                Throw $exception
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
+
+            if ($_version.id) {
+                $_version = $_version.Id
             }
 
-            if ($versionObject) {
-                $restUrl = "$server/rest/api/latest/version/$($versionObject.Id)"
+            $versionObj = Get-JiraVersion -Id $_version -Credential $Credential -ErrorAction Stop
 
-                if ($PSCmdlet.ShouldProcess($versionObject.Name, "Removing Version on JIRA")) {
-                    Write-Debug -Message '[Remove-JiraVersion] Preparing for blastoff!'
-                    Invoke-JiraMethod -Method Delete -URI $restUrl -Credential $Credential
-                }
+            $parameter = @{
+                URI        = $versionObj.RestUrl
+                Method     = "DELETE"
+                Credential = $Credential
             }
-            else {
-                throw "no versionoBjects"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($versionObj.Name, "Removing Version")) {
+                Invoke-JiraMethod @parameter
             }
         }
     }
@@ -90,6 +104,6 @@
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        Write-Debug "[Remove-JiraVersion] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

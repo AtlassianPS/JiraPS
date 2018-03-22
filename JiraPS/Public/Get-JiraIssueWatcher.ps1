@@ -1,6 +1,6 @@
 ﻿function Get-JiraIssueWatcher {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns watchers on an issue in JIRA.
     .DESCRIPTION
        This function obtains watchers from existing issues in JIRA.
@@ -20,55 +20,65 @@
     [CmdletBinding()]
     param(
         # JIRA issue to check for watchers. Can be a JiraPS.Issue object, issue key, or internal issue ID.
-        [Parameter(
-            Mandatory = $true,
-            Position = 0,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
         [Alias('Key')]
-        [Object] $Issue,
+        [Object]
+        $Issue,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
-        Write-Debug "Obtaining a reference to Jira issue [$Issue]"
-        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $url = "$($issueObj.RestURL)/watchers"
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        Write-Debug "Preparing for blastoff!"
-        $result = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
-
-        if ($result) {
-            if ($result.watchers) {
-                Write-Verbose "Result: $($result)"
-                Write-Verbose "Watchers: $($result.Watchers)"
-
-                Write-Debug "Converting result to Jira user objects"
-                $obj = ConvertTo-JiraUser -InputObject $result.watchers
-
-                Write-Debug "Outputting results"
-                Write-Output $obj
+        foreach ($issue in $issueObj) {
+            $parameter = @{
+                URI        = "{0}/watchers" -f $issue.RestURL
+                Method     = "GET"
+                Credential = $Credential
             }
-            else {
-                Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
-                Write-Output $result
-            }
-        }
-        else {
-            Write-Debug "Invoke-JiraMethod returned no results to output."
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraMethod @parameter
+
+            Write-Output $result.watchers
+            # TODO: are these users?
         }
     }
 
     end {
-        Write-Debug "Completed Get-JiraIssueWatcher"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

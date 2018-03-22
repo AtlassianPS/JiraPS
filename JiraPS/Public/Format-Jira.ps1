@@ -1,6 +1,6 @@
 function Format-Jira {
     <#
-    .Synopsis
+    .SYNOPSIS
        Converts an object into a table formatted according to JIRA's markdown syntax
     .DESCRIPTION
        This function converts a PowerShell object into a table using JIRA's markdown syntax. This can then be added to a JIRA issue description or comment.
@@ -22,26 +22,22 @@ function Format-Jira {
     [CmdletBinding()]
     [OutputType([System.String])]
     param(
+        # Object to format.
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromRemainingArguments )]
+        [ValidateNotNull()]
+        [PSObject[]]
+        $InputObject,
+
         # List of properties to display. If omitted, only the default properties will be shown.
         #
         # To display all properties, use -Property *.
-        [Parameter(
-            Position = 0,
-            Mandatory = $false
-        )]
-        [Object[]] $Property,
-
-        # Object to format.
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromRemainingArguments = $true
-        )]
-        [ValidateNotNull()]
-        [PSObject[]] $InputObject
+        [Object[]]
+        $Property
     )
 
     begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $headers = New-Object -TypeName System.Collections.ArrayList
         $thisLine = New-Object -TypeName System.Text.StringBuilder
         $allText = New-Object -TypeName System.Text.StringBuilder
@@ -52,35 +48,38 @@ function Format-Jira {
 
         if ($Property) {
             if ($Property -eq '*') {
-                Write-Debug "[Format-Jira] -Property * was passed. Adding all properties."
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Property * was passed. Adding all properties."
             }
             else {
 
                 foreach ($p in $Property) {
-                    Write-Debug "[Format-Jira] Adding header [$p]"
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding header [$p]"
                     [void] $headers.Add($p.ToString())
                 }
 
                 $headerString = "||$(($headers.ToArray()) -join '||')||"
-                Write-Debug "[Format-Jira] Full header: [$headerString]"
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Full header: [$headerString]"
                 [void] $allText.Append($headerString)
                 $headerDefined = $true
             }
         }
         else {
-            Write-Debug "[Format-Jira] Property parameter was not specified. Checking first InputObject for property names."
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Property parameter was not specified. Checking first InputObject for property names."
         }
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         foreach ($i in $InputObject) {
             if (-not ($headerDefined)) {
                 # This should only be called if Property was not supplied and this is the first object in the InputObject array.
                 if ($Property -and $Property -eq '*') {
-                    Write-Debug "[Format-Jira] Adding all properties from object [$i]"
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding all properties from object [$i]"
                     $allProperties = Get-Member -InputObject $i -MemberType '*Property'
                     foreach ($a in $allProperties) {
-                        Write-Debug "[Format-Jira] Adding header [$($a.Name)]"
+                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding header [$($a.Name)]"
                         [void] $headers.Add($a.Name)
                     }
                 }
@@ -90,54 +89,54 @@ function Format-Jira {
                     # Identify default table properties if possible and use them to create a Jira table
 
                     if ($i.PSStandardMembers.DefaultDisplayPropertySet) {
-                        Write-Debug "[Format-Jira] Identifying default properties for object [$i]"
+                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Identifying default properties for object [$i]"
                         $propertyNames = $i.PSStandardMembers.DefaultDisplayPropertySet.ReferencedPropertyNames
                         foreach ($p in $propertyNames) {
-                            Write-Debug "[Format-Jira] Adding header [$p]"
+                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding header [$p]"
                             [void] $headers.Add($p)
                         }
                     }
                     else {
-                        Write-Debug "[Format-Jira] No default format data exists for object [$i] (type=[$($i.GetType())]). All properties will be used."
+                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] No default format data exists for object [$i] (type=[$($i.GetType())]). All properties will be used."
                         $allProperties = Get-Member -InputObject $i -MemberType '*Property'
                         foreach ($a in $allProperties) {
-                            Write-Debug "[Format-Jira] Adding header [$($a.Name)]"
+                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding header [$($a.Name)]"
                             [void] $headers.Add($a.Name)
                         }
                     }
                 }
 
                 $headerString = "||$(($headers.ToArray()) -join '||')||"
-                Write-Debug "[Format-Jira] Full header: [$headerString]"
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Full header: [$headerString]"
                 [void] $allText.Append($headerString)
                 $headerDefined = $true
             }
 
-            Write-Debug "[Format-Jira] Processing object [$i]"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Processing object [$i]"
             [void] $thisLine.Clear()
             [void] $thisLine.Append("$n|")
 
             foreach ($h in $headers) {
                 $value = $InputObject.$h
                 if ($value) {
-                    Write-Debug "[Format-Jira] Adding property (name=[$h], value=[$value])"
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding property (name=[$h], value=[$value])"
                     [void] $thisLine.Append("$value|")
                 }
                 else {
-                    Write-Debug "[Format-Jira] Property [$h] does not exist on this object."
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Property [$h] does not exist on this object."
                     [void] $thisLine.Append(' |')
                 }
             }
 
             $thisLineString = $thisLine.ToString()
-            Write-Debug "[Format-Jira] Completed line: [$thisLineString]"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Completed line: [$thisLineString]"
             [void] $allText.Append($thisLineString)
         }
     }
 
     end {
-        $allTextString = $allText.ToString()
-        Write-Output $allTextString
-        Write-Debug "[Format-Jira] Complete"
+        Write-Output $allText.ToString()
+
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

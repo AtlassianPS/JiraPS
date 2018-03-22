@@ -1,25 +1,21 @@
 function ConvertTo-JiraComponent {
     [CmdletBinding()]
     param(
-        [Parameter(
-            Mandatory = $true,
-            Position = 0,
-            ValueFromPipeline = $true
-        )]
-        [PSObject[]] $InputObject
+        [Parameter( ValueFromPipeline )]
+        [PSObject[]]
+        $InputObject
     )
 
     process {
         foreach ($i in $InputObject) {
-            # Write-Debug "Processing object: '$i'"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
-            # Write-Debug "Defining standard properties"
             $props = @{
-                'ID'          = $i.id;
-                'Name'        = $i.name;
-                'RestUrl'     = $i.self;
-                'Lead'        = $i.lead;
-                'ProjectName' = $i.project;
+                'ID'          = $i.id
+                'Name'        = $i.name
+                'RestUrl'     = $i.self
+                'Lead'        = $i.lead
+                'ProjectName' = $i.project
                 'ProjectId'   = $i.projectId
             }
 
@@ -32,23 +28,13 @@ function ConvertTo-JiraComponent {
                 $props.LeadDisplayName = $null
             }
 
-            # Write-Debug "Creating PSObject out of properties"
             $result = New-Object -TypeName PSObject -Property $props
-
-            # Write-Debug "Inserting type name information"
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Component')
-
-            # Write-Debug "[ConvertTo-JiraComponent] Inserting custom toString() method"
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
                 Write-Output "$($this.Name)"
             }
 
-            # Write-Debug "Outputting object"
             Write-Output $result
         }
-    }
-
-    end {
-        # Write-Debug "Complete"
     }
 }

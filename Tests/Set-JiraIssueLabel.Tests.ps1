@@ -1,71 +1,56 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Describe "Set-JiraIssueLabel" {
 
-InModuleScope JiraPS {
+Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    Describe "Set-JiraIssueLabel" {
-        if ($ShowDebugText) {
-            Mock "Write-Debug" {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'https://jira.example.com'
 
         Mock Get-JiraConfigServer {
-            'https://jira.example.com'
+            $jiraServer
         }
 
         Mock Get-JiraIssue {
-            [PSCustomObject] @{
-                'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345';
+            $object = [PSCustomObject] @{
+                'Id'      = 123
+                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
                 'Labels'  = @('existingLabel1', 'existingLabel2')
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
         }
 
-        # If we don't override this in a context or test, we don't want it to
-        # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod {}
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345"} {
+        }
+
+        Mock Invoke-JiraMethod {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
+        }
 
         Context "Sanity checking" {
             $command = Get-Command -Name Set-JiraIssueLabel
 
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
+            defParam $command 'Issue'
+            defParam $command 'Set'
+            defParam $command 'Add'
+            defParam $command 'Remove'
+            defParam $command 'Clear'
+            defParam $command 'Credential'
+            defParam $command 'PassThru'
 
-            function defAlias($name, $definition) {
-                It "Supports the $name alias for the $definition parameter" {
-                    $command.Parameters.Item($definition).Aliases | Where-Object -FilterScript {$_ -eq $name} | Should Not BeNullOrEmpty
-                }
-            }
-
-            defParam 'Issue'
-            defParam 'Set'
-            defParam 'Add'
-            defParam 'Remove'
-            defParam 'Clear'
-            defParam 'Credential'
-            defParam 'PassThru'
-
-            defAlias 'Key' 'Issue'
-            defAlias 'Label' 'Set'
-            defAlias 'Replace' 'Set'
+            defAlias $command 'Key' 'Issue'
+            defAlias $command 'Label' 'Set'
+            defAlias $command 'Replace' 'Set'
         }
 
         Context "Behavior testing" {
-            Mock Invoke-JiraMethod {
-                if ($ShowMockData) {
-                    Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
-                }
-            }
-
             It "Replaces all issue labels if the Set parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1', 'testLabel2' } | Should Not Throw
                 # The String in the ParameterFilter is made from the keywords
@@ -112,7 +97,7 @@ InModuleScope JiraPS {
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
-            It "Accepts the output of Get-JiraIssue by pipeline for the -Issue paramete" {
+            It "Accepts the output of Get-JiraIssue by pipeline for the -Issue parameter" {
                 { Get-JiraIssue -Key TEST-001 | Set-JiraIssueLabel -Set 'testLabel1' } | Should Not Throw
                 Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It

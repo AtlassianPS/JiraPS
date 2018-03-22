@@ -1,21 +1,22 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Get-JiraVersion" {
 
-InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $versionName1 = '1.0.0.0'
-    $versionName2 = '2.0.0.0'
-    $versionName3 = '3.0.0.0'
-    $versionID1 = 16740
-    $versionID2 = 16840
-    $versionID3 = 16940
-    $projectKey = 'LDD'
-    $projectId = '12101'
+    InModuleScope JiraPS {
 
-    $JiraProjectData = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $versionName1 = '1.0.0.0'
+        $versionName2 = '2.0.0.0'
+        $versionName3 = '3.0.0.0'
+        $versionID1 = 16740
+        $versionID2 = 16840
+        $versionID3 = 16940
+        $projectKey = 'LDD'
+        $projectId = '12101'
+
+        $JiraProjectData = @"
 [
     {
         "Key" : "$projectKey",
@@ -27,7 +28,7 @@ InModuleScope JiraPS {
     }
 ]
 "@
-    $testJson1 = @"
+        $testJson1 = @"
 {
     "self" : "$jiraServer/rest/api/latest/version/$versionID1",
     "id" : $versionID1,
@@ -38,7 +39,7 @@ InModuleScope JiraPS {
     "projectId" : "$projectId"
 }
 "@
-    $testJson2 = @"
+        $testJson2 = @"
 {
     "self" : "$jiraServer/rest/api/latest/version/$versionID2",
     "id" : $versionID2,
@@ -49,7 +50,7 @@ InModuleScope JiraPS {
     "projectId" : "$projectId"
 }
 "@
-    $testJsonAll = @"
+        $testJsonAll = @"
 [
     {
         "self" : "$jiraServer/rest/api/latest/version/$versionID1",
@@ -81,14 +82,15 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Get-JiraVersion" {
         #region Mock
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Get-JiraProject -ModuleName JiraPS {
-            ConvertFrom-Json2 $JiraProjectData | Where-Object {$_.Key -in $Project}
+            $object = ConvertFrom-Json2 $JiraProjectData | Where-Object {$_.Key -in $Project}
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+            return $object
         }
 
         Mock ConvertTo-JiraVersion -ModuleName JiraPS {
@@ -102,26 +104,28 @@ InModuleScope JiraPS {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionId1" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $testJson1
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionId2" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $testJson2
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $testJsonAll
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/project/*/versions" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $testJson1
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mock
@@ -143,18 +147,21 @@ InModuleScope JiraPS {
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
             }
             It "gets a Version using multiple IDs" {
-                $results = Get-JiraVersion -ID $versionID1, $versionID2
+                $results = Get-JiraVersion -Id $versionID1, $versionID2
                 $results | Should Not BeNullOrEmpty
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID1" }
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID2" }
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
             }
             It "gets a Version using the pipeline from another Version" {
-                $version = [PSCustomObject]@{Id = [int]($versionID2)}
-                $results = ($version | Get-JiraVersion)
-                $results | Should Not BeNullOrEmpty
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID2" }
-                Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
+                $version1 = ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2)})
+                $version2 = ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2); project = "lorem"})
+                $results1 = ($version1 | Get-JiraVersion)
+                $results2 = ($version1 | Get-JiraVersion)
+                $results1 | Should Not BeNullOrEmpty
+                $results2 | Should Not BeNullOrEmpty
+                Assert-MockCalled 'Invoke-JiraMethod' -Times 2 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID2" }
+                Assert-MockCalled 'ConvertTo-JiraVersion' -Times 4 -Scope It -ModuleName JiraPS -Exactly
             }
             It "gets all Versions using Project Parameter Set" {
                 $results = Get-JiraVersion -Project $projectKey
