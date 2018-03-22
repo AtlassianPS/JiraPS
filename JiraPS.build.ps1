@@ -228,7 +228,7 @@ $shouldDeploy = (
     ($env:APPVEYOR_REPO_COMMIT_MESSAGE -notlike '*skip-deploy*')
 )
 # Synopsis: Publish a new release on github and the PSGallery
-task Deploy -If $shouldDeploy RemoveMarkdown, PublishToGallery
+task Deploy -If $shouldDeploy RemoveMarkdown, RemoveConfig, PublishToGallery
 
 # Synipsis: Publish the $release to the PSGallery
 task PublishToGallery {
@@ -257,6 +257,10 @@ task RemoveGeneratedFiles {
 # Synopsis: Remove Markdown files from Release
 task RemoveMarkdown -If { Get-ChildItem "$releasePath/$ModuleName/*.md" -Recurse } {
     Remove-Item -Path "$releasePath/$ModuleName" -Include "*.md" -Recurse
+}
+
+task RemoveConfig {
+    Get-ChildItem $releasePath -Filter "config.xml" -Recurse | Remove-Item -Force
 }
 #endregion
 
