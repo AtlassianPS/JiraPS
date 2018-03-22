@@ -1,16 +1,16 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Remove-JiraGroup" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $testGroupName = 'testGroup'
+        $jiraServer = 'http://jiraserver.example.com'
 
-    $testJson = @"
+        $testGroupName = 'testGroup'
+
+        $testJson = @"
 {
     "name": "$testGroupName",
     "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
@@ -25,36 +25,24 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Remove-JiraGroup" {
-
-        Mock Write-Debug -ModuleName JiraPS {
-            if ($ShowDebugData) {
-                Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Get-JiraGroup -ModuleName JiraPS {
-            ConvertTo-JiraGroup (ConvertFrom-Json2 $testJson)
+            $object = ConvertFrom-Json2 $testJson
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
+            return $object
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupName"} {
-            if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with DELETE method" -ForegroundColor Cyan
-                Write-Host "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]            $URI" -ForegroundColor Cyan
-            }
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -like "$jiraServer/rest/api/*/group?groupname=$testGroupName"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This REST method should produce no output
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 

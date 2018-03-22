@@ -1,18 +1,12 @@
-. $PSScriptRoot\Shared.ps1
+Describe "ConvertTo-JiraIssue" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    Describe "ConvertTo-JiraIssue" {
-
-        if ($ShowDebugText) {
-            Mock "Write-Debug" {
-                Write-Host "       [DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
+        $jiraServer = 'http://jiraserver.example.com'
 
         # An example of how an issue will look when returned from JIRA's REST API.
         # You can obtain most of this with a one-liner:

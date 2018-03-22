@@ -1,62 +1,66 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Invoke-JiraIssueTransition" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
+        . "$PSScriptRoot/Shared.ps1"
 
-    Describe "Invoke-JiraIssueTransition" {
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueID = 41701
+        $issueKey = 'IT-3676'
+
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
+        Mock Get-JiraField {
+            $object = [PSCustomObject] @{
+                'Name' = $Field
+                'ID'   = $Field
+            }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+            return $object
+        }
+
         Mock Get-JiraIssue -ModuleName JiraPS {
             $t1 = [PSCustomObject] @{
-                Name = 'Start Progress';
-                ID   = 11;
+                Name = 'Start Progress'
+                ID   = 11
             }
             $t1.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
             $t2 = [PSCustomObject] @{
-                Name = 'Resolve';
-                ID   = 81;
+                Name = 'Resolve'
+                ID   = 81
             }
             $t2.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
 
-            [PSCustomObject] @{
-                ID         = $issueID;
-                Key        = $issueKey;
-                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID";
+            $object = [PSCustomObject] @{
+                ID         = $issueID
+                Key        = $issueKey
+                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID"
                 Transition = @($t1, $t2)
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/transitions"} {
-            if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with POST method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This should return a 204 status code, so no data should actually be returned
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        # Mock Write-Debug {
-        #     Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-        # }
-        #
         #############
         # Tests
         #############
@@ -85,12 +89,6 @@ InModuleScope JiraPS {
 
 
         It "Updates custom fields if provided to the -Fields parameter" {
-            Mock Get-JiraField {
-                [PSCustomObject] @{
-                    'Name' = $Field;
-                    'ID'   = $Field;
-                }
-            }
             { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{'customfield_12345' = 'foo'; 'customfield_67890' = 'bar'} } | Should Not Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_12345*set*foo*' }
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_67890*set*bar*' }
@@ -99,8 +97,8 @@ InModuleScope JiraPS {
         It "Updates assignee name if provided to the -Assignee parameter" {
             Mock Get-JiraUser {
                 [PSCustomObject] @{
-                    'Name'    = 'powershell-user';
-                    'RestUrl' = "$jiraServer/rest/api/2/user?username=powershell-user";
+                    'Name'    = 'powershell-user'
+                    'RestUrl' = "$jiraServer/rest/api/2/user?username=powershell-user"
                 }
             }
             { $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'powershell-user'} | Should Not Throw

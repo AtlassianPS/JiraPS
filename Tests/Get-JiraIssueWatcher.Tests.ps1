@@ -1,16 +1,14 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Describe "Get-JiraIssueWatcher" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
+        . "$PSScriptRoot/Shared.ps1"
 
-    Describe "Get-JiraIssueWatcher" {
+        $jiraServer = 'https://jiraserver.example.com'
+        $issueID = 41701
+        $issueKey = 'IT-3676'
 
 
         ## Sample straight from the API:
@@ -35,16 +33,22 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraIssue -ModuleName JiraPS {
-            [PSCustomObject] @{
-                ID      = $issueID;
-                Key     = $issueKey;
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
+            $object = [PSCustomObject] @{
+                ID      = $issueID
+                Key     = $issueKey
+                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
         }
 
         # Obtaining watchers from an issue...this is IT-3676 in the test environment
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers"} {
-            ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri', 'Method'
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 -InputObject $restResult
         }
 
@@ -73,7 +77,7 @@ InModuleScope JiraPS {
                 @($watchers).Count | Should Be 1
                 $watchers.Name | Should Be "fred"
                 $watchers.DisplayName | Should Be "Fred F. User"
-                $watchers.RestUrl | Should Be "$jiraServer/jira/rest/api/2/user?username=fred"
+                $watchers.self | Should Be "$jiraServer/jira/rest/api/2/user?username=fred"
 
                 # Get-JiraIssue should be called to identify the -Issue parameter
                 Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It

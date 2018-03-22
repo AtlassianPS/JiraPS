@@ -1,19 +1,13 @@
-# PSScriptAnalyzer - ignore creation of a SecureString using plain text for the contents of this script file
-# https://replicajunction.github.io/2016/09/19/suppressing-psscriptanalyzer-in-pester/
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-param()
+Describe "Invoke-JiraMethod" {
 
-. $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-InModuleScope JiraPS {
+    InModuleScope JiraPS {
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+        . "$PSScriptRoot/Shared.ps1"
 
-    $validMethods = @('Get', 'Post', 'Put', 'Delete')
+        $validMethods = @('GET', 'POST', 'PUT', 'DELETE')
 
-    Describe "Invoke-JiraMethod" {
 
         Context "Sanity checking" {
             $command = Get-Command -Name Invoke-JiraMethod
@@ -30,6 +24,7 @@ InModuleScope JiraPS {
         }
 
         Context "Behavior testing" {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 
             $testUri = 'http://example.com'
             $testUsername = 'testUsername'
@@ -42,7 +37,13 @@ InModuleScope JiraPS {
 
             It "Correctly performs all necessary HTTP method requests [$($validMethods -join ',')] to a provided URI" {
                 foreach ($method in $validMethods) {
-                    { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
+                    if ($method -in ("POST", "PUT")) {
+                        { Invoke-JiraMethod -Method $method -URI $testUri } | Should Throw
+                        { Invoke-JiraMethod -Method $method -URI $testUri -Body "" } | Should Not Throw
+                    }
+                    else {
+                        { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
+                    }
                     Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Method -eq $method -and $Uri -eq $testUri} -Scope It
                 }
             }
@@ -457,7 +458,7 @@ InModuleScope JiraPS {
 
         Context "Output handling - JIRA error returned (HTTP 400 and up)" {
             $invalidTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/1'
-            $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}';
+            $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}'
 
             Mock Invoke-WebRequest {
                 ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'

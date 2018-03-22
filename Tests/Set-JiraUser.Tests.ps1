@@ -1,21 +1,21 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Set-JiraUser" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $testUsername = 'powershell-test'
-    $testDisplayName = 'PowerShell Test User'
-    $testEmail = "$testUsername@example.com"
+        $jiraServer = 'http://jiraserver.example.com'
 
-    $testDisplayNameChanged = "$testDisplayName Modified"
-    $testEmailChanged = "$testUsername@example2.com"
+        $testUsername = 'powershell-test'
+        $testDisplayName = 'PowerShell Test User'
+        $testEmail = "$testUsername@example.com"
 
-    $restResultGet = @"
+        $testDisplayNameChanged = "$testDisplayName Modified"
+        $testEmailChanged = "$testUsername@example2.com"
+
+        $restResultGet = @"
 {
     "self": "$jiraServer/rest/api/2/user?username=$testUsername",
     "key": "$testUsername",
@@ -26,36 +26,26 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Set-JiraUser" {
-
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Get-JiraUser -ModuleName JiraPS {
-            ConvertTo-JiraUser (ConvertFrom-Json2 $restResultGet)
+            $object = ConvertFrom-Json2 $restResultGet
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+            return $object
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Put' -and $URI -eq "$jiraServer/rest/api/latest/user?username=$testUsername"} {
-            if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
-            }
-            ConvertFrom-Json2 $restResultGet
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json $restResultGet
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
-
-        # Mock Write-Debug {
-        #     Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-        # }
 
         #############
         # Tests
@@ -63,6 +53,7 @@ InModuleScope JiraPS {
 
         It "Accepts a username as a String to the -User parameter" {
             { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should Not Throw
+            Assert-MockCalled -CommandName Get-JiraUser -Exactly -Times 1 -Scope It
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 

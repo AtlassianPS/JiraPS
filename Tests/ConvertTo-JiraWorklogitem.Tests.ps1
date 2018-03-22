@@ -1,12 +1,10 @@
-. $PSScriptRoot\Shared.ps1
+Describe "ConvertTo-JiraWorklogitem" {
 
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraWorklogitem" {
-        function defProp($obj, $propName, $propValue) {
-            It "Defines the '$propName' property" {
-                $obj.$propName | Should Be $propValue
-            }
-        }
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
         $jiraUsername = 'powershell-test'
@@ -66,7 +64,7 @@ InModuleScope JiraPS {
 
         It "Sets the type name to JiraPS.WorklogItem" {
             $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject
-            $r.PSObject.TypeNames[0] | Should Be 'JiraPS.WorklogItem'
+            checkType $r "JiraPS.WorklogItem"
         }
 
         $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject

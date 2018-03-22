@@ -1,6 +1,6 @@
 function Get-JiraIssueComment {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns comments on an issue in JIRA.
     .DESCRIPTION
        This function obtains comments from existing issues in JIRA.
@@ -21,53 +21,62 @@ function Get-JiraIssueComment {
     param(
         # JIRA issue to check for comments.
         # Can be a JiraPS.Issue object, issue key, or internal issue ID.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
         [Alias('Key')]
-        [Object] $Issue,
+        [Object]
+        $Issue,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
-        Write-Debug "Obtaining a reference to Jira issue [$Issue]"
-        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $url = "$($issueObj.RestURL)/comment"
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        Write-Debug "Preparing for blastoff!"
-        $result = Invoke-JiraMethod -Method Get -URI $url -Credential $Credential
-
-        if ($result) {
-            if ($result.comments) {
-                Write-Debug "Converting result to Jira comment objects"
-                $obj = ConvertTo-JiraComment -InputObject $result.comments
-
-                Write-Debug "Outputting results"
-                Write-Output $obj
-            }
-            else {
-                Write-Debug "Result appears to be in an unexpected format. Outputting raw result."
-                Write-Output $result
-            }
+        $parameter = @{
+            URI        = "{0}/comment" -f $issueObj.RestURL
+            Method     = "GET"
+            Credential = $Credential
         }
-        else {
-            Write-Debug "Invoke-JiraMethod returned no results to output."
-        }
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        $result = Invoke-JiraMethod @parameter
+
+        Write-Output (ConvertTo-JiraComment -InputObject $result.comments)
     }
 
     end {
-        Write-Debug "Completed Get-JiraIssueComment"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

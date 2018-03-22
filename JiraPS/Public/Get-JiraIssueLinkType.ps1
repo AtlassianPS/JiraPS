@@ -19,79 +19,87 @@ function Get-JiraIssueLinkType {
     .NOTES
         This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         # The Issue Type name or ID to search
-        [Parameter(
-            Position = 0,
-            Mandatory = $false,
-            ValueFromRemainingArguments = $true
+        [Parameter( Position = 0, Mandatory, ParameterSetName = '_Search' )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.IssueLinkType" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String])) -and (($_ -isnot [Int]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssueLinkType',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for IssueLinkType. Expected [JiraPS.IssueLinkType], [String] or [Int], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
-        [Object] $LinkType,
+        [Object]
+        $LinkType,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraIssueLinkType] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraIssueLinkType] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $uri = "$server/rest/api/latest/issueLinkType"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest/issueLinkType{0}"
     }
 
     process {
-        $searchLinks = $false
-        if ($LinkType) {
-            # If the link type provided is an int, we can assume it's an ID number.
-            # If it's a String, it's probably a name, though, and there isn't an API call to look up a link type by name.
-            if ($LinkType -is [int]) {
-                Write-Debug "[Get-JiraIssueLinkType] Link type ID was specified; obtaining issue link type $LinkType"
-                $uri = "$uri/$LinkType"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        switch ($PSCmdlet.ParameterSetName) {
+            '_All' {
+                $parameter = @{
+                    URI        = $resourceURi -f ""
+                    Method     = "GET"
+                    Credential = $Credential
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
+
+                Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes)
             }
-            else {
-                Write-Debug "[Get-JiraIssueLinkType] Assuming -LinkType parameter $LinkType to be a name; obtaining all link types"
-                $searchLinks = $true
-            }
-        }
-        else {
-            Write-Debug "[Get-JiraIssueLinkType] Obtaining all issue link types from Jira"
-        }
+            '_Search' {
+                # If the link type provided is an int, we can assume it's an ID number.
+                # If it's a String, it's probably a name, though, and there isn't an API call to look up a link type by name.
+                if ($LinkType -is [Int]) {
+                    $parameter = @{
+                        URI        = $resourceURi -f "/$LinkType"
+                        Method     = "GET"
+                        Credential = $Credential
+                    }
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraMethod @parameter
 
-        $jiraResult = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
-
-        if ($jiraResult -and $jiraResult.issueLinkTypes) {
-            Write-Debug "[Get-JiraIssueLinkType] Converting Jira output to custom object"
-            $obj = ConvertTo-JiraIssueLinkType -InputObject $jiraResult.issueLinkTypes
-
-            if ($searchLinks) {
-                Write-Debug "[Get-JiraIssueLinkType] Searching for link type with name [$LinkType]"
-                $output = $obj | Where-Object {$_.Name -eq $LinkType}
-                if ($output) {
-                    Write-Debug "[Get-JiraIssueLinkType] Found issue with ID [$($output.ID)]"
+                    Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
                 }
                 else {
-                    Write-Debug "[Get-JiraIssueLinkType] Could not find an issue."
-                    Write-Verbose "Unable to identify issue link type $LinkType."
+                    Write-Output (Get-JiraIssueLinkType -Credential $Credential | Where-Object { $_.Name -like $LinkType })
                 }
             }
-            else {
-                $output = $obj
-            }
+        }
+    }
 
-            Write-Debug "[Get-JiraIssueLinkType] Writing output"
-            Write-Output $obj
-        }
-        else {
-            Write-Debug "[Get-JiraIssueLinkType] No issue link types were found."
-        }
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

@@ -1,6 +1,6 @@
 function Remove-JiraGroupMember {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes a user from a JIRA group
     .DESCRIPTION
        This function removes a JIRA user from a JIRA group.
@@ -22,116 +22,135 @@ function Remove-JiraGroupMember {
        means that there is a high probability this will break in future
        versions of JIRA. The function will need to be re-written at that time.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true,
-        ConfirmImpact = 'High')]
+    [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'High' )]
     param(
         # Group Object or ID from which to remove the user(s).
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Group" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraGroup',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Group. Expected [JiraPS.Group] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
         [Alias('GroupName')]
-        [Object[]] $Group,
+        [Object[]]
+        $Group,
 
         # Username or user object obtained from Get-JiraUser
-        [Parameter(Mandatory = $true)]
+        [Parameter( Mandatory )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.UotJirauser',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for User. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
         [Alias('UserName')]
-        [Object[]] $User,
+        [Object[]]
+        $User,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [PSCredential] $Credential,
+        [PSCredential]
+        $Credential,
 
         # Whether output should be provided after invoking this function
-        [Switch] $PassThru,
+        [Switch]
+        $PassThru,
 
         # Suppress user confirmation.
-        [Switch] $Force
+        [Switch]
+        $Force
     )
 
     begin {
-        Write-Debug "[Remove-JiraGroupMember] Reading information from config file"
-        try {
-            Write-Debug "[Remove-JiraGroupMember] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Remove-JiraGroupMember] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $restUrl = "$server/rest/api/latest/group/user?groupname={0}&username={1}"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest/group/user?groupname={0}&username={1}"
 
         if ($Force) {
-            Write-Debug "[Remove-JiraGroupMember] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
             $oldConfirmPreference = $ConfirmPreference
             $ConfirmPreference = 'None'
         }
     }
 
     process {
-        foreach ($g in $Group) {
-            Write-Debug "[Remove-JiraGroupMember] Obtaining reference to group [$g]"
-            $groupObj = Get-JiraGroup -InputObject $g -Credential $Credential
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-            if ($groupObj) {
-                Write-Debug "[Remove-JiraGroupMember] Obtaining members of group [$g]"
-                $groupMembers = Get-JiraGroupMember -Group $g -Credential $Credential | Select-Object -ExpandProperty Name
+        foreach ($_group in $Group) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-                foreach ($u in $User) {
-                    Write-Debug "[Remove-JiraGroupMember] Obtaining reference to user [$u]"
-                    $userObj = Get-JiraUser -InputObject $u -Credential $Credential
+            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
+            # $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop).Name
 
-                    if ($userObj) {
-                        Write-Debug "[Remove-JiraGroupMember] Retrieved user reference [$userObj]"
+            foreach ($_user in $User) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-                        if ($groupMembers -contains $userObj.Name) {
-                            $thisRestUrl = $restUrl -f $groupObj.Name, $userObj.Name
-                            Write-Debug "[Remove-JiraGroupMember] REST URI: [$thisRestUrl]"
+                $userObj = Get-JiraUser -InputObject $_user -Credential $Credential -ErrorAction Stop
 
-                            Write-Debug "[Remove-JiraGroupMember] Checking for -WhatIf and Confirm"
-                            if ($PSCmdlet.ShouldProcess("$groupObj", "Remove $userObj from group")) {
-                                Write-Debug "[Remove-JiraGroupMember] Preparing for blastoff!"
-                                Invoke-JiraMethod -Method Delete -URI $thisRestUrl -Credential $Credential
-                            }
-                            else {
-                                Write-Debug "[Remove-JiraGroupMember] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
-                            }
-                        }
-                        else {
-                            Write-Debug "[Remove-JiraGroupMember] User [$u] is not currently a member of group [$g]"
-                            Write-Verbose "User [$u] is not currently a member of group [$g]"
-                        }
-                    }
-                    else {
-                        Write-Debug "[Remove-JiraGroupMember] Could not identify user [$u]. Writing error message."
-                        Write-Error "Unable to identify user [$u]. Check the spelling of this user and ensure that you can access it via Get-JiraUser."
-                    }
+                # if ($groupMembers -contains $userObj.Name) {
+                # TODO: test what jira says
+                $parameter = @{
+                    URI        = $resourceURi -f $groupObj.Name, $userObj.Name
+                    Method     = "DELETE"
+                    Credential = $Credential
                 }
-
-                if ($PassThru) {
-                    Write-Debug "[Remove-JiraGroupMember] -PassThru specified. Obtaining a final reference to group [$g]"
-                    $groupObjNew = Get-JiraGroup -InputObject $g -Credential $Credential
-                    Write-Debug "[Remove-JiraGroupMember] Outputting group [$groupObjNew]"
-                    Write-Output $groupObjNew
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove $($userObj.Name) from group")) {
+                    Invoke-JiraMethod @parameter
                 }
+                # }
             }
-            else {
-                Write-Debug "[Remove-JiraGroupMember] Could not identify group [$g]"
-                Write-Error "Unable to identify group [$g]. Check the spelling of this group and ensure that you can access it via Get-JiraGroup."
+
+            if ($PassThru) {
+                Write-Output (Get-JiraGroup -InputObject $g -Credential $Credential)
             }
         }
     }
 
     end {
         if ($Force) {
-            Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        Write-Debug "[Remove-JiraGroupMember] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

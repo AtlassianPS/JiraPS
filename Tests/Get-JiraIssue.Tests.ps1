@@ -1,57 +1,73 @@
-﻿. $PSScriptRoot\Shared.ps1
+﻿Describe "Get-JiraIssue" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    Describe "Get-JiraIssue" {
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = "https://jira.example.com"
+
+        $jql = 'reporter in (testuser)'
+        $jqlEscaped = ConvertTo-URLEncoded $jql
+        $response = @'
+{
+    "expand": "schema,names",
+    "startAt": 0,
+    "maxResults": 25,
+    "total": 1,
+    "issues": [
+        {
+            "key": "TEST-001",
+            "fields": {
+                "summary": "Test summary"
+            }
+        }
+    ]
+}
+'@
+
         Mock Get-JiraConfigServer {
-            'https://jira.example.com'
+            $jiraServer
         }
 
-        # If we don't override this in a context or test, we don't want it to
-        # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod {}
+        Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/issue/TEST-001*" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json2 $response
+        }
+
+        Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/search?jql=$jqlEscaped*" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json2 $response
+        }
+
+        Mock Invoke-JiraMethod {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
+        }
+
+        Mock Get-JiraUser {
+            $object = [PSCustomObject] @{
+                'Name' = 'username'
+            }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+            return $object
+        }
 
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraIssue
 
-            function defParam($name) {
-                It "Has a -$name parameter" {
-                    $command.Parameters.Item($name) | Should Not BeNullOrEmpty
-                }
-            }
-
-            defParam 'Key'
-            defParam 'InputObject'
-            defParam 'Query'
-            defParam 'Filter'
-            defParam 'StartIndex'
-            defParam 'MaxResults'
-            defParam 'PageSize'
-            defParam 'Credential'
+            defParam $command 'Key'
+            defParam $command 'InputObject'
+            defParam $command 'Query'
+            defParam $command 'Filter'
+            defParam $command 'StartIndex'
+            defParam $command 'MaxResults'
+            defParam $command 'PageSize'
+            defParam $command 'Credential'
         }
 
         Context "Behavior testing" {
-            Mock Invoke-JiraMethod {
-                if ($ShowMockData) {
-                    Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                    Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                    Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                    #                    Write-Host "         [Body]    $Body" -ForegroundColor Cyan
-                }
-            }
-
-            Mock Get-JiraUser {
-                [PSCustomObject] @{
-                    'Name' = 'username'
-                }
-            }
-
-            $jql = 'reporter in (testuser)'
-            $jqlEscaped = [System.Web.HttpUtility]::UrlPathEncode($jql)
 
             It "Obtains information about a provided issue in JIRA" {
                 { Get-JiraIssue -Key TEST-001 } | Should Not Throw
@@ -69,36 +85,6 @@ InModuleScope JiraPS {
             }
 
             It "Returns all issues via looping if -MaxResults is not specified" {
-
-                # In order to test this, we'll need a slightly more elaborate
-                # mock that actually returns some data.
-
-                Mock Invoke-JiraMethod {
-                    if ($ShowMockData) {
-                        Write-Host "       Mocked Invoke-JiraMethod" -ForegroundColor Cyan
-                        Write-Host "         [Uri]     $Uri" -ForegroundColor Cyan
-                        Write-Host "         [Method]  $Method" -ForegroundColor Cyan
-                        #                        Write-Host "         [Body]    $Body" -ForegroundColor Cyan
-                    }
-
-                    ConvertFrom-Json2 @'
-{
-    "expand": "schema,names",
-    "startAt": 0,
-    "maxResults": 25,
-    "total": 1,
-    "issues": [
-        {
-            "key": "TEST-001",
-            "fields": {
-                "summary": "Test summary"
-            }
-        }
-    ]
-}
-'@
-                }
-
                 { Get-JiraIssue -Query $jql -PageSize 25 } | Should Not Throw
 
                 # This should call Invoke-JiraMethod once for one issue (to get the MaxResults value)...
@@ -123,7 +109,7 @@ InModuleScope JiraPS {
                 $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
 
                 # Should call Get-JiraIssue using the -Key parameter, so our URL should reflect the key we provided
-                { Get-JiraIssue -InputObject $issue } | Should Not Throw
+                { Get-JiraIssue -InputObject $Issue } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
             }
         }

@@ -1,6 +1,6 @@
 function Remove-JiraUser {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes an existing user from JIRA
     .DESCRIPTION
        This function removes an existing user from JIRA.
@@ -17,77 +17,88 @@ function Remove-JiraUser {
     .OUTPUTS
        This function returns no output.
     #>
-    [CmdletBinding(
-        ConfirmImpact = 'High',
-        SupportsShouldProcess = $true
-    )]
+    [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
         # User Object or ID to delete.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraUser',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for User. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
         [Alias('UserName')]
-        [Object[]] $User,
+        [Object[]]
+        $User,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [PSCredential] $Credential,
+        [PSCredential]
+        $Credential,
 
         # Suppress user confirmation.
-        [Switch] $Force
+        [Switch]
+        $Force
     )
 
     begin {
-        Write-Debug "[Remove-JiraUser] Reading information from config file"
-        try {
-            Write-Debug "[Remove-JiraUser] Reading Jira server from config file"
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Remove-JiraUser] Encountered an error reading configuration data."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $userURL = "$server/rest/api/latest/user?username={0}"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest/user?username={0}"
 
         if ($Force) {
-            Write-Debug "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+            Write-DebugMessage "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
             $oldConfirmPreference = $ConfirmPreference
             $ConfirmPreference = 'None'
         }
     }
 
     process {
-        foreach ($u in $User) {
-            Write-Debug "[Remove-JiraUser] Obtaining reference to user [$u]"
-            $userObj = Get-JiraUser -InputObject $u -Credential $Credential
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-            if ($userObj) {
-                $thisUrl = $userUrl -f $userObj.Name
-                Write-Debug "[Remove-JiraUser] User URL: [$thisUrl]"
+        foreach ($_user in $User) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-                Write-Debug "[Remove-JiraUser] Checking for -WhatIf and Confirm"
-                if ($PSCmdlet.ShouldProcess($userObj.Name, 'Completely remove user from JIRA')) {
-                    Write-Debug "[Remove-JiraUser] Preparing for blastoff!"
-                    Invoke-JiraMethod -Method Delete -URI $thisUrl -Credential $Credential
-                }
-                else {
-                    Write-Debug "[Remove-JiraUser] Runnning in WhatIf mode or user denied the Confirm prompt; no operation will be performed"
-                }
+            $userObj = Get-JiraUser -InputObject $_user -Credential $Credential -ErrorAction Stop
+
+            $parameter = @{
+                URI        = $resourceURi -f $userObj.Name
+                Method     = "DELETE"
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($userObj.Name, 'Remove user')) {
+                Invoke-JiraMethod @parameter
             }
         }
     }
 
     end {
         if ($Force) {
-            Write-Debug "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
             $ConfirmPreference = $oldConfirmPreference
         }
 
-        Write-Debug "[Remove-JiraUser] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

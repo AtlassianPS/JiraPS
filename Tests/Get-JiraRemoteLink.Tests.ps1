@@ -1,19 +1,19 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Get-JiraRemoteLink" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $issueKey = 'MKY-1'
+        $jiraServer = 'https://jiraserver.example.com'
 
-    $restResult = @"
+        $issueKey = 'MKY-1'
+
+        $restResult = @"
 {
     "id": 10000,
-    "self": "http://jiraserver.example.com/rest/api/issue/MKY-1/remotelink/10000",
+    "self": "$jiraServer/rest/api/latest/issue/MKY-1/remotelink/10000",
     "globalId": "system=http://www.mycompany.com/support&id=1",
     "application": {
         "type": "com.acme.tracker",
@@ -32,34 +32,36 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Get-JiraRemoteLink" {
-
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Get-JiraIssue {
-            [PSCustomObject] @{
-                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
+            $object = [PSCustomObject] @{
+                'RestURL' = "$jiraServer/rest/api/latest/issue/12345"
                 'Key'     = $issueKey
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
+        }
+
+        Mock ConvertTo-JiraIssueLinkType -ModuleName JiraPS {
+            $InputObject
         }
 
         # Searching for a group.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get'} {
-            if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 -InputObject $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
@@ -70,15 +72,15 @@ InModuleScope JiraPS {
         It "Gets information of all remote link from a Jira issue" {
             $getResult = Get-JiraRemoteLink -Issue $issueKey
             $getResult | Should Not BeNullOrEmpty
+
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq "Get" -and $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink"}
         }
 
-        It "Returns all available properties about the returned link object" {
-            $getResult = Get-JiraRemoteLink -Issue $issueKey
-            $restObj = ConvertFrom-Json2 -InputObject $restResult
+        It "Gets information of all remote link from a Jira issue" {
+            $getResult = Get-JiraRemoteLink -Issue $issueKey -LinkId 10000
+            $getResult | Should Not BeNullOrEmpty
 
-            $getResult.RestUrl | Should Be $restObj.self
-            $getResult.Id | Should Be $restObj.Id
-            $getResult.globalId | Should Be $restObj.globalId
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq "Get" -and $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink/10000"}
         }
     }
 }

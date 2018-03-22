@@ -1,6 +1,6 @@
 function Get-JiraIssueCreateMetadata {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns metadata required to create an issue in JIRA
     .DESCRIPTION
        This function returns metadata required to create an issue in JIRA - the fields that can be defined in the process of creating an issue.  This can be used to identify custom fields in order to pass them to New-JiraIssue.
@@ -22,103 +22,94 @@ function Get-JiraIssueCreateMetadata {
     [CmdletBinding()]
     param(
         # Project ID or key of the reference issue.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true
-        )]
-        [String] $Project,
+        [Parameter( Mandatory )]
+        [String]
+        $Project,
 
         # Issue type ID or name.
-        [Parameter(
-            Position = 1,
-            Mandatory = $true
-        )]
-        [String] $IssueType,
-
-        # Path of the file with the configuration.
-        [String] $ConfigFile,
+        [Parameter( Mandatory )]
+        [String]
+        $IssueType,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraIssueCreateMetadata] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraIssueCreateMetadata] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        Write-Debug "[Get-JiraIssueCreateMetadata] Building URI for REST call based on parameters"
-        $uri = "$server/rest/api/latest/issue/createmeta?"
+        $server = Get-JiraConfigServer -ErrorAction Stop
 
-        Write-Debug "[Get-JiraIssueCreateMetadata] Obtaining project ID for project [$Project]"
-        $projectObj = Get-JiraProject -Project $Project -Credential $Credential
-        if ($projectObj) {
-            $projectId = $projectObj.Id
-            $uri = "${uri}projectIds=$projectId&"
-        }
-        else {
-            throw "No project was found for the given Project [$Project]. Use Get-JiraProject for more information on this issue."
-        }
-
-        Write-Debug "[Get-JiraIssueCreateMetadata] Obtaining issue type ID for issue type [$IssueType]"
-        $issueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential
-        if ($issueTypeObj) {
-            $issueTypeId = $issueTypeObj.Id
-            $uri = "${uri}issuetypeIds=$issueTypeId&"
-        }
-        else {
-            throw "No issue types were found for the given IssueType [$IssueType]. Use Get-JiraIssueType for more information on this issue."
-        }
-
-        $uri = "${uri}expand=projects.issuetypes.fields"
+        $resourceURi = "$server/rest/api/latest/issue/createmeta?projectIds={0}&issuetypeIds={1}"
     }
 
     process {
-        Write-Debug "[Get-JiraIssueCreateMetadata] Preparing for blastoff!"
-        $jiraResult = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($jiraResult) {
-            if (@($jiraResult.projects).Count -eq 0) {
-                Write-Debug "[Get-JiraIssueCreateMetadata] No project results were found. Throwing exception."
-                throw "No projects were found for the given project [$Project]. Use Get-JiraProject for more details."
+        $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
+        $issueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential -ErrorAction Stop
+
+        $parameter = @{
+            URI        = $resourceURi -f $projectObj.Id, $issueTypeObj.Id
+            Method     = "GET"
+            Credential = $Credential
+        }
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        $result = Invoke-JiraMethod @parameter
+
+        if ($result) {
+            if (@($result.projects).Count -eq 0) {
+                $errorMessage = @{
+                    Category         = "InvalidResult"
+                    CategoryActivity = "Validating response"
+                    Message          = "No projects were found for the given project [$Project]. Use Get-JiraProject for more details."
+                }
+                Write-Error @errorMessage
             }
-            elseif (@($jiraResult.projects).Count -gt 1) {
-                Write-Debug "[Get-JiraIssueCreateMetadata] Multiple project results were found. Throwing exception."
-                throw "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
+            elseif (@($result.projects).Count -gt 1) {
+                $errorMessage = @{
+                    Category         = "InvalidResult"
+                    CategoryActivity = "Validating response"
+                    Message          = "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
+                }
+                Write-Error @errorMessage
             }
 
-            # $projectId = $jiraResult.projects.id
-            # $projectKey = $jiraResult.projects.key
-
-            Write-Debug "[Get-JiraIssueCreateMetadata] Identified project key: [$Project]"
-
-            if (@($jiraResult.projects.issuetypes) -eq 0) {
-                Write-Debug "[Get-JiraIssueCreateMetadata] No issue type results were found. Throwing exception."
-                throw "No issue types were found for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
+            if (@($result.projects.issuetypes) -eq 0) {
+                $errorMessage = @{
+                    Category         = "InvalidResult"
+                    CategoryActivity = "Validating response"
+                    Message          = "No issue types were found for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
+                }
+                Write-Error @errorMessage
             }
-            elseif (@($jiraResult.projects.issuetypes).Count -gt 1) {
-                Write-Debug "[Get-JiraIssueCreateMetadata] Multiple issue type results were found. Throwing exception."
-                throw "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
+            elseif (@($result.projects.issuetypes).Count -gt 1) {
+                $errorMessage = @{
+                    Category         = "InvalidResult"
+                    CategoryActivity = "Validating response"
+                    Message          = "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
+                }
+                Write-Error @errorMessage
             }
 
-            Write-Debug "[Get-JiraIssueCreateMetadata] Converting results to custom object"
-            $obj = ConvertTo-JiraCreateMetaField -InputObject $jiraResult
-
-            Write-Debug "Outputting results"
-            Write-Output $obj
-
-            #            Write-Output $jiraResult
+            Write-Output (ConvertTo-JiraCreateMetaField -InputObject $result)
         }
         else {
-            Write-Debug "[Get-JiraIssueCreateMetadata] No results were returned from JIRA."
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"No results"),
+                'IssueMetadata.ObjectNotFound',
+                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                $Project
+            )
+            $errorItem.ErrorDetails = "No metadata found for project $Project and issueType $IssueType."
+            Throw $errorItem
         }
+    }
+
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

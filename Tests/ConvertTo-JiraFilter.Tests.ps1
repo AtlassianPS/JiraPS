@@ -1,8 +1,10 @@
-. $PSScriptRoot\Shared.ps1
+Describe "ConvertTo-JiraFilter" {
 
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraFilter" {
-        . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         # Obtained from Atlassian's public JIRA instance
         $sampleJson = @'

@@ -1,8 +1,10 @@
-. $PSScriptRoot\Shared.ps1
+Describe "ConvertTo-JiraVersion" {
 
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraVersion" {
-        . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
 
@@ -28,7 +30,7 @@ InModuleScope JiraPS {
 
         Mock Get-JiraProject -ModuleName JiraPS {
             $Project = [PSCustomObject]@{
-                Id = $projectId
+                Id  = $projectId
                 Key = "ABC"
             }
             $Project.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
