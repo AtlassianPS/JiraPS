@@ -223,7 +223,7 @@ $shouldDeploy = (
     # only deploy master branch
     ($env:APPVEYOR_REPO_BRANCH -eq 'master') -and
     # it cannot be a PR
-    (-not ($REPO_PULL_REQUEST_NUMBER)) -and
+    (-not ($env:APPVEYOR_PULL_REQUEST_NUMBER)) -and
     # it cannot have a commit message that contains "skip-deploy"
     ($env:APPVEYOR_REPO_COMMIT_MESSAGE -notlike '*skip-deploy*')
 )
