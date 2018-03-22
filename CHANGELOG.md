@@ -1,5 +1,25 @@
 # Change Log
 
+## 2.5 - 2018-03-23
+
+More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.5.html).
+
+IMPROVEMENTS:
+  - Harmonized code style (#162, [@lipkau][])
+  - Harmonized verbose messages (#162, [@lipkau][])
+  - Harmonized debug messages (#162, [@lipkau][])
+  - Improved debug behavior (#162, [@lipkau][])
+  - Update of VS code config to reflect code styling (#162, [@lipkau][])
+  - Few improvements in test cases (#162, [@lipkau][])
+  - Added parameter validation (#162, [@lipkau][])
+  - Updated manifest (#162, [@lipkau][])
+  - Minor preparations for pwsh support (#162, [@lipkau][])
+  - Execute Tests against `./Release` (#162, [@lipkau][])
+  - Removed unused `$ConfigFile` variable (#219, [@lipkau][])
+  - `Invoke-JiraMethod` now sets the TLS to 1.2 before every call (#84, [@lipkau][])
+  - Fixed _date_ and _timespan_ representation in _Body_ of `Add-JiraIssueWorklog` (#214, [@lipkau][])
+  - Improved output of `Get-JiraProject` (#216, [@lipkau][])
+
 ## 2.4 (Nov 01, 2017)
 
 FEATURES:
