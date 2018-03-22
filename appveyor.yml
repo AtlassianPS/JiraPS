@@ -4,7 +4,7 @@ environment:
         # Must be updated to use contact@AtlassianPS.net user
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
-version: 2.4.{build}
+version: 2.5.{build}
 
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
