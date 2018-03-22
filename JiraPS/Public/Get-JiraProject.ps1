@@ -1,6 +1,6 @@
 function Get-JiraProject {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a project from Jira
     .DESCRIPTION
        This function returns information regarding a specified project from Jira. If
@@ -23,78 +23,63 @@ function Get-JiraProject {
     .OUTPUTS
        [JiraPS.Project]
     #>
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         # The Project ID or project key of a project to search.
-        [Parameter(
-            Position = 0,
-            Mandatory = $false
-        )]
-        [String[]] $Project,
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
+        [String[]]
+        $Project,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraProject] Reading server from config file"
-        try {
-            $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-        }
-        catch {
-            $err = $_
-            Write-Debug "[Get-JiraProject] Encountered an error reading the Jira server."
-            throw $err
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $uri = "$server/rest/api/latest/project"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/latest/project{0}?expand=description,lead,issueTypes,url,projectKeys"
     }
 
     process {
-        if ($Project) {
-            foreach ($p in $Project) {
-                Write-Debug "[Get-JiraProject] Processing project [$p]"
-                $thisUri = "$uri/${p}?expand=projectKeys"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-                Write-Debug "[Get-JiraProject] Preparing for blastoff!"
-
-                $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
-                if ($result) {
-                    Write-Debug "[Get-JiraProject] Converting to object"
-                    $obj = ConvertTo-JiraProject -InputObject $result
-
-                    Write-Debug "[Get-JiraProject] Outputting result"
-                    Write-Output $obj
+        switch ($PSCmdlet.ParameterSetName) {
+            '_All' {
+                $parameter = @{
+                    URI        = $resourceURi -f ""
+                    Method     = "GET"
+                    Credential = $Credential
                 }
-                else {
-                    Write-Debug "[Get-JiraProject] No results were returned from Jira"
-                    Write-Debug "[Get-JiraProject] No results were returned from Jira for project [$p]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
+
+                Write-Output (ConvertTo-JiraProject -InputObject $result)
+            }
+            '_Search' {
+                foreach ($_project in $Project) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
+
+                    $parameter = @{
+                        URI        = $resourceURi -f "/$($_project)"
+                        Method     = "GET"
+                        Credential = $Credential
+                    }
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraMethod @parameter
+
+                    Write-Output (ConvertTo-JiraProject -InputObject $result)
                 }
-            }
-        }
-        else {
-            Write-Debug "[Get-JiraProject] Attempting to search for all projects"
-            $thisUri = "$uri"
-
-            Write-Debug "[Get-JiraProject] Preparing for blastoff!"
-            $result = Invoke-JiraMethod -Method Get -URI $uri -Credential $Credential
-            if ($result) {
-                Write-Debug "[Get-JiraProject] Converting to object"
-                $obj = ConvertTo-JiraProject -InputObject $result
-
-                Write-Debug "[Get-JiraProject] Outputting result"
-                Write-Output $obj
-            }
-            else {
-                Write-Debug "[Get-JiraProject] No results were returned from Jira"
-                Write-Debug "[Get-JiraProject] No project results were returned from Jira"
             }
         }
     }
 
     end {
-        Write-Debug "Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

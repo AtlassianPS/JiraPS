@@ -1,17 +1,18 @@
-. $PSScriptRoot\Shared.ps1
+Describe "New-JiraVersion" {
 
-InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $versionName = '1.0.0.0'
-    $versionID = '16840'
-    $projectKey = 'LDD'
-    $projectId = '12101'
+    InModuleScope JiraPS {
 
-    $JiraProjectData = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $versionName = '1.0.0.0'
+        $versionID = '16840'
+        $projectKey = 'LDD'
+        $projectId = '12101'
+
+        $JiraProjectData = @"
 [
     {
         "Key" : "$projectKey",
@@ -23,7 +24,7 @@ InModuleScope JiraPS {
     }
 ]
 "@
-    $testJsonOne = @"
+        $testJsonOne = @"
 {
     "self" : "$jiraServer/rest/api/2/version/$versionID",
     "id" : $versionID,
@@ -35,7 +36,6 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "New-JiraVersion" {
         #region Mock
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
@@ -43,7 +43,7 @@ InModuleScope JiraPS {
 
         Mock Get-JiraProject -ModuleName JiraPS {
             $Projects = ConvertFrom-Json2 $JiraProjectData
-            $Projects.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+            $Projects | ForEach-Object { $_.PSObject.TypeNames.Insert(0, 'JiraPS.Project') }
             $Projects | Where-Object {$_.Key -in $projectKey}
         }
 
@@ -54,6 +54,7 @@ InModuleScope JiraPS {
                 Project     = (Get-JiraProject -Project $projectKey)
                 ReleaseDate = (Get-Date "2017-12-01")
                 StartDate   = (Get-Date "2017-01-01")
+                RestUrl     = "$jiraServer/rest/api/2/version/$versionID"
             }
             $Version.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
             $Version
@@ -64,20 +65,20 @@ InModuleScope JiraPS {
                 Id      = $InputObject.Id
                 Name    = $InputObject.name
                 Project = $InputObject.projectId
+                self    = "$jiraServer/rest/api/2/version/$($InputObject.self)"
             }
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
             $result
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/latest/version" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/version" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $testJsonOne
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mock

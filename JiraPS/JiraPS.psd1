@@ -90,27 +90,30 @@
     FileList = @()
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
-    PrivateData        = @{
+    PrivateData = @{
 
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags       = @(
-                'JIRA',
-                'Atlassian'
-                'AtlassianPS'
-                'API'
-                'rest'
+            Tags = @(
+                "powershell",
+                "powershell-gallery",
+                "readthedocs",
+                "rest",
+                "api",
+                "atlassianps",
+                "jira",
+                "atlassian"
             )
 
             # A URL to the license for this module.
             LicenseUri = 'https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE'
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://AtlassianPS.org/JiraPS'
+            ProjectUri = 'https://AtlassianPS.org/module/JiraPS'
 
             # A URL to an icon representing this module.
-            # IconUri = ''
+            IconUri = 'https://AtlassianPS.org/assets/img/JiraPS.png'
 
             # ReleaseNotes of this module
             # ReleaseNotes = ''

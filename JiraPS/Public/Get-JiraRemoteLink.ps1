@@ -1,6 +1,6 @@
 function Get-JiraRemoteLink {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a remote link from a Jira issue
     .DESCRIPTION
        This function returns information on remote links from a  JIRA issue.
@@ -18,61 +18,76 @@ function Get-JiraRemoteLink {
     [CmdletBinding()]
     param(
         # The Issue Object or ID to link.
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
         [Alias("Key")]
-        [String[]]$Issue,
+        [Object]
+        $Issue,
 
         # Get a single link by it's id.
-        [Int]$LinkId,
+        [Int]
+        $LinkId,
 
         # Credentials to use to connect to JIRA.
         # If not specified, this function will use anonymous access.
-        [Parameter(Mandatory = $false)]
-        [PSCredential] $Credential
+        [PSCredential]
+        $Credential
     )
 
-    Begin {
-        Write-Debug "[Get-JiraRemoteLink] Reading server from config file"
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
-
-        Write-Debug "[Get-JiraRemoteLink] ParameterSetName=$($PSCmdlet.ParameterSetName)"
-
-        Write-Debug "[Get-JiraRemoteLink] Building URI for REST call"
-        $linkUrl = "$server/rest/api/latest/issue/{0}/remotelink"
+    begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
-    Process {
-        foreach ($k in $Issue) {
-            Write-Debug "[Get-JiraRemoteLink] Processing issue key [$k]"
-            $thisUrl = $linkUrl -f $k
+    process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-            if ($linkId) {
-                $thisUrl += "/$l"
+        foreach ($_issue in $Issue) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
+
+            # Find the proper object for the Issue
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+
+            $urlAppendix = ""
+            if ($LinkId) {
+                $urlAppendix = "/$LinkId"
             }
 
-            Write-Debug "[Get-JiraRemoteLink] Preparing for blastoff!"
-            $result = Invoke-JiraMethod -Method Get -URI $thisUrl -Credential $Credential
-
-            if ($result) {
-                Write-Debug "[Get-JiraRemoteLink] Converting results to JiraPS.Group"
-                $obj = ConvertTo-JiraLink -InputObject $result
-
-                Write-Debug "[Get-JiraRemoteLink] Outputting results"
-                Write-Output $obj
+            $parameter = @{
+                URI        = "{0}/remotelink{1}" -f $issueObj.RestUrl, $urlAppendix
+                Method     = "GET"
+                Credential = $Credential
             }
-            else {
-                Write-Debug "[Get-JiraRemoteLink] No results were returned from JIRA"
-                Write-Verbose "No results were returned from JIRA."
-            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraMethod @parameter
+
+            Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
         }
     }
 
-    End {
-        Write-Debug "[Get-JiraRemoteLink] Complete"
+    end {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

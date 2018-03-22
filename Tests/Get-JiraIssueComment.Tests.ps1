@@ -1,12 +1,11 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Get-JiraIssueComment" {
 
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    Describe "Get-JiraIssueComment" {
+        . "$PSScriptRoot/Shared.ps1"
+
 
         $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
@@ -37,34 +36,30 @@ InModuleScope JiraPS {
         }
 
         Mock Get-JiraIssue -ModuleName JiraPS {
-            [PSCustomObject] @{
-                ID      = $issueID;
-                Key     = $issueKey;
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID";
+            $object = [PSCustomObject] @{
+                ID      = $issueID
+                Key     = $issueKey
+                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
         }
 
         # Obtaining comments from an issue...this is IT-3676 in the test environment
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
-            if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with GET method" -ForegroundColor Cyan
-                Write-Host "         [Method] $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]    $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 -InputObject $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
-
-        #        Mock Write-Debug {
-        #            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-        #        }
 
         #############
         # Tests

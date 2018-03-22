@@ -1,13 +1,17 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Get-JiraIssueType" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
+    InModuleScope JiraPS {
 
-    $issueTypeId = 2
-    $issueTypeName = 'Desktop Support'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $restResult = @"
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $issueTypeId = 2
+        $issueTypeName = 'Desktop Support'
+
+        $restResult = @"
 [
     {
         "self": "$jiraServer/rest/api/latest/issuetype/12",
@@ -76,21 +80,22 @@ InModuleScope JiraPS {
 ]
 "@
 
-    Describe "Get-JiraIssueType" {
-
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
+        Mock ConvertTo-JiraIssueType {
+            $inputObject
+        }
+
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/issuetype"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json2 $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
@@ -123,8 +128,6 @@ InModuleScope JiraPS {
         }
 
         Context "Output Checking" {
-
-            Mock ConvertTo-JiraIssueType {}
 
             Get-JiraIssueType
 

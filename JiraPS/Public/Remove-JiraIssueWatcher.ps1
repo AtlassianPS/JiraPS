@@ -1,6 +1,6 @@
 ﻿function Remove-JiraIssueWatcher {
     <#
-    .Synopsis
+    .SYNOPSIS
        Removes a watcher from an existing JIRA issue
     .DESCRIPTION
        This function removes a watcher from an existing issue in JIRA.
@@ -20,50 +20,75 @@
     .NOTES
        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         # Watcher that should be removed from JIRA
-        [Parameter(
-            Position = 0,
-            Mandatory = $true
-        )]
-        [string[]] $Watcher,
+        [Parameter( Mandatory )]
+        [string[]]
+        $Watcher,
 
         # Issue that should be updated
-        [Parameter(
-            Position = 1,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Type for Parameter"),
+                        'ParameterType.NotJiraIssue',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_
+                    )
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
         )]
         [Alias('Key')]
-        [Object] $Issue,
+        [Object]
+        $Issue,
 
-        # Credentials to use to connect to Jira. If not specified, this function will use
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential]
+        $Credential
     )
 
     begin {
-        Write-Debug "[Remove-JiraIssueWatcher] Begin"
-        # We can't validate pipeline input here, since pipeline input doesn't exist in the Begin block.
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
-        Write-Debug "[Remove-JiraIssueWatcher] Obtaining a reference to Jira issue [$Issue]"
-        $issueObj = Get-JiraIssue -InputObject $Issue -Credential $Credential
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         foreach ($username in $Watcher) {
-            $url = "$($issueObj.RestURL)/watchers?username=$username"
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$username]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$username [$username]"
 
-            if ($PSCmdlet.ShouldProcess($username, "Removing a watcher of issue [$($Issue.Key)]")) {
-                Write-Debug "[Remove-JiraIssueWatcher] Preparing for blastoff!"
-                Invoke-JiraMethod -Method Delete -URI $url -Credential $Credential
+            $parameter = @{
+                URI        = "{0}/watchers?username={1}" -f $issueObj.RestURL, $username
+                Method     = "DELETE"
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($username)'")) {
+                Invoke-JiraMethod @parameter
             }
         }
     }
 
     end {
-        Write-Debug "[Remove-JiraIssueWatcher] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

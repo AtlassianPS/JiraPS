@@ -1,18 +1,19 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Get-JiraVersion" {
 
-InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $versionName = '$versionName'
-    $versionID1 = 16840
-    $versionID2 = 16940
-    $projectKey = 'LDD'
-    $projectId = '12101'
+    InModuleScope JiraPS {
 
-    $JiraProjectData = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $versionName = '$versionName'
+        $versionID1 = 16840
+        $versionID2 = 16940
+        $projectKey = 'LDD'
+        $projectId = '12101'
+
+        $JiraProjectData = @"
 [
     {
         "Key" : "$projectKey",
@@ -24,7 +25,7 @@ InModuleScope JiraPS {
     }
 ]
 "@
-    $testJsonOne = @"
+        $testJsonOne = @"
     {
         "self" : "$jiraServer/rest/api/latest/version/$versionID1",
         "id" : $versionID1,
@@ -35,7 +36,7 @@ InModuleScope JiraPS {
         "projectId" : "$projectId"
     }
 "@
-    $testJsonAll = @"
+        $testJsonAll = @"
 [
     {
         "self" : "$jiraServer/rest/api/latest/version/$versionID1",
@@ -67,7 +68,6 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Get-JiraVersion" {
         #region Mock
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
@@ -88,6 +88,7 @@ InModuleScope JiraPS {
                     Project     = (Get-JiraProject -Project $projectKey)
                     ReleaseDate = (Get-Date "2017-12-01")
                     StartDate   = (Get-Date "2017-01-01")
+                    RestUrl     = "$jiraServer/rest/api/latest/version/$_Id"
                 }
                 $Version.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
                 $Version
@@ -99,22 +100,23 @@ InModuleScope JiraPS {
                 Id      = $InputObject.Id
                 Name    = $InputObject.name
                 Project = $InputObject.projectId
+                RestUrl = $InputObject.self
             }
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
             $result
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID1" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/version/$versionID1" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/latest/version/$versionID2" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/version/$versionID2" } {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mock

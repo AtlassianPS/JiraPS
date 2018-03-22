@@ -1,8 +1,10 @@
-. $PSScriptRoot\Shared.ps1
+Describe "ConvertTo-JiraStatus" {
 
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraStatus" {
-        . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
 

@@ -1,14 +1,14 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Get-JiraPriority" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $restResultAll = @"
+        $jiraServer = 'http://jiraserver.example.com'
+
+        $restResultAll = @"
 [
     {
         "self": "$jiraServer/rest/api/2/priority/1",
@@ -48,7 +48,7 @@ InModuleScope JiraPS {
 ]
 "@
 
-    $restResultOne = @"
+        $restResultOne = @"
 {
     "self": "$jiraServer/rest/api/2/priority/1",
     "statusColor": "#cc0000",
@@ -57,8 +57,6 @@ InModuleScope JiraPS {
     "id": "1"
 }
 "@
-
-    Describe "Get-JiraPriority" {
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
@@ -74,15 +72,9 @@ InModuleScope JiraPS {
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
-
-        #        Mock Write-Debug {
-        #            Write-Host "DEBUG: $Message" -ForegroundColor Yellow
-        #        }
 
         #############
         # Tests
@@ -103,7 +95,7 @@ InModuleScope JiraPS {
         It "Converts the output object to type JiraPS.Priority" {
             $getResult = Get-JiraPriority -Id 1 -Credential $testCred
             $getResult | Should Not BeNullOrEmpty
-            $getResult.PSObject.TypeNames[0] | Should Be 'JiraPS.Priority'
+            checkType $getResult "JiraPS.Priority"
         }
     }
 }

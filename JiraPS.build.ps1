@@ -1,26 +1,47 @@
 [CmdletBinding()]
-param()
+[System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
+param(
+    $ModuleName = (Split-Path $BuildRoot -Leaf),
+    $releasePath = "$BuildRoot/Release"
+)
 
-$DebugPreference = "SilentlyContinue"
+#region Setup
 $WarningPreference = "Continue"
 if ($PSBoundParameters.ContainsKey('Verbose')) {
     $VerbosePreference = "Continue"
 }
-
-if (!($env:releasePath)) {
-    $releasePath = "$BuildRoot\Release"
+if ($PSBoundParameters.ContainsKey('Debug')) {
+    $DebugPreference = "Continue"
 }
-else {
-    $releasePath = $env:releasePath
+
+try {
+    $script:IsWindows = (-not (Get-Variable -Name IsWindows -ErrorAction Ignore)) -or $IsWindows
+    $script:IsLinux = (Get-Variable -Name IsLinux -ErrorAction Ignore) -and $IsLinux
+    $script:IsMacOS = (Get-Variable -Name IsMacOS -ErrorAction Ignore) -and $IsMacOS
+    $script:IsCoreCLR = $PSVersionTable.ContainsKey('PSEdition') -and $PSVersionTable.PSEdition -eq 'Core'
 }
-$env:PSModulePath = "$($env:PSModulePath);$releasePath"
+catch { }
 
-Import-Module BuildHelpers
+$PSModulePath = $env:PSModulePath -split ([IO.Path]::PathSeparator)
+if ($releasePath -notin $PSModulePath) {
+    $PSModulePath += $releasePath
+    $env:PSModulePath = $PSModulePath -join ([IO.Path]::PathSeparator)
+}
 
-# Ensure Invoke-Build works in the most strict mode.
 Set-StrictMode -Version Latest
 
-# region debug information
+# Synopsis: Create an initial environment for developing on the module
+task SetUp InstallDependencies, Build
+
+# Synopsis: Install all module used for the development of this module
+task InstallDependencies InstallPandoc, {
+    Install-Module platyPS -Scope CurrentUser -Force
+    Install-Module Pester -Scope CurrentUser -Force
+    Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+}
+#endregion Setup
+
+#region DebugInformation
 task ShowDebug {
     Write-Build Gray
     Write-Build Gray ('Project name:               {0}' -f $env:APPVEYOR_PROJECT_NAME)
@@ -43,116 +64,103 @@ task ShowDebug {
     Write-Build Gray ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
     Write-Build Gray
 }
+#endregion DebugInformation
 
-# Synopsis: Install pandoc to .\Tools\
-task InstallPandoc -If (-not (Test-Path Tools\pandoc.exe)) {
+#region DependecyTasks
+# Synopsis: Install pandoc to ./Tools/
+task InstallPandoc {
     # Setup
-    if (-not (Test-Path "$BuildRoot\Tools")) {
-        $null = New-Item -Path "$BuildRoot\Tools" -ItemType Directory
+    if (-not (Test-Path "$BuildRoot/Tools")) {
+        $null = New-Item -Path "$BuildRoot/Tools" -ItemType Directory
     }
 
-    # Get latest bits
-    $latestRelease = "https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-windows.msi"
-    Invoke-WebRequest -Uri $latestRelease -OutFile "$($env:temp)\pandoc.msi"
-
-    # Extract bits
-    $null = New-Item -Path $env:temp\pandoc -ItemType Directory -Force
-    Start-Process -Wait -FilePath msiexec.exe -ArgumentList " /qn /a `"$($env:temp)\pandoc.msi`" targetdir=`"$($env:temp)\pandoc\`""
-
-    # Move to Tools folder
-    Copy-Item -Path "$($env:temp)\pandoc\Pandoc\pandoc.exe" -Destination "$BuildRoot\Tools\"
-    Copy-Item -Path "$($env:temp)\pandoc\Pandoc\pandoc-citeproc.exe" -Destination "$BuildRoot\Tools\"
-
-    # Clean
-    Remove-Item -Path "$($env:temp)\pandoc" -Recurse -Force
-}
-# endregion
-
-# region test
-task Test RapidTest
-
-# Synopsis: Using the "Fast" Test Suit
-task RapidTest PesterTests
-# Synopsis: Using the complete Test Suit, which includes all supported Powershell versions
-task FullTest TestVersions
-
-# Synopsis: Warn about not empty git status if .git exists.
-task GitStatus -If (Test-Path .git) {
-    $status = exec { git status -s }
-    if ($status) {
-        Write-Warning "Git status: $($status -join ', ')"
+    $path = $env:Path -split ([IO.Path]::PathSeparator)
+    if ("$BuildRoot/Tools" -notin $path) {
+        $path += Join-path $BuildRoot "Tools"
+        $env:Path = $path -join ([IO.Path]::PathSeparator)
     }
-}
 
-task TestVersions TestPS3, TestPS4, TestPS4, TestPS5
-task TestPS3 {
-    exec {powershell.exe -Version 3 -NoProfile Invoke-Build PesterTests}
-}
-task TestPS4 {
-    exec {powershell.exe -Version 4 -NoProfile Invoke-Build PesterTests}
-}
-task TestPS5 {
-    exec {powershell.exe -Version 5 -NoProfile Invoke-Build PesterTests}
-}
-
-# Synopsis: Invoke Pester Tests
-task PesterTests {
-    # Ensure expected environment
-    Remove-Module JiraPS -ErrorAction SilentlyContinue
-    $global:SuppressImportModule = $false
-
+    $pandocVersion = $false
     try {
-        $result = Invoke-Pester -PassThru -OutputFile "$BuildRoot\TestResult.xml" -OutputFormat "NUnitXml"
-        if ($env:APPVEYOR_PROJECT_NAME) {
-            Add-TestResultToAppveyor -TestFile "$BuildRoot\TestResult.xml"
-            Remove-Item "$BuildRoot\TestResult.xml" -Force
-        }
-        assert ($result.FailedCount -eq 0) "$($result.FailedCount) Pester test(s) failed."
+        $pandocVersion = & { pandoc --version }
     }
-    catch {
-        throw
+    catch { }
+
+    if (-not ($pandocVersion)) {
+        $installationFile = "$([System.IO.Path]::GetTempPath()){0}"
+
+        # Get latest bits
+        $latestRelease = "https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-windows.msi"
+        Invoke-WebRequest -Uri $latestRelease -OutFile ($installationFile -f "pandoc.msi")
+
+        # Extract bits
+        $extractionPath = "$([System.IO.Path]::GetTempPath())pandoc"
+        $null = New-Item -Path $extractionPath -ItemType Directory -Force
+        Start-Process -Wait -FilePath msiexec.exe -ArgumentList " /qn /a `"$($installationFile -f "pandoc.msi")`" targetdir=`"$extractionPath`""
+
+        # Move to Tools folder
+        Copy-Item -Path "$extractionPath/Pandoc/pandoc.exe" -Destination "$BuildRoot/Tools/"
+        Copy-Item -Path "$extractionPath/Pandoc/pandoc-citeproc.exe" -Destination "$BuildRoot/Tools/"
+
+        # Clean
+        Remove-Item -Path ($installationFile -f "pandoc.msi") -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $extractionPath -Recurse -Force -ErrorAction SilentlyContinue
     }
+
+    $out = & { pandoc --version }
+    if (-not($out)) {throw "Could not install pandoc"}
 }
-# endregion
+#endregion DependecyTasks
 
-# region build
+#region BuildRelease
 # Synopsis: Build shippable release
-task Build GenerateRelease, GenerateDocs, UpdateManifest
+task Build GenerateRelease, ConvertMarkdown, UpdateManifest
 
-# Synopsis: Generate .\Release structure
+# Synopsis: Generate ./Release structure
 task GenerateRelease {
     # Setup
-    if (-not (Test-Path "$releasePath\JiraPS")) {
-        $null = New-Item -Path "$releasePath\JiraPS" -ItemType Directory
+    if (-not (Test-Path "$releasePath/$ModuleName")) {
+        $null = New-Item -Path "$releasePath/$ModuleName" -ItemType Directory
     }
 
     # Copy module
-    Copy-Item -Path "$BuildRoot\JiraPS\*" -Destination "$releasePath\JiraPS" -Recurse -Force
+    Copy-Item -Path "$BuildRoot/$ModuleName/*" -Destination "$releasePath/$ModuleName" -Recurse -Force
     # Copy additional files
-    $additionalFiles = @(
-        "$BuildRoot\CHANGELOG.md"
-        "$BuildRoot\LICENSE"
-        "$BuildRoot\README.md"
-    )
-    Copy-Item -Path $additionalFiles -Destination "$releasePath\JiraPS" -Force
+    Copy-Item -Path @(
+        "$BuildRoot/CHANGELOG.md"
+        "$BuildRoot/LICENSE"
+        "$BuildRoot/README.md"
+    ) -Destination "$releasePath/$ModuleName" -Force
+    # Copy Tests
+    $null = New-Item -Path "$releasePath/Tests" -ItemType Directory -ErrorAction SilentlyContinue
+    Copy-Item -Path "$BuildRoot/Tests/*.ps1" -Destination "$releasePath/Tests" -Recurse -Force
+    # Include Analyzer Settings
+    Copy-Item -Path "$BuildRoot/PSScriptAnalyzerSettings.psd1" -Destination "$releasePath/PSScriptAnalyzerSettings.psd1" -Force
+    BuildHelpers\Update-Metadata -Path "$releasePath/PSScriptAnalyzerSettings.psd1" -PropertyName ExcludeRules -Value ''
 }
 
 # Synopsis: Update the manifest of the module
 task UpdateManifest GetVersion, {
-    $ModuleAlias = (Get-Alias | Where source -eq JiraPS)
+    Remove-Module $ModuleName -ErrorAction SilentlyContinue
+    Import-Module "$BuildRoot/$ModuleName/$ModuleName.psd1" -Force
+    $ModuleAlias = @(Get-Alias | Where-Object {$_.ModuleName -eq "$ModuleName"})
 
-    Remove-Module JiraPS -ErrorAction SilentlyContinue
-    Import-Module "$releasePath\JiraPS\JiraPS.psd1"
-    Update-Metadata -Path "$releasePath\JiraPS\JiraPS.psd1" -PropertyName ModuleVersion -Value $script:Version
-    # Update-Metadata -Path "$releasePath\JiraPS\JiraPS.psd1" -PropertyName FileList -Value (Get-ChildItem $releasePath\JiraPS -Recurse).Name
+    Remove-Module $ModuleName -ErrorAction SilentlyContinue
+    Import-Module $ModuleName -Force
+
+    Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+    Import-Module BuildHelpers -Force
+
+    BuildHelpers\Update-Metadata -Path "$releasePath/$ModuleName/$ModuleName.psd1" -PropertyName ModuleVersion -Value $script:Version
+    # BuildHelpers\Update-Metadata -Path "$releasePath/$ModuleName/$ModuleName.psd1" -PropertyName FileList -Value (Get-ChildItem "$releasePath/$ModuleName" -Recurse).Name
     if ($ModuleAlias) {
-        Update-Metadata -Path "$releasePath\JiraPS\JiraPS.psd1" -PropertyName AliasesToExport -Value @($ModuleAlias.Name)
+        BuildHelpers\Update-Metadata -Path "$releasePath/$ModuleName/$ModuleName.psd1" -PropertyName AliasesToExport -Value @($ModuleAlias.Name)
     }
-    Set-ModuleFunctions -Name "$releasePath\JiraPS\JiraPS.psd1" -FunctionsToExport ([string[]](Get-ChildItem "$releasePath\JiraPS\public\*.ps1").BaseName)
+    BuildHelpers\Set-ModuleFunctions -Name "$releasePath/$ModuleName/$ModuleName.psd1" -FunctionsToExport ([string[]](Get-ChildItem "$releasePath/$ModuleName/public/*.ps1").BaseName)
 }
 
 task GetVersion {
-    $manifestContent = Get-Content -Path "$releasePath\JiraPS\JiraPS.psd1" -Raw
+    $manifestContent = Get-Content -Path "$releasePath/$ModuleName/$ModuleName.psd1" -Raw
     if ($manifestContent -notmatch '(?<=ModuleVersion\s+=\s+'')(?<ModuleVersion>.*)(?='')') {
         throw "Module version was not found in manifest file,"
     }
@@ -169,62 +177,73 @@ task GetVersion {
     $newRevision
 }
 
-# Synopsis: Generate documentation
-task GenerateDocs GenerateMarkdown, ConvertMarkdown
-
-# Synopsis: Generate markdown documentation with platyPS
-task GenerateMarkdown {
-    Import-Module platyPS -Force
-    Import-Module "$releasePath\JiraPS\JiraPS.psd1" -Force
-    $null = New-MarkdownHelp -Module JiraPS -OutputFolder "$releasePath\JiraPS\docs" -Force
-    Remove-Module JiraPS, platyPS
-}
-
 # Synopsis: Convert markdown files to HTML.
 # <http://johnmacfarlane.net/pandoc/>
 $ConvertMarkdown = @{
-    Inputs  = { Get-ChildItem "$releasePath\JiraPS\*.md" -Recurse }
+    Inputs  = { Get-ChildItem "$releasePath/$ModuleName/*.md" -Recurse }
     Outputs = {process {
             [System.IO.Path]::ChangeExtension($_, 'htm')
         }
     }
 }
 # Synopsis: Converts *.md and *.markdown files to *.htm
-task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {process {
+task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {
+    process {
         Write-Build Green "Converting File: $_"
-        exec { Tools\pandoc.exe $_ --standalone --from=markdown_github "--output=$2" }
+        pandoc $_ --standalone --from=markdown_github "--output=$2"
     }
 }
-# endregion
+#endregion BuildRelease
 
-# region publish
-task Deploy -If ($env:APPVEYOR_REPO_BRANCH -eq 'master' -and (-not($env:APPVEYOR_PULL_REQUEST_NUMBER))) RemoveMarkdown, {
-    Remove-Module JiraPS -ErrorAction SilentlyContinue
-}, PublishToGallery
+#region Test
+task Test {
+    assert { Test-Path "$BuildRoot/Release/" -PathType Container }
 
+    Remove-Module $ModuleName -ErrorAction SilentlyContinue
+
+    Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+    Import-Module BuildHelpers -Force
+
+    try {
+        $result = Invoke-Pester -Script "$BuildRoot/Release/Tests/*" -PassThru -OutputFile "$BuildRoot/TestResult.xml" -OutputFormat "NUnitXml"
+        if ($env:APPVEYOR_PROJECT_NAME) {
+            BuildHelpers\Add-TestResultToAppveyor -TestFile "$BuildRoot/TestResult.xml"
+        }
+        Remove-Item "$BuildRoot/TestResult.xml" -Force
+        assert ($result.FailedCount -eq 0) "$($result.FailedCount) Pester test(s) failed."
+    }
+    catch {
+        throw $_
+    }
+}
+#endregion
+
+#region Publish
+$shouldDeploy = (
+    # only deploy master branch
+    ($env:APPVEYOR_REPO_BRANCH -eq 'master') -and
+    # it cannot be a PR
+    (-not ($REPO_PULL_REQUEST_NUMBER)) -and
+    # it cannot have a commit message that contains "skip-deploy"
+    ($env:APPVEYOR_REPO_COMMIT_MESSAGE -notlike '*skip-deploy*')
+)
+# Synopsis: Publish a new release on github and the PSGallery
+task Deploy -If $shouldDeploy RemoveMarkdown, PublishToGallery
+
+# Synipsis: Publish the $release to the PSGallery
 task PublishToGallery {
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
 
-    Import-Module $releasePath\JiraPS\JiraPS.psd1 -ErrorAction Stop
-    Publish-Module -Name JiraPS -NuGetApiKey $env:PSGalleryAPIKey
+    Remove-Module $ModuleName -ErrorAction SilentlyContinue
+    Import-Module $ModuleName -ErrorAction Stop
+    Publish-Module -Name $ModuleName -NuGetApiKey $env:PSGalleryAPIKey
 }
-
-# Synopsis: Push with a version tag.
-task PushRelease GitStatus, GetVersion, {
-    # Done in appveyor.yml with deploy provider.
-    # This is needed, as I don't know how to athenticate (2-factor) in here.
-    exec { git checkout master }
-    $changes = exec { git status --short }
-    assert (!$changes) "Please, commit changes."
-
-    exec { git push }
-    exec { git tag -a "v$Version" -m "v$Version" }
-    exec { git push origin "v$Version" }
-}
-# endregion
+#endregion Publish
 
 #region Cleaning tasks
+# Synopsis: Clean the working dir
 task Clean RemoveGeneratedFiles
+
 # Synopsis: Remove generated and temp files.
 task RemoveGeneratedFiles {
     $itemsToRemove = @(
@@ -236,9 +255,9 @@ task RemoveGeneratedFiles {
 }
 
 # Synopsis: Remove Markdown files from Release
-task RemoveMarkdown -If { Get-ChildItem "$releasePath\JiraPS\*.md" -Recurse } {
-    Remove-Item -Path "$releasePath\JiraPS" -Include "*.md" -Recurse
+task RemoveMarkdown -If { Get-ChildItem "$releasePath/$ModuleName/*.md" -Recurse } {
+    Remove-Item -Path "$releasePath/$ModuleName" -Include "*.md" -Recurse
 }
-# endregion
+#endregion
 
-task . ShowDebug, Test, Build, Deploy, Clean
+task . ShowDebug, Clean, Build, Test, Deploy

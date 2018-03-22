@@ -1,17 +1,16 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Remove-JiraRemoteLink" {
 
-InModuleScope JiraPS {
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    # This is intended to be a parameter to the test, but Pester currently does not allow parameters to be passed to InModuleScope blocks.
-    # For the time being, we'll need to hard-code this and adjust it as desired.
-    $ShowMockData = $false
-    $ShowDebugData = $false
+    InModuleScope JiraPS {
 
-    $jiraServer = 'http://jiraserver.example.com'
+        . "$PSScriptRoot/Shared.ps1"
 
-    $testIssueKey = 'EX-1'
+        $jiraServer = 'http://jiraserver.example.com'
 
-    $testLink = @"
+        $testIssueKey = 'EX-1'
+
+        $testLink = @"
 {
     "id": 10000,
     "self": "http://www.example.com/jira/rest/api/issue/MKY-1/remotelink/10000",
@@ -33,43 +32,37 @@ InModuleScope JiraPS {
 }
 "@
 
-    Describe "Remove-JiraRemoteLink" {
-
-        Mock Write-Debug -ModuleName JiraPS {
-            if ($ShowDebugData) {
-                Write-Host -Object "[DEBUG] $Message" -ForegroundColor Yellow
-            }
-        }
-
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Get-JiraIssue {
-            [PSCustomObject] @{
+            $object = [PSCustomObject] @{
                 'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
                 'Key'     = $testIssueKey
             }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
         }
 
         Mock Get-JiraRemoteLink {
-            ConvertFrom-Json2 $testLink
+            $object = ConvertFrom-Json2 $testLink
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.IssueLinkType')
+            return $object
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE'} {
-            if ($ShowMockData) {
-                Write-Host "       Mocked Invoke-JiraMethod with DELETE method" -ForegroundColor Cyan
-                Write-Host "         [Method]         $Method" -ForegroundColor Cyan
-                Write-Host "         [URI]            $URI" -ForegroundColor Cyan
-            }
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This REST method should produce no output
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Host "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Host "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Host "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 

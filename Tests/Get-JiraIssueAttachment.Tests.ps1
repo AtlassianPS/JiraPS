@@ -1,15 +1,16 @@
-. $PSScriptRoot\Shared.ps1
+Describe "Get-JiraIssueAttachment" {
 
-InModuleScope JiraPS {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'SuppressImportModule')]
-    $SuppressImportModule = $true
-    . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
-    $jiraServer = 'http://jiraserver.example.com'
-    $issueID = 41701
-    $issueKey = 'IT-3676'
+    InModuleScope JiraPS {
 
-    $attachments = @"
+        . "$PSScriptRoot/Shared.ps1"
+
+        $jiraServer = 'http://jiraserver.example.com'
+        $issueID = 41701
+        $issueKey = 'IT-3676'
+
+        $attachments = @"
 [
     {
         "self": "$jiraServer/rest/api/2/attachment/10013",
@@ -54,17 +55,19 @@ InModuleScope JiraPS {
 ]
 "@
 
-    Describe "Get-JiraIssueAttachment" {
-
         Mock Get-JiraIssue -ModuleName JiraPS {
             $IssueObj = [PSCustomObject]@{
-                ID      = $issueID
-                Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
+                ID         = $issueID
+                Key        = $issueKey
+                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID"
                 attachment = (ConvertFrom-Json2 -InputObject $attachments)
             }
             $IssueObj.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             $IssueObj
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-JiraIssue -Key $Issue
         }
 
         Mock ConvertTo-JiraAttachment -ModuleName JiraPS {
@@ -73,9 +76,7 @@ InModuleScope JiraPS {
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            Write-Output "       Mocked Invoke-JiraMethod with no parameter filter." -ForegroundColor DarkRed
-            Write-Output "         [Method]         $Method" -ForegroundColor DarkRed
-            Write-Output "         [URI]            $URI" -ForegroundColor DarkRed
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
@@ -87,18 +88,14 @@ InModuleScope JiraPS {
 
         It 'only accepts String or JiraPS.Issue as input' {
             { Get-JiraIssueAttachment -Issue (Get-Date) } | Should Throw
-            { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should Throw
+            { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should Throw
+            { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should Not Throw
+            { Get-JiraIssueAttachment -Issue (Get-JiraIssue -Key "foo") } | Should Not Throw
         }
 
         It 'takes the issue input over the pipeline' {
             { $issueObject | Get-JiraIssueAttachment } | Should Not Throw
             { $issueKey | Get-JiraIssueAttachment } | Should Not Throw
-        }
-
-        It 'resolves the Issue only when necessary' {
-            $issueKey | Get-JiraIssueAttachment
-            $issueObject | Get-JiraIssueAttachment
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It 'converts the attachments to objects' {

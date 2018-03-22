@@ -1,6 +1,6 @@
 function Get-JiraIssueLink {
     <#
-    .Synopsis
+    .SYNOPSIS
        Returns a specific issueLink from Jira
     .DESCRIPTION
        This function returns information regarding a specified issueLink from Jira.
@@ -24,56 +24,56 @@ function Get-JiraIssueLink {
         # The IssueLink ID to search
         #
         # Accepts input from pipeline when the object is of type JiraPS.IssueLink
-        [Parameter(
-            Position = 0,
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
-        )]
-        [Int[]] $Id,
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [Int[]]
+        $Id,
 
-        # Credentials to use to connect to Jira
-        [Parameter(Mandatory = $false)]
-        [System.Management.Automation.PSCredential] $Credential
+        # Credentials to use to connect to JIRA.
+        # If not specified, this function will use anonymous access.
+        [PSCredential] $Credential
     )
 
     begin {
-        Write-Debug "[Get-JiraIssueLink] Reading server from config file"
-        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $uri = "$server/rest/api/2/issueLink/{0}"
+        $server = Get-JiraConfigServer -ErrorAction Stop
+
+        $resourceURi = "$server/rest/api/2/issueLink/{0}"
     }
 
     process {
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
         # Validate input object from Pipeline
-        if (($_) -and ($_.PSObject.TypeNames[0] -ne "JiraPS.IssueLink")) {
-            $message = "Wrong object type provided for IssueLink."
-            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-            Throw $exception
+        if (($_) -and ("JiraPS.IssueLink" -notin $_.PSObject.TypeNames)) {
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Invalid Parameter"),
+                'ParameterProperties.WrongObjectType',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $Id
+            )
+            $errorItem.ErrorDetails = "The IssueLink provided did not match the constraints."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
-        foreach ($ilink in $Id) {
-            Write-Debug "[Get-JiraIssueLink] Processing project [$ilink]"
-            $thisUri = $uri -f $ilink
+        foreach ($_id in $Id) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
 
-            Write-Debug "[Get-JiraIssueLink] Preparing for blastoff!"
-
-            $result = Invoke-JiraMethod -Method Get -URI $thisUri -Credential $Credential
-            if ($result) {
-                Write-Debug "[Get-JiraIssueLink] Converting to object"
-                $obj = ConvertTo-JiraIssueLink -InputObject $result
-
-                Write-Debug "[Get-JiraIssueLink] Outputting result"
-                Write-Output $obj
+            $parameter = @{
+                URI        = $resourceURi -f $_id
+                Method     = "GET"
+                Credential = $Credential
             }
-            else {
-                Write-Debug "[Get-JiraIssueLink] No results were returned from Jira"
-                Write-Debug "[Get-JiraIssueLink] No results were returned from Jira for project [$ilink]"
-            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraMethod @parameter
+
+            Write-Output (ConvertTo-JiraIssueLink -InputObject $result)
         }
     }
 
     end {
-        Write-Debug "[Get-JiraIssueLink] Complete"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

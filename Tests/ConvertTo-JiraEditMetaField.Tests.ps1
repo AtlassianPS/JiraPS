@@ -1,8 +1,10 @@
-. $PSScriptRoot\Shared.ps1
+Describe "ConvertTo-JiraEditMetaField" {
 
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraEditMetaField" {
-        . $PSScriptRoot\Shared.ps1
+    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+
+    InModuleScope JiraPS {
+
+        . "$PSScriptRoot/Shared.ps1"
 
         $sampleJson = @'
 {
