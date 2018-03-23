@@ -63,8 +63,7 @@
 
                     $allFields = Get-JiraField -Credential $Credential
 
-                    Write-Output ($allFields | Where-Object -FilterScript {$_.Id -eq $_field})
-                    Write-Output ($allFields | Where-Object -FilterScript {$_.Name -like $_field})
+                    Write-Output ($allFields | Where-Object -FilterScript {($_.Id -eq $_field) -or ($_.Name -like $_field)})
                 }
             }
         }
