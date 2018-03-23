@@ -42,7 +42,7 @@ function Get-JiraIssueCreateMetadata {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/issue/createmeta?projectIds={0}&issuetypeIds={1}"
+        $resourceURi = "$server/rest/api/latest/issue/createmeta?projectIds={0}&issuetypeIds={1}&expand=projects.issuetypes.fields"
     }
 
     process {
