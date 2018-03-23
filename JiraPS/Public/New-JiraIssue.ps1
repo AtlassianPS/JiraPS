@@ -84,9 +84,9 @@ function New-JiraIssue {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
+        $server = Get-JiraConfigServer -ErrorAction Stop -Debug:$false
 
-        $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop
+        $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
 
         $resourceURi = "$server/rest/api/latest/issue"
     }
@@ -95,8 +95,8 @@ function New-JiraIssue {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
-        $IssueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential -ErrorAction Stop
+        $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop -Debug:$false
+        $IssueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
 
         $requestBody = @{
             "project"   = @{"id" = $ProjectObj.Id}
@@ -105,19 +105,19 @@ function New-JiraIssue {
         }
 
         if ($Priority) {
-            $requestBody.priority = @{"id" = [String] $Priority}
+            $requestBody["priority"] = @{"id" = [String] $Priority}
         }
 
         if ($Description) {
-            $requestBody.description = $Description
+            $requestBody["description"] = $Description
         }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
-            $requestBody.reporter = @{"name" = "$Reporter"}
+            $requestBody["reporter"] = @{"name" = "$Reporter"}
         }
 
         if ($Parent) {
-            $requestBody.parent = @{"key" = $Parent}
+            $requestBody["parent"] = @{"key" = $Parent}
         }
 
         if ($Labels) {
@@ -139,12 +139,12 @@ function New-JiraIssue {
             $name = $_key
             $value = $Fields.$_key
 
-            if ($field = Get-JiraField -Field $name -Credential $Credential) {
+            if ($field = Get-JiraField -Field $name -Credential $Credential -Debug:$false) {
                 # For some reason, this was coming through as a hashtable instead of a String,
                 # which was causing ConvertTo-Json to crash later.
                 # Not sure why, but this forces $id to be a String and not a hashtable.
                 $id = $field.Id
-                $requestBody.$id = $value
+                $requestBody["$id"] = $value
             }
             else {
                 $errorItem = [System.Management.Automation.ErrorRecord]::new(
@@ -182,13 +182,13 @@ function New-JiraIssue {
         }
 
         $hashtable = @{
-            'fields' = $requestBody
+            'fields' = ([PSCustomObject]$requestBody)
         }
 
         $parameter = @{
             URI        = $resourceURi
             Method     = "POST"
-            Body       = (ConvertTo-Json -InputObject $hashtable -Depth 7)
+            Body       = (ConvertTo-Json -InputObject ([PSCustomObject]$hashtable) -Depth 7)
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
