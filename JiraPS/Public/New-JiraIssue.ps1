@@ -123,7 +123,7 @@ function New-JiraIssue {
         if ($Labels) {
             $requestBody["labels"] = [System.Collections.ArrayList]@()
             foreach ($item in $Labels) {
-                $null = $requestBody["labels"].Add($_item)
+                $null = $requestBody["labels"].Add($item)
             }
         }
 
