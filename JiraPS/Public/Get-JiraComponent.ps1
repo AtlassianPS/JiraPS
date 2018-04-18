@@ -1,33 +1,6 @@
 function Get-JiraComponent {
-    <#
-    .SYNOPSIS
-       Returns a Component from Jira
-    .DESCRIPTION
-       This function returns information regarding a specified component from Jira.
-       If -InputObject is given via parameter or pipe all components for
-       the given project are returned.
-       It is not possible to get all components with this function.
-    .EXAMPLE
-       Get-JiraComponent -Id 10000 -Credential $cred
-       Returns information about the component with ID 10000
-    .EXAMPLE
-       Get-JiraComponent 20000 -Credential $cred
-       Returns information about the component with ID 20000
-    .EXAMPLE
-       Get-JiraProject Project1 | Get-JiraComponent -Credential $cred
-       Returns information about all components within project 'Project1'
-    .EXAMPLE
-        Get-JiraComponent ABC,DEF
-        Return information about all components within projects 'ABC' and 'DEF'
-    .INPUTS
-       [String[]] Component ID
-       [PSCredential] Credentials to use to connect to Jira
-    .OUTPUTS
-       [JiraPS.Component]
-    #>
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
-        # The Project ID or project key of a project to search.
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByProject' )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -58,14 +31,11 @@ function Get-JiraComponent {
           Once we have custom classes, these two parameters can be one
         #>
 
-        # The Component ID.
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByID' )]
         [Alias("Id")]
         [Int[]]
         $ComponentId,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

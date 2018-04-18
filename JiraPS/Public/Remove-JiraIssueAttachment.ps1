@@ -1,31 +1,12 @@
 function Remove-JiraIssueAttachment {
-    <#
-    .SYNOPSIS
-       Removes an attachment from a JIRA issue
-    .DESCRIPTION
-       This function removes an attachment from a JIRA issue.
-    .EXAMPLE
-       Remove-JiraIssueAttachment -AttachmentId 10039
-       Removes attachment with id of 10039
-    .EXAMPLE
-       Get-JiraIssueAttachment -Issue FOO-1234 | Remove-JiraIssueAttachment
-       Removes all attachments from issue FOO-1234
-    .EXAMPLE
-       Remove-JiraIssueAttachment -Issue FOO-1234 -FileName '*.png' -force
-       Removes all *.png attachments from Issue FOO-1234 without prompting for confirmation
-    .OUTPUTS
-       This function returns no output.
-    #>
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess, DefaultParameterSetName = 'byId' )]
     param(
-        # Id of the Attachment to delete
         [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'byId' )]
         [ValidateNotNullOrEmpty()]
         [Alias('Id')]
         [Int[]]
         $AttachmentId,
 
-        # Issue from which to delete on or more attachments
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'byIssue' )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -53,17 +34,13 @@ function Remove-JiraIssueAttachment {
         [Object]
         $Issue,
 
-        # Name of the File to delete
         [Parameter( ParameterSetName = 'byIssue' )]
         [String[]]
         $FileName,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential,
 
-        # Suppress user confirmation.
         [Switch]
         $Force
     )

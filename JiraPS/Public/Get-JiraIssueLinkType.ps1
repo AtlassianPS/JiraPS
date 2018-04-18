@@ -1,27 +1,6 @@
 function Get-JiraIssueLinkType {
-    <#
-    .SYNOPSIS
-        Gets available issue link types
-    .DESCRIPTION
-        This function gets available issue link types from a JIRA server. It can also return specific information about a single issue link type.
-
-        This is a useful function for discovering data about issue link types in order to create and modify issue links on issues.
-    .EXAMPLE
-        C:\PS> Get-JiraIssueLinkType
-        This example returns all available links fron the JIRA server
-    .EXAMPLE
-        C:\PS> Get-JiraIssueLinkType -LinkType 1
-        This example returns information about the link type with ID 1.
-    .INPUTS
-        This function does not accept pipeline input.
-    .OUTPUTS
-        This function outputs the JiraPS.IssueLinkType object(s) that represent the JIRA issue link type(s).
-    .NOTES
-        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
-    #>
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
-        # The Issue Type name or ID to search
         [Parameter( Position = 0, Mandatory, ParameterSetName = '_Search' )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -48,8 +27,6 @@ function Get-JiraIssueLinkType {
         [Object]
         $LinkType,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

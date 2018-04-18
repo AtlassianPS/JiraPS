@@ -1,25 +1,6 @@
 ﻿function Get-JiraFilter {
-    <#
-    .SYNOPSIS
-       Returns information about a filter in JIRA
-    .DESCRIPTION
-       This function returns information about a filter in JIRA, including the JQL syntax of the filter, its owner, and sharing status.
-
-       This function is only capable of returning filters by their Filter ID. This is a limitation of JIRA's REST API.  The easiest way to obtain the ID of a filter is to load the filter in the "regular" Web view of JIRA, then copy the ID from the URL of the page.
-    .EXAMPLE
-       Get-JiraFilter -Id 12345
-       Gets a reference to filter ID 12345 from JIRA
-    .EXAMPLE
-        $filterObject | Get-JiraFilter
-        Gets the information of a filter by providing a filter object
-    .INPUTS
-       [Object[]] The filter to look up in JIRA. This can be a String (filter ID) or a JiraPS.Filter object.
-    .OUTPUTS
-       [JiraPS.Filter[]] Filter objects
-    #>
     [CmdletBinding(DefaultParameterSetName = 'ByFilterID')]
     param(
-        # ID of the filter to search for.
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByFilterID' )]
         [String[]]
         $Id,
@@ -30,7 +11,6 @@
           and we will no longer need the InputObject
         #>
 
-        # Object of the filter to search for.
         [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -57,8 +37,6 @@
         [Object[]]
         $InputObject,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )
