@@ -1,43 +1,6 @@
 ﻿function New-JiraVersion {
-    <#
-    .SYNOPSIS
-        Creates a new FixVersion in JIRA
-    .DESCRIPTION
-         This function creates a new FixVersion in JIRA.
-    .EXAMPLE
-        New-JiraVersion -Name '1.0.0.0' -Project "RD"
-        Description
-        -----------
-        This example creates a new JIRA Version named '1.0.0.0' in project `RD`.
-    .EXAMPLE
-        $project = Get-JiraProject -Project "RD"
-        New-JiraVersion -Name '1.0.0.0' -Project $project -ReleaseDate "2000-12-31"
-        Description
-        -----------
-        Create a new Version in Project `RD` with a set release date.
-    .EXAMPLE
-        $version = Get-JiraVersion -Name "1.0.0.0" -Project "RD"
-        $version = $version.Project.Key "TEST"
-        $version | New-JiraVersion
-        Description
-        -----------
-        This example duplicates the Version named '1.0.0.0' in Project `RD` to Project `TEST`.
-    .OUTPUTS
-        [JiraPS.Version]
-    .LINK
-        Get-JiraVersion
-    .LINK
-        Remove-JiraVersion
-    .LINK
-        Set-JiraVersion
-    .LINK
-        Get-JiraProject
-    .NOTES
-        This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
-    #>
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'byObject' )]
     param(
-        # Version object that should be created on the server.
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byObject' )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -64,12 +27,10 @@
         [Object]
         $InputObject,
 
-        # Name of the version to create.
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'byParameters' )]
         [String]
         $Name,
 
-        # The Project ID
         [Parameter( Position = 1, Mandatory, ParameterSetName = 'byParameters' )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -99,33 +60,26 @@
         [Object]
         $Project,
 
-        # Description of the version.
         [Parameter( ParameterSetName = 'byParameters' )]
         [String]
         $Description,
 
-        # Create the version as archived.
         [Parameter( ParameterSetName = 'byParameters' )]
         [Bool]
         $Archived,
 
-        # Create the version as released.
         [Parameter( ParameterSetName = 'byParameters' )]
         [Bool]
         $Released,
 
-        # Date of the release.
         [Parameter( ParameterSetName = 'byParameters' )]
         [DateTime]
         $ReleaseDate,
 
-        # Date of the release.
         [Parameter( ParameterSetName = 'byParameters' )]
         [DateTime]
         $StartDate,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

@@ -1,66 +1,29 @@
 ﻿function Get-JiraVersion {
-    <#
-    .SYNOPSIS
-       This function returns information about a JIRA Project's Version
-    .DESCRIPTION
-       This function provides information about JIRA Version
-    .EXAMPLE
-       Get-JiraVersion -Project $ProjectKey
-       This example returns information about all JIRA Version visible to the current user for the project.
-    .EXAMPLE
-       Get-JiraVersion -Project $ProjectKey -Name '1.0.0.0'
-       This example returns the information of a specific Version.
-    .EXAMPLE
-        Get-JiraProject "FOO", "BAR" | Get-JiraVersion -Name "v1.0", "v2.0"
-        Get the Version with name "v1.0" and "v2.0" from both projects "FOO" and "BAR"
-    .EXAMPLE
-       Get-JiraVersion -ID '66596'
-       This example returns information about all JIRA Version visible to the current user (or using anonymous access if a JiraPS session has not been defined) for the project.
-    .INPUTS
-        [JiraPS.Version]
-        [JiraPS.Project]
-    .OUTPUTS
-       [JiraPS.Version]
-    .LINK
-        Get-JiraProject
-        New-JiraVersion
-        Set-JiraVersion
-        Remove-JiraVersion
-    .NOTES
-       This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
-    #>
     [CmdletBinding( DefaultParameterSetName = 'byId' )]
     param(
-        # The Version ID
         [Parameter( Mandatory, ParameterSetName = 'byId' )]
         [Int[]]
         $Id,
 
-        # A Version object to search for
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputVersion' )]
         [PSTypeName('JiraPS.Version')]
         $InputVersion,
 
-        # Project key of a project to search
         [Parameter( Position = 0, Mandatory , ParameterSetName = 'byProject' )]
         [Alias('Key')]
         [String[]]
         $Project,
 
-        # A Project Object to search
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputProject' )]
         [PSTypeName('JiraPS.Project')]
         $InputProject,
 
-        # Jira Version Name
         [Parameter( ParameterSetName = 'byProject' )]
         [Parameter( ParameterSetName = 'byInputProject' )]
         [Alias('Versions')]
         [String[]]
         $Name,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

@@ -1,34 +1,6 @@
 function Get-JiraGroupMember {
-    <#
-    .SYNOPSIS
-       Returns members of a given group in JIRA
-    .DESCRIPTION
-       This function returns members of a provided group in JIRA.
-    .EXAMPLE
-       Get-JiraGroupmember testGroup
-       This example returns all members of the JIRA group testGroup.
-    .EXAMPLE
-       Get-JiraGroup 'Developers' | Get-JiraGroupMember
-       This example illustrates the use of the pipeline to return members of
-       the Developers group in JIRA.
-    .INPUTS
-       [JiraPS.Group] The group to query for members
-    .OUTPUTS
-       [JiraPS.User[]] Members of the provided group
-    .NOTES
-       By default, this will return all active users who are members of the
-       given group.  For large groups, this can take quite some time.
-
-       To limit the number of group members returned, use
-       the MaxResults parameter.  You can also combine this with the
-       StartIndex parameter to "page" through results.
-
-       This function does not return inactive users.  This appears to be a
-       limitation of JIRA's REST API.
-    #>
     [CmdletBinding()]
     param(
-        # Group object of which to display the members.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -55,20 +27,14 @@ function Get-JiraGroupMember {
         [Object[]]
         $Group,
 
-        # Index of the first user to return. This can be used to "page" through
-        # users in a large group or a slow connection.
         [ValidateRange(0, [Int]::MaxValue)]
         [Int]
         $StartIndex = 0,
 
-        # Maximum number of results to return. By default, all users will be
-        # returned.
         [ValidateRange(0, [Int]::MaxValue)]
         [Int]
         $MaxResults = 0,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

@@ -1,44 +1,6 @@
 function Invoke-JiraIssueTransition {
-    <#
-    .SYNOPSIS
-       Performs an issue transition on a JIRA issue, changing its status
-    .DESCRIPTION
-       This function performs an issue transition on a JIRA issue.  Transitions are
-       defined in JIRA through workflows, and allow the issue to move from one status
-       to the next.  For example, the "Start Progress" transition typically moves
-       an issue from an Open status to an "In Progress" status.
-
-       To identify the transitions that an issue can perform, use Get-JiraIssue and
-       check the Transition property of the issue obj ect returned.  Attempting to
-       perform a transition that does not apply to the issue (for example, trying
-       to "start progress" on an issue in progress) will result in an exception.
-    .EXAMPLE
-       Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11
-       Invokes transition ID 11 on issue TEST-01.
-    .EXAMPLE
-       Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition comment'
-       Invokes transition ID 11 on issue TEST-01 with a comment. Requires the comment field to be configured visible for transition.
-    .EXAMPLE
-       Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Assignee 'joe.bloggs'
-       Invokes transition ID 11 on issue TEST-01 and assigns to user 'Joe Blogs'. Requires the assignee field to be configured as visible for transition.
-    .EXAMPLE
-       $transitionFields = @{'customfield_12345' = 'example'}
-       Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Fields $transitionFields
-       Invokes transition ID 11 on issue TEST-01 and configures a custom field value. Requires fields to be configured as visible for transition.
-    .EXAMPLE
-       $transition = Get-JiraIssue -Issue TEST-01 | Select-Object -ExpandProperty Transition | ? {$_.ResultStatus.Name -eq 'In Progress'}
-       Invoke-JiraIssueTransition -Issue TEST-01 -Transition $transition
-       This example identifies the correct transition based on the result status of
-       "In Progress," and invokes that transition on issue TEST-01.
-    .INPUTS
-       [JiraPS.Issue] Issue (can also be provided as a String)
-       [JiraPS.Transition] Transition to perform (can also be provided as an int ID)
-    .OUTPUTS
-       This function does not provide output.
-    #>
     [CmdletBinding()]
     param(
-        # The Issue Object or ID to transition.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -66,32 +28,19 @@ function Invoke-JiraIssueTransition {
         [Object]
         $Issue,
 
-        # The Transition Object or ID.
         [Parameter( Mandatory )]
         [Object]
         $Transition,
 
-        # Any additional fields that should be updated.
-        #
-        # Fields must be configured to appear on the transition screen to use this parameter.
         [System.Collections.Hashtable]
         $Fields,
 
-        # New assignee of the issue
-        #
-        # Enter 'Unassigned' to unassign the issue.
-        # Assignee field must be configured to appear on the transition screen to use this parameter.
         [Object]
         $Assignee,
 
-        # Comment that should be added to JIRA.
-        #
-        # Comment field must be configured to appear on the transition screen to use this parameter.
         [String]
         $Comment,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

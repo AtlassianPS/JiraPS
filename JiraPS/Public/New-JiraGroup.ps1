@@ -1,27 +1,11 @@
 ﻿function New-JiraGroup {
-    <#
-    .SYNOPSIS
-       Creates a new group in JIRA
-    .DESCRIPTION
-       This function creates a new group in JIRA.
-    .EXAMPLE
-       New-JiraGroup -GroupName testGroup
-       This example creates a new JIRA group named testGroup.
-    .INPUTS
-       This function does not accept pipeline input.
-    .OUTPUTS
-       [JiraPS.Group] The user object created
-    #>
     [CmdletBinding( SupportsShouldProcess )]
     param(
-        # Name for the new group.
         [Parameter( Mandatory )]
         [Alias('Name')]
         [String[]]
         $GroupName,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

@@ -1,25 +1,6 @@
 function Add-JiraIssueAttachment {
-    <#
-    .SYNOPSIS
-       Adds a file attachment to an existing Jira Issue
-    .DESCRIPTION
-       This function adds an Attachment to an existing issue in JIRA.
-    .EXAMPLE
-       Add-JiraIssueAttachment -FilePath "Test comment" -Issue "TEST-001"
-       This example adds a simple comment to the issue TEST-001.
-    .EXAMPLE
-       Get-JiraIssue "TEST-002" | Add-JiraIssueAttachment -FilePath "Test comment from PowerShell"
-       This example illustrates pipeline use from Get-JiraIssue to Add-JiraIssueAttachment.
-    .INPUTS
-       This function can accept JiraPS.Issue objects via pipeline.
-    .OUTPUTS
-       This function outputs the results of the attachment add.
-    .NOTES
-       This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
-    #>
     [CmdletBinding( SupportsShouldProcess )]
     param(
-        # Issue to which to attach the file
         [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -51,7 +32,6 @@ function Add-JiraIssueAttachment {
           Once we have custom classes, this can also accept ValueFromPipeline
         #>
 
-        # Path of the file to upload and attach
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateScript(
             {
@@ -74,12 +54,9 @@ function Add-JiraIssueAttachment {
         [String[]]
         $FilePath,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential,
 
-        # Whether output should be provided after invoking this function
         [Switch]
         $PassThru
     )

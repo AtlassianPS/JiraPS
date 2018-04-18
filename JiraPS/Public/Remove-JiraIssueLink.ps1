@@ -1,24 +1,6 @@
 function Remove-JiraIssueLink {
-    <#
-    .SYNOPSIS
-        Removes a issue link from a JIRA issue
-    .DESCRIPTION
-        This function removes a issue link from a JIRA issue.
-    .EXAMPLE
-        Remove-JiraIssueLink 1234,2345
-        Removes two issue links with id 1234 and 2345
-    .EXAMPLE
-        Get-JiraIssue -Query "project = Project1 AND label = lingering" | Remove-JiraIssueLink
-        Removes all issue links for all issues in project Project1 and that have a label "lingering"
-    .INPUTS
-        [JiraPS.IssueLink[]] The JIRA issue link  which to delete
-    .OUTPUTS
-        This function returns no output.
-    #>
     [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'Medium' )]
     param(
-        # IssueLink to delete
-        # If an Issue is provided, all issueLinks will be deleted.
         [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -48,8 +30,6 @@ function Remove-JiraIssueLink {
         [Object[]]
         $IssueLink,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

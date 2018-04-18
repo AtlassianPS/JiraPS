@@ -1,31 +1,6 @@
 ﻿function Remove-JiraVersion {
-    <#
-    .SYNOPSIS
-       This function removes an existing version.
-    .DESCRIPTION
-       This function removes an existing version in JIRA.
-    .EXAMPLE
-       Get-JiraVersion -Name '1.0.0.0' -Project $Project | Remove-JiraVersion
-       This example removes the Version given.
-    .EXAMPLE
-       Remove-JiraVersion -Version '66596'
-       This example removes the Version given.
-     .INPUTS
-        [JiraPS.Version]
-    .OUTPUTS
-       This Function outputs no results
-    .LINK
-        New-JiraVersion
-    .LINK
-        Get-JiraVersion
-    .LINK
-        Set-JiraVersion
-    .NOTES
-       This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
-    #>
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
-        # Version Object or ID to delete.
         [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -52,12 +27,9 @@
         [Object[]]
         $Version,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential,
 
-        # Suppress user confirmation.
         [Switch]
         $Force
     )

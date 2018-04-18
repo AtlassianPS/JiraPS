@@ -1,23 +1,6 @@
 function Add-JiraIssueLink {
-    <#
-    .SYNOPSIS
-        Adds a link between two Issues on Jira
-    .DESCRIPTION
-        Creates a new link of the specified type between two Issue.
-    .EXAMPLE
-        $_issueLink = [PSCustomObject]@{
-            outwardIssue = [PSCustomObject]@{key = "TEST-10"}
-            type = [PSCustomObject]@{name = "Composition"}
-        }
-        Add-JiraIssueLink -Issue TEST-01 -IssueLink $_issueLink
-        Creates a link "is part of" between TEST-01 and TEST-10
-    .INPUTS
-        [JiraPS.Issue[]] The JIRA issue that should be linked
-        [JiraPS.IssueLink[]] The JIRA issue link that should be used
-    #>
     [CmdletBinding( SupportsShouldProcess )]
     param(
-        # Issue key or JiraPS.Issue object returned from Get-JiraIssue
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -45,7 +28,6 @@ function Add-JiraIssueLink {
         [Object[]]
         $Issue,
 
-        # Issue Link to be created.
         [Parameter( Mandatory )]
         [ValidateScript(
             {
@@ -75,12 +57,9 @@ function Add-JiraIssueLink {
         [Object[]]
         $IssueLink,
 
-        # Write a comment to the issue
         [String]
         $Comment,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

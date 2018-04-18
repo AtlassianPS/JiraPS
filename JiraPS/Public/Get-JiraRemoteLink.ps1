@@ -1,23 +1,6 @@
 function Get-JiraRemoteLink {
-    <#
-    .SYNOPSIS
-       Returns a remote link from a Jira issue
-    .DESCRIPTION
-       This function returns information on remote links from a  JIRA issue.
-    .EXAMPLE
-       Get-JiraRemoteLink -Issue Project1-1000 -Credential $cred
-       Returns information about all remote links from the issue "Project1-1000"
-    .EXAMPLE
-       Get-JiraRemoteLink -Issue Project1-1000 -LinkId 100000 -Credential $cred
-       Returns information about a specific remote link from the issue "Project1-1000"
-    .INPUTS
-       [Object[]] The issue to look up in JIRA. This can be a String or a JiraPS.Issue object.
-    .OUTPUTS
-       [JiraPS.Link]
-    #>
     [CmdletBinding()]
     param(
-        # The Issue Object or ID to link.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -45,12 +28,9 @@ function Get-JiraRemoteLink {
         [Object]
         $Issue,
 
-        # Get a single link by it's id.
         [Int]
         $LinkId,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )
