@@ -191,7 +191,7 @@ Describe "JiraPS" {
             forEach ($rule in $scriptAnalyzerRules) {
                 It "Should pass $rule" {
                     if (($analysis) -and ($analysis.RuleName -contains $rule)) {
-                        $analysis | Where-Object RuleName -EQ $rule -OutVariable failures | Out-Default
+                        $analysis | Where-Object RuleName -eq $rule -OutVariable failures | Out-Default
                         $failures.Count | Should Be 0
                     }
                 }

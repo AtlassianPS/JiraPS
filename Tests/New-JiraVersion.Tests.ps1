@@ -42,7 +42,7 @@ Describe "New-JiraVersion" {
         }
 
         Mock Get-JiraProject -ModuleName JiraPS {
-            $Projects = ConvertFrom-Json2 $JiraProjectData
+            $Projects = ConvertFrom-Json $JiraProjectData
             $Projects | ForEach-Object { $_.PSObject.TypeNames.Insert(0, 'JiraPS.Project') }
             $Projects | Where-Object {$_.Key -in $projectKey}
         }
@@ -73,7 +73,7 @@ Describe "New-JiraVersion" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/version" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $testJsonOne
+            ConvertFrom-Json $testJsonOne
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

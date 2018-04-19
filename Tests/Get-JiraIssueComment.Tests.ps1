@@ -52,7 +52,7 @@ Describe "Get-JiraIssueComment" {
         # Obtaining comments from an issue...this is IT-3676 in the test environment
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 -InputObject $restResult
+            ConvertFrom-Json -InputObject $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

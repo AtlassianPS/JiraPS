@@ -31,7 +31,7 @@ Describe "Set-JiraUser" {
         }
 
         Mock Get-JiraUser -ModuleName JiraPS {
-            $object = ConvertFrom-Json2 $restResultGet
+            $object = ConvertFrom-Json $restResultGet
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
             return $object
         }

@@ -40,7 +40,7 @@ Describe "Add-JiraIssueComment" {
 
         Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $restResponse
+            ConvertFrom-Json $restResponse
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

@@ -63,11 +63,11 @@ Describe "Get-JiraPriority" {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/priority"} {
-            ConvertFrom-Json2 $restResultAll
+            ConvertFrom-Json $restResultAll
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/priority/1"} {
-            ConvertFrom-Json2 $restResultOne
+            ConvertFrom-Json $restResultOne
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

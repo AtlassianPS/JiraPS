@@ -59,15 +59,15 @@
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/filter/12345"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $response
+            ConvertFrom-Json $response
         }
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/filter/67890"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $response
+            ConvertFrom-Json $response
         }
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/filter/*"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $response
+            ConvertFrom-Json $response
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS {
@@ -98,7 +98,7 @@
         }
 
         Context "Input testing" {
-            $sampleFilter = ConvertTo-JiraFilter ( ConvertFrom-Json2 $response )
+            $sampleFilter = ConvertTo-JiraFilter ( ConvertFrom-Json $response )
 
             It "Accepts a filter ID for the -Filter parameter" {
                 { Get-JiraFilter -Id 12345 } | Should Not Throw
