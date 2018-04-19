@@ -83,7 +83,7 @@ Hopefully this is obvious, but:
   [Latest Release]: https://github.com/AtlassianPS/JiraPS/releases/latest
   [Submit an Issue]: https://github.com/AtlassianPS/JiraPS/issues/new
   [replicaJunction]: https://github.com/replicaJunction
-  [MIT license]: https://github.com/brianbunke/JiraPS/blob/master/LICENSE
+  [MIT license]: https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE
   [Contributing]: http://atlassianps.org/docs/Contributing
 
 <!-- [//]: # (Sweet online markdown editor at http://dillinger.io) -->
