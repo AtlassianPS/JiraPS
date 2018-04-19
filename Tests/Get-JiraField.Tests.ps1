@@ -141,7 +141,7 @@ Describe "Get-JiraField" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/field"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $restResult
+            ConvertFrom-Json $restResult
         }
 
         Mock ConvertTo-JiraField {
@@ -151,7 +151,7 @@ Describe "Get-JiraField" {
         It "Gets all fields in Jira if called with no parameters" {
             $allResults = Get-JiraField
             $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be @((ConvertFrom-Json2 -InputObject $restResult)).Count
+            @($allResults).Count | Should Be @((ConvertFrom-Json -InputObject $restResult)).Count
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 

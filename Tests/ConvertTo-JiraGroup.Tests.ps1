@@ -23,7 +23,7 @@
     "expand": "users"
 }
 "@
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         $r = ConvertTo-JiraGroup -InputObject $sampleObject
 

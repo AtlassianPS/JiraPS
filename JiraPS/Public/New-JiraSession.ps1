@@ -85,7 +85,7 @@ function New-JiraSession {
             # Clear the body in case it is not a JSON (but rather html)
             if ($body -match "^[\s\t]*\<html\>") { $body = "" }
 
-            $result = ConvertFrom-Json2 -InputObject $body
+            $result = ConvertFrom-Json -InputObject $body
             Write-Debug "Converted body from JSON into PSCustomObject (`$result)"
         }
     }

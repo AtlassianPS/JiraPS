@@ -96,7 +96,7 @@ BUG FIXES:
   - Invoke-JiraMethod: now uses the -ContentType parameter instead of manually passing the Content-Type header (#19)
   - New-JiraIssue: able to create issues without labels again (#21)
   - Set-JiraIssue: fixed issue with JSON depth for custom parameters (#17, @ThePSAdmin)
-  - Various: Fixed issues with ConvertFrom-Json max length with a custom ConvertFrom-Json2 function (#23, @LiamLeane)
+  - Various: Fixed issues with ConvertFrom-Json max length with a custom ConvertFrom-Json function (#23, @LiamLeane)
 
 ## 1.2.4 (Dec 10, 2015)
 
