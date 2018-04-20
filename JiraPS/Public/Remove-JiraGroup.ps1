@@ -1,22 +1,6 @@
 ﻿function Remove-JiraGroup {
-    <#
-    .SYNOPSIS
-       Removes an existing group from JIRA
-    .DESCRIPTION
-       This function removes an existing group from JIRA.
-
-       Deleting a group does not delete users from JIRA.
-    .EXAMPLE
-       Remove-JiraGroup -GroupName testGroup
-       Removes the JIRA group testGroup
-    .INPUTS
-       [JiraPS.Group[]] The JIRA groups to delete
-    .OUTPUTS
-       This function returns no output.
-    #>
     [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'High' )]
     param(
-        # Group Object or ID to delete.
         [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -44,12 +28,9 @@
         [Object[]]
         $Group,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential,
 
-        # Suppress user confirmation.
         [Switch]
         $Force
     )

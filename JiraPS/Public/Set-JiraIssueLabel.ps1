@@ -1,36 +1,6 @@
 ﻿function Set-JiraIssueLabel {
-    <#
-    .SYNOPSIS
-        Modifies labels on an existing JIRA issue
-    .DESCRIPTION
-        This function modifies labels on an existing JIRA issue.  There are
-        four supported operations on labels:
-
-        * Add: appends additional labels to the labels that an issue already has
-        * Remove: Removes labels from an issue's current labels
-        * Set: erases the existing labels on the issue and replaces them with
-        the provided values
-        * Clear: removes all labels from the issue
-    .EXAMPLE
-        Set-JiraIssueLabel -Issue TEST-01 -Set 'fixed'
-        This example replaces all existing labels on issue TEST-01 with one
-        label, "fixed".
-    .EXAMPLE
-        Get-JiraIssue -Query 'created >= -7d AND reporter in (joeSmith)' | Set-JiraIssueLabel -Add 'enhancement'
-        This example adds the "enhancement" label to all issues matching the JQL - in this case,
-        all issues created by user joeSmith in the last 7 days.
-    .EXAMPLE
-        Get-JiraIssue TEST-01 | Set-JiraIssueLabel -Clear
-        This example removes all labels from the issue TEST-01.
-    .INPUTS
-       [JiraPS.Issue[]] The JIRA issue that should be modified
-    .OUTPUTS
-        If the -PassThru parameter is provided, this function will provide a reference
-        to the JIRA issue modified.  Otherwise, this function does not provide output.
-    #>
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ReplaceLabels' )]
     param(
-        # Issue key or JiraPS.Issue object returned from Get-JiraIssue
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -58,34 +28,26 @@
         [Object[]]
         $Issue,
 
-        # List of labels that will be set to the issue.
-        # Any label that was already assigned to the issue will be removed.
         [Parameter( Mandatory, ParameterSetName = 'ReplaceLabels' )]
         [Alias('Label', 'Replace')]
         [String[]]
         $Set,
 
-        # Existing labels to be added.
         [Parameter( ParameterSetName = 'ModifyLabels' )]
         [String[]]
         $Add,
 
-        # Existing labels to be removed.
         [Parameter( ParameterSetName = 'ModifyLabels' )]
         [String[]]
         $Remove,
 
-        # Remove all labels.
         [Parameter( Mandatory, ParameterSetName = 'ClearLabels' )]
         [Switch]
         $Clear,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential,
 
-        # Whether output should be provided after invoking this function.
         [Switch]
         $PassThru
     )

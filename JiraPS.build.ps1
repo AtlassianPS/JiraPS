@@ -117,7 +117,7 @@ task InstallPandoc {
 task Build GenerateRelease, ConvertMarkdown, UpdateManifest
 
 # Synopsis: Generate ./Release structure
-task GenerateRelease {
+task GenerateRelease CreateHelp, {
     # Setup
     if (-not (Test-Path "$releasePath/$ModuleName")) {
         $null = New-Item -Path "$releasePath/$ModuleName" -ItemType Directory
@@ -139,6 +139,16 @@ task GenerateRelease {
     BuildHelpers\Update-Metadata -Path "$releasePath/PSScriptAnalyzerSettings.psd1" -PropertyName ExcludeRules -Value ''
 }
 
+# Synopsis: Use PlatyPS to generate External-Help
+task CreateHelp -If (Get-ChildItem "$BuildRoot/docs/en-US/commands" -ErrorAction SilentlyContinue) {
+    Import-Module platyPS -Force
+    foreach ($locale in (Get-ChildItem "$BuildRoot/docs" -Attribute Directory)) {
+        New-ExternalHelp -Path "$($locale.FullName)" -OutputPath "$BuildRoot/$ModuleName/$($locale.Basename)" -Force
+        New-ExternalHelp -Path "$($locale.FullName)/commands" -OutputPath "$BuildRoot/$ModuleName/$($locale.Basename)" -Force
+    }
+    Remove-Module $ModuleName, platyPS
+}
+
 # Synopsis: Update the manifest of the module
 task UpdateManifest GetVersion, {
     Remove-Module $ModuleName -ErrorAction SilentlyContinue
@@ -155,6 +165,9 @@ task UpdateManifest GetVersion, {
     # BuildHelpers\Update-Metadata -Path "$releasePath/$ModuleName/$ModuleName.psd1" -PropertyName FileList -Value (Get-ChildItem "$releasePath/$ModuleName" -Recurse).Name
     if ($ModuleAlias) {
         BuildHelpers\Update-Metadata -Path "$releasePath/$ModuleName/$ModuleName.psd1" -PropertyName AliasesToExport -Value @($ModuleAlias.Name)
+    }
+    else {
+        BuildHelpers\Update-Metadata -Path "$releasePath/$ModuleName/$ModuleName.psd1" -PropertyName AliasesToExport -Value ''
     }
     BuildHelpers\Set-ModuleFunctions -Name "$releasePath/$ModuleName/$ModuleName.psd1" -FunctionsToExport ([string[]](Get-ChildItem "$releasePath/$ModuleName/public/*.ps1").BaseName)
 }

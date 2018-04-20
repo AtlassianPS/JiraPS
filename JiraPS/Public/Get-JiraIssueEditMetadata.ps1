@@ -1,33 +1,14 @@
 function Get-JiraIssueEditMetadata {
-    <#
-    .SYNOPSIS
-       Returns metadata required to create an issue in JIRA
-    .DESCRIPTION
-       This function returns metadata required to create an issue in JIRA - the fields that can be defined in the process of creating an issue.  This can be used to identify custom fields in order to pass them to New-JiraIssue.
-
-       This function is particularly useful when your JIRA instance includes custom fields that are marked as mandatory.  The required fields can be identified from this See the examples for more details on this approach.
-    .EXAMPLE
-       Get-JiraIssueEditMetadata -Project 'TEST' -IssueType 'Bug'
-       This example returns the fields available when creating an issue of type Bug under project TEST.
-    .EXAMPLE
-       Get-JiraIssueEditMetadata -Project 'JIRA' -IssueType 'Bug' | ? {$_.Required -eq $true}
-       This example returns fields available when creating an issue of type Bug under the project Jira.  It then uses Where-Object (aliased by the question mark) to filter only the fields that are required.
-    .INPUTS
-       This function does not accept pipeline input.
-    .OUTPUTS
-       This function outputs the JiraPS.Field objects that represent JIRA's create metadata.
-    .NOTES
-       This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
-    #>
     [CmdletBinding()]
     param(
-        # Issue id or key of the reference issue.
         [Parameter( Mandatory )]
         [String]
         $Issue,
+        <#
+          #ToDo:CustomClass
+          Once we have custom classes, this should be a JiraPS.Issue
+        #>
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )
@@ -46,6 +27,10 @@ function Get-JiraIssueEditMetadata {
 
         $parameter = @{
             URI        = $resourceURi -f $Issue
+            <#
+              #ToDo:CustomClass
+              When the Input is typecasted to a JiraPS.Issue, the `self` of the issue can be used
+            #>
             Method     = "GET"
             Credential = $Credential
         }

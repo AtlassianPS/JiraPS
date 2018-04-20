@@ -1,33 +1,10 @@
 ﻿function Get-JiraField {
-    <#
-    .SYNOPSIS
-       This function returns information about JIRA fields
-    .DESCRIPTION
-       This function provides information about JIRA fields, or about one field in particular.  This is a good way to identify a field's ID by its name, or vice versa.
-
-       Typically, this information is only needed when identifying what fields are necessary to create or edit issues. See Get-JiraIssueCreateMetadata for more details.
-    .EXAMPLE
-       Get-JiraField
-       This example returns information about all JIRA fields visible to the current user (or using anonymous access if a JiraPS session has not been defined).
-    .EXAMPLE
-       Get-JiraField IssueKey
-       This example returns information about the IssueKey field.
-    .INPUTS
-       This function does not accept pipeline input.
-    .OUTPUTS
-       This function outputs the JiraPS.Field object(s) that represent the JIRA field(s).
-    .NOTES
-       This function requires either the -Credential parameter to be passed or a persistent JIRA session. See New-JiraSession for more details.  If neither are supplied, this function will run with anonymous access to JIRA.
-    #>
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
-        # The Field name or ID to search.
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
         [String[]]
         $Field,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

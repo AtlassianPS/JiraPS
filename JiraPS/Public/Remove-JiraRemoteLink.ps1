@@ -1,23 +1,6 @@
 function Remove-JiraRemoteLink {
-    <#
-    .SYNOPSIS
-       Removes a remote link from a JIRA issue
-    .DESCRIPTION
-       This function removes a remote link from a JIRA issue.
-    .EXAMPLE
-       Remove-JiraRemoteLink Project1-1001 10000,20000
-       Removes two remote link from issue "Project1-1001"
-    .EXAMPLE
-       Get-JiraIssue -Query "project = Project1" | Remove-JiraRemoteLink 10000
-       Removes a specific remote link from all issues in project "Project1"
-    .INPUTS
-       [JiraPS.Issue[]] The JIRA issue from which to delete a link
-    .OUTPUTS
-       This function returns no output.
-    #>
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
-        # Issue from which to delete a remote link.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -45,17 +28,13 @@ function Remove-JiraRemoteLink {
         [Object[]]
         $Issue,
 
-        # Id of the remote link to delete.
         [Parameter( Mandatory )]
         [Int[]]
         $LinkId,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential,
 
-        # Suppress user confirmation.
         [Switch]
         $Force
     )
