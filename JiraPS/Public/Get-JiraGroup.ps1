@@ -1,35 +1,12 @@
 function Get-JiraGroup {
-    <#
-    .SYNOPSIS
-       Returns a group from Jira
-    .DESCRIPTION
-       This function returns information regarding a specified group from JIRA.
-
-       By default, this function does not display members of the group.  This is JIRA's default
-       behavior as well.  To display group members, use Get-JiraGroupMember.
-    .EXAMPLE
-       Get-JiraGroup -GroupName testGroup -Credential $cred
-       Returns information about the group "testGroup"
-    .EXAMPLE
-       Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
-       This example searches Active Directory for the username of John W. Smith, John H. Smith,
-       and any other John Smiths, then obtains their JIRA user accounts.
-    .INPUTS
-       [Object[]] The group to look up in JIRA. This can be a String or a JiraPS.Group object.
-    .OUTPUTS
-       [JiraPS.Group]
-    #>
     [CmdletBinding()]
     param(
-        # Name of the group to search for.
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [Alias('Name')]
         [String[]]
         $GroupName,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

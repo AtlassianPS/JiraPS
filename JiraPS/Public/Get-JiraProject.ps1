@@ -1,37 +1,10 @@
 function Get-JiraProject {
-    <#
-    .SYNOPSIS
-       Returns a project from Jira
-    .DESCRIPTION
-       This function returns information regarding a specified project from Jira. If
-       the Project parameter is not supplied, it will return information about all
-       projects the given user is authorized to view.
-
-       The -Project parameter will accept either a project ID or a project key.
-    .EXAMPLE
-       Get-JiraProject -Project TEST -Credential $cred
-       Returns information about the project TEST
-    .EXAMPLE
-       Get-JiraProject 2 -Credential $cred
-       Returns information about the project with ID 2
-    .EXAMPLE
-       Get-JiraProject -Credential $cred
-       Returns information about all projects the user is authorized to view
-    .INPUTS
-       [String[]] Project ID or project key
-       [PSCredential] Credentials to use to connect to Jira
-    .OUTPUTS
-       [JiraPS.Project]
-    #>
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
-        # The Project ID or project key of a project to search.
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
         [String[]]
         $Project,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential
     )

@@ -1,35 +1,10 @@
 function Get-JiraIssueLink {
-    <#
-    .SYNOPSIS
-       Returns a specific issueLink from Jira
-    .DESCRIPTION
-       This function returns information regarding a specified issueLink from Jira.
-    .EXAMPLE
-       Get-JiraIssueLink 10000
-       Returns information about the IssueLink with ID 10000
-    .EXAMPLE
-       Get-JiraIssueLink -IssueLink 10000
-       Returns information about the IssueLink with ID 10000
-    .EXAMPLE
-       (Get-JiraIssue TEST-01).issuelinks | Get-JiraIssueLink
-       Returns the information about all IssueLinks in issue TEST-01
-    .INPUTS
-       [Int[]] issueLink ID
-       [PSCredential] Credentials to use to connect to Jira
-    .OUTPUTS
-       [JiraPS.IssueLink]
-    #>
     [CmdletBinding()]
     param(
-        # The IssueLink ID to search
-        #
-        # Accepts input from pipeline when the object is of type JiraPS.IssueLink
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [Int[]]
         $Id,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential] $Credential
     )
 

@@ -1,33 +1,6 @@
 function Set-JiraIssue {
-    <#
-    .SYNOPSIS
-       Modifies an existing issue in JIRA
-    .DESCRIPTION
-       This function modifies an existing isue in JIRA.  This can include changing
-       the issue's summary or description, or assigning the issue.
-    .EXAMPLE
-       Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell'
-       This example changes the summary and description of the JIRA issue TEST-01.
-    .EXAMPLE
-       $issue = Get-JiraIssue TEST-01
-       $issue | Set-JiraIssue -Description "$($issue.Description)`n`nEdit: Also foo."
-       This example appends text to the end of an existing issue description by using
-       Get-JiraIssue to obtain a reference to the current issue and description.
-    .EXAMPLE
-       Set-JiraIssue -Issue TEST-01 -Assignee 'Unassigned'
-       This example removes the assignee from JIRA issue TEST-01.
-    .EXAMPLE
-       Set-JiraIssue -Issue TEST-01 -Assignee 'joe' -AddComment 'Dear [~joe], please review.'
-       This example assigns the JIRA Issue TEST-01 to 'joe' and adds a comment at one.
-    .INPUTS
-       [JiraPS.Issue[]] The JIRA issue that should be modified
-    .OUTPUTS
-       If the -PassThru parameter is provided, this function will provide a reference
-       to the JIRA issue modified.  Otherwise, this function does not provide output.
-    #>
     [CmdletBinding( SupportsShouldProcess )]
     param(
-        # Issue key or JiraPS.Issue object returned from Get-JiraIssue
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -55,43 +28,31 @@ function Set-JiraIssue {
         [Object[]]
         $Issue,
 
-        # New summary of the issue.
         [String]
         $Summary,
 
-        # New description of the issue.
         [String]
         $Description,
 
-        # Set the FixVersion of the issue, this will overwrite any present FixVersions
         [Alias('FixVersions')]
         [String[]]
         $FixVersion,
 
-        # New assignee of the issue. Enter 'Unassigned' to unassign the issue.
         [Object]
         $Assignee,
 
-        # Labels to be set on the issue. These wil overwrite any existing
-        # labels on the issue. For more granular control over issue labels,
-        # use Set-JiraIssueLabel.
         [String[]]
         $Label,
 
-        # Any additional fields that should be updated.
         [Hashtable]
         $Fields,
 
-        # Add a comment ad once with your changes
         [String]
         $AddComment,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential,
 
-        # Whether output should be provided after invoking this function.
         [Switch]
         $PassThru
     )

@@ -1,30 +1,6 @@
 function Remove-JiraGroupMember {
-    <#
-    .SYNOPSIS
-       Removes a user from a JIRA group
-    .DESCRIPTION
-       This function removes a JIRA user from a JIRA group.
-    .EXAMPLE
-       Remove-JiraGroupMember -Group testUsers -User jsmith
-       This example removes the user jsmith from the group testUsers.
-    .EXAMPLE
-       Get-JiraGroup 'Project Admins' | Remove-JiraGroupMember -User jsmith
-       This example illustrates the use of the pipeline to remove jsmith from
-       the "Project Admins" group in JIRA.
-    .INPUTS
-       [JiraPS.Group[]] Group(s) from which users should be removed
-    .OUTPUTS
-       If the -PassThru parameter is provided, this function will provide a
-       reference to the JIRA group modified.  Otherwise, this function does not
-       provide output.
-    .NOTES
-       This REST method is still marked Experimental in JIRA's REST API. That
-       means that there is a high probability this will break in future
-       versions of JIRA. The function will need to be re-written at that time.
-    #>
     [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'High' )]
     param(
-        # Group Object or ID from which to remove the user(s).
         [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -52,7 +28,6 @@ function Remove-JiraGroupMember {
         [Object[]]
         $Group,
 
-        # Username or user object obtained from Get-JiraUser
         [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -80,16 +55,12 @@ function Remove-JiraGroupMember {
         [Object[]]
         $User,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential,
 
-        # Whether output should be provided after invoking this function
         [Switch]
         $PassThru,
 
-        # Suppress user confirmation.
         [Switch]
         $Force
     )

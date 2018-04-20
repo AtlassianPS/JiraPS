@@ -1,25 +1,6 @@
 function Remove-JiraUser {
-    <#
-    .SYNOPSIS
-       Removes an existing user from JIRA
-    .DESCRIPTION
-       This function removes an existing user from JIRA.
-
-       WARNING: Deleting a JIRA user may cause database integrity problems. See this article for
-       details:
-
-       https://confluence.atlassian.com/jira/how-do-i-delete-a-user-account-192519.html
-    .EXAMPLE
-       Remove-JiraUser -UserName testUser
-       Removes the JIRA user TestUser
-    .INPUTS
-       [JiraPS.User[]] The JIRA users to delete
-    .OUTPUTS
-       This function returns no output.
-    #>
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
-        # User Object or ID to delete.
         [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
@@ -47,12 +28,9 @@ function Remove-JiraUser {
         [Object[]]
         $User,
 
-        # Credentials to use to connect to JIRA.
-        # If not specified, this function will use anonymous access.
         [PSCredential]
         $Credential,
 
-        # Suppress user confirmation.
         [Switch]
         $Force
     )
