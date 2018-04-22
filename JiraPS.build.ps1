@@ -35,11 +35,80 @@ task SetUp InstallDependencies, Build
 
 # Synopsis: Install all module used for the development of this module
 task InstallDependencies InstallPandoc, {
-    Install-Module platyPS -Scope CurrentUser -Force
-    Install-Module Pester -Scope CurrentUser -Force
-    Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+    # Set default parameters for `Install-Module`
+    $ismoProp = @{
+        Scope = "CurrentUser"
+        # ErrorAction = "Stop"
+        Force = $true
+    }
+    $AllowClobber = @{}
+    $SkipPublisherCheck = @{}
+    if ($PSVersionTable.PSVersion.Major -ge 5) {
+        # PSv4 does not have the `-SkipPublisherCheck` parameter
+        # PSv4 does not have the `-AllowClobber` parameter
+        $AllowClobber["AllowClobber"] = $true
+        $SkipPublisherCheck["AllowClobber"] = $true
+    }
+
+    $modules = @(
+        "platyPS"
+        "Pester"
+        "PSScriptAnalyzer"
+        "BuildHelpers"
+    )
+    Remove-Module $modules -ErrorAction SilentlyContinue
+    Install-Module $modules -Scope CurrentUser -Force -AllowClobber
+
+    Write-Host "Installing Configuration"
+    Install-Module Configuration @ismoProp -RequiredVersion "1.2.0" @SkipPublisherCheck
+
+    Write-Host "Installing BuildHelpers"
+    Install-Module BuildHelpers @ismoProp @AllowClobber
+
+    Write-Host "Installing Pester"
+    Install-Module Pester @ismoProp -RequiredVersion "4.1.1" @SkipPublisherCheck
+
+    Write-Host "Installing platyPS"
+    Install-Module platyPS @ismoProp
+
+    Write-Host "Installing PSScriptAnalyzer"
+    Install-Module PSScriptAnalyzer @ismoProp
+
 }
 #endregion Setup
+
+#region HarmonizeVariables
+switch ($true) {
+    {$env:APPVEYOR_JOB_ID} {
+        $CI = "AppVeyor"
+        $OS = "Windows"
+    }
+    {$env:TRAVIS} {
+        $CI = "Travis"
+        $OS = $env:TRAVIS_OS_NAME
+    }
+    { (-not($env:APPVEYOR_JOB_ID)) -and (-not($env:TRAVIS)) } {
+        $CI = "local"
+        $branch = git branch 2>$null | select-string -Pattern "^\*\s(.+)$" | Foreach-Object { $_.Matches.Groups[1].Value}
+        $commit = git log 2>$null | select-string -Pattern "^commit ([0-9a-f]{7}) \(HEAD ->.*$branch.*$" | Foreach-Object { $_.Matches.Groups[1].Value}
+    }
+    {$IsWindows} {
+        $OS = "Windows"
+        if (-not ($IsCoreCLR)) {
+            $OSVersion = $PSVersionTable.BuildVersion.ToString()
+        }
+    }
+    {$IsLinux} {
+        $OS = "Linux"
+    }
+    {$IsMacOs} {
+        $OS = "OSX"
+    }
+    {$IsCoreCLR} {
+        $OSVersion = $PSVersionTable.OS
+    }
+}
+#endregion HarmonizeVariables
 
 #region DebugInformation
 task ShowDebug {
