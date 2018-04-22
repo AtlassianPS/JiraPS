@@ -1,7 +1,7 @@
 [CmdletBinding()]
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
 param(
-    $ModuleName = (Split-Path $BuildRoot -Leaf),
+    $ModuleName = (Get-ProjectName),
     $releasePath = "$BuildRoot/Release"
 )
 
@@ -265,7 +265,7 @@ task UpdateManifest GetVersion, {
     else {
         BuildHelpers\Update-Metadata -Path "$releasePath/$ModuleName/$ModuleName.psd1" -PropertyName AliasesToExport -Value ''
     }
-    BuildHelpers\Set-ModuleFunctions -Name "$releasePath/$ModuleName/$ModuleName.psd1" -FunctionsToExport ([string[]](Get-ChildItem "$releasePath/$ModuleName/public/*.ps1").BaseName)
+    BuildHelpers\Set-ModuleFunctions -Name "$releasePath/$ModuleName/$ModuleName.psd1" -FunctionsToExport ([string[]](Get-ChildItem "$releasePath/$ModuleName/Public/*.ps1").BaseName)
 }
 
 task GetVersion {
