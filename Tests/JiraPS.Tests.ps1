@@ -6,7 +6,7 @@ Describe "JiraPS" {
 
     InModuleScope JiraPS {
 
-        . "$PSScriptRoot/shared.ps1"
+        . "$PSScriptRoot/Shared.ps1"
 
         $projectRoot = "$PSScriptRoot/.."
         $moduleRoot = "$projectRoot/JiraPS"
