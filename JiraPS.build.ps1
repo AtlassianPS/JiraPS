@@ -35,9 +35,14 @@ task SetUp InstallDependencies, Build
 
 # Synopsis: Install all module used for the development of this module
 task InstallDependencies InstallPandoc, {
-    Install-Module platyPS -Scope CurrentUser -Force
-    Install-Module Pester -Scope CurrentUser -Force
-    Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+    $modules = @(
+        "platyPS"
+        "Pester"
+        "PSScriptAnalyzer"
+        "BuildHelpers"
+    )
+    Remove-Module $modules -ErrorAction SilentlyContinue
+    Install-Module $modules -Scope CurrentUser -Force -AllowClobber
 }
 #endregion Setup
 
@@ -70,6 +75,8 @@ task ShowDebug {
 # Synopsis: Install pandoc to ./Tools/
 task InstallPandoc {
     # Setup
+    $Script:OriginalTlsSettings = [Net.ServicePointManager]::SecurityProtocol
+
     if (-not (Test-Path "$BuildRoot/Tools")) {
         $null = New-Item -Path "$BuildRoot/Tools" -ItemType Directory
     }
@@ -119,6 +126,7 @@ task Build GenerateRelease, ConvertMarkdown, UpdateManifest
 # Synopsis: Generate ./Release structure
 task GenerateRelease CreateHelp, {
     # Setup
+    Import-Module BuildHelpers -Force
     if (-not (Test-Path "$releasePath/$ModuleName")) {
         $null = New-Item -Path "$releasePath/$ModuleName" -ItemType Directory
     }
@@ -137,6 +145,8 @@ task GenerateRelease CreateHelp, {
     # Include Analyzer Settings
     Copy-Item -Path "$BuildRoot/PSScriptAnalyzerSettings.psd1" -Destination "$releasePath/PSScriptAnalyzerSettings.psd1" -Force
     BuildHelpers\Update-Metadata -Path "$releasePath/PSScriptAnalyzerSettings.psd1" -PropertyName ExcludeRules -Value ''
+
+    Remove-Module BuildHelpers
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
@@ -146,7 +156,7 @@ task CreateHelp -If (Get-ChildItem "$BuildRoot/docs/en-US/commands" -ErrorAction
         New-ExternalHelp -Path "$($locale.FullName)" -OutputPath "$BuildRoot/$ModuleName/$($locale.Basename)" -Force
         New-ExternalHelp -Path "$($locale.FullName)/commands" -OutputPath "$BuildRoot/$ModuleName/$($locale.Basename)" -Force
     }
-    Remove-Module $ModuleName, platyPS
+    Remove-Module platyPS
 }
 
 # Synopsis: Update the manifest of the module
