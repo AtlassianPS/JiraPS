@@ -41,6 +41,8 @@ function New-JiraSession {
                 'Session' = $result
             }
         }
+
+        Write-Output $result
     }
 
     end {
