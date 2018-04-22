@@ -1,33 +1,53 @@
-# PowerShell 5.1 and bellow need the PSGallery to be intialized
-if ($PSVersionTable.PSVersion.Major -le 5) {
-    if ($PSVersionTable.PSVersion.Major -in @(3, 4)) {
-        # If PowerShellGet is not available (PSv4 and PSv3), it must be installed
-        if (-not (Get-Module PowerShellGet -ListAvailable)) {
-            Write-Host "Installing PowershellGet"
-            Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/qb /i $(Join-Path $PSScriptRoot "PackageManagement_x64.msi")" -Wait
-        }
-    }
+[CmdletBinding()]
+[System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
+param()
 
-    if ("PSGallery" -notin (Get-PSRepository).Name) {
-        Write-Host "Installing PackageProvider NuGet"
-        # Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
-        $null = Install-PackageProvider -Name NuGet -Force -ErrorAction Stop
+# If PowerShellGet is not available (PSv4 and PSv3), it must be installed
+if ($PSVersionTable.PSVersion.Major -in @(3, 4)) {
+    if (-not (Get-Module PowerShellGet -ListAvailable)) {
+        Write-Host "Installing PowershellGet"
+        Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/qn /quiet /i $(Join-Path $PSScriptRoot "PackageManagement_x64.msi")" -Wait
+        $null = Install-PackageProvider -Name NuGet -Force -ErrorAction SilentlyContinue
     }
 }
 
-# Make PSGallery trusted, to aviod a confirmation in the console
-Write-Host "Trusting PSGallery"
-Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted -ErrorAction Stop
+# Fail if PowerShellGet could not be found
+Import-Module PowerShellGet -ErrorAction SilentlyContinue
+if (-not (Get-Module PowerShellGet)) {
+    throw "PowerShellGet still not available"
+}
 
+# PowerShell 5.1 and bellow need the PSGallery to be intialized
+if (-not ($gallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
+    Write-Host "Installing PackageProvider NuGet"
+    $null = Install-PackageProvider -Name NuGet -Force -ErrorAction SilentlyContinue
+}
+
+# Make PSGallery trusted, to aviod a confirmation in the console
+if (-not ($gallery.Trusted)) {
+    Write-Host "Trusting PSGallery"
+    # Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted -ErrorAction SilentlyContinue
+}
+
+# Set default parameters for `Install-Module`
 $ismoProp = @{
-    Scope       = "CurrentUser"
-    ErrorAction = "Stop"
-    Force       = $true
-    Verbose     = $true
+    Scope = "CurrentUser"
+    # ErrorAction = "Stop"
+    Force = $true
 }
 
 Write-Host "Installing InvokeBuild"
 Install-Module "InvokeBuild" @ismoProp
+
+$ConfigurationConditions = @{
+    RequiredVersion = "1.2.0"
+}
+if ($PSVersionTable.PSVersion.Major -ge 5) {
+    # PSv4 does not have the `-AllowClobber` parameter
+    $ConfigurationConditions["SkipPublisherCheck"] = $true
+}
+Write-Host "Installing Configuration"
+Install-Module "Configuration" @ismoProp @ConfigurationConditions
 
 $buildHelpersConditions = @{}
 if ($PSVersionTable.PSVersion.Major -ge 5) {
@@ -37,16 +57,18 @@ if ($PSVersionTable.PSVersion.Major -ge 5) {
 Write-Host "Installing BuildHelpers"
 Install-Module "BuildHelpers" @ismoProp @buildHelpersConditions
 
-$pesterConditions = @{}
+$pesterConditions = @{
+    RequiredVersion = "4.1.1"
+}
 if ($PSVersionTable.PSVersion.Major -ge 5) {
     # PSv4 does not have the `-SkipPublisherCheck` parameter
     $pesterConditions["SkipPublisherCheck"] = $true
 }
 Write-Host "Installing Pester"
-Install-Module "Pester" @ismoProp -RequiredVersion "4.1.1" @pesterConditions
+Install-Module "Pester" @ismoProp @pesterConditions
 
 Write-Host "Installing platyPS"
-Install-Module "platyPS" @ismoProp -RequiredVersion "0.1.0.200"
+Install-Module "platyPS" @ismoProp
 
 Write-Host "Installing PSScriptAnalyzer"
 Install-Module "PSScriptAnalyzer" @ismoProp
