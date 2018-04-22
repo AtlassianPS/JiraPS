@@ -10,6 +10,7 @@ environment:
         # waiting on https://github.com/PoshCode/Configuration/issues/15
         # - APPVEYOR_BUILD_WORKER_IMAGE: WMF 4
         - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+          PowershellVersion: "6.0.0"
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           PowershellVersion: "6.0.0"
 
