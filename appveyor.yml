@@ -7,7 +7,9 @@ environment:
     fast_finish: true
     matrix:
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-        - APPVEYOR_BUILD_WORKER_IMAGE: WMF 4
+        # waiting on https://github.com/PoshCode/Configuration/issues/15
+        # - APPVEYOR_BUILD_WORKER_IMAGE: WMF 4
+        - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           PowershellVersion: "6.0.0"
 
