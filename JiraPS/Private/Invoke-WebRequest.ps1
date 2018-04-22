@@ -1,5 +1,11 @@
 function Invoke-WebRequest {
     # For Version up to 5.1
+    <#
+    .ForwardHelpTargetName
+        Microsoft.PowerShell.Utility\Invoke-WebRequest
+    .ForwardHelpCategory
+        Cmdlet
+    #>
     [CmdletBinding(HelpUri = 'https://go.microsoft.com/fwlink/?LinkID=217035')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         "PSAvoidUsingConvertToSecureStringWithPlainText",
@@ -44,7 +50,7 @@ function Invoke-WebRequest {
         ${DisableKeepAlive},
 
         [ValidateRange(0, 2147483647)]
-        [int]
+        [int32]
         ${TimeoutSec},
 
         [System.Collections.IDictionary]
@@ -92,8 +98,8 @@ function Invoke-WebRequest {
             $SecureCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(
                     $('{0}:{1}' -f $Credential.UserName, $Credential.GetNetworkCredential().Password)
                 ))
-            $PSBoundParameters["Headers"]["Authorization"] = "Basic $($SecureCreds)"
-            $null = $PSBoundParameters.Remove("Credential")
+            $Headers["Authorization"] = "Basic $($SecureCreds)"
+            $PSBoundParameters.Remove("Credential")
         }
 
         if ($InFile) {
@@ -135,6 +141,9 @@ Content-Type: application/octet-stream
     process {
         try {
             $steppablePipeline.Process($_)
+            if ($SessionVariable) {
+                Set-Variable -Name $SessionVariable -Value (Get-Variable $SessionVariable).Value -Scope 1
+            }
         }
         catch {
             throw
@@ -149,17 +158,17 @@ Content-Type: application/octet-stream
             throw
         }
     }
-    <#
-
-    .ForwardHelpTargetName Microsoft.PowerShell.Utility\Invoke-WebRequest
-    .ForwardHelpCategory Cmdlet
-
-    #>
 }
 
 if ($PSVersionTable.PSVersion.Major -ge 6) {
     function Invoke-WebRequest {
         #require -Version 6
+        <#
+        .ForwardHelpTargetName
+            Microsoft.PowerShell.Utility\Invoke-WebRequest
+        .ForwardHelpCategory
+            Cmdlet
+        #>
         [CmdletBinding(DefaultParameterSetName = 'StandardMethod', HelpUri = 'https://go.microsoft.com/fwlink/?LinkID=217035')]
         param(
             [switch]
@@ -214,7 +223,7 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
             ${DisableKeepAlive},
 
             [ValidateRange(0, 2147483647)]
-            [int]
+            [int32]
             ${TimeoutSec},
 
             [System.Collections.IDictionary]
@@ -319,6 +328,9 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
         process {
             try {
                 $steppablePipeline.Process($_)
+                if ($SessionVariable) {
+                    Set-Variable -Name $SessionVariable -Value (Get-Variable $SessionVariable).Value -Scope 1
+                }
             }
             catch {
                 throw
@@ -333,11 +345,5 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
                 throw
             }
         }
-        <#
-
-    .ForwardHelpTargetName Microsoft.PowerShell.Utility\Invoke-WebRequest
-    .ForwardHelpCategory Cmdlet
-
-    #>
     }
 }
