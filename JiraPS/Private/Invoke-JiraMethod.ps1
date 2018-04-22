@@ -1,7 +1,6 @@
 function Invoke-JiraMethod {
     #Requires -Version 3
     [CmdletBinding()]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute( "PSAvoidUsingEmptyCatchBlock", "" )]
     param
     (
         # REST API to invoke
