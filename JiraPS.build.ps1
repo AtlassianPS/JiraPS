@@ -35,14 +35,9 @@ task SetUp InstallDependencies, Build
 
 # Synopsis: Install all module used for the development of this module
 task InstallDependencies InstallPandoc, {
-    $modules = @(
-        "platyPS"
-        "Pester"
-        "PSScriptAnalyzer"
-        "BuildHelpers"
-    )
-    Remove-Module $modules -ErrorAction SilentlyContinue
-    Install-Module $modules -Scope CurrentUser -Force -AllowClobber
+    Install-Module platyPS -Scope CurrentUser -Force
+    Install-Module Pester -Scope CurrentUser -Force
+    Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
 }
 #endregion Setup
 
@@ -76,15 +71,18 @@ task ShowDebug {
 task InstallPandoc {
     # Setup
     $Script:OriginalTlsSettings = [Net.ServicePointManager]::SecurityProtocol
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
     if (-not (Test-Path "$BuildRoot/Tools")) {
         $null = New-Item -Path "$BuildRoot/Tools" -ItemType Directory
     }
 
-    $path = $env:Path -split ([IO.Path]::PathSeparator)
-    if ("$BuildRoot/Tools" -notin $path) {
-        $path += Join-path $BuildRoot "Tools"
-        $env:Path = $path -join ([IO.Path]::PathSeparator)
+    if ($OS -like "Windows*") {
+        $path = $env:Path -split ([IO.Path]::PathSeparator)
+        if ("$BuildRoot/Tools" -notin $path) {
+            $path += Join-path $BuildRoot "Tools"
+            $env:Path = $path -join ([IO.Path]::PathSeparator)
+        }
     }
 
     $pandocVersion = $false
@@ -92,27 +90,49 @@ task InstallPandoc {
         $pandocVersion = & { pandoc --version }
     }
     catch { }
+    If (-not ($pandocVersion)) {
 
-    if (-not ($pandocVersion)) {
         $installationFile = "$([System.IO.Path]::GetTempPath()){0}"
 
         # Get latest bits
-        $latestRelease = "https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-windows.msi"
-        Invoke-WebRequest -Uri $latestRelease -OutFile ($installationFile -f "pandoc.msi")
+        switch -regex ($OS) {
+            "^[wW]indows" {
+                $latestRelease = "https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-windows.msi"
+                Invoke-WebRequest -Uri $latestRelease -OutFile ($installationFile -f "pandoc.msi")
 
-        # Extract bits
-        $extractionPath = "$([System.IO.Path]::GetTempPath())pandoc"
-        $null = New-Item -Path $extractionPath -ItemType Directory -Force
-        Start-Process -Wait -FilePath msiexec.exe -ArgumentList " /qn /a `"$($installationFile -f "pandoc.msi")`" targetdir=`"$extractionPath`""
+                # Extract bits
+                $extractionPath = "$([System.IO.Path]::GetTempPath())pandoc"
+                $null = New-Item -Path $extractionPath -ItemType Directory -Force
+                Start-Process -Wait -FilePath msiexec.exe -ArgumentList " /qn /a `"$($installationFile -f "pandoc.msi")`" targetdir=`"$extractionPath`""
 
-        # Move to Tools folder
-        Copy-Item -Path "$extractionPath/Pandoc/pandoc.exe" -Destination "$BuildRoot/Tools/"
-        Copy-Item -Path "$extractionPath/Pandoc/pandoc-citeproc.exe" -Destination "$BuildRoot/Tools/"
+                # Move to Tools folder
+                Copy-Item -Path "$extractionPath/Pandoc/pandoc.exe" -Destination "$BuildRoot/Tools/"
+                Copy-Item -Path "$extractionPath/Pandoc/pandoc-citeproc.exe" -Destination "$BuildRoot/Tools/"
 
-        # Clean
-        Remove-Item -Path ($installationFile -f "pandoc.msi") -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $extractionPath -Recurse -Force -ErrorAction SilentlyContinue
+                # Clean
+                Remove-Item -Path ($installationFile -f "pandoc.msi") -Force -ErrorAction SilentlyContinue
+                Remove-Item -Path $extractionPath -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            "^[lL]inux" {
+                $latestRelease = "https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb"
+                Invoke-WebRequest -Uri $latestRelease -OutFile ($installationFile -f "pandoc.deb")
+
+                sudo dpkg -i $($installationFile -f "pandoc.deb")
+
+                Remove-Item -Path ($installationFile -f "pandoc.deb") -Force -ErrorAction SilentlyContinue
+            }
+            "osx" {
+                $latestRelease = "https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-osx.pkg"
+                Invoke-WebRequest -Uri $latestRelease -OutFile ($installationFile -f "pandoc.pkg")
+
+                sudo installer -pkg $($installationFile -f "pandoc.pkg") -target /
+
+                Remove-Item -Path ($installationFile -f "pandoc.deb") -Force -ErrorAction SilentlyContinue
+            }
+        }
     }
+
+    [Net.ServicePointManager]::SecurityProtocol = $Script:OriginalTlsSettings
 
     $out = & { pandoc --version }
     if (-not($out)) {throw "Could not install pandoc"}
@@ -126,7 +146,6 @@ task Build GenerateRelease, ConvertMarkdown, UpdateManifest
 # Synopsis: Generate ./Release structure
 task GenerateRelease CreateHelp, {
     # Setup
-    Import-Module BuildHelpers -Force
     if (-not (Test-Path "$releasePath/$ModuleName")) {
         $null = New-Item -Path "$releasePath/$ModuleName" -ItemType Directory
     }
@@ -145,8 +164,6 @@ task GenerateRelease CreateHelp, {
     # Include Analyzer Settings
     Copy-Item -Path "$BuildRoot/PSScriptAnalyzerSettings.psd1" -Destination "$releasePath/PSScriptAnalyzerSettings.psd1" -Force
     BuildHelpers\Update-Metadata -Path "$releasePath/PSScriptAnalyzerSettings.psd1" -PropertyName ExcludeRules -Value ''
-
-    Remove-Module BuildHelpers
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
@@ -156,7 +173,7 @@ task CreateHelp -If (Get-ChildItem "$BuildRoot/docs/en-US/commands" -ErrorAction
         New-ExternalHelp -Path "$($locale.FullName)" -OutputPath "$BuildRoot/$ModuleName/$($locale.Basename)" -Force
         New-ExternalHelp -Path "$($locale.FullName)/commands" -OutputPath "$BuildRoot/$ModuleName/$($locale.Basename)" -Force
     }
-    Remove-Module platyPS
+    Remove-Module $ModuleName, platyPS
 }
 
 # Synopsis: Update the manifest of the module
