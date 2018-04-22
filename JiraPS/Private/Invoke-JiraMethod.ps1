@@ -1,6 +1,7 @@
 function Invoke-JiraMethod {
     #Requires -Version 3
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute( "PSAvoidUsingEmptyCatchBlock", "" )]
     param
     (
         # REST API to invoke
@@ -9,9 +10,7 @@ function Invoke-JiraMethod {
         $URI,
 
         # Method of the invokation
-        [ValidateSet('GET', 'POST', 'PUT', 'DELETE')]
-        [String]
-        $Method = "GET",
+        [Microsoft.PowerShell.Commands.WebRequestMethod]$Method = "GET",
 
         # Body of the request
         [String]
@@ -25,128 +24,166 @@ function Invoke-JiraMethod {
         [Hashtable]
         $Headers = @{},
 
+        [String]$InFile,
+
+        [String]$OutFile,
+
+        [Switch]$StoreSession,
+
         # Authentication credentials
         [PSCredential]
-        $Credential
+        $Credential,
+
+        $Caller = $PSCmdlet
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        # Validation of parameters
-        if (
-            ($Method -in ("POST", "PUT")) -and
-            (-not ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Body")))
-        ) {
-            $message = "The following parameters are required when using the $Method parameter: Body."
-            $exception = New-Object -TypeName System.ArgumentException -ArgumentList $message
-            Throw $exception
-        }
-
-        # load DefaultParameters for Invoke-WebRequest
-        # as the global PSDefaultParameterValues is not used
-        $PSDefaultParameterValues = $global:PSDefaultParameterValues
-
         # pass input to local variable
         # this allows to use the PSBoundParameters for recursion
-        $_headers = $Headers
-
-        # Check if a Session is available
-        $session = Get-JiraSession -ErrorAction SilentlyContinue
-
-        if ($Credential) {
-            $SecureCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(
-                    $('{0}:{1}' -f $Credential.UserName, $Credential.GetNetworkCredential().Password)
-                ))
-            $_headers.Add('Authorization', "Basic $SecureCreds")
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using HTTP Basic authentication with username $($Credential.UserName)"
+        $_headers = @{   # Set any default headers
+            "Accept"         = "application/json"
+            "Accept-Charset" = "utf-8"
         }
-        elseif ($session) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using WebSession (Username=[$($session.Username)])"
-        }
-        else {
-            $session = $null
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Credentials or WebSession provided; using anonymous access"
-        }
+        foreach ($item in $Headers.Key) { $_headers[$item] = $Headers[$item] }
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $iwrSplat = @{
+        # load DefaultParameters for Invoke-WebRequest
+        # as the global PSDefaultParameterValues is not used
+        $PSDefaultParameterValues = $global:PSDefaultParameterValues
+
+        $splatParameters = @{
             Uri             = $Uri
-            Headers         = $_headers
             Method          = $Method
-            ContentType     = 'application/json; charset=utf-8'
+            Headers         = $_headers
+            ContentType     = "application/json; charset=utf-8"
             UseBasicParsing = $true
-            ErrorAction     = 'SilentlyContinue'
-            Verbose = $false
+            Credential      = $Credential
+            ErrorAction     = "Stop"
+            Verbose         = $false
         }
 
         if ($_headers.ContainsKey("Content-Type")) {
-            $iwrSplat["ContentType"] = $_headers["Content-Type"]
+            $splatParameters["ContentType"] = $_headers["Content-Type"]
             $_headers.Remove("Content-Type")
-            $iwrSplat["Headers"] = $_headers
+            $splatParameters["Headers"] = $_headers
         }
 
         if ($Body) {
             if ($RawBody) {
-                $iwrSplat.Add('Body', $Body)
+                $splatParameters["Body"] = $Body
             }
             else {
+                # Encode Body to preserve special chars
                 # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
-                $iwrSplat.Add('Body', [System.Text.Encoding]::UTF8.GetBytes($Body))
+                $splatParameters["Body"] = [System.Text.Encoding]::UTF8.GetBytes($Body)
             }
         }
 
-        if ($session) {
-            $iwrSplat.Add('WebSession', $session.WebSession)
+        if ($StoreSession) {
+            $splatParameters["SessionVariable"] = "newSessionVar"
+            $splatParameters.Remove("WebSession")
         }
 
+        if ($session = Get-JiraSession -ErrorAction SilentlyContinue) {
+            if (-not ($Credential)) {
+                $splatParameters["WebSession"] = $session.WebSession
+                $splatParameters.Remove("Credential")
+            }
+        }
+
+        if ($InFile) {
+            $splatParameters["InFile"] = $InFile
+        }
+        if ($OutFile) {
+            $splatParameters["OutFile"] = $OutFile
+        }
+
+        # Invoke the API
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($splatParameters.Method) $($splatParameters.Uri)"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$splatParameters: $($splatParameters | Out-String)"
         try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($iwrSplat.Method) $($iwrSplat.Uri)"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$iwrSplat: $($iwrSplat | Out-String)"
-            $webResponse = Invoke-WebRequest @iwrSplat
+            $webResponse = Invoke-WebRequest @splatParameters
         }
         catch {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to get an answer from the server"
             # Invoke-WebRequest is hard-coded to throw an exception if the Web request returns a 4xx or 5xx error.
             # This is the best workaround I can find to retrieve the actual results of the request.
-            $webResponse = $_.Exception.Response
-        }
-    }
-
-    end {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Status code:  $($webResponse.StatusCode.value__) - $($webResponse.StatusCode) `n`t`t Executed WebRequest. Access `$webResponse to see details"
-
-        if ($webResponse) {
-            if ($webResponse.StatusCode.value__ -gt 399) {
-                # Retrieve body of HTTP response - this contains more useful information about exactly why the error occurred
-                $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
-                $responseBody = $readStream.ReadToEnd()
-                $readStream.Close()
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Retrieved body of HTTP response for more information about the error (`$responseBody)"
-                $result = ConvertFrom-Json2 -InputObject $responseBody
+            $webResponse = $_
+            if ($webResponse.ErrorDetails) {
+                # In PowerShellCore (v6+), the response body is available as string
+                $responseBody = $webResponse.ErrorDetails.Message
             }
             else {
-                if ($webResponse.Content) {
-                    $result = ConvertFrom-Json2 -InputObject $webResponse.Content
-                }
+                $webResponse = $webResponse.Exception.Response
             }
+        }
 
-            if ($result) {
-                if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
-                    Resolve-JiraError $result -WriteError
+        # Test response Headers if Confluence requires a CAPTCHA
+        Test-Captcha -InputObject $webResponse -Caller $Caller
+
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
+
+        if ($webResponse) {
+            # In PowerShellCore (v6+) the StatusCode of an exception is somewhere else
+            if (-not ($statusCode = $webResponse.StatusCode)) {
+                $statusCode = $webresponse.Exception.Response.StatusCode
+            }
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Status code: $($statusCode)"
+
+            if ($statusCode.value__ -ge 400) {
+                Write-Warning "Jira returned HTTP error $($statusCode.value__) - $($statusCode)"
+
+                if ((!($responseBody)) -and ($webResponse | Get-Member -Name "GetResponseStream")) {
+                    # Retrieve body of HTTP response - this contains more useful information about exactly why the error occurred
+                    $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
+                    $responseBody = $readStream.ReadToEnd()
+                    $readStream.Close()
+
+                    # Clear the body in case it is not a JSON (but rather html)
+                    if ($responseBody -match "^[\s\t]*\<html\>") { $responseBody = '{"errorMessages": "Invalid server response. HTML returned."}' }
+
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Retrieved body of HTTP response for more information about the error (`$responseBody)"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Got the following error as `$responseBody"
+                    $result = ConvertFrom-Json -InputObject $responseBody
+                }
+
+            }
+            else {
+                if ($StoreSession) {
+                    return ConvertTo-JiraSession -Session $newSessionVar -Username $Credential.UserName
+                }
+
+                if ($webResponse.Content) {
+                    $result = ConvertFrom-Json -InputObject $webResponse.Content
                 }
                 else {
-                    Write-Output $result
+                    # No content, although statusCode < 400
+                    # This could be wanted behavior of the API
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] No content was returned from."
                 }
             }
         }
         else {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Web result object was returned from JIRA. This is unusual!"
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Web result object was returned from. This is unusual!"
         }
 
+        if ($result) {
+            if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
+                Resolve-JiraError $result -WriteError -Caller $Caller
+            }
+            else {
+                Write-Output $result
+            }
+        }
+    }
+
+    end {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
     }
 }
