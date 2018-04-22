@@ -1,5 +1,5 @@
 ---
 layout: documentation
-permalink: /docs/JiraPS/commands/
+permalink: /docs/JiraPS/about/
 hide: true
 ---
