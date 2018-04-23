@@ -2,7 +2,17 @@ environment:
     PSGalleryAPIKey:
         secure: Ezd2JjB6rbNZOiJmcek2bZSSdXB34fjoC6JXdXcICf6KZGoBOIRZAG9KfHAYiMa7
         # Must be updated to use contact@AtlassianPS.net user
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    access_token:
+        secure: PX1R0Ds6r3TTm+wxVbx8MRAgjCRV/juO3cYSEz1MedB/OXvZ3YkqpQGE+X47bcFT
+    fast_finish: true
+    matrix:
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+        # waiting on https://github.com/PoshCode/Configuration/issues/15
+        # - APPVEYOR_BUILD_WORKER_IMAGE: WMF 4
+        - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+          PowershellVersion: "6.0.0"
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          PowershellVersion: "6.0.0"
 
 version: 2.5.{build}
 
@@ -27,26 +37,19 @@ pull_requests:
   do_not_increment_build_number: true
 
 init:
-    - git config --global core.autocrlf true
-    - git config --global credential.helper store
-    - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+    - ps: |
+        if (-not ($env:PowershellVersion)) {$env:PowershellVersion = "5.1"}
+        if (([version]$env:PowershellVersion).Major -ge 6) {$env:posh = "pwsh"} else {$env:posh = "powershell"}
+        Add-Content (Join-Path $Home ".git-credentials") "https://$($env:access_token):x-oauth-basic@github.com`n"
+    - git config --global credential.helper "store --file ~/.git-credentials"
     - git config --global user.email "support@atlassianps.org"
     - git config --global user.name "AtlassianPS automation"
 
 install:
-    - powershell -File "./Tools/setup.ps1"
-
-before_build:
-    - ps: Invoke-Build -Task ShowDebug
+    - ps: '& $env:posh -File "./Tools/setup.ps1"'
 
 build_script:
-    - ps: Invoke-Build -Task Build
-
-test_script:
-    - ps: Invoke-Build -Task Test
-
-before_deploy:
-    - ps: Invoke-Build -Task Deploy
+    - ps: '& $env:posh -Command "Invoke-Build"'
 
 deploy:
     provider: GitHub

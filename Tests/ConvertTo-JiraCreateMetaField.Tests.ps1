@@ -79,7 +79,7 @@ Describe "ConvertTo-JiraCreateMetaField" {
     ]
 }
 '@
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         $r = ConvertTo-JiraCreateMetaField $sampleObject
 

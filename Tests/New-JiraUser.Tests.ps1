@@ -30,7 +30,7 @@ Describe "New-JiraUser" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/user"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $testJson
+            ConvertFrom-Json $testJson
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

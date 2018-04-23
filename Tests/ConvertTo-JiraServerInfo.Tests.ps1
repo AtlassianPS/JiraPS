@@ -22,7 +22,7 @@ Describe "ConvertTo-JiraServerInfo" {
 }
 "@
 
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
         $r = ConvertTo-JiraServerInfo -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {

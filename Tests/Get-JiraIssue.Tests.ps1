@@ -33,12 +33,12 @@
 
         Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/issue/TEST-001*" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $response
+            ConvertFrom-Json $response
         }
 
         Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/search?jql=$jqlEscaped*" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $response
+            ConvertFrom-Json $response
         }
 
         Mock Invoke-JiraMethod {

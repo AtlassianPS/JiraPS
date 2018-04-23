@@ -8,18 +8,22 @@ Describe "Invoke-JiraMethod" {
 
         $validMethods = @('GET', 'POST', 'PUT', 'DELETE')
 
-
         Context "Sanity checking" {
             $command = Get-Command -Name Invoke-JiraMethod
 
-            defParam $command 'Method'
             defParam $command 'URI'
+            defParam $command 'Method'
             defParam $command 'Body'
+            defParam $command 'RawBody'
+            defParam $command 'Headers'
+            defParam $command 'InFile'
+            defParam $command 'OutFile'
             defParam $command 'Credential'
+            defParam $command 'Caller'
 
-            It "Has a ValidateSet for the -Method parameter that accepts methods [$($validMethods -join ', ')]" {
-                $validateSet = $command.Parameters.Method.Attributes | Where-Object {$_.TypeID -eq [System.Management.Automation.ValidateSetAttribute]}
-                $validateSet.ValidValues | Should Be $validMethods
+            It "Restricts the METHODs to WebRequestMethod" {
+                $methodType = $command.Parameters.Method.ParameterType
+                $methodType.FullName | Should Be "Microsoft.PowerShell.Commands.WebRequestMethod"
             }
         }
 
@@ -37,13 +41,8 @@ Describe "Invoke-JiraMethod" {
 
             It "Correctly performs all necessary HTTP method requests [$($validMethods -join ',')] to a provided URI" {
                 foreach ($method in $validMethods) {
-                    if ($method -in ("POST", "PUT")) {
-                        { Invoke-JiraMethod -Method $method -URI $testUri } | Should Throw
-                        { Invoke-JiraMethod -Method $method -URI $testUri -Body "" } | Should Not Throw
-                    }
-                    else {
-                        { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
-                    }
+                    { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
+
                     Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Method -eq $method -and $Uri -eq $testUri} -Scope It
                 }
             }
@@ -58,23 +57,6 @@ Describe "Invoke-JiraMethod" {
                 Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$UseBasicParsing -eq $true} -Scope It
             }
 
-            It "Provides Base64 credentials in the Authorization header only when the -Credential parameter is supplied" {
-                # This is the authorizion token that should be provided when using HTTP Basic authentication. It takes the form of
-                # "username:password" encoded into a base 64 String.
-
-                # This is why you shouldn't use JiraPS on a plain HTTP connection.
-                # See how easy it would be to decrypt your credentials?
-                $token = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("${testUsername}:$testPassword"))
-
-                { Invoke-JiraMethod -Method Get -URI $testUri -Credential $testCred } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Authorization') -eq "Basic $token"} -Exactly -Times 1 -Scope It
-
-                # This one should call without the Authorization header, so check that the Authorization header mock has only been called once,
-                # and that the Authorization-less header mock has also been called once.
-                { Invoke-JiraMethod -Method Get -URI $testUri} | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Headers.Item('Authorization') -eq "Basic $token"} -Exactly -Times 1 -Scope It
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {-not $Headers.Item('Authorization')} -Exactly -Times 1 -Scope It
-            }
         }
 
         $validTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/303853'
@@ -414,7 +396,7 @@ Describe "Invoke-JiraMethod" {
 }
 '@
 
-        $validObjResult = ConvertFrom-Json2 -InputObject $validRestResult
+        $validObjResult = ConvertFrom-Json -InputObject $validRestResult
 
         Context "Output handling - valid object returned (HTTP 200)" {
 
@@ -446,13 +428,13 @@ Describe "Invoke-JiraMethod" {
                     'Content'    = $null
                 }
             }
-            Mock ConvertFrom-Json2 {
-                ShowMockInfo 'ConvertFrom-Json2'
+            Mock ConvertFrom-Json {
+                ShowMockInfo 'ConvertFrom-Json'
             }
 
             It "Correctly handles HTTP response codes that do not provide a return body" {
                 { Invoke-JiraMethod -Method Get -URI $validTestUri } | Should Not Throw
-                Assert-MockCalled -CommandName ConvertFrom-Json2 -Exactly -Times 0 -Scope It
+                Assert-MockCalled -CommandName ConvertFrom-Json -Exactly -Times 0 -Scope It
             }
         }
 
