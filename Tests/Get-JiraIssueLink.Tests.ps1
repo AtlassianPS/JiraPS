@@ -32,7 +32,7 @@ Describe "Get-JiraIssueLink" {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/issueLink/1234"} {
-            ConvertFrom-Json2 $resultsJson
+            ConvertFrom-Json $resultsJson
         }
 
         Mock Get-JiraIssue -ModuleName JiraPS -ParameterFilter {$Key -eq "TEST-01"} {

@@ -867,7 +867,7 @@ Describe "ConvertTo-JiraIssue" {
     ]
 }
 "@
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         Context "Basic behavior testing" {
             $r = ConvertTo-JiraIssue -InputObject $sampleObject

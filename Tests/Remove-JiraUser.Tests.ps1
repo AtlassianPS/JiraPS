@@ -29,7 +29,7 @@ Describe "Remove-JiraUser" {
         }
 
         Mock Get-JiraUser -ModuleName JiraPS {
-            $object = ConvertFrom-Json2 $testJsonGet
+            $object = ConvertFrom-Json $testJsonGet
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
             return $object
         }

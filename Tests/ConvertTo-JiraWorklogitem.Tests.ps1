@@ -55,7 +55,7 @@ Describe "ConvertTo-JiraWorklogitem" {
     }
 }
 "@
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         It "Creates a PSObject out of JSON input" {
             $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject

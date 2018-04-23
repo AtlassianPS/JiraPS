@@ -37,7 +37,7 @@ Describe "ConvertTo-JiraVersion" {
             $Project
         }
 
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         $r = ConvertTo-JiraVersion -InputObject $sampleObject
 

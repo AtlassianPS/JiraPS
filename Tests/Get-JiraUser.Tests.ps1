@@ -60,13 +60,13 @@ Describe "Get-JiraUser" {
         # Searching for a user.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?username=$testUsername"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 -InputObject $restResult
+            ConvertFrom-Json -InputObject $restResult
         }
 
         # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 -InputObject $restResult2
+            ConvertFrom-Json -InputObject $restResult2
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
@@ -86,7 +86,7 @@ Describe "Get-JiraUser" {
         }
 
         It "Returns all available properties about the returned user object" {
-            $restObj = ConvertFrom-Json2 -InputObject $restResult
+            $restObj = ConvertFrom-Json -InputObject $restResult
 
             $getResult.RestUrl | Should Be $restObj.self
             $getResult.Name | Should Be $restObj.name

@@ -30,7 +30,7 @@ Describe "Remove-JiraGroup" {
         }
 
         Mock Get-JiraGroup -ModuleName JiraPS {
-            $object = ConvertFrom-Json2 $testJson
+            $object = ConvertFrom-Json $testJson
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
             return $object
         }

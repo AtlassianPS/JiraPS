@@ -43,7 +43,7 @@ Describe "ConvertTo-JiraIssueLinkType" {
 }
 '@
 
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson | Select-Object -ExpandProperty issueLinkTypes
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson | Select-Object -ExpandProperty issueLinkTypes
 
         $r = ConvertTo-JiraIssueLinkType -InputObject $sampleObject[0]
         It "Creates a PSObject out of JSON input" {
