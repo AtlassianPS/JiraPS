@@ -46,8 +46,6 @@ Read more about it in [about_JiraPS_CustomFields](../../about/custom-fields.html
 New-JiraIssue -Project "TEST" -Type "Bug" -Summary "Test issue"
 ```
 
-Description  
- -----------  
 Creates a new issue in the TEST project.
 
 This is the simplest way possible to use the command,
@@ -60,8 +58,6 @@ Get-JiraIssueCreateMetadata -Project TEST -IssueType Bug | ? {$_.Required -eq $t
 New-JiraIssue -Project TEST -IssueType Bug -Priority 1 -Summary 'Test issue from PowerShell' -Description 'This is a test issue created from the JiraPS module in PowerShell.' -Fields @{'Custom Field Name 1'=@{"foo" = "bar"};'customfield_10001'=@('baz');}
 ```
 
-Description  
- -----------  
 This example uses `Get-JiraIssueCreateMetadata` to identify fields required to create an issue in JIRA.
 It then creates an issue with the Fields parameter providing a field name and a field ID.
 
@@ -82,8 +78,6 @@ $parameters = @{
 New-JiraIssue @parameters
 ```
 
-Description  
- -----------  
 This illustrates how to use splatting for the example above.
 
 Read more about splatting: about_Splatting

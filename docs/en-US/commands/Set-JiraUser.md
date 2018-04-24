@@ -42,8 +42,6 @@ e-mail address, display name, and any other properties supported by JIRA's API.
 Set-JiraUser -User user1 -EmailAddress user1_new@example.com
 ```
 
-Description  
- -----------  
 Modifies user1's e-mail address to a new value.
 The original value is overridden.
 
@@ -53,8 +51,6 @@ The original value is overridden.
 Set-JiraUser -User user2 -Properties @{EmailAddress='user2_new@example.com';DisplayName='User 2'}
 ```
 
-Description  
- -----------  
 This example modifies a user's properties using a hashtable.
 This allows updating properties that are not exposed as parameters to this function.
 

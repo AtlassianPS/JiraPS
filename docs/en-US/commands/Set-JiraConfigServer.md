@@ -33,8 +33,6 @@ By default, this is stored in a config.xml file at the module's root path.
 Set-JiraConfigServer 'https://jira.example.com:8080'
 ```
 
-Description  
- -----------  
 This example defines the server URL of the JIRA server configured in the JiraPS config file.
 
 ## PARAMETERS

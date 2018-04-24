@@ -34,8 +34,6 @@ New-JiraSession -Credential (Get-Credential jiraUsername)
 Get-JiraSession
 ```
 
-Description  
- -----------  
 Creates a Jira session for jiraUsername, then obtains a reference to it.
 
 ## PARAMETERS

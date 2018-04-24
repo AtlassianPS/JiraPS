@@ -31,8 +31,7 @@ This function adds an Attachment to an existing issue in JIRA.
 ```powershell
 Add-JiraIssueAttachment -FilePath "Test comment" -Issue "TEST-001"
 ```
-Description  
- -----------  
+
 This example adds a simple comment to the issue TEST-001.
 
 ### EXAMPLE 2
@@ -41,8 +40,6 @@ This example adds a simple comment to the issue TEST-001.
 Get-JiraIssue "TEST-002" | Add-JiraIssueAttachment -FilePath "Test comment from PowerShell"
 ```
 
-Description  
- -----------  
 This example illustrates pipeline use from Get-JiraIssue to Add-JiraIssueAttachment.
 
 ## PARAMETERS
