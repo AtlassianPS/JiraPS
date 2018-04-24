@@ -54,8 +54,6 @@ There are four supported operations on labels:
 Set-JiraIssueLabel -Issue TEST-01 -Set 'fixed'
 ```
 
-Description  
- -----------  
 This example replaces all existing labels on issue TEST-01 with one label, "fixed".
 
 ### EXAMPLE 2
@@ -64,8 +62,6 @@ This example replaces all existing labels on issue TEST-01 with one label, "fixe
 Get-JiraIssue -Query 'created >= -7d AND reporter in (joeSmith)' | Set-JiraIssueLabel -Add 'enhancement'
 ```
 
-Description  
- -----------  
 This example adds the "enhancement" label to all issues matching the JQL - in this case,
 all issues created by user joeSmith in the last 7 days.
 
@@ -75,8 +71,6 @@ all issues created by user joeSmith in the last 7 days.
 Get-JiraIssue TEST-01 | Set-JiraIssueLabel -Clear
 ```
 
-Description  
- -----------  
 This example removes all labels from the issue TEST-01.
 
 ## PARAMETERS

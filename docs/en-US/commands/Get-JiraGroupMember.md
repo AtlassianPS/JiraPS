@@ -32,8 +32,6 @@ This function returns members of a provided group in JIRA.
 Get-JiraGroupMember testGroup
 ```
 
-Description  
- -----------  
 This example returns all members of the JIRA group testGroup.
 
 ### EXAMPLE 2
@@ -42,8 +40,6 @@ This example returns all members of the JIRA group testGroup.
 Get-JiraGroup 'Developers' | Get-JiraGroupMember
 ```
 
-Description  
- -----------  
 This example illustrates the use of the pipeline to return members of
 the Developers group in JIRA.
 

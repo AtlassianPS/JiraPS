@@ -41,8 +41,6 @@ This function can restrict the output to a subset of the available IssueTypes if
 Get-JiraPriority
 ```
 
-Description  
- -----------  
 This example returns all the IssueTypes on the JIRA server.
 
 ### EXAMPLE 2
@@ -51,8 +49,6 @@ This example returns all the IssueTypes on the JIRA server.
 Get-JiraPriority -ID 1
 ```
 
-Description  
- -----------  
 This example returns only the Priority with ID 1.
 
 ## PARAMETERS

@@ -31,8 +31,6 @@ This function returns information on remote links from a  JIRA issue.
 Get-JiraRemoteLink -Issue TEST-001 -Credential $cred
 ```
 
-Description  
- -----------  
 Returns information about all remote links from the issue "TEST-001"
 
 ### EXAMPLE 2
@@ -41,8 +39,6 @@ Returns information about all remote links from the issue "TEST-001"
 Get-JiraRemoteLink -Issue TEST-001 -LinkId 100000 -Credential $cred
 ```
 
-Description  
- -----------  
 Returns information about a specific remote link from the issue "TEST-001"
 
 ## PARAMETERS

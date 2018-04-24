@@ -31,8 +31,6 @@ This function obtains comments from existing issues in JIRA.
 Get-JiraIssueComment -Key TEST-001
 ```
 
-Description  
- -----------  
 This example returns all comments posted to issue TEST-001.
 
 ### EXAMPLE 2
@@ -41,8 +39,6 @@ This example returns all comments posted to issue TEST-001.
 Get-JiraIssue TEST-002 | Get-JiraIssueComment
 ```
 
-Description  
- -----------  
 This example illustrates use of the pipeline to return all comments on issue TEST-002.
 
 ## PARAMETERS

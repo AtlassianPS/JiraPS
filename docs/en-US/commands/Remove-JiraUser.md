@@ -36,8 +36,6 @@ See this article for details:
 Remove-JiraUser -UserName testUser
 ```
 
-Description  
- -----------  
 Removes the JIRA user TestUser
 
 ## PARAMETERS

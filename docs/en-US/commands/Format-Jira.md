@@ -32,8 +32,6 @@ This can then be added to a JIRA issue description or comment.
 Get-Process | Format-Jira | Add-JiraIssueComment -Issue TEST-001
 ```
 
-Description  
- -----------  
 This example illustrates converting the output from `Get-Process` into a JIRA table, which is then added as a comment to issue TEST-001.
 
 ### EXAMPLE 2
@@ -42,8 +40,6 @@ This example illustrates converting the output from `Get-Process` into a JIRA ta
 Get-Process chrome | Format-Jira Name,Id,VM
 ```
 
-Description  
- -----------  
 This example obtains all Google Chrome processes, then creates a JIRA table with only the Name,ID, and VM properties of each object.
 
 ## PARAMETERS

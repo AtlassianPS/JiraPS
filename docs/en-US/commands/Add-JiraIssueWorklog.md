@@ -33,8 +33,6 @@ You can optionally set the visibility of the item (All Users, Developers, or Adm
 Add-JiraIssueWorklog -Comment "Test comment" -Issue "TEST-001" -TimeSpent 60 -DateStarted (Get-Date)
 ```
 
-Description  
- -----------  
 This example adds a simple worklog item to the issue TEST-001.
 
 ### EXAMPLE 2
@@ -43,8 +41,6 @@ This example adds a simple worklog item to the issue TEST-001.
 Get-JiraIssue "TEST-002" | Add-JiraIssueWorklog "Test worklog item from PowerShell" -TimeSpent 60 -DateStarted (Get-Date)
 ```
 
-Description  
- -----------  
 This example illustrates pipeline use from `Get-JiraIssue` to `Add-JiraIssueWorklog`.
 
 ### EXAMPLE 3
@@ -54,8 +50,6 @@ Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' |
     Add-JiraIssueWorklog "This issue has been cancelled per Vice President's orders." -TimeSpent 60 -DateStarted (Get-Date)
 ```
 
-Description  
- -----------  
 This example illustrates logging work on all projects which match a given JQL query.
 It would be best to validate the query first to make sure the query returns the expected issues!
 
@@ -66,8 +60,6 @@ $comment = Get-Process | Format-Jira
 Add-JiraIssueWorklog $comment -Issue TEST-003 -TimeSpent 60 -DateStarted (Get-Date)
 ```
 
-Description  
- -----------  
 This example illustrates adding a comment based on other logic to a JIRA issue.
 
 Note the use of `Format-Jira` to convert the output of `Get-Process` into a format that is easily read by users.
