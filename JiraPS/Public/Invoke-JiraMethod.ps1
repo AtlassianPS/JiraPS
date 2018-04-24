@@ -3,33 +3,31 @@ function Invoke-JiraMethod {
     [CmdletBinding()]
     param
     (
-        # REST API to invoke
         [Parameter( Mandatory )]
         [Uri]
         $URI,
 
-        # Method of the invokation
-        [Microsoft.PowerShell.Commands.WebRequestMethod]$Method = "GET",
+        [Microsoft.PowerShell.Commands.WebRequestMethod]
+        $Method = "GET",
 
-        # Body of the request
         [String]
         $Body,
 
-        # Body of the request should not be encoded
         [Switch]
         $RawBody,
 
-        # Custom headers for the HTTP request
         [Hashtable]
         $Headers = @{},
 
-        [String]$InFile,
+        [String]
+        $InFile,
 
-        [String]$OutFile,
+        [String]
+        $OutFile,
 
-        [Switch]$StoreSession,
+        [Switch]
+        $StoreSession,
 
-        # Authentication credentials
         [PSCredential]
         $Credential,
 

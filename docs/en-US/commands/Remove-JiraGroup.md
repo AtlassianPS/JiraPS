@@ -34,8 +34,6 @@ This function removes an existing group from JIRA.
 Remove-JiraGroup -GroupName testGroup
 ```
 
-Description  
- -----------  
 Removes the JIRA group testGroup
 
 ## PARAMETERS

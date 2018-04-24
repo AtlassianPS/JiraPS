@@ -41,8 +41,6 @@ This function removes an attachment from a JIRA issue.
 Remove-JiraIssueAttachment -AttachmentId 10039
 ```
 
-Description  
- -----------  
 Removes attachment with id of 10039
 
 ### EXAMPLE 2
@@ -51,8 +49,6 @@ Removes attachment with id of 10039
 Get-JiraIssueAttachment -Issue FOO-1234 | Remove-JiraIssueAttachment
 ```
 
-Description  
- -----------  
 Removes all attachments from issue FOO-1234
 
 ### EXAMPLE 3
@@ -61,8 +57,6 @@ Removes all attachments from issue FOO-1234
 Remove-JiraIssueAttachment -Issue FOO-1234 -FileName '*.png' -force
 ```
 
-Description  
- -----------  
 Removes all *.png attachments from Issue FOO-1234 without prompting for confirmation
 
 ## PARAMETERS

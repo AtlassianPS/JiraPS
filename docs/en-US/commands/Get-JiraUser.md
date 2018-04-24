@@ -45,8 +45,6 @@ This function returns information regarding a specified user from Jira.
 Get-JiraUser -UserName user1
 ```
 
-Description
- -----------
 Returns information about the user user1
 
 ### EXAMPLE 2
@@ -55,8 +53,6 @@ Returns information about the user user1
 Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
 ```
 
-Description
- -----------
 This example searches Active Directory for "John*Smith", then obtains their JIRA user accounts.
 
 ### EXAMPLE 3
@@ -65,8 +61,6 @@ This example searches Active Directory for "John*Smith", then obtains their JIRA
 Get-JiraUser -Credential $cred
 ```
 
-Description
- -----------
 This example returns the JIRA user that is executing the command.
 
 ## PARAMETERS

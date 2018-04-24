@@ -35,8 +35,6 @@ This function is particularly useful when your JIRA instance includes custom fie
 Get-JiraIssueCreateMetadata -Project 'TEST' -IssueType 'Bug'
 ```
 
-Description  
- -----------  
 This example returns the fields available when creating an issue of type Bug under project TEST.
 
 ### EXAMPLE 2
@@ -45,8 +43,6 @@ This example returns the fields available when creating an issue of type Bug und
 Get-JiraIssueCreateMetadata -Project 'JIRA' -IssueType 'Bug' | ? {$_.Required -eq $true}
 ```
 
-Description  
- -----------  
 This example returns fields available when creating an issue of type Bug under the project Jira.
 
 It then uses `Where-Object` (aliased by the question mark) to filter only the fields that are required.

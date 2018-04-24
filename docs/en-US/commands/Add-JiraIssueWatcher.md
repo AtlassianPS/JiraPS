@@ -32,8 +32,6 @@ This function adds a watcher to an existing issue in JIRA.
 Add-JiraIssueWatcher -Watcher "fred" -Issue "TEST-001"
 ```
 
-Description  
- -----------  
 This example adds a watcher to the issue TEST-001.
 
 ### EXAMPLE 2
@@ -42,8 +40,6 @@ This example adds a watcher to the issue TEST-001.
 Get-JiraIssue "TEST-002" | Add-JiraIssueWatcher "fred"
 ```
 
-Description  
- -----------  
 This example illustrates pipeline use from `Get-JiraIssue` to `Add-JiraIssueWatcher`.
 
 ### EXAMPLE 3
@@ -53,8 +49,6 @@ Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' |
     Add-JiraIssueWatcher "fred"
 ```
 
-Description  
- -----------  
 This example illustrates adding watcher on all projects which match a given JQL query.
 It would be best to validate the query first to make sure the query returns the expected issues!
 

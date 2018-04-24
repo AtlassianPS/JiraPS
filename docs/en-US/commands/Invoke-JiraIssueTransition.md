@@ -43,8 +43,6 @@ Attempting to perform a transition that does not apply to the issue
 Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11
 ```
 
-Description
- -----------
 Invokes transition ID 11 on issue TEST-01.
 
 ### EXAMPLE 2
@@ -53,8 +51,6 @@ Invokes transition ID 11 on issue TEST-01.
 Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition comment'
 ```
 
-Description
- -----------
 Invokes transition ID 11 on issue TEST-01 with a comment.
 Requires the comment field to be configured visible for transition.
 
@@ -64,8 +60,6 @@ Requires the comment field to be configured visible for transition.
 Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Assignee 'joe.bloggs'
 ```
 
-Description
- -----------
 Invokes transition ID 11 on issue TEST-01 and assigns to user 'Joe Blogs'.
 
 Requires the assignee field to be configured as visible for transition.
@@ -77,8 +71,6 @@ $transitionFields = @{'customfield_12345' = 'example'}
 Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Fields $transitionFields
 ```
 
-Description
- -----------
 Invokes transition ID 11 on issue TEST-01 and configures a custom field value.
 
 Requires fields to be configured as visible for transition.

@@ -33,8 +33,6 @@ By default, this is stored in a config.xml file at the module's root path.
 Get-JiraConfigServer
 ```
 
-Description  
- -----------  
 Returns the server URL of the JIRA server configured in the JiraPS config file.
 
 ### EXAMPLE 2
@@ -43,8 +41,6 @@ Returns the server URL of the JIRA server configured in the JiraPS config file.
 Get-JiraConfigServer -ConfigFile C:\jiraconfig.xml
 ```
 
-Description  
- -----------  
 Returns the server URL of the JIRA server configured at C:\jiraconfig.xml.
 
 ## PARAMETERS

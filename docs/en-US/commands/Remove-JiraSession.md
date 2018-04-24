@@ -40,8 +40,6 @@ Get-JiraIssue TEST-01
 Remove-JiraSession
 ```
 
-Description  
- -----------  
 This example creates a JIRA session for jiraUsername, runs Get-JiraIssue, and closes the JIRA session.
 
 ### EXAMPLE 2
@@ -51,8 +49,6 @@ $s = New-JiraSession -Credential (Get-Credential jiraUsername)
 Remove-JiraSession $s
 ```
 
-Description  
- -----------  
 This example creates a JIRA session and saves it to a variable, then uses the variable reference to
 close the session.
 
