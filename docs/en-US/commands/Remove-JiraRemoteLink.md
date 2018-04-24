@@ -32,8 +32,6 @@ This function removes a remote link from a JIRA issue.
 Remove-JiraRemoteLink TEST-001 10000, 20000
 ```
 
-Description  
- -----------  
 Removes two remote link from issue "TEST-001"
 
 ### EXAMPLE 2
@@ -42,8 +40,6 @@ Removes two remote link from issue "TEST-001"
 Get-JiraIssue -Query "project = TEST" | Remove-JiraRemoteLink 10000
 ```
 
-Description  
- -----------  
 Removes a specific remote link from all issues in project "TEST"
 
 ## PARAMETERS

@@ -41,8 +41,6 @@ This function can restrict the output to a subset of the available IssueTypes if
 Get-JiraIssueType
 ```
 
-Description  
- -----------  
 This example returns all the IssueTypes on the JIRA server.
 
 ### EXAMPLE 2
@@ -51,8 +49,6 @@ This example returns all the IssueTypes on the JIRA server.
 Get-JiraIssueType -IssueType "Bug"
 ```
 
-Description  
- -----------  
 This example returns only the IssueType "Bug".
 
 ### EXAMPLE 3
@@ -61,8 +57,6 @@ This example returns only the IssueType "Bug".
 Get-JiraIssueType -IssueType "Bug","Task","4"
 ```
 
-Description  
- -----------  
 This example return the information about the IssueType named "Bug" and "Task" and with id "4".
 
 ## PARAMETERS

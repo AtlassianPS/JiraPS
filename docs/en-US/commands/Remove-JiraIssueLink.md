@@ -32,8 +32,6 @@ This function removes a issue link from a JIRA issue.
 Remove-JiraIssueLink 1234,2345
 ```
 
-Description  
- -----------  
 Removes two issue links with id 1234 and 2345
 
 ### EXAMPLE 2
@@ -42,8 +40,6 @@ Removes two issue links with id 1234 and 2345
 Get-JiraIssue -Query "project = Project1 AND label = lingering" | Remove-JiraIssueLink
 ```
 
-Description  
- -----------  
 Removes all issue links for all issues in project Project1 and that have a label "lingering"
 
 ## PARAMETERS

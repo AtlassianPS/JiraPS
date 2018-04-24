@@ -42,8 +42,6 @@ This is a useful function for discovering data about issueLink types in order to
 Get-JiraIssueLinkType
 ```
 
-Description  
- -----------  
 This example returns all available links from the JIRA server
 
 ### EXAMPLE 2
@@ -52,8 +50,6 @@ This example returns all available links from the JIRA server
 Get-JiraIssueLinkType -LinkType 1
 ```
 
-Description  
- -----------  
 This example returns information about the link type with ID 1.
 
 ## PARAMETERS
