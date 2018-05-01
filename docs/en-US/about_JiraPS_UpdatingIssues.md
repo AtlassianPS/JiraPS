@@ -1,4 +1,4 @@
-﻿---
+---
 locale: en-US
 layout: documentation
 online version: https://atlassianps.org/docs/JiraPS/about/updating-issues.html
