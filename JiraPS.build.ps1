@@ -375,6 +375,15 @@ task Test Init, {
 
         If ('AppVeyor' -eq $env:BHBuildSystem) {
             BuildHelpers\Add-TestResultToAppveyor -TestFile "$BuildRoot/TestResult.xml"
+
+            Import-Module "./Tools/Modules/CodeCovIo"
+            $Params = @{
+                CodeCoverage = $TestResults.CodeCoverage
+                RepoRoot     = $env:BHBuildOutput
+            }
+            $CodeCovJsonPath = Export-CodeCovIoJson @Params
+            Invoke-UploadCoveCoveIoReport -Path $CodeCovJsonPath
+            Remove-Module CodeCovIo
         }
 
         assert ($TestResults.FailedCount -eq 0) "$($TestResults.FailedCount) Pester test(s) failed."
