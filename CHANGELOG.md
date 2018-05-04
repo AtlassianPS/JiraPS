@@ -22,6 +22,8 @@ More detailed description about the changes can be found on [Our Website](https:
 - Fix empty header (#206, [@lipkau][])
 - Bad Body (#224, [@lipkau][])
 - Add Labels to array (#226, [@lipkau][])
+- Fix removing labels with `Set-JiraIssueLabel -Remove` (#244, [lipkau][])
+- Fix adding of multiple labels at once with `Set-JiraIssueLabel -Add` (#244, [lipkau][])
 
 ## 2.5 - 2018-03-23
 
