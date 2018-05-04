@@ -27,7 +27,7 @@ Describe "Get-JiraServerInformation" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/serverInfo"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $restResult
+            ConvertFrom-Json $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
@@ -43,7 +43,7 @@ Describe "Get-JiraServerInformation" {
         It "Returns the server information" {
             $allResults = Get-JiraServerInformation
             $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be @(ConvertFrom-Json2 -InputObject $restResult).Count
+            @($allResults).Count | Should Be @(ConvertFrom-Json -InputObject $restResult).Count
         }
 
         It "Answers to the alias 'Get-JiraServerInfo'" {

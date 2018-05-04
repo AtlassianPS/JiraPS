@@ -54,7 +54,7 @@ Describe "ConvertTo-JiraComment" {
 }
 "@
 
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
         $r = ConvertTo-JiraComment -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {

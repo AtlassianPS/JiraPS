@@ -45,8 +45,6 @@ then copy the ID from the URL of the page.
 Get-JiraFilter -Id 12345
 ```
 
-Description  
- -----------  
 Gets a reference to filter ID 12345 from JIRA
 
 ### EXAMPLE 2
@@ -55,8 +53,6 @@ Gets a reference to filter ID 12345 from JIRA
 $filterObject | Get-JiraFilter
 ```
 
-Description  
- -----------  
 Gets the information of a filter by providing a filter object
 
 ## PARAMETERS

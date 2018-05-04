@@ -60,8 +60,6 @@ Output from this function can be piped to various other functions in this module
 Get-JiraIssue -Key TEST-001
 ```
 
-Description  
- -----------  
 This example fetches the issue "TEST-001".
 
 The default `Format-Table` view of a Jira issue only shows the value of "Key", "Summary", "Status" and "Created".  
@@ -73,8 +71,6 @@ The default `Format-Table` view of a Jira issue only shows the value of "Key", "
 Get-JiraIssue "TEST-002" | Add-JiraIssueComment "Test comment from PowerShell"
 ```
 
-Description  
- -----------  
 This example illustrates pipeline use from `Get-JiraIssue` to `Add-JiraIssueComment`.
 
 ### EXAMPLE 3
@@ -83,8 +79,6 @@ This example illustrates pipeline use from `Get-JiraIssue` to `Add-JiraIssueComm
 Get-JiraIssue -Query 'project = "TEST" AND created >= -5d'
 ```
 
-Description  
- -----------  
 This example illustrates using the `-Query` parameter and JQL syntax to query Jira for matching issues.
 
 ### EXAMPLE 4
@@ -93,8 +87,6 @@ This example illustrates using the `-Query` parameter and JQL syntax to query Ji
 Get-JiraIssue -InputObject $oldIssue
 ```
 
-Description  
- -----------  
 This example illustrates how to get an update of an issue from an old result of `Get-JiraIssue` stored in $oldIssue.
 
 ### EXAMPLE 5
@@ -103,8 +95,6 @@ This example illustrates how to get an update of an issue from an old result of 
 Get-JiraFilter -Id 12345 | Get-JiraIssue
 ```
 
-Description  
- -----------  
 This example retrieves all issues that match the criteria in the saved filter with id 12345.
 
 ### EXAMPLE 6
@@ -113,8 +103,6 @@ This example retrieves all issues that match the criteria in the saved filter wi
 Get-JiraFilter 12345 | Select-Object *
 ```
 
-Description  
- -----------  
 This prints all fields of the issue to the console.
 
 ## PARAMETERS

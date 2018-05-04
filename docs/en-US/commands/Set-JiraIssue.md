@@ -34,8 +34,6 @@ This can include changing the issue's summary or description, or assigning the i
 Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell'
 ```
 
-Description  
- -----------  
 This example changes the summary and description of the JIRA issue TEST-01.
 
 ### EXAMPLE 2
@@ -45,8 +43,6 @@ $issue = Get-JiraIssue TEST-01
 $issue | Set-JiraIssue -Description "$($issue.Description)\`n\`nEdit: Also foo."
 ```
 
-Description  
- -----------  
 This example appends text to the end of an existing issue description by using
 `Get-JiraIssue` to obtain a reference to the current issue and description.
 
@@ -56,8 +52,6 @@ This example appends text to the end of an existing issue description by using
 Set-JiraIssue -Issue TEST-01 -Assignee 'Unassigned'
 ```
 
-Description  
- -----------  
 This example removes the assignee from JIRA issue TEST-01.
 
 ### EXAMPLE 4
@@ -66,8 +60,6 @@ This example removes the assignee from JIRA issue TEST-01.
 Set-JiraIssue -Issue TEST-01 -Assignee 'joe' -AddComment 'Dear [~joe], please review.'
 ```
 
-Description  
- -----------  
 This example assigns the JIRA Issue TEST-01 to 'joe' and adds a comment at one.
 
 ### EXAMPLE 5
@@ -87,8 +79,6 @@ $parameters = @{
 Set-JiraIssue @parameters -Issue TEST-001, TEST-002
 ```
 
-Description  
- -----------  
 This example uses splatting to update "TEST-001" and "TEST-002".
 
 You can read more about splatting in: about_Splatting

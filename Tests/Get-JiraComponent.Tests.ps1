@@ -54,7 +54,7 @@ Describe "Get-JiraComponent" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/component/$componentId"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $restResultOne
+            ConvertFrom-Json $restResultOne
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

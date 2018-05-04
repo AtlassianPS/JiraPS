@@ -36,8 +36,6 @@ The new user's password is also randomly generated.
 New-JiraUser -UserName "testUser" -EmailAddress "testUser@example.com"
 ```
 
-Description  
- -----------  
 This example creates a new JIRA user named testUser,
 and sends a notification e-mail.
 The user's DisplayName will be set to "testUser" since it is not specified.
@@ -48,8 +46,6 @@ The user's DisplayName will be set to "testUser" since it is not specified.
 New-JiraUser -UserName "testUser2" -EmailAddress "testUser2@example.com" -DisplayName "Test User 2"
 ```
 
-Description  
- -----------  
 This example illustrates setting a user's display name during user creation.
 
 ## PARAMETERS

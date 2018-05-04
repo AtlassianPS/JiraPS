@@ -88,7 +88,8 @@ Describe "Get-JiraVersion" {
         }
 
         Mock Get-JiraProject -ModuleName JiraPS {
-            $object = ConvertFrom-Json2 $JiraProjectData | Where-Object {$_.Key -in $Project}
+            $json = ConvertFrom-Json $JiraProjectData
+            $object = $json | Where-Object {$_.Key -in $Project}
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
             return $object
         }
@@ -105,22 +106,22 @@ Describe "Get-JiraVersion" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionId1" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $testJson1
+            ConvertFrom-Json $testJson1
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionId2" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $testJson2
+            ConvertFrom-Json $testJson2
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $testJsonAll
+            ConvertFrom-Json $testJsonAll
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/project/*/versions" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $testJson1
+            ConvertFrom-Json $testJson1
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

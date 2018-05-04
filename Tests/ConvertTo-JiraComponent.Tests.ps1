@@ -15,7 +15,7 @@ Describe "ConvertTo-JiraComponent" {
     "name": "test component"
 }
 "@
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         $r = ConvertTo-JiraComponent -InputObject $sampleObject
 

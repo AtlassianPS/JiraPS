@@ -42,7 +42,10 @@ function Invoke-JiraIssueTransition {
         $Comment,
 
         [PSCredential]
-        $Credential
+        $Credential,
+
+        [Switch]
+        $Passthru
     )
 
     begin {
@@ -185,14 +188,10 @@ function Invoke-JiraIssueTransition {
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
+        Invoke-JiraMethod @parameter
 
-        if ($result) {
-            # JIRA doesn't typically return results here unless they contain errors, which are handled within Invoke-JiraMethod.
-            # If something does come out, let us know.
-            Write-Warning "JIRA returned unexpected results, which are provided below."
-            Write-Warning "Please report this at $($MyInvocation.MyCommand.Module.PrivateData.PSData.ProjectUri)"
-            Write-Output $result
+        if ($Passthru) {
+            Get-JiraIssue $issueObj
         }
     }
 

@@ -60,7 +60,7 @@ Describe "Get-JiraIssueAttachment" {
                 ID         = $issueID
                 Key        = $issueKey
                 RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID"
-                attachment = (ConvertFrom-Json2 -InputObject $attachments)
+                attachment = (ConvertFrom-Json -InputObject $attachments)
             }
             $IssueObj.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             $IssueObj

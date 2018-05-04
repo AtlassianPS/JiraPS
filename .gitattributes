@@ -9,15 +9,16 @@ CHANGELOG.md merge=union
 *.md            text
 *.gitattributes text
 
-# Declare files that will always have CRLF line endings on checkout.
-*.ps1    text  eol=crlf
-*.psm1   text  eol=crlf
-*.psd1   text  eol=crlf
-*.psc1   text  eol=crlf
-*.ps1xml text  eol=crlf
-*.clixml text  eol=crlf
-*.xml    text  eol=crlf
-*.txt    text  eol=crlf
+# Declare files that will always have LF line endings on checkout.
+*.ps1    text  eol=lf
+*.psm1   text  eol=lf
+*.psd1   text  eol=lf
+*.psc1   text  eol=lf
+*.ps1xml text  eol=lf
+*.clixml text  eol=lf
+*.xml    text  eol=lf
+*.txt    text  eol=lf
+*.md     text  eol=lf
 
 # Denote all files that are truly binary and should not be mergeable.
 *.dll binary

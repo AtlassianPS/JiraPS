@@ -50,7 +50,7 @@ Describe "Remove-JiraRemoteLink" {
         }
 
         Mock Get-JiraRemoteLink {
-            $object = ConvertFrom-Json2 $testLink
+            $object = ConvertFrom-Json $testLink
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.IssueLinkType')
             return $object
         }

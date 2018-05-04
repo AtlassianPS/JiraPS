@@ -186,7 +186,7 @@ Describe "Get-JiraIssueEditMetadata" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $restResult
+            ConvertFrom-Json $restResult
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS {

@@ -31,8 +31,6 @@ This function creates a new group in JIRA.
 New-JiraGroup -GroupName testGroup
 ```
 
-Description  
- -----------  
 This example creates a new JIRA group named testGroup.
 
 ## PARAMETERS

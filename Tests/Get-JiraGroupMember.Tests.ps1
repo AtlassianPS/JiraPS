@@ -19,7 +19,7 @@
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/group?groupname=testgroup*' } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 @'
+            ConvertFrom-Json @'
 {
     "Name":  "testgroup",
     "RestUrl":  "https://jira.example.com/rest/api/2/group?groupname=testgroup",
@@ -80,7 +80,7 @@
 
                 Mock Invoke-JiraMethod -ModuleName JiraPS {
                     ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                    ConvertFrom-Json2 -InputObject @'
+                    ConvertFrom-Json -InputObject @'
 {
     "name": "testgroup",
     "self": "https://jira.example.com/rest/api/2/group?groupname=testgroup",

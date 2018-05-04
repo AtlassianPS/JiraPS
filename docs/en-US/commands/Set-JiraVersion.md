@@ -33,8 +33,6 @@ This function modifies the Version for an existing Project in JIRA.
 Get-JiraVersion -Project $Project -Name "Old-Name" | Set-JiraVersion -Name 'New-Name'
 ```
 
-Description  
- -----------  
 This example assigns the modifies the existing version with a new name 'New-Name'.
 
 ### EXAMPLE 2
@@ -43,8 +41,6 @@ This example assigns the modifies the existing version with a new name 'New-Name
 Get-JiraVersion -ID 162401 | Set-JiraVersion -Description 'Descriptive String'
 ```
 
-Description  
- -----------  
 This example assigns the modifies the existing version with a new name 'New-Name'.
 
 ## PARAMETERS
