@@ -14,7 +14,7 @@ environment:
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           PowershellVersion: "6.0.0"
 
-version: 2.5.{build}
+version: 2.6.{build}
 
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true
@@ -46,6 +46,7 @@ init:
     - git config --global user.name "AtlassianPS automation"
 
 install:
+    - pip install codecov
     - ps: '& $env:posh -File "./Tools/setup.ps1"'
 
 build_script:
@@ -63,6 +64,9 @@ deploy:
     on:
         branch: master                 # release from master branch only
         appveyor_repo_tag: false        # deploy on tag push only
+
+after_success:
+    - codecov
 
 # on_failure:
     # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
