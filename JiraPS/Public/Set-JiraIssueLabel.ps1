@@ -88,11 +88,11 @@
                 'ModifyLabels' {
                     if ($Add) {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding labels"
-                        $null = $labels.Add($Add)
+                        $null = foreach ($_add in $Add) { $labels.Add($_add) }
                     }
                     if ($Remove) {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Removing labels"
-                        foreach ($item in $Remote) {
+                        foreach ($item in $Remove) {
                             $labels.Remove($item)
                         }
                     }
