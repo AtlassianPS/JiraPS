@@ -56,7 +56,7 @@ Describe "Get-JiraRemoteLink" {
         # Searching for a group.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get'} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 -InputObject $restResult
+            ConvertFrom-Json -InputObject $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

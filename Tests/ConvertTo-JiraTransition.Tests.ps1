@@ -36,7 +36,7 @@ Describe "ConvertTo-JiraTransition" {
     }
 }
 "@
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         $r = ConvertTo-JiraTransition -InputObject $sampleObject
 

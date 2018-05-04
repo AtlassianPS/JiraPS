@@ -74,7 +74,7 @@ Describe "Get-JiraVersion" {
         }
 
         Mock Get-JiraProject -ModuleName JiraPS {
-            $Projects = ConvertFrom-Json2 $JiraProjectData
+            $Projects = ConvertFrom-Json $JiraProjectData
             $Projects.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
             $Projects | Where-Object {$_.Key -in $Project}
         }

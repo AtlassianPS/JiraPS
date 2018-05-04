@@ -7,7 +7,9 @@
 
         # Write error results to the error stream (Write-Error) instead of to the output stream
         [Switch]
-        $WriteError
+        $WriteError,
+
+        $Caller = $PSCmdlet
     )
 
     process {
@@ -17,7 +19,14 @@
             if ($i.errorMessages) {
                 foreach ($e in $i.errorMessages) {
                     if ($WriteError) {
-                        Write-Error "JiraPS encountered an error: [$e]"
+                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                            ([System.ArgumentException]"Server responded with Error"),
+                            "ServerResponse",
+                            [System.Management.Automation.ErrorCategory]::NotSpecified,
+                            $i
+                        )
+                        $errorItem.ErrorDetails = "Jira encountered an error: [$e]"
+                        $Caller.WriteError($errorItem)
                     }
                     else {
                         $obj = [PSCustomObject] @{
@@ -37,7 +46,14 @@
                 $keys = (Get-Member -InputObject $i.errors | Where-Object -FilterScript {$_.MemberType -eq 'NoteProperty'}).Name
                 foreach ($k in $keys) {
                     if ($WriteError) {
-                        Write-Error "Jira encountered an error: [$k] - $($i.errors.$k)"
+                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                            ([System.ArgumentException]"Server responded with Error"),
+                            "ServerResponse.$k",
+                            [System.Management.Automation.ErrorCategory]::NotSpecified,
+                            $i
+                        )
+                        $errorItem.ErrorDetails = "Jira encountered an error: [$k] - $($i.errors.$k)"
+                        $Caller.WriteError($errorItem)
                     }
                     else {
                         $obj = [PSCustomObject] @{

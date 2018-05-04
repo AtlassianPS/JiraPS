@@ -38,7 +38,7 @@
     }
 }
 "@
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         $r = ConvertTo-JiraLink -InputObject $sampleObject
 

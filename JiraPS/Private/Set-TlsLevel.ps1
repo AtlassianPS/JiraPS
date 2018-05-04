@@ -14,10 +14,12 @@ function Set-TlsLevel {
             "Set" {
                 $Script:OriginalTlsSettings = [Net.ServicePointManager]::SecurityProtocol
 
-                [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.ServicePointManager]::Tls12
+                [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
             }
             "Revert" {
-                [Net.ServicePointManager]::SecurityProtocol = $Script:OriginalTlsSettings
+                if ($Script:OriginalTlsSettings) {
+                    [Net.ServicePointManager]::SecurityProtocol = $Script:OriginalTlsSettings
+                }
             }
         }
     }

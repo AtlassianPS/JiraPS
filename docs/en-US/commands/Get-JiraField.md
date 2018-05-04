@@ -43,8 +43,6 @@ See `Get-JiraIssueCreateMetadata` for more details.
 Get-JiraField
 ```
 
-Description  
- -----------  
 This example returns information about all JIRA fields visible to the current user.
 
 ### EXAMPLE 2
@@ -53,8 +51,6 @@ This example returns information about all JIRA fields visible to the current us
 Get-JiraField "Key"
 ```
 
-Description  
- -----------  
 This example returns information about the Key field.
 
 ## PARAMETERS

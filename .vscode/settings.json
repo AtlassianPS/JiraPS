@@ -1,6 +1,6 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "files.eol": "\r\n",
+    "files.eol": "\n",
     "files.encoding": "utf8",
     "files.insertFinalNewline": true,
     "files.trimTrailingWhitespace": true,
@@ -8,13 +8,6 @@
 
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
-
-    "search.exclude": {
-        "./Release": true
-    },
-    "files.watcherExclude": {
-        "./Release": true
-    },
 
     "powershell.codeFormatting.ignoreOneLineBlock": true,
     "powershell.codeFormatting.openBraceOnSameLine": true,
@@ -28,12 +21,13 @@
 
     "[markdown]": {
         "editor.tabSize": 2,
-        "editor.wordWrap": "on",
-        "editor.renderWhitespace": "all",
-        "editor.acceptSuggestionOnEnter": "off",
         "editor.trimAutoWhitespace": false
     },
     "[yaml]": {
         "editor.tabSize": 2
+    },
+
+    "markdownlint.config": {
+      "MD024": false
     }
 }

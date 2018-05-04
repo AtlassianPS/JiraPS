@@ -32,8 +32,6 @@ This function removes a JIRA user from a JIRA group.
 Remove-JiraGroupMember -Group testUsers -User jsmith
 ```
 
-Description  
- -----------  
 This example removes the user jsmith from the group testUsers.
 
 ### EXAMPLE 2
@@ -42,8 +40,6 @@ This example removes the user jsmith from the group testUsers.
 Get-JiraGroup 'Project Admins' | Remove-JiraGroupMember -User jsmith
 ```
 
-Description  
- -----------  
 This example illustrates the use of the pipeline to remove jsmith from the "Project Admins" group in JIRA.
 
 ## PARAMETERS

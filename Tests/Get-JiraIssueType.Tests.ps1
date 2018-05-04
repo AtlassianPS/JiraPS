@@ -90,7 +90,7 @@ Describe "Get-JiraIssueType" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/issuetype"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $restResult
+            ConvertFrom-Json $restResult
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.

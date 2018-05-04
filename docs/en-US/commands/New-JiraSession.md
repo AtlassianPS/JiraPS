@@ -38,8 +38,6 @@ New-JiraSession -Credential (Get-Credential jiraUsername)
 Get-JiraIssue TEST-01
 ```
 
-Description  
- -----------  
 Creates a Jira session for jiraUsername.
 The following `Get-JiraIssue` is run using the saved session for jiraUsername.
 

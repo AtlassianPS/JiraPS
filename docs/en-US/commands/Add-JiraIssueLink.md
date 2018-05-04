@@ -36,8 +36,6 @@ $_issueLink = [PSCustomObject]@{
 Add-JiraIssueLink -Issue TEST-01 -IssueLink $_issueLink
 ```
 
-Description  
- -----------  
 Creates a link "is part of" between TEST-01 and TEST-10
 
 ## PARAMETERS

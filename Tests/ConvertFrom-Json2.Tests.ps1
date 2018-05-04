@@ -1,4 +1,4 @@
-Describe "ConvertFrom-Json2" {
+Describe "ConvertFrom-Json" {
 
     Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
 
@@ -7,7 +7,7 @@ Describe "ConvertFrom-Json2" {
         . "$PSScriptRoot/Shared.ps1"
 
         $sampleJson = '{"id":"issuetype","name":"Issue Type","custom":false,"orderable":true,"navigable":true,"searchable":true,"clauseNames":["issuetype","type"],"schema":{"type":"issuetype","system":"issuetype"}}'
-        $sampleObject = ConvertFrom-Json2 -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         It "Creates a PSObject out of JSON input" {
             $sampleObject | Should Not BeNullOrEmpty
@@ -19,11 +19,11 @@ Describe "ConvertFrom-Json2" {
 
         Context "Sanity checking" {
             It "Does not crash on a null or empty input" {
-                { ConvertFrom-Json2 -InputObject '' } | Should Not Throw
+                { ConvertFrom-Json -InputObject '' } | Should Not Throw
             }
 
             It "Accepts pipeline input" {
-                { @($sampleJson, $sampleJson) | ConvertFrom-Json2 } | Should Not Throw
+                { @($sampleJson, $sampleJson) | ConvertFrom-Json } | Should Not Throw
             }
 
             It "Provides the same output as ConvertFrom-Json for JSON strings the latter can handle" {

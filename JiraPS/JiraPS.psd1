@@ -4,7 +4,7 @@
     RootModule         = 'JiraPS.psm1'
 
     # Version number of this module.
-    ModuleVersion      = '2.5'
+    ModuleVersion      = '2.6'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -46,7 +46,7 @@
     # RequiredModules = @()
 
     # Assemblies that must be loaded prior to importing this module
-    RequiredAssemblies = 'System.Web'
+    # RequiredAssemblies = @()
 
     # Script files (.ps1) that are run in the caller's environment prior to importing this module.
     # ScriptsToProcess = @()

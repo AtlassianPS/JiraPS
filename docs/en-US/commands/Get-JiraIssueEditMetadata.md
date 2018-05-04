@@ -34,8 +34,6 @@ This function is particularly useful when your JIRA instance includes custom fie
 Get-JiraIssueEditMetadata -Issue "TEST-001"
 ```
 
-Description  
- -----------  
 This example returns the fields available when updating the issue "TEST-001".
 
 ### EXAMPLE 2
@@ -44,8 +42,6 @@ This example returns the fields available when updating the issue "TEST-001".
 Get-JiraIssueEditMetadata -Issue "TEST-001" | ? {$_.Required -eq $true}
 ```
 
-Description  
- -----------  
 This example returns fields available when updating the issue "TEST-001".
 It then uses `Where-Object` (aliased by the question mark) to filter only the fields that are required.
 

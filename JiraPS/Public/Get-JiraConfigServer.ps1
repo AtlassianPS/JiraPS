@@ -36,7 +36,6 @@ function Get-JiraConfigServer {
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
-        Write-Debug "Loading config file `$ConfigFile [$ConfigFile]"
         $xml = New-Object -TypeName XML
         $xml.Load($ConfigFile)
 

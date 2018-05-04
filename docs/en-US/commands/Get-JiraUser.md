@@ -15,7 +15,13 @@ Returns a user from Jira
 
 ## SYNTAX
 
-### ByUserName (Default)
+### Self (Default)
+
+```powershell
+Get-JiraUser [-Credential <PSCredential>] [<CommonParameters>]
+```
+
+### ByUserName
 
 ```powershell
 Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [-Credential <PSCredential>] [<CommonParameters>]
@@ -48,6 +54,14 @@ Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty sam
 ```
 
 This example searches Active Directory for "John*Smith", then obtains their JIRA user accounts.
+
+### EXAMPLE 3
+
+```powershell
+Get-JiraUser -Credential $cred
+```
+
+This example returns the JIRA user that is executing the command.
 
 ## PARAMETERS
 
@@ -101,7 +115,7 @@ Accept wildcard characters: False
 
 ### -Credential
 
-Credentials to use to connect to JIRA.  
+Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml

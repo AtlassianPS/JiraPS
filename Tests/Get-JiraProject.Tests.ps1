@@ -67,12 +67,12 @@ Describe "Get-JiraProject" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/project*"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $restResultAll
+            ConvertFrom-Json $restResultAll
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/project/$projectKey?*"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json2 $restResultOne
+            ConvertFrom-Json $restResultOne
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
@@ -88,7 +88,7 @@ Describe "Get-JiraProject" {
         It "Returns all projects if called with no parameters" {
             $allResults = Get-JiraProject
             $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be (ConvertFrom-Json2 -InputObject $restResultAll).Count
+            @($allResults).Count | Should Be (ConvertFrom-Json -InputObject $restResultAll).Count
         }
 
         It "Returns details about specific projects if the project key is supplied" {
