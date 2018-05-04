@@ -46,7 +46,6 @@ init:
     - git config --global user.name "AtlassianPS automation"
 
 install:
-    - pip install codecov
     - ps: '& $env:posh -File "./Tools/setup.ps1"'
 
 build_script:
@@ -64,9 +63,6 @@ deploy:
     on:
         branch: master                 # release from master branch only
         appveyor_repo_tag: false        # deploy on tag push only
-
-after_success:
-    - codecov
 
 # on_failure:
     # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

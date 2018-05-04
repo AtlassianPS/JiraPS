@@ -357,33 +357,8 @@ task Test Init, {
         }
         $TestResults = Invoke-Pester @parameter
 
-        if ($null -ne $CodeCoverageFiles) {
-            $CoveragePercent = $TestResults.CodeCoverage.NumberOfCommandsExecuted / $TestResults.CodeCoverage.NumberOfCommandsAnalyzed
-            Write-Build Gray " "
-            Write-Build Gray "Code coverage Details"
-            Write-Build Gray ("   Files:             {0:N0}" -f $TestResults.CodeCoverage.NumberOfFilesAnalyzed)
-            Write-Build Gray ("   Commands Analyzed: {0:N0}" -f $TestResults.CodeCoverage.NumberOfCommandsAnalyzed)
-            Write-Build Gray ("   Commands Hit:      {0:N0}" -f $TestResults.CodeCoverage.NumberOfCommandsExecuted)
-            Write-Build Gray ("   Commands Missed:   {0:N0}" -f $TestResults.CodeCoverage.NumberOfCommandsMissed)
-            Write-Build Gray ("   Coverage:          {0:P2}" -f $CoveragePercent)
-
-            # if ($CoveragePercent -lt 0.90) {
-            #     $Message = "Coverage {0:P2} is below 90%" -f $CoveragePercent
-            #     Write-Error $Message
-            # }
-        }
-
         If ('AppVeyor' -eq $env:BHBuildSystem) {
             BuildHelpers\Add-TestResultToAppveyor -TestFile "$BuildRoot/TestResult.xml"
-
-            Import-Module "./Tools/Modules/CodeCovIo"
-            $Params = @{
-                CodeCoverage = $TestResults.CodeCoverage
-                RepoRoot     = $env:BHBuildOutput
-            }
-            $CodeCovJsonPath = Export-CodeCovIoJson @Params
-            Invoke-UploadCoveCoveIoReport -Path $CodeCovJsonPath
-            Remove-Module CodeCovIo
         }
 
         assert ($TestResults.FailedCount -eq 0) "$($TestResults.FailedCount) Pester test(s) failed."
