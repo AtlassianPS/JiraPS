@@ -73,16 +73,18 @@ function Get-JiraUser {
                         Credential = $Credential
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    if ($result = Invoke-JiraMethod @parameter) {
-                        $parameter = @{
-                            URI        = "{0}&expand=groups" -f $result.self
-                            Method     = "GET"
-                            Credential = $Credential
-                        }
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                        $result = Invoke-JiraMethod @parameter
+                    if ($users = Invoke-JiraMethod @parameter) {
+                        foreach ($item in $users) {
+                            $parameter = @{
+                                URI        = "{0}&expand=groups" -f $item.self
+                                Method     = "GET"
+                                Credential = $Credential
+                            }
+                            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                            $result = Invoke-JiraMethod @parameter
 
-                        Write-Output (ConvertTo-JiraUser -InputObject $result)
+                            Write-Output (ConvertTo-JiraUser -InputObject $result)
+                        }
                     }
                     else {
                         $errorMessage = @{
