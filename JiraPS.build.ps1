@@ -328,7 +328,7 @@ task ConvertMarkdown -Partial @ConvertMarkdown InstallPandoc, {
         Write-Build Green "Converting File: $_"
         pandoc $_ --standalone --from=markdown_github "--output=$2"
     }
-}
+}, RemoveMarkdown
 #endregion BuildRelease
 
 #region Test
@@ -366,7 +366,7 @@ task Test Init, {
     catch {
         throw $_
     }
-}, RemoveTestResults
+}, RemoveTestResults, RemoveConfig
 #endregion
 
 #region Publish
@@ -379,7 +379,7 @@ function allJobsFinished {
         return $false
     }
 
-    write-host "[IDLE] :: waiting for other jobs to complete"
+    Write-Host "[IDLE] :: waiting for other jobs to complete"
 
     [datetime]$stop = ([datetime]::Now).AddMinutes($env:TimeOutMins)
 
@@ -414,7 +414,7 @@ $shouldDeploy = (
     ($env:BHCommitMessage -notlike '*skip-deploy*')
 )
 # Synopsis: Publish a new release on github and the PSGallery
-task Deploy -If $shouldDeploy Init, RemoveMarkdown, RemoveConfig, PublishToGallery
+task Deploy -If { $shouldDeploy } Init, PublishToGallery, TagReplository
 
 # Synipsis: Publish the $release to the PSGallery
 task PublishToGallery {
@@ -422,7 +422,11 @@ task PublishToGallery {
 
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
     Import-Module $env:BHProjectName -ErrorAction Stop
-    Publish-Module -Name $env:BHProjectName -NuGetApiKey $env:PSGalleryAPIKey
+    # Publish-Module -Name $env:BHProjectName -NuGetApiKey $env:PSGalleryAPIKey
+}
+
+task TagReplository {
+
 }
 #endregion Publish
 
