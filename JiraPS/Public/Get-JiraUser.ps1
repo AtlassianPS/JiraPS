@@ -7,7 +7,7 @@ function Get-JiraUser {
         [String[]]
         $UserName,
 
-        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 1, Mandatory, ParameterSetName = 'ByInputObject' )]
         [Object[]] $InputObject,
 
         [Switch]
