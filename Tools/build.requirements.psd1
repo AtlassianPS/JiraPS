@@ -1,19 +1,21 @@
 @{
-    PSDependOptions = @{
+    PSDependOptions  = @{
         Target = "CurrentUser"
     }
 
-    InvokeBuild = "latest"
-    Configuration = @{
-        SkipPublisherCheck = $true
-        AllowClobber = $true
-        Version = "latest"
+    InvokeBuild      = "latest"
+    BuildHelpers     = @{
+        Parameters = @{
+            AllowClobber = $true
+        }
+        Version    = "latest"
     }
-    BuildHelpers = @{
-        AllowClobber = $true
-        Version = "latest"
+    Pester           = @{
+        Parameters = @{
+            SkipPublisherCheck = $true
+        }
+        Version    = "4.1.1"
     }
-    Pester = "4.1.1"
-    platyPS = "latest"
+    platyPS          = "latest"
     PSScriptAnalyzer = "latest"
 }

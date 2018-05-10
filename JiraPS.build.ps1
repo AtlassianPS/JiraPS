@@ -24,8 +24,10 @@ catch { }
 
 Set-StrictMode -Version Latest
 
-Import-Module BuildHelpers -Force -ErrorAction SilentlyContinue
-Import-Module "$PSScriptRoot/Tools/build.psm1" -Force
+Import-Module "$PSScriptRoot/Tools/build.psm1" -Force -ErrorAction Stop
+if ($BuildTask -ne "InstallDependencies") {
+    Import-Module BuildHelpers -Force -ErrorAction Stop
+}
 
 #region SetUp
 # Synopsis: Create an initial environment for developing on the module
@@ -34,14 +36,20 @@ task SetUp InstallDependencies, Build
 # Synopsis: Install all module used for the development of this module
 task InstallDependencies {
     Install-PSDepend
-    Import-Module PSDepend
-    $null = Invoke-PSDepend -Path "$PSScriptRoot\build.requirements.psd1" -Install -Import -Force
+    Import-Module PSDepend -Force
+    $parameterPSDepend = @{
+        Path        = "$PSScriptRoot/Tools/build.requirements.psd1"
+        Install     = $true
+        Import      = $true
+        Force       = $true
+        ErrorAction = "Stop"
+    }
+    $null = Invoke-PSDepend @parameterPSDepend
     Import-Module BuildHelpers -Force
 }
 
 # Synopsis: Ensure the build environment is all ready to go
 task Init {
-    Add-PSModulePath -Path $env:BHBuildOutput
     Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
 }, GetNextVersion
 
@@ -80,7 +88,7 @@ switch ($true) {
 #endregion HarmonizeVariables
 
 #region DebugInformation
-task ShowDebug Init, {
+task ShowInfo Init, {
     Write-Build Gray
     Write-Build Gray ('Running in:                 {0}' -f $env:BHBuildSystem)
     Write-Build Gray '-------------------------------------------------------'
@@ -143,13 +151,13 @@ task GenerateExternalHelp -If (Get-ChildItem "$BuildRoot/docs/en-US/commands" -E
 }
 
 # Synopsis: Update the manifest of the module
-task UpdateManifest Init, {
+task UpdateManifest GetNextVersion, {
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
     Import-Module $env:BHPSModuleManifest -Force
     $ModuleAlias = @(Get-Alias | Where-Object {$_.ModuleName -eq "$env:BHProjectName"})
 
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHProjectName -Force
+    Import-Module "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -Force
 
     BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName ModuleVersion -Value $env:NextBuildVersion
     # BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName FileList -Value (Get-ChildItem "$env:BHBuildOutput/$env:BHProjectName" -Recurse).Name
@@ -221,11 +229,11 @@ task PublishToGallery {
     assert ($env:PSGalleryAPIKey) "No key for the PSGallery"
 
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHProjectName -ErrorAction Stop
+    Import-Module "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -ErrorAction Stop
     Publish-Module -Name $env:BHProjectName -NuGetApiKey $env:PSGalleryAPIKey
 }
 
-task TagReplository {
+task TagReplository GetNextVersion, {
     Write-Build Gray "git checkout $ENV:BHBranchName"
     cmd /c "git checkout $ENV:BHBranchName 2>&1"
     Write-Build Gray "git tag -a v$env:NextBuildVersion"
@@ -285,6 +293,6 @@ task RemoveConfig {
 }
 #endregion
 
-task . ShowDebug, Clean, Build, Test, Deploy
+task . ShowInfo, Clean, Build, Test, Deploy
 
 Remove-Item -Path Env:\BH*
