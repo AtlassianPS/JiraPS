@@ -4,7 +4,6 @@ environment:
         # Must be updated to use contact@AtlassianPS.net user
     access_token:
         secure: PX1R0Ds6r3TTm+wxVbx8MRAgjCRV/juO3cYSEz1MedB/OXvZ3YkqpQGE+X47bcFT
-    fast_finish: true
     matrix:
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
         # waiting on https://github.com/PoshCode/Configuration/issues/15
@@ -13,6 +12,9 @@ environment:
           PowershellVersion: "6.0.0"
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           PowershellVersion: "6.0.0"
+
+matrix:
+    fast_finish: true
 
 version: 2.6.{build}
 

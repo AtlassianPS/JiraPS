@@ -4,19 +4,11 @@ param()
 function Install-PSDepend {
     if (-not (Get-Module PSDepend -ListAvailable)) {
         if (Get-Module PowershellGet -ListAvailable) {
-            Install-Module PSDepend -Scope CurrentUser -ErrorAction Stop
+            Install-Module PSDepend -Scope CurrentUser -ErrorAction Stop -Verbose
         }
         else {
             throw "The PowershellGet module is not available."
         }
-    }
-}
-
-function Add-PSModulePath([String]$Path) {
-    $PSModulePath = $env:PSModulePath -split ([IO.Path]::PathSeparator)
-    if ($env:BHBuildOutput -notin $PSModulePath) {
-        $PSModulePath += $Path
-        $env:PSModulePath = $PSModulePath -join ([IO.Path]::PathSeparator)
     }
 }
 
