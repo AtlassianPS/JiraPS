@@ -31,16 +31,6 @@
         {
             "type": "PowerShell",
             "request": "launch",
-            "name": "PowerShell Launch DebugTest.ps1",
-            "script": "${workspaceRoot}/DebugTest.ps1",
-            "args": [
-                "-Count 55 -DelayMilliseconds 250"
-            ],
-            "cwd": "${workspaceRoot}"
-        },
-        {
-            "type": "PowerShell",
-            "request": "launch",
             "name": "PowerShell Interactive Session",
             "cwd": "${workspaceRoot}"
         },

@@ -26,7 +26,7 @@
 ### Your Environment
 <!-- Include as many relevant details about the environment you experienced the bug in -->
 <!-- The following code snip is a recommendation. You can just paste the output here. -->
-> ```posh
+> ```powershell
 > Get-Module JiraPS -ListAvailable | select version
 > $PSVersionTable
 > ```
