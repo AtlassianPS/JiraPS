@@ -3,10 +3,12 @@ function Add-JiraGroupMember {
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
         [Alias('GroupName')]
+        [ValidateNotNullOrEmpty()]
         [Object[]]
         $Group,
 
         [Parameter( Mandatory )]
+        [ValidateNotNullOrEmpty()]
         [Object[]]
         $UserName,
         <#
