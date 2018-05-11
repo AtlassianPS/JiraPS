@@ -4,7 +4,6 @@ environment:
         # Must be updated to use contact@AtlassianPS.net user
     access_token:
         secure: PX1R0Ds6r3TTm+wxVbx8MRAgjCRV/juO3cYSEz1MedB/OXvZ3YkqpQGE+X47bcFT
-    fast_finish: true
     matrix:
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
         # waiting on https://github.com/PoshCode/Configuration/issues/15
@@ -13,6 +12,9 @@ environment:
           PowershellVersion: "6.0.0"
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           PowershellVersion: "6.0.0"
+
+matrix:
+    fast_finish: true
 
 version: 2.6.{build}
 
@@ -34,7 +36,7 @@ skip_commits:
 # PRs, by definition, don't change anything and therefore should not increment the version
 # To be fair, this is not important, and is really just AppVeyor enabling my pedantry
 pull_requests:
-  do_not_increment_build_number: true
+    do_not_increment_build_number: true
 
 init:
     - ps: |
@@ -50,19 +52,6 @@ install:
 
 build_script:
     - ps: '& $env:posh -Command "Invoke-Build"'
-
-deploy:
-    provider: GitHub
-    release: v$(appveyor_build_version)
-    description: ''
-    auth_token:
-        secure: ekVji7s19g/3zxpVQMX9gG1CldaXdOudCdY8a057AwcK5HyKZC0lFBE1Ou9iwBpu
-    # artifact: /Release/JiraPS.zip
-    draft: false
-    prerelease: false
-    on:
-        branch: master                 # release from master branch only
-        appveyor_repo_tag: false        # deploy on tag push only
 
 # on_failure:
     # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
