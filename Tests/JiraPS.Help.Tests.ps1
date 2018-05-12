@@ -183,6 +183,7 @@ foreach ($command in $commands) {
                         $codeType = $parameter.ParameterType.Name
                         # To avoid calling Trim method on a null object.
                         $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
+                        if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
                         $helpType | Should be $codeType
                     }
                 }
