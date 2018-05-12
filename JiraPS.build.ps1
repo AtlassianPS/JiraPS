@@ -201,6 +201,9 @@ task Test Init, {
             OutputFormat = "NUnitXml"
             CodeCoverage = $codeCoverageFiles
         }
+        if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
+            $parameter["Show"] = "Fails"
+        }
         $testResults = Invoke-Pester @parameter
 
         If ('AppVeyor' -eq $env:BHBuildSystem) {
