@@ -34,7 +34,7 @@ function New-JiraIssue {
         [String[]]
         $FixVersion,
 
-        [Hashtable]
+        [PSCustomObject]
         $Fields,
 
         [PSCredential]
