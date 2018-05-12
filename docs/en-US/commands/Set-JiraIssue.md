@@ -17,7 +17,7 @@ Modifies an existing issue in JIRA
 
 ```powershell
 Set-JiraIssue [-Issue] <Object[]> [[-Summary] <String>] [[-Description] <String>] [[-FixVersion] <String[]>]
- [[-Assignee] <Object>] [[-Label] <String[]>] [[-Fields] <Hashtable>] [[-AddComment] <String>]
+ [[-Assignee] <Object>] [[-Label] <String[]>] [[-Fields] <PSCustomObject>] [[-AddComment] <String>]
  [[-Credential] <PSCredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -196,7 +196,7 @@ Any additional fields that should be updated.
 Inspect [about_JiraPS_CustomFields](../../about/custom-fields.html) for more information.
 
 ```yaml
-Type: Hashtable
+Type: PSCustomObject
 Parameter Sets: (All)
 Aliases:
 

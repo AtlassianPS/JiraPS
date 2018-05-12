@@ -16,7 +16,7 @@ Performs an issue transition on a JIRA issue changing it's status
 ## SYNTAX
 
 ```powershell
-Invoke-JiraIssueTransition [-Issue] <Object> [-Transition] <Object> [[-Fields] <Hashtable>]
+Invoke-JiraIssueTransition [-Issue] <Object> [-Transition] <Object> [[-Fields] <PSCustomObject>]
  [[-Assignee] <Object>] [[-Comment] <String>] [[-Credential] <PSCredential>] [-Passthru] [<CommonParameters>]
 ```
 
@@ -128,7 +128,7 @@ Any additional fields that should be updated.
 Fields must be configured to appear on the transition screen to use this parameter.
 
 ```yaml
-Type: Hashtable
+Type: PSCustomObject
 Parameter Sets: (All)
 Aliases:
 
