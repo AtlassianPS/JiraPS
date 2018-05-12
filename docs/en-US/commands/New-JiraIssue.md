@@ -18,7 +18,7 @@ Creates a new issue in JIRA
 ```powershell
 New-JiraIssue [-Project] <String> [-IssueType] <String> [-Summary] <String> [[-Priority] <Int32>]
  [[-Description] <String>] [[-Reporter] <String>] [[-Labels] <String[]>] [[-Parent] <String>]
- [[-FixVersion] <String[]>] [[-Fields] <Hashtable>] [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
+ [[-FixVersion] <String[]>] [[-Fields] <PSCustomObject>] [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
@@ -237,7 +237,7 @@ Any additional fields.
 See: about_JiraPS_CustomFields
 
 ```yaml
-Type: Hashtable
+Type: PSCustomObject
 Parameter Sets: (All)
 Aliases:
 

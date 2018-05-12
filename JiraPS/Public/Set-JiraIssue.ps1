@@ -44,7 +44,7 @@ function Set-JiraIssue {
         [String[]]
         $Label,
 
-        [Hashtable]
+        [PSCustomObject]
         $Fields,
 
         [String]
