@@ -31,7 +31,9 @@ function Invoke-JiraMethod {
         [PSCredential]
         $Credential,
 
-        $Caller = $PSCmdlet
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCmdlet]
+        $Cmdlet = $((Get-Variable -Scope 1 PSCmdlet).Value)
     )
 
     begin {
@@ -121,8 +123,7 @@ function Invoke-JiraMethod {
             }
         }
 
-        # Test response Headers if Confluence requires a CAPTCHA
-        Test-Captcha -InputObject $webResponse -Caller $Caller
+        Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
 
@@ -172,7 +173,7 @@ function Invoke-JiraMethod {
 
         if ($result) {
             if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
-                Resolve-JiraError $result -WriteError -Caller $Caller
+                Resolve-JiraError $result -WriteError -Cmdlet $Cmdlet
             }
             else {
                 Write-Output $result
