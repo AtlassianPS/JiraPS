@@ -33,7 +33,7 @@ function Invoke-JiraMethod {
 
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
-        $Cmdlet = $((Get-Variable -Scope 1 PSCmdlet).Value)
+        $Cmdlet = $PSCmdlet
     )
 
     begin {

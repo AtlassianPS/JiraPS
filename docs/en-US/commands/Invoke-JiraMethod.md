@@ -316,7 +316,7 @@ Accept wildcard characters: False
 Context which will be used for throwing errors.
 
 ```yaml
-Type: System.Management.Automation.PSCmdlet
+Type: PSCmdlet
 Parameter Sets: (All)
 Aliases:
 

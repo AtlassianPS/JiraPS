@@ -13,7 +13,7 @@ function Test-ServerResponse {
 
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
-        $Cmdlet = $((Get-Variable -Scope 1 PSCmdlet).Value)
+        $Cmdlet = $PSCmdlet
     )
 
     begin {
