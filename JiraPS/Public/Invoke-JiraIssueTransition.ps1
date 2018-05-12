@@ -32,7 +32,7 @@ function Invoke-JiraIssueTransition {
         [Object]
         $Transition,
 
-        [System.Collections.Hashtable]
+        [PSCustomObject]
         $Fields,
 
         [Object]
