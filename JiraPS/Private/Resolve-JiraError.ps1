@@ -9,7 +9,9 @@
         [Switch]
         $WriteError,
 
-        $Caller = $PSCmdlet
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCmdlet]
+        $Cmdlet = $((Get-Variable -Scope 1 PSCmdlet).Value)
     )
 
     process {
@@ -26,7 +28,7 @@
                             $i
                         )
                         $errorItem.ErrorDetails = "Jira encountered an error: [$e]"
-                        $Caller.WriteError($errorItem)
+                        $Cmdlet.WriteError($errorItem)
                     }
                     else {
                         $obj = [PSCustomObject] @{
@@ -53,7 +55,7 @@
                             $i
                         )
                         $errorItem.ErrorDetails = "Jira encountered an error: [$k] - $($i.errors.$k)"
-                        $Caller.WriteError($errorItem)
+                        $Cmdlet.WriteError($errorItem)
                     }
                     else {
                         $obj = [PSCustomObject] @{
