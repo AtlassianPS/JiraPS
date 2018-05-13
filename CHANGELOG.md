@@ -1,5 +1,24 @@
 # Change Log
 
+## 2.7 - 2018-05-13
+
+More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.7.html).
+
+### IMPROVEMENTS
+
+- Writing and throwing of errors show better context (#199, [@lipkau][])
+- Improved validation of parameters in `Add-JiraGroupMember` (#250, [@WindowsAdmin92][])
+- Improved casting to `-Fields` by defining it's type as `[PSCustomObject]` (#255, [@lipkau][])
+- Several improvements to the CI pipeline (#252, #257, [@lipkau][])
+
+### BUG FIXES
+
+- Build script was not publishing to the PSGallery (#252, [@lipkau][])
+- Build script was publishing a new tag to repository even in case the build failed (#252, [@lipkau][])
+- Fixed the adding multiple labels and the removal of those in `Set-JiraIssueLabel` (#244, [@lipkau][])
+- Fixed CI icon in README (#245, [@lipkau][])
+- Allow `Get-JiraUser` to return more than 1 result (#246, [@lipkau][])
+
 ## 2.6 - 2018-05-02
 
 More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.6.html).
@@ -246,3 +265,4 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
   [@lukhase]: https://github.com/lukhase
   [@padgers]: https://github.com/padgers
   [@ThePSAdmin]: https://github.com/ThePSAdmin
+  [@WindowsAdmin92]: https://github.com/WindowsAdmin92
