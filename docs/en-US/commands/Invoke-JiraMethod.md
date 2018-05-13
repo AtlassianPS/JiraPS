@@ -18,7 +18,7 @@ Invoke a specific call to a Jira REST Api endpoint
 ```powershell
 Invoke-JiraMethod [-URI] <Uri> [[-Method] <WebRequestMethod>] [[-Body] <String>] [-RawBody]
  [[-Headers] <Hashtable>] [[-InFile] <String>] [[-OutFile] <String>] [-StoreSession]
- [[-Credential] <PSCredential>] [[-Caller] <Object>] [<CommonParameters>]
+ [[-Credential] <PSCredential>] [[-Cmdlet] <System.Management.Automation.PSCmdlet>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -311,12 +311,12 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Caller
+### -Cmdlet
 
 Context which will be used for throwing errors.
 
 ```yaml
-Type: Object
+Type: PSCmdlet
 Parameter Sets: (All)
 Aliases:
 
