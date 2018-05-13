@@ -19,7 +19,7 @@ Describe "Invoke-JiraMethod" {
             defParam $command 'InFile'
             defParam $command 'OutFile'
             defParam $command 'Credential'
-            defParam $command 'Caller'
+            defParam $command 'CmdLet'
 
             It "Restricts the METHODs to WebRequestMethod" {
                 $methodType = $command.Parameters.Method.ParameterType
