@@ -62,6 +62,10 @@ Describe "Get-JiraPriority" {
             Write-Output $jiraServer
         }
 
+        Mock ConvertTo-JiraPriority -ModuleName JiraPS {
+            $InputObject
+        }
+
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/priority"} {
             ConvertFrom-Json $restResultAll
         }
@@ -71,7 +75,7 @@ Describe "Get-JiraPriority" {
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName JiraPS {
+        Mock Invoke-JiraMethod {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
@@ -81,21 +85,15 @@ Describe "Get-JiraPriority" {
         #############
 
         It "Gets all available priorities if called with no parameters" {
-            $getResult = Get-JiraPriority -Credential $testCred
+            $getResult = Get-JiraPriority
             $getResult | Should Not BeNullOrEmpty
             $getResult.Count | Should Be 5
         }
 
         It "Gets one priority if the ID parameter is supplied" {
-            $getResult = Get-JiraPriority -Id 1 -Credential $testCred
+            $getResult = Get-JiraPriority -Id 1
             $getResult | Should Not BeNullOrEmpty
             @($getResult).Count | Should Be 1
-        }
-
-        It "Converts the output object to type JiraPS.Priority" {
-            $getResult = Get-JiraPriority -Id 1 -Credential $testCred
-            $getResult | Should Not BeNullOrEmpty
-            checkType $getResult "JiraPS.Priority"
         }
     }
 }
