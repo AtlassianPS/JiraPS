@@ -82,7 +82,6 @@ function Get-JiraIssue {
         $PageSize = 50,
 
         [Parameter()]
-        [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
         $Credential = [System.Management.Automation.PSCredential]::Empty
