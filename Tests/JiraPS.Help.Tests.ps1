@@ -181,6 +181,11 @@ foreach ($command in $commands) {
                     # Parameter type in Help should match code
                     It "help for $commandName has correct parameter type for $parameterName" {
                         $codeType = $parameter.ParameterType.Name
+                        if ($codeType -eq "Object") {
+                            if (($parameter.Attributes) -and ($parameter.Attributes | Get-Member -Name PSTypeName)) {
+                                $codeType = $parameter.Attributes[0].PSTypeName
+                            }
+                        }
                         # To avoid calling Trim method on a null object.
                         $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
                         if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
