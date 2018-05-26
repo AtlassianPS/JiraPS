@@ -1,6 +1,6 @@
-Describe 'Get-JiraFilter' {
+Describe 'Remove-JiraFilter' {
     BeforeAll {
-        Remove-Module JiraPS
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
         Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
     }
 
@@ -88,15 +88,16 @@ Describe 'Get-JiraFilter' {
         #endregion Mocks
 
         Context "Sanity checking" {
-            $command = Get-Command -Name Get-JiraFilter
+            $command = Get-Command -Name Remove-JiraFilter
 
             defParam $command 'InputObject'
             defParam $command 'Credential'
         }
 
         Context "Behavior testing" {
+            Get-JiraFilter -Id 12844
             It "Invokes the Jira API to delete a filter" {
-                 Get-JiraFilter -Id 12844 | Remove-JiraFilter #} | Should Not Throw
+                { Get-JiraFilter -Id 12844 | Remove-JiraFilter } | Should Not Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844'}
             }
@@ -116,13 +117,13 @@ Describe 'Get-JiraFilter' {
             }
 
             It "Accepts multiple filter objects to the -Filter parameter" {
-                { Remove-JiraFilter -InputObject (Get-JiraFilter 12345,12345) } | Should Not Throw
+                { Remove-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) } | Should Not Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
             }
 
             It "Accepts a JiraPS.Filter object via pipeline" {
-                { Get-JiraFilter 12345,12345 | Remove-JiraFilter } | Should Not Throw
+                { Get-JiraFilter 12345, 12345 | Remove-JiraFilter } | Should Not Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
             }

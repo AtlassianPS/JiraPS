@@ -1,6 +1,6 @@
 ﻿Describe 'Get-JiraFilter' {
     BeforeAll {
-        Remove-Module JiraPS
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
         Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
     }
 
