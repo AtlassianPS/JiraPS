@@ -69,7 +69,7 @@ Filter object to be changed.
 Object can be retrieved with `Get-JiraFilter`
 
 ```yaml
-Type: Object
+Type: JiraPS.Filter
 Parameter Sets: (All)
 Aliases:
 
@@ -137,7 +137,7 @@ Accept wildcard characters: False
 Boolean flag if the filter should be marked as favorite for the user.
 
 ```yaml
-Type: SwitchParameter
+Type: Boolean
 Parameter Sets: (All)
 Aliases: Favourite
 

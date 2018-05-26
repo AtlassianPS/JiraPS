@@ -111,9 +111,9 @@ Fetch all filters marked as favorite by the user
 ```yaml
 Type: SwitchParameter
 Parameter Sets: MyFavorite
-Aliases:
+Aliases: Favourite
 
-Required: False
+Required: True
 Position: Named
 Default value: False
 Accept pipeline input: False
