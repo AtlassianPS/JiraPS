@@ -1,34 +1,37 @@
 ﻿Describe 'Get-JiraFilter' {
-
-    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+    BeforeAll {
+        Remove-Module JiraPS
+        Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+    }
 
     InModuleScope JiraPS {
 
         . "$PSScriptRoot/Shared.ps1"
 
+        #region Definitions
         $jiraServer = "https://jira.example.com"
 
-        $response = @'
+        $responseFilter = @"
 {
-    "self": "https://jira.atlassian.com/rest/api/latest/filter/12844",
+    "self": "$jiraServer/rest/api/latest/filter/12844",
     "id": "12844",
     "name": "All JIRA Bugs",
     "owner": {
-        "self": "https://jira.atlassian.com/rest/api/2/user?username=scott@atlassian.com",
+        "self": "$jiraServer/rest/api/2/user?username=scott@atlassian.com",
         "key": "scott@atlassian.com",
         "name": "scott@atlassian.com",
         "avatarUrls": {
-            "16x16": "https://jira.atlassian.com/secure/useravatar?size=xsmall&avatarId=10612",
-            "24x24": "https://jira.atlassian.com/secure/useravatar?size=small&avatarId=10612",
-            "32x32": "https://jira.atlassian.com/secure/useravatar?size=medium&avatarId=10612",
-            "48x48": "https://jira.atlassian.com/secure/useravatar?avatarId=10612"
+            "16x16": "$jiraServer/secure/useravatar?size=xsmall&avatarId=10612",
+            "24x24": "$jiraServer/secure/useravatar?size=small&avatarId=10612",
+            "32x32": "$jiraServer/secure/useravatar?size=medium&avatarId=10612",
+            "48x48": "$jiraServer/secure/useravatar?avatarId=10612"
         },
         "displayName": "Scott Farquhar [Atlassian]",
         "active": true
     },
     "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
-    "viewUrl": "https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844",
-    "searchUrl": "https://jira.atlassian.com/rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
+    "viewUrl": "$jiraServer/secure/IssueNavigator.jspa?mode=hide&requestId=12844",
+    "searchUrl": "$jiraServer/rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
     "favourite": false,
     "sharePermissions": [
         {
@@ -51,36 +54,82 @@
         "end-index": 0
     }
 }
-'@
+"@
 
-        Mock Get-JiraConfigServer {
+        $responseFilterCollection = @"
+[
+    {
+        "self": "$jiraServer/rest/api/latest/filter/13844",
+        "id": "13844",
+        "name": "Filter 1",
+        "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
+        "favourite": true
+    },
+    {
+        "self": "$jiraServer/rest/api/latest/filter/14844",
+        "id": "14844",
+        "name": "Filter 2",
+        "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
+        "favourite": true
+    },
+    {
+        "self": "$jiraServer/rest/api/latest/filter/15844",
+        "id": "15844",
+        "name": "Filter 3",
+        "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
+        "favourite": true
+    }
+]
+"@
+        #endregion Definitions
+
+        #region Mocks
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             $jiraServer
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/filter/12345"} {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json $response
+        Mock ConvertTo-JiraFilter -ModuleName JiraPS {
+            foreach ($i in $InputObject) {
+                $i.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+                $i
+            }
         }
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/filter/67890"} {
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/filter/12345"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json $response
+            ConvertFrom-Json $responseFilter
         }
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/filter/*"} {
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/filter/67890"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json $response
+            ConvertFrom-Json $responseFilter
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/filter/favourite"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json $responseFilterCollection
+        }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/filter/*"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json $responseFilter
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+        #endregion Mocks
 
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraFilter
 
             defParam $command 'Id'
             defParam $command 'InputObject'
+            defParam $command 'Favorite'
             defParam $command 'Credential'
+
+            defAlias $command 'Favourite' 'Favorite'
         }
 
         Context "Behavior testing" {
@@ -95,29 +144,45 @@
                 { Get-JiraFilter -Id 12345 } | Should Not Throw
                 Assert-MockCalled -CommandName ConvertTo-JiraFilter -ModuleName JiraPS
             }
+
+            It "Finds all favorite filters of the user" {
+                { Get-JiraFilter -Favorite } | Should Not Throw
+
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/favourite'}
+            }
         }
 
         Context "Input testing" {
-            $sampleFilter = ConvertTo-JiraFilter ( ConvertFrom-Json $response )
+            $sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
 
             It "Accepts a filter ID for the -Filter parameter" {
-                { Get-JiraFilter -Id 12345 } | Should Not Throw
+                { Get-JiraFilter -Id "12345" } | Should Not Throw
+
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            }
+
+            It "Accepts a filter ID without the -Filter parameter" {
+                { Get-JiraFilter "12345" } | Should Not Throw
+
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "Accepts multiple filter IDs to the -Filter parameter" {
                 { Get-JiraFilter -Id '12345', '67890' } | Should Not Throw
+
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/67890'}
             }
 
             It "Accepts a JiraPS.Filter object to the InputObject parameter" {
                 { Get-JiraFilter -InputObject $sampleFilter } | Should Not Throw
+
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844'}
             }
 
             It "Accepts a JiraPS.Filter object via pipeline" {
                 { $sampleFilter | Get-JiraFilter } | Should Not Throw
+
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844'}
             }
         }

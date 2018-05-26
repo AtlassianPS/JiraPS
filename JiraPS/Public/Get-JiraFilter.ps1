@@ -37,6 +37,11 @@
         [Object[]]
         $InputObject,
 
+        [Parameter( Mandatory, ParameterSetName = 'MyFavorite' )]
+        [Alias('Favourite')]
+        [Switch]
+        $Favorite,
+
         [PSCredential]
         $Credential
     )
@@ -85,6 +90,17 @@
 
                     Write-Output (Get-JiraFilter -Id $thisId -Credential $Credential)
                 }
+            }
+            "MyFavorite" {
+                $parameter = @{
+                    URI        = $resourceURi -f "favourite"
+                    Method     = "GET"
+                    Credential = $Credential
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
+
+                Write-Output (ConvertTo-JiraFilter -InputObject $result)
             }
         }
     }
