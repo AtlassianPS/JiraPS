@@ -4,7 +4,11 @@ function Remove-JiraIssue {
         SupportsShouldProcess
     )]
     param (
-        [Parameter( Mandatory, ValueFromPipeline )]
+        [Parameter(
+            Mandatory,
+            ValueFromPipeline,
+            Position = 0
+        )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
@@ -63,7 +67,11 @@ function Remove-JiraIssue {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
-            $issueObj = Get-JiraIssue -InputObject $_issue -Credential $Credential -ErrorAction Stop
+            if (("JiraPS.Issue" -notin $_issue.PSObject.TypeNames)) {
+                $issueObj = Get-JiraIssue -Key $_issue -Credential $Credential -ErrorAction Stop
+            } Else {
+                $issueObj = $_
+            }
 
             $parameter = @{
                 URI        = $resourceURi -f $issueObj.Key,$IncludeSubTasks
