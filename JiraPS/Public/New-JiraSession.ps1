@@ -3,7 +3,8 @@ function New-JiraSession {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [Parameter( Mandatory )]
-        [PSCredential]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
         $Credential,
 
         [Hashtable]

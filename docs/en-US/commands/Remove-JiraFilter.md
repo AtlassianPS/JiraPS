@@ -79,6 +79,23 @@ Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
+### -Credential
+
+Credentials to use to connect to JIRA.  
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: PSCredential
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 2
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -WhatIf
 
 Shows what would happen if the cmdlet runs.
@@ -119,7 +136,7 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## INPUTS
 
-### JiraPS.Filter
+### [JiraPS.Filter]
 
 ## OUTPUTS
 
