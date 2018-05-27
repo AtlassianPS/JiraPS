@@ -2,23 +2,20 @@
 CHANGELOG.md merge=union
 
 # Set default behaviour, in case users don't have core.autocrlf set.
-* text=auto
+* text=auto eol=crlf
 
 # Explicitly declare text files we want to always be normalized and converted
 # to native line endings on checkout.
 *.md            text
 *.gitattributes text
-
-# Declare files that will always have LF line endings on checkout.
-*.ps1    text  eol=lf
-*.psm1   text  eol=lf
-*.psd1   text  eol=lf
-*.psc1   text  eol=lf
-*.ps1xml text  eol=lf
-*.clixml text  eol=lf
-*.xml    text  eol=lf
-*.txt    text  eol=lf
-*.md     text  eol=lf
+*.ps1           text
+*.psm1          text
+*.psd1          text
+*.psc1          text
+*.ps1xml        text
+*.clixml        text
+*.xml           text
+*.txt           text
 
 # Denote all files that are truly binary and should not be mergeable.
 *.dll binary
