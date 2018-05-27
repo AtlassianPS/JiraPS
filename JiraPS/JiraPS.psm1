@@ -12,7 +12,27 @@
 if (!("System.Web.HttpUtility" -as [Type])) {
     Add-Type -Assembly System.Web
 }
+if (!("System.Net.Http" -as [Type])) {
+    Add-Type -Assembly System.Net.Http
+}
 #endregion Dependencies
+
+#region Configuration
+$script:DefaultContentType = "application/json; charset=utf-8"
+$script:DefaultPageSize = 25
+$script:DefaultHeaders = @{
+    "Accept"         = "application/json"
+    "Accept-Charset" = "utf-8"
+}
+$script:PagingContainers = @(
+    "comments"
+    "dashboards"
+    "groups"
+    "issues"
+    "values"
+    "worklogs"
+)
+#endregion Configuration
 
 #region LoadFunctions
 $PublicFunctions = @( Get-ChildItem -Path "$PSScriptRoot/Public/*.ps1" -ErrorAction SilentlyContinue )

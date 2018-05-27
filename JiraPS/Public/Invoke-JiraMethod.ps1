@@ -1,6 +1,6 @@
 function Invoke-JiraMethod {
     #Requires -Version 3
-    [CmdletBinding()]
+    [CmdletBinding( SupportsPaging )]
     param
     (
         [Parameter( Mandatory )]
@@ -19,6 +19,10 @@ function Invoke-JiraMethod {
         [Hashtable]
         $Headers = @{},
 
+        [Hashtable]$GetParameter = @{},
+
+        [Switch]$Paging,
+
         [String]
         $InFile,
 
@@ -27,6 +31,10 @@ function Invoke-JiraMethod {
 
         [Switch]
         $StoreSession,
+
+        [ValidateSet("JiraIssue")]
+        [String]
+        $OutputType,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -38,19 +46,9 @@ function Invoke-JiraMethod {
         $Cmdlet = $PSCmdlet
     )
 
-    begin {
+    end {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        # pass input to local variable
-        # this allows to use the PSBoundParameters for recursion
-        $_headers = @{   # Set any default headers
-            "Accept"         = "application/json"
-            "Accept-Charset" = "utf-8"
-        }
-        foreach ($item in $Headers.Key) { $_headers[$item] = $Headers[$item] }
-    }
-
-    process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
@@ -58,11 +56,46 @@ function Invoke-JiraMethod {
         # as the global PSDefaultParameterValues is not used
         $PSDefaultParameterValues = $global:PSDefaultParameterValues
 
+        # Construct the Headers with the folling priority:
+        # - Headers passes as parameters
+        # - User's Headers in $PSDefaultParameterValues
+        # - Module's default Headers
+        $_headers = $script:DefaultHeaders
+        if ($PSDefaultParameterValues.ContainsKey("Invoke-WebRequest:Headers")) {
+            $userSpecificHeaders = $PSDefaultParameterValues["Invoke-WebRequest:Headers"]
+            foreach ($item in $userSpecificHeaders.Key) { $_headers[$item] = $userSpecificHeaders[$item] }
+        }
+        foreach ($item in $Headers.Key) { $_headers[$item] = $Headers[$item] }
+
+        # Amend query from URI with GetParameter
+        $uriQuery = ConvertTo-ParameterHash -Uri $Uri
+        foreach ($item in $uriQuery.Keys) { $GetParameter[$item] = $uriQuery[$item] }
+        # And remove it from URI
+        [Uri]$Uri = $Uri.GetLeftPart("Path")
+        $PaginatedUri = $Uri
+
+        # Use default PageSize
+        if (-not $GetParameter.ContainsKey("maxResults")) {
+            $GetParameter["maxResults"] = $script:DefaultPageSize
+        }
+
+        # Append GET parameters to URi
+        if ($PSCmdlet.PagingParameters) {
+            if ($PSCmdlet.PagingParameters.Skip) {
+                $GetParameter["startAt"] = $PSCmdlet.PagingParameters.Skip
+            }
+            if ($PSCmdlet.PagingParameters.First -lt $GetParameter["maxResults"]) {
+                $GetParameter["maxResults"] = $PSCmdlet.PagingParameters.First
+            }
+        }
+
+        [Uri]$PaginatedUri = "$PaginatedUri$(ConvertTo-GetParameter $GetParameter)"
+
         $splatParameters = @{
-            Uri             = $Uri
+            Uri             = $PaginatedUri
             Method          = $Method
             Headers         = $_headers
-            ContentType     = "application/json; charset=utf-8"
+            ContentType     = $script:DefaultContentType
             UseBasicParsing = $true
             Credential      = $Credential
             ErrorAction     = "Stop"
@@ -125,9 +158,8 @@ function Invoke-JiraMethod {
             }
         }
 
-        Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
-
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
+        Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
 
         if ($webResponse) {
             # In PowerShellCore (v6+) the StatusCode of an exception is somewhere else
@@ -137,8 +169,6 @@ function Invoke-JiraMethod {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Status code: $($statusCode)"
 
             if ($statusCode.value__ -ge 400) {
-                Write-Warning "Jira returned HTTP error $($statusCode.value__) - $($statusCode)"
-
                 if ((!($responseBody)) -and ($webResponse | Get-Member -Name "GetResponseStream")) {
                     # Retrieve body of HTTP response - this contains more useful information about exactly why the error occurred
                     $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
@@ -150,7 +180,31 @@ function Invoke-JiraMethod {
 
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Retrieved body of HTTP response for more information about the error (`$responseBody)"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Got the following error as `$responseBody"
-                    $result = ConvertFrom-Json -InputObject $responseBody
+
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Invalid Server Response"),
+                        "InvalidResponse.Status$($statusCode.value__)",
+                        [System.Management.Automation.ErrorCategory]::InvalidResult,
+                        $responseBody
+                    )
+
+                    try {
+                        $responseObject = ConvertFrom-Json -InputObject $responseBody -ErrorAction Stop
+                        if ($responseObject.errorMessages) {
+                            $errorItem.ErrorDetails = $responseObject.errorMessages | Out-String
+                        } elseif ($responseObject.errors) {
+                            $errorItem.ErrorDetails = $responseObject.errors | Out-String
+                        }
+                        else {
+                            $errorItem.ErrorDetails = "An unknown error ocurred."
+                        }
+
+                    }
+                    catch {
+                        $errorItem.ErrorDetails = "An unknown error ocurred."
+                    }
+
+                    $Cmdlet.WriteError($errorItem)
                 }
 
             }
@@ -160,7 +214,86 @@ function Invoke-JiraMethod {
                 }
 
                 if ($webResponse.Content) {
-                    $result = ConvertFrom-Json -InputObject $webResponse.Content
+                    $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))
+
+                    if ($Paging) {
+                        # Remove Parameters that don't need propagation
+                        $script:PSDefaultParameterValues.Remove("$($MyInvocation.MyCommand.Name):IncludeTotalCount")
+                        $null = $PSBoundParameters.Remove("Paging")
+                        $null = $PSBoundParameters.Remove("Skip")
+                        if (-not $PSBoundParameters["GetParameter"]) {
+                            $PSBoundParameters["GetParameter"] = $GetParameter
+                        }
+
+                        $total = 0
+                        do {
+                            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
+
+                            foreach ($container in $script:PagingContainers) {
+                                if (($response) -and ($response | Get-Member -Name $container)) {
+                                    $result = $response.$container
+                                }
+                            }
+
+                            $total += $result.Count
+                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] New total: $total"
+                            $pageSize = $response.maxResults
+                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] New pageSize: $pageSize"
+
+                            if ($total -gt $PSCmdlet.PagingParameters.First) {
+                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $($PSCmdlet.PagingParameters.First % $pageSize) of page"
+                                $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
+                            }
+
+                            $converter = "ConvertTo-$($OutputType)"
+                            if (Test-Path function:\$converter) {
+                                # Results shall be casted to custom objects (see ValidateSet)
+                                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Outputting results as $($OutputType)"
+                                Write-Output ($result | & $converter)
+                            }
+                            else {
+                                Write-Output ($result)
+                            }
+
+                            if ($total -ge $PSCmdlet.PagingParameters.First) {
+                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] breaking as $total is more than $($PSCmdlet.PagingParameters.First)"
+                                break
+                            }
+
+                            # calculate the size of the next page
+                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] next page begins at $total"
+                            $PSBoundParameters["GetParameter"]["startAt"] = $total
+                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] doesn't it? $($PSBoundParameters["GetParameter"]["startAt"])"
+                            $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
+                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] expecting to have $expectedTotal entries in total with next page"
+                            if ($expectedTotal -gt $PSCmdlet.PagingParameters.First) {
+                                $reduceBy = $expectedTotal - $PSCmdlet.PagingParameters.First
+                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] reducing next pagesize by $reduceBy"
+                                $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
+                            }
+
+                            # Inquire the next page
+                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] about to invoke with : $($PSBoundParameters | Out-String)"
+                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] about to invoke with : $($PSBoundParameters["GetParameter"] | Out-String)"
+                            $response = Invoke-JiraMethod @PSBoundParameters
+
+                            # Expand data container of paged results
+                            $result = @()
+                            foreach ($container in $script:PagingContainers) {
+                                if (($response) -and ($response | Get-Member -Name $container)) {
+                                    $result = $response.$container
+                                }
+                            }
+                        } while ($result.Count)
+
+                        if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
+                            [double]$Accuracy = 1.0
+                            $PSCmdlet.PagingParameters.NewTotalCount($total, $Accuracy)
+                        }
+                    }
+                    else {
+                        Write-Output $response
+                    }
                 }
                 else {
                     # No content, although statusCode < 400
@@ -173,17 +306,6 @@ function Invoke-JiraMethod {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Web result object was returned from. This is unusual!"
         }
 
-        if ($result) {
-            if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
-                Resolve-JiraError $result -WriteError -Cmdlet $Cmdlet
-            }
-            else {
-                Write-Output $result
-            }
-        }
-    }
-
-    end {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
     }
 }

@@ -224,7 +224,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: 50
+Default value: 25
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
