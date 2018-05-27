@@ -1,11 +1,10 @@
-function Get-JiraGroup {
-    [CmdletBinding()]
+function Remove-JiraFilter {
+    [CmdletBinding( ConfirmImpact = "Medium", SupportsShouldProcess )]
     param(
-        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
-        [Alias('Name')]
-        [String[]]
-        $GroupName,
+        [PSTypeName('JiraPS.Filter')]
+        $InputObject,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -15,31 +14,22 @@ function Get-JiraGroup {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/group?groupname={0}"
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($group in $GroupName) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$group]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$group [$group]"
-
-            $escapedGroupName = ConvertTo-URLEncoded $group
-
+        foreach ($filter in $InputObject) {
             $parameter = @{
-                URI        = $resourceURi -f $escapedGroupName
-                Method     = "GET"
+                URI        = $filter.RestURL
+                Method     = "DELETE"
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod @parameter
-
-            Write-Output (ConvertTo-JiraGroup -InputObject $result)
+            if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) {
+                Invoke-JiraMethod @parameter
+            }
         }
     }
 
