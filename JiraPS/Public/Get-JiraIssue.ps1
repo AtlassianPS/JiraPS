@@ -3,6 +3,7 @@ function Get-JiraIssue {
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByIssueKey' )]
         [ValidateNotNullOrEmpty()]
+        [Alias('Issue')]
         [String[]]
         $Key,
 
@@ -80,8 +81,10 @@ function Get-JiraIssue {
         [Int]
         $PageSize = 50,
 
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
