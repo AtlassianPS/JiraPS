@@ -33,7 +33,7 @@ Set-JiraConfigServer -Server "https://jira.server.com"
 $cred = Get-Credential
 
 # Get the date from the issue "PR-123"
-Get-JiraIssue -Key "PR-123" -Credential $cred
+Get-JiraIssue -Issue "PR-123" -Credential $cred
 ```
 
 JiraPS uses the information provided by `Set-JiraConfigServer` to resolve what server to connect to.
