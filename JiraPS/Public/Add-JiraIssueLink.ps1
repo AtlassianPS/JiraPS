@@ -60,10 +60,8 @@ function Add-JiraIssueLink {
         [String]
         $Comment,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [PSCredential]
+        $Credential
     )
 
     begin {

@@ -31,10 +31,8 @@ function Get-JiraRemoteLink {
         [Int]
         $LinkId,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [PSCredential]
+        $Credential
     )
 
     begin {

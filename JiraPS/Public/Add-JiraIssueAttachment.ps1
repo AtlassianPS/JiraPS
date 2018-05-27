@@ -54,10 +54,8 @@ function Add-JiraIssueAttachment {
         [String[]]
         $FilePath,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [PSCredential]
+        $Credential,
 
         [Switch]
         $PassThru
