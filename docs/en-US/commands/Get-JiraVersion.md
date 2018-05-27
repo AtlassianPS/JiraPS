@@ -101,7 +101,7 @@ Accept wildcard characters: False
 A Version object to search for
 
 ```yaml
-Type: Object
+Type: JiraPS.Version
 Parameter Sets: byInputVersion
 Aliases:
 
@@ -133,7 +133,7 @@ Accept wildcard characters: False
 A Project Object to search
 
 ```yaml
-Type: Object
+Type: JiraPS.Project
 Parameter Sets: byInputProject
 Aliases:
 
