@@ -109,7 +109,7 @@ Describe "Remove-JiraIssueAttachment" {
                 { Remove-JiraIssueAttachment -AttachmentId $attachmentId1, $attachmentId2 -Force } | Should Not Throw
                 { Remove-JiraIssueAttachment -Issue (Get-JiraIssue $issueKey) -Force } | Should Not Throw
                 { Remove-JiraIssueAttachment -Issue $issueKey -FileName $attachmentFile1 -Force } | Should Not Throw
-                { Remove-JiraIssueAttachment -Issue $issueKey -FileName $attachmentFile1, $attachmentFile2 -Force } | Should Not Throw
+                { Remove-JiraIssueAttachment -Issue $issueKey -FileName $attachmentFile1, $attachmentFile2 -Credential $Cred -Force } | Should Not Throw
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 4 -Scope It

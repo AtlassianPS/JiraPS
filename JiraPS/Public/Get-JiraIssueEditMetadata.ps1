@@ -9,10 +9,8 @@ function Get-JiraIssueEditMetadata {
           Once we have custom classes, this should be a JiraPS.Issue
         #>
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [PSCredential]
+        $Credential
     )
 
     begin {
