@@ -20,10 +20,6 @@
             @{ Key = "TEST-01"}
         }
 
-        Mock Get-JiraIssue {
-            [PSCustomObject] @{ Key = "TEST-01"}
-        }
-
         Mock Get-JiraProject {
             $object = [PSCustomObject] @{
                 'ID'  = $Project

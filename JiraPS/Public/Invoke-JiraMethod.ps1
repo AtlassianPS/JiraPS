@@ -28,10 +28,8 @@ function Invoke-JiraMethod {
         [Switch]
         $StoreSession,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [PSCredential]
+        $Credential,
 
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
@@ -91,10 +89,10 @@ function Invoke-JiraMethod {
             $splatParameters.Remove("WebSession")
         }
 
-        if ((-not $Credential) -or ($Credential -eq [System.Management.Automation.PSCredential]::Empty)) {
-            $splatParameters.Remove("Credential")
-            if ($session = Get-JiraSession -ErrorAction SilentlyContinue) {
+        if ($session = Get-JiraSession -ErrorAction SilentlyContinue) {
+            if (-not ($Credential)) {
                 $splatParameters["WebSession"] = $session.WebSession
+                $splatParameters.Remove("Credential")
             }
         }
 

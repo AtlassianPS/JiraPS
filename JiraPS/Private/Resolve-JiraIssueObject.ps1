@@ -28,10 +28,8 @@ function Resolve-JiraIssueObject {
         $InputObject,
 
         # Authentication credentials
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [PSCredential]
+        $Credential
     )
 
     # As we are not able to use proper type casting in the parameters, this is a workaround
