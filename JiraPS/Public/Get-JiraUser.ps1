@@ -13,10 +13,18 @@ function Get-JiraUser {
         [Switch]
         $IncludeInactive,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Parameter( ParameterSetName = 'ByUserName' )]
+        [ValidateRange(1, 1000)]
+        [UInt32]
+        $MaxResults = 50,
+
+        [Parameter( ParameterSetName = 'ByUserName' )]
+        [ValidateNotNullOrEmpty()]
+        [UInt64]
+        $Skip = 0,
+
+        [PSCredential]
+        $Credential
     )
 
     begin {
@@ -29,6 +37,12 @@ function Get-JiraUser {
 
         if ($IncludeInactive) {
             $searchResourceUri += "&includeInactive=true"
+        }
+        if ($MaxResults) {
+            $searchResourceUri += "&maxResults=$MaxResults"
+        }
+        if ($Skip) {
+            $searchResourceUri += "&startAt=$Skip"
         }
     }
 

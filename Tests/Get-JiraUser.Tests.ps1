@@ -128,6 +128,30 @@ Describe "Get-JiraUser" {
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 2 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
         }
 
+        It "Allow it search for multiple users" {
+            Get-JiraUser -UserName "%"
+
+            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {
+                $URI -like "$jiraServer/rest/api/*/user/search?*username=%25*"
+            }
+        }
+
+        It "Allows to change the max number of users to be returned" {
+            Get-JiraUser -UserName "%" -MaxResults 100
+
+            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {
+                $URI -like "$jiraServer/rest/api/*/user/search?*maxResults=100*"
+            }
+        }
+
+        It "Can skip a certain amount of results" {
+            Get-JiraUser -UserName "%" -Skip 10
+
+            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {
+                $URI -like "$jiraServer/rest/api/*/user/search?*startAt=10*"
+            }
+        }
+
         It "Provides information about the user's group membership in Jira" {
             $getResult = Get-JiraUser -UserName $testUsername
 
