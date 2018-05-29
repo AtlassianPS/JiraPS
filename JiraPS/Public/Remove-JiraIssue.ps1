@@ -79,14 +79,14 @@ function Remove-JiraIssue {
                 Credential = $Credential
             }
 
-            $TargetText = "[$($issueObj.Key)] $($issueObj.Summary)"
+
             If ($IncludeSubTasks) {
                 $ActionText = "Remove issue and sub-tasks"
             } Else {
                 $ActionText = "Remove issue"
             }
 
-            if ($PSCmdlet.ShouldProcess($TargetText, $ActionText)) {
+            if ($PSCmdlet.ShouldProcess($issueoBj, $ActionText)) {
 
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod @parameter
