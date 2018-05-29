@@ -24,7 +24,7 @@ Get-JiraUser [-Credential <PSCredential>] [<CommonParameters>]
 ### ByUserName
 
 ```powershell
-Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <Int32>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByInputObject
