@@ -11,12 +11,11 @@ function Remove-JiraIssueLink {
                     {("JiraPS.Issue" -in $Input.PSObject.TypeNames) -and ("issueLinks" -in $objectProperties.Name)} { return $true }
                     {("JiraPS.IssueLink" -in $Input.PSObject.TypeNames) -and ("Id" -in $objectProperties.Name)} { return $true }
                     default {
-                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                            ([System.ArgumentException]"Invalid Type for Parameter"),
-                            'ParameterType.NotJiraIssue',
-                            [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                            $Input
-                        )
+                        $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                        $errorId = 'ParameterType.NotJiraIssue'
+                        $errorCategory = 'InvalidArgument'
+                        $errorTarget = $Input
+                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                         $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($Input.GetType().Name)"
                         $PSCmdlet.ThrowTerminatingError($errorItem)
                         <#

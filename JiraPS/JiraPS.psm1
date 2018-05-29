@@ -24,14 +24,14 @@ foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
         . $file.FullName
     }
     catch {
-        $errorItem = [System.Management.Automation.ErrorRecord]::new(
-            ([System.ArgumentException]"Function not found"),
-            'Load.Function',
-            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-            $file
-        )
+        $exception = ([System.ArgumentException]"Function not found")
+        $errorId = "Load.Function"
+        $errorCategory = 'ObjectNotFound'
+        $errorTarget = $file
+        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
         $errorItem.ErrorDetails = "Failed to import function $($file.BaseName)"
-        throw $errorItem
+        # throw $errorItem
+        throw $_
     }
 }
 Export-ModuleMember -Function $PublicFunctions.BaseName
