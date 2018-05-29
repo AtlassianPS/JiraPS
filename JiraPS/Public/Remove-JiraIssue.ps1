@@ -87,7 +87,7 @@ function Remove-JiraIssue {
                 $ActionText = "Remove issue"
             }
 
-            if ($PSCmdlet.ShouldProcess($issueoBj, $ActionText)) {
+            if ($PSCmdlet.ShouldProcess($issueObj.ToString(), $ActionText)) {
 
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod @parameter
