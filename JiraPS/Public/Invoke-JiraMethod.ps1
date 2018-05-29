@@ -44,8 +44,12 @@ function Invoke-JiraMethod {
         # pass input to local variable
         # this allows to use the PSBoundParameters for recursion
         $_headers = @{   # Set any default headers
-            "Accept"         = "application/json"
+            # "Accept"         = "application/json"
             "Accept-Charset" = "utf-8"
+        }
+        # Bug in PSv3's .Net API
+        if ($PSVersionTable.PSVersion.Major -eq 3) {
+            $_headers["Accept"] = "application/json"
         }
         foreach ($item in $Headers.Key) { $_headers[$item] = $Headers[$item] }
     }
