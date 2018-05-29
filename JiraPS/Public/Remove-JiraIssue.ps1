@@ -38,7 +38,8 @@ function Remove-JiraIssue {
         [Alias("deleteSubtasks")]
         $IncludeSubTasks,
 
-        [PSCredential]
+        [System.Management.Automation.CredentialAttribute()]
+        [System.Management.Automation.PSCredential]
         $Credential,
 
         [Switch]
