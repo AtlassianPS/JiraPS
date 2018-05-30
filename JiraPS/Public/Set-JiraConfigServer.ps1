@@ -44,12 +44,11 @@ function Set-JiraConfigServer {
 
         $xmlConfig = $xml.DocumentElement
         if ($xmlConfig.LocalName -ne 'Config') {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid Document"),
-                'InvalidObject.InvalidDocument',
-                [System.Management.Automation.ErrorCategory]::InvalidData,
-                $_
-            )
+            $exception = ([System.ArgumentException]"Invalid Document")
+            $errorId = 'InvalidObject.InvalidDocument'
+            $errorCategory = 'InvalidData'
+            $errorTarget = $_
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "Unexpected document element [$($xmlConfig.LocalName)] in configuration file. You may need to delete the config file and recreate it using this function."
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }
