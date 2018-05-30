@@ -49,7 +49,7 @@ Describe "Get-JiraServerInformation" {
         It "Answers to the alias 'Get-JiraServerInfo'" {
             $thisAlias = (Get-Alias -Name "Get-JiraServerInfo")
             $thisAlias.ResolvedCommandName | Should Be "Get-JiraServerInformation"
-            $thisAlias.Source | Should Be "JiraPS"
+            $thisAlias.ModuleName | Should Be "JiraPS"
         }
     }
 }
