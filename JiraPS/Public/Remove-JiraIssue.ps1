@@ -72,7 +72,7 @@ function Remove-JiraIssue {
             if (("JiraPS.Issue" -notin $_issue.PSObject.TypeNames)) {
                 $issueObj = Get-JiraIssue -Key $_issue -Credential $Credential -ErrorAction Stop
             } Else {
-                $issueObj = $_
+                $issueObj = $_issue
             }
 
             $parameter = @{
