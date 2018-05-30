@@ -46,7 +46,7 @@ function Invoke-JiraMethod {
         $Cmdlet = $PSCmdlet
     )
 
-    end {
+    begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"

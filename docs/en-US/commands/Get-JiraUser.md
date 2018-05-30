@@ -24,7 +24,7 @@ Get-JiraUser [-Credential <PSCredential>] [<CommonParameters>]
 ### ByUserName
 
 ```powershell
-Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByInputObject
@@ -109,6 +109,42 @@ Aliases:
 Required: False
 Position: Named
 Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -MaxResults
+
+Maximum number of user to be returned.
+
+> The API does not allow for any value higher than 1000.
+
+```yaml
+Type: UInt32
+Parameter Sets: ByUserName
+Aliases:
+
+Required: False
+Position: Named
+Default value: 50
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Skip
+
+Controls how many objects will be skipped before starting output.
+
+Defaults to 0.
+
+```yaml
+Type: UInt64
+Parameter Sets: ByUserName
+Aliases:
+
+Required: False
+Position: Named
+Default value: 0
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

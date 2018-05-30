@@ -6,12 +6,11 @@ function Set-JiraUser {
         [ValidateScript(
             {
                 if (("JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraUser',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraUser'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for User. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -41,12 +40,11 @@ function Set-JiraUser {
                     return $true
                 }
                 else {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Argument"),
-                        'ParameterValue.NotEmail',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $Issue
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Argument") #fix code highlighting]
+                    $errorId = 'ParameterValue.NotEmail'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $Issue
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "The value provided does not look like an email address."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     return $false
