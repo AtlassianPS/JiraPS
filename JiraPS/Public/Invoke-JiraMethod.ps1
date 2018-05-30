@@ -48,7 +48,7 @@ function Invoke-JiraMethod {
             "Accept-Charset" = "utf-8"
         }
         # Bug in PSv3's .Net API
-        if ($PSVersionTable.PSVersion.Major -eq 3) {
+        if ($PSVersionTable.PSVersion.Major -gt 3) {
             $_headers["Accept"] = "application/json"
         }
         foreach ($item in $Headers.Key) { $_headers[$item] = $Headers[$item] }
