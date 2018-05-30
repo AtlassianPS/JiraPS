@@ -30,8 +30,7 @@ foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
         $errorTarget = $file
         $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
         $errorItem.ErrorDetails = "Failed to import function $($file.BaseName)"
-        # throw $errorItem
-        throw $_
+        throw $errorItem
     }
 }
 Export-ModuleMember -Function $PublicFunctions.BaseName -Alias *
