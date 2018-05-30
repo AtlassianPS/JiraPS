@@ -26,12 +26,11 @@ function Get-JiraConfigServer {
         }
 
         if (-not (Test-Path -Path $ConfigFile)) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.IO.FileNotFoundException]"Could not find $ConfigFile"),
-                'ConfigFile.NotFound',
-                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                $ConfigFile
-            )
+            $exception = ([System.IO.FileNotFoundException]"Could not find $ConfigFile")
+            $errorId = 'ConfigFile.NotFound'
+            $errorCategory = 'ObjectNotFound'
+            $errorTarget = $ConfigFile
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "Config file [$ConfigFile] does not exist. Use Set-JiraConfigServer first to define the configuration file."
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }
@@ -41,12 +40,11 @@ function Get-JiraConfigServer {
 
         $xmlConfig = $xml.DocumentElement
         if ($xmlConfig.LocalName -ne 'Config') {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.IO.FileFormatException]"XML had not the expected format"),
-                'ConfigFile.UnexpectedElement',
-                [System.Management.Automation.ErrorCategory]::ParserError,
-                $ConfigFile
-            )
+            $exception = ([System.IO.FileFormatException]"XML had not the expected format")
+            $errorId = 'ConfigFile.UnexpectedElement'
+            $errorCategory = ParserError
+            $errorTarget = $ConfigFile
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "Unexpected document element [$($xmlConfig.LocalName)] in configuration file [$ConfigFile]. You may need to delete the config file and recreate it using Set-JiraConfigServer."
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }
@@ -55,12 +53,11 @@ function Get-JiraConfigServer {
             Write-Output $xmlConfig.Server
         }
         else {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.UriFormatException]"Could not find URI"),
-                'ConfigFile.EmptyElement',
-                [System.Management.Automation.ErrorCategory]::OpenError,
-                $ConfigFile
-            )
+            $exception = ([System.UriFormatException]"Could not find URI")
+            $errorId = 'ConfigFile.EmptyElement'
+            $errorCategory = OpenError
+            $errorTarget = $ConfigFile
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "No Server element is defined in the config file.  Use Set-JiraConfigServer to define one."
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }

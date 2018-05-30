@@ -20,9 +20,12 @@ if (!("System.Net.Http" -as [Type])) {
 #region Configuration
 $script:DefaultContentType = "application/json; charset=utf-8"
 $script:DefaultPageSize = 25
-$script:DefaultHeaders = @{
-    "Accept"         = "application/json"
+$script:DefaultHeaders= @{
     "Accept-Charset" = "utf-8"
+}
+# Bug in PSv3's .Net API
+if ($PSVersionTable.PSVersion.Major -gt 3) {
+    $script:DefaultHeaders["Accept"] = "application/json"
 }
 $script:PagingContainers = @(
     "comments"
@@ -44,15 +47,14 @@ foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
         . $file.FullName
     }
     catch {
-        $errorItem = [System.Management.Automation.ErrorRecord]::new(
-            ([System.ArgumentException]"Function not found"),
-            'Load.Function',
-            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-            $file
-        )
+        $exception = ([System.ArgumentException]"Function not found")
+        $errorId = "Load.Function"
+        $errorCategory = 'ObjectNotFound'
+        $errorTarget = $file
+        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
         $errorItem.ErrorDetails = "Failed to import function $($file.BaseName)"
         throw $errorItem
     }
 }
-Export-ModuleMember -Function $PublicFunctions.BaseName
+Export-ModuleMember -Function $PublicFunctions.BaseName -Alias *
 #endregion LoadFunctions
