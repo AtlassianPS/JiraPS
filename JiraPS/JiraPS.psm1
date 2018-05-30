@@ -34,5 +34,5 @@ foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
         throw $_
     }
 }
-Export-ModuleMember -Function $PublicFunctions.BaseName
+Export-ModuleMember -Function $PublicFunctions.BaseName -Alias *
 #endregion LoadFunctions
