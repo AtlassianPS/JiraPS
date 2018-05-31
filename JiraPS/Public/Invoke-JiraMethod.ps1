@@ -131,7 +131,13 @@ function Invoke-JiraMethod {
             }
         }
 
-        Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
+        if ($WebResponse.ErrorDetails) {
+            Test-ServerResponse -InputObject $webResponse.Exception.Response -Cmdlet $Cmdlet
+        } Else {
+            Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
+        }
+
+
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
 
