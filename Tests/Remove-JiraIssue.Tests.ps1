@@ -5,8 +5,6 @@ Describe "Remove-JiraIssue" {
 
         . "$PSScriptRoot/Shared.ps1"
 
-        $script:ShowMockData = $true
-
         $jiraServer = 'http://jiraserver.example.com'
 
         $TestIssueJSONs = @{
