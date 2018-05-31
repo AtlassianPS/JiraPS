@@ -204,6 +204,8 @@ Describe "Remove-JiraIssue" {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$URI -like "$jiraServer/rest/api/*/issue/TEST-2?deleteSubTasks=False" -and $Method -eq "Delete"} {
+
+          Write-Error -Exception  -ErrorId
             $MockedResponse = @"
             {
                 "errorMessages": [
@@ -212,7 +214,17 @@ Describe "Remove-JiraIssue" {
                 "errors": {}
               }
 "@ | ConvertFrom-Json
-            Resolve-JiraError $MockedResponse -WriteError
+
+
+            $Exception = ([System.ArgumentException]"Server responded with Error")
+            $errorId = "ServerResponse"
+            $errorCategory = 'NotSpecified'
+            $errorTarget = $MockedResponse
+
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord -ArgumentList $Exception,$errorId,$errorCategory,$errorTarget
+            $errorItem.ErrorDetails = "Jira encountered an error: [The issue 'TEST-2' has subtasks.  You must specify the 'deleteSubtasks' parameter to delete this issue and all its subtasks.]"
+
+            $PSCmdlet.WriteError($errorItem)
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$URI -like "$jiraServer/rest/api/*/issue/TEST-2?deleteSubTasks=True" -and $Method -eq "Delete"} {
