@@ -120,8 +120,10 @@ function Invoke-JiraMethod {
             # Invoke-WebRequest is hard-coded to throw an exception if the Web request returns a 4xx or 5xx error.
             # This is the best workaround I can find to retrieve the actual results of the request.
             $webResponse = $_
+            # ErrorDetails behavior is erratic and may not always be available
+            # See https://windowsserver.uservoice.com/forums/301869-powershell/suggestions/17142518--errordetails-is-null-when-invoke-webrequest-or
+            # PSv6+ appears to be unaffected
             if ($webResponse.ErrorDetails) {
-                # In PowerShellCore (v6+), the response body is available as string
                 $responseBody = $webResponse.ErrorDetails.Message
             }
             else {
