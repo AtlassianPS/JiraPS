@@ -150,7 +150,9 @@ function Invoke-JiraMethod {
                     $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
                     $responseBody = $readStream.ReadToEnd()
                     $readStream.Close()
+                }
 
+                If ($responseBody) {
                     # Clear the body in case it is not a JSON (but rather html)
                     if ($responseBody -match "^[\s\t]*\<html\>") { $responseBody = '{"errorMessages": "Invalid server response. HTML returned."}' }
 
