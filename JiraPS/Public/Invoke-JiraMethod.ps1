@@ -162,9 +162,8 @@ function Invoke-JiraMethod {
                         $result = ConvertFrom-Json -InputObject $responseBody
 
                     } catch [ArgumentException] { # handle $responseBody being neither JSON nor HTML
-                        $result = @{
+                        $result = [PSCustomObject]@{
                             errorMessages = @(
-                                "Non-JSON/HTML response returned from JIRA API"
                                 $responseBody
                             )
                         }
