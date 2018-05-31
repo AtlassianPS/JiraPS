@@ -158,7 +158,18 @@ function Invoke-JiraMethod {
 
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Retrieved body of HTTP response for more information about the error (`$responseBody)"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Got the following error as `$responseBody"
-                    $result = ConvertFrom-Json -InputObject $responseBody
+                    try {
+                        $result = ConvertFrom-Json -InputObject $responseBody
+
+                    } catch [ArgumentException] { # handle $responseBody being neither JSON nor HTML
+                        $result = @{
+                            errorMessages = @(
+                                "Non-JSON/HTML response returned from JIRA API"
+                                $responseBody
+                            )
+                        }
+                    }
+
                 }
 
             }
