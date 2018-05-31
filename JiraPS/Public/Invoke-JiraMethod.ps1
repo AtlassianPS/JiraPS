@@ -193,7 +193,7 @@ function Invoke-JiraMethod {
         }
 
         if ($result) {
-            if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
+            if (Get-Member -Name "Errors","errorMessages" -InputObject $result -ErrorAction SilentlyContinue) {
                 Resolve-JiraError $result -WriteError -Cmdlet $Cmdlet
             }
             else {
