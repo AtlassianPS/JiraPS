@@ -40,7 +40,7 @@ function Remove-JiraIssue {
 
         [System.Management.Automation.CredentialAttribute()]
         [System.Management.Automation.PSCredential]
-        $Credential,
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [Switch]
         $Force
