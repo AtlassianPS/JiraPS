@@ -10,7 +10,12 @@
 # Load Web assembly when needed
 # PowerShell Core has the assembly preloaded
 if (!("System.Web.HttpUtility" -as [Type])) {
-    Add-Type -Assembly System.Web
+    Add-Type -AssemblyName "System.Web"
+}
+# Load System.Net.Http when needed
+# PowerShell Core has the assembly preloaded
+if (!("System.Net.Http.HttpRequestException" -as [Type])) {
+    Add-Type -AssemblyName "System.Net.Http"
 }
 #endregion Dependencies
 
