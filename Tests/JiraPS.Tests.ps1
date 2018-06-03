@@ -186,7 +186,13 @@ Describe "JiraPS" {
             if ($PSVersionTable.PSVersion.Major -gt 3) {
                 Import-Module $manifestFile -Force -ErrorAction Stop
 
-                $analysis = Invoke-ScriptAnalyzer -Path "$moduleRoot" -Recurse -Settings "$projectRoot/PSScriptAnalyzerSettings.psd1"
+                $invokeScriptAnalyzerSplat = @{
+                    Path = "$moduleRoot"
+                    Settings = "$projectRoot/PSScriptAnalyzerSettings.psd1"
+                    Recurse = $true
+                    ErrorAction = 'SilentlyContinue'
+                }
+                $analysis = Invoke-ScriptAnalyzer @invokeScriptAnalyzerSplat
                 $scriptAnalyzerRules = Get-ScriptAnalyzerRule
 
                 forEach ($rule in $scriptAnalyzerRules) {
