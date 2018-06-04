@@ -16,8 +16,17 @@ Removes an existing issue from JIRA.
 
 ## SYNTAX
 
+### ByInputObject (Default)
+
 ```powershell
-Remove-JiraIssue [-Issue] <Object[]> [-IncludeSubTasks] [[-Credential] <PSCredential>] [-Force] [-WhatIf]
+Remove-JiraIssue [-InputObject] <Object[]> [-IncludeSubTasks] [[-Credential] <PSCredential>] [-Force] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
+```
+
+### ByIssueId 
+
+```powershell
+Remove-JiraIssue [-IssueId] <String[]> [-IncludeSubTasks] [[-Credential] <PSCredential>] [-Force] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
@@ -35,7 +44,7 @@ If an issue includes sub-tasks, these are deleted as well.
 ### EXAMPLE 1
 
 ```powershell
-Remove-JiraUser -Issue ABC-123
+Remove-JiraIssue -IssueId ABC-123
 ```
 
 Removes issue \[ABC-123\] from JIRA.
@@ -43,7 +52,7 @@ Removes issue \[ABC-123\] from JIRA.
 ### EXAMPLE 2
 
 ```powershell
-Remove-JiraUser -Issue ABC-124 -IncludeSubTasks
+Remove-JiraIssue -IssueId ABC-124 -IncludeSubTasks
 ```
 
 Removes issue \[ABC-124\] from JIRA, including any subtasks therein.
@@ -51,24 +60,39 @@ Removes issue \[ABC-124\] from JIRA, including any subtasks therein.
 ### EXAMPLE 3
 
 ```powershell
-Get-JiraIssue -Query "Project = ABC AND label = NeedsDeletion" | Remove-JiraUser -IncludeSubTasks
+Get-JiraIssue -Query "Project = ABC AND label = NeedsDeletion" | Remove-JiraIssue -IncludeSubTasks
 ```
 
 Removes all issues from project ABC (including their subtasks) that have the label "NeedsDeletion".
 
 ## PARAMETERS
 
-### -Issue
+### -InputObject
 
-One or more issues to delete. These can be specified as:
-
-* Issue key(s) (e.g. `[ABC-123]`)
-* Numerical ID(s)
-* Object(s) to delete (such as ones returned from `Get-JiraIssue`)
+One or more issues to delete, specified as `JiraPS.Issue` objects (e.g. from `Get-JiraIssue`)
 
 ```yaml
 Type: Object[]
-Parameter Sets: (All)
+Parameter Sets: ByInputObject
+Aliases:
+
+Required: True
+Position: 1
+Default value: None
+Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -IssueId
+
+One or more issues to delete, either:
+
+* Issue Keys (e.g. "TEST-1234")
+* Numerical issue IDs
+
+```yaml
+Type: Object[]
+Parameter Sets: ByInputObject
 Aliases:
 
 Required: True
