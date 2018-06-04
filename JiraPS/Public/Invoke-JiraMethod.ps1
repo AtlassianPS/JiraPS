@@ -19,9 +19,11 @@ function Invoke-JiraMethod {
         [Hashtable]
         $Headers = @{},
 
-        [Hashtable]$GetParameter = @{},
+        [Hashtable]
+        $GetParameter = @{},
 
-        [Switch]$Paging,
+        [Switch]
+        $Paging,
 
         [String]
         $InFile,
@@ -54,43 +56,44 @@ function Invoke-JiraMethod {
 
         # load DefaultParameters for Invoke-WebRequest
         # as the global PSDefaultParameterValues is not used
-        $PSDefaultParameterValues = $global:PSDefaultParameterValues
+        $PSDefaultParameterValues = Resolve-DefaultParameterValue -Reference $global:PSDefaultParameterValues -CommandName 'Invoke-WebRequest'
 
+        #region Headers
         # Construct the Headers with the folling priority:
         # - Headers passes as parameters
         # - User's Headers in $PSDefaultParameterValues
         # - Module's default Headers
-        $_headers = $script:DefaultHeaders
-        if ($PSDefaultParameterValues.ContainsKey("Invoke-WebRequest:Headers")) {
-            $userSpecificHeaders = $PSDefaultParameterValues["Invoke-WebRequest:Headers"]
-            foreach ($item in $userSpecificHeaders.Key) { $_headers[$item] = $userSpecificHeaders[$item] }
-        }
-        foreach ($item in $Headers.Key) { $_headers[$item] = $Headers[$item] }
+        $_headers = Join-Hashtable -Hashtable $script:DefaultHeaders, $PSDefaultParameterValues["Invoke-WebRequest:Headers"], $Headers
+        #endregion Headers
 
+        #region Manage URI
         # Amend query from URI with GetParameter
         $uriQuery = ConvertTo-ParameterHash -Uri $Uri
-        foreach ($item in $uriQuery.Keys) { $GetParameter[$item] = $uriQuery[$item] }
+        $internalGetParameter = Join-Hashtable $GetParameter, $uriQuery
+
         # And remove it from URI
         [Uri]$Uri = $Uri.GetLeftPart("Path")
         $PaginatedUri = $Uri
 
         # Use default PageSize
-        if (-not $GetParameter.ContainsKey("maxResults")) {
-            $GetParameter["maxResults"] = $script:DefaultPageSize
+        if (-not $internalGetParameter.ContainsKey("maxResults")) {
+            $internalGetParameter["maxResults"] = $script:DefaultPageSize
         }
 
         # Append GET parameters to URi
         if ($PSCmdlet.PagingParameters) {
             if ($PSCmdlet.PagingParameters.Skip) {
-                $GetParameter["startAt"] = $PSCmdlet.PagingParameters.Skip
+                $internalGetParameter["startAt"] = $PSCmdlet.PagingParameters.Skip
             }
-            if ($PSCmdlet.PagingParameters.First -lt $GetParameter["maxResults"]) {
-                $GetParameter["maxResults"] = $PSCmdlet.PagingParameters.First
+            if ($PSCmdlet.PagingParameters.First -lt $internalGetParameter["maxResults"]) {
+                $internalGetParameter["maxResults"] = $PSCmdlet.PagingParameters.First
             }
         }
 
-        [Uri]$PaginatedUri = "$PaginatedUri$(ConvertTo-GetParameter $GetParameter)"
+        [Uri]$PaginatedUri = "{0}{1}" -f $PaginatedUri, (ConvertTo-GetParameter $internalGetParameter)
+        #endregion Manage URI
 
+        #region Constructe IWR Parameter
         $splatParameters = @{
             Uri             = $PaginatedUri
             Method          = $Method
@@ -105,7 +108,6 @@ function Invoke-JiraMethod {
         if ($_headers.ContainsKey("Content-Type")) {
             $splatParameters["ContentType"] = $_headers["Content-Type"]
             $_headers.Remove("Content-Type")
-            $splatParameters["Headers"] = $_headers
         }
 
         if ($Body) {
@@ -137,74 +139,42 @@ function Invoke-JiraMethod {
         if ($OutFile) {
             $splatParameters["OutFile"] = $OutFile
         }
+        #endregion Constructe IWR Parameter
 
-        # Invoke the API
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($splatParameters.Method) $($splatParameters.Uri)"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$splatParameters: $($splatParameters | Out-String)"
+        #region Execute the actual query
         try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($splatParameters.Method) $($splatParameters.Uri)"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$splatParameters: $($splatParameters | Out-String)"
+            # Invoke the API
             $webResponse = Invoke-WebRequest @splatParameters
         }
         catch {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to get an answer from the server"
-            # Invoke-WebRequest is hard-coded to throw an exception if the Web request returns a 4xx or 5xx error.
-            # This is the best workaround I can find to retrieve the actual results of the request.
-            $webResponse = $_
-            # ErrorDetails behavior is erratic and may not always be available
-            # See https://windowsserver.uservoice.com/forums/301869-powershell/suggestions/17142518--errordetails-is-null-when-invoke-webrequest-or
-            # PSv6+ appears to be unaffected
-            if ($webResponse.ErrorDetails) {
-                $responseBody = $webResponse.ErrorDetails.Message
-            }
-            else {
-                $webResponse = $webResponse.Exception.Response
-            }
+
+            $exception = $_
+            $webResponse = $exception.Exception.Response
         }
-
-        if ($WebResponse.ErrorDetails) {
-            Test-ServerResponse -InputObject $webResponse.Exception.Response -Cmdlet $Cmdlet
-        } Else {
-            Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
-        }
-
-
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
+        Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
+        #endregion Execute the actual query
+    }
 
+    process {
         if ($webResponse) {
             # In PowerShellCore (v6+) the StatusCode of an exception is somewhere else
             if (-not ($statusCode = $webResponse.StatusCode)) {
-                $statusCode = $webresponse.Exception.Response.StatusCode
+                $statusCode = $webResponse.Exception.Response.StatusCode
             }
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Status code: $($statusCode)"
 
+            #region Code 400+
             if ($statusCode.value__ -ge 400) {
-                if ((!($responseBody)) -and ($webResponse | Get-Member -Name "GetResponseStream")) {
-                    # Retrieve body of HTTP response - this contains more useful information about exactly why the error occurred
-                    $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
-                    $responseBody = $readStream.ReadToEnd()
-                    $readStream.Close()
-                }
-
-                If ($responseBody) {
-                    # Clear the body in case it is not a JSON (but rather html)
-                    if ($responseBody -match "^[\s\t]*\<html\>") { $responseBody = '{"errorMessages": "Invalid server response. HTML returned."}' }
-
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Retrieved body of HTTP response for more information about the error (`$responseBody)"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Got the following error as `$responseBody"
-                    try {
-                        $result = ConvertFrom-Json -InputObject $responseBody
-
-                    } catch [ArgumentException] { # handle $responseBody being neither JSON nor HTML
-                        $result = [PSCustomObject]@{
-                            errorMessages = @(
-                                $responseBody
-                            )
-                        }
-                    }
-
-                }
-
+                Resolve-ErrorWebResponse -Exception $exception -StatusCode $statusCode -Cmdlet $Cmdlet
             }
+            #endregion Code 400+
+
+            #region Code 399-
             else {
                 if ($StoreSession) {
                     return ConvertTo-JiraSession -Session $newSessionVar -Username $Credential.UserName
@@ -219,7 +189,7 @@ function Invoke-JiraMethod {
                         $null = $PSBoundParameters.Remove("Paging")
                         $null = $PSBoundParameters.Remove("Skip")
                         if (-not $PSBoundParameters["GetParameter"]) {
-                            $PSBoundParameters["GetParameter"] = $GetParameter
+                            $PSBoundParameters["GetParameter"] = $internalGetParameter
                         }
 
                         $total = 0
@@ -298,21 +268,12 @@ function Invoke-JiraMethod {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] No content was returned from."
                 }
             }
+            #endregion Code 399-
         }
         else {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Web result object was returned from. This is unusual!"
         }
-
-        if ($result) {
-            if (Get-Member -Name "Errors","errorMessages" -InputObject $result -ErrorAction SilentlyContinue) {
-                Resolve-JiraError $result -WriteError -Cmdlet $Cmdlet
-            }
-            else {
-                Write-Output $result
-            }
-        }
     }
-
     end {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
     }
