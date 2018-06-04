@@ -37,7 +37,8 @@ function Invoke-JiraMethod {
         [ValidateSet(
             "JiraComment",
             "JiraIssue",
-            "JiraUser"
+            "JiraUser",
+            "JiraVersion"
         )]
         [String]
         $OutputType,
@@ -47,6 +48,7 @@ function Invoke-JiraMethod {
         [System.Management.Automation.Credential()]
         $Credential = [System.Management.Automation.PSCredential]::Empty,
 
+        [Parameter( DontShow )]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
         $Cmdlet = $PSCmdlet
