@@ -259,6 +259,11 @@ Describe "Remove-JiraIssue" {
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
+            It "Accepts string-based input as a non-pipelined parameter" {
+              {Remove-JiraIssue -IssueId TEST-2 -Force} | Should Not Throw
+              Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+            }
+
             It "Accepts a JiraPS.Issue object over the pipeline" {
                 { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Force} | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It

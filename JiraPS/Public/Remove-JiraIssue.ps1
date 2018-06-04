@@ -1,37 +1,37 @@
 function Remove-JiraIssue {
     [CmdletBinding(
         ConfirmImpact = 'High',
-        SupportsShouldProcess
+        SupportsShouldProcess,
+        DefaultParameterSetName = "ByInputObject"
     )]
     param (
         [Parameter(
             Mandatory,
             ValueFromPipeline,
-            Position = 0
+            Position = 0,
+            ParameterSetName = "ByInputObject"
+        )]
+        [Alias(
+            "Issue"
+        )]
+        [PSTypeName("JiraPS.Issue")]
+        [Object[]]
+        $InputObject,
+
+        # The issue's ID number or key.
+        [Parameter(
+            Mandatory,
+            Position = 0,
+            ParameterSetName = "ByIssueId"
         )]
         [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssue'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName "System.Management.Automation.ErrorRecord" -ArgumentList $exception,$errorId,$errorCategory,$errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
+        [Alias(
+            "Id",
+            "Key",
+            "issueIdOrKey"
         )]
-        [Object[]]
-        $Issue,
+        [String[]]
+        $IssueId,
 
         [Switch]
         [Alias("deleteSubtasks")]
@@ -64,18 +64,26 @@ function Remove-JiraIssue {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($_issue in $Issue) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
+        switch ($PsCmdlet.ParameterSetName) {
+            "ByInputObject" { $PrimaryIterator = $InputObject }
+            "ByIssueId" { $PrimaryIterator = $IssueID }
+        }
 
-            if (("JiraPS.Issue" -notin $_issue.PSObject.TypeNames)) {
-                $issueObj = Get-JiraIssue -Key $_issue -Credential $Credential -ErrorAction Stop
+        foreach ($issueItem in $PrimaryIterator) {
+
+            if ($PsCmdlet.ParameterSetName -eq "ByIssueId") {
+                $_issue = Get-JiraIssue -Key $issueItem -Credential $Credential -ErrorAction Stop
             } Else {
-                $issueObj = $_issue
+                $_issue = $issueItem
             }
 
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$issueItem [$_issue]"
+
+
+
             $parameter = @{
-                URI        = $resourceURi -f $issueObj.Key,$IncludeSubTasks
+                URI        = $resourceURi -f $_issue.Key,$IncludeSubTasks
                 Method     = "DELETE"
                 Credential = $Credential
                 Cmdlet = $PsCmdlet
@@ -88,7 +96,7 @@ function Remove-JiraIssue {
                 $ActionText = "Remove issue"
             }
 
-            if ($PSCmdlet.ShouldProcess($issueObj.ToString(), $ActionText)) {
+            if ($PSCmdlet.ShouldProcess($_issue.ToString(), $ActionText)) {
 
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod @parameter
