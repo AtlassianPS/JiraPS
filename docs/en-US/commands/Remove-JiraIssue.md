@@ -91,7 +91,7 @@ One or more issues to delete, either:
 * Numerical issue IDs
 
 ```yaml
-Type: Object[]
+Type: String[]
 Parameter Sets: ByInputObject
 Aliases:
 
