@@ -244,7 +244,8 @@ Describe "Remove-JiraIssue" {
         Context "Sanity checking" {
             $command = Get-Command -Name Remove-JiraIssue
 
-            defParam $command 'Issue'
+            defParam $command 'IssueId'
+            defParam $command 'InputObject'
             defParam $command 'IncludeSubTasks'
             defParam $command 'Credential'
         }
@@ -260,7 +261,7 @@ Describe "Remove-JiraIssue" {
             }
 
             It "Accepts string-based input as a non-pipelined parameter" {
-              {Remove-JiraIssue -IssueId TEST-2 -Force} | Should Not Throw
+              {Remove-JiraIssue -IssueId TEST-1 -Force} | Should Not Throw
               Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
@@ -282,7 +283,7 @@ Describe "Remove-JiraIssue" {
             }
 
             It "Validates pipeline input" {
-                { @{id = 1} | Remove-JiraIssue -ErrorAction SilentlyContinue } | Should Throw
+                { @{id = 1} | Remove-JiraIssue -ErrorAction Stop} | Should Throw
             }
         }
     }
