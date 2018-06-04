@@ -264,7 +264,9 @@ Describe "Remove-JiraIssue" {
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
-            It "Throws on issues with subtasks" {
+            It "Writes an error on issues with subtasks" {
+                # Pester is not capable of (easily) asserting non-terminating errors,
+                # so the error is upgraded to a terminating one in this situation.
                 { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorAction Stop} | Should Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
