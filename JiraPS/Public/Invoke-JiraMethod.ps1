@@ -34,7 +34,7 @@ function Invoke-JiraMethod {
         [Switch]
         $StoreSession,
 
-        [ValidateSet("JiraIssue")]
+        [ValidateSet("JiraIssue", "JiraComment")]
         [String]
         $OutputType,
 

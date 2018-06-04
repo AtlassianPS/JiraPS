@@ -45,14 +45,18 @@ function Get-JiraIssueComment {
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         $parameter = @{
-            URI        = "{0}/comment" -f $issueObj.RestURL
-            Method     = "GET"
-            Credential = $Credential
+            URI          = "{0}/comment" -f $issueObj.RestURL
+            Method       = "GET"
+            GetParameter = @{
+                maxResults = $PageSize
+            }
+            OutputType   = "JiraComment"
+            Paging       = $true
+            Credential   = $Credential
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
 
-        Write-Output (ConvertTo-JiraComment -InputObject $result.comments)
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        Invoke-JiraMethod @parameter
     }
 
     end {
