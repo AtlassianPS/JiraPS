@@ -78,6 +78,7 @@ function Remove-JiraIssue {
                 URI        = $resourceURi -f $issueObj.Key,$IncludeSubTasks
                 Method     = "DELETE"
                 Credential = $Credential
+                Cmdlet = $PsCmdlet
             }
 
 
