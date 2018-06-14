@@ -28,8 +28,10 @@ function Invoke-JiraMethod {
         [Switch]
         $StoreSession,
 
-        [PSCredential]
-        $Credential,
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
@@ -42,8 +44,12 @@ function Invoke-JiraMethod {
         # pass input to local variable
         # this allows to use the PSBoundParameters for recursion
         $_headers = @{   # Set any default headers
-            "Accept"         = "application/json"
+            # "Accept"         = "application/json"
             "Accept-Charset" = "utf-8"
+        }
+        # Bug in PSv3's .Net API
+        if ($PSVersionTable.PSVersion.Major -gt 3) {
+            $_headers["Accept"] = "application/json"
         }
         foreach ($item in $Headers.Key) { $_headers[$item] = $Headers[$item] }
     }
@@ -89,10 +95,10 @@ function Invoke-JiraMethod {
             $splatParameters.Remove("WebSession")
         }
 
-        if ($session = Get-JiraSession -ErrorAction SilentlyContinue) {
-            if (-not ($Credential)) {
+        if ((-not $Credential) -or ($Credential -eq [System.Management.Automation.PSCredential]::Empty)) {
+            $splatParameters.Remove("Credential")
+            if ($session = Get-JiraSession -ErrorAction SilentlyContinue) {
                 $splatParameters["WebSession"] = $session.WebSession
-                $splatParameters.Remove("Credential")
             }
         }
 
@@ -114,8 +120,10 @@ function Invoke-JiraMethod {
             # Invoke-WebRequest is hard-coded to throw an exception if the Web request returns a 4xx or 5xx error.
             # This is the best workaround I can find to retrieve the actual results of the request.
             $webResponse = $_
+            # ErrorDetails behavior is erratic and may not always be available
+            # See https://windowsserver.uservoice.com/forums/301869-powershell/suggestions/17142518--errordetails-is-null-when-invoke-webrequest-or
+            # PSv6+ appears to be unaffected
             if ($webResponse.ErrorDetails) {
-                # In PowerShellCore (v6+), the response body is available as string
                 $responseBody = $webResponse.ErrorDetails.Message
             }
             else {
@@ -123,7 +131,13 @@ function Invoke-JiraMethod {
             }
         }
 
-        Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
+        if ($WebResponse.ErrorDetails) {
+            Test-ServerResponse -InputObject $webResponse.Exception.Response -Cmdlet $Cmdlet
+        } Else {
+            Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
+        }
+
+
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
 
@@ -142,13 +156,25 @@ function Invoke-JiraMethod {
                     $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($webResponse.GetResponseStream())
                     $responseBody = $readStream.ReadToEnd()
                     $readStream.Close()
+                }
 
+                If ($responseBody) {
                     # Clear the body in case it is not a JSON (but rather html)
                     if ($responseBody -match "^[\s\t]*\<html\>") { $responseBody = '{"errorMessages": "Invalid server response. HTML returned."}' }
 
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Retrieved body of HTTP response for more information about the error (`$responseBody)"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Got the following error as `$responseBody"
-                    $result = ConvertFrom-Json -InputObject $responseBody
+                    try {
+                        $result = ConvertFrom-Json -InputObject $responseBody
+
+                    } catch [ArgumentException] { # handle $responseBody being neither JSON nor HTML
+                        $result = [PSCustomObject]@{
+                            errorMessages = @(
+                                $responseBody
+                            )
+                        }
+                    }
+
                 }
 
             }
@@ -172,7 +198,7 @@ function Invoke-JiraMethod {
         }
 
         if ($result) {
-            if (Get-Member -Name "Errors" -InputObject $result -ErrorAction SilentlyContinue) {
+            if (Get-Member -Name "Errors","errorMessages" -InputObject $result -ErrorAction SilentlyContinue) {
                 Resolve-JiraError $result -WriteError -Cmdlet $Cmdlet
             }
             else {

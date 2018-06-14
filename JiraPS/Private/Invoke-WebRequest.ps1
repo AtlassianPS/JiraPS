@@ -30,7 +30,7 @@ function Invoke-WebRequest {
 
         [pscredential]
         [System.Management.Automation.CredentialAttribute()]
-        ${Credential},
+        ${Credential} = [System.Management.Automation.PSCredential]::Empty,
 
         [switch]
         ${UseDefaultCredentials},
@@ -68,7 +68,7 @@ function Invoke-WebRequest {
 
         [pscredential]
         [System.Management.Automation.CredentialAttribute()]
-        ${ProxyCredential},
+        ${ProxyCredential} = [System.Management.Automation.PSCredential]::Empty,
 
         [switch]
         ${ProxyUseDefaultCredentials},
@@ -94,7 +94,7 @@ function Invoke-WebRequest {
         ${PassThru})
 
     begin {
-        if ($Credential) {
+        if ($Credential -and ($Credential -ne [System.Management.Automation.PSCredential]::Empty)) {
             $SecureCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(
                     $('{0}:{1}' -f $Credential.UserName, $Credential.GetNetworkCredential().Password)
                 ))

@@ -1,20 +1,24 @@
-function New-JiraUser {
+function New-JiraFilter {
     [CmdletBinding( SupportsShouldProcess )]
     param(
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
         [String]
-        $UserName,
+        $Name,
 
-        [Parameter( Mandatory )]
-        [Alias('Email')]
+        [Parameter( ValueFromPipelineByPropertyName )]
         [String]
-        $EmailAddress,
+        $Description,
 
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
         [String]
-        $DisplayName,
+        $JQL,
 
-        [Boolean]
-        $Notify = $true,
+        [Parameter( ValueFromPipelineByPropertyName )]
+        [Alias('Favourite')]
+        [Switch]
+        $Favorite,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -27,7 +31,7 @@ function New-JiraUser {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/user"
+        $resourceURi = "$server/rest/api/latest/filter"
     }
 
     process {
@@ -35,18 +39,13 @@ function New-JiraUser {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $requestBody = @{
-            "name"         = $UserName
-            "emailAddress" = $EmailAddress
-            "notify"       = $Notify
+            Name = $Name
+            JQL  = $JQL
         }
-
-        if ($DisplayName) {
-            $requestBody.displayName = $DisplayName
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
+            $requestBody["description"] = $Description
         }
-        else {
-            Write-DebugMessage "[New-JiraUser] DisplayName was not specified; defaulting to UserName parameter [$UserName]"
-            $requestBody.displayName = $UserName
-        }
+        $requestBody["favourite"] = [Bool]$Favorite
 
         $parameter = @{
             URI        = $resourceURi
@@ -55,10 +54,10 @@ function New-JiraUser {
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {
+        if ($PSCmdlet.ShouldProcess($Name, "Creating new Filter")) {
             $result = Invoke-JiraMethod @parameter
 
-            Write-Output (ConvertTo-JiraUser -InputObject $result)
+            Write-Output (ConvertTo-JiraFilter -InputObject $result)
         }
     }
 

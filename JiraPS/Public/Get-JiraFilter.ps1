@@ -16,12 +16,11 @@
         [ValidateScript(
             {
                 if (("JiraPS.Filter" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraFilter',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraFilter'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for Filter. Expected [JiraPS.Filter] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -37,8 +36,15 @@
         [Object[]]
         $InputObject,
 
-        [PSCredential]
-        $Credential
+        [Parameter( Mandatory, ParameterSetName = 'MyFavorite' )]
+        [Alias('Favourite')]
+        [Switch]
+        $Favorite,
+
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -85,6 +91,17 @@
 
                     Write-Output (Get-JiraFilter -Id $thisId -Credential $Credential)
                 }
+            }
+            "MyFavorite" {
+                $parameter = @{
+                    URI        = $resourceURi -f "favourite"
+                    Method     = "GET"
+                    Credential = $Credential
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
+
+                Write-Output (ConvertTo-JiraFilter -InputObject $result)
             }
         }
     }

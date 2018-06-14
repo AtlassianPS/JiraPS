@@ -5,7 +5,10 @@ function Get-JiraIssueLink {
         [Int[]]
         $Id,
 
-        [PSCredential] $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -22,12 +25,11 @@ function Get-JiraIssueLink {
 
         # Validate input object from Pipeline
         if (($_) -and ("JiraPS.IssueLink" -notin $_.PSObject.TypeNames)) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid Parameter"),
-                'ParameterProperties.WrongObjectType',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $Id
-            )
+            $exception = ([System.ArgumentException]"Invalid Parameter")
+            $errorId = 'ParameterProperties.WrongObjectType'
+            $errorCategory = [System.Management.Automation.ErrorCategory]::InvalidArgument
+            $errorTarget = $Id
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "The IssueLink provided did not match the constraints."
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }
