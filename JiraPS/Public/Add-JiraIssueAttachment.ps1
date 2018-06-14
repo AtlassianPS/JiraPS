@@ -84,15 +84,38 @@ function Add-JiraIssueAttachment {
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        $parameter = @{
-            URI        = $resourceURi -f $issueObj.RestURL
-            Method     = "POST"
-            Credential = $Credential
-        }
-
         foreach ($file in $FilePath) {
-            $parameter["InFile"] = $file
+            $file = Resolve-FilePath -Path $file
 
+            $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
+            $boundary = [System.Guid]::NewGuid().ToString()
+
+            $fileName = Split-Path -Path $file -Leaf
+            $readFile = [System.IO.File]::ReadAllBytes($file)
+            $fileEnc = $enc.GetString($readFile)
+
+            $bodyLines = @'
+--{0}
+Content-Disposition: form-data; name="file"; filename="{1}"
+Content-Type: application/octet-stream
+
+{2}
+--{0}--
+'@ -f $boundary, $fileName, $fileEnc
+
+            $headers = @{
+                'X-Atlassian-Token' = 'nocheck'
+                'Content-Type'      = "multipart/form-data; boundary=`"$boundary`""
+            }
+
+            $parameter = @{
+                URI        = $resourceURi -f $issueObj.RestURL
+                Method     = "POST"
+                Body       = $bodyLines
+                Headers    = $headers
+                RawBody    = $true
+                Credential = $Credential
+            }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Adding attachment '$($fileName)'.")) {
                 $rawResult = Invoke-JiraMethod @parameter
