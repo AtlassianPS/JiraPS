@@ -87,9 +87,11 @@ function Get-JiraGroupMember {
             }
             # Make `SupportsPaging` be backwards compatible
             if ($StartIndex) {
+                Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-StartIndex' has been marked as deprecated. For more information, plase read the help."
                 $parameter["Skip"] = $StartIndex
             }
             if ($MaxResults) {
+                Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-MaxResults' has been marked as deprecated. For more information, plase read the help."
                 $parameter["First"] = $MaxResults
             }
 
