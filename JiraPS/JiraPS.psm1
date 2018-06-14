@@ -10,7 +10,12 @@
 # Load Web assembly when needed
 # PowerShell Core has the assembly preloaded
 if (!("System.Web.HttpUtility" -as [Type])) {
-    Add-Type -Assembly System.Web
+    Add-Type -AssemblyName "System.Web"
+}
+# Load System.Net.Http when needed
+# PowerShell Core has the assembly preloaded
+if (!("System.Net.Http.HttpRequestException" -as [Type])) {
+    Add-Type -AssemblyName "System.Net.Http"
 }
 #endregion Dependencies
 
@@ -24,15 +29,14 @@ foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
         . $file.FullName
     }
     catch {
-        $errorItem = [System.Management.Automation.ErrorRecord]::new(
-            ([System.ArgumentException]"Function not found"),
-            'Load.Function',
-            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-            $file
-        )
+        $exception = ([System.ArgumentException]"Function not found")
+        $errorId = "Load.Function"
+        $errorCategory = 'ObjectNotFound'
+        $errorTarget = $file
+        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
         $errorItem.ErrorDetails = "Failed to import function $($file.BaseName)"
         throw $errorItem
     }
 }
-Export-ModuleMember -Function $PublicFunctions.BaseName
+Export-ModuleMember -Function $PublicFunctions.BaseName -Alias *
 #endregion LoadFunctions

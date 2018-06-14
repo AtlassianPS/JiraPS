@@ -183,16 +183,24 @@ Describe "JiraPS" {
         }
 
         Context 'PSScriptAnalyzer Rules' {
-            Import-Module $manifestFile -Force -ErrorAction Stop
+            if ($PSVersionTable.PSVersion.Major -gt 3) {
+                Import-Module $manifestFile -Force -ErrorAction Stop
 
-            $analysis = Invoke-ScriptAnalyzer -Path "$moduleRoot" -Recurse -Settings "$projectRoot/PSScriptAnalyzerSettings.psd1"
-            $scriptAnalyzerRules = Get-ScriptAnalyzerRule
+                $invokeScriptAnalyzerSplat = @{
+                    Path = "$moduleRoot"
+                    Settings = "$projectRoot/PSScriptAnalyzerSettings.psd1"
+                    Recurse = $true
+                    ErrorAction = 'SilentlyContinue'
+                }
+                $analysis = Invoke-ScriptAnalyzer @invokeScriptAnalyzerSplat
+                $scriptAnalyzerRules = Get-ScriptAnalyzerRule
 
-            forEach ($rule in $scriptAnalyzerRules) {
-                It "Should pass $rule" {
-                    if (($analysis) -and ($analysis.RuleName -contains $rule)) {
-                        $analysis | Where-Object RuleName -eq $rule -OutVariable failures | Out-Default
-                        $failures.Count | Should Be 0
+                forEach ($rule in $scriptAnalyzerRules) {
+                    It "Should pass $rule" {
+                        if (($analysis) -and ($analysis.RuleName -contains $rule)) {
+                            $analysis | Where-Object RuleName -eq $rule -OutVariable failures | Out-Default
+                            $failures.Count | Should Be 0
+                        }
                     }
                 }
             }

@@ -6,12 +6,11 @@ function Add-JiraIssueAttachment {
         [ValidateScript(
             {
                 if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraIssue',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraIssue'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -36,12 +35,11 @@ function Add-JiraIssueAttachment {
         [ValidateScript(
             {
                 if (-not (Test-Path $_ -PathType Leaf)) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"File not found"),
-                        'ParameterValue.FileNotFound',
-                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"File not found") #fix code highlighting]
+                    $errorId = 'ParameterValue.FileNotFound'
+                    $errorCategory = 'ObjectNotFound'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "No file could be found with the provided path '$_'."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
@@ -54,8 +52,10 @@ function Add-JiraIssueAttachment {
         [String[]]
         $FilePath,
 
-        [PSCredential]
-        $Credential,
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [Switch]
         $PassThru
@@ -72,12 +72,11 @@ function Add-JiraIssueAttachment {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         if (@($Issue).Count -ne 1) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"invalid Issue provided"),
-                'ParameterValue.JiraIssue',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $_
-            )
+            $exception = ([System.ArgumentException]"invalid Issue provided")
+            $errorId = 'ParameterValue.JiraIssue'
+            $errorCategory = 'InvalidArgument'
+            $errorTarget = $_
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "Only one Issue can be provided at a time."
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }

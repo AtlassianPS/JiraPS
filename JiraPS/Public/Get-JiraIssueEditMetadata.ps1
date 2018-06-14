@@ -9,8 +9,10 @@ function Get-JiraIssueEditMetadata {
           Once we have custom classes, this should be a JiraPS.Issue
         #>
 
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -77,12 +79,11 @@ function Get-JiraIssueEditMetadata {
             Write-Output (ConvertTo-JiraEditMetaField -InputObject $result)
         }
         else {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"No results"),
-                'IssueMetadata.ObjectNotFound',
-                [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                $Project
-            )
+            $exception = ([System.ArgumentException]"No results")
+            $errorId = 'IssueMetadata.ObjectNotFound'
+            $errorCategory = 'ObjectNotFound'
+            $errorTarget = $Project
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "No metadata found for project $Project and issueType $IssueType."
             Throw $errorItem
         }
