@@ -66,17 +66,17 @@ function Get-JiraIssue {
 
         [Parameter( ParameterSetName = 'ByJQL' )]
         [Parameter( ParameterSetName = 'ByFilter' )]
-        [Int]
+        [UInt32]
         $StartIndex = 0,
 
         [Parameter( ParameterSetName = 'ByJQL' )]
         [Parameter( ParameterSetName = 'ByFilter' )]
-        [Int]
+        [UInt32]
         $MaxResults = 0,
 
         [Parameter( ParameterSetName = 'ByJQL' )]
         [Parameter( ParameterSetName = 'ByFilter' )]
-        [Int]
+        [UInt32]
         $PageSize = $script:DefaultPageSize,
 
         [Parameter()]

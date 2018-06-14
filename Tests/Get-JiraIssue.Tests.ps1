@@ -27,6 +27,7 @@
 }
 '@
 
+        #region Mocks
         Mock Get-JiraConfigServer {
             $jiraServer
         }
@@ -36,7 +37,7 @@
             ConvertFrom-Json $response
         }
 
-        Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/search?jql=$jqlEscaped*" } {
+        Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/search" -and $GetParameter["jql"] -eq $jqlEscaped } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $response
         }
@@ -53,6 +54,7 @@
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
             return $object
         }
+        #endregion Mocks
 
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraIssue
@@ -71,34 +73,95 @@
 
             It "Obtains information about a provided issue in JIRA" {
                 { Get-JiraIssue -Key TEST-001 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Method -eq 'Get' -and
+                        $URI -like '*/rest/api/*/issue/TEST-001*'
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
             It "Uses JQL to search for issues if the -Query parameter is used" {
                 { Get-JiraIssue -Query $jql } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*" }
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Method -eq 'Get' -and
+                        $URI -like "*/rest/api/*/search" -and
+                        $GetParameter["jql"] -eq $jqlEscaped
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
             It "Supports the -StartIndex and -MaxResults parameters to page through search results" {
                 { Get-JiraIssue -Query $jql -StartIndex 10 -MaxResults 50 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*startAt=10&maxResults=50*" }
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Method -eq 'Get' -and
+                        $URI -like "*/rest/api/*/search" -and
+                        $GetParameter["jql"] -eq $jqlEscaped -and
+                        $PSCmdlet.PagingParameters.Skip -eq 10
+                        $PSCmdlet.PagingParameters.First -eq 50
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
             It "Returns all issues via looping if -MaxResults is not specified" {
                 { Get-JiraIssue -Query $jql -PageSize 25 } | Should Not Throw
 
-                # This should call Invoke-JiraMethod once for one issue (to get the MaxResults value)...
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*maxResults=1*" }
-
-                # ...and once more with the MaxResults set to the PageSize parameter
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/latest/search?jql=$jqlEscaped*startAt=0&maxResults=25" }
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Method -eq 'Get' -and
+                        $URI -like "*/rest/api/*/search" -and
+                        $GetParameter["jql"] -eq $jqlEscaped -and
+                        $GetParameter["maxResults"] -eq 25
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
         }
 
         Context "Input testing" {
             It "Accepts an issue key for the -Key parameter" {
                 { Get-JiraIssue -Key TEST-001 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Method -eq 'Get' -and
+                        $URI -like "*/rest/api/*/issue/TEST-001*"
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
             It "Accepts an issue object for the -InputObject parameter" {
@@ -110,7 +173,19 @@
 
                 # Should call Get-JiraIssue using the -Key parameter, so our URL should reflect the key we provided
                 { Get-JiraIssue -InputObject $Issue } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/issue/TEST-001*' }
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Method -eq 'Get' -and
+                        $URI -like "*/rest/api/*/issue/TEST-001*"
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
         }
     }

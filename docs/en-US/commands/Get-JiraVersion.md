@@ -18,25 +18,31 @@ This function returns information about a JIRA Project's Version
 ### byId (Default)
 
 ```powershell
-Get-JiraVersion -Id <Int32[]> [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraVersion -Id <Int32[]> [-PageSize <Int32>] [-IncludeTotalCount] [-Skip <UInt64>]
+ [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### byInputVersion
 
 ```powershell
-Get-JiraVersion [-InputVersion] <Object> [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraVersion [-InputVersion] <Object> [-PageSize <Int32>] [-IncludeTotalCount]
+ [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### byProject
 
 ```powershell
-Get-JiraVersion [-Project] <String[]> [-Name <String[]>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraVersion [-Project] <String[]> [-Name <String[]>] [[-Sort] <String>]
+ [-PageSize <Int32>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
+ [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### byInputProject
 
 ```powershell
-Get-JiraVersion [-InputProject] <Object> [-Name <String[]>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraVersion [-InputProject] <Object> [-Name <String[]>] [[-Sort] <String>]
+ [-PageSize <Int32>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
+ [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -156,6 +162,101 @@ Aliases: Versions
 Required: False
 Position: Named
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### Sort
+
+Define the order in which the versions should be sorted before returning.
+
+Possible values are:
+
+* sequence
+* name
+* startDate
+* releaseDate
+
+```yaml
+Type: String
+Parameter Sets: byProject, byInputProject
+Aliases: Versions
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -PageSize
+
+Maximum number of results to fetch per call.
+
+This setting can be tuned to get better performance according to the load on the server.
+
+> Warning: too high of a PageSize can cause a timeout on the request.
+
+```yaml
+Type: UInt32
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 25
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -IncludeTotalCount
+
+Causes an extra output of the total count at the beginning.
+
+Note this is actually a uInt64, but with a custom string representation.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Skip
+
+Controls how many things will be skipped before starting output.
+
+Defaults to 0.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -First
+
+Indicates how many items to return.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 18446744073709551615
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

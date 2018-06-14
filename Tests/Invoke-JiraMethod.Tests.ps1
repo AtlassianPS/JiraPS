@@ -16,8 +16,12 @@ Describe "Invoke-JiraMethod" {
             defParam $command 'Body'
             defParam $command 'RawBody'
             defParam $command 'Headers'
+            defParam $command 'GetParameter'
+            defParam $command 'Paging'
             defParam $command 'InFile'
             defParam $command 'OutFile'
+            defParam $command 'StoreSession'
+            defParam $command 'OutputType'
             defParam $command 'Credential'
             defParam $command 'CmdLet'
 

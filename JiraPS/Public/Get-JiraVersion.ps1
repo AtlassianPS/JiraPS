@@ -104,13 +104,13 @@
                     }
 
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    # https://www.codykonior.com/2013/01/10/powershell-how-to-search-a-list-of-objects-with-an-array-of-wildcards/
                     Invoke-JiraMethod @parameter | Where-Object {
-                        $_.Name -in (
-                            $Name |
-                                Select-Object @{ Name = "ExpandedItem"; Expression = { $items -like $_ }} |
-                                Select-Object -ExpandProperty ExpandedItem -Unique
-                        )
+                        $__ = $_
+                        Write-Verbose ($__ | out-string)
+                        $Name | Foreach-Object {
+                            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Matching $_ against $($__)"
+                            $__ -like $_
+                        }
                     }
                 }
             }
