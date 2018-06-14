@@ -49,7 +49,7 @@ Describe "Get-JiraRemoteLink" {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock ConvertTo-JiraIssueLinkType -ModuleName JiraPS {
+        Mock ConvertTo-JiraLink -ModuleName JiraPS {
             $InputObject
         }
 
@@ -73,14 +73,45 @@ Describe "Get-JiraRemoteLink" {
             $getResult = Get-JiraRemoteLink -Issue $issueKey
             $getResult | Should Not BeNullOrEmpty
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq "Get" -and $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink"}
+            $assertMockCalledSplat = @{
+                CommandName = 'Invoke-JiraMethod'
+                ModuleName = 'JiraPS'
+                ParameterFilter = {
+                    $Method -eq "Get" -and
+                    $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink"
+                }
+                Exactly = $true
+                Times = 1
+                Scope = 'It'
+            }
+            Assert-MockCalled @assertMockCalledSplat
+
+            $assertMockCalledSplat = @{
+                CommandName = 'ConvertTo-JiraLink'
+                ModuleName = 'JiraPS'
+                Exactly = $true
+                Times = 1
+                Scope = 'It'
+            }
+            Assert-MockCalled @assertMockCalledSplat
         }
 
         It "Gets information of all remote link from a Jira issue" {
             $getResult = Get-JiraRemoteLink -Issue $issueKey -LinkId 10000
             $getResult | Should Not BeNullOrEmpty
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq "Get" -and $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink/10000"}
+            $assertMockCalledSplat = @{
+                CommandName = 'Invoke-JiraMethod'
+                ModuleName = 'JiraPS'
+                ParameterFilter = {
+                    $Method -eq "Get" -and
+                    $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink/10000"
+                }
+                Exactly = $true
+                Times = 1
+                Scope = 'It'
+            }
+            Assert-MockCalled @assertMockCalledSplat
         }
     }
 }

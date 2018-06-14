@@ -25,13 +25,6 @@ skip_tags: true
 # Or if I include "skip-tests" in the commit message
 skip_commits:
     message: /skip\-tests/
-    files:
-        - .github/
-        - .vscode/
-        - README.md
-        - .gitattributes
-        - .gitignore
-        - .env*
 
 # PRs, by definition, don't change anything and therefore should not increment the version
 # To be fair, this is not important, and is really just AppVeyor enabling my pedantry
