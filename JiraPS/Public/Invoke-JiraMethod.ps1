@@ -113,6 +113,7 @@ function Invoke-JiraMethod {
 
         if ($_headers.ContainsKey("Content-Type")) {
             $splatParameters["ContentType"] = $_headers["Content-Type"]
+            $splatParameters["Headers"].Remove("Content-Type")
             $_headers.Remove("Content-Type")
         }
 
