@@ -1,10 +1,14 @@
 function Remove-JiraFilter {
-    [CmdletBinding( ConfirmImpact = "Medium", SupportsShouldProcess )]
+    [CmdletBinding( ConfirmImpact = "Medium", SupportsShouldProcess, DefaultParameterSetName = 'ByInputObject' )]
     param(
-        [Parameter( Mandatory, ValueFromPipeline )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNullOrEmpty()]
         [PSTypeName('JiraPS.Filter')]
         $InputObject,
+
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
+        [UInt32[]]
+        $Id,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -19,6 +23,12 @@ function Remove-JiraFilter {
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        if ($PSCmdlet.ParameterSetName -eq 'ById') {
+            $InputObject = foreach ($_id in $Id) {
+                Get-JiraFilter -Id $_id
+            }
+        }
 
         foreach ($filter in $InputObject) {
             $parameter = @{

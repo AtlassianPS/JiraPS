@@ -15,8 +15,16 @@ Removes an existing filter.
 
 ## SYNTAX
 
+### byInputObject (Default)
+
 ```powershell
-Remove-JiraFilter [-InputObject] <Object> [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraFilter [-InputObject] <JiraPS.Filter> [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+### byId (Default)
+
+```powershell
+Remove-JiraFilter [-Id] <UInt32[]> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -59,6 +67,18 @@ Get-JiraFilter -Favorite | Remove-JiraFilter -Confirm
 
 Asks for each favorite filter confirmation to delete it.
 
+### Example 5
+
+```powershell
+$listOfFilters = 1,2,3,4
+$listOfFilters | Remove-JiraFilter
+```
+
+Remove filters with id "1", "2", "3" and "4".
+
+This input allows for the ID of the filters to be stored in an array and passed to
+the command. (eg: `Get-Content` from a file with the ids)
+
 ## PARAMETERS
 
 ### -InputObject
@@ -69,7 +89,25 @@ Object can be retrieved with `Get-JiraFilter`
 
 ```yaml
 Type: JiraPS.Filter
-Parameter Sets: (All)
+Parameter Sets: ByInputObject
+Aliases:
+
+Required: True
+Position: 0
+Default value: None
+Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -Id
+
+Id of the filter to be deleted.
+
+Accepts integers over the pipeline.
+
+```yaml
+Type: UInt32[]
+Parameter Sets: ById
 Aliases:
 
 Required: True
