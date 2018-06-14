@@ -57,6 +57,8 @@ function Invoke-JiraMethod {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        Set-TlsLevel -Tls12
+
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
@@ -282,6 +284,8 @@ function Invoke-JiraMethod {
         }
     }
     end {
+        Set-TlsLevel -Revert
+
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
     }
 }
