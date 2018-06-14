@@ -61,12 +61,14 @@ InModuleScope JiraPS {
     }
 
     Describe 'Handling of Versions' {
+        $projectKey = "TV"
+
+        $versionName1 = "TESTv1"
+        $versionName2 = "TESTv2"
+        $versionName3 = "TESTv3"
+
         Context 'New-JiraVersion' {
             # ARRANGE
-            $projectKey = "TV"
-            $versionName1 = "TESTv1"
-            $versionName2 = "TESTv2"
-            $versionName3 = "TESTv3"
             $versionObject = [PSCustomObject]@{
                 Name        = $versionName1
                 Description = "My Description"
@@ -108,10 +110,6 @@ InModuleScope JiraPS {
 
         Context 'Get-JiraVersion' {
             # ARRANGE
-            $projectKey = "TV"
-            $versionName1 = "TESTv1"
-            $versionName2 = "TESTv2"
-            $versionName3 = "TESTv3"
             $versionObject = [PSCustomObject]@{
                 Name = $versionName1
             }
@@ -153,14 +151,10 @@ InModuleScope JiraPS {
 
         Context 'Set-JiraVersion' {
             # ARRANGE
-            $projectKey = "TV"
             $now = (Get-Date)
-            $versionName1 = "TESTv1"
             $oldVersion1 = Get-JiraVersion -Project $projectKey -Name $versionName1
             $versionNewName1 = "TESTv1.1"
-            $versionName2 = "TESTv2"
             $oldVersion2 = Get-JiraVersion -Project $projectKey -Name $versionName2
-            $versionName3 = "TESTv3"
             $oldVersion3 = Get-JiraVersion -Project $projectKey -Name $versionName3
 
             # ACT
@@ -193,15 +187,12 @@ InModuleScope JiraPS {
 
         Context 'Remove-JiraVersion' {
             # ARRANGE
-            $projectKey = "TV"
             $versionName1 = "TESTv1.1"
-            $versionId1 = Get-JiraVersion -Project $projectKey -Name $versionName1
-            $versionName2 = "TESTv2"
-            $versionName3 = "TESTv3"
+            $versionObject = Get-JiraVersion -Project $projectKey -Name $versionName2
 
             # ACT
-            Remove-JiraVersion -Version $versionId1 -Force -ErrorAction Stop
-            Get-JiraVersion -Project $projectKey -Name $versionName2, $versionName3 | Remove-JiraVersion -Force -ErrorAction Stop
+            Remove-JiraVersion -Version $versionObject -Force -ErrorAction Stop
+            Get-JiraVersion -Project $projectKey -Name $versionName1, $versionName3 | Remove-JiraVersion -Force -ErrorAction Stop
 
             # ASSERT
             It 'removes the versions' {

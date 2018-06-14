@@ -64,7 +64,7 @@ function Get-JiraRemoteLink {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod @parameter
 
-            Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
+            Write-Output (ConvertTo-JiraLink -InputObject $result)
         }
     }
 
