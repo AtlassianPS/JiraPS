@@ -13,7 +13,7 @@ schema: 2.0.0
 ## SYNTAX
 
 ```
-Remove-JiraFilterPermission [-InputObject] <Object> [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
+Remove-JiraFilterPermission [-InputObject] <JiraPS.FilterPermission> [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
