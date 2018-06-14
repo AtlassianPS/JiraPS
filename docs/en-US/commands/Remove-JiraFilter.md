@@ -16,7 +16,7 @@ Removes an existing filter.
 ## SYNTAX
 
 ```powershell
-Remove-JiraFilter [-InputObject] <Object> [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraFilter [-InputObject] <JiraPS.Filter> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

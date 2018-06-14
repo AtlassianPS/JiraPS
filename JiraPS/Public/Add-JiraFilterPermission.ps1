@@ -1,37 +1,27 @@
 ﻿function Add-JiraFilterPermission {
-    [CmdletBinding( SupportsShouldProcess )]
+    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ByInputObject' )]
+    [OutputType( [JiraPS.FilterPermission] )]
     param(
-        # Filter object to which the permission should be applied
-        [Parameter( Mandatory, ValueFromPipeline )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNullOrEmpty()]
         [PSTypeName('JiraPS.Filter')]
         $Filter,
 
-        # Type of the permission to add
-        [Parameter( Mandatory )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
+        [UInt32[]]
+        $Id,
+
+        [Parameter( Position = 1, Mandatory )]
         [ValidateNotNullOrEmpty()]
         [ValidateSet('Group', 'Project', 'ProjectRole', 'Authenticated', 'Global')]
         [String]$Type,
 
-        # Value for the Type of the permission
-        #
-        # The Value differs per Type of the permission.
-        # Here is a table to know what Value to provide:
-        #
-        # |Type         |Value                |Source                                              |
-        # |-------------|---------------------|----------------------------------------------------|
-        # |Group        |Name of the Group    |Can be retrieved with `(Get-JiraGroup ...).Name`    |
-        # |Project      |Id of the Project    |Can be retrieved with `(Get-JiraProject ...).Id`    |
-        # |ProjectRole  |Id of the ProjectRole|Can be retrieved with `(Get-JiraProjectRole ...).Id`|
-        # |Authenticated| **must be null**    |                                                    |
-        # |Global       | **must be null**    |                                                    |
         [String]$Value,
 
-        # Credentials to use to connect to JIRA.
-        #
-        # If not specified, this function will use anonymous access.
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -43,6 +33,12 @@
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        if ($PSCmdlet.ParameterSetName -eq 'ById') {
+            $InputObject = foreach ($_id in $Id) {
+                Get-JiraFilter -Id $_id
+            }
+        }
 
         $body = @{
             type = $Type.ToLower()
