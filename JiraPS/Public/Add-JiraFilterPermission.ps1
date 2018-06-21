@@ -1,6 +1,6 @@
 ﻿function Add-JiraFilterPermission {
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ByInputObject' )]
-    [OutputType( [JiraPS.FilterPermission] )]
+    # [OutputType( [JiraPS.FilterPermission] )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNullOrEmpty()]
@@ -8,14 +8,16 @@
         $Filter,
 
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
+        [ValidateNotNullOrEmpty()]
         [UInt32[]]
         $Id,
 
-        [Parameter( Position = 1, Mandatory )]
+        [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
         [ValidateSet('Group', 'Project', 'ProjectRole', 'Authenticated', 'Global')]
         [String]$Type,
 
+        [Parameter()]
         [String]$Value,
 
         [Parameter()]
@@ -35,9 +37,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         if ($PSCmdlet.ParameterSetName -eq 'ById') {
-            $InputObject = foreach ($_id in $Id) {
-                Get-JiraFilter -Id $_id
-            }
+            $Filter = Get-JiraFilter -Id $Id
         }
 
         $body = @{
@@ -57,17 +57,19 @@
             "Global" { }
         }
 
-        $parameter = @{
-            URI        = $resourceURi -f $Filter.RestURL
-            Method     = "POST"
-            Body       = ConvertTo-Json $body
-            Credential = $Credential
-        }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        if ($PSCmdlet.ShouldProcess($Filter.Name, "Add Permission [$Type - $Value]")) {
-            $result = Invoke-JiraMethod @parameter
+        foreach ($_filter in $Filter) {
+            $parameter = @{
+                URI        = $resourceURi -f $_filter.RestURL
+                Method     = "POST"
+                Body       = ConvertTo-Json $body
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($_filter.Name, "Add Permission [$Type - $Value]")) {
+                $result = Invoke-JiraMethod @parameter
 
-            Write-Output (ConvertTo-JiraFilterPermission -InputObject $result)
+                Write-Output (ConvertTo-JiraFilter -InputObject $_filter -FilterPermissions $result)
+            }
         }
     }
 

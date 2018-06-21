@@ -18,8 +18,9 @@ Share a Filter with other users.
 ### ByInputObject (Default)
 
 ```powershell
-Add-JiraFilterPermission [-Filter] <JiraPS.Filter> [-Type] <String> [[-Value] <String>]
- [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Add-JiraFilterPermission [-Filter] <JiraPS.Filter> [-Type] <String>
+ [[-Value] <String>] [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
+  [<CommonParameters>]
 ```
 
 ### ById
@@ -71,8 +72,26 @@ Share Filter 12345 only with users in the administrators groups.
 Filter object to which the permission should be applied
 
 ```yaml
-Type: Object
-Parameter Sets: (All)
+Type: JiraPS.Filter
+Parameter Sets: ByInputObject
+Aliases:
+
+Required: True
+Position: 0
+Default value: None
+Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -Id
+
+Id of the Filter to which the permission should be applied
+
+_Id can be passed over the pipeline when reading from a file._
+
+```yaml
+Type: UInt32[]
+Parameter Sets: ById
 Aliases:
 
 Required: True
@@ -178,8 +197,11 @@ Accept wildcard characters: False
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction,
+-ErrorVariable, -InformationAction, -InformationVariable, -OutVariable,
+-OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see about_CommonParameters
+(<http://go.microsoft.com/fwlink/?LinkID=113216>).
 
 ## INPUTS
 
@@ -187,8 +209,23 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## OUTPUTS
 
-### [JiraPS.FilterPermission]
+### [JiraPS.Filter]
 
 ## NOTES
 
+This functions does not validate the input for `-Value`.
+In case the value is invalid, unexpected or missing, the API will response with
+an error.
+
+This function requires either the `-Credential` parameter to be passed or
+a persistent JIRA session.
+See `New-JiraSession` for more details.
+If neither are supplied, this function will run with anonymous access to JIRA.
+
 ## RELATED LINKS
+
+[Get-JiraFilter](../Get-JiraFilter/)
+
+[Get-JiraFilterPermission](../Get-JiraFilterPermission/)
+
+[Remove-JiraFilterPermission](../Remove-JiraFilterPermission/)
