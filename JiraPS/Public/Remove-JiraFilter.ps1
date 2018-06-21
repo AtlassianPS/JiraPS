@@ -7,6 +7,7 @@ function Remove-JiraFilter {
         $InputObject,
 
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
+        [ValidateNotNullOrEmpty()]
         [UInt32[]]
         $Id,
 
