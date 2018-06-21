@@ -11,10 +11,11 @@ function ConvertTo-JiraProjectRole {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
             $props = @{
-                'ID'        = $i.id
-                'Name'      = $i.name
-                'RestUrl'   = $i.self
-                'ProjectId' = $i.projectId
+                'ID'          = $i.id
+                'Name'        = $i.name
+                'Description' = $i.description
+                'Actors'      = $i.actors
+                'RestUrl'     = $i.self
             }
 
             $result = New-Object -TypeName PSObject -Property $props

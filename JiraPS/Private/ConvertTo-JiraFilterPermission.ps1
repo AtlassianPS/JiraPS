@@ -30,7 +30,7 @@ function ConvertTo-JiraFilterPermission {
             $result = New-Object -TypeName PSObject -Property $props
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.FilterPermission')
             $result | Add-Member -MemberType ScriptMethod -Name 'ToString' -Force -Value {
-                Write-Output "$($this.Id)"
+                Write-Output "$($this.Type)"
             }
 
             Write-Output $result
