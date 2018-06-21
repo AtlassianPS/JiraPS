@@ -3,7 +3,10 @@ function ConvertTo-JiraFilter {
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
-        $InputObject
+        $InputObject,
+
+        [PSObject[]]
+        $FilterPermissions
     )
 
     process {
@@ -11,17 +14,22 @@ function ConvertTo-JiraFilter {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
             $props = @{
-                'ID'              = $i.id
-                'Name'            = $i.name
-                'JQL'             = $i.jql
-                'RestUrl'         = $i.self
-                'ViewUrl'         = $i.viewUrl
-                'SearchUrl'       = $i.searchUrl
-                'Favourite'       = $i.favourite
+                'ID'                = $i.id
+                'Name'              = $i.name
+                'JQL'               = $i.jql
+                'RestUrl'           = $i.self
+                'ViewUrl'           = $i.viewUrl
+                'SearchUrl'         = $i.searchUrl
+                'Favourite'         = $i.favourite
+                'FilterPermissions' = @()
 
-                'SharePermission' = $i.sharePermissions
-                'SharedUser'      = $i.sharedUsers
-                'Subscription'    = $i.subscriptions
+                'SharePermission'   = $i.sharePermissions
+                'SharedUser'        = $i.sharedUsers
+                'Subscription'      = $i.subscriptions
+            }
+
+            if ($FilterPermissions) {
+                $props.FilterPermissions = @(ConvertTo-JiraFilterPermission ($FilterPermissions))
             }
 
             if ($i.description) {
