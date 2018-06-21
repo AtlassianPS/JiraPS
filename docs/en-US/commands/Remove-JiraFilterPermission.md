@@ -1,53 +1,110 @@
 ---
 external help file: JiraPS-help.xml
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/New-JiraVersion/
+online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilterPermission/
+locale: en-US
 schema: 2.0.0
+layout: documentation
+permalink: /docs/JiraPS/commands/Remove-JiraFilterPermission/
 ---
-
 # Remove-JiraFilterPermission
 
 ## SYNOPSIS
-{{Fill in the Synopsis}}
+
+Remove a permission of a Filter
 
 ## SYNTAX
 
+### ByFilterId (Default)
+
+```powershell
+Remove-JiraFilterPermission [-Filter] <JiraPS.Filter> [[-Credential] <PSCredential>]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-Remove-JiraFilterPermission [-InputObject] <JiraPS.FilterPermission> [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+
+### ByFilterObject
+
+```powershell
+Remove-JiraFilterPermission [-FilterId] <UInt32> [-PermissionId] <UInt32[]>
+ [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-{{Fill in the Description}}
+
+Remove a sharing permission of a Filter.
 
 ## EXAMPLES
 
 ### Example 1
+
 ```powershell
-PS C:\> {{ Add example code here }}
+Remove-JiraFilterPermission -FilterId 11822 -PermissionId 1111, 2222
 ```
 
-{{ Add example description here }}
+Remove two share permissions of Filter with ID '11822'
+
+### Example 1
+
+```powershell
+Get-JiraFilter 11822 | Get-JiraFilterPermission | Remove-JiraFilterPermission
+```
+
+Remove all permissions of Filter 11822
 
 ## PARAMETERS
 
-### -Confirm
-Prompts you for confirmation before running the cmdlet.
+### -Filter
+
+Object of the Filter from which to remove a permission.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
+Type: JiraPS.Filter
+Parameter Sets: ByFilterObject
+Aliases:
 
-Required: False
-Position: Named
+Required: True
+Position: 0
 Default value: None
-Accept pipeline input: False
+Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -FilterId
+
+Id of the Filter from which to remove a permission.
+
+```yaml
+Type: UInt32
+Parameter Sets: ByFilterId
+Aliases:
+
+Required: True
+Position: 0
+Default value: None
+Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -PermissionId
+
+List of id's of the permissions to remove.
+
+```yaml
+Type: UInt32[]
+Parameter Sets: ByFilterId
+Aliases:
+
+Required: True
+Position: 1
+Default value: None
+Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
 ### -Credential
-{{Fill Credential Description}}
+
+Credentials to use to connect to JIRA.  
+If not specified, this function will use anonymous access.
 
 ```yaml
 Type: PSCredential
@@ -61,22 +118,8 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -InputObject
-{{Fill InputObject Description}}
-
-```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 0
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
-```
-
 ### -WhatIf
+
 Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
@@ -92,14 +135,33 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -Confirm
+
+Prompts you for confirmation before running the cmdlet.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: cf
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+
+This cmdlet supports the common parameters: -Debug, -ErrorAction,
+-ErrorVariable, -InformationAction, -InformationVariable, -OutVariable,
+-OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see about_CommonParameters
+(<http://go.microsoft.com/fwlink/?LinkID=113216>).
 
 ## INPUTS
 
 ### System.Object
-
 
 ## OUTPUTS
 
@@ -107,4 +169,15 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## NOTES
 
+This function requires either the `-Credential` parameter to be passed or
+a persistent JIRA session.
+See `New-JiraSession` for more details.
+If neither are supplied, this function will run with anonymous access to JIRA.
+
 ## RELATED LINKS
+
+[Get-JiraFilter](../Get-JiraFilter/)
+
+[Add-JiraFilterPermission](../Add-JiraFilterPermission/)
+
+[Get-JiraFilterPermission](../Get-JiraFilterPermission/)
