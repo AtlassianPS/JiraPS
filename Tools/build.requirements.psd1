@@ -14,7 +14,7 @@
         Parameters = @{
             SkipPublisherCheck = $true
         }
-        Version    = "4.1.1"
+        Version    = "4.3.1"
     }
     platyPS          = "latest"
     PSScriptAnalyzer = @{

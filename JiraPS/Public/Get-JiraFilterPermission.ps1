@@ -1,10 +1,11 @@
-function Remove-JiraFilter {
-    [CmdletBinding( ConfirmImpact = "Medium", SupportsShouldProcess, DefaultParameterSetName = 'ByInputObject' )]
+function Get-JiraFilterPermission {
+    [CmdletBinding( DefaultParameterSetName = 'ById' )]
+    # [OutputType( [JiraPS.FilterPermission] )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNullOrEmpty()]
         [PSTypeName('JiraPS.Filter')]
-        $InputObject,
+        $Filter,
 
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
         [ValidateNotNullOrEmpty()]
@@ -19,6 +20,8 @@ function Remove-JiraFilter {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $resourceURi = "{0}/permission"
     }
 
     process {
@@ -26,21 +29,19 @@ function Remove-JiraFilter {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         if ($PSCmdlet.ParameterSetName -eq 'ById') {
-            $InputObject = foreach ($_id in $Id) {
-                Get-JiraFilter -Id $_id
-            }
+            $Filter = Get-JiraFilter -Id $Id
         }
 
-        foreach ($filter in $InputObject) {
+        foreach ($_filter in $Filter) {
             $parameter = @{
-                URI        = $filter.RestURL
-                Method     = "DELETE"
+                URI        = $resourceURi -f $_filter.RestURL
+                Method     = "GET"
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) {
-                Invoke-JiraMethod @parameter
-            }
+            $result = Invoke-JiraMethod @parameter
+
+            Write-Output (ConvertTo-JiraFilter -InputObject $_filter -FilterPermissions $result)
         }
     }
 
