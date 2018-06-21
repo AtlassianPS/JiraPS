@@ -18,7 +18,8 @@ Removes an existing filter.
 ### byInputObject (Default)
 
 ```powershell
-Remove-JiraFilter [-InputObject] <JiraPS.Filter> [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraFilter [-InputObject] <JiraPS.Filter> [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ### byId (Default)
@@ -76,8 +77,8 @@ $listOfFilters | Remove-JiraFilter
 
 Remove filters with id "1", "2", "3" and "4".
 
-This input allows for the ID of the filters to be stored in an array and passed to
-the command. (eg: `Get-Content` from a file with the ids)
+This input allows for the ID of the filters to be stored in an array and passed
+to the command. (eg: `Get-Content` from a file with the ids)
 
 ## PARAMETERS
 
@@ -169,8 +170,11 @@ Accept wildcard characters: False
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction,
+-ErrorVariable, -InformationAction, -InformationVariable, -OutVariable,
+-OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see about_CommonParameters
+(<http://go.microsoft.com/fwlink/?LinkID=113216>).
 
 ## INPUTS
 
@@ -180,7 +184,8 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or
+a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
