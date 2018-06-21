@@ -1,17 +1,21 @@
 function Get-JiraFilterPermission {
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = 'ById' )]
+    # [OutputType( [JiraPS.FilterPermission] )]
     param(
-        # Filter object from which to retrieve the permissions
-        [Parameter( Mandatory, ValueFromPipeline )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNullOrEmpty()]
         [PSTypeName('JiraPS.Filter')]
         $Filter,
 
-        # Credentials to use to connect to JIRA.
-        #
-        # If not specified, this function will use anonymous access.
-        [PSCredential]
-        $Credential
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
+        [ValidateNotNullOrEmpty()]
+        [UInt32[]]
+        $Id,
+
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -24,15 +28,21 @@ function Get-JiraFilterPermission {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $parameter = @{
-            URI        = $resourceURi -f $Filter.RestURL
-            Method     = "GET"
-            Credential = $Credential
+        if ($PSCmdlet.ParameterSetName -eq 'ById') {
+            $Filter = Get-JiraFilter -Id $Id
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
 
-        Write-Output (ConvertTo-JiraFilterPermission -InputObject $result)
+        foreach ($_filter in $Filter) {
+            $parameter = @{
+                URI        = $resourceURi -f $_filter.RestURL
+                Method     = "GET"
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraMethod @parameter
+
+            Write-Output (ConvertTo-JiraFilter -InputObject $_filter -FilterPermissions $result)
+        }
     }
 
     end {
