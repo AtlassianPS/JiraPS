@@ -1,96 +1,65 @@
 ---
 external help file: JiraPS-help.xml
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilter/
+online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilterPermission/
 locale: en-US
 schema: 2.0.0
 layout: documentation
-permalink: /docs/JiraPS/commands/Remove-JiraFilter/
+permalink: /docs/JiraPS/commands/Remove-JiraFilterPermission/
 ---
-# Remove-JiraFilter
+# Remove-JiraFilterPermission
 
 ## SYNOPSIS
 
-Removes an existing filter.
+Remove a permission of a Filter
 
 ## SYNTAX
 
-### byInputObject (Default)
+### ByFilterId (Default)
 
 ```powershell
-Remove-JiraFilter [-InputObject] <JiraPS.Filter> [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Remove-JiraFilterPermission [-Filter] <JiraPS.Filter> [[-Credential] <PSCredential>]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-### byId (Default)
+### ByFilterObject
 
 ```powershell
-Remove-JiraFilter [-Id] <UInt32[]> [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraFilterPermission [-FilterId] <UInt32> [-PermissionId] <UInt32[]>
+ [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function will remove a filter from Jira.
-Deleting a filter removed is permanently from Jira.
+Remove a sharing permission of a Filter.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-Remove-JiraFilter -InputObject (Get-JiraFilter "12345")
+Remove-JiraFilterPermission -FilterId 11822 -PermissionId 1111, 2222
 ```
 
-Removes the filter `12345` from Jira.
+Remove two share permissions of Filter with ID '11822'
 
-### Example 2
+### Example 1
 
 ```powershell
-$filter = Get-JiraFilter "12345", "98765"
-Remove-JiraFilter -InputObject $filter
+Get-JiraFilter 11822 | Get-JiraFilterPermission | Remove-JiraFilterPermission
 ```
 
-Removes two filters (`12345` and `98765`) from Jira.
-
-### Example 3
-
-```powershell
-Get-JiraFilter "12345", "98765" | Remove-JiraFilter
-```
-
-Removes two filters (`12345` and `98765`) from Jira.
-
-### Example 4
-
-```powershell
-Get-JiraFilter -Favorite | Remove-JiraFilter -Confirm
-```
-
-Asks for each favorite filter confirmation to delete it.
-
-### Example 5
-
-```powershell
-$listOfFilters = 1,2,3,4
-$listOfFilters | Remove-JiraFilter
-```
-
-Remove filters with id "1", "2", "3" and "4".
-
-This input allows for the ID of the filters to be stored in an array and passed
-to the command. (eg: `Get-Content` from a file with the ids)
+Remove all permissions of Filter 11822
 
 ## PARAMETERS
 
-### -InputObject
+### -Filter
 
-Filter object to be deleted.
-
-Object can be retrieved with `Get-JiraFilter`
+Object of the Filter from which to remove a permission.
 
 ```yaml
 Type: JiraPS.Filter
-Parameter Sets: ByInputObject
+Parameter Sets: ByFilterObject
 Aliases:
 
 Required: True
@@ -100,19 +69,33 @@ Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
-### -Id
+### -FilterId
 
-Id of the filter to be deleted.
-
-Accepts integers over the pipeline.
+Id of the Filter from which to remove a permission.
 
 ```yaml
-Type: UInt32[]
-Parameter Sets: ById
+Type: UInt32
+Parameter Sets: ByFilterId
 Aliases:
 
 Required: True
 Position: 0
+Default value: None
+Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -PermissionId
+
+List of id's of the permissions to remove.
+
+```yaml
+Type: UInt32[]
+Parameter Sets: ByFilterId
+Aliases:
+
+Required: True
+Position: 1
 Default value: None
 Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
@@ -129,7 +112,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 2
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -178,9 +161,11 @@ For more information, see about_CommonParameters
 
 ## INPUTS
 
-### [JiraPS.Filter]
+### System.Object
 
 ## OUTPUTS
+
+### System.Object
 
 ## NOTES
 
@@ -193,6 +178,6 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 [Get-JiraFilter](../Get-JiraFilter/)
 
-[New-JiraFilter](../New-JiraFilter/)
+[Add-JiraFilterPermission](../Add-JiraFilterPermission/)
 
-[Set-JiraFilter](../Set-JiraFilter/)
+[Get-JiraFilterPermission](../Get-JiraFilterPermission/)

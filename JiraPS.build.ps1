@@ -177,6 +177,7 @@ task UpdateManifest GetNextVersion, {
 
 # Synopsis: Create a ZIP file with this build
 task Package GenerateRelease, {
+    Remove-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction SilentlyContinue
     $null = Compress-Archive -Path "$env:BHBuildOutput\$env:BHProjectName" -DestinationPath "$env:BHBuildOutput\$env:BHProjectName.zip"
 }
 #endregion BuildRelease
@@ -205,9 +206,7 @@ task Test Init, {
             OutputFormat = "NUnitXml"
             CodeCoverage = $codeCoverageFiles
         }
-        if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
-            $parameter["Show"] = "Fails"
-        }
+        $parameter["Show"] = "Fails"
         $testResults = Invoke-Pester @parameter
 
         If ('AppVeyor' -eq $env:BHBuildSystem) {
