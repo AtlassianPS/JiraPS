@@ -104,9 +104,11 @@
                     }
 
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    Invoke-JiraMethod @parameter | Where-Object {
-                        $__ = $_
-                        Write-Verbose ($__ | out-string)
+                    $result = Invoke-JiraMethod @parameter
+
+                    $result | Where-Object {
+                        $__ = $_.Name
+                        Write-DebugMessage ($__ | Out-String)
                         $Name | Foreach-Object {
                             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Matching $_ against $($__)"
                             $__ -like $_
