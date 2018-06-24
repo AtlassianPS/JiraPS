@@ -1,12 +1,90 @@
-Describe "Invoke-JiraMethod" {
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+param()
 
-    Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+Describe "Invoke-JiraMethod" {
+    BeforeAll {
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
+        Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+    }
+    AfterEach {
+        # $script:ShowMockData = $false
+    }
 
     InModuleScope JiraPS {
 
         . "$PSScriptRoot/Shared.ps1"
 
-        $validMethods = @('GET', 'POST', 'PUT', 'DELETE')
+        #region Definitions
+
+        $utf8String = "Lorem مرحبا Здравствуйте 😁"
+        $testUsername = 'testUsername'
+        $testPassword = ConvertTo-SecureString -AsPlainText -Force 'password123'
+        $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername, $testPassword
+        $pagedResponse1 = @"
+{
+    "startAt" : 0,
+    "maxResults" : 5,
+    "total": 7,
+    "issues": [
+        { "id": 1 },
+        { "id": 2 },
+        { "id": 3 },
+        { "id": 4 },
+        { "id": 5 }
+    ]
+}
+"@
+        $pagedResponse2 = @"
+{
+    "startAt" : 5,
+    "maxResults" : 5,
+    "total": 7,
+    "issues": [
+        { "id": 6 },
+        { "id": 7 }
+    ]
+}
+"@
+        $pagedResponse3 = "{}"
+        $supportedTypes = @("JiraComment", "JiraIssue", "JiraUser", "JiraVersion")
+        #endregion Definitions
+
+        #region Mocks
+        Mock Resolve-DefaultParameterValue -ModuleName JiraPS { @{ } }
+        Mock Join-Hashtable -ModuleName JiraPS { @{ } }
+        Mock Set-TlsLevel -ModuleName JiraPS { }
+        Mock Resolve-ErrorWebResponse -ModuleName JiraPS { }
+        Mock Get-JiraSession -ModuleName JiraPS {
+            [PSCustomObject]@{
+                WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
+            }
+        }
+        Mock Test-ServerResponse -Module JiraPS { }
+        Mock ConvertTo-JiraSession -ModuleName JiraPS { }
+        foreach ($type in $supportedTypes) {
+            Mock -CommandName "ConvertTo-$type" -ModuleName JiraPS { }
+        }
+        Mock Invoke-WebRequest -ModuleName JiraPS {
+            ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method', 'Body', 'Headers', 'ContentType', 'SessionVariable', 'WebSession'
+            $InvokeWebRequestSplat = @{
+                Uri         = $Uri
+                Method      = $Method
+                Body        = $Body
+                Headers     = $Headers
+                WebSession  = $WebSession
+                ContentType = $ContentType
+            }
+            if ($SessionVariable) {
+                $InvokeWebRequestSplat["SessionVariable"] = $SessionVariable
+            }
+
+            Microsoft.PowerShell.Utility\Invoke-WebRequest @InvokeWebRequestSplat
+
+            if ($SessionVariable) {
+                Set-Variable -Name $SessionVariable -Value (Get-Variable $SessionVariable).Value -Scope 3 # Pester adds 2 levels of nesting
+            }
+        }
+        #endregion Mocks
 
         Context "Sanity checking" {
             $command = Get-Command -Name Invoke-JiraMethod
@@ -27,440 +105,529 @@ Describe "Invoke-JiraMethod" {
 
             It "Restricts the METHODs to WebRequestMethod" {
                 $methodType = $command.Parameters.Method.ParameterType
-                $methodType.FullName | Should Be "Microsoft.PowerShell.Commands.WebRequestMethod"
+                $methodType.FullName | Should -Be "Microsoft.PowerShell.Commands.WebRequestMethod"
             }
         }
 
         Context "Behavior testing" {
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+            It "uses Invoke-WebMethod under the hood" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
 
-            $testUri = 'http://example.com'
-            $testUsername = 'testUsername'
-            $testPassword = 'password123'
-            $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername, (ConvertTo-SecureString -AsPlainText -Force $testPassword)
-
-            Mock Invoke-WebRequest {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
-            }
-
-            It "Correctly performs all necessary HTTP method requests [$($validMethods -join ',')] to a provided URI" {
-                foreach ($method in $validMethods) {
-                    { Invoke-JiraMethod -Method $method -URI $testUri } | Should Not Throw
-
-                    Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$Method -eq $method -and $Uri -eq $testUri} -Scope It
+                $assertMockCalledSplat = @{
+                    CommandName = 'Invoke-WebRequest'
+                    ModuleName  = 'JiraPS'
+                    Exactly     = $true
+                    Times       = 1
+                    Scope       = 'It'
                 }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
-            It "Uses the -ContentType parameter of Invoke-WebRequest to specify application/json and UTF-8" {
-                { Invoke-JiraMethod -Method Get -URI $testUri } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$ContentType -eq 'application/json; charset=utf-8'} -Scope It
+            It "parses a JSON response" {
+                $response = Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+
+                $response | Should -BeOfType [PSCustomObject]
             }
 
-            It "Uses the -UseBasicParsing switch for Invoke-WebRequest" {
-                { Invoke-JiraMethod -Method Get -URI $testUri } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$UseBasicParsing -eq $true} -Scope It
+            It "resolves errors" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/status/400" -ErrorAction Stop
+
+                Assert-MockCalled -CommandName Resolve-ErrorWebResponse -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
+            It "supports TLS1.2 connections" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+
+                Assert-MockCalled -CommandName Set-TlsLevel -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                Assert-MockCalled -CommandName Set-TlsLevel -ModuleName JiraPS -ParameterFilter {$Tls12 -eq $true} -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName Set-TlsLevel -ModuleName JiraPS -ParameterFilter {$Revert -eq $true} -Exactly -Times 1 -Scope It
+            }
+
+            It "uses global default values for parameters" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+
+                Assert-MockCalled -CommandName Resolve-DefaultParameterValue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            }
         }
 
-        $validTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/303853'
+        Context "Input testing" {
+            It "parses a string to URi" {
+                [Uri]$Uri = "https://postman-echo.com/get?test=123"
+                $Uri | Should -BeOfType [Uri]
 
-        # This is a real REST result from Atlassian's public-facing JIRA instance, trimmed and cleaned
-        # up just a bit for fields we don't care about.
+                { Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop } | Should -Not -Throw
+                { Invoke-JiraMethod -URI $Uri -ErrorAction Stop } | Should -Not -Throw
 
-        # You can obtain this data with a single PowerShell line:
-        # Invoke-WebRequest -Method Get -Uri https://jira.atlassian.com/rest/api/latest/issue/303853
-        $validRestResult = @'
-{
-    "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog,versionedRepresentations",
-    "id": "303853",
-    "self": "https://jira.atlassian.com/rest/api/latest/issue/303853",
-    "key": "DEMO-2719",
-    "fields": {
-        "issuetype": {
-            "self": "https://jira.atlassian.com/rest/api/2/issuetype/2",
-            "id": "2",
-            "description": "A new feature of the product, which has yet to be developed.",
-            "iconUrl": "https://jira.atlassian.com/images/icons/issuetypes/newfeature.png",
-            "name": "New Feature",
-            "subtask": false
-        },
-        "timespent": null,
-        "project": {
-            "self": "https://jira.atlassian.com/rest/api/2/project/10820",
-            "id": "10820",
-            "key": "DEMO",
-            "name": "Demo",
-            "avatarUrls": {
-                "48x48": "https://jira.atlassian.com/secure/projectavatar?avatarId=10011",
-                "24x24": "https://jira.atlassian.com/secure/projectavatar?size=small&avatarId=10011",
-                "16x16": "https://jira.atlassian.com/secure/projectavatar?size=xsmall&avatarId=10011",
-                "32x32": "https://jira.atlassian.com/secure/projectavatar?size=medium&avatarId=10011"
+                { Invoke-JiraMethod -URI "hello" -ErrorAction Stop } | Should -Throw
             }
-        },
-        "fixVersions": [],
-        "aggregatetimespent": null,
-        "resolution": null,
-        "resolutiondate": null,
-        "workratio": -1,
-        "lastViewed": null,
-        "watches": {
-            "self": "https://jira.atlassian.com/rest/api/2/issue/DEMO-2719/watchers",
-            "watchCount": 1,
-            "isWatching": false
-        },
-        "created": "2013-10-26T20:06:23.853+0000",
-        "priority": {
-            "self": "https://jira.atlassian.com/rest/api/2/priority/4",
-            "iconUrl": "https://jira.atlassian.com/images/icons/priorities/minor.png",
-            "name": "Minor",
-            "id": "4"
-        },
-        "labels": [],
-        "aggregatetimeoriginalestimate": null,
-        "timeestimate": null,
-        "versions": [],
-        "issuelinks": [
-            {
-                "id": "115932",
-                "self": "https://jira.atlassian.com/rest/api/2/issueLink/115932",
-                "type": {
-                    "id": "10080",
-                    "name": "Detail",
-                    "inward": "is detailed by",
-                    "outward": "details",
-                    "self": "https://jira.atlassian.com/rest/api/2/issueLinkType/10080"
-                },
-                "outwardIssue": {
-                    "id": "303848",
-                    "key": "DEMO-2717",
-                    "self": "https://jira.atlassian.com/rest/api/2/issue/303848",
-                    "fields": {
-                        "summary": "New Feature Test Task",
-                        "status": {
-                            "self": "https://jira.atlassian.com/rest/api/2/status/1",
-                            "description": "Issue is open and has not yet been accepted by Atlassian.",
-                            "iconUrl": "https://jira.atlassian.com/images/icons/statuses/open.png",
-                            "name": "Open",
-                            "id": "1",
-                            "statusCategory": {
-                                "self": "https://jira.atlassian.com/rest/api/2/statuscategory/2",
-                                "id": 2,
-                                "key": "new",
-                                "colorName": "blue-gray",
-                                "name": "To Do"
-                            }
-                        },
-                        "priority": {
-                            "self": "https://jira.atlassian.com/rest/api/2/priority/4",
-                            "iconUrl": "https://jira.atlassian.com/images/icons/priorities/minor.png",
-                            "name": "Minor",
-                            "id": "4"
-                        },
-                        "issuetype": {
-                            "self": "https://jira.atlassian.com/rest/api/2/issuetype/2",
-                            "id": "2",
-                            "description": "A new feature of the product, which has yet to be developed.",
-                            "iconUrl": "https://jira.atlassian.com/images/icons/issuetypes/newfeature.png",
-                            "name": "New Feature",
-                            "subtask": false
+
+            foreach ($method in @('GET', 'POST', 'PUT', 'DELETE')) {
+                It "accepts [$method] as HTTP method" {
+                    Invoke-JiraMethod -Method $method -URI "https://postman-echo.com/$method"
+
+                    $assertMockCalledSplat = @{
+                        CommandName     = 'Invoke-WebRequest'
+                        ModuleName      = 'JiraPS'
+                        ParameterFilter = {
+                            $Method -eq $method
                         }
+                        Exactly         = $true
+                        Times           = 1
+                        Scope           = 'It'
                     }
-                }
-            },
-            {
-                "id": "119483",
-                "self": "https://jira.atlassian.com/rest/api/2/issueLink/119483",
-                "type": {
-                    "id": "10000",
-                    "name": "Reference",
-                    "inward": "is related to",
-                    "outward": "relates to",
-                    "self": "https://jira.atlassian.com/rest/api/2/issueLinkType/10000"
-                },
-                "outwardIssue": {
-                    "id": "304302",
-                    "key": "DEMO-2722",
-                    "self": "https://jira.atlassian.com/rest/api/2/issue/304302",
-                    "fields": {
-                        "summary": "My summary",
-                        "status": {
-                            "self": "https://jira.atlassian.com/rest/api/2/status/1",
-                            "description": "Issue is open and has not yet been accepted by Atlassian.",
-                            "iconUrl": "https://jira.atlassian.com/images/icons/statuses/open.png",
-                            "name": "Open",
-                            "id": "1",
-                            "statusCategory": {
-                                "self": "https://jira.atlassian.com/rest/api/2/statuscategory/2",
-                                "id": 2,
-                                "key": "new",
-                                "colorName": "blue-gray",
-                                "name": "To Do"
-                            }
-                        },
-                        "priority": {
-                            "self": "https://jira.atlassian.com/rest/api/2/priority/4",
-                            "iconUrl": "https://jira.atlassian.com/images/icons/priorities/minor.png",
-                            "name": "Minor",
-                            "id": "4"
-                        },
-                        "issuetype": {
-                            "self": "https://jira.atlassian.com/rest/api/2/issuetype/1",
-                            "id": "1",
-                            "description": "A problem which impairs or prevents the functions of the product.",
-                            "iconUrl": "https://jira.atlassian.com/images/icons/issuetypes/bug.png",
-                            "name": "Bug",
-                            "subtask": false
-                        }
-                    }
-                }
-            },
-            {
-                "id": "115931",
-                "self": "https://jira.atlassian.com/rest/api/2/issueLink/115931",
-                "type": {
-                    "id": "10000",
-                    "name": "Reference",
-                    "inward": "is related to",
-                    "outward": "relates to",
-                    "self": "https://jira.atlassian.com/rest/api/2/issueLinkType/10000"
-                },
-                "inwardIssue": {
-                    "id": "303852",
-                    "key": "DEMO-2718",
-                    "self": "https://jira.atlassian.com/rest/api/2/issue/303852",
-                    "fields": {
-                        "summary": "REST ye merry gentlemen.",
-                        "status": {
-                            "self": "https://jira.atlassian.com/rest/api/2/status/1",
-                            "description": "Issue is open and has not yet been accepted by Atlassian.",
-                            "iconUrl": "https://jira.atlassian.com/images/icons/statuses/open.png",
-                            "name": "Open",
-                            "id": "1",
-                            "statusCategory": {
-                                "self": "https://jira.atlassian.com/rest/api/2/statuscategory/2",
-                                "id": 2,
-                                "key": "new",
-                                "colorName": "blue-gray",
-                                "name": "To Do"
-                            }
-                        },
-                        "priority": {
-                            "self": "https://jira.atlassian.com/rest/api/2/priority/4",
-                            "iconUrl": "https://jira.atlassian.com/images/icons/priorities/minor.png",
-                            "name": "Minor",
-                            "id": "4"
-                        },
-                        "issuetype": {
-                            "self": "https://jira.atlassian.com/rest/api/2/issuetype/2",
-                            "id": "2",
-                            "description": "A new feature of the product, which has yet to be developed.",
-                            "iconUrl": "https://jira.atlassian.com/images/icons/issuetypes/newfeature.png",
-                            "name": "New Feature",
-                            "subtask": false
-                        }
-                    }
+                    Assert-MockCalled @assertMockCalledSplat
                 }
             }
-        ],
-        "assignee": {
-            "self": "https://jira.atlassian.com/rest/api/2/user?username=ben%40atlassian.com",
-            "name": "ben@atlassian.com",
-            "key": "ben@atlassian.com",
-            "emailAddress": "ben at atlassian dot com",
-            "avatarUrls": {
-                "48x48": "https://jira.atlassian.com/secure/useravatar?ownerId=ben%40atlassian.com&avatarId=72204",
-                "24x24": "https://jira.atlassian.com/secure/useravatar?size=small&ownerId=ben%40atlassian.com&avatarId=72204",
-                "16x16": "https://jira.atlassian.com/secure/useravatar?size=xsmall&ownerId=ben%40atlassian.com&avatarId=72204",
-                "32x32": "https://jira.atlassian.com/secure/useravatar?size=medium&ownerId=ben%40atlassian.com&avatarId=72204"
-            },
-            "displayName": "Benjamin Naftzger [Atlassian]",
-            "active": true,
-            "timeZone": "Europe/Berlin"
-        },
-        "updated": "2013-12-08T11:00:43.133+0000",
-        "status": {
-            "self": "https://jira.atlassian.com/rest/api/2/status/1",
-            "description": "Issue is open and has not yet been accepted by Atlassian.",
-            "iconUrl": "https://jira.atlassian.com/images/icons/statuses/open.png",
-            "name": "Open",
-            "id": "1",
-            "statusCategory": {
-                "self": "https://jira.atlassian.com/rest/api/2/statuscategory/2",
-                "id": 2,
-                "key": "new",
-                "colorName": "blue-gray",
-                "name": "To Do"
+
+            It "encodes the Body with UTF-8 to support special chars" {
+                $invokeJiraMethodSplat = @{
+                    Method = 'Post'
+                    URI    = "https://postman-echo.com/post"
+                    Body   = $utf8String
+                }
+                Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-WebRequest'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Body -is [Byte[]] -and
+                        ($Body -join " ") -eq "76 111 114 101 109 32 195 153 226 128 166 195 152 194 177 195 152 194 173 195 152 194 168 195 152 194 167 32 195 144 226 128 148 195 144 194 180 195 145 226 130 172 195 144 194 176 195 144 194 178 195 145 194 129 195 145 226 128 154 195 144 194 178 195 145 198 146 195 144 194 185 195 145 226 128 154 195 144 194 181 32 195 176 197 184 203 156 194 129"
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
-        },
-        "components": [],
-        "timeoriginalestimate": null,
-        "description": "Creating of an issue using project keys and issue type names using the REST API",
-        "timetracking": {},
-        "attachment": [],
-        "aggregatetimeestimate": null,
-        "summary": "REST ye merry gentlemen.",
-        "creator": {
-            "self": "https://jira.atlassian.com/rest/api/2/user?username=gokhant",
-            "name": "gokhant",
-            "key": "gokhant",
-            "emailAddress": "gokhant at gmail dot com",
-            "avatarUrls": {
-                "48x48": "https://jira.atlassian.com/secure/useravatar?ownerId=gokhant&avatarId=73000",
-                "24x24": "https://jira.atlassian.com/secure/useravatar?size=small&ownerId=gokhant&avatarId=73000",
-                "16x16": "https://jira.atlassian.com/secure/useravatar?size=xsmall&ownerId=gokhant&avatarId=73000",
-                "32x32": "https://jira.atlassian.com/secure/useravatar?size=medium&ownerId=gokhant&avatarId=73000"
-            },
-            "displayName": "Gokhan Tuna",
-            "active": true,
-            "timeZone": "Etc/UTC"
-        },
-        "subtasks": [],
-        "reporter": {
-            "self": "https://jira.atlassian.com/rest/api/2/user?username=gokhant",
-            "name": "gokhant",
-            "key": "gokhant",
-            "emailAddress": "gokhant at gmail dot com",
-            "avatarUrls": {
-                "48x48": "https://jira.atlassian.com/secure/useravatar?ownerId=gokhant&avatarId=73000",
-                "24x24": "https://jira.atlassian.com/secure/useravatar?size=small&ownerId=gokhant&avatarId=73000",
-                "16x16": "https://jira.atlassian.com/secure/useravatar?size=xsmall&ownerId=gokhant&avatarId=73000",
-                "32x32": "https://jira.atlassian.com/secure/useravatar?size=medium&ownerId=gokhant&avatarId=73000"
-            },
-            "displayName": "Gokhan Tuna",
-            "active": true,
-            "timeZone": "Etc/UTC"
-        },
-        "aggregateprogress": {
-            "progress": 0,
-            "total": 0
-        },
-        "environment": null,
-        "duedate": null,
-        "progress": {
-            "progress": 0,
-            "total": 0
-        },
-        "comment": {
-            "startAt": 0,
-            "maxResults": 1,
-            "total": 1,
-            "comments": [
+
+            It "allows for skipping the UTF-8 encoding of the Body" {
+                $invokeJiraMethodSplat = @{
+                    Method  = 'Post'
+                    URI     = "https://postman-echo.com/post"
+                    Body    = $utf8String
+                    RawBody = $true
+                }
+                Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-WebRequest'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Body -is [String] -and
+                        $Body -eq $utf8String
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
+
+            It "overwrites module default headers with global PSDefaultParameterValues" {}
+
+            It "overwrites global PSDefaultParameterValues with -Headers" {}
+
+            It "overwrites module default headers with -Headers" {}
+
+            It "overwrites get parameters in the URI with -GetParameter values" {}
+
+            It "passes the -InFile to Invoke-WebRequest" {
+                $invokeJiraMethodSplat = @{
+                    Method = 'Post'
+                    URI    = "https://postman-echo.com/post"
+                    InFile = "./file-does-not-exist.txt"
+                }
+                Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-WebRequest'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $inFile -eq "./file-does-not-exist.txt"
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
+
+            It "passes the -OutFile to Invoke-WebRequest" {
+                $invokeJiraMethodSplat = @{
+                    Method  = 'Post'
+                    URI     = "https://postman-echo.com/post"
+                    OutFile = "./file-does-not-exist.txt"
+                }
+                Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-WebRequest'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $OutFile -eq "./file-does-not-exist.txt"
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
+
+            It "uses ConvertTo-JiraSession to store the Session" {
+                $invokeJiraMethodSplat = @{
+                    Method       = 'Get'
+                    URI          = "https://postman-echo.com/get"
+                    StoreSession = $true
+                    ErrorAction  = "Stop"
+                }
+                Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $assertMockCalledSplat = @{
+                    CommandName     = "Invoke-WebRequest"
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {$SessionVariable -eq "newSessionVar"}
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+                Assert-MockCalled -CommandName ConvertTo-JiraSession -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            }
+
+            foreach ($type in $supportedTypes) {
+                It "uses ConvertTo-$type to transform the results" {
+                    Invoke-JiraMethod -Method get -URI "https://postman-echo.com/get" -OutputType $type -Paging -ErrorAction Stop
+
+                    Assert-MockCalled -CommandName "ConvertTo-$type" -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                }
+
+                It "only uses -OutputType with -Paging [$type]" {
+                    Invoke-JiraMethod -Method get -URI "https://postman-echo.com/get" -OutputType $type -ErrorAction Stop
+
+                    Assert-MockCalled -CommandName "ConvertTo-$type" -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                }
+            }
+
+            It "uses session if no -Credential are passed" {
+                $invokeJiraMethodSplat = @{
+                    URI         = "https://postman-echo.com/get"
+                    Method      = 'get'
+                    ErrorAction = "Stop"
+                }
+                Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-WebRequest'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $WebSession -is [Microsoft.PowerShell.Commands.WebRequestSession] -and
+                        $Credential -eq $null
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+                Assert-MockCalled -CommandName Get-JiraSession -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            }
+
+            It "uses -Credential even if session is present" {
+                Mock Get-JiraSession -ModuleName JiraPS {
+                    [PSCustomObject]@{
+                        WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
+                    }
+                }
+
+                $invokeJiraMethodSplat = @{
+                    URI         = "https://postman-echo.com/get"
+                    Method      = 'get'
+                    Credential  = $testCred
+                    ErrorAction = "Stop"
+                }
+                Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-WebRequest'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $SessionVariable -eq $null -and
+                        $Credential -ne $null
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+                Assert-MockCalled -CommandName Get-JiraSession -ModuleName JiraPS -Exactly -Times 0 -Scope It
+            }
+
+            It "uses -Headers for the call" {
+                Mock Join-Hashtable -ModuleName JiraPS {
+                    $table = @{ }
+                    foreach ($item in $Hashtable) {
+                        foreach ($key in $item.Keys) {
+                            $table[$key] = $item[$key]
+                        }
+                    }
+                    $table
+                }
+
+                $invokeJiraMethodSplat = @{
+                    Method      = 'Get'
+                    URI         = "https://postman-echo.com/headers"
+                    Headers     = @{
+                        "X-Fake" = "lorem ipsum"
+                    }
+                    ErrorAction = "Stop"
+                }
+                $defaultResponse = Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $invokeJiraMethodSplat["Headers"] = @{
+                    "X-Fake" = "dolor sum"
+                }
+                $changedResponse = Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $defaultResponse.headers."x-fake" | Should -Be "lorem ipsum"
+                $changedResponse.headers."x-fake" | Should -Be "dolor sum"
+
+                $assertMockCalledSplat = @{
+                    CommandName = "Invoke-WebRequest"
+                    ModuleName  = 'JiraPS'
+                    Exactly     = $true
+                    Times       = 2
+                    Scope       = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
+
+            It "uses authenticates as anonymous when no -Credential is provided and no session exists" -pending {
+                Mock Get-JiraSession -ModuleName JiraPS {
+                    $null
+                }
+
+                $invokeJiraMethodSplat = @{
+                    Method      = 'Get'
+                    URI         = "https://postman-echo.com/headers"
+                    ErrorAction = "Stop"
+                }
+                Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $assertMockCalledSplat = @{
+                    CommandName     = "Invoke-WebRequest"
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Credential -eq $null -and
+                        $WebSession -eq $null
+                    }
+                    Exactly         = $true
+                    Times           = 2
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
+
+            It "removes and content-type from headers and uses Invoke-WebRequest's -ContentType" {
+                Mock Join-Hashtable -ModuleName JiraPS {
+                    $table = @{ }
+                    foreach ($item in $Hashtable) {
+                        foreach ($key in $item.Keys) {
+                            $table[$key] = $item[$key]
+                        }
+                    }
+                    $table
+                }
+
+                $invokeJiraMethodSplat = @{
+                    Method      = 'Get'
+                    URI         = "https://postman-echo.com/headers"
+                    ErrorAction = "Stop"
+                }
+                $defaultResponse = Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $invokeJiraMethodSplat["Headers"] = @{
+                    "Content-Type" = "text/plain"
+                }
+                $changedResponse = Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $defaultResponse.headers."content-type" | Should -Be "application/json; charset=utf-8"
+                $changedResponse.headers."content-type" | Should -Be "text/plain"
+
+                $assertMockCalledSplat = @{
+                    CommandName     = "Invoke-WebRequest"
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Uri -notlike "*contentType*" -and
+                        $Uri -notlike "*content-Type*" -and
+                        $ContentType -eq "application/json; charset=utf-8"
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+
+                $assertMockCalledSplat["ParameterFilter"] = {
+                    $Uri -notlike "*contentType*" -and
+                    $Uri -notlike "*content-Type*" -and
+                    $ContentType -eq "text/plain"
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
+
+            It "can handle UTF-8 chars in the response" {
+                $invokeJiraMethodSplat = @{
+                    Method      = 'Post'
+                    URI         = "https://postman-echo.com/post"
+                    Body        = $utf8String
+                    ErrorAction = "Stop"
+                }
+                $response = Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $response.data | Should -Be $utf8String
+            }
+        }
+
+        Context "Paged restuls" {
+            Mock Invoke-WebRequest -ModuleName JiraPS {
+                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method', 'Body'
+
+                $response = ""
+                if ($Uri -match "startAt\=(\d+)") {
+                    switch ($matches[1]) {
+                        5 {$response = $pagedResponse2; break }
+                        7 { $response = $pagedResponse3; break }
+                    }
+                }
+                if (-not $response) {
+                    $response = $pagedResponse1
+                }
+
+                $InvokeWebRequestSplat = @{
+                    Uri    = "https://postman-echo.com/post"
+                    Method = "Post"
+                    Body   = $response
+                }
+                $result = Microsoft.PowerShell.Utility\Invoke-WebRequest @InvokeWebRequestSplat
+
+                $scriptBlock = "`$response = @`"`n$response`n`"@;Write-Output ([System.Text.Encoding]::UTF8.GetBytes(`$response))"
+                $result.RawContentStream | Add-Member -MemberType ScriptMethod -Name "ToArray" -Force -Value ([Scriptblock]::Create($scriptBlock))
+                $result
+            }
+            Mock Join-Hashtable -ModuleName JiraPS {
+                $table = @{ }
+                foreach ($item in $Hashtable) {
+                    foreach ($key in $item.Keys) {
+                        $table[$key] = $item[$key]
+                    }
+                }
+                $table
+            }
+
+            It "requests each page of the results" {
                 {
-                    "self": "https://jira.atlassian.com/rest/api/2/issue/303853/comment/534625",
-                    "id": "534625",
-                    "author": {
-                        "self": "https://jira.atlassian.com/rest/api/2/user?username=gokhant",
-                        "name": "gokhant",
-                        "key": "gokhant",
-                        "emailAddress": "gokhant at gmail dot com",
-                        "avatarUrls": {
-                            "48x48": "https://jira.atlassian.com/secure/useravatar?ownerId=gokhant&avatarId=73000",
-                            "24x24": "https://jira.atlassian.com/secure/useravatar?size=small&ownerId=gokhant&avatarId=73000",
-                            "16x16": "https://jira.atlassian.com/secure/useravatar?size=xsmall&ownerId=gokhant&avatarId=73000",
-                            "32x32": "https://jira.atlassian.com/secure/useravatar?size=medium&ownerId=gokhant&avatarId=73000"
-                        },
-                        "displayName": "Gokhan Tuna",
-                        "active": true,
-                        "timeZone": "Etc/UTC"
-                    },
-                    "body": "test comment",
-                    "updateAuthor": {
-                        "self": "https://jira.atlassian.com/rest/api/2/user?username=gokhant",
-                        "name": "gokhant",
-                        "key": "gokhant",
-                        "emailAddress": "gokhant at gmail dot com",
-                        "avatarUrls": {
-                            "48x48": "https://jira.atlassian.com/secure/useravatar?ownerId=gokhant&avatarId=73000",
-                            "24x24": "https://jira.atlassian.com/secure/useravatar?size=small&ownerId=gokhant&avatarId=73000",
-                            "16x16": "https://jira.atlassian.com/secure/useravatar?size=xsmall&ownerId=gokhant&avatarId=73000",
-                            "32x32": "https://jira.atlassian.com/secure/useravatar?size=medium&ownerId=gokhant&avatarId=73000"
-                        },
-                        "displayName": "Gokhan Tuna",
-                        "active": true,
-                        "timeZone": "Etc/UTC"
-                    },
-                    "created": "2013-11-05T02:50:09.991+0000",
-                    "updated": "2013-11-05T02:50:09.991+0000"
-                }
-            ]
-        },
-        "votes": {
-            "self": "https://jira.atlassian.com/rest/api/2/issue/DEMO-2719/votes",
-            "votes": 0,
-            "hasVoted": false
-        },
-        "worklog": {
-            "startAt": 0,
-            "maxResults": 20,
-            "total": 0,
-            "worklogs": []
-        }
-    }
-}
-'@
-
-        $validObjResult = ConvertFrom-Json -InputObject $validRestResult
-
-        Context "Output handling - valid object returned (HTTP 200)" {
-
-            It "Outputs an object representation of JSON returned from JIRA" {
-
-                Mock Invoke-WebRequest -ParameterFilter {$Method -eq 'Get' -and $Uri -eq $validTestUri} {
-                    ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
-                    Write-Output [PSCustomObject] @{
-                        'Content' = $validRestResult
+                    $invokeJiraMethodSplat = @{
+                        Method      = 'Get'
+                        URI         = "https://postman-echo.com/Get"
+                        Paging      = $true
+                        ErrorAction = "Stop"
                     }
+                    Invoke-JiraMethod @invokeJiraMethodSplat
+                } | Should -Not -Throw
+
+                $assertMockCalledSplat = @{
+                    CommandName = 'Invoke-WebRequest'
+                    ModuleName  = 'JiraPS'
+                    Exactly     = $true
+                    Times       = 3
+                    Scope       = 'It'
                 }
+                Assert-MockCalled @assertMockCalledSplat
+            }
 
-                $result = Invoke-JiraMethod -Method Get -URI $validTestUri
-                $result | Should Not BeNullOrEmpty
-
-                # Compare each property in the result returned to the expected result
-                foreach ($property in (Get-Member -InputObject $result | Where-Object {$_.MemberType -eq 'NoteProperty'})) {
-                    $result.$property | Should Be $validObjResult.$property
+            It "expands the data container" {
+                $invokeJiraMethodSplat = @{
+                    Method      = 'Get'
+                    URI         = "https://postman-echo.com/Get"
+                    Paging      = $true
+                    ErrorAction = "Stop"
                 }
+                $result = Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $result.Count | Should -Be 7
+
+                { $result | Get-Member -Name Id } | Should -Not -Throw
+                { $result | Get-Member -Name Id } | Should -Not -BeNullOrEmpty
             }
-        }
 
-        Context "Output handling - no content returned (HTTP 204)" {
-            Mock Invoke-WebRequest {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
-
-                Write-Output [PSCustomObject] @{
-                    'StatusCode' = 204
-                    'Content'    = $null
+            It "fetches only the necessary amount of pages when -First is used" {
+                $invokeJiraMethodSplat = @{
+                    Method      = 'Get'
+                    URI         = "https://postman-echo.com/Get"
+                    Paging      = $true
+                    First       = 4
+                    ErrorAction = "Stop"
                 }
-            }
-            Mock ConvertFrom-Json {
-                ShowMockInfo 'ConvertFrom-Json'
-            }
+                $result = Invoke-JiraMethod @invokeJiraMethodSplat
 
-            It "Correctly handles HTTP response codes that do not provide a return body" {
-                { Invoke-JiraMethod -Method Get -URI $validTestUri } | Should Not Throw
-                Assert-MockCalled -CommandName ConvertFrom-Json -Exactly -Times 0 -Scope It
-            }
-        }
+                $result.Count | Should -Be 4
 
-        Context "Output handling - JIRA error returned (HTTP 400 and up)" {
-            $invalidTestUri = 'https://jira.atlassian.com/rest/api/latest/issue/1'
-            $invalidRestResult = '{"errorMessages":["Issue Does Not Exist"],"errors":{}}'
-
-            Mock Invoke-WebRequest {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
-                Write-Output [PSCustomObject] @{
-                    'StatusCode' = 400
-                    'Content'    = $invalidRestResult
+                $assertMockCalledSplat = @{
+                    CommandName = 'Invoke-WebRequest'
+                    ModuleName  = 'JiraPS'
+                    Exactly     = $true
+                    Times       = 1
+                    Scope       = 'It'
                 }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
-            Mock Resolve-JiraError {
-                ShowMockInfo 'Resolve-JiraError' -params 'InputObject'
+            It "limits the number of results when -First is used" {
+                $invokeJiraMethodSplat = @{
+                    Method      = 'Get'
+                    URI         = "https://postman-echo.com/Get"
+                    Paging      = $true
+                    First       = 6
+                    ErrorAction = "Stop"
+                }
+                $result = Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $result.Count | Should -Be 6
+
+                $assertMockCalledSplat = @{
+                    CommandName = 'Invoke-WebRequest'
+                    ModuleName  = 'JiraPS'
+                    Exactly     = $true
+                    Times       = 2
+                    Scope       = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
-            It "Uses Resolve-JiraError to parse any JIRA error messages returned" {
-                { Invoke-JiraMethod -Method Get -URI $invalidTestUri } | Should Not Throw
-                Assert-MockCalled -CommandName Resolve-JiraError -Exactly -Times 1 -Scope It
+            It "starts looking for results with an offset when -Skip is provided" {
+                $invokeJiraMethodSplat = @{
+                    Method      = 'Get'
+                    URI         = "https://postman-echo.com/Get"
+                    Paging      = $true
+                    Skip        = 5
+                    ErrorAction = "Stop"
+                }
+                $result = Invoke-JiraMethod @invokeJiraMethodSplat
+
+                $result.Count | Should -Be 2
+
+                $assertMockCalledSplat = @{
+                    CommandName = 'Invoke-WebRequest'
+                    ModuleName  = 'JiraPS'
+                    Exactly     = $true
+                    Times       = 2
+                    Scope       = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
+
+            It "-totalcount" {
+                # Don't know how to test this
             }
         }
     }

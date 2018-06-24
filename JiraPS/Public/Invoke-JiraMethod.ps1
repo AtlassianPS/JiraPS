@@ -77,7 +77,7 @@ function Invoke-JiraMethod {
         #region Manage URI
         # Amend query from URI with GetParameter
         $uriQuery = ConvertTo-ParameterHash -Uri $Uri
-        $internalGetParameter = Join-Hashtable $GetParameter, $uriQuery
+        $internalGetParameter = Join-Hashtable $uriQuery, $GetParameter
 
         # And remove it from URI
         [Uri]$Uri = $Uri.GetLeftPart("Path")
@@ -89,9 +89,11 @@ function Invoke-JiraMethod {
         }
 
         # Append GET parameters to URi
+        $offset = 0
         if ($PSCmdlet.PagingParameters) {
             if ($PSCmdlet.PagingParameters.Skip) {
                 $internalGetParameter["startAt"] = $PSCmdlet.PagingParameters.Skip
+                $offset = $PSCmdlet.PagingParameters.Skip
             }
             if ($PSCmdlet.PagingParameters.First -lt $internalGetParameter["maxResults"]) {
                 $internalGetParameter["maxResults"] = $PSCmdlet.PagingParameters.First
@@ -130,16 +132,16 @@ function Invoke-JiraMethod {
             }
         }
 
-        if ($StoreSession) {
-            $splatParameters["SessionVariable"] = "newSessionVar"
-            $splatParameters.Remove("WebSession")
-        }
-
         if ((-not $Credential) -or ($Credential -eq [System.Management.Automation.PSCredential]::Empty)) {
             $splatParameters.Remove("Credential")
             if ($session = Get-JiraSession -ErrorAction SilentlyContinue) {
                 $splatParameters["WebSession"] = $session.WebSession
             }
+        }
+
+        if ($StoreSession) {
+            $splatParameters["SessionVariable"] = "newSessionVar"
+            $splatParameters.Remove("WebSession")
         }
 
         if ($InFile) {
@@ -152,6 +154,7 @@ function Invoke-JiraMethod {
 
         #region Execute the actual query
         try {
+            Write-Debug ($splatParameters | Out-String)
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($splatParameters.Method) $($splatParameters.Uri)"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$splatParameters: $($splatParameters | Out-String)"
             # Invoke the API
@@ -186,11 +189,13 @@ function Invoke-JiraMethod {
             #region Code 399-
             else {
                 if ($StoreSession) {
-                    return ConvertTo-JiraSession -Session $newSessionVar -Username $Credential.UserName
+                    return & $script:SessionTransformationMethod -Session $newSessionVar -Username $Credential.UserName
                 }
 
                 if ($webResponse.Content) {
                     $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))
+
+                    Write-Debug ($response | Out-String)
 
                     if ($Paging) {
                         # Remove Parameters that don't need propagation
@@ -211,7 +216,7 @@ function Invoke-JiraMethod {
                                 }
                             }
 
-                            $total += $result.Count
+                            $total += @($result).Count
                             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] New total: $total"
                             $pageSize = $response.maxResults
                             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] New pageSize: $pageSize"
@@ -238,7 +243,7 @@ function Invoke-JiraMethod {
 
                             # calculate the size of the next page
                             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] next page begins at $total"
-                            $PSBoundParameters["GetParameter"]["startAt"] = $total
+                            $PSBoundParameters["GetParameter"]["startAt"] = $total + $offset
                             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] doesn't it? $($PSBoundParameters["GetParameter"]["startAt"])"
                             $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
                             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] expecting to have $expectedTotal entries in total with next page"
