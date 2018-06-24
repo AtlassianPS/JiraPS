@@ -8,19 +8,6 @@ function Resolve-DefaultParameterValue {
 		It then filters all that match a specified command and binds them to that specific command, narrowing its focus.
 		These get merged into either a new or a specified hashtable and returned.
 
-	.PARAMETER Reference
-		The hashtable to pick default parameter valeus from.
-
-	.PARAMETER CommandName
-		The commands to pick default parameter values for.
-
-	.PARAMETER Target
-		The target hashtable to merge results into.
-		By default an empty hashtable is used.
-
-	.PARAMETER ParameterName
-		Only resolve for specific parameter names.
-
 	.EXAMPLE
 		PS C:\> Resolve-DefaultParameterValue -Reference $global:PSDefaultParameterValues -CommandName 'Invoke-WebRequest'
 
@@ -28,23 +15,29 @@ function Resolve-DefaultParameterValue {
 #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
-        [System.Collections.Hashtable]
+        # The hashtable to pick default parameter valeus from.
+        [Parameter( Mandatory )]
+        [Hashtable]
         $Reference,
 
-        [Parameter(Mandatory = $true)]
+        # The commands to pick default parameter values for.
+        [Parameter( Mandatory )]
         [String[]]
         $CommandName,
 
-        [System.Collections.Hashtable]
+        # The target hashtable to merge results into.
+        # By default an empty hashtable is used.
+        [Hashtable]
         $Target = @{ },
 
+        # Only resolve for specific parameter names.
         [String[]]
         $ParameterName = "*"
     )
 
     begin {
         $defaultItems = New-Object -TypeName System.Collections.ArrayList
+
         foreach ($key in $Reference.Keys) {
             $null = $defaultItems.Add(
                 [PSCustomObject]@{
@@ -56,6 +49,7 @@ function Resolve-DefaultParameterValue {
             )
         }
     }
+
     process {
         foreach ($command in $CommandName) {
             foreach ($item in $defaultItems) {
@@ -63,13 +57,18 @@ function Resolve-DefaultParameterValue {
 
                 foreach ($parameter in $ParameterName) {
                     if ($item.Parameter -like $parameter) {
-                        if ($parameter -ne "*") { $Target["$($command):$($parameter)"] = $item.Value }
-                        else { $Target["$($command):$($item.Parameter)"] = $item.Value }
+                        if ($parameter -ne "*") {
+                            $Target["$($command):$($parameter)"] = $item.Value
+                        }
+                        else {
+                            $Target["$($command):$($item.Parameter)"] = $item.Value
+                        }
                     }
                 }
             }
         }
     }
+
     end {
         $Target
     }
