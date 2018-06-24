@@ -26,6 +26,7 @@ function New-JiraSession {
         $parameter = @{
             URI          = $resourceURi
             Method       = "GET"
+            Headers      = $Headers
             StoreSession = $true
             Credential   = $Credential
         }
