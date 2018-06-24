@@ -25,9 +25,7 @@ if (!("System.Net.Http" -as [Type])) {
 #region Configuration
 $script:DefaultContentType = "application/json; charset=utf-8"
 $script:DefaultPageSize = 25
-$script:DefaultHeaders= @{
-    "Accept-Charset" = "utf-8"
-}
+$script:DefaultHeaders= @{ "Accept-Charset" = "utf-8" }
 # Bug in PSv3's .Net API
 if ($PSVersionTable.PSVersion.Major -gt 3) {
     $script:DefaultHeaders["Accept"] = "application/json"
@@ -40,6 +38,7 @@ $script:PagingContainers = @(
     "values"
     "worklogs"
 )
+$script:SessionTransformationMethod = "ConvertTo-JiraSession"
 #endregion Configuration
 
 #region LoadFunctions
