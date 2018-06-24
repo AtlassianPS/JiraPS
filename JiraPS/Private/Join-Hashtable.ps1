@@ -7,9 +7,6 @@ function Join-Hashtable {
 		Combines multiple hashtables into a single table.
 		On multiple identic keys, the last wins.
 
-	.PARAMETER Hashtable
-		The tables to merge.
-
 	.EXAMPLE
 		PS C:\> Join-Hashtable -Hashtable $Hash1, $Hash2
 
@@ -17,7 +14,8 @@ function Join-Hashtable {
 #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        # The tables to merge.
+        [Parameter( Mandatory, ValueFromPipeline )]
         [AllowNull()]
         [System.Collections.IDictionary[]]
         $Hashtable
@@ -25,6 +23,7 @@ function Join-Hashtable {
     begin {
         $table = @{ }
     }
+
     process {
         foreach ($item in $Hashtable) {
             foreach ($key in $item.Keys) {
@@ -32,6 +31,7 @@ function Join-Hashtable {
             }
         }
     }
+
     end {
         $table
     }
