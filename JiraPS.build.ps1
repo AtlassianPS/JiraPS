@@ -289,7 +289,7 @@ task UpdateHomepage {
 
 #region Cleaning tasks
 # Synopsis: Clean the working dir
-task Clean RemoveGeneratedFiles, RemoveTestResults, RemoveConfig
+task Clean Init, RemoveGeneratedFiles, RemoveTestResults, RemoveConfig
 
 # Synopsis: Remove generated and temp files.
 task RemoveGeneratedFiles {
