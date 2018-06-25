@@ -29,7 +29,7 @@ Describe "New-JiraSession" {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -like "*/rest/api/*/mypermissions"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            [Microsoft.PowerShell.Commands.WebRequestSession]::new()
+            New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS {
