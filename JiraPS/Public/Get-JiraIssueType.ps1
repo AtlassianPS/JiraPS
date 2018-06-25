@@ -1,4 +1,5 @@
 ﻿function Get-JiraIssueType {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]

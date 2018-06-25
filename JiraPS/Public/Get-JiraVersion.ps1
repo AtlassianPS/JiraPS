@@ -1,4 +1,5 @@
 ﻿function Get-JiraVersion {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'byId' )]
     param(
         [Parameter( Mandatory, ParameterSetName = 'byId' )]

@@ -1,4 +1,5 @@
 function Get-JiraGroupMember {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]

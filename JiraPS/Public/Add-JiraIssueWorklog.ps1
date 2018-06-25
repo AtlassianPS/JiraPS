@@ -1,4 +1,5 @@
 function Add-JiraIssueWorklog {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory )]
