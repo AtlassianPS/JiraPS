@@ -1,4 +1,5 @@
 function New-JiraSession {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(

@@ -1,4 +1,5 @@
 function Get-JiraIssueEditMetadata {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
         [Parameter( Mandatory )]

@@ -1,4 +1,5 @@
 ﻿function Remove-JiraVersion {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
