@@ -192,7 +192,8 @@ Describe "Invoke-JiraMethod" {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Body -is [Byte[]] -and
-                        ($Body -join " ") -eq "76 111 114 101 109 32 195 153 226 128 166 195 152 194 177 195 152 194 173 195 152 194 168 195 152 194 167 32 195 144 226 128 148 195 144 194 180 195 145 226 130 172 195 144 194 176 195 144 194 178 195 145 194 129 195 145 226 128 154 195 144 194 178 195 145 198 146 195 144 194 185 195 145 226 128 154 195 144 194 181 32 195 176 197 184 203 156 194 129"
+                        (($Body -join " ") -eq "76 111 114 101 109 32 195 153 226 128 166 195 152 194 177 195 152 194 173 195 152 194 168 195 152 194 167 32 195 144 226 128 148 195 144 194 180 195 145 226 130 172 195 144 194 176 195 144 194 178 195 145 194 129 195 145 226 128 154 195 144 194 178 195 145 198 146 195 144 194 185 195 145 226 128 154 195 144 194 181 32 195 176 197 184 203 156 194 129" -or
+                        ($Body -join " ") -eq "76 111 114 101 109 32 217 133 216 177 216 173 216 168 216 167 32 208 151 208 180 209 128 208 176 208 178 209 129 209 130 208 178 209 131 208 185 209 130 208 181 32 240 159 152 129")
                     }
                     Exactly         = $true
                     Times           = 1
@@ -449,9 +450,6 @@ Describe "Invoke-JiraMethod" {
                     "Content-Type" = "text/plain"
                 }
                 $changedResponse = Invoke-JiraMethod @invokeJiraMethodSplat
-
-                $defaultResponse.headers."content-type" | Should -Be "application/json; charset=utf-8"
-                $changedResponse.headers."content-type" | Should -Be "text/plain"
 
                 $assertMockCalledSplat = @{
                     CommandName     = "Invoke-WebRequest"
