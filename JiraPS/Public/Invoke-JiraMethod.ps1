@@ -1,5 +1,6 @@
 function Invoke-JiraMethod {
-    #Requires -Version 3
+    #requires -Version 3
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging )]
     param
     (
@@ -48,7 +49,7 @@ function Invoke-JiraMethod {
         [System.Management.Automation.Credential()]
         $Credential = [System.Management.Automation.PSCredential]::Empty,
 
-        [Parameter( DontShow )]
+        # [Parameter( DontShow )]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
         $Cmdlet = $PSCmdlet
@@ -154,7 +155,6 @@ function Invoke-JiraMethod {
 
         #region Execute the actual query
         try {
-            Write-Debug ($splatParameters | Out-String)
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($splatParameters.Method) $($splatParameters.Uri)"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$splatParameters: $($splatParameters | Out-String)"
             # Invoke the API
@@ -195,8 +195,6 @@ function Invoke-JiraMethod {
                 if ($webResponse.Content) {
                     $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))
 
-                    Write-Debug ($response | Out-String)
-
                     if ($Paging) {
                         # Remove Parameters that don't need propagation
                         $script:PSDefaultParameterValues.Remove("$($MyInvocation.MyCommand.Name):IncludeTotalCount")
@@ -212,14 +210,13 @@ function Invoke-JiraMethod {
 
                             foreach ($container in $script:PagingContainers) {
                                 if (($response) -and ($response | Get-Member -Name $container)) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Extracting data from [$container] containter"
                                     $result = $response.$container
                                 }
                             }
 
                             $total += @($result).Count
-                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] New total: $total"
                             $pageSize = $response.maxResults
-                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] New pageSize: $pageSize"
 
                             if ($total -gt $PSCmdlet.PagingParameters.First) {
                                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $($PSCmdlet.PagingParameters.First % $pageSize) of page"
@@ -229,33 +226,28 @@ function Invoke-JiraMethod {
                             $converter = "ConvertTo-$($OutputType)"
                             if (Test-Path function:\$converter) {
                                 # Results shall be casted to custom objects (see ValidateSet)
-                                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Outputting results as $($OutputType)"
+                                Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result as $($OutputType)"
                                 Write-Output ($result | & $converter)
                             }
                             else {
+                                Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result"
                                 Write-Output ($result)
                             }
 
                             if ($total -ge $PSCmdlet.PagingParameters.First) {
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] breaking as $total is more than $($PSCmdlet.PagingParameters.First)"
+                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as $total reached $($PSCmdlet.PagingParameters.First)"
                                 break
                             }
 
                             # calculate the size of the next page
-                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] next page begins at $total"
                             $PSBoundParameters["GetParameter"]["startAt"] = $total + $offset
-                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] doesn't it? $($PSBoundParameters["GetParameter"]["startAt"])"
                             $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
-                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] expecting to have $expectedTotal entries in total with next page"
                             if ($expectedTotal -gt $PSCmdlet.PagingParameters.First) {
                                 $reduceBy = $expectedTotal - $PSCmdlet.PagingParameters.First
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] reducing next pagesize by $reduceBy"
                                 $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
                             }
 
                             # Inquire the next page
-                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] about to invoke with : $($PSBoundParameters | Out-String)"
-                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] about to invoke with : $($PSBoundParameters["GetParameter"] | Out-String)"
                             $response = Invoke-JiraMethod @PSBoundParameters
 
                             # Expand data container of paged results
