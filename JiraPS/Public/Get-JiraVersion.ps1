@@ -1,5 +1,6 @@
 ﻿function Get-JiraVersion {
-    [CmdletBinding( DefaultParameterSetName = 'byId' )]
+    # .ExternalHelp ..\JiraPS-help.xml
+    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'byId' )]
     param(
         [Parameter( Mandatory, ParameterSetName = 'byId' )]
         [Int[]]
@@ -22,7 +23,20 @@
         [Parameter( ParameterSetName = 'byInputProject' )]
         [Alias('Versions')]
         [String[]]
-        $Name,
+        $Name = "*",
+
+        [Parameter( ParameterSetName = 'byProject')]
+        [Parameter( ParameterSetName = 'byInputProject')]
+        [ValidateSet("sequence",
+            "name",
+            "startDate",
+            "releaseDate"
+        )]
+        [String]
+        $Sort = "name",
+
+        [UInt32]
+        $PageSize = $script:DefaultPageSize,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -75,18 +89,32 @@
                     $projectData = Get-JiraProject -Project $_project -Credential $Credential
 
                     $parameter = @{
-                        URI        = $resourceURi -f "project/$($projectData.key)/versions"
-                        Method     = "GET"
-                        Credential = $Credential
+                        URI          = $resourceURi -f "project/$($projectData.key)/version"
+                        Method       = "GET"
+                        GetParameter = @{
+                            orderBy    = $Sort
+                            maxResults = $PageSize
+                        }
+                        Paging       = $true
+                        OutputType   = "JiraVersion"
+                        Credential   = $Credential
                     }
+                    # Paging
+                    ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
+                        $parameter[$_] = $PSCmdlet.PagingParameters.$_
+                    }
+
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter
 
-                    if ($Name) {
-                        $result = $result | Where-Object {$_.Name -in $Name}
+                    $result | Where-Object {
+                        $__ = $_.Name
+                        Write-DebugMessage ($__ | Out-String)
+                        $Name | Foreach-Object {
+                            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Matching $_ against $($__)"
+                            $__ -like $_
+                        }
                     }
-
-                    Write-Output (ConvertTo-JiraVersion -InputObject $result)
                 }
             }
         }

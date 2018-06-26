@@ -17,7 +17,29 @@ if (!("System.Web.HttpUtility" -as [Type])) {
 if (!("System.Net.Http.HttpRequestException" -as [Type])) {
     Add-Type -AssemblyName "System.Net.Http"
 }
+if (!("System.Net.Http" -as [Type])) {
+    Add-Type -Assembly System.Net.Http
+}
 #endregion Dependencies
+
+#region Configuration
+$script:DefaultContentType = "application/json; charset=utf-8"
+$script:DefaultPageSize = 25
+$script:DefaultHeaders= @{ "Accept-Charset" = "utf-8" }
+# Bug in PSv3's .Net API
+if ($PSVersionTable.PSVersion.Major -gt 3) {
+    $script:DefaultHeaders["Accept"] = "application/json"
+}
+$script:PagingContainers = @(
+    "comments"
+    "dashboards"
+    "groups"
+    "issues"
+    "values"
+    "worklogs"
+)
+$script:SessionTransformationMethod = "ConvertTo-JiraSession"
+#endregion Configuration
 
 #region LoadFunctions
 $PublicFunctions = @( Get-ChildItem -Path "$PSScriptRoot/Public/*.ps1" -ErrorAction SilentlyContinue )

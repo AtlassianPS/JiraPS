@@ -1,4 +1,5 @@
 ﻿function Remove-JiraIssueWatcher {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory )]

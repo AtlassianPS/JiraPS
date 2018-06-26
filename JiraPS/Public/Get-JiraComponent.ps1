@@ -1,4 +1,5 @@
 function Get-JiraComponent {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByProject' )]

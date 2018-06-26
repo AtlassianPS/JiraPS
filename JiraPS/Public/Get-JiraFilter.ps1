@@ -1,4 +1,5 @@
 ﻿function Get-JiraFilter {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding(DefaultParameterSetName = 'ByFilterID')]
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByFilterID' )]
