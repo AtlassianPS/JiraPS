@@ -1,4 +1,5 @@
 function Remove-JiraIssueLink {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'Medium' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]

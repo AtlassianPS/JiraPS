@@ -1,4 +1,5 @@
 ﻿function Set-JiraVersion {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]

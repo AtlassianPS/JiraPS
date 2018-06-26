@@ -1,4 +1,5 @@
 function New-JiraSession {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
@@ -26,6 +27,7 @@ function New-JiraSession {
         $parameter = @{
             URI          = $resourceURi
             Method       = "GET"
+            Headers      = $Headers
             StoreSession = $true
             Credential   = $Credential
         }

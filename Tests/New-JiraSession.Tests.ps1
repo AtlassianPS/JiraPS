@@ -1,66 +1,92 @@
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-param()
-
 Describe "New-JiraSession" {
-
-Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+    BeforeAll {
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
+        Import-Module "$PSScriptRoot/../JiraPS" -Force -ErrorAction Stop
+    }
+    AfterEach {
+        try {
+            (Get-Module JiraPS).PrivateData.Remove("Session")
+        }
+        catch { $null = 0 }
+    }
 
     InModuleScope JiraPS {
 
         . "$PSScriptRoot/Shared.ps1"
 
+        #region Definitions
         $jiraServer = 'http://jiraserver.example.com'
-        $authUri = "$jiraServer/rest/api/*/mypermissions"
 
-        $testUsername = 'powershell-test'
-        $testPassword = ConvertTo-SecureString -String 'test123' -AsPlainText -Force
-        $testCredential = New-Object -TypeName PSCredential -ArgumentList $testUsername, $testPassword
+        $testCredential = [System.Management.Automation.PSCredential]::Empty
+        #endregion Definitions
 
-        $testJson = "{}"
-        $global:newSessionVar = @{}
-
+        #region Mocks
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Mock Invoke-WebRequest -Verifiable -ParameterFilter {$Method -eq 'Get' -and $Uri -like $authUri} {
+        Mock ConvertTo-JiraSession -ModuleName JiraPS { }
+
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -like "*/rest/api/*/mypermissions"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            Write-Output $testJson
+            New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
         }
 
-        Mock Invoke-WebRequest {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+        #endregion Mocks
 
-        It "Invokes a REST method directly to the JIRA server" {
-            New-JiraSession -Credential $testCredential
-            Assert-MockCalled -CommandName Invoke-WebRequest -Exactly -Times 1 -Scope It
+        Context "Sanity checking" {
+            $command = Get-Command -Name New-JiraSession
+
+            defParam $command 'Credential'
+            defParam $command 'Headers'
         }
 
-        It "Uses the -UseBasicParsing switch for Invoke-WebRequest" {
-            { New-JiraSession -Credential $testCredential } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-WebRequest -ParameterFilter {$UseBasicParsing -eq $true} -Scope It
-        }
+        Context "Behavior testing" {
+            It "uses Basic Authentication to generate a session" {
+                { New-JiraSession -Credential $testCredential } | Should -Not -Throw
 
-        It "Provides the JSessionID of the session in Jira" {
-            $s = New-JiraSession -Credential $testCredential
-            $s.JSessionID | Should Be $jSessionId
-        }
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Credential -eq $testCredential
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
 
-        It "Stores the session variable in the module's PrivateData" {
-            $s = New-JiraSession -Credential $testCredential
-            $s2 = Get-JiraSession
-            $s2 | Should Be $s
-        }
+            It "can influence the Headers used in the request" {
+                { New-JiraSession -Credential $testCredential -Headers @{ "X-Header" = $true } } | Should -Not -Throw
 
-        Context "Output checking" {
-            Mock ConvertTo-JiraSession {}
-            New-JiraSession -Credential $testCredential
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Headers.ContainsKey("X-Header")
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
 
-            It "Uses ConvertTo-JiraSession to beautify output" {
-                Assert-MockCalled 'ConvertTo-JiraSession'
+            It "stores the session variable in the module's PrivateData" {
+                (Get-Module JiraPS).PrivateData.Session | Should -BeNullOrEmpty
+
+                New-JiraSession -Credential $testCredential
+
+                (Get-Module JiraPS).PrivateData.Session | Should -Not -BeNullOrEmpty
             }
         }
+
+        Context "Input testing" { }
     }
 }

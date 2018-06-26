@@ -1,4 +1,5 @@
 ﻿function Get-JiraIssueWatcher {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]

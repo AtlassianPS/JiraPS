@@ -1,4 +1,5 @@
 function Invoke-JiraIssueTransition {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]

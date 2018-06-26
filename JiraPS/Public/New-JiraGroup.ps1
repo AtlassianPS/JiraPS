@@ -1,4 +1,5 @@
 ﻿function New-JiraGroup {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory )]

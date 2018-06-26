@@ -1,4 +1,5 @@
 ﻿function Remove-JiraGroup {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'High' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]

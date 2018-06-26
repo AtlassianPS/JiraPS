@@ -18,27 +18,29 @@ Returns information about an issue in JIRA.
 ### ByIssueKey (Default)
 
 ```powershell
-Get-JiraIssue [-Key] <String[]> [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue [-Key] <String[]> [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
+ [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
-Get-JiraIssue [-InputObject] <Object[]> [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue [-InputObject] <Object[]> [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
+ [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByJQL
 
 ```powershell
-Get-JiraIssue -Query <String> [-StartIndex <Int32>] [-MaxResults <Int32>] [-PageSize <Int32>]
- [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue -Query <String> [-StartIndex <UInt32>] [-MaxResults <UInt32>] [[PageSize] <UInt32>]
+ [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByFilter
 
 ```powershell
-Get-JiraIssue -Filter <Object> [-StartIndex <Int32>] [-MaxResults <Int32>] [-PageSize <Int32>]
- [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue -Filter <Object> [-StartIndex <UInt32>] [-MaxResults <UInt32>] [[PageSize] <UInt32>]
+ [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -173,12 +175,15 @@ Accept wildcard characters: False
 
 ### -StartIndex
 
+> NOTE: This parameter has been marked as deprecated and will be removed with the next major release.
+> Use `-Skip` instead.
+
 Index of the first issue to return.
 
 This can be used to "page" through issues in a large collection or a slow connection.
 
 ```yaml
-Type: Int32
+Type: UInt32
 Parameter Sets: ByJQL, ByFilter
 Aliases:
 
@@ -191,12 +196,15 @@ Accept wildcard characters: False
 
 ### -MaxResults
 
+> NOTE: This parameter has been marked as deprecated and will be removed with the next major release.
+> Use `-First` instead.
+
 Maximum number of results to return.
 
 By default, all issues will be returned.
 
 ```yaml
-Type: Int32
+Type: UInt32
 Parameter Sets: ByJQL, ByFilter
 Aliases:
 
@@ -218,13 +226,65 @@ but if the REST calls take a long time,
 try playing with different values here.
 
 ```yaml
-Type: Int32
+Type: UInt32
 Parameter Sets: ByJQL, ByFilter
 Aliases:
 
 Required: False
 Position: Named
-Default value: 50
+Default value: 25
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -IncludeTotalCount
+
+Causes an extra output of the total count at the beginning.
+
+Note this is actually a uInt64, but with a custom string representation.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Skip
+
+Controls how many things will be skipped before starting output.
+
+Defaults to 0.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -First
+
+Indicates how many items to return.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 18446744073709551615
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
