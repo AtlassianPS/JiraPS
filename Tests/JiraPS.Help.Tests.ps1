@@ -67,6 +67,12 @@ Describe "Help tests" -Tag Documentation {
                 Test-Path $markdownFile | Should -Be $true
             }
 
+            It "links the function to the external help" {
+                # required for PowerShell v3
+                $Pattern = [regex]::Escape("# .ExternalHelp ..\JiraPS-help.xml")
+                $command.Definition -match $Pattern
+            }
+
             It "does not have Comment-Based Help" {
                 # We use .EXAMPLE, as we test this extensivly and it is never auto-generated
                 $command.Definition | Should -Not -BeNullOrEmpty
