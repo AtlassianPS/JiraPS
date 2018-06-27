@@ -16,7 +16,7 @@ environment:
 matrix:
     fast_finish: true
 
-version: 2.7.{build}
+version: 2.8.{build}
 
 # Don't rebuild when I tag a release on GitHub
 skip_tags: true

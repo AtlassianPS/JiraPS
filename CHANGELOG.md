@@ -1,5 +1,29 @@
 # Change Log
 
+## 2.8 - 2018-06-28
+
+More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.8.html).
+
+### IMPROVEMENTS
+
+- Added support for paginated response from API server by means of `-Paging` (#291, [@lipkau[]])
+- Added full set of functions to manage Filter Permissions (#289, [@lipkau[]])
+- Added `-Id` parameter to `Remove-JiraFilter` (#288, [@lipkau[]])
+- Changed logic of `Get-JiraUser` to return multiple results for a search (#272, [@lipkau[]])
+- Added posts for homepage to the module's repository (#268, [@lipkau[]])
+- Improved handling of _Credentials_ (#271, [@lipkau[]])
+- Added missing interactions with _Filters_ (#266, [@lipkau[]])
+- Added `Remove-JiraIssue` (#265, [@hmmwhatsthisdo[]])
+- Improved Build script (to deploy changes to the homepage) (#259, [@lipkau[]])
+
+### BUG FIXES
+
+- Reverted `Add-JiraIssueAttachament` as JiraPS v2.7 broke it (#287, [@lipkau[]])
+- Fixed resolving of Remote Link (#286, [@lipkau[]])
+- Improved error handling for ErrorDetails and non-JSON/HTML responses (#277, [@hmmwhatsthisdo[]])
+- Fully support Powershell v3 (#273, [@lipkau[]])
+- Fixed parameter used in documentation but not in code (#263, [@lipkau[]])
+
 ## 2.7 - 2018-05-13
 
 More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.7.html).
@@ -258,6 +282,7 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
   [@colhal]: https://github.com/colhal
   [@Dejulia489]: https://github.com/Dejulia489
   [@ebekker]: https://github.com/ebekker
+  [@hmmwhatsthisdo]: https://github.com/hmmwhatsthisdo
   [@jkknorr]: https://github.com/jkknorr
   [@kittholland]: https://github.com/kittholland
   [@LiamLeane]: https://github.com/LiamLeane
