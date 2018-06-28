@@ -16,8 +16,8 @@ Returns members of a given group in JIRA
 ## SYNTAX
 
 ```powershell
-Get-JiraGroupMember [-Group] <Object[]> [[-StartIndex] <Int32>] [[-MaxResults] <Int32>]
- [[-Credential] <PSCredential>] [<CommonParameters>]
+Get-JiraGroupMember [-Group] <Object[]> [[-IncludeInactive] <Switch>] [[-StartIndex] <UInt32>] [[-MaxResults] <UInt32>]
+ [[PageSize] <UInt32>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [[-Credential] <PSCredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -61,14 +61,55 @@ Accept pipeline input: True (ByPropertyName, ByValue)
 Accept wildcard characters: False
 ```
 
+### -IncludeInactive
+
+Include inactive users in the results.
+
+By default they are not shown.
+
+```yaml
+Type: Switch
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -PageSize
+
+Maximum number of results to fetch per call.
+
+This setting can be tuned to get better performance according to the load on the server.
+
+> Warning: too high of a PageSize can cause a timeout on the request.
+
+```yaml
+Type: UInt32
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 25
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -StartIndex
+
+> NOTE: This parameter has been marked as deprecated and will be removed with the next major release.
+> Use `-Skip` instead.
 
 Index of the first user to return.
 
 This can be used to "page" through users in a large group or a slow connection.
 
 ```yaml
-Type: Int32
+Type: UInt32
 Parameter Sets: (All)
 Aliases:
 
@@ -81,18 +122,73 @@ Accept wildcard characters: False
 
 ### -MaxResults
 
+> NOTE: This parameter has been marked as deprecated and will be removed with the next major release.
+> Use `-First` instead.
+
 Maximum number of results to return.
 
 By default, all users will be returned.
 
 ```yaml
-Type: Int32
+Type: UInt32
 Parameter Sets: (All)
 Aliases:
 
 Required: False
 Position: 3
 Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -IncludeTotalCount
+
+Causes an extra output of the total count at the beginning.
+
+Note this is actually a uInt64, but with a custom string representation.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Skip
+
+Controls how many things will be skipped before starting output.
+
+Defaults to 0.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -First
+
+Indicates how many items to return.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 18446744073709551615
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

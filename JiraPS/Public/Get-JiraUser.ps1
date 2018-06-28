@@ -1,4 +1,5 @@
 function Get-JiraUser {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = 'Self' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByUserName' )]
@@ -13,8 +14,20 @@ function Get-JiraUser {
         [Switch]
         $IncludeInactive,
 
-        [PSCredential]
-        $Credential
+        [Parameter( ParameterSetName = 'ByUserName' )]
+        [ValidateRange(1, 1000)]
+        [UInt32]
+        $MaxResults = 50,
+
+        [Parameter( ParameterSetName = 'ByUserName' )]
+        [ValidateNotNullOrEmpty()]
+        [UInt64]
+        $Skip = 0,
+
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -27,6 +40,12 @@ function Get-JiraUser {
 
         if ($IncludeInactive) {
             $searchResourceUri += "&includeInactive=true"
+        }
+        if ($MaxResults) {
+            $searchResourceUri += "&maxResults=$MaxResults"
+        }
+        if ($Skip) {
+            $searchResourceUri += "&startAt=$Skip"
         }
     }
 
