@@ -1,200 +1,266 @@
-<#
-	.NOTES
-		===========================================================================
-		Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2016 v5.2.119
-		Created on:   	4/12/2016 1:11 PM
-		Created by:   	June Blender
-		Organization: 	SAPIEN Technologies, Inc
-		Filename:		*.Help.Tests.ps1
-		===========================================================================
-	.DESCRIPTION
-	To test help for the commands in a module, place this file in the module folder.
-	To test any module from any path, use https://github.com/juneb/PesterTDD/Module.Help.Tests.ps1
-#>
+#requires -modules BuildHelpers
+#requires -modules Pester
 
-<#
-.SYNOPSIS
-Gets command parameters; one per name. Prefers default parameter set.
+Describe "Help tests" -Tag Documentation {
 
-.DESCRIPTION
-Gets one CommandParameterInfo object for each parameter in the specified
-command. If a command has more than one parameter with the same name, this
-function gets the parameters in the default parameter set, if one is specified.
+    BeforeAll {
+        Import-Module BuildHelpers
+        Remove-Item -Path Env:\BH*
 
-For example, if a command has two parameter sets:
-	Name, ID  (default)
-	Name, Path
-This function returns:
-    Name (default), ID Path
+        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
+        if ($projectRoot -like "*Release") {
+            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+        }
+        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+        $env:BHManifestToTest = $env:BHPSModuleManifest
+        $isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+        if ($isBuild) {
+            $Pattern = [regex]::Escape($env:BHProjectPath)
 
-This function is used to get parameters for help and for help testing.
+            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+            $env:BHManifestToTest = $env:BHBuildModuleManifest
+        }
 
-.PARAMETER Command
-Enter a CommandInfo object, such as the object that Get-Command returns. You
-can also pipe a CommandInfo object to the function.
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Import-Module $env:BHManifestToTest
+    }
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-This parameter takes a CommandInfo object, instead of a command name, so
-you can use the parameters of Get-Command to specify the module and version
-of the command.
-
-.EXAMPLE
-PS C:\> Get-ParametersDefaultFirst -Command (Get-Command New-Guid)
-This command uses the Command parameter to specify the command to
-Get-ParametersDefaultFirst
-
-.EXAMPLE
-PS C:\> Get-Command New-Guid | Get-ParametersDefaultFirst
-You can also pipe a CommandInfo object to Get-ParametersDefaultFirst
-
-.EXAMPLE
-PS C:\> Get-ParametersDefaultFirst -Command (Get-Command BetterCredentials\Get-Credential)
-You can use the Command parameter to specify the CommandInfo object. This
-command runs Get-Command module-qualified name value.
-
-.EXAMPLE
-PS C:\> $ModuleSpec = @{ModuleName='BetterCredentials';RequiredVersion=4.3}
-PS C:\> Get-Command -FullyQualifiedName $ModuleSpec | Get-ParametersDefaultFirst
-This command uses a Microsoft.PowerShell.Commands.ModuleSpecification object to
-specify the module and version. You can also use it to specify the module GUID.
-Then, it pipes the CommandInfo object to Get-ParametersDefaultFirst.
-#>
-function Get-ParametersDefaultFirst {
-    param
-    (
-        [Parameter(Mandatory = $true,
-            ValueFromPipeline = $true)]
-        [System.Management.Automation.CommandInfo]
-        $Command
+    $DefaultParams = @(
+        'Verbose'
+        'Debug'
+        'ErrorAction'
+        'WarningAction'
+        'InformationAction'
+        'ErrorVariable'
+        'WarningVariable'
+        'InformationVariable'
+        'OutVariable'
+        'OutBuffer'
+        'PipelineVariable'
+        'WhatIf'
+        'Confirm'
     )
 
-    BEGIN {
-        $Common = 'Debug', 'ErrorAction', 'ErrorVariable', 'InformationAction', 'InformationVariable', 'OutBuffer', 'OutVariable', 'PipelineVariable', 'Verbose', 'WarningAction', 'WarningVariable'
-        $parameters = @()
-    }
-    PROCESS {
-        if ($defaultPSetName = $Command.DefaultParameterSet) {
-            $defaultParameters = ($Command.ParameterSets | Where-Object Name -eq $defaultPSetName).parameters | Where-Object Name -NotIn $common
-            $otherParameters = ($Command.ParameterSets | Where-Object Name -ne $defaultPSetName).parameters | Where-Object Name -NotIn $common
+    $module = Get-Module $env:BHProjectName
+    $commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
+    $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*" -ErrorAction SilentlyContinue
+    $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*" -ErrorAction SilentlyContinue
 
-            $parameters += $defaultParameters
-            if ($parameters -and $otherParameters) {
-                $otherParameters | ForEach-Object {
-                    if ($_.Name -notin $parameters.Name) {
-                        $parameters += $_
-                    }
-                }
-                $parameters = $parameters | Sort-Object Name
+    #region Public Functions
+    foreach ($command in $commands) {
+        $commandName = $command.Name -replace $module.Prefix, ''
+        $markdownFile = Resolve-Path "$env:BHProjectPath/docs/en-US/commands/$commandName.md"
+
+        # The module-qualified command fails on Microsoft.PowerShell.Archive cmdlets
+        $help = Get-Help $command.Name -ErrorAction Stop
+
+        Context "Function $commandName's Help" {
+
+            #region PlatyPS external Help
+            It "is described in a markdown file" {
+                $markdownFile | Should -Not -BeNullOrEmpty
+                Test-Path $markdownFile | Should -Be $true
             }
-        }
-        else {
-            $parameters = $Command.ParameterSets.Parameters | Where-Object Name -NotIn $common | Sort-Object Name -Unique
-        }
 
-        return $parameters
-    }
-    END { }
-}
+            It "links the function to the external help" {
+                # required for PowerShell v3
+                $Pattern = [regex]::Escape("# .ExternalHelp ..\JiraPS-help.xml")
+                $command.Definition -match $Pattern
+            }
 
-$ModuleBase = "$PSScriptRoot\..\JiraPS"
+            It "does not have Comment-Based Help" {
+                # We use .EXAMPLE, as we test this extensivly and it is never auto-generated
+                $command.Definition | Should -Not -BeNullOrEmpty
+                $Pattern = [regex]::Escape(".EXAMPLE")
 
-# Handles modules in version directories
-$leaf = Split-Path $ModuleBase -Leaf
-$parent = Split-Path $ModuleBase -Parent
-$parsedVersion = $null
-if ([System.Version]::TryParse($leaf, [ref]$parsedVersion)) {
-    $ModuleName = Split-Path $parent -Leaf
-}
-else {
-    $ModuleName = $leaf
-}
+                $command.Definition | Should -Not -Match "^\s*$Pattern"
+            }
 
-# Removes all versions of the module from the session before importing
-Get-Module $moduleName | Remove-Module
+            It "has no platyPS template artifacts" {
+                $markdownFile | Should -Not -BeNullOrEmpty
+                $markdownFile | Should -Not -FileContentMatch '{{.*}}'
+            }
 
-$Module = Import-Module $ModuleBase\$ModuleName.psd1 -PassThru -ErrorAction Stop
-$commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
+            It "has a link to the 'Online Version'" {
+                [Uri]$onlineLink = ($help.relatedLinks.navigationLink | Where-Object linkText -eq "Online Version:").Uri
 
-## When testing help, remember that help is cached at the beginning of each session.
-## To test, restart session.
+                $onlineLink.Authority | Should -Be "atlassianps.org"
+                $onlineLink.Scheme | Should -Be "https"
+                $onlineLink.PathAndQuery | Should -Be "/docs/$env:BHProjectName/commands/$commandName/"
+            }
 
-foreach ($command in $commands) {
-    $commandName = $command.Name
+            it "has a valid HelpUri" {
+                $command.HelpUri | Should -Not -BeNullOrEmpty
+                $Pattern = [regex]::Escape("https://atlassianps.org/docs/$env:BHProjectName/commands/$commandName")
 
-    # The module-qualified command fails on Microsoft.PowerShell.Archive cmdlets
-    $Help = Get-Help $commandName -ErrorAction Stop
+                $command.HelpUri | Should -Match $Pattern
+            }
 
-    Describe "Test help for $commandName" -Tag "CommandHelp" {
+            It "defines the frontmatter for the homepage" {
+                $markdownFile | Should -Not -BeNullOrEmpty
+                $markdownFile | Should -FileContentMatch "Module Name: $env:BHProjectName"
+                $markdownFile | Should -FileContentMatchExactly "layout: documentation"
+                $markdownFile | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/commands/$commandName/"
+            }
+            #endregion PlatyPS external Help
 
-        # If help is not found, synopsis in auto-generated help is the syntax diagram
-        It "should not be auto-generated" {
-            $Help.Synopsis | Should Not BeLike '*`[`<CommonParameters`>`]*'
-        }
+            #region Help Content
+            It "has a synopsis" {
+                $help.Synopsis | Should -Not -BeNullOrEmpty
+            }
 
-        # Should be a synopsis for every function
-        It "gets synopsis for $commandName" {
-            $Help.Synopsis | Should Not beNullOrEmpty
-        }
+            It "has a description" {
+                $help.Description.Text -join '' | Should -Not -BeNullOrEmpty
+            }
 
-        # Should be a description for every function
-        It "gets description for $commandName" {
-            $Help.Description | Should Not BeNullOrEmpty
-        }
+            It "has examples" {
+                ($help.Examples.Example | Select-Object -First 1).Code | Should -Not -BeNullOrEmpty
+            }
 
-        # Should be at least one example
-        It "gets example code from $commandName" {
-            ($Help.Examples.Example | Select-Object -First 1).Code | Should Not BeNullOrEmpty
-        }
+            It "has desciptions for all examples" {
+                foreach ($example in ($help.Examples.Example)) {
+                    $example.remarks.Text | Should -Not -BeNullOrEmpty
+                }
+            }
 
-        # Should be at least one example description
-        It "gets example help from $commandName" {
-            ($Help.Examples.Example.Remarks | Select-Object -First 1).Text | Should Not BeNullOrEmpty
-        }
+            It "has at least as many examples as ParameterSets" {
+                ($help.Examples.Example | Measure-Object).Count | Should -BeGreaterOrEqual $command.ParameterSets.Count
+            }
+            #endregion Help Content
 
-        It "has at least as many examples as ParameterSets" {
-            ($Help.Examples.Example | Measure-Object).Count | Should Not BeLessThan $command.ParameterSets.Count
-        }
+            #region Consistency with Code
+            # It "does not define parameter position for functions with only one ParameterSet" {
+            #     if ($command.ParameterSets.Count -eq 1) {
+            #         $command.Parameters.Keys | Foreach-Object {
+            #             $command.Parameters[$_].ParameterSets.Values.Position | Should -BeLessThan 0
+            #         }
+            #     }
+            # }
 
-        Context "Test parameter help for $commandName" {
-            # Get parameters. When >1 parameter with same name,
-            # get parameter from the default parameter set, if any.
-            if ($parameters = Get-ParametersDefaultFirst -Command $command) {
-                $parameterNames = $parameters.Name
-                $HelpParameterNames = $Help.Parameters.Parameter.Name | Sort-Object -Unique
+            It "has all ParameterSets in the Help" {
+                # @($command.ParameterSets).Count | Should -Be @($help.Syntax.SyntaxItem).Count
+            }
 
-                foreach ($parameter in $parameters) {
-                    $parameterName = $parameter.Name
-                    $parameterHelp = $Help.parameters.parameter | Where-Object Name -EQ $parameterName
+            #region Parameters
+            foreach ($parameterName in $command.Parameters.Keys) {
+                $parameterCode = $command.Parameters[$parameterName]
 
-                    # Should be a description for every parameter
-                    if ($parameterName -notmatch 'Confirm|WhatIf') {
-                        It "gets help for parameter: $parameterName : in $commandName" {
-                            $parameterHelp.Description.Text | Should Not BeNullOrEmpty
+                if ($help.Parameters | Get-Member -Name Parameter) {
+                    $parameterHelp = $help.Parameters.Parameter | Where-Object Name -EQ $parameterName
+
+                    if ($parameterName -notin $DefaultParams) {
+                        It "has a description for parameter [-$parameterName] in $commandName" {
+                            $parameterHelp.Description.Text | Should -Not -BeNullOrEmpty
+                        }
+
+                        It "has a mandatory flag for parameter [-$parameterName] in $commandName" {
+                            $isMandatory = $parameterCode.ParameterSets.Values.IsMandatory -contains "True"
+
+                            $parameterHelp.Required | Should -BeLike $isMandatory.ToString()
+                        }
+
+                        It "matches the type of the parameter [-$parameterName] in code and help of $commandName" {
+                            $codeType = $parameterCode.ParameterType.Name
+                            if ($codeType -eq "Object") {
+                                if (($parameterCode.Attributes) -and ($parameterCode.Attributes | Get-Member -Name PSTypeName)) {
+                                    $codeType = $parameterCode.Attributes[0].PSTypeName
+                                }
+                            }
+                            # To avoid calling Trim method on a null object.
+                            $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
+                            if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
+
+                            $helpType | Should -Be $codeType
                         }
                     }
-
-                    # Required value in Help should match IsMandatory property of parameter
-                    It "help for $parameterName parameter in $commandName has correct Mandatory value" {
-                        $codeMandatory = $parameter.IsMandatory.toString()
-                        $parameterHelp.Required | Should Be $codeMandatory
-                    }
-
-                    # Parameter type in Help should match code
-                    It "help for $commandName has correct parameter type for $parameterName" {
-                        $codeType = $parameter.ParameterType.Name
-                        # To avoid calling Trim method on a null object.
-                        $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
-                        if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
-                        $helpType | Should be $codeType
-                    }
                 }
 
-                foreach ($helpParm in $HelpParameterNames) {
-                    # Shouldn't find extra parameters in help.
-                    It "finds help parameter in code: $helpParm" {
-                        $helpParm -in $parameterNames | Should Be $true
+                It "does not have parameters that are not in the code" {
+                    $parameter = @()
+                    if ($help.Parameters | Get-Member -Name Parameter) {
+                        $parameter = $help.Parameters.Parameter.Name | Sort-Object -Unique
                     }
+                    foreach ($helpParm in $parameter) {
+                        $command.Parameters.Keys | Should -Contain $helpParm
+                    }
+                }
+            }
+            #endregion Parameters
+            #endregion Consistency with Code
+        }
+    }
+    #endregion Public Functions
+
+    #region Classes
+    if ($classes) {
+        foreach ($class in $classes) {
+            Context "Classes $($class.BaseName) Help" {
+
+                It "is described in a markdown file" {
+                    $class.FullName | Should -Not -BeNullOrEmpty
+                    Test-Path $class.FullName | Should -Be $true
+                }
+
+                It "has no platyPS template artifacts" {
+                    $class.FullName | Should -Not -BeNullOrEmpty
+                    $class.FullName | Should -Not -FileContentMatch '{{.*}}'
+                }
+
+                It "defines the frontmatter for the homepage" {
+                    $class.FullName | Should -Not -BeNullOrEmpty
+                    $class.FullName | Should -FileContentMatch "Module Name: $env:BHProjectName"
+                    $class.FullName | Should -FileContentMatchExactly "layout: documentation"
+                    $class.FullName | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/classes/$commandName/"
+                }
+            }
+        }
+
+        Context "Missing classes" {
+            It "has a documentation file for every class" {
+                foreach ($class in ([AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object IsClass)) {
+                    $classes.BaseName | Should -Contain $class.FullName
                 }
             }
         }
     }
+    #endregion Classes
+
+    #region Enumerations
+    if ($enums) {
+        foreach ($enum in $enums) {
+            Context "Enumeration $($enum.BaseName) Help" {
+
+                It "is described in a markdown file" {
+                    $enum.FullName | Should -Not -BeNullOrEmpty
+                    Test-Path $enum.FullName | Should -Be $true
+                }
+
+                It "has no platyPS template artifacts" {
+                    $enum.FullName | Should -Not -BeNullOrEmpty
+                    $enum.FullName | Should -Not -FileContentMatch '{{.*}}'
+                }
+
+                It "defines the frontmatter for the homepage" {
+                    $enum.FullName | Should -Not -BeNullOrEmpty
+                    $enum.FullName | Should -FileContentMatch "Module Name: $env:BHProjectName"
+                    $enum.FullName | Should -FileContentMatchExactly "layout: documentation"
+                    $enum.FullName | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/enumerations/$commandName/"
+                }
+            }
+        }
+
+        Context "Missing classes" {
+            It "has a documentation file for every class" {
+                foreach ($enum in ([AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object IsEnum)) {
+                    $enums.BaseName | Should -Contain $enum.FullName
+                }
+            }
+        }
+    }
+    #endregion Enumerations
 }

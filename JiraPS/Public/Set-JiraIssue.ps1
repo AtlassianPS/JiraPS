@@ -1,4 +1,5 @@
 function Set-JiraIssue {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -6,12 +7,11 @@ function Set-JiraIssue {
         [ValidateScript(
             {
                 if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraIssue',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraIssue'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -50,8 +50,10 @@ function Set-JiraIssue {
         [String]
         $AddComment,
 
-        [PSCredential]
-        $Credential,
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [Switch]
         $PassThru
@@ -88,12 +90,11 @@ function Set-JiraIssue {
                     $validAssignee = $true
                 }
                 else {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid value for Parameter"),
-                        'ParameterValue.InvalidAssignee',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $Assignee
-                    )
+                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                    $errorId = 'ParameterValue.InvalidAssignee'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $Assignee
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }

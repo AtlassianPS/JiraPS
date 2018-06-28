@@ -1,4 +1,5 @@
 function New-JiraUser {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory )]
@@ -16,8 +17,10 @@ function New-JiraUser {
         [Boolean]
         $Notify = $true,
 
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {

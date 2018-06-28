@@ -1,4 +1,5 @@
 function Get-JiraGroup {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -7,8 +8,10 @@ function Get-JiraGroup {
         [String[]]
         $GroupName,
 
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {

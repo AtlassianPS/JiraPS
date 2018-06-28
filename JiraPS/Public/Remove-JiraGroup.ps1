@@ -1,4 +1,5 @@
 ﻿function Remove-JiraGroup {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'High' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
@@ -6,12 +7,11 @@
         [ValidateScript(
             {
                 if (("JiraPS.Group" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraGroup',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraGroup'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for Group. Expected [JiraPS.Group] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -28,8 +28,10 @@
         [Object[]]
         $Group,
 
-        [PSCredential]
-        $Credential,
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [Switch]
         $Force
