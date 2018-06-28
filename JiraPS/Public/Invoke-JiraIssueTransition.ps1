@@ -1,4 +1,5 @@
 function Invoke-JiraIssueTransition {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -6,12 +7,11 @@ function Invoke-JiraIssueTransition {
         [ValidateScript(
             {
                 if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraIssue',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraIssue'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -41,8 +41,10 @@ function Invoke-JiraIssueTransition {
         [String]
         $Comment,
 
-        [PSCredential]
-        $Credential,
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [Switch]
         $Passthru
@@ -69,12 +71,11 @@ function Invoke-JiraIssueTransition {
                 $transitionId = [Int]"$Transition"
             }
             catch {
-                $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                    ([System.ArgumentException]"Invalid Type for Parameter"),
-                    'ParameterType.NotJiraTransition',
-                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                    $Transition
-                )
+                $exception = ([System.ArgumentException]"Invalid Type for Parameter")
+                $errorId = 'ParameterType.NotJiraTransition'
+                $errorCategory = 'InvalidArgumenty'
+                $errorTarget = $Transition
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTargetError
                 $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
                 $PSCmdlet.ThrowTerminatingError($errorItem)
             }
@@ -82,12 +83,11 @@ function Invoke-JiraIssueTransition {
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Checking that the issue can perform the given transition"
         if (($issueObj.Transition.Id) -notcontains $transitionId) {
-            $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                ([System.ArgumentException]"Invalid value for Parameter"),
-                'ParameterValue.InvalidTransition',
-                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                $Issue
-            )
+            $exception = ([System.ArgumentException]"Invalid value for Parameter")
+            $errorId = 'ParameterValue.InvalidTransition'
+            $errorCategory = 'InvalidArgument'
+            $errorTarget = $Issue
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$transitionId]. Check the issue's Transition property and provide a transition valid for its current state."
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }
@@ -115,12 +115,11 @@ function Invoke-JiraIssueTransition {
                     $validAssignee = $true
                 }
                 else {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid value for Parameter"),
-                        'ParameterValue.InvalidAssignee',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $Assignee
-                    )
+                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                    $errorId = 'ParameterValue.InvalidAssignee'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $Assignee
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
@@ -160,12 +159,11 @@ function Invoke-JiraIssueTransition {
                         })
                 }
                 else {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid value for Parameter"),
-                        'ParameterValue.InvalidFields',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $Fields
-                    )
+                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                    $errorId = 'ParameterValue.InvalidFields'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $Fields
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }

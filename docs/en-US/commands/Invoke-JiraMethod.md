@@ -17,8 +17,9 @@ Invoke a specific call to a Jira REST Api endpoint
 
 ```powershell
 Invoke-JiraMethod [-URI] <Uri> [[-Method] <WebRequestMethod>] [[-Body] <String>] [-RawBody]
- [[-Headers] <Hashtable>] [[-InFile] <String>] [[-OutFile] <String>] [-StoreSession]
- [[-Credential] <PSCredential>] [[-Cmdlet] <System.Management.Automation.PSCmdlet>] [<CommonParameters>]
+ [[-Headers] <Hashtable>] [[-GetParameter] <Hashtable>] [[-Paging] <Switch>] [[-InFile] <String>]
+ [[-OutFile] <String>] [-StoreSession] [[-OutputType] <String>] [[-Credential] <PSCredential>]
+ [[-Cmdlet] <System.Management.Automation.PSCmdlet>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -240,6 +241,40 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -GetParameter
+
+Key-Value pair of the Headers to be used.
+
+```yaml
+Type: Hashtable
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 4
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Paging
+
+Use paging on the results.
+
+More about paging: <https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/#pagination>
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 4
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -InFile
 
 Path to a file that will be uploaded with a multipart/form-data request.
@@ -252,7 +287,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 4
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -270,7 +305,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 5
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -286,7 +321,25 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: Named
+Position: 7
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -OutputType
+
+Name of the data type that is expected to be returned.
+
+Currently only used in combination with `-Paging`
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 8
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -305,7 +358,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 6
+Position: 9
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -321,13 +374,66 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 7
+Position: 10
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -IncludeTotalCount
+
+Causes an extra output of the total count at the beginning.
+
+Note this is actually a uInt64, but with a custom string representation.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Skip
+
+Controls how many things will be skipped before starting output.
+
+Defaults to 0.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -First
+
+Indicates how many items to return.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 18446744073709551615
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
+
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
 For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
 

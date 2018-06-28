@@ -1,8 +1,10 @@
 function Get-JiraIssue {
-    [CmdletBinding(DefaultParameterSetName = 'ByIssueKey')]
+    # .ExternalHelp ..\JiraPS-help.xml
+    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'ByIssueKey' )]
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByIssueKey' )]
         [ValidateNotNullOrEmpty()]
+        [Alias('Issue')]
         [String[]]
         $Key,
 
@@ -11,12 +13,11 @@ function Get-JiraIssue {
         [ValidateScript(
             {
                 if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraIssue',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraIssue'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
@@ -44,12 +45,11 @@ function Get-JiraIssue {
         [ValidateScript(
             {
                 if (("JiraPS.Filter" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraFilter',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraFilter'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for Filter. Expected [JiraPS.Filter] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -67,21 +67,23 @@ function Get-JiraIssue {
 
         [Parameter( ParameterSetName = 'ByJQL' )]
         [Parameter( ParameterSetName = 'ByFilter' )]
-        [Int]
+        [UInt32]
         $StartIndex = 0,
 
         [Parameter( ParameterSetName = 'ByJQL' )]
         [Parameter( ParameterSetName = 'ByFilter' )]
-        [Int]
+        [UInt32]
         $MaxResults = 0,
 
         [Parameter( ParameterSetName = 'ByJQL' )]
         [Parameter( ParameterSetName = 'ByFilter' )]
-        [Int]
-        $PageSize = 50,
+        [UInt32]
+        $PageSize = $script:DefaultPageSize,
 
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -89,17 +91,8 @@ function Get-JiraIssue {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        if (($PSCmdlet.ParameterSetName -in @('ByJQL', 'ByFilter')) -and $MaxResults -eq 0) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using loop mode to obtain all results"
-            $MaxResults = 1
-            $loopMode = $true
-        }
-        else {
-            $loopMode = $false
-        }
-
         $resourceURi = "$server/rest/api/latest/issue/{0}?expand=transitions"
-        $searchURi = "$server/rest/api/latest/search?jql={0}&validateQuery=true&expand=transitions&startAt={1}&maxResults={2}"
+        $searchURi = "$server/rest/api/latest/search"
     }
 
     process {
@@ -133,70 +126,72 @@ function Get-JiraIssue {
                 }
             }
             'ByJQL' {
-                $escapedQuery = ConvertTo-URLEncoded $Query
-
                 $parameter = @{
-                    URI        = $searchURi -f $escapedQuery, $StartIndex, $MaxResults
-                    Method     = "GET"
-                    Credential = $Credential
+                    URI          = $searchURi
+                    Method       = "GET"
+                    GetParameter = @{
+                        jql           = (ConvertTo-URLEncoded $Query)
+                        validateQuery = $true
+                        expand        = "transitions"
+                        maxResults    = $PageSize
+                    }
+                    OutputType   = "JiraIssue"
+                    Paging       = $true
+                    Credential   = $Credential
                 }
+                # Paging
+                ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
+                    $parameter[$_] = $PSCmdlet.PagingParameters.$_
+                }
+                # Make `SupportsPaging` be backwards compatible
+                if ($StartIndex) {
+                    Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-StartIndex' has been marked as deprecated. For more information, plase read the help."
+                    $parameter["Skip"] = $StartIndex
+                }
+                if ($MaxResults) {
+                    Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-MaxResults' has been marked as deprecated. For more information, plase read the help."
+                    $parameter["First"] = $MaxResults
+                }
+
+
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
-
-                if ($result) {
-                    # {"startAt":0,"maxResults":50,"total":0,"issues":[]}
-
-                    if ($loopMode) {
-                        $totalResults = $result.total
-
-                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Paging through all issues (loop mode)"
-                        $allIssues = New-Object -TypeName System.Collections.ArrayList
-
-                        for ($i = 0; $i -lt $totalResults; $i = $i + $PageSize) {
-                            $percentComplete = ($i / $totalResults) * 100
-                            Write-Progress -Activity "$($MyInvocation.MyCommand.Name)" -Status "Obtaining issues ($i - $($i + $PageSize))..." -PercentComplete $percentComplete
-
-                            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Obtaining issues $i - $($i + $PageSize)..."
-                            $thisSection = Get-JiraIssue -Query $Query -StartIndex $i -MaxResults $PageSize -Credential $Credential
-
-                            foreach ($t in $thisSection) {
-                                [void] $allIssues.Add($t)
-                            }
-                        }
-                        Write-Progress -Activity "$($MyInvocation.MyCommand.Name)" -Status 'Obtaining issues' -Completed
-                        Write-Output ($allIssues.ToArray())
-                    }
-                    elseif ($result.total -gt 0) {
-                        Write-Output (ConvertTo-JiraIssue -InputObject $result.issues)
-                    }
-                    else {
-                        $errorMessage = @{
-                            Category         = "ObjectNotFound"
-                            CategoryActivity = "Searching for resource"
-                            Message          = "The JQL query did not return any results"
-                        }
-                        Write-Error @errorMessage
-                    }
-                }
+                Invoke-JiraMethod @parameter
             }
             'ByFilter' {
                 $filterObj = Get-JiraFilter -InputObject $Filter -Credential $Credential -ErrorAction Stop
-                $jql = $filterObj.JQL
                 <#
                   #ToDo:CustomClass
                   Once we have custom classes, this will no longer be necessary
                 #>
 
-                # MaxResults would have been set to 1 in the Begin block if it
-                # was not supplied as a parameter. We don't want to explicitly
-                # invoke this method recursively with a MaxResults value of 1
-                # if it wasn't initially provided to us.
-                if ($loopMode) {
-                    Write-Output (Get-JiraIssue -Query $jql -Credential $Credential)
+                $parameter = @{
+                    URI          = $filterObj.SearchUrl
+                    Method       = "GET"
+                    GetParameter = @{
+                        validateQuery = $true
+                        expand        = "transitions"
+                        maxResults    = $PageSize
+                    }
+                    OutputType   = "JiraIssue"
+                    Paging       = $true
+                    Credential   = $Credential
                 }
-                else {
-                    Write-Output (Get-JiraIssue -Query $jql -Credential $Credential -MaxResults $MaxResults)
+                # Paging
+                ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
+                    $parameter[$_] = $PSCmdlet.PagingParameters.$_
                 }
+                # Make `SupportsPaging` be backwards compatible
+                if ($StartIndex) {
+                    Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-StartIndex' has been marked as deprecated. For more information, plase read the help."
+                    $parameter["Skip"] = $StartIndex
+                }
+                if ($MaxResults) {
+                    Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-MaxResults' has been marked as deprecated. For more information, plase read the help."
+                    $parameter["First"] = $MaxResults
+                }
+
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Invoke-JiraMethod @parameter
             }
         }
     }

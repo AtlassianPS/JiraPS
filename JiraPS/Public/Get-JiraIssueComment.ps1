@@ -1,4 +1,5 @@
 function Get-JiraIssueComment {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -6,12 +7,11 @@ function Get-JiraIssueComment {
         [ValidateScript(
             {
                 if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraIssue',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraIssue'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -28,8 +28,10 @@ function Get-JiraIssueComment {
         [Object]
         $Issue,
 
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -44,14 +46,18 @@ function Get-JiraIssueComment {
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         $parameter = @{
-            URI        = "{0}/comment" -f $issueObj.RestURL
-            Method     = "GET"
-            Credential = $Credential
+            URI          = "{0}/comment" -f $issueObj.RestURL
+            Method       = "GET"
+            GetParameter = @{
+                maxResults = $PageSize
+            }
+            OutputType   = "JiraComment"
+            Paging       = $true
+            Credential   = $Credential
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
 
-        Write-Output (ConvertTo-JiraComment -InputObject $result.comments)
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        Invoke-JiraMethod @parameter
     }
 
     end {

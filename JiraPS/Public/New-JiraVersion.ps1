@@ -1,4 +1,5 @@
 ﻿function New-JiraVersion {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'byObject' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byObject' )]
@@ -6,12 +7,11 @@
         [ValidateScript(
             {
                 if (("JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraVersion',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraVersion'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -41,12 +41,11 @@
                     {"JiraPS.Project" -in $Input.PSObject.TypeNames} { return $true }
                     {$Input -is [String]} { return $true}
                     Default {
-                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                            ([System.ArgumentException]"Invalid Type for Parameter"),
-                            'ParameterType.NotJiraProject',
-                            [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                            $Input
-                        )
+                        $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                        $errorId = 'ParameterType.NotJiraProject'
+                        $errorCategory = 'InvalidArgument'
+                        $errorTarget = $Input
+                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                         $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($Input.GetType().Name)"
                         $PSCmdlet.ThrowTerminatingError($errorItem)
                         <#
@@ -80,8 +79,10 @@
         [DateTime]
         $StartDate,
 
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
