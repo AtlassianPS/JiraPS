@@ -51,6 +51,10 @@ task InstallDependencies {
 # Synopsis: Ensure the build environment is all ready to go
 task Init {
     Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
+    # BuildHelpers does not write the project name in the correct caps
+    if ($env:APPVEYOR_PROJECT_NAME) {
+        $env:BHProjectName = $env:APPVEYOR_PROJECT_NAME
+    }
 
     Add-ToModulePath -Path $env:BHBuildOutput
 }, GetNextVersion
@@ -173,6 +177,7 @@ task UpdateManifest GetNextVersion, {
 
 # Synopsis: Create a ZIP file with this build
 task Package GenerateRelease, {
+    Remove-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction SilentlyContinue
     $null = Compress-Archive -Path "$env:BHBuildOutput\$env:BHProjectName" -DestinationPath "$env:BHBuildOutput\$env:BHProjectName.zip"
 }
 #endregion BuildRelease
@@ -201,9 +206,7 @@ task Test Init, {
             OutputFormat = "NUnitXml"
             CodeCoverage = $codeCoverageFiles
         }
-        if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
-            $parameter["Show"] = "Fails"
-        }
+        $parameter["Show"] = "Fails"
         $testResults = Invoke-Pester @parameter
 
         If ('AppVeyor' -eq $env:BHBuildSystem) {
@@ -214,6 +217,12 @@ task Test Init, {
     }
     catch {
         throw $_
+    }
+
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
+    # BuildHelpers does not write the project name in the correct caps
+    if ($env:APPVEYOR_PROJECT_NAME) {
+        $env:BHProjectName = $env:APPVEYOR_PROJECT_NAME
     }
 }, RemoveTestResults, RemoveConfig
 #endregion
@@ -257,23 +266,22 @@ task TagReplository GetNextVersion, {
 task UpdateHomepage {
     try {
         Write-Build Gray "git close .../AtlassianPS.github.io --recursive"
-        cmd /c "git clone https://github.com/AtlassianPS/AtlassianPS.github.io --recursive 2>&1"
+        $null = cmd /c "git clone https://github.com/AtlassianPS/AtlassianPS.github.io --recursive 2>&1"
 
         Push-Location "AtlassianPS.github.io/"
 
         Write-Build Gray "git submodule foreach git pull origin master"
-        cmd /c "git submodule foreach git pull origin master 2>&1"
+        $null = cmd /c "git submodule foreach git pull origin master 2>&1"
 
         Write-Build Gray "git status -s"
         $status = cmd /c "git status -s 2>&1"
 
-        Write-Build Gray $status
         if ($status -contains " M modules/$env:BHProjectName") {
             Write-Build Gray "git add modules/$env:BHProjectName"
-            cmd /c "git add modules/$env:BHProjectName 2>&1"
+            $null = cmd /c "git add modules/$env:BHProjectName 2>&1"
 
-            Write-Build Gray "git commit -m `"Update module $PROJECT_NAME`""
-            cmd /c "git commit -m `"Update module $PROJECT_NAME`" 2>&1"
+            Write-Build Gray "git commit -m `"Update module $env:BHProjectName`""
+            cmd /c "git commit -m `"Update module $env:BHProjectName`" 2>&1"
 
             Write-Build Gray "git push"
             cmd /c "git push 2>&1"
@@ -281,13 +289,13 @@ task UpdateHomepage {
 
         Pop-Location
     }
-    catch {}
+    catch { Write-Warning "Failed to deploy to homepage"}
 }
 #endregion Publish
 
 #region Cleaning tasks
 # Synopsis: Clean the working dir
-task Clean RemoveGeneratedFiles, RemoveTestResults, RemoveConfig
+task Clean Init, RemoveGeneratedFiles, RemoveTestResults, RemoveConfig
 
 # Synopsis: Remove generated and temp files.
 task RemoveGeneratedFiles {

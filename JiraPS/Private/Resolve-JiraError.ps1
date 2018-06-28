@@ -21,12 +21,11 @@
             if ($i.errorMessages) {
                 foreach ($e in $i.errorMessages) {
                     if ($WriteError) {
-                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                            ([System.ArgumentException]"Server responded with Error"),
-                            "ServerResponse",
-                            [System.Management.Automation.ErrorCategory]::NotSpecified,
-                            $i
-                        )
+                        $exception = ([System.ArgumentException]"Server responded with Error")
+                        $errorId = "ServerResponse"
+                        $errorCategory = 'NotSpecified'
+                        $errorTarget = $i
+                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                         $errorItem.ErrorDetails = "Jira encountered an error: [$e]"
                         $Cmdlet.WriteError($errorItem)
                     }
@@ -48,12 +47,11 @@
                 $keys = (Get-Member -InputObject $i.errors | Where-Object -FilterScript {$_.MemberType -eq 'NoteProperty'}).Name
                 foreach ($k in $keys) {
                     if ($WriteError) {
-                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                            ([System.ArgumentException]"Server responded with Error"),
-                            "ServerResponse.$k",
-                            [System.Management.Automation.ErrorCategory]::NotSpecified,
-                            $i
-                        )
+                        $exception = ([System.ArgumentException]"Server responded with Error")
+                        $errorId = "ServerResponse.$k"
+                        $errorCategory = 'NotSpecified'
+                        $errorTarget = $i
+                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                         $errorItem.ErrorDetails = "Jira encountered an error: [$k] - $($i.errors.$k)"
                         $Cmdlet.WriteError($errorItem)
                     }

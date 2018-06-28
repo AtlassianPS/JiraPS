@@ -1,4 +1,5 @@
 function New-JiraIssue {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory )]
@@ -37,8 +38,10 @@ function New-JiraIssue {
         [PSCustomObject]
         $Fields,
 
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -107,12 +110,11 @@ function New-JiraIssue {
                 $requestBody["$id"] = $value
             }
             else {
-                $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                    ([System.ArgumentException]"Invalid value for Parameter"),
-                    'ParameterValue.InvalidFields',
-                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                    $Fields
-                )
+                $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                $errorId = 'ParameterValue.InvalidFields'
+                $errorCategory = 'InvalidArgument'
+                $errorTarget = $Fields
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                 $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
                 $PSCmdlet.ThrowTerminatingError($errorItem)
             }
@@ -126,12 +128,11 @@ function New-JiraIssue {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Required field (id=[$($c.Id)], name=[$($c.Name)]) was provided (value=[$($requestBody.$($c.Id))])"
                 }
                 else {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid or missing value Parameter"),
-                        'ParameterValue.CreateMetaFailure',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $Fields
-                    )
+                    $exception = ([System.ArgumentException]"Invalid or missing value Parameter")
+                    $errorId = 'ParameterValue.CreateMetaFailure'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $Fields
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided (name=[$($c.Name)], id=[$($c.Id)]). Use Get-JiraIssueCreateMetadata for more information."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }

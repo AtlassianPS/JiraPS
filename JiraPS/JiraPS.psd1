@@ -4,7 +4,7 @@
     RootModule         = 'JiraPS.psm1'
 
     # Version number of this module.
-    ModuleVersion      = '2.7'
+    ModuleVersion      = '2.8'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()

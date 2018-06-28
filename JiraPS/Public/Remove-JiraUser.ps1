@@ -1,4 +1,5 @@
 function Remove-JiraUser {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
@@ -6,12 +7,11 @@ function Remove-JiraUser {
         [ValidateScript(
             {
                 if (("JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraUser',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraUser'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for User. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -28,8 +28,10 @@ function Remove-JiraUser {
         [Object[]]
         $User,
 
-        [PSCredential]
-        $Credential,
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [Switch]
         $Force

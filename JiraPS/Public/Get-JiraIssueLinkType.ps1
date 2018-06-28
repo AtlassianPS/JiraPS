@@ -1,4 +1,5 @@
 function Get-JiraIssueLinkType {
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = '_Search' )]
@@ -6,12 +7,11 @@ function Get-JiraIssueLinkType {
         [ValidateScript(
             {
                 if (("JiraPS.IssueLinkType" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String])) -and (($_ -isnot [Int]))) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Invalid Type for Parameter"),
-                        'ParameterType.NotJiraIssueLinkType',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $_
-                    )
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraIssueLinkType'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Wrong object type provided for IssueLinkType. Expected [JiraPS.IssueLinkType], [String] or [Int], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
@@ -27,8 +27,10 @@ function Get-JiraIssueLinkType {
         [Object]
         $LinkType,
 
-        [PSCredential]
-        $Credential
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
