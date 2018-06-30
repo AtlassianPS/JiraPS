@@ -218,6 +218,12 @@ task Test Init, {
     catch {
         throw $_
     }
+
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
+    # BuildHelpers does not write the project name in the correct caps
+    if ($env:APPVEYOR_PROJECT_NAME) {
+        $env:BHProjectName = $env:APPVEYOR_PROJECT_NAME
+    }
 }, RemoveTestResults, RemoveConfig
 #endregion
 
