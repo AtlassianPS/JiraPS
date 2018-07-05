@@ -7,6 +7,12 @@ function Get-JiraIssue {
         [Alias('Issue')]
         [String[]]
         $Key,
+        #added Fields Parameter
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [String[]]
+        $Fields,
+
 
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNullOrEmpty()]
@@ -90,13 +96,16 @@ function Get-JiraIssue {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop
-
+        if($Fields){
+            $fields+=",summary,status,created"
+            $resourceURi = "$server/rest/api/latest/issue/{0}?fields='$Fields'expand=transitions"
+        }
         $resourceURi = "$server/rest/api/latest/issue/{0}?expand=transitions"
         $searchURi = "$server/rest/api/latest/search"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Namune)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         switch ($PSCmdlet.ParameterSetName) {
@@ -104,12 +113,18 @@ function Get-JiraIssue {
                 foreach ($_key in $Key) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
-
+                    #added if statment and $fields
+                        $parameter = @{
+                            URI        = $resourceURi -f $_key
+                            Method     = "GET"
+                            Credential = $Credential
+                        }
                     $parameter = @{
                         URI        = $resourceURi -f $_key
                         Method     = "GET"
                         Credential = $Credential
                     }
+
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter
 
