@@ -97,11 +97,15 @@ function Get-JiraIssue {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
         if($Fields){
-            $fields+=",summary,status,created"
-            $resourceURi = "$server/rest/api/latest/issue/{0}?fields='$Fields'expand=transitions"
+            $resourceURi = "$server/rest/api/latest/issue/{0}?fields='$Fields'all&expand=transitions"
+            $searchURi = "$server/rest/api/latest/search"
+
+
         }
+        else{
         $resourceURi = "$server/rest/api/latest/issue/{0}?expand=transitions"
         $searchURi = "$server/rest/api/latest/search"
+        }
     }
 
     process {
@@ -149,6 +153,8 @@ function Get-JiraIssue {
                         validateQuery = $true
                         expand        = "transitions"
                         maxResults    = $PageSize
+                        fields = $Fields
+
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
@@ -190,6 +196,7 @@ function Get-JiraIssue {
                     OutputType   = "JiraIssue"
                     Paging       = $true
                     Credential   = $Credential
+                    Fields       = $Fields
                 }
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
