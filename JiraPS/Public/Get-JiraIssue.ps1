@@ -177,11 +177,11 @@ function Get-JiraIssue {
                 Invoke-JiraMethod @parameter
             }
             'ByFilter' {
-                if($fields){
+                if($Fields){
                     $filterObj = (Get-JiraFilter -InputObject $Filter).searchurl.insert((Get-JiraFilter $Filter).searchurl.indexof('?')+1,"fields=$Fields&")
                 }
                 else {
-
+                    $filterObj = (Get-JiraFilter -InputObject $Filter -Credential $Credential -ErrorAction Stop).searchurl
                 }
                 <#
                   #ToDo:CustomClass
