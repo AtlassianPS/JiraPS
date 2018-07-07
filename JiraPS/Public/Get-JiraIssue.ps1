@@ -96,15 +96,12 @@ function Get-JiraIssue {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop
+        $searchURi = "$server/rest/api/latest/search"
         if($Fields){
-            $resourceURi = "$server/rest/api/latest/issue/{0}?fields='$Fields'all&expand=transitions"
-            $searchURi = "$server/rest/api/latest/search"
-
-
+            $resourceURi = "$server/rest/api/latest/issue/{0}?fields=$Fields&expand=transitions"
         }
         else{
         $resourceURi = "$server/rest/api/latest/issue/{0}?expand=transitions"
-        $searchURi = "$server/rest/api/latest/search"
         }
     }
 
@@ -122,6 +119,7 @@ function Get-JiraIssue {
                             URI        = $resourceURi -f $_key
                             Method     = "GET"
                             Credential = $Credential
+
                         }
                     $parameter = @{
                         URI        = $resourceURi -f $_key
@@ -179,14 +177,19 @@ function Get-JiraIssue {
                 Invoke-JiraMethod @parameter
             }
             'ByFilter' {
-                $filterObj = Get-JiraFilter -InputObject $Filter -Credential $Credential -ErrorAction Stop
+                if($fields){
+                    $filterObj = (Get-JiraFilter -InputObject $Filter).searchurl.insert((Get-JiraFilter $Filter).searchurl.indexof('?')+1,"fields=$Fields&")
+                }
+                else {
+
+                }
                 <#
                   #ToDo:CustomClass
                   Once we have custom classes, this will no longer be necessary
                 #>
 
                 $parameter = @{
-                    URI          = $filterObj.SearchUrl
+                    URI          = $filterObj
                     Method       = "GET"
                     GetParameter = @{
                         validateQuery = $true
@@ -196,7 +199,7 @@ function Get-JiraIssue {
                     OutputType   = "JiraIssue"
                     Paging       = $true
                     Credential   = $Credential
-                    Fields       = $Fields
+
                 }
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
