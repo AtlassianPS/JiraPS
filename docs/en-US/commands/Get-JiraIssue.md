@@ -18,7 +18,7 @@ Returns information about an issue in JIRA.
 ### ByIssueKey (Default)
 
 ```powershell
-Get-JiraIssue [-Key] <String[]> [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
+Get-JiraIssue [-Key] <String[]> [-Fields <String[]>][-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
  [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
@@ -32,14 +32,14 @@ Get-JiraIssue [-InputObject] <Object[]> [-IncludeTotalCount] [-Skip <UInt64>] [-
 ### ByJQL
 
 ```powershell
-Get-JiraIssue -Query <String> [-StartIndex <UInt32>] [-MaxResults <UInt32>] [[PageSize] <UInt32>]
+Get-JiraIssue -Query <String> [-Fields <String[]>] [-StartIndex <UInt32>] [-MaxResults <UInt32>] [[PageSize] <UInt32>]
  [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByFilter
 
 ```powershell
-Get-JiraIssue -Filter <Object> [-StartIndex <UInt32>] [-MaxResults <UInt32>] [[PageSize] <UInt32>]
+Get-JiraIssue -Filter <Object> [-Fields <String[]>][-StartIndex <UInt32>] [-MaxResults <UInt32>] [[PageSize] <UInt32>]
  [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
@@ -167,6 +167,22 @@ Parameter Sets: ByFilter
 Aliases:
 
 Required: True
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Fields
+
+Field you would like to select from your issue
+
+```yaml
+Type: String[]
+Parameter Sets: ByFilter
+Aliases:
+
+Required: False
 Position: Named
 Default value: None
 Accept pipeline input: False
