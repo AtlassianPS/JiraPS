@@ -7,12 +7,6 @@ function Get-JiraIssue {
         [Alias('Issue')]
         [String[]]
         $Key,
-        #added Fields Parameter
-        [Parameter(Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [String[]]
-        $Fields,
-
 
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNullOrEmpty()]
@@ -71,6 +65,11 @@ function Get-JiraIssue {
         [Object]
         $Filter,
 
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String[]]
+        $Fields = "*all",
+
         [Parameter( ParameterSetName = 'ByJQL' )]
         [Parameter( ParameterSetName = 'ByFilter' )]
         [UInt32]
@@ -96,17 +95,15 @@ function Get-JiraIssue {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop
+
         $searchURi = "$server/rest/api/latest/search"
-        if($Fields){
-            $resourceURi = "$server/rest/api/latest/issue/{0}?fields=$Fields&expand=transitions"
-        }
-        else{
-        $resourceURi = "$server/rest/api/latest/issue/{0}?expand=transitions"
-        }
+        $resourceURi = "$server/rest/api/latest/issue/{0}"
+
+        $Fields = $Fields -join ","
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Namune)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         switch ($PSCmdlet.ParameterSetName) {
@@ -114,17 +111,17 @@ function Get-JiraIssue {
                 foreach ($_key in $Key) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
-                    #added if statment and $fields
-                        $parameter = @{
-                            URI        = $resourceURi -f $_key
-                            Method     = "GET"
-                            Credential = $Credential
 
-                        }
+                    $getParameter = @{ expand = "transitions" }
+                    if ($Fields) {
+                        $getParameter["fields"] = $Fields
+                    }
+
                     $parameter = @{
-                        URI        = $resourceURi -f $_key
-                        Method     = "GET"
-                        Credential = $Credential
+                        URI          = $resourceURi -f $_key
+                        Method       = "GET"
+                        GetParameter = $getParameter
+                        Credential   = $Credential
                     }
 
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
@@ -139,7 +136,7 @@ function Get-JiraIssue {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
-                    Write-Output (Get-JiraIssue -Key $_issue.Key -Credential $Credential)
+                    Write-Output (Get-JiraIssue -Key $_issue.Key -Fields $Fields -Credential $Credential)
                 }
             }
             'ByJQL' {
@@ -151,12 +148,14 @@ function Get-JiraIssue {
                         validateQuery = $true
                         expand        = "transitions"
                         maxResults    = $PageSize
-                        fields = $Fields
 
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
                     Credential   = $Credential
+                }
+                if ($Fields) {
+                    $parameter["GetParameter"]["fields"] = $Fields
                 }
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
@@ -177,12 +176,7 @@ function Get-JiraIssue {
                 Invoke-JiraMethod @parameter
             }
             'ByFilter' {
-                if($Fields){
-                    $filterObj = (Get-JiraFilter -InputObject $Filter).searchurl.insert((Get-JiraFilter $Filter).searchurl.indexof('?')+1,"fields=$Fields&")
-                }
-                else {
-                    $filterObj = (Get-JiraFilter -InputObject $Filter -Credential $Credential -ErrorAction Stop).searchurl
-                }
+                $filterObj = (Get-JiraFilter -InputObject $Filter -Credential $Credential -ErrorAction Stop).searchurl
                 <#
                   #ToDo:CustomClass
                   Once we have custom classes, this will no longer be necessary
@@ -200,6 +194,9 @@ function Get-JiraIssue {
                     Paging       = $true
                     Credential   = $Credential
 
+                }
+                if ($Fields) {
+                    $parameter["GetParameter"]["fields"] = $Fields
                 }
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
