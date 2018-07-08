@@ -18,29 +18,31 @@ Returns information about an issue in JIRA.
 ### ByIssueKey (Default)
 
 ```powershell
-Get-JiraIssue [-Key] <String[]> [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
- [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue [-Key] <String[]> [-Fields <String[]>] [-IncludeTotalCount]
+ [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
-Get-JiraIssue [-InputObject] <Object[]> [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
- [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue [-InputObject] <Object[]> [-Fields <String[]>] [-IncludeTotalCount]
+ [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByJQL
 
 ```powershell
-Get-JiraIssue -Query <String> [-StartIndex <UInt32>] [-MaxResults <UInt32>] [[PageSize] <UInt32>]
- [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue -Query <String> [-Fields <String[]>] [-StartIndex <UInt32>]
+[-MaxResults <UInt32>] [[PageSize] <UInt32>] [-IncludeTotalCount] [-Skip <UInt64>]
+ [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByFilter
 
 ```powershell
-Get-JiraIssue -Filter <Object> [-StartIndex <UInt32>] [-MaxResults <UInt32>] [[PageSize] <UInt32>]
- [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue -Filter <Object> [-Fields <String[]>][-StartIndex <UInt32>]
+ [-MaxResults <UInt32>] [[PageSize] <UInt32>] [-IncludeTotalCount] [-Skip <UInt64>]
+ [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -102,10 +104,22 @@ This example retrieves all issues that match the criteria in the saved filter wi
 ### EXAMPLE 6
 
 ```powershell
-Get-JiraFilter 12345 | Select-Object *
+Get-JiraFilter 12345 | Get-JiraIssue | Select-Object *
 ```
 
 This prints all fields of the issue to the console.
+
+### Example 7
+
+```powershell
+Get-JiraIssue -Query "project = TEST" -Fields "key", "summary", "assignee"
+```
+
+This example retrieves all issues in project "TEST" - but only the 3 properties
+listed above: key, summary and assignee
+
+By retrieving only the data really needed, the payload the server sends is
+reduced, which speeds up the query.
 
 ## PARAMETERS
 
@@ -169,6 +183,31 @@ Aliases:
 Required: True
 Position: Named
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Fields
+
+Field you would like to select from your issue. By default, all fields are
+returned.
+
+Allowed values:
+
+- `"*all"` - return all fields.
+- `"*navigable"` - return navigable fields only.
+- `"summary", "comment"` - return the summary and comments fields only.
+- `"-comment"` - return all fields except comments.
+- `"*all", "-comment"` - same as above
+
+```yaml
+Type: String[]
+Parameter Sets: ByFilter
+Aliases:
+
+Required: False
+Position: Named
+Default value: "*all"
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
