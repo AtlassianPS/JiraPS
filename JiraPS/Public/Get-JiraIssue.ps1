@@ -65,6 +65,11 @@ function Get-JiraIssue {
         [Object]
         $Filter,
 
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String[]]
+        $Fields = "*all",
+
         [Parameter( ParameterSetName = 'ByJQL' )]
         [Parameter( ParameterSetName = 'ByFilter' )]
         [UInt32]
@@ -91,8 +96,10 @@ function Get-JiraIssue {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/issue/{0}?expand=transitions"
         $searchURi = "$server/rest/api/latest/search"
+        $resourceURi = "$server/rest/api/latest/issue/{0}"
+
+        [String]$Fields = $Fields -join ","
     }
 
     process {
@@ -105,11 +112,18 @@ function Get-JiraIssue {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
 
-                    $parameter = @{
-                        URI        = $resourceURi -f $_key
-                        Method     = "GET"
-                        Credential = $Credential
+                    $getParameter = @{ expand = "transitions" }
+                    if ($Fields) {
+                        $getParameter["fields"] = $Fields
                     }
+
+                    $parameter = @{
+                        URI          = $resourceURi -f $_key
+                        Method       = "GET"
+                        GetParameter = $getParameter
+                        Credential   = $Credential
+                    }
+
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter
 
@@ -122,7 +136,7 @@ function Get-JiraIssue {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
-                    Write-Output (Get-JiraIssue -Key $_issue.Key -Credential $Credential)
+                    Write-Output (Get-JiraIssue -Key $_issue.Key -Fields $Fields -Credential $Credential)
                 }
             }
             'ByJQL' {
@@ -134,10 +148,14 @@ function Get-JiraIssue {
                         validateQuery = $true
                         expand        = "transitions"
                         maxResults    = $PageSize
+
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
                     Credential   = $Credential
+                }
+                if ($Fields) {
+                    $parameter["GetParameter"]["fields"] = $Fields
                 }
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
@@ -158,14 +176,14 @@ function Get-JiraIssue {
                 Invoke-JiraMethod @parameter
             }
             'ByFilter' {
-                $filterObj = Get-JiraFilter -InputObject $Filter -Credential $Credential -ErrorAction Stop
+                $filterObj = (Get-JiraFilter -InputObject $Filter -Credential $Credential -ErrorAction Stop).searchurl
                 <#
                   #ToDo:CustomClass
                   Once we have custom classes, this will no longer be necessary
                 #>
 
                 $parameter = @{
-                    URI          = $filterObj.SearchUrl
+                    URI          = $filterObj
                     Method       = "GET"
                     GetParameter = @{
                         validateQuery = $true
@@ -175,6 +193,10 @@ function Get-JiraIssue {
                     OutputType   = "JiraIssue"
                     Paging       = $true
                     Credential   = $Credential
+
+                }
+                if ($Fields) {
+                    $parameter["GetParameter"]["fields"] = $Fields
                 }
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
