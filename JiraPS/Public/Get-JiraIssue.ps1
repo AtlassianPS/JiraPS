@@ -103,7 +103,7 @@ function Get-JiraIssue {
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Namune)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         switch ($PSCmdlet.ParameterSetName) {
