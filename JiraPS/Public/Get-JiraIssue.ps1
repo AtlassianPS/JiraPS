@@ -99,7 +99,7 @@ function Get-JiraIssue {
         $searchURi = "$server/rest/api/latest/search"
         $resourceURi = "$server/rest/api/latest/issue/{0}"
 
-        $Fields = $Fields -join ","
+        [String]$Fields = $Fields -join ","
     }
 
     process {
