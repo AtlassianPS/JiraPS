@@ -68,7 +68,7 @@ function Get-JiraIssue {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [String[]]
-        $Fields,
+        $Fields = "*all",
 
         [Parameter( ParameterSetName = 'ByJQL' )]
         [Parameter( ParameterSetName = 'ByFilter' )]
@@ -98,9 +98,8 @@ function Get-JiraIssue {
 
         $searchURi = "$server/rest/api/latest/search"
         $resourceURi = "$server/rest/api/latest/issue/{0}"
-        if($Fields){
-        $Fields = $Fields -join ","
-        }
+
+        [String]$Fields = $Fields -join ","
     }
 
     process {
@@ -137,7 +136,7 @@ function Get-JiraIssue {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
-                    Write-Output (Get-JiraIssue -Key $_issue.Key -Credential $Credential)
+                    Write-Output (Get-JiraIssue -Key $_issue.Key -Fields $Fields -Credential $Credential)
                 }
             }
             'ByJQL' {
