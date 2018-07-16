@@ -112,7 +112,7 @@ function Remove-JiraGroupMember {
             }
 
             if ($PassThru) {
-                Write-Output (Get-JiraGroup -InputObject $g -Credential $Credential)
+                Write-Output (Get-JiraGroup -InputObject $groupObj -Credential $Credential)
             }
         }
     }
