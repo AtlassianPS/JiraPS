@@ -154,12 +154,12 @@ function New-JiraIssue {
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($Summary, "Creating new Issue on JIRA")) {
-            $result = Invoke-JiraMethod @parameter
-
-            # REST result will look something like this:
-            # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/latest/issue/12345"}
-            # This will fetch the created issue to return it with all it'a properties
-            Write-Output (Get-JiraIssue -Key $result.Key -Credential $Credential)
+            if ($result = Invoke-JiraMethod @parameter) {
+                # REST result will look something like this:
+                # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/latest/issue/12345"}
+                # This will fetch the created issue to return it with all it'a properties
+                Write-Output (Get-JiraIssue -Key $result.Key -Credential $Credential)
+            }
         }
     }
 
