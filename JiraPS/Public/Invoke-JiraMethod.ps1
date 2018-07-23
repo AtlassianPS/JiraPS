@@ -279,6 +279,7 @@ function Invoke-JiraMethod {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Web result object was returned from. This is unusual!"
         }
     }
+
     end {
         Set-TlsLevel -Revert
 
