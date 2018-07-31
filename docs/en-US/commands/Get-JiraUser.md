@@ -24,7 +24,13 @@ Get-JiraUser [-Credential <PSCredential>] [<CommonParameters>]
 ### ByUserName
 
 ```powershell
-Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraUser [-UserName] <String[]> [-Credential <PSCredential>] [<CommonParameters>]
+```
+
+### ByFilter
+
+```powershell
+Get-JiraUser [-Filter] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByInputObject
@@ -50,12 +56,20 @@ Returns information about the user user1
 ### EXAMPLE 2
 
 ```powershell
+Get-JiraUser -Filter 'John'
+```
+
+Returns information about all user(s) whose username, display name or email address matches 'John'. The string is matched to the starting letters of any word in the searched fields. For example, 'and' matches to the username 'Andrei' but not 'Alexander'
+
+### EXAMPLE 3
+
+```powershell
 Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
 ```
 
 This example searches Active Directory for "John*Smith", then obtains their JIRA user accounts.
 
-### EXAMPLE 3
+### EXAMPLE 4
 
 ```powershell
 Get-JiraUser -Credential $cred
@@ -67,12 +81,28 @@ This example returns the JIRA user that is executing the command.
 
 ### -UserName
 
-Name of the user to search for.
+Name of the user to return information for.
 
 ```yaml
 Type: String[]
 Parameter Sets: ByUserName
 Aliases: User, Name
+
+Required: True
+Position: 1
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -Filter
+
+Name of the user to search for.
+
+```yaml
+Type: String[]
+Parameter Sets: ByFilter
+Aliases:
 
 Required: True
 Position: 1
@@ -103,7 +133,7 @@ Include inactive users in the search
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
+Parameter Sets: ByFilter
 Aliases:
 
 Required: False
@@ -121,7 +151,7 @@ Maximum number of user to be returned.
 
 ```yaml
 Type: UInt32
-Parameter Sets: ByUserName
+Parameter Sets: ByFilter
 Aliases:
 
 Required: False
@@ -139,7 +169,7 @@ Defaults to 0.
 
 ```yaml
 Type: UInt64
-Parameter Sets: ByUserName
+Parameter Sets: ByFilter
 Aliases:
 
 Required: False

@@ -133,7 +133,7 @@ Describe "Get-JiraUser" {
         }
 
         It "Allow it search for multiple users" {
-            Get-JiraUser -UserName "%"
+            Get-JiraUser -Filter "%"
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {
                 $URI -like "$jiraServer/rest/api/*/user/search?*username=%25*"
@@ -141,7 +141,7 @@ Describe "Get-JiraUser" {
         }
 
         It "Allows to change the max number of users to be returned" {
-            Get-JiraUser -UserName "%" -MaxResults 100
+            Get-JiraUser -Filter "%" -MaxResults 100
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {
                 $URI -like "$jiraServer/rest/api/*/user/search?*maxResults=100*"
@@ -149,7 +149,7 @@ Describe "Get-JiraUser" {
         }
 
         It "Can skip a certain amount of results" {
-            Get-JiraUser -UserName "%" -Skip 10
+            Get-JiraUser -Filter "%" -Skip 10
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {
                 $URI -like "$jiraServer/rest/api/*/user/search?*startAt=10*"
