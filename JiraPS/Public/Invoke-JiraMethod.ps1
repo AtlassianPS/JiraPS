@@ -57,6 +57,49 @@ function Invoke-JiraMethod {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        function ExpandResults {
+            param(
+                [Parameter( Mandatory, ValueFromPipeline )]
+                $InputObject
+            )
+
+            process {
+                foreach ($container in $script:PagingContainers) {
+                    if (($InputObject) -and ($InputObject | Get-Member -Name $container)) {
+                        Write-DebugMessage "Extracting data from [$container] containter"
+                        $InputObject.$container
+                    }
+                }
+            }
+        }
+
+        function ConvertResults {
+            param(
+                [Parameter( ValueFromPipeline )]
+                $InputObject,
+
+                $OutputType
+            )
+
+            process {
+                $InputObject | ForEach-Object {
+                    $item = $_
+                    if ($OutputType) {
+                        $converter = "ConvertTo-$($OutputType)"
+                    }
+
+                    if ($converter -and (Test-Path function:\$converter)) {
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result as $($OutputType)"
+                        $item | & $converter
+                    }
+                    else {
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result"
+                        $item
+                    }
+                }
+            }
+        }
+
         Set-TlsLevel -Tls12
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
@@ -207,12 +250,7 @@ function Invoke-JiraMethod {
                         do {
                             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
 
-                            foreach ($container in $script:PagingContainers) {
-                                if (($response) -and ($response | Get-Member -Name $container)) {
-                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Extracting data from [$container] containter"
-                                    $result = $response.$container
-                                }
-                            }
+                            $result = ExpandResults -InputObject $response
 
                             $total += @($result).Count
                             $pageSize = $response.maxResults
@@ -222,15 +260,11 @@ function Invoke-JiraMethod {
                                 $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
                             }
 
-                            $converter = "ConvertTo-$($OutputType)"
-                            if (Test-Path function:\$converter) {
-                                # Results shall be casted to custom objects (see ValidateSet)
-                                Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result as $($OutputType)"
-                                Write-Output ($result | & $converter)
-                            }
-                            else {
-                                Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result"
-                                Write-Output ($result)
+                            ConvertResults -InputObject $result -OutputType $OutputType
+
+                            if (@($result).Count -lt $response.maxResults) {
+                                Write-DebugMessage "Stopping paging, as page had less entries than $($response.maxResults)"
+                                break
                             }
 
                             if ($total -ge $PSCmdlet.PagingParameters.First) {
@@ -249,14 +283,8 @@ function Invoke-JiraMethod {
                             # Inquire the next page
                             $response = Invoke-JiraMethod @PSBoundParameters
 
-                            # Expand data container of paged results
-                            $result = @()
-                            foreach ($container in $script:PagingContainers) {
-                                if (($response) -and ($response | Get-Member -Name $container)) {
-                                    $result = $response.$container
-                                }
-                            }
-                        } while ($result.Count)
+                            $result = ExpandResults -InputObject $response
+                        } while (@($result).Count -gt 0)
 
                         if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
                             [double]$Accuracy = 1.0
@@ -264,7 +292,13 @@ function Invoke-JiraMethod {
                         }
                     }
                     else {
-                        Write-Output $response
+                        $caller = (Get-PSCallstack | Select-Object -First 2)[-1].Command
+                        if ($PSCmdlet.MyInvocation.MyCommand.Name -eq $caller) {
+                            $response
+                        }
+                        else {
+                            ConvertResults -InputObject $response -OutputType $OutputType
+                        }
                     }
                 }
                 else {
