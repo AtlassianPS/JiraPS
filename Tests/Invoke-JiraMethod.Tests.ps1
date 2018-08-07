@@ -54,6 +54,8 @@ Describe "Invoke-JiraMethod" {
         Mock Join-Hashtable -ModuleName JiraPS { @{ } }
         Mock Set-TlsLevel -ModuleName JiraPS { }
         Mock Resolve-ErrorWebResponse -ModuleName JiraPS { }
+        Mock Expand-Result -ModuleName JiraPS { }
+        Mock Convert-Result -ModuleName JiraPS { }
         Mock Get-JiraSession -ModuleName JiraPS {
             [PSCustomObject]@{
                 WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
@@ -300,13 +302,29 @@ Describe "Invoke-JiraMethod" {
                 It "uses ConvertTo-$type to transform the results" {
                     Invoke-JiraMethod -Method get -URI "https://postman-echo.com/get" -OutputType $type -Paging -ErrorAction Stop
 
-                    Assert-MockCalled -CommandName "ConvertTo-$type" -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    $assertMockCalledSplat = @{
+                        CommandName = "Convert-Result"
+                        ModuleName = 'JiraPS'
+                        ParameterFilter = { $OutputType -eq $type}
+                        Exactly = $true
+                        Times = 1
+                        Scope = 'It'
+                    }
+                    Assert-MockCalled @assertMockCalledSplat
                 }
 
                 It "only uses -OutputType with -Paging [$type]" {
                     Invoke-JiraMethod -Method get -URI "https://postman-echo.com/get" -OutputType $type -ErrorAction Stop
 
-                    Assert-MockCalled -CommandName "ConvertTo-$type" -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                    $assertMockCalledSplat = @{
+                        CommandName = "Convert-Result"
+                        ModuleName = 'JiraPS'
+                        ParameterFilter = { $OutputType -eq $type}
+                        Exactly = $true
+                        Times = 0
+                        Scope = 'It'
+                    }
+                    Assert-MockCalled @assertMockCalledSplat
                 }
             }
 
@@ -493,7 +511,7 @@ Describe "Invoke-JiraMethod" {
                 $response = ""
                 if ($Uri -match "startAt\=(\d+)") {
                     switch ($matches[1]) {
-                        5 {$response = $pagedResponse2; break }
+                        5 { $response = $pagedResponse2; break }
                         7 { $response = $pagedResponse3; break }
                     }
                 }
@@ -521,6 +539,12 @@ Describe "Invoke-JiraMethod" {
                 }
                 $table
             }
+            Mock Convert-Result -ModuleName JiraPS {
+                $InputObject
+            }
+            Mock Expand-Result -ModuleName JiraPS {
+                $InputObject.issues
+            }
 
             It "requests each page of the results" {
                 {
@@ -537,7 +561,7 @@ Describe "Invoke-JiraMethod" {
                     CommandName = 'Invoke-WebRequest'
                     ModuleName  = 'JiraPS'
                     Exactly     = $true
-                    Times       = 3
+                    Times       = 2
                     Scope       = 'It'
                 }
                 Assert-MockCalled @assertMockCalledSplat
@@ -550,12 +574,16 @@ Describe "Invoke-JiraMethod" {
                     Paging      = $true
                     ErrorAction = "Stop"
                 }
-                $result = Invoke-JiraMethod @invokeJiraMethodSplat
+                $null = Invoke-JiraMethod @invokeJiraMethodSplat
 
-                $result.Count | Should -Be 7
-
-                { $result | Get-Member -Name Id } | Should -Not -Throw
-                { $result | Get-Member -Name Id } | Should -Not -BeNullOrEmpty
+                $assertMockCalledSplat = @{
+                    CommandName = 'Expand-Result'
+                    ModuleName  = 'JiraPS'
+                    Exactly     = $true
+                    Times       = 3
+                    Scope       = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
             It "fetches only the necessary amount of pages when -First is used" {
@@ -618,7 +646,7 @@ Describe "Invoke-JiraMethod" {
                     CommandName = 'Invoke-WebRequest'
                     ModuleName  = 'JiraPS'
                     Exactly     = $true
-                    Times       = 2
+                    Times       = 1
                     Scope       = 'It'
                 }
                 Assert-MockCalled @assertMockCalledSplat

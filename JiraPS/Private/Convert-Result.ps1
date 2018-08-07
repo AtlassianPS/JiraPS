@@ -14,7 +14,6 @@ function Convert-Result {
                 $converter = "ConvertTo-$OutputType"
             }
 
-            Write-Verbose $converter
             if ($converter -and (Test-Path function:\$converter)) {
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Outputting `$result as $OutputType"
                 $item | & $converter
