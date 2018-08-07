@@ -1,8 +1,7 @@
 function Invoke-JiraMethod {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging )]
-    param
-    (
+    param(
         [Parameter( Mandatory )]
         [Uri]
         $URI,
@@ -56,49 +55,6 @@ function Invoke-JiraMethod {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        function ExpandResults {
-            param(
-                [Parameter( Mandatory, ValueFromPipeline )]
-                $InputObject
-            )
-
-            process {
-                foreach ($container in $script:PagingContainers) {
-                    if (($InputObject) -and ($InputObject | Get-Member -Name $container)) {
-                        Write-DebugMessage "Extracting data from [$container] containter"
-                        $InputObject.$container
-                    }
-                }
-            }
-        }
-
-        function ConvertResults {
-            param(
-                [Parameter( ValueFromPipeline )]
-                $InputObject,
-
-                $OutputType
-            )
-
-            process {
-                $InputObject | ForEach-Object {
-                    $item = $_
-                    if ($OutputType) {
-                        $converter = "ConvertTo-$($OutputType)"
-                    }
-
-                    if ($converter -and (Test-Path function:\$converter)) {
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result as $($OutputType)"
-                        $item | & $converter
-                    }
-                    else {
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result"
-                        $item
-                    }
-                }
-            }
-        }
 
         Set-TlsLevel -Tls12
 
@@ -250,7 +206,7 @@ function Invoke-JiraMethod {
                         do {
                             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
 
-                            $result = ExpandResults -InputObject $response
+                            $result = Expand-Result -InputObject $response
 
                             $total += @($result).Count
                             $pageSize = $response.maxResults
@@ -260,10 +216,11 @@ function Invoke-JiraMethod {
                                 $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
                             }
 
-                            ConvertResults -InputObject $result -OutputType $OutputType
+                            Convert-Result -InputObject $result -OutputType $OutputType
+                            Write-DebugMessage ($result | Out-String)
 
                             if (@($result).Count -lt $response.maxResults) {
-                                Write-DebugMessage "Stopping paging, as page had less entries than $($response.maxResults)"
+                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($response.maxResults)"
                                 break
                             }
 
@@ -283,7 +240,7 @@ function Invoke-JiraMethod {
                             # Inquire the next page
                             $response = Invoke-JiraMethod @PSBoundParameters
 
-                            $result = ExpandResults -InputObject $response
+                            $result = Expand-Result -InputObject $response
                         } while (@($result).Count -gt 0)
 
                         if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
@@ -292,13 +249,7 @@ function Invoke-JiraMethod {
                         }
                     }
                     else {
-                        $caller = (Get-PSCallstack | Select-Object -First 2)[-1].Command
-                        if ($PSCmdlet.MyInvocation.MyCommand.Name -eq $caller) {
-                            $response
-                        }
-                        else {
-                            ConvertResults -InputObject $response -OutputType $OutputType
-                        }
+                        $response
                     }
                 }
                 else {
