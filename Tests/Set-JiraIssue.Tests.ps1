@@ -85,7 +85,12 @@
 
             It "Unassigns an issue if 'Unassigned' is passed to the -Assignee parameter" {
                 { Set-JiraIssue -Issue TEST-001 -Assignee unassigned } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345/assignee" -and $Body -like '*name*""*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345/assignee" -and $Body -like '*"name":*null*' }
+            }
+
+            It "Sets the default assignee to an issue if 'Default' is passed to the -Assignee parameter" {
+                { Set-JiraIssue -Issue TEST-001 -Assignee default } | Should Not Throw
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345/assignee" -and $Body -like '*"name":*"-1"*' }
             }
 
             It "Calls Invoke-JiraMethod twice if using Assignee and another field" {
