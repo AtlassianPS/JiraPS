@@ -88,7 +88,7 @@ function Set-JiraIssue {
                   #ToDo:Deprecated
                   This behavior should be deprecated
                 #>
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] 'Deafult' String passed. Issue will be assigned to the default assignee."
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] 'Default' String passed. Issue will be assigned to the default assignee."
                 $assigneeString = "-1"
                 $validAssignee = $true
             }
