@@ -45,18 +45,17 @@ function New-JiraIssue {
         [PSCustomObject]
         $Fields,
 
-        [Parameter( ValueFromPipelineByPropertyName )]
+        [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
         $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
 
     process {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
         $server = Get-JiraConfigServer -ErrorAction Stop -Debug:$false
 
         $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
