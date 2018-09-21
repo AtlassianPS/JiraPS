@@ -82,6 +82,16 @@ This illustrates how to use splatting for the example above.
 
 Read more about splatting: about_Splatting
 
+### EXAMPLE 4
+
+```powershell
+"project,summary,assignee,IssueType,Priority,Description" > "./data.csv"
+"CS,Some Title 1,admin,Minor,1,Some Description 1" >> "./data.csv"
+"CS,Some Title 2,admin,Minor,1,Some Description 2" >> "./data.csv"
+import-csv "./data.csv" | New-JiraIssue
+```
+This example illuetrates how to prepare multiple new stories and pipe them to be created all at once.
+
 ## PARAMETERS
 
 ### -Project
