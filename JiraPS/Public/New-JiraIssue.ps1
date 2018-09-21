@@ -2,49 +2,59 @@ function New-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [String]
         $Project,
 
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [String]
         $IssueType,
 
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [String]
         $Summary,
 
+        [Parameter( ValueFromPipelineByPropertyName )]
         [Int]
         $Priority,
 
+        [Parameter( ValueFromPipelineByPropertyName )]
         [String]
         $Description,
 
+        [Parameter( ValueFromPipelineByPropertyName )]
         [AllowNull()]
         [AllowEmptyString()]
         [String]
         $Reporter,
 
+        [Parameter( ValueFromPipelineByPropertyName )]
         [String[]]
         $Labels,
 
+        [Parameter( ValueFromPipelineByPropertyName )]
         [String]
         $Parent,
 
+        [Parameter( ValueFromPipelineByPropertyName )]
         [Alias('FixVersions')]
         [String[]]
         $FixVersion,
 
+        [Parameter( ValueFromPipelineByPropertyName )]
         [PSCustomObject]
         $Fields,
 
-        [Parameter()]
+        [Parameter( ValueFromPipelineByPropertyName )]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
         $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
+    }
+
+    process {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop -Debug:$false
@@ -52,9 +62,7 @@ function New-JiraIssue {
         $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
 
         $resourceURi = "$server/rest/api/latest/issue"
-    }
 
-    process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
@@ -161,9 +169,9 @@ function New-JiraIssue {
             # This will fetch the created issue to return it with all it'a properties
             Write-Output (Get-JiraIssue -Key $result.Key -Credential $Credential)
         }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
