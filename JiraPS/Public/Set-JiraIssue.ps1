@@ -106,8 +106,6 @@ function Set-JiraIssue {
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("SkipNotification")){
             Write-Verbose "Users WON'T BE notified about the issues(s) updated"
-        } else {
-            Write-Verbose "Users WILL BE notified about the issues(s) updated"
         }
 
     }
