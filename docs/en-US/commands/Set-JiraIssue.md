@@ -240,7 +240,7 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -SkipCredentials
+### -SkipNotification
 
 Whether send notification to users about issue change or not
 
