@@ -4,7 +4,10 @@ permalink: /module/JiraPS/
 ---
 # [JiraPS](https://atlassianps.org/module/JiraPS)
 
-[![GitHub release](https://img.shields.io/github/release/AtlassianPS/JiraPS.svg)](https://github.com/AtlassianPS/JiraPS/releases/latest) [![Build status](https://img.shields.io/appveyor/ci/AtlassianPS/JiraPS/master.svg)](https://ci.appveyor.com/project/AtlassianPS/jiraps/branch/master) [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/JiraPS.svg)](https://www.powershellgallery.com/packages/JiraPS) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+[![GitHub release](https://img.shields.io/github/release/AtlassianPS/JiraPS.svg?style=for-the-badge)](https://github.com/AtlassianPS/JiraPS/releases/latest)
+[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/8/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=8)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/JiraPS.svg?style=for-the-badge)](https://www.powershellgallery.com/packages/JiraPS)
+![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)
 
 JiraPS is a Windows PowerShell module to interact with Atlassian [JIRA] via a REST API, while maintaining a consistent PowerShell look and feel.
 
