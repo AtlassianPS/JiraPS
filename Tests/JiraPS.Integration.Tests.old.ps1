@@ -1,4 +1,4 @@
-Describe 'Load Module' {
+Describe 'Load Module' -Tag 'Integration' {
     # ARRANGE
     Remove-Module JiraPS -Force -ErrorAction SilentlyContinue
 
@@ -14,7 +14,7 @@ Describe 'Load Module' {
 InModuleScope JiraPS {
     . "$PSScriptRoot/Shared.ps1"
 
-    Describe 'Authenticating' {
+    Describe 'Authenticating' -Tag 'Integration' {
 
         # ARRANGE
         $Pass = ConvertTo-SecureString -AsPlainText -Force -String $env:JiraPass
@@ -60,7 +60,7 @@ InModuleScope JiraPS {
 
     }
 
-    Describe 'Handling of Versions' {
+    Describe 'Handling of Versions' -Tag 'Integration' {
         $projectKey = "TV"
 
         $versionName1 = "TESTv1"
@@ -201,7 +201,7 @@ InModuleScope JiraPS {
         }
     }
 
-    <# Describe 'Handling of Users and Groups' {
+    <# Describe 'Handling of Users and Groups' -Tag 'Integration' {
 
         Context 'New-JiraGroup' {
             # ARRANGE

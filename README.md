@@ -5,7 +5,7 @@ permalink: /module/JiraPS/
 # [JiraPS](https://atlassianps.org/module/JiraPS)
 
 [![GitHub release](https://img.shields.io/github/release/AtlassianPS/JiraPS.svg?style=for-the-badge)](https://github.com/AtlassianPS/JiraPS/releases/latest)
-[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/8/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=8)
+[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=8)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/JiraPS.svg?style=for-the-badge)](https://www.powershellgallery.com/packages/JiraPS)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)
 
