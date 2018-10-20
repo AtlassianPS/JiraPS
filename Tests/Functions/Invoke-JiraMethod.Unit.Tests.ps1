@@ -95,12 +95,13 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
         Mock Invoke-WebRequest -ModuleName $env:BHProjectName {
             ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method', 'Body', 'Headers', 'ContentType', 'SessionVariable', 'WebSession'
             $InvokeWebRequestSplat = @{
-                Uri         = $Uri
-                Method      = $Method
-                Body        = $Body
-                Headers     = $Headers
-                WebSession  = $WebSession
-                ContentType = $ContentType
+                Uri             = $Uri
+                Method          = $Method
+                Body            = $Body
+                Headers         = $Headers
+                WebSession      = $WebSession
+                ContentType     = $ContentType
+                UseBasicParsing = $true
             }
             if ($SessionVariable) {
                 $InvokeWebRequestSplat["SessionVariable"] = $SessionVariable
@@ -221,7 +222,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     ParameterFilter = {
                         $Body -is [Byte[]] -and
                         (($Body -join " ") -eq "76 111 114 101 109 32 195 153 226 128 166 195 152 194 177 195 152 194 173 195 152 194 168 195 152 194 167 32 195 144 226 128 148 195 144 194 180 195 145 226 130 172 195 144 194 176 195 144 194 178 195 145 194 129 195 145 226 128 154 195 144 194 178 195 145 198 146 195 144 194 185 195 145 226 128 154 195 144 194 181 32 195 176 197 184 203 156 194 129" -or
-                        ($Body -join " ") -eq "76 111 114 101 109 32 217 133 216 177 216 173 216 168 216 167 32 208 151 208 180 209 128 208 176 208 178 209 129 209 130 208 178 209 131 208 185 209 130 208 181 32 240 159 152 129")
+                            ($Body -join " ") -eq "76 111 114 101 109 32 217 133 216 177 216 173 216 168 216 167 32 208 151 208 180 209 128 208 176 208 178 209 129 209 130 208 178 209 131 208 185 209 130 208 181 32 240 159 152 129")
                     }
                     Exactly         = $true
                     Times           = 1
@@ -329,12 +330,12 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Invoke-JiraMethod -Method get -URI "https://postman-echo.com/get" -OutputType $type -Paging -ErrorAction Stop
 
                     $assertMockCalledSplat = @{
-                        CommandName = "Convert-Result"
-                        ModuleName = $env:BHProjectName
+                        CommandName     = "Convert-Result"
+                        ModuleName      = $env:BHProjectName
                         ParameterFilter = { $OutputType -eq $type}
-                        Exactly = $true
-                        Times = 1
-                        Scope = 'It'
+                        Exactly         = $true
+                        Times           = 1
+                        Scope           = 'It'
                     }
                     Assert-MockCalled @assertMockCalledSplat
                 }
@@ -343,12 +344,12 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Invoke-JiraMethod -Method get -URI "https://postman-echo.com/get" -OutputType $type -ErrorAction Stop
 
                     $assertMockCalledSplat = @{
-                        CommandName = "Convert-Result"
-                        ModuleName = $env:BHProjectName
+                        CommandName     = "Convert-Result"
+                        ModuleName      = $env:BHProjectName
                         ParameterFilter = { $OutputType -eq $type}
-                        Exactly = $true
-                        Times = 0
-                        Scope = 'It'
+                        Exactly         = $true
+                        Times           = 0
+                        Scope           = 'It'
                     }
                     Assert-MockCalled @assertMockCalledSplat
                 }
@@ -546,9 +547,11 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                 }
 
                 $InvokeWebRequestSplat = @{
-                    Uri    = "https://postman-echo.com/post"
-                    Method = "Post"
-                    Body   = $response
+                    Uri             = "https://postman-echo.com/post"
+                    Method          = "Post"
+                    Body            = $response
+                    UseBasicParsing = $true
+
                 }
                 $result = Microsoft.PowerShell.Utility\Invoke-WebRequest @InvokeWebRequestSplat
 
