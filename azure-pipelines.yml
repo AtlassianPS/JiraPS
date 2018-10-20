@@ -55,7 +55,7 @@ phases:
        Invoke-Build -Task ShowInfo
     displayName: Setup
 
-  - powershell: 'Invoke-Build -Task Test -ExcludeTag "Integration"'
+  - powershell: 'Invoke-Build -Task Test -ExcludeTag "Documentation", "Integration"'
     displayName: Test
 
   - task: PublishTestResults@2
@@ -87,7 +87,7 @@ phases:
        Invoke-Build -Task ShowInfo
     displayName: Setup
 
-  - powershell: 'Invoke-Build -Task Test -ExcludeTag "Integration"'
+  - powershell: 'Invoke-Build -Task Test -ExcludeTag "Documentation", "Integration"'
     displayName: Test
 
   - task: PublishTestResults@2
@@ -118,7 +118,7 @@ phases:
        Invoke-Build -Task ShowInfo
     displayName: Setup
 
-  - powershell: 'Invoke-Build -Task Test -ExcludeTag "Integration"'
+  - powershell: 'Invoke-Build -Task Test -ExcludeTag "Documentation", "Integration"'
     displayName: Test
 
   - task: PublishTestResults@2
@@ -154,7 +154,7 @@ phases:
 
   - powershell: |
        $Env:Path = [Environment]::GetEnvironmentVariable('Path',[EnvironmentVariableTarget]::Machine)
-       pwsh -command "Invoke-Build -Task Test -ExcludeTag "Integration""
+       pwsh -command "Invoke-Build -Task Test -ExcludeTag "Documentation", "Integration""
     displayName: Test
 
   - task: PublishTestResults@2

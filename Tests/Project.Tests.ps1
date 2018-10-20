@@ -123,10 +123,13 @@ Describe "General project validation" -Tag Unit {
         }
 
         It "has all the public functions as a file in '$env:BHProjectName/Public'" {
-            $publicFunctions = (Get-Module -Name $env:BHProjectName).ExportedCommands.Keys
+            $module = (Get-Module -Name $env:BHProjectName)
+            $publicFunctions = $module.ExportedFunctions.Keys
 
             foreach ($function in $publicFunctions) {
-                # $function = $function.Replace((Get-Module -Name $env:BHProjectName).Prefix, '')
+                if ($module.Prefix) {
+                    $function = $function.Replace($module.Prefix, '')
+                }
 
                 (Get-ChildItem "$env:BHModulePath/Public").BaseName | Should -Contain $function
             }

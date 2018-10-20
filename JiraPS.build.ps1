@@ -70,18 +70,23 @@ task InstallDependencies {
 
 # Synopsis: Get the next version for the build
 task GetNextVersion {
-    $env:CurrentOnlineVersion = [Version](Find-Module -Name $env:BHProjectName).Version
-    $manifestVersion = [Version](Get-Metadata -Path $env:BHPSModuleManifest)
-    $nextOnlineVersion = Get-NextNugetPackageVersion -Name $env:BHProjectName
+    try {
+        $env:CurrentOnlineVersion = [Version](Find-Module -Name $env:BHProjectName).Version
+        $manifestVersion = [Version](Get-Metadata -Path $env:BHPSModuleManifest)
+        $nextOnlineVersion = Get-NextNugetPackageVersion -Name $env:BHProjectName
 
-    if ( ($manifestVersion.Major -gt $nextOnlineVersion.Major) -or
-        ($manifestVersion.Minor -gt $nextOnlineVersion.Minor)
-        # -or ($manifestVersion.Build -gt $nextOnlineVersion.Build)
-    ) {
-        $env:NextBuildVersion = [Version]::New($manifestVersion.Major, $manifestVersion.Minor, 0)
+        if ( ($manifestVersion.Major -gt $nextOnlineVersion.Major) -or
+            ($manifestVersion.Minor -gt $nextOnlineVersion.Minor)
+            # -or ($manifestVersion.Build -gt $nextOnlineVersion.Build)
+        ) {
+            $env:NextBuildVersion = [Version]::New($manifestVersion.Major, $manifestVersion.Minor, 0)
+        }
+        else {
+            $env:NextBuildVersion = $nextOnlineVersion
+        }
     }
-    else {
-        $env:NextBuildVersion = $nextOnlineVersion
+    catch {
+        $env:NextBuildVersion = $manifestVersion
     }
 }
 #endregion Setup
@@ -162,7 +167,7 @@ task PrepareTests Init, {
 
 # Synopsis: Compile all functions into the .psm1 file
 task CompileModule Init, {
-    $regionsToKeep = @('Dependencies', 'ModuleConfig')
+    $regionsToKeep = @('Dependencies', 'Configuration')
 
     $targetFile = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psm1"
     $content = Get-Content -Encoding UTF8 -LiteralPath $targetFile
@@ -212,9 +217,6 @@ task UpdateManifest GetNextVersion, {
     Import-Module $env:BHPSModuleManifest -Force
     $ModuleAlias = @(Get-Alias | Where-Object {$_.ModuleName -eq "$env:BHProjectName"})
 
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHProjectName -Force
-
     BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName ModuleVersion -Value $env:NextBuildVersion
     # BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName FileList -Value (Get-ChildItem "$env:BHBuildOutput/$env:BHProjectName" -Recurse).Name
     BuildHelpers\Set-ModuleFunctions -Name "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -FunctionsToExport ([string[]](Get-ChildItem "$env:BHBuildOutput/$env:BHProjectName/Public/*.ps1").BaseName)
@@ -225,7 +227,9 @@ task UpdateManifest GetNextVersion, {
 }
 
 # Synopsis: Create a ZIP file with this build
-task Package GenerateRelease, {
+task Package Init, {
+    Assert-True { Test-Path "$env:BHBuildOutput\$env:BHProjectName" } "Missing files to package"
+
     Remove-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction SilentlyContinue
     $null = Compress-Archive -Path "$env:BHBuildOutput\$env:BHProjectName" -DestinationPath "$env:BHBuildOutput\$env:BHProjectName.zip"
 }
@@ -246,6 +250,7 @@ task Test Init, {
     $codeCoverageFiles = Get-ChildItem @params #>
 
     try {
+        $ExcludeTag | Out-String | Write-Host
         $parameter = @{
             Script       = "$env:BHBuildOutput/Tests/*"
             Tag          = $Tag
