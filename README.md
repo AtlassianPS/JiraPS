@@ -59,7 +59,18 @@ We appreciate [everyone](https://atlassianps.org/#people) who invests their time
 
 Check out our guidelines on [Contributing] to our modules and documentation.
 
-## Acknowledgments
+## Tested on
+
+|Configuration|Status|
+|-------------|------|
+|Windows Powershell v3||
+|Windows Powershell v4||
+|Windows Powershell v5.1|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
+|Powershell Core (latest) on Windows|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
+|Powershell Core (latest) on Ubuntu|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
+|Powershell Core (latest) on MacOS|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
+
+## Acknowledgements
 
 * Thanks to [replicaJunction] for getting this module on it's feet
 * Thanks to everyone ([Our Contributors](https://atlassianps.org/#people)) that helped with this module
