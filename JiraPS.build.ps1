@@ -250,7 +250,6 @@ task Test Init, {
     $codeCoverageFiles = Get-ChildItem @params #>
 
     try {
-        $ExcludeTag | Out-String | Write-Host
         $parameter = @{
             Script       = "$env:BHBuildOutput/Tests/*"
             Tag          = $Tag
@@ -364,7 +363,7 @@ task RemoveGeneratedFiles {
 
 # Synopsis: Remove Pester results
 task RemoveTestResults {
-    Remove-Item "TestResult.xml" -Force -ErrorAction SilentlyContinue
+    Remove-Item "Test-*.xml" -Force -ErrorAction SilentlyContinue
 }
 #endregion
 
