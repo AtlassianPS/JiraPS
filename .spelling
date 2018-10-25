@@ -4,6 +4,11 @@ Atlassian's
 Jira
 
 // Module specific
+worklog
+timespan
+multipart
+captcha
+
 
 // Powershell
 pwsh
@@ -12,6 +17,8 @@ cmdlets
 recurse
 hashtable
 posh
+Passthru
+EXTERNALHELP
 
 // Person/Username
 lipkau
@@ -33,7 +40,9 @@ leane
 lukhase
 padgers
 JohnAdders
+hmmwhatsthisdo
 
 // misc
 markdownlint
 veyor
+pandoc
