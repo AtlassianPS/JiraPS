@@ -40,8 +40,8 @@ function New-JiraFilter {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $requestBody = @{
-            Name = $Name
-            JQL  = $JQL
+            name = $Name
+            jql  = $JQL
         }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
             $requestBody["description"] = $Description

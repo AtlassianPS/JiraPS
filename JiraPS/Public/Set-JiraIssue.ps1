@@ -83,7 +83,16 @@ function Set-JiraIssue {
                   This behavior should be deprecated
                 #>
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] 'Unassigned' String passed. Issue will be assigned to no one."
-                $assigneeString = ""
+                $assigneeString = $null
+                $validAssignee = $true
+            }
+            elseif ($Assignee -eq "Default") {
+                <#
+                  #ToDo:Deprecated
+                  This behavior should be deprecated
+                #>
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] 'Default' String passed. Issue will be assigned to the default assignee."
+                $assigneeString = "-1"
                 $validAssignee = $true
             }
             else {
