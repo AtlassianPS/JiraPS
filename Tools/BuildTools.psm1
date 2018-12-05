@@ -200,6 +200,7 @@ function Publish-GithubReleaseArtifact {
 }
 
 function Set-AppVeyorBuildNumber {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param()
 
     Assert-True { $env:APPVEYOR_REPO_NAME } "Is not an AppVeyor Job"
@@ -405,7 +406,7 @@ function Remove-Utf8Bom {
     .LINK
         https://gist.github.com/indented-automation/5f6b87f31c438f14905f62961025758b
     #>
-
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     [CmdletBinding()]
     param (
         # The path to a file which should be updated.

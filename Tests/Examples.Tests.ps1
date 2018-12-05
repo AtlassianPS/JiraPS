@@ -1,7 +1,7 @@
 #requires -modules BuildHelpers
 #requires -modules Pester
 
-Describe "Validation of example codes in the documentation" -Tag Documentation {
+Describe "Validation of example codes in the documentation" -Tag Documentation, NotImplemented {
 
     BeforeAll {
         Remove-Item -Path Env:\BH*
@@ -25,22 +25,9 @@ Describe "Validation of example codes in the documentation" -Tag Documentation {
         Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-
-        # backup current configuration
-        & (Get-Module $env:BHProjectName) {
-            $script:previousConfig = $script:Configuration
-            $script:Configuration = @{}
-            $script:Configuration.Add("ServerList", [System.Collections.Generic.List[AtlassianPS.ServerData]]::new())
-        }
+        # Import-Module $env:BHManifestToTest
     }
     AfterAll {
-        #restore previous configuration
-        & (Get-Module $env:BHProjectName) {
-            $script:Configuration = $script:previousConfig
-            Save-Configuration
-        }
-
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Remove-Module BuildHelpers -ErrorAction SilentlyContinue
         Remove-Item -Path Env:\BH*
@@ -48,33 +35,11 @@ Describe "Validation of example codes in the documentation" -Tag Documentation {
 
     Assert-True $script:isBuild "Examples can only be tested in the build environment. Please run `Invoke-Build -Task Build`."
 
-    #region Mocks
-    Mock Invoke-WebRequest { }
-    Mock Invoke-RestMethod { }
-    Mock Write-DebugMessage { } -ModuleName $env:BHProjectName
-    Mock Write-Verbose { } -ModuleName $env:BHProjectName
-    #endregion Mocks
-
-    foreach ($function in (Get-Command -Module $env:BHProjectName)) {
+    $functions = Get-Command -Module $env:BHProjectName | Get-Help
+    foreach ($function in $functions) {
         Context "Examples of $($function.Name)" {
-            $originalErrorActionPreference = $ErrorActionPreference
-            $ErrorActionPreference = "Stop"
 
-            $help = Get-Help $function.Name
 
-            foreach ($example in $help.examples.example) {
-                $exampleName = ($example.title -replace "-").trim()
-
-                It "has a working example: $exampleName" {
-                    {
-                        $scriptBlock = [Scriptblock]::Create($example.code)
-
-                        & $scriptBlock
-                    } | Should -Not -Throw
-                }
-            }
-
-            $ErrorActionPreference = $originalErrorActionPreference
         }
     }
 }

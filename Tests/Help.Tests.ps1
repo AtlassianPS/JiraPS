@@ -50,45 +50,9 @@ Describe "Help tests" -Tag Documentation {
     )
 
     $module = Get-Module $env:BHProjectName
-    $abouts = Get-ChildItem "$env:BHProjectPath/docs/en-US/about*.md"
     $commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
-    $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
-    $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
-    $loadedNamespace = [AtlassianPS.ServerData].Assembly.GetTypes() |
-        Where-Object IsPublic
-
-    #region About Help
-    It "has an About Help for the module" {
-        $abouts | Where-Object {$_.Name -eq "about_$env:BHProjectName.md"} | Should -Not -BeNullOrEmpty
-
-        if ($script:isBuild) {
-            Test-Path "$env:BHBuildOutput/$env:BHProjectName/en-US/about_$env:BHProjectName.help.txt" | Should -Be $true
-        }
-    }
-
-    foreach ($about in $abouts) {
-        $markdownFile = $about.FullName
-
-        Context "About $($about.BaseName)'s Help" {
-            It "has no platyPS template artifacts" {
-                $markdownFile | Should -Not -BeNullOrEmpty
-                $markdownFile | Should -Not -FileContentMatch '{{.*}}'
-            }
-
-            It "defines the frontmatter for the homepage" {
-                $markdownFile | Should -Not -BeNullOrEmpty
-                $markdownFile | Should -FileContentMatch "Module Name: $env:BHProjectName"
-                $markdownFile | Should -FileContentMatchExactly "layout: documentation"
-                $markdownFile | Should -FileContentMatch "permalink: /docs/$env:BHProjectName*"
-                $markdownFile | Should -FileContentMatch "online version: https://atlassianps.org/docs/$env:BHProjectName*"
-            }
-
-            if ($script:isBuild) {
-                @(Get-Help $about.BaseName).Count | Should -BeGreaterOrEqual 1
-            }
-        }
-    }
-    #endregion About Help
+    # $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
+    # $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
 
     #region Public Functions
     foreach ($command in $commands) {
@@ -222,7 +186,7 @@ Describe "Help tests" -Tag Documentation {
     #endregion Public Functions
 
     #region Classes
-    foreach ($class in $classes) {
+    <# foreach ($class in $classes) {
         Context "Classes $($class.BaseName) Help" {
 
             It "is described in a markdown file" {
@@ -247,15 +211,15 @@ Describe "Help tests" -Tag Documentation {
 
     Context "Missing classes" {
         It "has a documentation file for every class" {
-            foreach ($class in ($loadedNamespace | Where-Object IsClass)) {
+            foreach ($class in ([AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object IsClass)) {
                 $classes.BaseName | Should -Contain $class.FullName
             }
         }
-    }
+    } #>
     #endregion Classes
 
     #region Enumerations
-    foreach ($enum in $enums) {
+    <# foreach ($enum in $enums) {
         Context "Enumeration $($enum.BaseName) Help" {
 
             It "is described in a markdown file" {
@@ -277,12 +241,12 @@ Describe "Help tests" -Tag Documentation {
         }
     }
 
-    Context "Missing classes" {
-        It "has a documentation file for every class" {
-            foreach ($enum in ($loadedNamespace | Where-Object IsEnum)) {
+    Context "Missing enumerations" {
+        It "has a documentation file for every enumeration" {
+            foreach ($enum in ([AtlassianPS.ServerData].Assembly.GetTypes() | Where-Object IsEnum)) {
                 $enums.BaseName | Should -Contain $enum.FullName
             }
         }
-    }
+    } #>
     #endregion Enumerations
 }
