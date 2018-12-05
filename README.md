@@ -4,7 +4,10 @@ permalink: /module/JiraPS/
 ---
 # [JiraPS](https://atlassianps.org/module/JiraPS)
 
-[![GitHub release](https://img.shields.io/github/release/AtlassianPS/JiraPS.svg)](https://github.com/AtlassianPS/JiraPS/releases/latest) [![Build status](https://img.shields.io/appveyor/ci/AtlassianPS/JiraPS/master.svg)](https://ci.appveyor.com/project/AtlassianPS/jiraps/branch/master) [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/JiraPS.svg)](https://www.powershellgallery.com/packages/JiraPS) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+[![GitHub release](https://img.shields.io/github/release/AtlassianPS/JiraPS.svg?style=for-the-badge)](https://github.com/AtlassianPS/JiraPS/releases/latest)
+[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/JiraPS.svg?style=for-the-badge)](https://www.powershellgallery.com/packages/JiraPS)
+![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)
 
 JiraPS is a Windows PowerShell module to interact with Atlassian [JIRA] via a REST API, while maintaining a consistent PowerShell look and feel.
 
@@ -56,7 +59,18 @@ We appreciate [everyone](https://atlassianps.org/#people) who invests their time
 
 Check out our guidelines on [Contributing] to our modules and documentation.
 
-## Acknowledgments
+## Tested on
+
+|Configuration|Status|
+|-------------|------|
+|Windows Powershell v3||
+|Windows Powershell v4||
+|Windows Powershell v5.1|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
+|Powershell Core (latest) on Windows|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
+|Powershell Core (latest) on Ubuntu|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
+|Powershell Core (latest) on MacOS|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
+
+## Acknowledgements
 
 * Thanks to [replicaJunction] for getting this module on it's feet
 * Thanks to everyone ([Our Contributors](https://atlassianps.org/#people)) that helped with this module
