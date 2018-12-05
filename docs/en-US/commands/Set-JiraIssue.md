@@ -57,12 +57,20 @@ This example removes the assignee from JIRA issue TEST-01.
 ### EXAMPLE 4
 
 ```powershell
+Set-JiraIssue -Issue TEST-01 -Assignee 'Default'
+```
+
+This example will set the assgignee of JIRA issue TEST-01 to the value the project or type of the issue determine as default.
+
+### EXAMPLE 5
+
+```powershell
 Set-JiraIssue -Issue TEST-01 -Assignee 'joe' -AddComment 'Dear [~joe], please review.'
 ```
 
 This example assigns the JIRA Issue TEST-01 to 'joe' and adds a comment at one.
 
-### EXAMPLE 5
+### EXAMPLE 6
 
 ```powershell
 $parameters = @{

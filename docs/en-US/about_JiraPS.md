@@ -45,16 +45,19 @@ JiraPS also allows for creating a session with the server with `New-JiraSession`
 ## DISCOVERING YOUR ENVIRONMENT
 
 Finding all projects you have access to:
+
 ```powershell
 Get-JiraProject
 ```
 
 Get all issues in a project:
+
 ```powershell
 Get-JiraIssue -Query "project = CS"
 ```
 
 See all available information of an issue:
+
 ```powershell
 Get-JiraIssue "CS-15" | Format-List *
 ```
