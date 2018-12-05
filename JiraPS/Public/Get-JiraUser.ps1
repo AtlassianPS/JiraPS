@@ -72,7 +72,7 @@ function Get-JiraUser {
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
 
-                Write-Output (ConvertTo-JiraUser -InputObject $result)
+                Get-JiraUser -UserName $result.Name
             }
             "ByInputObject" {
                 $UserName = $InputObject.Name
