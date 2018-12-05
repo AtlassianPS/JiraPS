@@ -105,14 +105,14 @@
                     }
 
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
-
-                    $result | Where-Object {
-                        $__ = $_.Name
-                        Write-DebugMessage ($__ | Out-String)
-                        $Name | Foreach-Object {
-                            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Matching $_ against $($__)"
-                            $__ -like $_
+                    if ($result = Invoke-JiraMethod @parameter) {
+                        $result | Where-Object {
+                            $__ = $_.Name
+                            Write-DebugMessage ($__ | Out-String)
+                            $Name | Foreach-Object {
+                                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Matching $_ against $($__)"
+                                $__ -like $_
+                            }
                         }
                     }
                 }

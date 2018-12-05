@@ -1,8 +1,7 @@
 function Invoke-JiraMethod {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging )]
-    param
-    (
+    param(
         [Parameter( Mandatory )]
         [Uri]
         $URI,
@@ -207,12 +206,7 @@ function Invoke-JiraMethod {
                         do {
                             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
 
-                            foreach ($container in $script:PagingContainers) {
-                                if (($response) -and ($response | Get-Member -Name $container)) {
-                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Extracting data from [$container] containter"
-                                    $result = $response.$container
-                                }
-                            }
+                            $result = Expand-Result -InputObject $response
 
                             $total += @($result).Count
                             $pageSize = $response.maxResults
@@ -222,15 +216,12 @@ function Invoke-JiraMethod {
                                 $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
                             }
 
-                            $converter = "ConvertTo-$($OutputType)"
-                            if (Test-Path function:\$converter) {
-                                # Results shall be casted to custom objects (see ValidateSet)
-                                Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result as $($OutputType)"
-                                Write-Output ($result | & $converter)
-                            }
-                            else {
-                                Write-Debug "[$($MyInvocation.MyCommand.Name)] Outputting `$result"
-                                Write-Output ($result)
+                            Convert-Result -InputObject $result -OutputType $OutputType
+                            Write-DebugMessage ($result | Out-String)
+
+                            if (@($result).Count -lt $response.maxResults) {
+                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($response.maxResults)"
+                                break
                             }
 
                             if ($total -ge $PSCmdlet.PagingParameters.First) {
@@ -249,14 +240,8 @@ function Invoke-JiraMethod {
                             # Inquire the next page
                             $response = Invoke-JiraMethod @PSBoundParameters
 
-                            # Expand data container of paged results
-                            $result = @()
-                            foreach ($container in $script:PagingContainers) {
-                                if (($response) -and ($response | Get-Member -Name $container)) {
-                                    $result = $response.$container
-                                }
-                            }
-                        } while ($result.Count)
+                            $result = Expand-Result -InputObject $response
+                        } while (@($result).Count -gt 0)
 
                         if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
                             [double]$Accuracy = 1.0
@@ -264,7 +249,7 @@ function Invoke-JiraMethod {
                         }
                     }
                     else {
-                        Write-Output $response
+                        $response
                     }
                 }
                 else {
@@ -279,6 +264,7 @@ function Invoke-JiraMethod {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] No Web result object was returned from. This is unusual!"
         }
     }
+
     end {
         Set-TlsLevel -Revert
 

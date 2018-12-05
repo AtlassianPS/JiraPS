@@ -95,7 +95,7 @@ function Remove-JiraGroupMember {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-                $userObj = Get-JiraUser -InputObject $_user -Credential $Credential -ErrorAction Stop
+                $userObj = Get-JiraUser -UserName $_user -Credential $Credential -ErrorAction Stop
 
                 # if ($groupMembers -contains $userObj.Name) {
                 # TODO: test what jira says
@@ -112,7 +112,7 @@ function Remove-JiraGroupMember {
             }
 
             if ($PassThru) {
-                Write-Output (Get-JiraGroup -InputObject $g -Credential $Credential)
+                Write-Output (Get-JiraGroup -InputObject $groupObj -Credential $Credential)
             }
         }
     }

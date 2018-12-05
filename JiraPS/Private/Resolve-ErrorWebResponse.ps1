@@ -46,7 +46,10 @@ function Resolve-ErrorWebResponse {
 
                 foreach ($_error in ($responseObject.errorMessages + $responseObject.errors)) {
                     # $_error is a PSCustomObject - therefore can't be $false
-                    if (-not $_error.ToString()) { break }
+                    if ($_error -is [PSCustomObject]) {
+                        [String]$_error = ($_error | Out-String)
+                    }
+                    if (-not $_error) { throw "Unable to handle error" }
 
                     $writeErrorSplat = @{
                         Exception    = $exception
