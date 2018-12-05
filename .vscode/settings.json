@@ -28,6 +28,14 @@
         "MD025": false,
         "MD028": false
     },
+    "cSpell.dictionaryDefinitions": [{
+        "name": "customDictionary",
+        "path": "./.spelling"
+    }],
+    "cSpell.dictionaries": [
+        "customDictionary"
+    ],
+    "cSpell.language": "en"
 
     // Recomendations for "USER SETTINGS":
     // "editor.formatOnType": true,

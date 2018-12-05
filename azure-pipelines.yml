@@ -1,0 +1,198 @@
+
+resources:
+- repo: self
+  clean: true
+
+trigger:
+  branches:
+    include:
+    - master
+    - "*"
+    exclude:
+    - refs/tag/*
+
+phases:
+- phase: Phase_1
+  displayName: Build Module
+
+  condition: succeeded()
+  queue:
+    name: Hosted VS2017
+
+  steps:
+  - powershell: |
+       . ./Tools/setup.ps1
+       Invoke-Build -Task ShowInfo
+    displayName: Setup
+
+  - powershell: 'Invoke-Build -Task Clean, Build'
+    displayName: Build
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: Built Module'
+    inputs:
+      PathtoPublish: Release
+      ArtifactName: Release
+
+
+- phase: Phase_2
+  displayName: Test Module on Windows (PSv5)
+
+  dependsOn: Phase_1
+  condition: succeeded()
+  queue:
+    name: Hosted VS2017
+
+  steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: Release
+      downloadPath: '$(Build.SourcesDirectory)'
+
+  - powershell: |
+       . ./Tools/setup.ps1
+       Invoke-Build -Task ShowInfo
+    displayName: Setup
+
+  - powershell: 'Invoke-Build -Task Test'
+    displayName: Test
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results **/Test*.xml'
+    inputs:
+      testRunner: NUnit
+      testResultsFiles: '**/Test*.xml'
+    condition: succeededOrFailed()
+
+
+- phase: Phase_3
+  displayName: Test Module on Ubuntu
+
+  dependsOn: Phase_1
+  condition: succeeded()
+  queue:
+    name: Hosted Ubuntu 1604
+
+  steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: Release
+      downloadPath: '$(Build.SourcesDirectory)'
+
+
+  - powershell: |
+       . ./Tools/setup.ps1
+       Invoke-Build -Task ShowInfo
+    displayName: Setup
+
+  - powershell: 'Invoke-Build -Task Test'
+    displayName: Test
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results **/Test*.xml'
+    inputs:
+      testRunner: NUnit
+      testResultsFiles: '**/Test*.xml'
+    condition: succeededOrFailed()
+
+
+- phase: Phase_4
+  displayName: Test Module on macOS
+
+  dependsOn: Phase_1
+  condition: succeeded()
+  queue:
+    name: Hosted macOS
+
+  steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: Release
+      downloadPath: '$(Build.SourcesDirectory)'
+
+  - powershell: |
+       . ./Tools/setup.ps1
+       Invoke-Build -Task ShowInfo
+    displayName: Setup
+
+  - powershell: 'Invoke-Build -Task Test'
+    displayName: Test
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results **/Test*.xml'
+    inputs:
+      testRunner: NUnit
+      testResultsFiles: '**/Test*.xml'
+    condition: succeededOrFailed()
+
+
+# Waiting for the agent to support pwsh:
+# https://github.com/Microsoft/azure-pipelines-image-generation/issues/232
+# - phase: Phase_5
+#   displayName: Test Module on Windows (PSv6)
+
+#   dependsOn: Phase_1
+#   condition: succeeded()
+#   queue:
+#     name: Hosted VS2017
+
+#   steps:
+#   - task: DownloadBuildArtifacts@0
+#     displayName: 'Download Build Artifacts'
+#     inputs:
+#       artifactName: Release
+#       downloadPath: '$(Build.SourcesDirectory)'
+
+#   - powershell: |
+#         . ./Tools/setup.ps1
+#         Invoke-Build -Task ShowInfo
+#     displayName: Setup
+#     pwsh: true
+
+#   - powershell: 'Invoke-Build -Task Test'
+#     displayName: Test
+#     pwsh: true
+
+#   - task: PublishTestResults@2
+#     displayName: 'Publish Test Results **/Test-*.xml'
+#     inputs:
+#       testRunner: NUnit
+#       testResultsFiles: '**/Test*.xml'
+#     condition: succeededOrFailed()
+
+- phase: Phase_6
+  displayName: Test Module against Cloud Server
+
+  dependsOn: Phase_1
+  condition: succeeded()
+  queue:
+    name: Hosted VS2017
+
+  steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: Release
+      downloadPath: '$(Build.SourcesDirectory)'
+
+  - powershell: |
+       . ./Tools/setup.ps1
+       Invoke-Build -Task ShowInfo
+    displayName: Setup
+
+  - powershell: 'Invoke-Build -Task Test -Tag "Integration" -ExcludeTag ""'
+    env:
+        JiraURI: JiraURI
+        JiraUser: JiraUser
+        JiraPass: JiraPass
+    displayName: Test
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results **/Test*.xml'
+    inputs:
+      testRunner: NUnit
+      testResultsFiles: '**/Test*.xml'
+    condition: succeededOrFailed()
