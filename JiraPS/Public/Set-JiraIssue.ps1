@@ -103,11 +103,6 @@ function Set-JiraIssue {
                 }
             }
         }
-
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("SkipNotification")){
-            Write-Verbose "Users WON'T BE notified about the issues(s) updated"
-        }
-
     }
 
     process {
@@ -175,7 +170,8 @@ function Set-JiraIssue {
             }
 
             $SkipNotificationParams = @{}
-            if($SkipNotification){
+            if ($SkipNotification) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Skipping notification for watchers"
                 $SkipNotificationParams = @{notifyUsers = $false}
             }
 
