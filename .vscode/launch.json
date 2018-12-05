@@ -1,53 +1,34 @@
 {
     "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "PowerShell",
-            "request": "launch",
-            "name": "PowerShell Launch Current File",
-            "script": "${file}",
-            "args": [],
-            "cwd": "${file}"
-        },
-        {
-            "type": "PowerShell",
-            "request": "launch",
-            "name": "PowerShell Launch Current File in Temporary Console",
-            "script": "${file}",
-            "args": [],
-            "cwd": "${file}",
-            "createTemporaryIntegratedConsole": true
-        },
-        {
-            "type": "PowerShell",
-            "request": "launch",
-            "name": "PowerShell Launch Current File w/Args Prompt",
-            "script": "${file}",
-            "args": [
-                "${command:SpecifyScriptArgs}"
-            ],
-            "cwd": "${file}"
-        },
-        {
-            "type": "PowerShell",
-            "request": "launch",
-            "name": "PowerShell Interactive Session",
-            "cwd": "${workspaceRoot}"
-        },
-        {
+    "configurations": [{
             "type": "PowerShell",
             "request": "launch",
             "name": "PowerShell Pester Tests",
+            "script": ".\\.env.ps1",
             "script": "Invoke-Pester",
             "args": [],
             "cwd": "${workspaceRoot}"
         },
         {
             "type": "PowerShell",
+            "request": "launch",
+            "name": "PowerShell Launch (current file)",
+            "script": "${file}",
+            "args": [],
+            "cwd": "${file}"
+        },
+        {
+            "type": "PowerShell",
             "request": "attach",
             "name": "PowerShell Attach to Host Process",
-            "processId": "${command:PickPSHostProcess}",
+            "processId": "${command.PickPSHostProcess}",
             "runspaceId": 1
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "PowerShell Interactive Session",
+            "cwd": "${workspaceRoot}"
         }
     ]
 }
