@@ -1,4 +1,4 @@
-#requires -modules @{ ModuleName = "BuildHelpers"; ModuleVersion = "1.2" }
+#requires -modules BuildHelpers
 #requires -modules Pester
 
 Describe "General project validation" -Tag Unit {
@@ -28,43 +28,53 @@ Describe "General project validation" -Tag Unit {
         # Import-Module $env:BHManifestToTest
     }
     AfterAll {
-        Remove-Module BuildTools
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Remove-Module BuildHelpers -ErrorAction SilentlyContinue
         Remove-Item -Path Env:\BH*
-    }
-    AfterEach {
-        Get-ChildItem TestDrive:\FunctionCalled* | Remove-Item
     }
 
     It "passes Test-ModuleManifest" {
         { Test-ModuleManifest -Path $env:BHManifestToTest -ErrorAction Stop } | Should -Not -Throw
     }
 
-    It "imports '$env:BHProjectName' cleanly" {
-        Import-Module $env:BHManifestToTest
-
-        $module = Get-Module $env:BHProjectName
-
-        $module | Should BeOfType [PSModuleInfo]
+    It "module '$env:BHProjectName' can import cleanly" {
+        { Import-Module $env:BHManifestToTest } | Should Not Throw
     }
 
-    It "has public functions" {
+    It "module '$env:BHProjectName' exports functions" {
         Import-Module $env:BHManifestToTest
 
         (Get-Command -Module $env:BHProjectName | Measure-Object).Count | Should -BeGreaterThan 0
     }
 
-    It "uses the correct root module" {
-        Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName RootModule | Should -Be 'JiraPS.psm1'
+    It "module uses the correct root module" {
+        Get-Metadata -Path $env:BHManifestToTest -PropertyName RootModule | Should -Be 'JiraPS.psm1'
     }
 
-    It "uses the correct guid" {
-        Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName Guid | Should -Be '4bf3eb15-037e-43b7-9e47-20a30436324f'
+    It "module uses the correct guid" {
+        Get-Metadata -Path $env:BHManifestToTest -PropertyName Guid | Should -Be '4bf3eb15-037e-43b7-9e47-20a30436324f'
     }
 
-    It "uses a valid version" {
-        [Version](Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
-        [Version](Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
+    It "module uses a valid version" {
+        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
+        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
     }
+
+    # It "module is imported with default prefix" {
+    #     $prefix = Get-Metadata -Path $env:BHManifestToTest -PropertyName DefaultCommandPrefix
+
+    #     Import-Module $env:BHManifestToTest -Force -ErrorAction Stop
+    #     (Get-Command -Module $env:BHProjectName).Name | ForEach-Object {
+    #         $_ | Should -Match "\-$prefix"
+    #     }
+    # }
+
+    # It "module is imported with custom prefix" {
+    #     $prefix = "Wiki"
+
+    #     Import-Module $env:BHManifestToTest -Prefix $prefix -Force -ErrorAction Stop
+    #     (Get-Command -Module $env:BHProjectName).Name | ForEach-Object {
+    #         $_ | Should -Match "\-$prefix"
+    #     }
+    # }
 }
