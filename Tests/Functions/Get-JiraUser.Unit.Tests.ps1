@@ -130,6 +130,7 @@ Describe "Get-JiraUser" -Tag 'Unit' {
             $getResult | Should Not BeNullOrEmpty
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/myself"}
+            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
         }
 
         It "Gets information about a provided Jira user" {
