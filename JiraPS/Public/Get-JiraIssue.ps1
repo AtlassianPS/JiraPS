@@ -112,7 +112,7 @@ function Get-JiraIssue {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
 
-                    $getParameter = @{ expand = "transitions" }
+                    $getParameter = @{ expand = "transitions,changelog" }
                     if ($Fields) {
                         $getParameter["fields"] = $Fields
                     }
@@ -146,7 +146,7 @@ function Get-JiraIssue {
                     GetParameter = @{
                         jql           = (ConvertTo-URLEncoded $Query)
                         validateQuery = $true
-                        expand        = "transitions"
+                        expand        = "transitions,changelog"
                         maxResults    = $PageSize
 
                     }
@@ -187,7 +187,7 @@ function Get-JiraIssue {
                     Method       = "GET"
                     GetParameter = @{
                         validateQuery = $true
-                        expand        = "transitions"
+                        expand        = "transitions,changelog"
                         maxResults    = $PageSize
                     }
                     OutputType   = "JiraIssue"

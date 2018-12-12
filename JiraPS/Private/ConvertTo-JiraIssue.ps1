@@ -45,7 +45,13 @@ function ConvertTo-JiraIssue {
             }
 
             if ($i.fields.project) {
-                $props.Project = ConvertTo-JiraProject -InputObject $i.fields.project
+                $props["Project"] = ConvertTo-JiraProject -InputObject $i.fields.project
+            }
+
+            if ($i.changelog) {
+                $props["History"] = foreach ($entry in $i.changelog.histories) {
+                    ConvertTo-JiraIssueHistoryEntry -InputObject $entry
+                }
             }
 
             foreach ($field in $userFields) {
