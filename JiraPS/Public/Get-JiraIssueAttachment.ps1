@@ -59,14 +59,6 @@ function Get-JiraIssueAttachment {
 
             ConvertTo-JiraAttachment -InputObject $attachments
         }
-        else {
-            $errorMessage = @{
-                Category         = "ObjectNotFound"
-                CategoryActivity = "Searching for resource"
-                Message          = "This issue does not have any attachments"
-            }
-            Write-Error @errorMessage
-        }
     }
 
     end {
