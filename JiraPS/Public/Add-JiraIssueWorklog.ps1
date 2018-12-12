@@ -73,6 +73,11 @@ function Add-JiraIssueWorklog {
             Write-Error @errorMessage
         }
 
+        # Harmonize DateStarted:
+        # `Get-Date -Date "01.01.2000"` does not return the local timezone
+        # which is required by the API
+        $DateStarted = [DateTime]::new($DateStarted.Ticks, 'Local')
+
         $requestBody = @{
             'comment'          = $Comment
             # We need to fix the date with a RegEx replace because the API does not like:
