@@ -67,7 +67,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
 
-                    $getParameter = @{ expand = "transitions" }
+                    $getParameter = @{ expand = "transitions,changelog" }
                     if ($Fields) {
                         $getParameter["fields"] = $Fields
                     }
@@ -99,7 +99,7 @@
                     GetParameter = @{
                         jql           = $Query
                         validateQuery = $true
-                        expand        = "transitions"
+                        expand        = "transitions,changelog"
                         maxResults    = $PageSize
                     }
                     OutputType   = "JiraIssue"
@@ -125,7 +125,7 @@
                     Method       = "GET"
                     GetParameter = @{
                         validateQuery = $true
-                        expand        = "transitions"
+                        expand        = "transitions,changelog"
                         maxResults    = $PageSize
                     }
                     OutputType   = "JiraIssue"
