@@ -1,80 +1,83 @@
 ---
 external help file: JiraPS-help.xml
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueAttachment/
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueAttachmentFile/
 locale: en-US
 schema: 2.0.0
 layout: documentation
-permalink: /docs/JiraPS/commands/Get-JiraIssueAttachment/
+permalink: /docs/JiraPS/commands/Get-JiraIssueAttachmentFile/
 ---
-# Get-JiraIssueAttachment
+# Get-JiraIssueAttachmentFile
 
 ## SYNOPSIS
 
-Returns attachments of an issue in JIRA.
+Save an attachment to disk.
 
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueAttachment [-Issue] <Object> [[-FileName] <String>] [[-Credential] <PSCredential>]
- [<CommonParameters>]
+Get-JiraIssueAttachmentFile [-Attachment] <JiraPS.Attachment> [[-Path] <String>]]
+ [[-Credential] <PSCredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function obtains attachments from existing issues in JIRA.
+This function downloads an attachment of an issue to the local disk.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 
 ```powershell
-Get-JiraIssueAttachment -Issue TEST-001
+Get-JiraIssueAttachmentFile (Get-JiraIssueAttachment -Issue TEST-001)
 ```
 
-This example returns all attachments from issue TEST-001.
+This example downloads all attachments from issue TEST-001 to the current
+working directory.
 
 ### EXAMPLE 2
 
 ```powershell
-Get-JiraIssue TEST-002 | Get-JiraIssueAttachment
+Get-JiraIssue TEST-002 | Get-JiraIssueAttachment | Get-JiraIssueAttachmentFile
 ```
 
-This example illustrates use of the pipeline to return all attachments from issue TEST-002.
+This example illustrates use of the pipeline to download all attachments from
+issue TEST-002.
 
 ### EXAMPLE 3
 
 ```powershell
-Get-JiraIssue TEST-002 | Get-JiraIssueAttachment -FileName "*.png"
+Get-JiraIssue TEST-002 |
+    Get-JiraIssueAttachment -FileName "*.png" |
+    Get-JiraIssueAttachmentFile -Path "c:\temp
 ```
 
-Returns all attachments of issue TEST-002 where the filename ends in `.png`
+Download all attachments of issue TEST-002 where the filename ends in `.png`
+to a specific location.
 
 ## PARAMETERS
 
-### -Issue
+### -Attachment
 
-JIRA issue to check for attachments.
-
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Attachment which will be downloaded.
 
 ```yaml
-Type: Object
+Type: JiraPS.Attachment
 Parameter Sets: (All)
-Aliases: Key
+Aliases:
 
 Required: True
 Position: 1
 Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
+Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
-### -FileName
+### -Path
 
-Name of the file(s) to filter.
+Path in which to store to attachment.
 
-This parameter supports wildcards.
+The name of the file will be appended to the Path provided.
 
 ```yaml
 Type: String
@@ -112,11 +115,11 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## INPUTS
 
-### [JiraPS.Issue] / [String]
+### [JiraPS.Attachment]
 
 ## OUTPUTS
 
-### [JiraPS.Attachment]
+### [Bool]
 
 ## NOTES
 
@@ -126,10 +129,10 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 ## RELATED LINKS
 
-[Get-JiraAttachmentFile](../Get-JiraAttachmentFile/)
+[Get-JiraAttachment](../Get-JiraAttachmentFile/)
 
-[Add-JiraIssueAttachment](../Add-JiraIssueAttachment/)
+[Add-JiraIssueAttachmentFile](../Add-JiraIssueAttachmentFile/)
 
 [Get-JiraIssue](../Get-JiraIssue/)
 
-[Remove-JiraIssueAttachment](../Remove-JiraIssueAttachment/)
+[Remove-JiraIssueAttachmentFile](../Remove-JiraIssueAttachmentFile/)
