@@ -1,5 +1,27 @@
 # Change Log
 
+## [2.9] - 2018-12-12
+
+### Added
+
+- Parameter for selecting what fields to return the the issue's payload (#300, [@tuxgoose])
+- Added pipeline support to `New-JiraIssue` (#312, [@ctolan])
+- Added parameter to avoid notifying user when running `Set-JiraIssue` (#315, [@alexsuslin])
+- Improved documentation to demonstrate how to authenticate with 2FA (#313, [@lipkau])
+- Added function to download attachments from issue: `Get-JiraIssueAttachmentFile` (#323, [@lipkau])
+
+### Changed
+
+- Fixed the way a user is resolved in `Remove-JiraGroupMember` (#301, [@lipkau])
+- Improved the resolving of server responses with an error (#303, [@lipkau])
+- Fixed payload of `New-JiraFilter` (#304, [@lipkau])
+- Fixed paging when server responds with only 1 result (#307, [@lipkau])
+- Fixed `Set-JiraIssue` to allow to unassigned an issue (#309, [@lipkau])
+- Changed CI/CD pipeline from AppVeyor to Azure DevOps (#317, [@lipkau])
+- Fixed missing properties on `Get-JiraUser` (#321, [@lipkau])
+- Fixed `-DateStarted` on `Add-JiraIssueWorklog` (#324, [@lipkau])
+
+
 ## [2.8] - 2018-06-28
 
 More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.8.html).
@@ -279,6 +301,7 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
   [@beaudryj]: https://github.com/beaudryj
   [@brianbunke]: https://github.com/brianbunke
   [@Clijsters]: https://github.com/Clijsters
+  [@ctolan]: https://github.com/ctolan
   [@colhal]: https://github.com/colhal
   [@Dejulia489]: https://github.com/Dejulia489
   [@ebekker]: https://github.com/ebekker
@@ -290,4 +313,5 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
   [@lukhase]: https://github.com/lukhase
   [@padgers]: https://github.com/padgers
   [@ThePSAdmin]: https://github.com/ThePSAdmin
+  [@tuxgoose]: https://github.com/tuxgoose
   [@WindowsAdmin92]: https://github.com/WindowsAdmin92

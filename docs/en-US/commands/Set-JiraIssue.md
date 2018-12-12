@@ -18,7 +18,7 @@ Modifies an existing issue in JIRA
 ```powershell
 Set-JiraIssue [-Issue] <Object[]> [[-Summary] <String>] [[-Description] <String>] [[-FixVersion] <String[]>]
  [[-Assignee] <Object>] [[-Label] <String[]>] [[-Fields] <PSCustomObject>] [[-AddComment] <String>]
- [[-Credential] <PSCredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-Credential] <PSCredential>] [-SkipNotification] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -31,10 +31,10 @@ This can include changing the issue's summary or description, or assigning the i
 ### EXAMPLE 1
 
 ```powershell
-Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell'
+Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell' -SkipNotification
 ```
 
-This example changes the summary and description of the JIRA issue TEST-01.
+This example changes the summary and description of the JIRA issue TEST-01 without updating users by email about the change.
 
 ### EXAMPLE 2
 
@@ -244,6 +244,22 @@ Aliases:
 Required: False
 Position: 9
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -SkipNotification
+
+Whether send notification to users about issue change or not
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
