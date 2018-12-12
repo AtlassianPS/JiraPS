@@ -103,7 +103,7 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
             ConvertFrom-Json $restResponse
         }
 
@@ -135,6 +135,16 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
             # Get-JiraIssue should be called once here to fetch the initial test issue
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+        }
+
+        It "formats DateStarted independetly of the input" {
+            Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent "00:10:00" -DateStarted "2018-01-01"
+            Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent "00:10:00" -DateStarted (Get-Date)
+            Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent "00:10:00" -DateStarted (Get-Date -Date "01.01.2000")
+
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                $Body -match '\"started\":\s*"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[\+\-]\d{4}"'
+            } -Exactly -Times 3 -Scope It
         }
     }
 }
