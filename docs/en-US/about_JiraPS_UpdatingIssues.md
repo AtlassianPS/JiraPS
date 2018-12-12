@@ -44,9 +44,10 @@ For more information on this parameter, see the [custom_fields](https://atlassia
 
 You can set labels on an issue using `Set-JiraIssue`'s `-Label` parameter.
 Using this function will overwrite any existing labels on the issue.
+`-SkipNotification` parameter tells JIRA to not update users abouth the change. Default behaviour is always send notifications.
 
 ```powershell
-Get-JiraIssue TEST-1 | Set-JiraIssue -Label 'Funny','Testing'
+Get-JiraIssue TEST-1 | Set-JiraIssue -Label 'Funny','Testing' -SkipNotification
 ```
 
 For better control over labels, use `Set-JiraIssueLabel`.

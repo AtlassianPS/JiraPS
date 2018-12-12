@@ -56,7 +56,10 @@ function Set-JiraIssue {
         $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [Switch]
-        $PassThru
+        $PassThru,
+
+        [Switch]
+        $SkipNotification
     )
 
     begin {
@@ -175,14 +178,21 @@ function Set-JiraIssue {
                 }
             }
 
+            $SkipNotificationParams = @{}
+            if ($SkipNotification) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Skipping notification for watchers"
+                $SkipNotificationParams = @{notifyUsers = $false}
+            }
+
             if ( @($issueProps.update.Keys).Count -gt 0 ) {
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue fields"
 
                 $parameter = @{
-                    URI        = $issueObj.RestUrl
-                    Method     = "PUT"
-                    Body       = ConvertTo-Json -InputObject $issueProps -Depth 10
-                    Credential = $Credential
+                    URI          = $issueObj.RestUrl
+                    Method       = "PUT"
+                    Body         = ConvertTo-Json -InputObject $issueProps -Depth 10
+                    Credential   = $Credential
+                    GetParameter = $SkipNotificationParams
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue")) {
@@ -196,10 +206,11 @@ function Set-JiraIssue {
                 # you customize the "Edit Issue" screen.
 
                 $parameter = @{
-                    URI        = "{0}/assignee" -f $issueObj.RestUrl
-                    Method     = "PUT"
-                    Body       = ConvertTo-Json -InputObject $assigneeProps
-                    Credential = $Credential
+                    URI          = "{0}/assignee" -f $issueObj.RestUrl
+                    Method       = "PUT"
+                    Body         = ConvertTo-Json -InputObject $assigneeProps
+                    Credential   = $Credential
+                    GetParameter = $SkipNotificationParams
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue [Assignee] from JIRA")) {
