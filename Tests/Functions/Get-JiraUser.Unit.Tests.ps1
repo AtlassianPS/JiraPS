@@ -144,7 +144,7 @@ Describe "Get-JiraUser" -Tag 'Unit' {
 
             $getResult | Should Not BeNullOrEmpty
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user/search?*username=$testUsername*"} {
+            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user/search?*username=$testUsername*"}
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
         }
 
