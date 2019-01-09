@@ -27,7 +27,9 @@ function Get-JiraUser {
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
+
+        [Switch]$Exact
     )
 
     begin {
@@ -37,6 +39,7 @@ function Get-JiraUser {
 
         $selfResourceUri = "$server/rest/api/latest/myself"
         $searchResourceUri = "$server/rest/api/latest/user/search?username={0}"
+        $exactResourceUri = "$server/rest/api/latest/user?username={0}"
 
         if ($IncludeInactive) {
             $searchResourceUri += "&includeInactive=true"
@@ -80,7 +83,7 @@ function Get-JiraUser {
                 $PsCmdlet.ParameterSetName = "ByUserName"
             }
             "ByUserName" {
-                $resourceURi = $searchResourceUri
+                $resourceURi = if ($Exact) { $exactResourceUri } else { $searchResourceUri }
 
                 foreach ($user in $UserName) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"
