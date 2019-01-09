@@ -24,7 +24,7 @@ Get-JiraUser [-Credential <PSCredential>] [<CommonParameters>]
 ### ByUserName
 
 ```powershell
-Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
 ```
 
 ### ByInputObject
@@ -45,7 +45,7 @@ This function returns information regarding a specified user from Jira.
 Get-JiraUser -UserName user1
 ```
 
-Returns information about the user user1
+Returns information about all users with username like user1
 
 ### EXAMPLE 2
 
@@ -62,6 +62,14 @@ Get-JiraUser -Credential $cred
 ```
 
 This example returns the JIRA user that is executing the command.
+
+### EXAMPLE 4
+
+```powershell 
+Get-JiraUser -UserName user1 -Exact 
+```
+
+Returns information about user user1
 
 ## PARAMETERS
 
