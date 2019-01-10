@@ -11,6 +11,10 @@ function Get-JiraUser {
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
         [Object[]] $InputObject,
 
+        [Parameter( ParameterSetName = 'ByInputObject' )]
+        [Parameter( ParameterSetName = 'ByUserName' )]
+        [Switch]$Exact,
+
         [Switch]
         $IncludeInactive,
 
@@ -27,11 +31,7 @@ function Get-JiraUser {
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
-        [Parameter( ParameterSetName = 'ByInputObject' )]
-        [Parameter( ParameterSetName = 'ByUserName' )]
-        [Switch]$Exact
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
