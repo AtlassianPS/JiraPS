@@ -66,7 +66,7 @@ This example returns the JIRA user that is executing the command.
 ### EXAMPLE 4
 
 ```powershell 
-Get-JiraUser -UserName user1 -Exact 
+Get-JiraUser -UserName user1 -Exact
 ```
 
 Returns information about user user1
@@ -100,6 +100,22 @@ Aliases:
 
 Required: True
 Position: 1
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Exact
+
+Limits the search to users where the username is exactly the term searched for.
+
+```yaml
+Type: Switch
+Parameter Sets: ByUserName, ByInputObject
+Aliases:
+
+Required: False
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -173,20 +189,6 @@ Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: ByUserName,ByInputObject
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-
 
 ### CommonParameters
 
