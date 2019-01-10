@@ -30,7 +30,7 @@ Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] 
 ### ByInputObject
 
 ```powershell
-Get-JiraUser [-InputObject] <Object[]> [-IncludeInactive] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraUser [-InputObject] <Object[]> [-IncludeInactive] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
