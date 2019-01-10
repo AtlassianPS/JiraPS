@@ -29,7 +29,8 @@ function Get-JiraUser {
         [System.Management.Automation.Credential()]
         $Credential = [System.Management.Automation.PSCredential]::Empty,
 
-        [Parameter()]
+        [Parameter( ParameterSetName = 'ByInputObject' )]
+        [Parameter( ParameterSetName = 'ByUserName' )]
         [Switch]$Exact
     )
 
