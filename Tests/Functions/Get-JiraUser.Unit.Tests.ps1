@@ -149,7 +149,7 @@ Describe "Get-JiraUser" -Tag 'Unit' {
         }
 
         It "Gets information about a provided Jira exact user" {
-            $getResult = Get-JiraUser -UserName $testUsername
+            $getResult = Get-JiraUser -UserName $testUsername -Exact
 
             $getResult | Should Not BeNullOrEmpty
 
