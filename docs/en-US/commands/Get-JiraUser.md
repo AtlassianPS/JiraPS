@@ -24,13 +24,13 @@ Get-JiraUser [-Credential <PSCredential>] [<CommonParameters>]
 ### ByUserName
 
 ```powershell
-Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
-Get-JiraUser [-InputObject] <Object[]> [-IncludeInactive] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraUser [-InputObject] <Object[]> [-IncludeInactive] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -45,7 +45,7 @@ This function returns information regarding a specified user from Jira.
 Get-JiraUser -UserName user1
 ```
 
-Returns information about the user user1
+Returns information about all users with username like user1
 
 ### EXAMPLE 2
 
@@ -62,6 +62,14 @@ Get-JiraUser -Credential $cred
 ```
 
 This example returns the JIRA user that is executing the command.
+
+### EXAMPLE 4
+
+```powershell 
+Get-JiraUser -UserName user1 -Exact
+```
+
+Returns information about user user1
 
 ## PARAMETERS
 
@@ -92,6 +100,22 @@ Aliases:
 
 Required: True
 Position: 1
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Exact
+
+Limits the search to users where the username is exactly the term searched for.
+
+```yaml
+Type: Switch
+Parameter Sets: ByUserName, ByInputObject
+Aliases:
+
+Required: False
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
