@@ -11,6 +11,10 @@ function Get-JiraUser {
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
         [Object[]] $InputObject,
 
+        [Parameter( ParameterSetName = 'ByInputObject' )]
+        [Parameter( ParameterSetName = 'ByUserName' )]
+        [Switch]$Exact,
+
         [Switch]
         $IncludeInactive,
 
@@ -37,6 +41,7 @@ function Get-JiraUser {
 
         $selfResourceUri = "$server/rest/api/latest/myself"
         $searchResourceUri = "$server/rest/api/latest/user/search?username={0}"
+        $exactResourceUri = "$server/rest/api/latest/user?username={0}"
 
         if ($IncludeInactive) {
             $searchResourceUri += "&includeInactive=true"
@@ -80,7 +85,7 @@ function Get-JiraUser {
                 $PsCmdlet.ParameterSetName = "ByUserName"
             }
             "ByUserName" {
-                $resourceURi = $searchResourceUri
+                $resourceURi = if ($Exact) { $exactResourceUri } else { $searchResourceUri }
 
                 foreach ($user in $UserName) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"
