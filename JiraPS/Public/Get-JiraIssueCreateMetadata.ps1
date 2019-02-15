@@ -29,7 +29,17 @@ function Get-JiraIssueCreateMetadata {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
-        $issueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential -ErrorAction Stop
+        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {$_.Id -eq $IssueType -or $_.Name -eq $IssueType}
+
+        if ($null -eq $issueTypeObj.Id)
+        {
+            $errorMessage = @{
+                Category         = "InvalidResult"
+                CategoryActivity = "Validating parameters"
+                Message          = "No issue types were found in the project [$Project] for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
+            }
+            Write-Error @errorMessage
+        }
 
         $parameter = @{
             URI        = $resourceURi -f $projectObj.Id, $issueTypeObj.Id
