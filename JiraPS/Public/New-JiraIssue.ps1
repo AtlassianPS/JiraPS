@@ -97,7 +97,7 @@ function New-JiraIssue {
         }
         elseif ($ProjectObj.Style -eq "next-gen"){
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding reporter as next-gen projects must have reporter set."
-            $requestBody["reporter"] = @{"name" = "$((Get-JiraUser -UserName ((Get-JiraSession).UserName)).Name)"}
+            $requestBody["reporter"] = @{"name" = "$((Get-JiraUser -Credential $Credential).Name)"}
         }
 
         if ($Parent) {
