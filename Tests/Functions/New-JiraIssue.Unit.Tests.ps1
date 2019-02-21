@@ -39,6 +39,7 @@ Describe "New-JiraIssue" -Tag 'Unit' {
 
 
         $jiraServer = 'https://jira.example.com'
+        $issueTypeTest = 1
 
         Mock Get-JiraConfigServer {
             $jiraServer
@@ -56,19 +57,17 @@ Describe "New-JiraIssue" -Tag 'Unit' {
         }
 
         Mock Get-JiraProject {
+            $issueObject = [PSCustomObject] @{
+                ID   = $issueTypeTest
+                Name = 'Test Issue Type'
+            }
+            $issueObject.PSObject.TypeNames.Insert(0, 'JiraPS.IssueType')
             $object = [PSCustomObject] @{
                 'ID'  = $Project
                 'Key' = "TEST"
             }
+            Add-Member -InputObject $object -MemberType NoteProperty -Name "IssueTypes" -Value $issueObject
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
-            return $object
-        }
-
-        Mock Get-JiraIssueType {
-            $object = [PSCustomObject] @{
-                'ID' = $IssueType;
-            }
-            $object.PSObject.TypeNames.Insert(0, 'JiraPS.IssueType')
             return $object
         }
 

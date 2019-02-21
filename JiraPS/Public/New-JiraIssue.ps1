@@ -66,7 +66,17 @@ function New-JiraIssue {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop -Debug:$false
-        $IssueTypeObj = Get-JiraIssueType -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
+        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {$_.Id -eq $IssueType -or $_.Name -eq $IssueType}
+
+        if ($null -eq $issueTypeObj.Id)
+        {
+            $errorMessage = @{
+                Category         = "InvalidResult"
+                CategoryActivity = "Validating parameters"
+                Message          = "No issue types were found in the project [$Project] for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
+            }
+            Write-Error @errorMessage
+        }
 
         $requestBody = @{
             "project"   = @{"id" = $ProjectObj.Id}
@@ -84,6 +94,10 @@ function New-JiraIssue {
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
             $requestBody["reporter"] = @{"name" = "$Reporter"}
+        }
+        elseif ($ProjectObj.Style -eq "next-gen"){
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding reporter as next-gen projects must have reporter set."
+            $requestBody["reporter"] = @{"name" = "$((Get-JiraUser -Credential $Credential).Name)"}
         }
 
         if ($Parent) {

@@ -218,20 +218,17 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
         }
 
         Mock Get-JiraProject -ModuleName JiraPS {
+            $issueObject = [PSCustomObject] @{
+                ID   = 2
+                Name = 'Test Issue Type'
+            }
+            $issueObject.PSObject.TypeNames.Insert(0, 'JiraPS.IssueType')
             $object = [PSCustomObject] @{
                 ID   = 10003
                 Name = 'Test Project'
             }
+            Add-Member -InputObject $object -MemberType NoteProperty -Name "IssueTypes" -Value $issueObject
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
-            return $object
-        }
-
-        Mock Get-JiraIssueType -ModuleName JiraPS {
-            $object = [PSCustomObject] @{
-                ID   = 2
-                Name = 'Test Issue Type'
-            }
-            $object.PSObject.TypeNames.Insert(0, 'JiraPS.IssueType')
             return $object
         }
 
