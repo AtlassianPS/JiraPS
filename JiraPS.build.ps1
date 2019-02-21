@@ -256,43 +256,33 @@ task PublishToGallery {
 
 # Synopsis: push a tag with the version to the git repository
 task TagReplository GetNextVersion, Package, {
-    Assert-True (-not [String]::IsNullOrEmpty($GithubAccessToken)) "No key for the PSGallery"
-
     $releaseText = "Release version $env:NextBuildVersion"
 
     # Push a tag to the repository
     Write-Build Gray "git checkout $ENV:BHBranchName"
     cmd /c "git checkout $ENV:BHBranchName 2>&1"
 
-    Write-Build Gray "git tag -a v$env:NextBuildVersion"
-    cmd /c "git tag -a v$env:NextBuildVersion 2>&1 -m `"$releaseText`""
+    Write-Build Gray "git tag -a v$env:NextBuildVersion -m `"$releaseText`""
+    cmd /c "git tag -a v$env:NextBuildVersion -m `"$releaseText`" 2>&1"
 
     Write-Build Gray "git push origin v$env:NextBuildVersion"
     cmd /c "git push origin v$env:NextBuildVersion 2>&1"
 
-    # Publish a release on github for the tag above
-    $releaseResponse = Publish-GithubRelease -GITHUB_ACCESS_TOKEN $GithubAccessToken -ReleaseText $releaseText -NextBuildVersion $env:NextBuildVersion
-
-    # Upload the package of the version to the release
-    $packageFile = Get-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction Stop
-    $uploadURI = $releaseResponse.upload_url -replace "\{\?name,label\}", "?name=$($packageFile.Name)"
-    $null = Publish-GithubReleaseArtifact -GITHUB_ACCESS_TOKEN $GithubAccessToken -Uri $uploadURI -Path $packageFile
+    Write-Build Gray "Publish v$env:NextBuildVersion as a GitHub release"
+    $release = @{
+        AccessToken     = $GithubAccessToken
+        TagName         = "v$env:NextBuildVersion"
+        Name            = "Version $env:NextBuildVersion"
+        ReleaseText     = $releaseText
+        RepositoryOwner = "AtlassianPS"
+        Artifact        = "$env:BHBuildOutput\$env:BHProjectName.zip"
+    }
+    Publish-GithubRelease @release
 }
 
 # Synopsis: Update the version of this module that the homepage uses
 task UpdateHomepage {
     try {
-        Add-Content (Join-Path $Home ".git-credentials") "https://$GithubAccessToken:x-oauth-basic@github.com`n"
-
-        Write-Build Gray "git config --global credential.helper `"store --file ~/.git-credentials`""
-        git config --global credential.helper "store --file ~/.git-credentials"
-
-        Write-Build Gray "git config --global user.email `"support@atlassianps.org`""
-        git config --global user.email "support@atlassianps.org"
-
-        Write-Build Gray "git config --global user.name `"AtlassianPS automation`""
-        git config --global user.name "AtlassianPS automation"
-
         Write-Build Gray "git close .../AtlassianPS.github.io --recursive"
         $null = cmd /c "git clone https://github.com/AtlassianPS/AtlassianPS.github.io --recursive 2>&1"
 
