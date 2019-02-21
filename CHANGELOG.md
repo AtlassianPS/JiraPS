@@ -1,5 +1,21 @@
 # Change Log
 
+## [NEXT VERSION] - YYYY-MM-DD
+
+## [2.10] - 2019-02-21
+
+### Added
+
+- Parameter for retrieving information about a specific user with `Get-JiraUser` (#328, [@michalporeba])
+  - this implementations will be changed with the next major update in favor of #306
+
+### Changed
+
+- Fixed logic of how to retrieve components from project (#330, [@lipkau])
+- Fix usage of `New-JiraIssue` in Jira Environment with mixed classic and "next gen" projects (#337, [@nojp])
+- Fixed `Get-JiraIssueAttachmentFile` to use `Accept` header based on Mime time of attachment (#333, [@wisemoth])
+- Fixed incorrect handling of skip notifications when updating an issue (#339, [@lipkau])
+
 ## [2.9] - 2018-12-12
 
 ### Added
@@ -20,7 +36,6 @@
 - Changed CI/CD pipeline from AppVeyor to Azure DevOps (#317, [@lipkau])
 - Fixed missing properties on `Get-JiraUser` (#321, [@lipkau])
 - Fixed `-DateStarted` on `Add-JiraIssueWorklog` (#324, [@lipkau])
-
 
 ## [2.8] - 2018-06-28
 
@@ -311,7 +326,10 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
   [@LiamLeane]: https://github.com/LiamLeane
   [@lipkau]: https://github.com/lipkau
   [@lukhase]: https://github.com/lukhase
+  [@michalporeba]: https://github.com/michalporeba
+  [@nojp]: https://github.com/nojp
   [@padgers]: https://github.com/padgers
   [@ThePSAdmin]: https://github.com/ThePSAdmin
   [@tuxgoose]: https://github.com/tuxgoose
   [@WindowsAdmin92]: https://github.com/WindowsAdmin92
+  [@wisemoth]: https://github.com/wisemoth

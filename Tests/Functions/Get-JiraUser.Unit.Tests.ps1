@@ -108,6 +108,12 @@ Describe "Get-JiraUser" -Tag 'Unit' {
             ConvertFrom-Json -InputObject $restResult
         }
 
+        # Get exact user
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername"} {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            ConvertFrom-Json -InputObject $restResult
+        }
+
         # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
@@ -138,6 +144,16 @@ Describe "Get-JiraUser" -Tag 'Unit' {
 
             $getResult | Should Not BeNullOrEmpty
 
+            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user/search?*username=$testUsername*"}
+            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
+        }
+
+        It "Gets information about a provided Jira exact user" {
+            $getResult = Get-JiraUser -UserName $testUsername -Exact
+
+            $getResult | Should Not BeNullOrEmpty
+
+            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername"}
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
         }
 

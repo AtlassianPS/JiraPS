@@ -20,6 +20,7 @@ function ConvertTo-JiraProject {
                 'Roles'       = $i.roles
                 'RestUrl'     = $i.self
                 'Components'  = $i.components
+                'Style'       = $i.style
             }
 
             if ($i.projectCategory) {

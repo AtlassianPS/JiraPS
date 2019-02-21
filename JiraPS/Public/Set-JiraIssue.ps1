@@ -96,7 +96,7 @@ function Set-JiraIssue {
                 $validAssignee = $true
             }
             else {
-                if ($assigneeObj = Get-JiraUser -UserName $Assignee -Credential $Credential) {
+                if ($assigneeObj = Get-JiraUser -UserName $Assignee -Credential $Credential -Exact) {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                     $assigneeString = $assigneeObj.Name
                     $validAssignee = $true
@@ -181,7 +181,7 @@ function Set-JiraIssue {
             $SkipNotificationParams = @{}
             if ($SkipNotification) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Skipping notification for watchers"
-                $SkipNotificationParams = @{notifyUsers = $false}
+                $SkipNotificationParams = @{notifyUsers = "false"}
             }
 
             if ( @($issueProps.update.Keys).Count -gt 0 ) {
