@@ -122,7 +122,6 @@ Describe "Get-JiraIssueAttachmentFile" -Tag 'Unit' {
         }
 
         It 'uses Invoke-JiraMethod for saving to disk' {
-            $script:ShowMockData = $true
             Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile
             Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile -Path "../"
 
