@@ -181,7 +181,7 @@ function Set-JiraIssue {
             $SkipNotificationParams = @{}
             if ($SkipNotification) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Skipping notification for watchers"
-                $SkipNotificationParams = @{notifyUsers = $false}
+                $SkipNotificationParams = @{notifyUsers = "false"}
             }
 
             if ( @($issueProps.update.Keys).Count -gt 0 ) {
