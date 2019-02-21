@@ -1,3 +1,5 @@
+#requires -Modules @{ModuleName='PowerShellGet';ModuleVersion='1.6.0'}
+
 [CmdletBinding()]
 param()
 
@@ -45,224 +47,23 @@ function Add-ToModulePath ([String]$Path) {
     }
 }
 
-function Install-PSDepend {
-    if (-not (Get-Module PSDepend -ListAvailable)) {
-        if (Get-Module PowershellGet -ListAvailable) {
-            Install-Module PSDepend -Scope CurrentUser -ErrorAction Stop -Verbose
-        }
-        else {
-            throw "The PowershellGet module is not available."
-        }
-    }
-}
-
-function Get-AppVeyorBuild {
-    param()
-
-    Assert-True { $env:APPVEYOR_API_TOKEN } "missing api token for AppVeyor."
-    Assert-True { $env:APPVEYOR_ACCOUNT_NAME } "not an appveyor build."
-
-    $invokeRestMethodSplat = @{
-        Uri     = "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG"
-        Method  = 'GET'
-        Headers = @{
-            "Authorization" = "Bearer $env:APPVEYOR_API_TOKEN"
-            "Content-type"  = "application/json"
-        }
-    }
-    Invoke-RestMethod @invokeRestMethodSplat
-}
-
-function Get-TravisBuild {
-    param()
-
-    Assert-True { $env:TRAVIS_API_TOKEN } "missing api token for Travis-CI."
-    Assert-True { $env:APPVEYOR_ACCOUNT_NAME } "not an appveyor build."
-
-    $invokeRestMethodSplat = @{
-        Uri     = "https://api.travis-ci.org/builds?limit=10"
-        Method  = 'Get'
-        Headers = @{
-            "Authorization"      = "token $env:TRAVIS_API_TOKEN"
-            "Travis-API-Version" = "3"
-        }
-    }
-    Invoke-RestMethod @invokeRestMethodSplat
-}
-
-function Test-IsLastJob {
-    param()
-
-    if (-not ('AppVeyor' -eq $env:BHBuildSystem)) {
-        return $true
-    }
-    Assert-True { $env:APPVEYOR_JOB_ID } "Invalid Job identifier"
-
-    $buildData = Get-AppVeyorBuild
-    $lastJob = ($buildData.build.jobs | Select-Object -Last 1).jobId
-
-    if ($lastJob -eq $env:APPVEYOR_JOB_ID) {
-        return $true
-    }
-    else {
-        return $false
-    }
-}
-
-function Test-ShouldDeploy {
-    if (-not ($env:ShouldDeploy -eq $true)) {
-        return $false
-    }
-    # only deploy master branch
-    if (-not ('master' -eq $env:BHBranchName)) {
-        return $false
-    }
-    # it cannot be a PR
-    if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {
-        return $false
-    }
-    # only deploy from AppVeyor
-    if (-not ($env:APPVEYOR_JOB_ID)) {
-        return $false
-    }
-    # must be last job of AppVeyor
-    if (-not (Test-IsLastJob)) {
-        return $false
-    }
-    # Travis-CI must be finished (if used)
-    # TODO: (Test-TravisProgress) -and
-    # it cannot have a commit message that contains "skip-deploy"
-    if ($env:BHCommitMessage -like '*skip-deploy*') {
-        return $false
-    }
-
-    return $true
-}
-
-function Publish-GithubRelease {
+function Install-Dependency {
+    [CmdletBinding()]
     param(
-        [Parameter( Mandatory )]
-        [ValidateNotNullOrEmpty()]
-        [String]$GITHUB_ACCESS_TOKEN,
-        [String]$ProjectOwner = "AtlassianPS",
-        [String]$ReleaseText,
-        [Object]$NextBuildVersion
+        [ValidateSet("CurrentUser", "AllUsers")]
+        $Scope = "CurrentUser"
     )
 
-    Assert-True { $env:BHProjectName } "Missing AppVeyor's Repo Name"
-
-    $body = @{
-        "tag_name"         = "v$NextBuildVersion"
-        "target_commitish" = "master"
-        "name"             = "v$NextBuildVersion"
-        "body"             = $ReleaseText
-        "draft"            = $false
-        "prerelease"       = $false
-    } | ConvertTo-Json
-
-    $releaseParams = @{
-        Uri         = "https://api.github.com/repos/{0}/{1}/releases" -f $ProjectOwner, $env:BHProjectName
-        Method      = 'POST'
-        Headers     = @{
-            Authorization = 'Basic ' + [Convert]::ToBase64String(
-                [Text.Encoding]::ASCII.GetBytes($GITHUB_ACCESS_TOKEN + ":x-oauth-basic")
-            )
-        }
-        ContentType = 'application/json'
-        Body        = $body
-        ErrorAction = "Stop"
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$RequiredModules = Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName "build.requirements.psd1"
+    $Policy = (Get-PSRepository PSGallery).InstallationPolicy
+    try {
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        $RequiredModules | Install-Module -Scope $Scope -Repository PSGallery -SkipPublisherCheck -AllowClobber -Verbose
+    } finally {
+        Set-PSRepository PSGallery -InstallationPolicy $Policy
     }
-    Invoke-RestMethod @releaseParams
+    $RequiredModules | Import-Module
 }
-
-function Publish-GithubReleaseArtifact {
-    param(
-        [Parameter( Mandatory )]
-        [ValidateNotNullOrEmpty()]
-        [String]$GITHUB_ACCESS_TOKEN,
-        [Uri]$Uri,
-        [String]$Path
-    )
-
-    $body = [System.IO.File]::ReadAllBytes($Path)
-    $assetParams = @{
-        Uri         = $Uri
-        Method      = 'POST'
-        Headers     = @{
-            Authorization = 'Basic ' + [Convert]::ToBase64String(
-                [Text.Encoding]::ASCII.GetBytes($GITHUB_ACCESS_TOKEN + ":x-oauth-basic")
-            )
-        }
-        ContentType = "application/zip"
-        Body        = $body
-    }
-    Invoke-RestMethod @assetParams
-}
-
-function Set-AppVeyorBuildNumber {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
-    param()
-
-    Assert-True { $env:APPVEYOR_REPO_NAME } "Is not an AppVeyor Job"
-    Assert-True { $env:APPVEYOR_API_TOKEN } "Is missing AppVeyor's API token"
-
-    $separator = "-"
-    $headers = @{
-        "Authorization" = "Bearer $env:APPVEYOR_API_TOKEN"
-        "Content-type"  = "application/json"
-    }
-    $apiURL = "https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG"
-    $history = Invoke-RestMethod -Uri "$apiURL/history?recordsNumber=2" -Headers $headers  -Method Get
-    if ($history.builds.Count -eq 2) {
-        $s = Invoke-RestMethod -Uri "$apiURL/settings" -Headers $headers  -Method Get
-        $s.settings.nextBuildNumber = ($s.settings.nextBuildNumber - 1)
-        Invoke-RestMethod -Uri 'https://ci.appveyor.com/api/projects' -Headers $headers  -Body ($s.settings | ConvertTo-Json -Depth 10) -Method Put
-        $previousVersion = $history.builds[1].version
-        if ($previousVersion.IndexOf("$separator") -ne "-1") {$previousVersion = $previousVersion.SubString(0, $previousVersion.IndexOf("$separator"))}
-        Update-AppveyorBuild -Version $previousVersion$separator$((New-Guid).ToString().SubString(0,8))
-    }
-}
-
-#region Old
-# function allJobsFinished {
-#     param()
-
-#     if (-not ('AppVeyor' -eq $env:BHBuildSystem)) {
-#         return $true
-#     }
-#     if (-not ($env:APPVEYOR_API_TOKEN)) {
-#         Write-Warning "Missing `$env:APPVEYOR_API_TOKEN"
-#         return $true
-#     }
-#     if (-not ($env:APPVEYOR_ACCOUNT_NAME)) {
-#         Write-Warning "Missing `$env:APPVEYOR_ACCOUNT_NAME"
-#         return $true
-#     }
-
-#     Test-IsLastJob
-
-#     Write-Host "[IDLE] :: waiting for other jobs to complete"
-
-#     [datetime]$stop = ([datetime]::Now).AddMinutes($env:TimeOutMins)
-
-#     do {
-#         $project = Get-AppVeyorBuild
-#         $continue = @()
-#         $project.build.jobs | Where-Object {$_.jobId -ne $env:APPVEYOR_JOB_ID} | Foreach-Object {
-#             $job = $_
-#             switch -regex ($job.status) {
-#                 "failed" { throw "AppVeyor's Job ($($job.jobId)) failed." }
-#                 "(running|success)" { $continue += $true; continue }
-#                 Default { $continue += $false; Write-Host "new state: $_.status" }
-#             }
-#         }
-#         if ($false -notin $continue) { return $true }
-#         Start-sleep 5
-#     } while (([datetime]::Now) -lt $stop)
-
-#     throw "Test jobs were not finished in $env:TimeOutMins minutes"
-# }
-#endregion Old
 
 function Get-FileEncoding {
     <#

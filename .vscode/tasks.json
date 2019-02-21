@@ -37,12 +37,6 @@
     },
     "tasks": [
         {
-            "label": "SetUp",
-            "type": "shell",
-            "command": "Invoke-Build -Task SetUp",
-            "problemMatcher": []
-        },
-        {
             "label": "Clean",
             "type": "shell",
             "command": "Invoke-Build -Task Clean",

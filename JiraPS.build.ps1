@@ -39,24 +39,6 @@ if ($BuildTask -notin @("SetUp", "InstallDependencies")) {
 # Synopsis: Proxy task
 task Init { Invoke-Init }
 
-# Synopsis: Create an initial environment for developing on the module
-task SetUp InstallDependencies, Build
-
-# Synopsis: Install all module used for the development of this module
-task InstallDependencies {
-    Install-PSDepend
-    Import-Module PSDepend -Force
-    $parameterPSDepend = @{
-        Path        = "$PSScriptRoot/Tools/build.requirements.psd1"
-        Install     = $true
-        Import      = $false
-        Force       = $true
-        ErrorAction = "Stop"
-    }
-    $null = Invoke-PSDepend @parameterPSDepend
-    Import-Module BuildHelpers -Force
-}
-
 # Synopsis: Get the next version for the build
 task GetNextVersion {
     $manifestVersion = [Version](Get-Metadata -Path $env:BHPSModuleManifest)
