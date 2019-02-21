@@ -16,10 +16,12 @@ if (-not ($gallery.Trusted)) {
     Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted -ErrorAction SilentlyContinue
 }
 
-Write-Host "Installing PSDepend"
-Install-Module PSDepend -Scope CurrentUser -Force
-Write-Host "Installing InvokeBuild"
-Install-Module InvokeBuild -Scope CurrentUser -Force
+# Update PowerShellGet if needed
+if ((Get-Module PowershellGet -ListAvailable)[0].Version -lt [version]"1.6.0") {
+    Write-Host "Updating PowershellGet"
+    Install-Module PowershellGet -Scope CurrentUser -Force
+}
 
 Write-Host "Installing Dependencies"
-Invoke-Build -Task InstallDependencies
+Import-Module "$PSScriptRoot/BuildTools.psm1" -Force
+Install-Dependency
