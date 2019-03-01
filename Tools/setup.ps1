@@ -10,12 +10,6 @@ if (-not ($gallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyConti
     $null = Install-PackageProvider -Name NuGet -Force -ErrorAction SilentlyContinue
 }
 
-# Make PSGallery trusted, to aviod a confirmation in the console
-if (-not ($gallery.Trusted)) {
-    Write-Host "Trusting PSGallery"
-    Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted -ErrorAction SilentlyContinue
-}
-
 # Update PowerShellGet if needed
 if ((Get-Module PowershellGet -ListAvailable)[0].Version -lt [version]"1.6.0") {
     Write-Host "Updating PowershellGet"
