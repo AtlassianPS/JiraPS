@@ -17,7 +17,7 @@ Performs an issue transition on a JIRA issue changing it's status
 
 ```powershell
 Invoke-JiraIssueTransition [-Issue] <Object> [-Transition] <Object> [[-Fields] <PSCustomObject>]
- [[-Assignee] <Object>] [[-Comment] <String>] [[-Credential] <PSCredential>] [-Passthru] [<CommonParameters>]
+ [[-Assignee] <Object>] [[-Comment] <String>] [[-TimeSpent] <String>] [[-Credential] <PSCredential>] [-Passthru] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -48,11 +48,11 @@ Invokes transition ID 11 on issue TEST-01.
 ### EXAMPLE 2
 
 ```powershell
-Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition comment'
+Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition comment' -TimeSpent "15m"
 ```
 
-Invokes transition ID 11 on issue TEST-01 with a comment.
-Requires the comment field to be configured visible for transition.
+Invokes transition ID 11 on issue TEST-01 with a comment and time spent of 15m (can be any jira supported suffix, like 'h' for hours e.g.)
+Requires the comment field to be configured visible for transition and time tracking enabled in JIRA preferences. 
 
 ### EXAMPLE 3
 

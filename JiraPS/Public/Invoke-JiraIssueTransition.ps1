@@ -41,6 +41,9 @@ function Invoke-JiraIssueTransition {
         [String]
         $Comment,
 
+        [String]
+        $TimeSpent,
+
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
@@ -174,7 +177,17 @@ function Invoke-JiraIssueTransition {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding comment"
             $requestBody.update.comment += , @{
                 'add' = @{
-                    'body' = $Comment
+                    'body' = $Comment                    
+                }
+            }
+        }
+
+        if($TimeSpent){
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding time spent"
+            $requestBody.update.worklog += , @{
+                'add' = @{
+                    'timeSpent' = $TimeSpent                    
+                    'started' = (Get-Date -Format O)  # Round-trip date/time pattern '2019-03-18T17:59:38.0788189+03:00'
                 }
             }
         }
