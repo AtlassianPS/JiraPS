@@ -41,6 +41,9 @@ function Invoke-JiraIssueTransition {
         [String]
         $Comment,
 
+        [String]
+        $TimeSpent,
+
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
@@ -175,6 +178,16 @@ function Invoke-JiraIssueTransition {
             $requestBody.update.comment += , @{
                 'add' = @{
                     'body' = $Comment
+                }
+            }
+        }
+
+        if ($TimeSpent) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding time spent"
+            $requestBody.update.worklog += , @{
+                'add' = @{
+                    'timeSpent' = $TimeSpent
+                    'started' = (Get-Date -f "yyyy-MM-ddThh:mm:ss.fffzz00") #should be ISO 8601: YYYY-MM-DDThh:mm:ss.sTZD, format -o not working, cause zzz contains semicolon
                 }
             }
         }
