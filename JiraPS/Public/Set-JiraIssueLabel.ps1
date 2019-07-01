@@ -69,7 +69,7 @@
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
-            $labels = [System.Collections.ArrayList]@($issueObj.labels)
+            $labels = [System.Collections.ArrayList]@($issueObj.labels | Where-Object {$_})
 
             # As of JIRA 6.4, the Add and Remove verbs in the REST API for
             # updating issues do not support arrays of parameters - you
@@ -114,7 +114,7 @@
             $parameter = @{
                 URI        = $issueObj.RestURL
                 Method     = "PUT"
-                Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
+                Body       = ConvertTo-Json -InputObject $requestBody -Depth 6
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
