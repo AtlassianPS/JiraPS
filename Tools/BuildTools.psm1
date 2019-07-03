@@ -65,7 +65,7 @@ function Install-Dependency {
     $Policy = (Get-PSRepository PSGallery).InstallationPolicy
     try {
         Set-PSRepository PSGallery -InstallationPolicy Trusted
-        $RequiredModules | Install-Module -Scope $Scope -Repository PSGallery -SkipPublisherCheck -AllowClobber -Verbose
+        $RequiredModules | Install-Module -Scope $Scope -Repository PSGallery -SkipPublisherCheck -AllowClobber
     } finally {
         Set-PSRepository PSGallery -InstallationPolicy $Policy
     }
