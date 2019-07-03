@@ -2,6 +2,17 @@
 
 ## [NEXT VERSION] - YYYY-MM-DD
 
+## [2.11] - 2019-07-02
+
+### Added
+
+- Unit test for synopsis in cmdlet documentation (#344, [@alexsuslin])
+
+### Changed
+
+- `Invoke-JiraIssueTransition` to find username with exact match (#351, [@mirrorgleam])
+- Fixed `-Add <String>` parameter for `Set-JiraIssueLabel` on issues without labels (#358, [@lipkau])
+
 ## [2.10] - 2019-02-21
 
 ### Added
@@ -327,6 +338,7 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
   [@lipkau]: https://github.com/lipkau
   [@lukhase]: https://github.com/lukhase
   [@michalporeba]: https://github.com/michalporeba
+  [@mirrorgleam]: https://github.com/mirrorgleam
   [@nojp]: https://github.com/nojp
   [@padgers]: https://github.com/padgers
   [@ThePSAdmin]: https://github.com/ThePSAdmin

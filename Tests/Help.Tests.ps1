@@ -109,6 +109,12 @@ Describe "Help tests" -Tag Documentation {
                 $help.Synopsis | Should -Not -BeNullOrEmpty
             }
 
+            # Should be a syntax for every function
+            It "has a syntax" {
+                # syntax is starting with a small case as all the standard powershell commands have syntax with lower case, see (Get-Help Get-ChildItem) | gm
+                $help.syntax | Should -Not -BeNullOrEmpty
+            }
+
             # Should be a description for every function
             It "has a description" {
                 $help.Description.Text -join '' | Should -Not -BeNullOrEmpty
