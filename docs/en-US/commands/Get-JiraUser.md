@@ -71,6 +71,14 @@ Get-JiraUser -UserName user1 -Exact
 
 Returns information about user user1
 
+### EXAMPLE 5
+
+```powershell
+Get-JiraUser -UserName ""
+```
+
+Returns information about all users. The empty string "" matches all users.
+
 ## PARAMETERS
 
 ### -UserName
