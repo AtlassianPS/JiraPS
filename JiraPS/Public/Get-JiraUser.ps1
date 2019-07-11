@@ -3,7 +3,7 @@ function Get-JiraUser {
     [CmdletBinding( DefaultParameterSetName = 'Self' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByUserName' )]
-        [ValidateNotNullOrEmpty()]
+        [AllowEmptyString()]
         [Alias('User', 'Name')]
         [String[]]
         $UserName,
