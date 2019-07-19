@@ -268,3 +268,5 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 [Set-JiraVersion](../Set-JiraVersion/)
 
 [Get-JiraProject](../Get-JiraProject/)
+
+[Move-JiraVersion](../Move-JiraVersion/)
