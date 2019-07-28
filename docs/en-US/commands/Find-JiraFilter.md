@@ -60,25 +60,24 @@ Find-JiraFilter -ProjectId 10315 -First 8
 ```
 This example finds all JIRA filters belonging to a specific project.
 
-Use Get-JiraProject to retrieve a numeric Project
-This example illustrates how to get an update of an issue from an old result of `Find-JiraFilter` stored in $oldIssue.
+Use Get-JiraProject to retrieve a numeric ProjectId.
 
-### Example 7
+### Example 5
 
 ```powershell
 Find-JiraFilter -Name """George Jetsons Filter""" -Fields 'description','jql'
 ```
 
-This example finds the JIRA filter named "George Jetsons Filter" but only the properties listed.
+This example finds the JIRA filter named "George Jetsons Filter" but only expands the fields listed.
 
 By retrieving only the data really needed, the payload the server sends is
-reduced, which speeds up the query.
+reduced, which speeds up the search.
 
 ## PARAMETERS
 
 ### -Name
 
-String used to perform a case-insensitive partial match with name.
+String used to perform a case-insensitive partial match with name.  An exact match can be requested by including quotes (refer to the examples above).
 
 ```yaml
 Type: String
