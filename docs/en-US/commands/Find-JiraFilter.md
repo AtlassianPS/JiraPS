@@ -18,7 +18,7 @@ Find JIRA filter(s).
 ### ByInputObject
 
 ```powershell
-Find-JiraFilter [[-Name] <string>] [[-AccountId] <string>] [[-GroupName] <string>] [[-ProjectId] <uint32>] [[-Fields] {description | favourite | favouritedCount | jql | owner |
+Find-JiraFilter [[-Name] <string[]>] [[-AccountId] <string>] [[-GroupName] <string>] [[-Project] <Object>] [[-Fields] {description | favourite | favouritedCount | jql | owner |
     searchUrl | sharePermissions | subscriptions | viewUrl}] [[-Sort] <string>] [[-Credential] <pscredential>] [-IncludeTotalCount] [-Skip <uint64>] [-First <uint64>]
     [<CommonParameters>]
 ```
@@ -32,7 +32,7 @@ Searches for filters. This operation is similar to Get filters except that the r
 ### EXAMPLE 1
 
 ```powershell
-Find-JiraFilter -Name "ABC"
+Find-JiraFilter -Name 'ABC'
 ```
 
 This example finds all JIRA filters that include ABC in the name.  The search is case insensitive.
@@ -48,21 +48,37 @@ This example finds a JIRA filter by exact name (case insensitive)
 ### EXAMPLE 3
 
 ```powershell
+'My','Your' | Find-JiraFilter
+```
+
+This example demonstrates use of the pipeline to search for multiple filter Name(s).  The search is case insensitive.
+
+### EXAMPLE 4
+
+```powershell
+Find-JiraFilter -Name 'My','Your'
+```
+
+This example demonstrates the use of a list of names to search for multiple filter Name(s).  The search is case insensitive.
+
+### EXAMPLE 5
+
+```powershell
 Find-JiraFilter -AccountId 'owner' -First 3 -Skip 3
 ```
 
 This example finds all JIRA filters belonging to a specific owner, and illustrates the use of the -First and -Skip Paging parameters.
 
-### EXAMPLE 4
+### EXAMPLE 6
 
 ```powershell
-Find-JiraFilter -ProjectId 10315 -First 8
+Find-JiraFilter -Project 10315 -First 8
 ```
 This example finds all JIRA filters belonging to a specific project.
 
-Use Get-JiraProject to retrieve a numeric ProjectId.
+Use Get-JiraProject to retrieve a numeric Project.
 
-### Example 5
+### Example 7
 
 ```powershell
 Find-JiraFilter -Name """George Jetsons Filter""" -Fields 'description','jql'
@@ -80,14 +96,14 @@ reduced, which speeds up the search.
 String used to perform a case-insensitive partial match with name.  An exact match can be requested by including quotes (refer to the examples above).
 
 ```yaml
-Type: String
+Type: String[]
 Parameter Sets: (All)
 Aliases:
 
 Required: False
 Position: 0
 Default value: None
-Accept pipeline input: False
+Accept pipeline input: True (ByPropertyName, ByValue)
 Accept wildcard characters: False
 ```
 
@@ -103,7 +119,7 @@ Aliases:
 Required: False
 Position: 1
 Default value: None
-Accept pipeline input: False
+Accept pipeline input: True (ByPropertyName)
 Accept wildcard characters: False
 ```
 
@@ -119,23 +135,23 @@ Aliases:
 Required: False
 Position: 2
 Default value: None
-Accept pipeline input: False
+Accept pipeline input: True (ByPropertyName)
 Accept wildcard characters: False
 ```
 
-### -ProjectId
+### -Project
 
-Project ID used to return filters that are shared with a project that matches sharePermissions.project.id.
+Project object, key, or id used to return filters that are shared with a project that matches sharePermissions.project.id.
 
 ```yaml
-Type: UInt32
+Type: Object
 Parameter Sets: (All)
 Aliases:
 
 Required: False
 Position: 3
 Default value: None
-Accept pipeline input: False
+Accept pipeline input: True (ByPropertyName)
 Accept wildcard characters: False
 ```
 
