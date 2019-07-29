@@ -58,7 +58,8 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
             "JQL": "id in (TEST-001, TEST-002, TEST-003)",
             "SharePermission": {
                 "project": {
-                    "id": 1
+                    "id": 1,
+                    "key": 'ABC'
                 }
             },
             "Owner": {
@@ -78,6 +79,14 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
         #region Mocks
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             $jiraServer
+        }
+
+        Mock Get-JiraProject -ModuleName JiraPS {
+            ShowMockInfo 'Get-JiraProject' 'Project'
+            [PSCustomObject]@{
+                Id = '1'
+                Key = 'ABC'
+            }
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
@@ -100,7 +109,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
             defParam $command 'Name'
             defParam $command 'AccountId'
             defParam $command 'GroupName'
-            defParam $command 'ProjectId'
+            defParam $command 'Project'
             defParam $command 'Fields'
             defParam $command 'Sort'
             defParam $command 'Credential'
@@ -161,8 +170,8 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                 Assert-MockCalled @assertMockCalledSplat
             }
 
-            It 'Uses projectId to find JIRA filters if the -ProjectId parameter is used' {
-                { Find-JiraFilter -Name 'Test Filter' -ProjectId 1 } | Should -Not -Throw
+            It 'Uses projectId to find JIRA filters if a -Project id  parameter is used' {
+                { Find-JiraFilter -Name 'Test Filter' -Project 1 } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -170,7 +179,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ParameterFilter = {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
-                        $GetParameter['projectId'] -eq 1
+                        $GetParameter['projectId'] -eq '1'
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -222,6 +231,53 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
                         $GetParameter['expand'] -eq 'description'
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
+        }
+
+        Context 'Input testing' {
+            It 'Accepts a project key for the -Project parameter' {
+                { Find-JiraFilter -Project ABC } | Should -Not -Throw
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Method -eq 'Get' -and
+                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $GetParameter['projectId'] -eq '1'
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat
+            }
+
+            It 'Accepts AccountId, GroupName, and Project parameter values from pipeline by property name' {
+                $searchObject = [PSCustomObject]@{
+                    AccountId = $owner
+                    GroupName = $group
+                    Project = 'ABC'
+                }
+
+                # Should call Find-JiraFilter using the -Key parameter, so our URL should reflect the key we provided
+                { $searchObject | Find-JiraFilter } | Should -Not -Throw
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Method -eq 'Get' -and
+                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $GetParameter['accountId'] -eq $ownerEscaped -and
+                        $GetParameter['groupName'] -eq $groupEscaped -and
+                        $GetParameter['projectId'] -eq '1'
                     }
                     Scope           = 'It'
                     Exactly         = $true

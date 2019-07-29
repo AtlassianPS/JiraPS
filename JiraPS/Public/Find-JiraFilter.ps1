@@ -2,13 +2,17 @@ function Find-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging )]
     param(
-        [string]$Name,
+        [Parameter(ValueFromPipeline,ValueFromPipelineByPropertyName)]
+        [string[]]$Name,
 
+        [Parameter(ValueFromPipelineByPropertyName)]
         [string]$AccountId,
 
+        [Parameter(ValueFromPipelineByPropertyName)]
         [string]$GroupName,
 
-        [uint32]$ProjectId,
+        [Parameter(ValueFromPipelineByPropertyName)]
+        [Object]$Project,
 
         [Validateset('description','favourite','favouritedCount','jql','owner','searchUrl','sharePermissions','subscriptions','viewUrl')]
         [String[]]
@@ -43,31 +47,40 @@ function Find-JiraFilter {
             Paging       = $true
             Credential   = $Credential
         }
-        if ($Name) {
-            $parameter['GetParameter']['filterName'] = $Name
-        }
-        if ($AccountId) {
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('AccountId')) {
             $parameter['GetParameter']['accountId'] = $AccountId
         }
-        if ($GroupName) {
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('GroupName')) {
             $parameter['GetParameter']['groupName'] = $GroupName
         }
-        if ($ProjectId) {
-            $parameter['GetParameter']['projectId'] = $ProjectId
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Project')) {
+            $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
+            $parameter['GetParameter']['projectId'] = $projectObj.Id
         }
-        if ($Name) {
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Sort')) {
             $parameter['GetParameter']['orderBy'] = $Sort
         }
         # Paging
         ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
             $parameter[$_] = $PSCmdlet.PagingParameters.$_
         }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Name')) {
+            foreach($_name in $Name) {
+                $parameter['GetParameter']['filterName'] = $_name
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
 
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
 
-        $result = Invoke-JiraMethod @parameter
+                Write-Output (ConvertTo-JiraFilter -InputObject $result)
+            }
+        }
+        else {
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
 
-        Write-Output (ConvertTo-JiraFilter -InputObject $result)
+            $result = Invoke-JiraMethod @parameter
+
+            Write-Output (ConvertTo-JiraFilter -InputObject $result)
+        }
     }
 
     end {
