@@ -139,7 +139,7 @@ Accept wildcard characters: False
 User Object or user name used to return filters with the matching owner.accountId.
 
 ```yaml
-Type: Object[]
+Type: Object
 Parameter Sets: (All)
 Aliases: UserName
 
