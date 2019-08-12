@@ -15,7 +15,7 @@ Find JIRA filter(s).
 
 ## SYNTAX
 
-### ByInputObject
+### ByAccountId
 
 ```powershell
 Find-JiraFilter [[-Name] <string[]>] [[-AccountId] <string>] [[-GroupName] <string>] [[-Project] <Object>] [[-Fields] {description | favourite | favouritedCount | jql | owner |
@@ -23,9 +23,21 @@ Find-JiraFilter [[-Name] <string[]>] [[-AccountId] <string>] [[-GroupName] <stri
     [<CommonParameters>]
 ```
 
+### ByOwner
+
+```powershell
+Find-JiraFilter [[-Name] <string[]>] [-Owner] <string> [[-GroupName] <string>] [[-Project] <Object>] [[-Fields] {description | favourite | favouritedCount | jql | owner |
+    searchUrl | sharePermissions | subscriptions | viewUrl}] [[-Sort] <string>] [[-Credential] <pscredential>] [-IncludeTotalCount] [-Skip <uint64>] [-First <uint64>]
+    [<CommonParameters>]
+```
+
 ## DESCRIPTION
 
 Searches for filters. This operation is similar to Get filters except that the results can be refined to include filters that have specific attributes. For example, filters with a particular name. When multiple attributes are specified only filters matching all attributes are returned.
+
+## Disclaimer
+
+> This works with Jira Cloud only.  It does not work with non-cloud Jira Server (v8.3.1 at the time of this writing).
 
 ## EXAMPLES
 
@@ -64,7 +76,7 @@ This example demonstrates the use of a list of names to search for multiple filt
 ### EXAMPLE 5
 
 ```powershell
-Find-JiraFilter -AccountId 'owner' -First 3 -Skip 3
+Find-JiraFilter -AccountId 'c62dde3418235be1c8424950' -First 3 -Skip 3
 ```
 
 This example finds all JIRA filters belonging to a specific owner, and illustrates the use of the -First and -Skip Paging parameters.
@@ -72,11 +84,10 @@ This example finds all JIRA filters belonging to a specific owner, and illustrat
 ### EXAMPLE 6
 
 ```powershell
-Find-JiraFilter -Project 10315 -First 8
+Find-JiraFilter -Project 'TEST' -First 8
 ```
-This example finds all JIRA filters belonging to a specific project.
 
-Use Get-JiraProject to retrieve a numeric Project.
+This example finds all JIRA filters belonging to project TEST.
 
 ### Example 7
 
@@ -109,7 +120,7 @@ Accept wildcard characters: False
 
 ### -AccountId
 
-User account ID used to return filters with the matching owner.accountId.
+User AccountId used to return filters with the matching owner.accountId.
 
 ```yaml
 Type: String
@@ -117,6 +128,22 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
+Position: 1
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -Owner
+
+User Object or user name used to return filters with the matching owner.accountId.
+
+```yaml
+Type: Object[]
+Parameter Sets: (All)
+Aliases: UserName
+
+Required: True
 Position: 1
 Default value: None
 Accept pipeline input: True (ByPropertyName)
@@ -141,7 +168,7 @@ Accept wildcard characters: False
 
 ### -Project
 
-Project object, key, or id used to return filters that are shared with a project that matches sharePermissions.project.id.
+The ID or Key of the Project to search.
 
 ```yaml
 Type: Object
@@ -279,7 +306,7 @@ Accept wildcard characters: False
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216)
 
 ## INPUTS
 
@@ -295,4 +322,8 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 ## RELATED LINKS
 
+[Get-JiraFilter](../Get-JiraFilter/)
+
 [Get-JiraProject](../Get-JiraProject/)
+
+[Get-JiraUser](../Get-JiraUser/)

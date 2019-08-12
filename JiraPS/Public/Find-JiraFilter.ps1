@@ -1,18 +1,65 @@
 function Find-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsPaging )]
+    [CmdletBinding( DefaultParameterSetName='ByAccountId', SupportsPaging )]
     param(
         [Parameter(ValueFromPipeline,ValueFromPipelineByPropertyName)]
         [string[]]$Name,
 
-        [Parameter(ValueFromPipelineByPropertyName)]
+        [Parameter(ParameterSetName='ByAccountId',ValueFromPipelineByPropertyName)]
         [string]$AccountId,
+
+        [Parameter(ParameterSetName='ByOwner',ValueFromPipelineByPropertyName)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraUser'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                    $errorItem.ErrorDetails = "Wrong object type provided for Owner. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
+        [Alias('UserName')]
+        [Object]
+        $Owner,
 
         [Parameter(ValueFromPipelineByPropertyName)]
         [string]$GroupName,
 
         [Parameter(ValueFromPipelineByPropertyName)]
-        [Object]$Project,
+        [ValidateScript(
+            {
+                if (("JiraPS.Project" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraProject'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                    $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
+        [Object]
+        $Project,
 
         [Validateset('description','favourite','favouritedCount','jql','owner','searchUrl','sharePermissions','subscriptions','viewUrl')]
         [String[]]
@@ -50,6 +97,10 @@ function Find-JiraFilter {
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('AccountId')) {
             $parameter['GetParameter']['accountId'] = $AccountId
         }
+        elseif ($PSCmdlet.ParameterSetName -eq 'ByOwner') {
+            $userObj = Get-JiraUser -InputObject $Owner -Credential $Credential -ErrorAction Stop
+            $parameter['GetParameter']['accountId'] = $userObj.AccountId
+        }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('GroupName')) {
             $parameter['GetParameter']['groupName'] = $GroupName
         }
@@ -69,18 +120,15 @@ function Find-JiraFilter {
                 $parameter['GetParameter']['filterName'] = $_name
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
 
-                $result = Invoke-JiraMethod @parameter
-
-                Write-Output (ConvertTo-JiraFilter -InputObject $result)
+                Write-Output (Invoke-JiraMethod @parameter | ConvertTo-JiraFilter)
             }
         }
         else {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
 
-            $result = Invoke-JiraMethod @parameter
-
-            Write-Output (ConvertTo-JiraFilter -InputObject $result)
+            Write-Output (Invoke-JiraMethod @parameter | ConvertTo-JiraFilter)
         }
+
     }
 
     end {
