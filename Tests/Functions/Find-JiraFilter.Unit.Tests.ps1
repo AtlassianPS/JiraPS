@@ -39,8 +39,10 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
 
         $jiraServer = 'https://jira.example.com'
 
-        $owner = 'c62dde3418235be1c8424950'
-        $ownerEscaped = ConvertTo-URLEncoded $owner
+        $mockOwner = [PSCustomObject]@{
+            AccountId = 'c62dde3418235be1c8424950'
+            Name = 'TUser1'
+        }
         $group = 'groupA'
         $groupEscaped = ConvertTo-URLEncoded $group
         $response = @'
@@ -59,11 +61,11 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
             "SharePermission": {
                 "project": {
                     "id": 1,
-                    "key": 'ABC'
+                    "key": 'Test'
                 }
             },
             "Owner": {
-                "Name": "test_owner",
+                "Name": "TUser1",
                 "AccountId": "c62dde3418235be1c8424950"
             },
             "Favourite": true,
@@ -85,8 +87,13 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
             ShowMockInfo 'Get-JiraProject' 'Project'
             [PSCustomObject]@{
                 Id = '1'
-                Key = 'ABC'
+                Key = 'Test'
             }
+        }
+
+        Mock Get-JiraUser -ModuleName JiraPS {
+            ShowMockInfo 'Get-JiraUser' 'User'
+            $mockOwner
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
@@ -108,6 +115,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
 
             defParam $command 'Name'
             defParam $command 'AccountId'
+            defParam $command 'Owner'
             defParam $command 'GroupName'
             defParam $command 'Project'
             defParam $command 'Fields'
@@ -135,7 +143,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
             }
 
             It 'Uses accountId to find JIRA filters if the -AccountId parameter is used' {
-                { Find-JiraFilter -Name 'Test Filter' -AccountId $owner } | Should -Not -Throw
+                { Find-JiraFilter -Name 'Test Filter' -AccountId $mockowner.AccountId } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -143,7 +151,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ParameterFilter = {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
-                        $GetParameter['accountId'] -eq $ownerEscaped
+                        $GetParameter['accountId'] -eq $mockOwner.AccountId
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -170,8 +178,8 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                 Assert-MockCalled @assertMockCalledSplat
             }
 
-            It 'Uses projectId to find JIRA filters if a -Project id  parameter is used' {
-                { Find-JiraFilter -Name 'Test Filter' -Project 1 } | Should -Not -Throw
+            It 'Uses projectId to find JIRA filters if a -Project parameter is used' {
+                { Find-JiraFilter -Name 'Test Filter' -Project 'TEST' } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -242,7 +250,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
 
         Context 'Input testing' {
             It 'Accepts a project key for the -Project parameter' {
-                { Find-JiraFilter -Project ABC } | Should -Not -Throw
+                { Find-JiraFilter -Project 'Test' } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -261,9 +269,9 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
 
             It 'Accepts AccountId, GroupName, and Project parameter values from pipeline by property name' {
                 $searchObject = [PSCustomObject]@{
-                    AccountId = $owner
+                    AccountId = $mockowner.AccountId
                     GroupName = $group
-                    Project = 'ABC'
+                    Project = 'Test'
                 }
 
                 # Should call Find-JiraFilter using the -Key parameter, so our URL should reflect the key we provided
@@ -275,7 +283,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ParameterFilter = {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
-                        $GetParameter['accountId'] -eq $ownerEscaped -and
+                        $GetParameter['accountId'] -eq $mockowner.AccountId -and
                         $GetParameter['groupName'] -eq $groupEscaped -and
                         $GetParameter['projectId'] -eq '1'
                     }
@@ -284,6 +292,36 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     Times           = 1
                 }
                 Assert-MockCalled @assertMockCalledSplat
+            }
+
+            It 'Accepts a user object for the -Owner parameter' {
+                { Find-JiraFilter -Owner $mockowner.Name } | Should -Not -Throw
+
+                $assertMockCalledSplat1 = @{
+                    CommandName     = 'Invoke-JiraMethod'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $Method -eq 'Get' -and
+                        $URI -like '*/rest/api/*/filter/search*' #-and
+                        $GetParameter['AccountId'] -eq $mockOwner.AccountId
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat1
+
+                $assertMockCalledSplat2 = @{
+                    CommandName     = 'Get-JiraUser'
+                    ModuleName      = 'JiraPS'
+                    ParameterFilter = {
+                        $InputObject -eq $mockOwner.Name
+                    }
+                    Scope           = 'It'
+                    Exactly         = $true
+                    Times           = 1
+                }
+                Assert-MockCalled @assertMockCalledSplat2
             }
         }
     }
