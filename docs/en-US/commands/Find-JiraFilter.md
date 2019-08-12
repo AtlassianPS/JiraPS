@@ -35,7 +35,7 @@ Find-JiraFilter [[-Name] <string[]>] [-Owner] <string> [[-GroupName] <string>] [
 
 Searches for filters. This operation is similar to Get filters except that the results can be refined to include filters that have specific attributes. For example, filters with a particular name. When multiple attributes are specified only filters matching all attributes are returned.
 
-## Disclaimer
+Disclaimer
 
 > This works with Jira Cloud only.  It does not work with non-cloud Jira Server (v8.3.1 at the time of this writing).
 
