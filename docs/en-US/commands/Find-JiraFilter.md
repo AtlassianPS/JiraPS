@@ -143,7 +143,7 @@ Type: Object[]
 Parameter Sets: (All)
 Aliases: UserName
 
-Required: True
+Required: False
 Position: 1
 Default value: None
 Accept pipeline input: True (ByPropertyName)
