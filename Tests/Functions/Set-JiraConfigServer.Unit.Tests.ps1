@@ -39,37 +39,16 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
 
         $jiraServer = 'http://jiraserver.example.com'
 
-        $configFile = Join-Path -Path $TestDrive -ChildPath 'config.xml'
-        Set-JiraConfigServer -Server $jiraServer -ConfigFile $configFile
+        It "stores the server address in the module session" {
+            Set-JiraConfigServer -Server $jiraServer
 
-        It "Ensures that a config.xml file exists" {
-            $configFile | Should Exist
+            $script:JiraServerUrl | Should -Be "$jiraServer/"
         }
 
-        $xml = New-Object -TypeName Xml
-        $xml.Load($configFile)
-        $xmlServer = $xml.Config.Server
+        It "stores the server address in a config file" {
+            $script:serverConfig | Should -Exist
 
-        It "Ensures that the XML file has a Config.Server element" {
-            $xmlServer | Should Not BeNullOrEmpty
-        }
-
-        It "Sets the config file's Server value " {
-            $xmlServer | Should Be $jiraServer
-        }
-
-        It "Trims whitespace from the provided Server parameter" {
-            Set-JiraConfigServer -Server "$jiraServer " -ConfigFile $configFile
-            $xml = New-Object -TypeName Xml
-            $xml.Load($configFile)
-            $xml.Config.Server | Should Be $jiraServer
-        }
-
-        It "Trims trailing slasher from the provided Server parameter" {
-            Set-JiraConfigServer -Server "$jiraServer/" -ConfigFile $configFile
-            $xml = New-Object -TypeName Xml
-            $xml.Load($configFile)
-            $xml.Config.Server | Should Be $jiraServer
+            Get-Content $script:serverConfig | Should -Be "$jiraServer/"
         }
     }
 }
