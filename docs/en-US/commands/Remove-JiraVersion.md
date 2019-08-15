@@ -151,3 +151,5 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 [Set-JiraVersion]()
 
+[Move-JiraVersion](../Move-JiraVersion/)
+
