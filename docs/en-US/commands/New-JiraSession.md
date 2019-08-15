@@ -16,7 +16,7 @@ Creates a persistent JIRA authenticated session which can be used by other JiraP
 ## SYNTAX
 
 ```powershell
-New-JiraSession [-Credential] <PSCredential> [[-Headers] <Hashtable>] [<CommonParameters>]
+New-JiraSession [-Credential] <PSCredential> [[-ConfigFile] <String>] [[-Headers] <Hashtable>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -26,6 +26,8 @@ authenticated session in to JIRA which can be used by all other
 JiraPS functions instead of explicitly passing parameters.
 
 This removes the need to use the `-Credential` parameter constantly for each function call.
+
+Moreover you may define default configuration file for the session.
 
 You can find more information in [about_JiraPS_Authentication](../../about/authentication.html)
 

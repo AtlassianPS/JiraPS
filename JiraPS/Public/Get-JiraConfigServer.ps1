@@ -20,6 +20,11 @@ function Get-JiraConfigServer {
         # want to default to the script variable just as we would if the parameter was not
         # provided at all.
 
+        if (-not ($ConfigFile) -and $MyInvocation.MyCommand.Module.PrivateData -and $MyInvocation.MyCommand.Module.PrivateData.ConfigFile) {
+            # If ConfigFile parameter is not supplied and user call New-JiraSession, we may try to fetch ConfigFile path from the session
+            $ConfigFile = $MyInvocation.MyCommand.Module.PrivateData.ConfigFile
+        }
+
         if (-not ($ConfigFile)) {
             # This file should be in $moduleRoot/Functions/Internal, so PSScriptRoot will be $moduleRoot/Functions
             $moduleFolder = Split-Path -Path $PSScriptRoot -Parent

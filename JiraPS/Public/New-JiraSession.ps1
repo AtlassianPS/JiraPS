@@ -8,6 +8,9 @@ function New-JiraSession {
         [System.Management.Automation.Credential()]
         $Credential,
 
+        [string]
+        $ConfigFile,
+
         [Hashtable]
         $Headers = @{}
     )
@@ -15,7 +18,7 @@ function New-JiraSession {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
+        $server = Get-JiraConfigServer -ConfigFile $ConfigFile -ErrorAction Stop
 
         $resourceURi = "$server/rest/api/2/mypermissions"
     }
@@ -37,13 +40,17 @@ function New-JiraSession {
         if ($MyInvocation.MyCommand.Module.PrivateData) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding session result to existing module PrivateData"
             $MyInvocation.MyCommand.Module.PrivateData.Session = $result
+            $MyInvocation.MyCommand.Module.PrivateData.ConfigFile = $ConfigFile
         }
         else {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Creating module PrivateData"
             $MyInvocation.MyCommand.Module.PrivateData = @{
                 'Session' = $result
+                'ConfigFile' = $ConfigFile
             }
         }
+
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PrivateData: $($MyInvocation.MyCommand.Module.PrivateData | Out-String)"
 
         Write-Output $result
     }
