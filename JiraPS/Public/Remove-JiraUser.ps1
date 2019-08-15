@@ -59,7 +59,7 @@ function Remove-JiraUser {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-            $userObj = Get-JiraUser -InputObject $_user -Credential $Credential -ErrorAction Stop
+            $userObj = Resolve-JiraUser -InputObject $_user -Credential $Credential -ErrorAction Stop
 
             $parameter = @{
                 URI        = $resourceURi -f $userObj.Name
