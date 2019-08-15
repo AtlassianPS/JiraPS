@@ -7,6 +7,7 @@ schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Get-JiraConfigServer/
 ---
+
 # Get-JiraConfigServer
 
 ## SYNOPSIS
@@ -23,8 +24,6 @@ Get-JiraConfigServer [[-ConfigFile] <String>] [<CommonParameters>]
 
 This function returns the configured URL for the JIRA server that JiraPS should manipulate.
 
-By default, this is stored in a config.xml file at the module's root path.
-
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -33,33 +32,9 @@ By default, this is stored in a config.xml file at the module's root path.
 Get-JiraConfigServer
 ```
 
-Returns the server URL of the JIRA server configured in the JiraPS config file.
-
-### EXAMPLE 2
-
-```powershell
-Get-JiraConfigServer -ConfigFile C:\jiraconfig.xml
-```
-
-Returns the server URL of the JIRA server configured at C:\jiraconfig.xml.
+Returns the server URL of the JIRA server configured for the JiraPS module.
 
 ## PARAMETERS
-
-### -ConfigFile
-
-Path to the configuration file, if not the default.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
 
 ### CommonParameters
 
@@ -76,7 +51,8 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 Support for multiple configuration files is limited at this point in time, but enhancements are planned for a future update.
 
-<TODO: link to issue for tracking>
+<https://github.com/AtlassianPS/JiraPS/issues/45>
+<https://github.com/AtlassianPS/JiraPS/issues/194>
 
 ## RELATED LINKS
 
