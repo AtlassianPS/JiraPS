@@ -7,6 +7,7 @@ schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Set-JiraConfigServer/
 ---
+
 # Set-JiraConfigServer
 
 ## SYNOPSIS
@@ -16,14 +17,12 @@ Defines the configured URL for the JIRA server
 ## SYNTAX
 
 ```powershell
-Set-JiraConfigServer [-Server] <Uri> [[-ConfigFile] <String>] [<CommonParameters>]
+Set-JiraConfigServer [-Server] <Uri> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 This function defines the configured URL for the JIRA server that JiraPS should manipulate.
-
-By default, this is stored in a config.xml file at the module's root path.
 
 ## EXAMPLES
 
@@ -33,7 +32,7 @@ By default, this is stored in a config.xml file at the module's root path.
 Set-JiraConfigServer 'https://jira.example.com:8080'
 ```
 
-This example defines the server URL of the JIRA server configured in the JiraPS config file.
+This example defines the server URL of the JIRA server configured for the JiraPS module.
 
 ## PARAMETERS
 
@@ -48,24 +47,6 @@ Aliases: Uri
 
 Required: True
 Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ConfigFile
-
-Path where the file with the configuration will be stored.
-
-> This parameter is not yet implemented
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
