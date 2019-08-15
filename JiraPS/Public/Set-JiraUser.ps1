@@ -84,7 +84,7 @@ function Set-JiraUser {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-            $userObj = Get-JiraUser -UserName $_user -Credential $Credential -ErrorAction Stop
+            $userObj = Resolve-JiraUser -InputObject $_user -Exact -Credential $Credential -ErrorAction Stop
 
             $requestBody = @{}
 
@@ -124,7 +124,7 @@ function Set-JiraUser {
                 $result = Invoke-JiraMethod @parameter
 
                 if ($PassThru) {
-                    Write-Output (Get-JiraUser -inputObject $result)
+                    Write-Output (Get-JiraUser -InputObject $result)
                 }
             }
         }

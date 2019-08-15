@@ -1,4 +1,4 @@
-function Resolve-JiraIssueObject {
+function Resolve-JiraUser {
     <#
       #ToDo:CustomClass
       Once we have custom classes, this will no longer be necessary
@@ -9,13 +9,13 @@ function Resolve-JiraIssueObject {
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
-                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                if (("JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
                     $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssue'
+                    $errorId = 'ParameterType.NotJiraUser'
                     $errorCategory = 'InvalidArgument'
                     $errorTarget = $_
                     $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $errorItem.ErrorDetails = "Wrong object type provided for User. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
                 else {
@@ -25,6 +25,9 @@ function Resolve-JiraIssueObject {
         )]
         [Object]
         $InputObject,
+
+        [Switch]
+        $Exact,
 
         # Authentication credentials
         [Parameter()]
@@ -36,16 +39,12 @@ function Resolve-JiraIssueObject {
     # As we are not able to use proper type casting in the parameters, this is a workaround
     # to extract the data from a JiraPS.Issue object
     # This shall be removed once we have custom classes for the module
-    if ("JiraPS.Issue" -in $InputObject.PSObject.TypeNames -and $InputObject.RestURL) {
+    if ("JiraPS.User" -in $InputObject.PSObject.TypeNames) {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$InputObject as object"
         return $InputObject
     }
-    elseif ("JiraPS.Issue" -in $InputObject.PSObject.TypeNames -and $InputObject.Key) {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
-        return (Get-JiraIssue -Key $InputObject.Key -Credential $Credential -ErrorAction Stop)
-    }
     else {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
-        return (Get-JiraIssue -Key $InputObject.ToString() -Credential $Credential -ErrorAction Stop)
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve User to object"
+        return (Get-JiraUser -UserName $InputObject -Exact:$Exact -Credential $Credential -ErrorAction Stop)
     }
 }

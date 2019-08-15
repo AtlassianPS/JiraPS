@@ -39,16 +39,10 @@ Describe "Get-JiraConfigServer" -Tag 'Unit' {
 
         $jiraServer = 'http://jiraserver.example.com'
 
-        $configFile = Join-Path -Path $TestDrive -ChildPath 'config.xml'
+        It "returns the server stored in the module's session" {
+            $script:JiraServerUrl = $jiraServer
 
-        It "Throws an exception if the config file does not exist" {
-            { Get-JiraConfigServer -ConfigFile $configFile } | Should Throw
-        }
-
-        It "Returns the defined Server in the config.xml file" {
-            Set-JiraConfigServer -Server $jiraServer -ConfigFile $configFile
-            $s = Get-JiraConfigServer -ConfigFile $configFile
-            $s | Should Be $jiraServer
+            Get-JiraConfigServer | Should -Be $jiraServer
         }
     }
 }
