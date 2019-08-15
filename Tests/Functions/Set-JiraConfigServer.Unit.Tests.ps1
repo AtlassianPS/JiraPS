@@ -44,5 +44,11 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
 
             $script:JiraServerUrl | Should -Be "$jiraServer/"
         }
+
+        It "stores the server address in a config file" {
+            $script:serverConfig | Should -Exist
+
+            Get-Content $script:serverConfig | Should -Be "$jiraServer/"
+        }
     }
 }

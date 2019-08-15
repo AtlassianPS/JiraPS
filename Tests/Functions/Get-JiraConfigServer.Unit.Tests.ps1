@@ -39,12 +39,9 @@ Describe "Get-JiraConfigServer" -Tag 'Unit' {
 
         $jiraServer = 'http://jiraserver.example.com'
 
-        It "returns empty if no server has been set" {
-            Get-JiraConfigServer | Should -BeNullOrEmpty
-        }
-
         It "returns the server stored in the module's session" {
             $script:JiraServerUrl = $jiraServer
+
             Get-JiraConfigServer | Should -Be $jiraServer
         }
     }
