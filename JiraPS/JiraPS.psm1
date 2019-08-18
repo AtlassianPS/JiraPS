@@ -23,12 +23,24 @@ if (!("System.Net.Http" -as [Type])) {
 #endregion Dependencies
 
 #region Configuration
-$script:serverConfig = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData'))
+$sciprt:configPath = ("{0}/AtlassianPS/JiraPS" -f [Environment]::GetFolderPath('ApplicationData'))
+$script:serversConfig = "$script:configPath\servers.json"
 
-if (-not (Test-Path $script:serverConfig)) {
-    $null = New-Item -Path $script:serverConfig -ItemType File -Force
+if (-not (Test-Path $sciprt:configPath)) {
+    $null = New-Item -Path $sciprt:configPath -ItemType Directory -Force
 }
-$script:JiraServerUrl = [Uri](Get-Content $script:serverConfig)
+
+if (Test-Path $sciprt:serversConfig) {
+    $script:JiraServerConfigs = Get-Content $script:serversConfig | ConvertFrom-Json
+} elseif (Test-Path "$sciprt:configPath\server_config") {
+    $serverUrl = Get-Content "$sciprt:configPath\server_config"
+
+    $script:JiraServerConfigs = @{
+        Default = (New-Object psobject -Property @{ Server = $serverUrl })
+    }
+} else {
+    $script:JiraServerConfigs = @{}
+}
 
 $script:DefaultContentType = "application/json; charset=utf-8"
 $script:DefaultPageSize = 25

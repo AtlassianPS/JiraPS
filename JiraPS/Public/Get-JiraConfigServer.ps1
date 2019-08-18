@@ -2,7 +2,11 @@ function Get-JiraConfigServer {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     [OutputType([System.String])]
-    param()
+    param(
+        [Parameter( Mandatory )]
+        [string]
+        $Name = "Default"
+    )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
@@ -12,7 +16,7 @@ function Get-JiraConfigServer {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        return ($script:JiraServerUrl -replace "\/$", "")
+        return $script:JiraServerConfigs[$Name]
     }
 
     end {

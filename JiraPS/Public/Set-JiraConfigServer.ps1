@@ -7,7 +7,11 @@ function Set-JiraConfigServer {
         [ValidateNotNullOrEmpty()]
         [Alias('Uri')]
         [Uri]
-        $Server
+        $Server,
+
+        [Parameter( Mandatory )]
+        [string]
+        $Name = "Default"
     )
 
     begin {
@@ -15,9 +19,10 @@ function Set-JiraConfigServer {
     }
 
     process {
-        $script:JiraServerUrl = $Server
 
-        Set-Content -Value $Server -Path "$script:serverConfig"
+        $script:JiraServerConfigs[$Name] = New-Object psobject -Property @{ Server = $Server }
+
+        $script:JiraServerConfigs | ConvertTo-Json | Set-Content -Path $script:serversConfig
     }
 
     end {
