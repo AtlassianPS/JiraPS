@@ -9,7 +9,6 @@ function Set-JiraConfigServer {
         [Uri]
         $Server,
 
-        [Parameter( Mandatory )]
         [string]
         $Name = "Default"
     )
@@ -19,6 +18,10 @@ function Set-JiraConfigServer {
     }
 
     process {
+
+        if (-not $Server.AbsolutePath.EndsWith("/")) {
+            $Server = New-Object -TypeName uri -ArgumentList $Server,($Server.AbsolutePath + "/")
+        }
 
         $script:JiraServerConfigs[$Name] = New-Object psobject -Property @{ Server = $Server }
 

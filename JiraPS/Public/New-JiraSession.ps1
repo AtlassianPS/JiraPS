@@ -9,43 +9,42 @@ function New-JiraSession {
         $Credential,
 
         [Hashtable]
-        $Headers = @{}
+        $Headers = @{},
+
+        [string]
+        $SessionName = "Default",
+
+        [string]
+        $ServerName
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
+        $serverConfig = Get-JiraConfigServer -Name $ServerName
 
-        $resourceURi = "$server/rest/api/2/mypermissions"
+        $resourceURi = New-Object -TypeName uri -ArgumentList $serverConfig.Server,"rest/api/2/mypermissions"
     }
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
+        $session = ConvertTo-JiraSession -Name $SessionName -Credential $Credential -ServerConfig $serverConfig
+
         $parameter = @{
             URI          = $resourceURi
             Method       = "GET"
             Headers      = $Headers
-            StoreSession = $true
-            Credential   = $Credential
+            Session      = $session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
 
-        if ($MyInvocation.MyCommand.Module.PrivateData) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding session result to existing module PrivateData"
-            $MyInvocation.MyCommand.Module.PrivateData.Session = $result
-        }
-        else {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Creating module PrivateData"
-            $MyInvocation.MyCommand.Module.PrivateData = @{
-                'Session' = $result
-            }
-        }
+        Invoke-JiraMethod @parameter | Out-Null
 
-        Write-Output $result
+        $script:JiraSessions[$SessionName] = $session
+
+        Write-Output $session
     }
 
     end {

@@ -30,8 +30,9 @@ function Invoke-JiraMethod {
         [String]
         $OutFile,
 
-        [Switch]
-        $StoreSession,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [ValidateSet(
             "JiraComment",
@@ -41,11 +42,6 @@ function Invoke-JiraMethod {
         )]
         [String]
         $OutputType,
-
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         # [Parameter( DontShow )]
         [ValidateNotNullOrEmpty()]
@@ -131,17 +127,9 @@ function Invoke-JiraMethod {
             }
         }
 
-        if ((-not $Credential) -or ($Credential -eq [System.Management.Automation.PSCredential]::Empty)) {
-            $splatParameters.Remove("Credential")
-            if ($session = Get-JiraSession -ErrorAction SilentlyContinue) {
-                $splatParameters["WebSession"] = $session.WebSession
-            }
-        }
+        $Session = ConvertTo-JiraSession -InputObject $Session
 
-        if ($StoreSession) {
-            $splatParameters["SessionVariable"] = "newSessionVar"
-            $splatParameters.Remove("WebSession")
-        }
+        $splatParameters["WebSession"] = $session.WebSession
 
         if ($InFile) {
             $splatParameters["InFile"] = $InFile
@@ -186,9 +174,6 @@ function Invoke-JiraMethod {
 
             #region Code 399-
             else {
-                if ($StoreSession) {
-                    return & $script:SessionTransformationMethod -Session $newSessionVar -Username $Credential.UserName
-                }
 
                 if ($webResponse.Content) {
                     $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))

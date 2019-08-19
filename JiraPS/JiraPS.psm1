@@ -42,6 +42,8 @@ if (Test-Path $sciprt:serversConfig) {
     $script:JiraServerConfigs = @{}
 }
 
+$sciprt:JiraSessions = @{}
+
 $script:DefaultContentType = "application/json; charset=utf-8"
 $script:DefaultPageSize = 25
 $script:DefaultHeaders = @{ "Accept-Charset" = "utf-8" }
@@ -57,7 +59,6 @@ $script:PagingContainers = @(
     "values"
     "worklogs"
 )
-$script:SessionTransformationMethod = "ConvertTo-JiraSession"
 #endregion Configuration
 
 #region LoadFunctions
