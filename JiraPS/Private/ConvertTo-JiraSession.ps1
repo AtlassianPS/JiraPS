@@ -1,20 +1,20 @@
 function ConvertTo-JiraSession {
     [CmdletBinding()]
     param(
-        [Parameter( Mandatory, ValueFromPipeline, Position = 0, ParameterSetName = "ByInputObject" )]
+        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = "ByInputObject" )]
         [psobject]
         $InputObject,
 
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ParameterSetName = "ByArgs")]
         [string]
         $Name,
 
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ParameterSetName = "ByArgs")]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
         $Credential,
 
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ParameterSetName = "ByArgs")]
         [psobject]
         $ServerConfig
     )
@@ -23,7 +23,7 @@ function ConvertTo-JiraSession {
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
         if ("JiraPS.Session" -in $InputObject.TypeNames) {
-            Write-Object $InputObject
+            Write-Output $InputObject
             return
         }
 
@@ -39,26 +39,22 @@ function ConvertTo-JiraSession {
                 $PSCmdlet.ThrowTerminatingError($errorItem)
             }
 
-            Write-Object $script:JiraSessions[$InputObject]
+            Write-Output $script:JiraSessions[$InputObject]
             return
         }
 
         $webSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
 
-        if ($InputObject -is [Microsoft.PowerShell.Commands.WebRequestSession]) {
-            $webSession = [Microsoft.PowerShell.Commands.WebRequestSession]$InputObject
-        }
-
-        if (-not $Credential -and $Credential -ne [pscredential]::Empty -and $InputObject -is [pscredential]) {
+        if ((-not $Credential -or $Credential -ne [pscredential]::Empty) -and $InputObject -is [pscredential]) {
             $Credential = $InputObject
         }
 
         $webSession.Credentials = $Credential
 
         $props = @{
-            Name = "Default"
+            Name = $null
             WebSession = $webSession
-            ServerConfig = $null
+            ServerConfig = $ServerConfig
         }
 
         $result = New-Object -TypeName PSObject -Property $props

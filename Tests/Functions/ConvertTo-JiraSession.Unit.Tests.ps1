@@ -37,16 +37,48 @@ Describe "ConvertTo-JiraSession" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
+        $sampleSessionName = "SessionOne"
         $sampleUsername = 'powershell-test'
-        $sampleSession = @{}
 
-        $r = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
-
-        It "Creates a PSObject out of Web request data" {
-            $r | Should Not BeNullOrEmpty
+        $props = @{
+            Name = $sampleSessionName
+            WebSession = (New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession)
+            ServerConfig = $null
         }
 
-        checkPsType $r 'JiraPS.Session'
-        defProp $r 'Username' $sampleUsername
+        $sampleSession = New-Object -TypeName psobject -Property $props
+
+        $script:JiraSessions = @{
+            $sampleSessionName = $sampleSession
+        }
+
+        $sampleCredential = New-Object -TypeName pscredential -ArgumentList "test",(ConvertTo-SecureString -String "test" -AsPlainText -Force)
+        $sampleServerConfig = New-Object -TypeName psobject
+
+        It "converts string to existing session" {
+            $r = ConvertTo-JiraSession -InputObject $sampleSessionName
+            $r | Should BeExactly $sampleSession
+        }
+
+        It "throws terminate error if it can not convert string" {
+            { ConvertTo-JiraSession -InputObject "AnyOtherName" } | Should -Throw
+        }
+
+        It "converts credential" {
+            $r = ConvertTo-JiraSession -InputObject $sampleCredential
+            $r | Should Not BeNullOrEmpty
+            $r.PSObject.TypeNames | Should Contain "JiraPS.Session"
+            $r.WebSession | Should BeOfType Microsoft.PowerShell.Commands.WebRequestSession
+            $r.WebSession.Credential | Should BeNullOrEmpty
+        }
+
+        It "creates new session be parameters provided" {
+            $r = ConvertTo-JiraSession -Name $sampleSessionName -Credential $sampleCredential -ServerConfig $sampleServerConfig
+            $r | Should Not BeNullOrEmpty
+            $r.PSObject.TypeNames | Should Contain "JiraPS.Session"
+            $r.WebSession | Should BeOfType Microsoft.PowerShell.Commands.WebRequestSession
+            $r.WebSession.Credential | Should BeNullOrEmpty
+            $r.ServerConfig | Should BeExactly $sampleServerConfig
+        }
     }
 }
