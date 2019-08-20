@@ -70,7 +70,7 @@ Describe "General project validation" -Tag Unit {
 
         Import-Module $env:BHManifestToTest -Force
 
-        Get-JiraConfigServer | Should -Be "https://example.com/"
+        Get-JiraConfigServer | Should -Be "https://example.com"
     }
 
     # It "module is imported with default prefix" {
