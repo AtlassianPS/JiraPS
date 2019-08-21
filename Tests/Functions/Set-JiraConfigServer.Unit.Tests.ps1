@@ -38,17 +38,38 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
+        $sampleServersConfigContent =
+            "{`r`n" +
+            "    `"Test`":  {`r`n" +
+            "                 `"Server`":  `"http://jiraserver.example.com/`"`r`n" +
+            "             },`r`n" +
+            "    `"Default`":  {`r`n" +
+            "                    `"Server`":  `"http://jiraserver.example.com/`"`r`n" +
+            "                }`r`n" +
+            "}`r`n"
+
+        $script:serversConfig = "TestDrive:\serversConfig"
 
         It "stores the server address in the module session" {
             Set-JiraConfigServer -Server $jiraServer
 
-            $script:JiraServerUrl | Should -Be "$jiraServer/"
+            $config = $script:JiraServerConfigs["Default"]
+            $config | Should -Not -BeNullOrEmpty
+            $config.Server | Should -Be "$jiraServer/"
+        }
+
+        It "can store few servers configs" {
+            Set-JiraConfigServer -Server $jiraServer -Name "Test"
+
+            $config = $script:JiraServerConfigs["Test"]
+            $config | Should -Not -BeNullOrEmpty
+            $config.Server | Should -Be "$jiraServer/"
         }
 
         It "stores the server address in a config file" {
-            $script:serverConfig | Should -Exist
+            $script:serversConfig | Should -Exist
 
-            Get-Content $script:serverConfig | Should -Be "$jiraServer/"
+            Get-Content -Path $script:serversConfig -Raw | Should -Be $sampleServersConfigContent
         }
     }
 }
