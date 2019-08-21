@@ -37,12 +37,22 @@ Describe "Get-JiraConfigServer" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
+        $sampleServerConfig = New-Object -TypeName psobject
 
         It "returns the server stored in the module's session" {
-            $script:JiraServerUrl = $jiraServer
+            $script:JiraServerConfigs["Default"] = $sampleServerConfig
 
-            Get-JiraConfigServer | Should -Be $jiraServer
+            Get-JiraConfigServer | Should -BeExactly $sampleServerConfig
+        }
+
+        It "return the named server stored in the module's session" {
+            $script:JiraServerConfigs["Test"] = $sampleServerConfig
+
+            Get-JiraConfigServer -Name "Test" | Should -BeExactly $sampleServerConfig
+        }
+
+        It "throws an error when desired config does not exist" {
+            { Get-JiraConfigServer -Name "TestB" } | Should -Throw
         }
     }
 }
