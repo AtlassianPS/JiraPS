@@ -15,7 +15,7 @@ function New-JiraSession {
         $SessionName = "Default",
 
         [string]
-        $ServerName
+        $ServerName = "Default"
     )
 
     begin {
@@ -23,7 +23,7 @@ function New-JiraSession {
 
         $serverConfig = Get-JiraConfigServer -Name $ServerName
 
-        $resourceURi = New-Object -TypeName uri -ArgumentList $serverConfig.Server,"rest/api/2/mypermissions"
+        $resourceURi = "rest/api/2/mypermissions"
     }
 
     process {
