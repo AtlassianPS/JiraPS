@@ -1,7 +1,7 @@
 function ConvertTo-JiraSession {
     [CmdletBinding()]
     param(
-        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = "ByInputObject" )]
+        [Parameter( ValueFromPipeline, ParameterSetName = "ByInputObject" )]
         [psobject]
         $InputObject,
 

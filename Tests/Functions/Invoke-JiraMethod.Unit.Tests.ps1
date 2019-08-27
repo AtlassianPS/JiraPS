@@ -42,6 +42,9 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
         #region Definitions
 
+        $sampleWebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
+        $sampleSession = New-Object -TypeName psobject -Property @{ WebSession = $sampleWebSession }
+
         $utf8String = "Lorem مرحبا Здравствуйте 😁"
         $testUsername = 'testUsername'
         $testPassword = ConvertTo-SecureString -AsPlainText -Force 'password123'
@@ -77,23 +80,20 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
         #region Mocks
         Mock Resolve-DefaultParameterValue -ModuleName $env:BHProjectName { @{ } }
+        Mock ConvertTo-JiraSession -ModuleName $env:BHProjectName {
+            Write-Output $sampleSession
+        }
         Mock Join-Hashtable -ModuleName $env:BHProjectName { @{ } }
         Mock Set-TlsLevel -ModuleName $env:BHProjectName { }
         Mock Resolve-ErrorWebResponse -ModuleName $env:BHProjectName { }
         Mock Expand-Result -ModuleName $env:BHProjectName { }
         Mock Convert-Result -ModuleName $env:BHProjectName { }
-        Mock Get-JiraSession -ModuleName $env:BHProjectName {
-            [PSCustomObject]@{
-                WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
-            }
-        }
         Mock Test-ServerResponse -Module $env:BHProjectName { }
-        Mock ConvertTo-JiraSession -ModuleName $env:BHProjectName { }
         foreach ($type in $supportedTypes) {
             Mock -CommandName "ConvertTo-$type" -ModuleName $env:BHProjectName { }
         }
         Mock Invoke-WebRequest -ModuleName $env:BHProjectName {
-            ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method', 'Body', 'Headers', 'ContentType', 'SessionVariable', 'WebSession'
+            ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method', 'Body', 'Headers', 'ContentType', 'WebSession'
             $InvokeWebRequestSplat = @{
                 Uri             = $Uri
                 Method          = $Method
@@ -103,15 +103,8 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                 ContentType     = $ContentType
                 UseBasicParsing = $true
             }
-            if ($SessionVariable) {
-                $InvokeWebRequestSplat["SessionVariable"] = $SessionVariable
-            }
 
             Microsoft.PowerShell.Utility\Invoke-WebRequest @InvokeWebRequestSplat
-
-            if ($SessionVariable) {
-                Set-Variable -Name $SessionVariable -Value (Get-Variable $SessionVariable).Value -Scope 3 # Pester adds 2 levels of nesting
-            }
         }
         #endregion Mocks
 
@@ -127,9 +120,8 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
             defParam $command 'Paging'
             defParam $command 'InFile'
             defParam $command 'OutFile'
-            defParam $command 'StoreSession'
+            defParam $command 'Session'
             defParam $command 'OutputType'
-            defParam $command 'Credential'
             defParam $command 'CmdLet'
 
             It "Restricts the METHODs to WebRequestMethod" {
@@ -304,27 +296,6 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                 Assert-MockCalled @assertMockCalledSplat
             }
 
-            It "uses ConvertTo-JiraSession to store the Session" {
-                $invokeJiraMethodSplat = @{
-                    Method       = 'Get'
-                    URI          = "https://postman-echo.com/get"
-                    StoreSession = $true
-                    ErrorAction  = "Stop"
-                }
-                Invoke-JiraMethod @invokeJiraMethodSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName     = "Invoke-WebRequest"
-                    ModuleName      = $env:BHProjectName
-                    ParameterFilter = {$SessionVariable -eq "newSessionVar"}
-                    Exactly         = $true
-                    Times           = 1
-                    Scope           = 'It'
-                }
-                Assert-MockCalled @assertMockCalledSplat
-                Assert-MockCalled -CommandName ConvertTo-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
-            }
-
             foreach ($type in $supportedTypes) {
                 It "uses ConvertTo-$type to transform the results" {
                     Invoke-JiraMethod -Method get -URI "https://postman-echo.com/get" -OutputType $type -Paging -ErrorAction Stop
@@ -355,7 +326,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                 }
             }
 
-            It "uses session if no -Credential are passed" {
+            It "uses default session if no -Session are passed" {
                 $invokeJiraMethodSplat = @{
                     URI         = "https://postman-echo.com/get"
                     Method      = 'get'
@@ -367,19 +338,19 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     CommandName     = 'Invoke-WebRequest'
                     ModuleName      = $env:BHProjectName
                     ParameterFilter = {
-                        $WebSession -is [Microsoft.PowerShell.Commands.WebRequestSession] -and
-                        $Credential -eq $null
+                        $Session -eq $sampleSession
                     }
                     Exactly         = $true
                     Times           = 1
                     Scope           = 'It'
                 }
                 Assert-MockCalled @assertMockCalledSplat
-                Assert-MockCalled -CommandName Get-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
+                Assert-MockCalled -CommandName ConvertTo-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
             }
 
-            It "uses -Credential even if session is present" {
-                Mock Get-JiraSession -ModuleName $env:BHProjectName {
+            It "uses -Session instead of default" {
+
+                Mock ConvertTo-JiraSession -ModuleName $env:BHProjectName {
                     [PSCustomObject]@{
                         WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
                     }
@@ -405,7 +376,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Scope           = 'It'
                 }
                 Assert-MockCalled @assertMockCalledSplat
-                Assert-MockCalled -CommandName Get-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 0 -Scope It
+                Assert-MockCalled -CommandName ConvertTo-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 0 -Scope It
             }
 
             It "uses -Headers for the call" {

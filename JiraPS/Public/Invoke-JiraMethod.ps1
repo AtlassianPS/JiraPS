@@ -3,7 +3,7 @@ function Invoke-JiraMethod {
     [CmdletBinding( SupportsPaging )]
     param(
         [Parameter( Mandatory )]
-        [Uri]
+        [psobject]
         $URI,
 
         [Microsoft.PowerShell.Commands.WebRequestMethod]
@@ -69,7 +69,23 @@ function Invoke-JiraMethod {
         $_headers = Join-Hashtable -Hashtable $script:DefaultHeaders, $PSDefaultParameterValues["Invoke-WebRequest:Headers"], $Headers
         #endregion Headers
 
+        #region Session
+        # Convert a value provide by the argument to JiraPS.Session
+        $Session = ConvertTo-JiraSession -InputObject $Session
+        #endregion
+
         #region Manage URI
+
+        # if provided value for URI is string - convert it to an instance of URI
+        if ($URI -is [string]) {
+            $URI = New-Object -TypeName "System.Uri" -ArgumentList @($URI, [System.UriKind]::RelativeOrAbsolute)
+        }
+
+        # if instance of URI is relative path - convert it to abosolute URI using session's ServerUri as base URI
+        if ($URI.UriKind -eq [System.UriKind]::Relative) {
+            $URI = New-Object -TypeName uri -ArgumentList @($Session.ServerConfig.Server, $URI)
+        }
+
         # Amend query from URI with GetParameter
         $uriQuery = ConvertTo-ParameterHash -Uri $Uri
         $internalGetParameter = Join-Hashtable $uriQuery, $GetParameter
@@ -108,6 +124,7 @@ function Invoke-JiraMethod {
             Credential      = $Credential
             ErrorAction     = "Stop"
             Verbose         = $false
+            WebSession      = $Session.WebSession
         }
 
         if ($_headers.ContainsKey("Content-Type")) {
@@ -126,10 +143,6 @@ function Invoke-JiraMethod {
                 $splatParameters["Body"] = [System.Text.Encoding]::UTF8.GetBytes($Body)
             }
         }
-
-        $Session = ConvertTo-JiraSession -InputObject $Session
-
-        $splatParameters["WebSession"] = $session.WebSession
 
         if ($InFile) {
             $splatParameters["InFile"] = $InFile
