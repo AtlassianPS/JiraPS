@@ -19,9 +19,7 @@ function Get-JiraIssueEditMetadata {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/issue/{0}/editmeta"
+        $resourceURi = "rest/api/latest/issue/{0}/editmeta"
     }
 
     process {

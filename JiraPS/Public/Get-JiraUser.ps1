@@ -37,11 +37,9 @@ function Get-JiraUser {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $selfResourceUri = "$server/rest/api/latest/myself"
-        $searchResourceUri = "$server/rest/api/latest/user/search?username={0}"
-        $exactResourceUri = "$server/rest/api/latest/user?username={0}"
+        $selfResourceUri = "rest/api/latest/myself"
+        $searchResourceUri = "rest/api/latest/user/search?username={0}"
+        $exactResourceUri = "rest/api/latest/user?username={0}"
 
         if ($IncludeInactive) {
             $searchResourceUri += "&includeInactive=true"

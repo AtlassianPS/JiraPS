@@ -56,11 +56,10 @@ function New-JiraIssue {
     }
 
     process {
-        $server = Get-JiraConfigServer -ErrorAction Stop -Debug:$false
 
         $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
 
-        $resourceURi = "$server/rest/api/latest/issue"
+        $resourceURi = "rest/api/latest/issue"
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"

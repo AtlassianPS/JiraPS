@@ -76,9 +76,7 @@ function Find-JiraFilter {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $searchURi = "$server/rest/api/latest/filter/search"
+        $searchURi = "rest/api/latest/filter/search"
 
         [String]$Fields = $Fields -join ','
     }

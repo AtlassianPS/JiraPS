@@ -11,9 +11,7 @@ function Get-JiraServerInformation {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/serverInfo"
+        $resourceURi = "rest/api/latest/serverInfo"
     }
 
     process {

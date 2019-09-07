@@ -88,9 +88,7 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/version"
+        $resourceURi = "rest/api/latest/version"
     }
 
     process {

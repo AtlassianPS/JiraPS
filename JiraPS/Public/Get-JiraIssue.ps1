@@ -94,10 +94,8 @@ function Get-JiraIssue {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $searchURi = "$server/rest/api/latest/search"
-        $resourceURi = "$server/rest/api/latest/issue/{0}"
+        $searchURi = "rest/api/latest/search"
+        $resourceURi = "rest/api/latest/issue/{0}"
 
         [String]$Fields = $Fields -join ","
     }

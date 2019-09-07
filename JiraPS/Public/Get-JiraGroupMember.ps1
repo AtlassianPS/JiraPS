@@ -48,9 +48,7 @@ function Get-JiraGroupMember {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/group/member"
+        $resourceURi = "rest/api/latest/group/member"
 
         if ($PageSize -gt 50) {
             Write-Warning "JIRA's API may not properly support MaxResults values higher than 50 for this method. If you receive inconsistent results, do not pass the MaxResults parameter to this function to return all results."

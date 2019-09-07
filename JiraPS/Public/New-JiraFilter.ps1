@@ -30,9 +30,7 @@ function New-JiraFilter {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/filter"
+        $resourceURi = "rest/api/latest/filter"
     }
 
     process {

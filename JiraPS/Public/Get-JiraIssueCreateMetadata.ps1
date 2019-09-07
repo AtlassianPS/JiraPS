@@ -19,9 +19,7 @@ function Get-JiraIssueCreateMetadata {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/issue/createmeta?projectIds={0}&issuetypeIds={1}&expand=projects.issuetypes.fields"
+        $resourceURi = "rest/api/latest/issue/createmeta?projectIds={0}&issuetypeIds={1}&expand=projects.issuetypes.fields"
     }
 
     process {

@@ -69,9 +69,7 @@ function Remove-JiraGroupMember {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/group/user?groupname={0}&username={1}"
+        $resourceURi = "rest/api/latest/group/user?groupname={0}&username={1}"
 
         if ($Force) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"

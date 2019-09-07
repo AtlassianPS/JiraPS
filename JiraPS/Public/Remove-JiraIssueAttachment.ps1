@@ -50,9 +50,7 @@ function Remove-JiraIssueAttachment {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/attachment/{0}"
+        $resourceURi = "rest/api/latest/attachment/{0}"
 
         if ($Force) {
             Write-DebugMessage "[Remove-JiraGroupMember] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
