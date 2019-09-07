@@ -140,7 +140,8 @@ function Invoke-JiraMethod {
             else {
                 # Encode Body to preserve special chars
                 # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
-                $splatParameters["Body"] = [System.Text.Encoding]::UTF8.GetBytes($Body)
+                $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($Body)
+                $splatParameters["Body"] = $bodyBytes
             }
         }
 

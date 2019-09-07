@@ -45,7 +45,10 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
         $sampleWebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
         $sampleSession = New-Object -TypeName psobject -Property @{ WebSession = $sampleWebSession }
 
-        $utf8String = "Lorem مرحبا Здравствуйте 😁"
+        $secondWebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
+        $secondSession = New-Object -TypeName psobject -Property @{ WebSession = $secondWebSession }
+
+        $utf8String = [System.Text.Encoding]::Utf8.GetString([byte[]]@(76, 111, 114, 101, 109, 32, 217, 133, 216, 177, 216, 173, 216, 168, 216, 167, 32, 208, 151, 208, 180, 209, 128, 208, 176, 208, 178, 209, 129, 209, 130, 208, 178, 209, 131, 208, 185, 209, 130, 208, 181, 32, 240, 159, 152, 129))
         $testUsername = 'testUsername'
         $testPassword = ConvertTo-SecureString -AsPlainText -Force 'password123'
         $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername, $testPassword
@@ -81,7 +84,12 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
         #region Mocks
         Mock Resolve-DefaultParameterValue -ModuleName $env:BHProjectName { @{ } }
         Mock ConvertTo-JiraSession -ModuleName $env:BHProjectName {
-            Write-Output $sampleSession
+            if ($InputObject -eq $secondSession) {
+                Write-Output $secondSession
+            }
+            else {
+                Write-Output $sampleSession
+            }
         }
         Mock Join-Hashtable -ModuleName $env:BHProjectName { @{ } }
         Mock Set-TlsLevel -ModuleName $env:BHProjectName { }
@@ -213,8 +221,10 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     ModuleName      = $env:BHProjectName
                     ParameterFilter = {
                         $Body -is [Byte[]] -and
-                        (($Body -join " ") -eq "76 111 114 101 109 32 195 153 226 128 166 195 152 194 177 195 152 194 173 195 152 194 168 195 152 194 167 32 195 144 226 128 148 195 144 194 180 195 145 226 130 172 195 144 194 176 195 144 194 178 195 145 194 129 195 145 226 128 154 195 144 194 178 195 145 198 146 195 144 194 185 195 145 226 128 154 195 144 194 181 32 195 176 197 184 203 156 194 129" -or
-                            ($Body -join " ") -eq "76 111 114 101 109 32 217 133 216 177 216 173 216 168 216 167 32 208 151 208 180 209 128 208 176 208 178 209 129 209 130 208 178 209 131 208 185 209 130 208 181 32 240 159 152 129")
+                        (
+                            ($Body -join " ") -eq "76 111 114 101 109 32 195 153 226 128 166 195 152 194 177 195 152 194 173 195 152 194 168 195 152 194 167 32 195 144 226 128 148 195 144 194 180 195 145 226 130 172 195 144 194 176 195 144 194 178 195 145 194 129 195 145 226 128 154 195 144 194 178 195 145 198 146 195 144 194 185 195 145 226 128 154 195 144 194 181 32 195 176 197 184 203 156 194 129" -or
+                            ($Body -join " ") -eq "76 111 114 101 109 32 217 133 216 177 216 173 216 168 216 167 32 208 151 208 180 209 128 208 176 208 178 209 129 209 130 208 178 209 131 208 185 209 130 208 181 32 240 159 152 129"
+                        )
                     }
                     Exactly         = $true
                     Times           = 1
@@ -338,28 +348,33 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     CommandName     = 'Invoke-WebRequest'
                     ModuleName      = $env:BHProjectName
                     ParameterFilter = {
-                        $Session -eq $sampleSession
+                        $WebSession -eq $sampleWebSession
                     }
                     Exactly         = $true
                     Times           = 1
                     Scope           = 'It'
                 }
                 Assert-MockCalled @assertMockCalledSplat
-                Assert-MockCalled -CommandName ConvertTo-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'ConvertTo-JiraSession'
+                    ModuleName      = $env:BHProjectName
+                    ParameterFilter = {
+                        $InputObject -eq $null
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
             It "uses -Session instead of default" {
 
-                Mock ConvertTo-JiraSession -ModuleName $env:BHProjectName {
-                    [PSCustomObject]@{
-                        WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
-                    }
-                }
-
                 $invokeJiraMethodSplat = @{
                     URI         = "https://postman-echo.com/get"
                     Method      = 'get'
-                    Credential  = $testCred
+                    Session     = $secondSession
                     ErrorAction = "Stop"
                 }
                 Invoke-JiraMethod @invokeJiraMethodSplat
@@ -368,15 +383,25 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     CommandName     = 'Invoke-WebRequest'
                     ModuleName      = $env:BHProjectName
                     ParameterFilter = {
-                        $SessionVariable -eq $null -and
-                        $Credential -ne $null
+                        $WebSession -eq $secondWebSession
                     }
                     Exactly         = $true
                     Times           = 1
                     Scope           = 'It'
                 }
                 Assert-MockCalled @assertMockCalledSplat
-                Assert-MockCalled -CommandName ConvertTo-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 0 -Scope It
+
+                $assertMockCalledSplat = @{
+                    CommandName     = 'ConvertTo-JiraSession'
+                    ModuleName      = $env:BHProjectName
+                    ParameterFilter = {
+                        $InputObject -eq $secondSession
+                    }
+                    Exactly         = $true
+                    Times           = 1
+                    Scope           = 'It'
+                }
+                Assert-MockCalled @assertMockCalledSplat
             }
 
             It "uses -Headers for the call" {
