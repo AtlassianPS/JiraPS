@@ -44,7 +44,7 @@ This will import the module if not already loaded or even download it from the P
 ### Example 1
 
 ```powershell
-Invoke-JiraMethod -URI "$(Get-JiraConfigServer)/rest/api/latest/project"
+Invoke-JiraMethod -URI "rest/api/latest/project"
 ```
 
 Sends a GET request which will return all the projects on the Jira server.
@@ -53,7 +53,7 @@ This call would either be executed anonymously or require a session to be availa
 ### Example 2
 
 ```powershell
-Invoke-JiraMethod -URI "$(Get-JiraConfigServer)/rest/api/latest/project" -Credential (Get-Credential)
+Invoke-JiraMethod -URI "rest/api/latest/project" -Credential (Get-Credential)
 ```
 
 Prompts the user for his Jira credentials and send a GET request,
@@ -63,7 +63,7 @@ which will return all the projects on the Jira server.
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
+    URI = "rest/api/latest/project"
     Method = "POST"
     Credential = $cred
 }
@@ -81,7 +81,7 @@ See next example
 ```powershell
 $body = '{"name": "NewGroup"}'
 $params = @{
-    Uri = "$(Get-JiraConfigServer)/rest/api/latest/group"
+    Uri = "rest/api/latest/group"
     Method = "POST"
     Body = $body
     Credential = $cred
@@ -95,7 +95,7 @@ Creates a new group named "NewGroup"
 
 ```powershell
 $params = @{
-    Uri = "$(Get-JiraConfigServer)/rest/api/latest/mypermissions"
+    Uri = "rest/api/latest/mypermissions"
     Method = "GET"
     Body = $body
     StoreSession = $true
@@ -111,7 +111,7 @@ it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
 
 ```powershell
 $params = @{
-    Uri = "$(Get-JiraConfigServer)/rest/api/latest/issue/10000"
+    Uri = "rest/api/latest/issue/10000"
     Method = "POST"
     InFile = "c:\temp\20001231_Connection.log"
     Credential = $cred
@@ -125,7 +125,7 @@ Executes a POST request on the defined URI and uploads the InFile with a multipa
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
+    URI = "rest/api/latest/project"
     Method = "GET"
     OutFile = "c:\temp\jira_projects.json"
     Credential = $cred
@@ -139,7 +139,7 @@ Executes a GET request on all available projects and stores the response json in
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
+    URI = "rest/api/latest/project"
     Method = "GET"
     Headers = @{"Accept" = "text/plain"}
     OutFile = "c:\temp\jira_projects.json"
@@ -156,9 +156,11 @@ It also uses the Headers to define what mimeTypes are expected in the response.
 ### -URI
 
 URI address of the REST API endpoint.
+Could be relative or absolute URL.
+Keep in mind that mostly you should use relative path (ex. rest/api) and seek to avoid use absolute path (ex. /rest/api).
 
 ```yaml
-Type: Uri
+Type: Uri, string
 Parameter Sets: (All)
 Aliases:
 
