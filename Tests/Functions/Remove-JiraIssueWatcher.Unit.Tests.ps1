@@ -78,7 +78,7 @@ Describe "Remove-JiraIssueWatcher" -Tag 'Unit' {
 
             defParam $command 'Watcher'
             defParam $command 'Issue'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

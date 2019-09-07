@@ -38,7 +38,6 @@ Describe 'Remove-JiraFilter' -Tag 'Unit' {
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Definitions
-        $jiraServer = "https://jira.example.com"
 
         $responseFilter = @"
 {
@@ -87,9 +86,6 @@ Describe 'Remove-JiraFilter' -Tag 'Unit' {
         #endregion Definitions
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            $jiraServer
-        }
 
         Mock ConvertTo-JiraFilter -ModuleName JiraPS {
             foreach ($i in $InputObject) {
@@ -120,7 +116,7 @@ Describe 'Remove-JiraFilter' -Tag 'Unit' {
             $command = Get-Command -Name Remove-JiraFilter
 
             defParam $command 'InputObject'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

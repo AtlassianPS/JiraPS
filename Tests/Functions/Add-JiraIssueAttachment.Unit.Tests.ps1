@@ -110,7 +110,7 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
 
             defParam $command 'Issue'
             defParam $command 'FilePath'
-            defParam $command 'Credential'
+            defParam $command 'Session'
             defParam $command 'PassThru'
         }
 

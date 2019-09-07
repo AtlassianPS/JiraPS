@@ -123,7 +123,7 @@ Describe "New-JiraIssue" -Tag 'Unit' {
             defParam $command 'Reporter'
             defParam $command 'Labels'
             defParam $command 'Fields'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

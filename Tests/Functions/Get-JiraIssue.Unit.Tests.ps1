@@ -37,7 +37,6 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = "https://jira.example.com"
 
         $jql = 'reporter in (testuser)'
         $jqlEscaped = ConvertTo-URLEncoded $jql
@@ -59,9 +58,6 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
 '@
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            $jiraServer
-        }
 
         Mock Get-JiraUser -ModuleName JiraPS {
             $object = [PSCustomObject] @{
@@ -121,7 +117,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
             defParam $command 'StartIndex'
             defParam $command 'MaxResults'
             defParam $command 'PageSize'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

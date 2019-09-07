@@ -38,7 +38,6 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Definitions
-        $jiraServer = "https://jira.example.com"
 
         $permissionJSON = @"
 [
@@ -124,11 +123,6 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
 "@
         #endregion Definitions
 
-        #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            $jiraServer
-        }
-
         Mock ConvertTo-JiraFilter -ModuleName JiraPS {
             $i = New-Object -TypeName PSCustomObject
             $i.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
@@ -170,7 +164,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
             defParam $command 'Id'
             defParam $command 'Type'
             defParam $command 'Value'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

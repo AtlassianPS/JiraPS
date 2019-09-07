@@ -108,7 +108,7 @@ Describe "Remove-JiraIssueAttachment" -Tag 'Unit' {
             defParam $command 'AttachmentId'
             defParam $command 'Issue'
             defParam $command 'FileName'
-            defParam $command 'Credential'
+            defParam $command 'Session'
             defParam $command 'Force'
         }
 

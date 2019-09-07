@@ -75,7 +75,7 @@ Describe "New-JiraSession" -Tag 'Unit' {
         Context "Sanity checking" {
             $command = Get-Command -Name New-JiraSession
 
-            defParam $command 'Credential'
+            defParam $command 'Session'
             defParam $command 'Headers'
             defParam $command 'SessionName'
             defParam $command 'ServerName'

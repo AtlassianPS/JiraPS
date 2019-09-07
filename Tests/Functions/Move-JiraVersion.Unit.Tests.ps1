@@ -104,7 +104,7 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
             defParam $command 'Version'
             defParam $command 'Position'
             defParam $command 'After'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "ByPosition behavior checking" {

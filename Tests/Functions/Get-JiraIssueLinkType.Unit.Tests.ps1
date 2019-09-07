@@ -48,7 +48,7 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
             $command = Get-Command -Name Get-JiraIssueLinkType
 
             defParam $command 'LinkType'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         $filterAll = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType"}

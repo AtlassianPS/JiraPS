@@ -279,7 +279,7 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
             defParam $command 'IssueId'
             defParam $command 'InputObject'
             defParam $command 'IncludeSubTasks'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Functionality" {

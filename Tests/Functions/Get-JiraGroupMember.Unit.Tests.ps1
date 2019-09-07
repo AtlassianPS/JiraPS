@@ -86,7 +86,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
             defParam $command 'IncludeInactive'
             defParam $command 'StartIndex'
             defParam $command 'MaxResults'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

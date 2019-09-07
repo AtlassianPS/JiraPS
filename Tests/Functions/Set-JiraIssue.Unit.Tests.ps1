@@ -37,7 +37,6 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = "https://jira.example.com"
 
         Mock Get-JiraConfigServer {
             $jiraServer
@@ -86,7 +85,7 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
             defParam $command 'Label'
             defParam $command 'AddComment'
             defParam $command 'Fields'
-            defParam $command 'Credential'
+            defParam $command 'Session'
             defParam $command 'PassThru'
 
             It "Supports the Key alias for the Issue parameter" {

@@ -97,7 +97,7 @@ BeforeAll {
 
             defParam $command 'Group'
             defParam $command 'User'
-            defParam $command 'Credential'
+            defParam $command 'Session'
             defParam $command 'PassThru'
             defParam $command 'Force'
         }

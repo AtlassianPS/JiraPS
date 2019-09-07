@@ -93,7 +93,7 @@ Describe "Remove-JiraIssueLink" -Tag 'Unit' {
             $command = Get-Command -Name Remove-JiraIssueLink
 
             defParam $command 'IssueLink'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Functionality" {

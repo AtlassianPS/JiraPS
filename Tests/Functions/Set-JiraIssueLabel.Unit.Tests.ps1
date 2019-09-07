@@ -73,7 +73,7 @@ Describe "Set-JiraIssueLabel" -Tag 'Unit' {
             defParam $command 'Add'
             defParam $command 'Remove'
             defParam $command 'Clear'
-            defParam $command 'Credential'
+            defParam $command 'Session'
             defParam $command 'PassThru'
 
             defAlias $command 'Key' 'Issue'

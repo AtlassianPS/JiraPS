@@ -156,7 +156,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
             $command = Get-Command -Name Remove-JiraVersion
 
             defParam $command 'Version'
-            defParam $command 'Credential'
+            defParam $command 'Session'
             defParam $command 'Force'
         }
 

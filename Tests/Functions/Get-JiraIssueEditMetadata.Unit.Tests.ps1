@@ -37,7 +37,6 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = "https://jira.example.com"
         $issueID = 41701
         $issueKey = 'IT-3676'
 
@@ -229,7 +228,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
             $command = Get-Command -Name Get-JiraIssueEditMetadata
 
             defParam $command 'Issue'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

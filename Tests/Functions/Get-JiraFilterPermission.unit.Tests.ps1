@@ -38,7 +38,6 @@ BeforeAll {
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Definitions
-        $jiraServer = "https://jira.example.com"
 
         $sampleResponse = @"
 {
@@ -49,9 +48,6 @@ BeforeAll {
         #endregion Definitions
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            $jiraServer
-        }
 
         Mock ConvertTo-JiraFilter -ModuleName JiraPS { }
 
@@ -82,7 +78,7 @@ BeforeAll {
 
             defParam $command 'Filter'
             defParam $command 'Id'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

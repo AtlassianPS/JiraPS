@@ -37,8 +37,6 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'https://jira.example.com'
-
         $mockOwner = [PSCustomObject]@{
             AccountId = 'c62dde3418235be1c8424950'
             Name = 'TUser1'
@@ -79,9 +77,6 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
 '@
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            $jiraServer
-        }
 
         Mock Get-JiraProject -ModuleName JiraPS {
             ShowMockInfo 'Get-JiraProject' 'Project'
@@ -98,7 +93,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
             $Method -eq 'Get' -and
-            $URI -like "$jiraServer/rest/api/*/filter/search*"
+            $URI -like "rest/api/*/filter/search*"
         } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $response
@@ -120,7 +115,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
             defParam $command 'Project'
             defParam $command 'Fields'
             defParam $command 'Sort'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context 'Behavior testing' {
@@ -133,7 +128,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*'
+                        $URI -like 'rest/api/*/filter/search*'
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -150,7 +145,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $URI -like 'rest/api/*/filter/search*' -and
                         $GetParameter['accountId'] -eq $mockOwner.AccountId
                     }
                     Scope           = 'It'
@@ -168,7 +163,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $URI -like 'rest/api/*/filter/search*' -and
                         $GetParameter['groupName'] -eq $groupEscaped
                     }
                     Scope           = 'It'
@@ -186,7 +181,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $URI -like 'rest/api/*/filter/search*' -and
                         $GetParameter['projectId'] -eq '1'
                     }
                     Scope           = 'It'
@@ -204,7 +199,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $URI -like 'rest/api/*/filter/search*' -and
                         $GetParameter['orderBy'] -eq 'name'
                     }
                     Scope           = 'It'
@@ -223,7 +218,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $URI -like 'rest/api/*/filter/search*' -and
                         $GetParameter['expand'] -eq 'description,favourite,favouritedCount,jql,owner,searchUrl,sharePermissions,subscriptions,viewUrl'
                     }
                     Scope           = 'It'
@@ -237,7 +232,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $URI -like 'rest/api/*/filter/search*' -and
                         $GetParameter['expand'] -eq 'description'
                     }
                     Scope           = 'It'
@@ -257,7 +252,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $URI -like 'rest/api/*/filter/search*' -and
                         $GetParameter['projectId'] -eq '1'
                     }
                     Scope           = 'It'
@@ -282,7 +277,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*' -and
+                        $URI -like 'rest/api/*/filter/search*' -and
                         $GetParameter['accountId'] -eq $mockowner.AccountId -and
                         $GetParameter['groupName'] -eq $groupEscaped -and
                         $GetParameter['projectId'] -eq '1'
@@ -302,7 +297,7 @@ Describe 'Find-JiraFilter' -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/filter/search*' #-and
+                        $URI -like 'rest/api/*/filter/search*' #-and
                         $GetParameter['AccountId'] -eq $mockOwner.AccountId
                     }
                     Scope           = 'It'

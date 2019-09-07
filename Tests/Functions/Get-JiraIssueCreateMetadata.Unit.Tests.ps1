@@ -251,7 +251,7 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
 
             defParam $command 'Project'
             defParam $command 'IssueType'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

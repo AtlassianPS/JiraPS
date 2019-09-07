@@ -170,7 +170,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
             defParam $command 'Project'
             defParam $command 'Name'
             defParam $command 'ID'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior checking" {

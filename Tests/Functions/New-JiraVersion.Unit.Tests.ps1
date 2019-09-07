@@ -125,7 +125,7 @@ Describe "New-JiraVersion" -Tag 'Unit' {
             defParam $command 'ReleaseDate'
             defParam $command 'StartDate'
             defParam $command 'Project'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior checking" {

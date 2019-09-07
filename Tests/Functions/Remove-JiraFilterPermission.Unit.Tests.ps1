@@ -38,7 +38,6 @@ BeforeAll {
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Definitions
-        $jiraServer = "https://jira.example.com"
 
         $filterPermission1 = New-Object -TypeName PSCustomObject -Property @{ Id = 1111 }
         $filterPermission1.PSObject.TypeNames.Insert(0, 'JiraPS.FilterPermission')
@@ -62,9 +61,6 @@ BeforeAll {
         #endregion Definitions
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            $jiraServer
-        }
 
         Mock Get-JiraFilter -ModuleName JiraPS {
             $basicFilter
@@ -90,7 +86,7 @@ BeforeAll {
             defParam $command 'Filter'
             defParam $command 'FilterId'
             defParam $command 'PermissionId'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

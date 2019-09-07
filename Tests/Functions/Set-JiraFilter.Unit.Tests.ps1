@@ -38,7 +38,6 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Definitions
-        $jiraServer = "https://jira.example.com"
 
         $responseFilter = @"
 {
@@ -87,9 +86,6 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
         #endregion Definitions
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            $jiraServer
-        }
 
         Mock ConvertTo-JiraFilter -ModuleName JiraPS {
             foreach ($i in $InputObject) {
@@ -124,7 +120,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
             defParam $command 'Description'
             defParam $command 'JQL'
             defParam $command 'Favorite'
-            defParam $command 'Credential'
+            defParam $command 'Session'
 
             defAlias $command 'Favourite' 'Favorite'
         }

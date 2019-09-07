@@ -97,7 +97,7 @@ Describe "Get-JiraIssueWatcher" -Tag 'Unit' {
             $command = Get-Command -Name Get-JiraIssueWatcher
 
             defParam $command 'Issue'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {
