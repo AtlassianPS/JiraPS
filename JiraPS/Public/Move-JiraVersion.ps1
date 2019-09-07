@@ -56,10 +56,9 @@
         [Object]
         $After,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -80,7 +79,7 @@
             'ByAfter' {
                 $afterSelfUri = ''
                 if ($After -is [Int]) {
-                    $versionObj = Get-JiraVersion -Id $After -Credential $Credential -ErrorAction Stop
+                    $versionObj = Get-JiraVersion -Id $After -Session $Session -ErrorAction Stop
                     $afterSelfUri = $versionObj.RestUrl
                 }
                 else {
@@ -101,7 +100,7 @@
             URI        = $versionResourceUri -f $versionId
             Method     = "POST"
             Body       = ConvertTo-Json $requestBody
-            Credential = $Credential
+            Session    = $Session
         }
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

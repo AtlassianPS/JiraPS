@@ -50,10 +50,9 @@ function Set-JiraIssue {
         [String]
         $AddComment,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $PassThru,
@@ -96,7 +95,7 @@ function Set-JiraIssue {
                 $validAssignee = $true
             }
             else {
-                if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Exact -Credential $Credential) {
+                if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Exact -Session $Session) {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                     $assigneeString = $assigneeObj.Name
                     $validAssignee = $true
@@ -123,7 +122,7 @@ function Set-JiraIssue {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
             # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Session $Session
 
             $issueProps = @{
                 'update' = @{}
@@ -162,7 +161,7 @@ function Set-JiraIssue {
                     $name = $_key
                     $value = $Fields.$_key
 
-                    $field = Get-JiraField -Field $name -Credential $Credential -ErrorAction Stop
+                    $field = Get-JiraField -Field $name -Session $Session -ErrorAction Stop
 
                     # For some reason, this was coming through as a hashtable instead of a String,
                     # which was causing ConvertTo-Json to crash later.
@@ -191,7 +190,7 @@ function Set-JiraIssue {
                     URI          = $issueObj.RestUrl
                     Method       = "PUT"
                     Body         = ConvertTo-Json -InputObject $issueProps -Depth 10
-                    Credential   = $Credential
+                    Session      = $Session
                     GetParameter = $SkipNotificationParams
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
@@ -209,7 +208,7 @@ function Set-JiraIssue {
                     URI          = "{0}/assignee" -f $issueObj.RestUrl
                     Method       = "PUT"
                     Body         = ConvertTo-Json -InputObject $assigneeProps
-                    Credential   = $Credential
+                    Session      = $Session
                     GetParameter = $SkipNotificationParams
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
@@ -219,11 +218,11 @@ function Set-JiraIssue {
             }
 
             if ($Label) {
-                Set-JiraIssueLabel -Issue $issueObj -Set $Label -Credential $Credential
+                Set-JiraIssueLabel -Issue $issueObj -Set $Label -Session $Session
             }
 
             if ($PassThru) {
-                Get-JiraIssue -Key $issueObj.Key -Credential $Credential
+                Get-JiraIssue -Key $issueObj.Key -Session $Session
             }
         }
     }

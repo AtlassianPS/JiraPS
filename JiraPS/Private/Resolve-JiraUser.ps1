@@ -29,11 +29,9 @@ function Resolve-JiraUser {
         [Switch]
         $Exact,
 
-        # Authentication credentials
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     # As we are not able to use proper type casting in the parameters, this is a workaround
@@ -45,6 +43,6 @@ function Resolve-JiraUser {
     }
     else {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve User to object"
-        return (Get-JiraUser -UserName $InputObject -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+        return (Get-JiraUser -UserName $InputObject -Exact:$Exact -Session $Session -ErrorAction Stop)
     }
 }

@@ -6,10 +6,9 @@
         [String[]]
         $IssueType,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -27,7 +26,7 @@
                 $parameter = @{
                     URI        = $resourceURi
                     Method     = "GET"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
@@ -39,7 +38,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issueType]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issueType [$_issueType]"
 
-                    $allIssueTypes = Get-JiraIssueType -Credential $Credential
+                    $allIssueTypes = Get-JiraIssueType -Session $Session
 
                     Write-Output ($allIssueTypes | Where-Object -FilterScript {$_.Id -eq $_issueType})
                     Write-Output ($allIssueTypes | Where-Object -FilterScript {$_.Name -like $_issueType})

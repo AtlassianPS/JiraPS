@@ -54,10 +54,9 @@ function Remove-JiraGroupMember {
         [Object[]]
         $User,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $PassThru,
@@ -86,21 +85,21 @@ function Remove-JiraGroupMember {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
-            # $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop).Name
+            $groupObj = Get-JiraGroup -GroupName $_group -Session $Session -ErrorAction Stop
+            # $groupMembers = (Get-JiraGroupMember -Group $_group -Session $Session -ErrorAction Stop).Name
 
             foreach ($_user in $User) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-                $userObj = Resolve-JiraUser -InputObject $_user -Exact -Credential $Credential -ErrorAction Stop
+                $userObj = Resolve-JiraUser -InputObject $_user -Exact -Session $Session -ErrorAction Stop
 
                 # if ($groupMembers -contains $userObj.Name) {
                 # TODO: test what jira says
                 $parameter = @{
                     URI        = $resourceURi -f $groupObj.Name, $userObj.Name
                     Method     = "DELETE"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove $($userObj.Name) from group")) {
@@ -110,7 +109,7 @@ function Remove-JiraGroupMember {
             }
 
             if ($PassThru) {
-                Write-Output (Get-JiraGroup -InputObject $groupObj -Credential $Credential)
+                Write-Output (Get-JiraGroup -InputObject $groupObj -Session $Session)
             }
         }
     }

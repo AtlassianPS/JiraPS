@@ -41,10 +41,9 @@ function Invoke-JiraIssueTransition {
         [String]
         $Comment,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $Passthru
@@ -59,7 +58,7 @@ function Invoke-JiraIssueTransition {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Session $Session
 
         if ("JiraPS.Transition" -in $Transition.PSObject.TypeNames) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Transition parameter is a JiraPS.Transition object"
@@ -109,7 +108,7 @@ function Invoke-JiraIssueTransition {
                 $validAssignee = $true
             }
             else {
-                if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Credential $Credential -Exact) {
+                if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Session $Session -Exact) {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                     $assigneeString = $assigneeObj.Name
                     $validAssignee = $true
@@ -148,7 +147,7 @@ function Invoke-JiraIssueTransition {
                 $value = $Fields.$key
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
 
-                if ($field = Get-JiraField -Field $name -Credential $Credential) {
+                if ($field = Get-JiraField -Field $name -Session $Session) {
                     # For some reason, this was coming through as a hashtable instead of a String,
                     # which was causing ConvertTo-Json to crash later.
                     # Not sure why, but this forces $id to be a String and not a hashtable.
@@ -183,7 +182,7 @@ function Invoke-JiraIssueTransition {
             URI        = "{0}/transitions" -f $issueObj.RestURL
             Method     = "POST"
             Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         Invoke-JiraMethod @parameter

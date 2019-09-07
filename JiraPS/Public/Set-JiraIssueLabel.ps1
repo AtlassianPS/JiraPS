@@ -45,10 +45,9 @@
         [Switch]
         $Clear,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $PassThru
@@ -67,7 +66,7 @@
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
             # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Session $Session
 
             $labels = [System.Collections.ArrayList]@($issueObj.labels | Where-Object {$_})
 
@@ -115,14 +114,14 @@
                 URI        = $issueObj.RestURL
                 Method     = "PUT"
                 Body       = ConvertTo-Json -InputObject $requestBody -Depth 6
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Updating Issue labels")) {
                 Invoke-JiraMethod @parameter
 
                 if ($PassThru) {
-                    Get-JiraIssue -Key $issueObj.Key -Credential $Credential
+                    Get-JiraIssue -Key $issueObj.Key -Session $Session
                 }
             }
         }

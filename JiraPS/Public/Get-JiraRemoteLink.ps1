@@ -31,10 +31,9 @@ function Get-JiraRemoteLink {
         [Int]
         $LinkId,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -50,7 +49,7 @@ function Get-JiraRemoteLink {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
             # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Session $Session
 
             $urlAppendix = ""
             if ($LinkId) {
@@ -60,7 +59,7 @@ function Get-JiraRemoteLink {
             $parameter = @{
                 URI        = "{0}/remotelink{1}" -f $issueObj.RestUrl, $urlAppendix
                 Method     = "GET"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod @parameter

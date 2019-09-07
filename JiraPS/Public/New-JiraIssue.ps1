@@ -45,10 +45,9 @@ function New-JiraIssue {
         [PSCustomObject]
         $Fields,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -57,14 +56,14 @@ function New-JiraIssue {
 
     process {
 
-        $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
+        $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Session $Session -ErrorAction Stop -Debug:$false
 
         $resourceURi = "rest/api/latest/issue"
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop -Debug:$false
+        $ProjectObj = Get-JiraProject -Project $Project -Session $Session -ErrorAction Stop -Debug:$false
         $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {$_.Id -eq $IssueType -or $_.Name -eq $IssueType}
 
         if ($null -eq $issueTypeObj.Id)
@@ -96,7 +95,7 @@ function New-JiraIssue {
         }
         elseif ($ProjectObj.Style -eq "next-gen"){
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding reporter as next-gen projects must have reporter set."
-            $requestBody["reporter"] = @{"name" = "$((Get-JiraUser -Credential $Credential).Name)"}
+            $requestBody["reporter"] = @{"name" = "$((Get-JiraUser -Session $Session).Name)"}
         }
 
         if ($Parent) {
@@ -122,7 +121,7 @@ function New-JiraIssue {
             $name = $_key
             $value = $Fields.$_key
 
-            if ($field = Get-JiraField -Field $name -Credential $Credential -Debug:$false) {
+            if ($field = Get-JiraField -Field $name -Session $Session -Debug:$false) {
                 # For some reason, this was coming through as a hashtable instead of a String,
                 # which was causing ConvertTo-Json to crash later.
                 # Not sure why, but this forces $id to be a String and not a hashtable.
@@ -170,7 +169,7 @@ function New-JiraIssue {
             URI        = $resourceURi
             Method     = "POST"
             Body       = (ConvertTo-Json -InputObject ([PSCustomObject]$hashtable) -Depth 7)
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($Summary, "Creating new Issue on JIRA")) {
@@ -178,7 +177,7 @@ function New-JiraIssue {
                 # REST result will look something like this:
                 # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/latest/issue/12345"}
                 # This will fetch the created issue to return it with all it'a properties
-                Write-Output (Get-JiraIssue -Key $result.Key -Credential $Credential)
+                Write-Output (Get-JiraIssue -Key $result.Key -Session $Session)
             }
         }
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"

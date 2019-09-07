@@ -44,10 +44,9 @@
         [UInt32[]]
         $PermissionId,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -71,7 +70,7 @@
             $parameter = @{
                 URI        = "{0}/permission/{1}" -f $Filter.RestURL, $_permissionId
                 Method     = "DELETE"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($InputObject.Type, "Remove Permission")) {

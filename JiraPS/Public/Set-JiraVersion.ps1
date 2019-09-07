@@ -68,10 +68,9 @@
         [Object]
         $Project,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -86,7 +85,7 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
 
-            $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
+            $versionObj = Get-JiraVersion -Id $_version.Id -Session $Session -ErrorAction Stop
 
             $requestBody = @{}
 
@@ -103,7 +102,7 @@
                 $requestBody["released"] = $Released
             }
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Project")) {
-                $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
+                $projectObj = Get-JiraProject -Project $Project -Session $Session -ErrorAction Stop
 
                 $requestBody["projectId"] = $projectObj.Id
             }
@@ -118,7 +117,7 @@
                 URI        = $versionObj.RestUrl
                 Method     = "PUT"
                 Body       = ConvertTo-Json -InputObject $requestBody
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {

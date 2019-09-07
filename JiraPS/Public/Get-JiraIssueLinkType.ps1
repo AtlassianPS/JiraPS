@@ -27,10 +27,9 @@ function Get-JiraIssueLinkType {
         [Object]
         $LinkType,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -48,7 +47,7 @@ function Get-JiraIssueLinkType {
                 $parameter = @{
                     URI        = $resourceURi -f ""
                     Method     = "GET"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
@@ -62,7 +61,7 @@ function Get-JiraIssueLinkType {
                     $parameter = @{
                         URI        = $resourceURi -f "/$LinkType"
                         Method     = "GET"
-                        Credential = $Credential
+                        Session    = $Session
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter
@@ -70,7 +69,7 @@ function Get-JiraIssueLinkType {
                     Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
                 }
                 else {
-                    Write-Output (Get-JiraIssueLinkType -Credential $Credential | Where-Object { $_.Name -like $LinkType })
+                    Write-Output (Get-JiraIssueLinkType -Session $Session | Where-Object { $_.Name -like $LinkType })
                 }
             }
         }

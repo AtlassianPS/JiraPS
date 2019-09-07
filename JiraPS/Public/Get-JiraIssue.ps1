@@ -85,10 +85,9 @@ function Get-JiraIssue {
         [UInt32]
         $PageSize = $script:DefaultPageSize,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -119,7 +118,7 @@ function Get-JiraIssue {
                         URI          = $resourceURi -f $_key
                         Method       = "GET"
                         GetParameter = $getParameter
-                        Credential   = $Credential
+                        Session      = $Session
                     }
 
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
@@ -134,7 +133,7 @@ function Get-JiraIssue {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
-                    Write-Output (Get-JiraIssue -Key $_issue.Key -Fields $Fields -Credential $Credential)
+                    Write-Output (Get-JiraIssue -Key $_issue.Key -Fields $Fields -Session $Session)
                 }
             }
             'ByJQL' {
@@ -150,7 +149,7 @@ function Get-JiraIssue {
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
-                    Credential   = $Credential
+                    Session      = $Session
                 }
                 if ($Fields) {
                     $parameter["GetParameter"]["fields"] = $Fields
@@ -174,7 +173,7 @@ function Get-JiraIssue {
                 Invoke-JiraMethod @parameter
             }
             'ByFilter' {
-                $filterObj = (Get-JiraFilter -InputObject $Filter -Credential $Credential -ErrorAction Stop).searchurl
+                $filterObj = (Get-JiraFilter -InputObject $Filter -Session $Session -ErrorAction Stop).searchurl
                 <#
                   #ToDo:CustomClass
                   Once we have custom classes, this will no longer be necessary
@@ -190,7 +189,7 @@ function Get-JiraIssue {
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
-                    Credential   = $Credential
+                    Session      = $Session
 
                 }
                 if ($Fields) {

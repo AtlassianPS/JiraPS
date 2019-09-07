@@ -79,10 +79,9 @@
         [DateTime]
         $StartDate,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -138,7 +137,7 @@
                     }
                 }
                 else {
-                    $requestBody["projectId"] = (Get-JiraProject $Project -Credential $Credential).Id
+                    $requestBody["projectId"] = (Get-JiraProject $Project -Session $Session).Id
                 }
             }
         }
@@ -147,7 +146,7 @@
             URI        = $resourceURi
             Method     = "POST"
             Body       = ConvertTo-Json -InputObject $requestBody
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($Name, "Creating new Version on JIRA")) {

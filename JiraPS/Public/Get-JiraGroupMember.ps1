@@ -39,10 +39,9 @@ function Get-JiraGroupMember {
         [UInt32]
         $PageSize = $script:DefaultPageSize,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -59,7 +58,7 @@ function Get-JiraGroupMember {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $groupObj = Get-JiraGroup -GroupName $Group -Credential $Credential -ErrorAction Stop
+        $groupObj = Get-JiraGroup -GroupName $Group -Session $Session -ErrorAction Stop
 
         foreach ($_group in $groupObj) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
@@ -74,7 +73,7 @@ function Get-JiraGroupMember {
                 }
                 OutputType   = "JiraUser"
                 Paging       = $true
-                Credential   = $Credential
+                Session      = $Session
             }
             if ($IncludeInactive) {
                 $parameter["includeInactiveUsers"] = $true

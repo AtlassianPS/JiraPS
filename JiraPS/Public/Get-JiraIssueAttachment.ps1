@@ -31,10 +31,9 @@ function Get-JiraIssueAttachment {
         [String]
         $FileName,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -46,7 +45,7 @@ function Get-JiraIssueAttachment {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Session $Session
 
         if ($issueObj.Attachment) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Found Attachments on the Issue."

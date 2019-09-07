@@ -28,10 +28,9 @@
         [Object[]]
         $Group,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $Force
@@ -57,12 +56,12 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
+            $groupObj = Get-JiraGroup -GroupName $_group -Session $Session -ErrorAction Stop
 
             $parameter = @{
                 URI        = $resourceURi -f $groupObj.Name
                 Method     = "DELETE"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove group")) {

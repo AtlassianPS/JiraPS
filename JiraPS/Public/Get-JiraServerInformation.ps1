@@ -21,7 +21,7 @@ function Get-JiraServerInformation {
         $parameter = @{
             URI        = $resourceURi
             Method     = "GET"
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod @parameter

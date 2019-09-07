@@ -30,7 +30,7 @@ function New-JiraSession {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $session = ConvertTo-JiraSession -Name $SessionName -Credential $Credential -ServerConfig $serverConfig
+        $session = ConvertTo-JiraSession -Name $SessionName -Session $Session -ServerConfig $serverConfig
 
         $parameter = @{
             URI          = $resourceURi

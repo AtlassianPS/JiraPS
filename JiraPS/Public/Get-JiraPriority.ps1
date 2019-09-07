@@ -6,10 +6,9 @@ function Get-JiraPriority {
         [Int[]]
         $Id,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -27,7 +26,7 @@ function Get-JiraPriority {
                 $parameter = @{
                     URI        = $resourceURi -f ""
                     Method     = "GET"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
@@ -42,7 +41,7 @@ function Get-JiraPriority {
                     $parameter = @{
                         URI        = $resourceURi -f "/$_id"
                         Method     = "GET"
-                        Credential = $Credential
+                        Session    = $Session
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter

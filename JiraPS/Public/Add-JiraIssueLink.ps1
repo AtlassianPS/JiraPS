@@ -59,10 +59,9 @@ function Add-JiraIssueLink {
         [String]
         $Comment,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -77,7 +76,7 @@ function Add-JiraIssueLink {
 
         foreach ($_issue in $Issue) {
             # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Session $Session
 
             foreach ($_issueLink in $IssueLink) {
                 if ($_issueLink.inwardIssue) {
@@ -108,7 +107,7 @@ function Add-JiraIssueLink {
                     URI        = $resourceURi
                     Method     = "POST"
                     Body       = ConvertTo-Json -InputObject $body
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key)) {

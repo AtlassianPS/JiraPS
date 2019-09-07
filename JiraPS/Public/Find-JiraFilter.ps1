@@ -68,9 +68,9 @@ function Find-JiraFilter {
         [Validateset('description','favourite_count','is_favourite','id','name','owner')]
         [string]$Sort,
 
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -90,20 +90,20 @@ function Find-JiraFilter {
                 expand = $Fields
             }
             Paging       = $true
-            Credential   = $Credential
+            Session      = $Session
         }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('AccountId')) {
             $parameter['GetParameter']['accountId'] = $AccountId
         }
         elseif ($PSCmdlet.ParameterSetName -eq 'ByOwner') {
-            $userObj = Get-JiraUser -InputObject $Owner -Credential $Credential -ErrorAction Stop
+            $userObj = Get-JiraUser -InputObject $Owner -Session $Session -ErrorAction Stop
             $parameter['GetParameter']['accountId'] = $userObj.AccountId
         }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('GroupName')) {
             $parameter['GetParameter']['groupName'] = $GroupName
         }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Project')) {
-            $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
+            $projectObj = Get-JiraProject -Project $Project -Session $Session -ErrorAction Stop
             $parameter['GetParameter']['projectId'] = $projectObj.Id
         }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Sort')) {

@@ -28,10 +28,9 @@ function Get-JiraIssueComment {
         [Object]
         $Issue,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -43,7 +42,7 @@ function Get-JiraIssueComment {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Session $Session
 
         $parameter = @{
             URI          = "{0}/comment" -f $issueObj.RestURL
@@ -53,7 +52,7 @@ function Get-JiraIssueComment {
             }
             OutputType   = "JiraComment"
             Paging       = $true
-            Credential   = $Credential
+            Session      = $Session
         }
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

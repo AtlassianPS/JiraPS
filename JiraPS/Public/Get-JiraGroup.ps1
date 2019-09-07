@@ -8,10 +8,9 @@ function Get-JiraGroup {
         [String[]]
         $GroupName,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -33,7 +32,7 @@ function Get-JiraGroup {
             $parameter = @{
                 URI        = $resourceURi -f $escapedGroupName
                 Method     = "GET"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod @parameter

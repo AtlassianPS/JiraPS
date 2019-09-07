@@ -10,10 +10,9 @@ function Get-JiraIssueCreateMetadata {
         [String]
         $IssueType,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -26,7 +25,7 @@ function Get-JiraIssueCreateMetadata {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
+        $projectObj = Get-JiraProject -Project $Project -Session $Session -ErrorAction Stop
         $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {$_.Id -eq $IssueType -or $_.Name -eq $IssueType}
 
         if ($null -eq $issueTypeObj.Id)
@@ -42,7 +41,7 @@ function Get-JiraIssueCreateMetadata {
         $parameter = @{
             URI        = $resourceURi -f $projectObj.Id, $issueTypeObj.Id
             Method     = "GET"
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod @parameter

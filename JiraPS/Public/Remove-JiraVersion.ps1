@@ -27,10 +27,9 @@
         [Object[]]
         $Version,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $Force
@@ -58,12 +57,12 @@
                 $_version = $_version.Id
             }
 
-            $versionObj = Get-JiraVersion -Id $_version -Credential $Credential -ErrorAction Stop
+            $versionObj = Get-JiraVersion -Id $_version -Session $Session -ErrorAction Stop
 
             $parameter = @{
                 URI        = $versionObj.RestUrl
                 Method     = "DELETE"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($versionObj.Name, "Removing Version")) {

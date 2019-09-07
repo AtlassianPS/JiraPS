@@ -45,10 +45,9 @@ function Add-JiraIssueWorklog {
         [String]
         $VisibleRole = 'All Users',
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -62,7 +61,7 @@ function Add-JiraIssueWorklog {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Session $Session
 
         if (-not $issueObj) {
             $errorMessage = @{
@@ -101,7 +100,7 @@ function Add-JiraIssueWorklog {
             URI        = $resourceURi -f $issueObj.RestURL
             Method     = "POST"
             Body       = ConvertTo-Json -InputObject $requestBody
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
