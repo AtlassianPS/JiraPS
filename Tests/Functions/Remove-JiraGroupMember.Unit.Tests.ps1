@@ -38,7 +38,6 @@ BeforeAll {
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Definitions
-        $jiraServer = 'http://jiraserver.example.com'
 
         $testGroupName = 'testGroup'
         $testUsername1 = 'testUsername1'
@@ -46,9 +45,6 @@ BeforeAll {
         #endregion Definitions
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraGroup -ModuleName JiraPS {
             [PSCustomObject]@{
@@ -117,7 +113,7 @@ BeforeAll {
                     ModuleName      = "JiraPS"
                     ParameterFilter = {
                         $Method -eq 'Delete' -and
-                        $URI -like "$jiraServer/rest/api/*/group/user?groupname=$testGroupName&username=$testUsername1"
+                        $URI -like "rest/api/*/group/user?groupname=$testGroupName&username=$testUsername1"
                     }
                     Exactly         = $true
                     Times           = 1
@@ -147,7 +143,7 @@ BeforeAll {
                     ModuleName      = "JiraPS"
                     ParameterFilter = {
                         $Method -eq 'Delete' -and
-                        $URI -like "$jiraServer/rest/api/*/group/user?groupname=$testGroupName&username=*"
+                        $URI -like "rest/api/*/group/user?groupname=$testGroupName&username=*"
                     }
                     Exactly         = $true
                     Times           = 2
@@ -166,7 +162,7 @@ BeforeAll {
                     ModuleName      = "JiraPS"
                     ParameterFilter = {
                         $Method -eq "Delete" -and
-                        $URI -like "*/rest/api/*/group/user*" -and
+                        $URI -like "rest/api/*/group/user*" -and
                         $URI -match "groupname=$testGroupName" -and
                         $URI -match "username=$testUsername1"
                     }
@@ -188,7 +184,7 @@ BeforeAll {
                     ModuleName      = "JiraPS"
                     ParameterFilter = {
                         $Method -eq "Delete" -and
-                        $URI -like "*/rest/api/*/group/user*" -and
+                        $URI -like "rest/api/*/group/user*" -and
                         $URI -match "groupname=$testGroupName" -and
                         $URI -match "username=$testUsername1"
                     }
@@ -207,7 +203,7 @@ BeforeAll {
                     ModuleName      = "JiraPS"
                     ParameterFilter = {
                         $Method -eq "Delete" -and
-                        $URI -like "*/rest/api/*/group/user*" -and
+                        $URI -like "rest/api/*/group/user*" -and
                         $URI -match "groupname=$testGroupName" -and
                         $URI -match "username=$testUsername1"
                     }
@@ -229,7 +225,7 @@ BeforeAll {
                     ModuleName      = "JiraPS"
                     ParameterFilter = {
                         $Method -eq "Delete" -and
-                        $URI -like "*/rest/api/*/group/user*" -and
+                        $URI -like "rest/api/*/group/user*" -and
                         $URI -match "groupname=$testGroupName" -and
                         $URI -match "username=$testUsername1"
                     }

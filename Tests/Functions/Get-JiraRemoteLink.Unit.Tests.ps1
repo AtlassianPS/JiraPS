@@ -44,7 +44,7 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
         $restResult = @"
 {
     "id": 10000,
-    "self": "$jiraServer/rest/api/latest/issue/MKY-1/remotelink/10000",
+    "self": "rest/api/latest/issue/MKY-1/remotelink/10000",
     "globalId": "system=http://www.mycompany.com/support&id=1",
     "application": {
         "type": "com.acme.tracker",
@@ -63,13 +63,9 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{
-                'RestURL' = "$jiraServer/rest/api/latest/issue/12345"
+                'RestURL' = "rest/api/latest/issue/12345"
                 'Key'     = $issueKey
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
@@ -109,7 +105,7 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
                 ModuleName = 'JiraPS'
                 ParameterFilter = {
                     $Method -eq "Get" -and
-                    $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink"
+                    $Uri -like "rest/api/*/issue/12345/remotelink"
                 }
                 Exactly = $true
                 Times = 1
@@ -136,7 +132,7 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
                 ModuleName = 'JiraPS'
                 ParameterFilter = {
                     $Method -eq "Get" -and
-                    $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink/10000"
+                    $Uri -like "rest/api/*/issue/12345/remotelink/10000"
                 }
                 Exactly = $true
                 Times = 1

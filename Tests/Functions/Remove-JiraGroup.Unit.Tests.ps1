@@ -37,14 +37,13 @@ Describe "Remove-JiraGroup" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $testGroupName = 'testGroup'
 
         $testJson = @"
 {
     "name": "$testGroupName",
-    "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
+    "self": "rest/api/2/group?groupname=$testGroupName",
     "users": {
         "size": 0,
         "items": [],
@@ -56,17 +55,13 @@ Describe "Remove-JiraGroup" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Mock Get-JiraGroup -ModuleName JiraPS {
             $object = ConvertFrom-Json $testJson
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
             return $object
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -like "$jiraServer/rest/api/*/group?groupname=$testGroupName"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -like "rest/api/*/group?groupname=$testGroupName"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This REST method should produce no output
         }

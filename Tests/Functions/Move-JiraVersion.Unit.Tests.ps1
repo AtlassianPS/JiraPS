@@ -37,7 +37,6 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $versionID1 = 16840
         $versionID2 = 16940
         $projectKey = 'LDD'
@@ -57,9 +56,6 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
 "@
 
         #region Mock
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraProject -ModuleName JiraPS {
             $Projects = ConvertFrom-Json $JiraProjectData
@@ -76,18 +72,18 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                     Project     = (Get-JiraProject -Project $projectKey)
                     ReleaseDate = (Get-Date "2017-12-01")
                     StartDate   = (Get-Date "2017-01-01")
-                    RestUrl     = "$jiraServer/rest/api/latest/version/$_Id"
+                    RestUrl     = "rest/api/latest/version/$_Id"
                 }
                 $Version.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
                 $Version
             }
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -like "$jiraServer/rest/api/*/version/$versionID1/move" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -like "rest/api/*/version/$versionID1/move" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -like "$jiraServer/rest/api/*/version/$versionID2/move" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -like "rest/api/*/version/$versionID2/move" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 
@@ -111,20 +107,18 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
             It 'moves a Version using its ID and Last Position' {
                 { Move-JiraVersion -Version $versionID1 -Position Last -ErrorAction Stop } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 0 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID1/move" -and
+                    $URI -like "rest/api/latest/version/$versionID1/move" -and
                     $Body -match '"position":\s*"Last"'
                 }
             }
             It 'moves a Version using its ID and Earlier Position' {
                 { Move-JiraVersion -Version $versionID1 -Position Earlier -ErrorAction Stop } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 0 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID1/move" -and
+                    $URI -like "rest/api/latest/version/$versionID1/move" -and
                     $Body -match '"position":\s*"Earlier"'
                 }
             }
@@ -134,10 +128,9 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                     Move-JiraVersion -Version $version -Position Later -ErrorAction Stop
                 } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID2/move" -and
+                    $URI -like "rest/api/latest/version/$versionID2/move" -and
                     $Body -match '"position":\s*"Later"'
                 }
             }
@@ -147,10 +140,9 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                     Move-JiraVersion -Version $version -Position First -ErrorAction Stop
                 } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID2/move" -and
+                    $URI -like "rest/api/latest/version/$versionID2/move" -and
                     $Body -match '"position":\s*"First"'
                 }
             }
@@ -160,10 +152,9 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                     $version | Move-JiraVersion -Position First -ErrorAction Stop
                 } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID2/move" -and
+                    $URI -like "rest/api/latest/version/$versionID2/move" -and
                     $Body -match '"position":\s*"First"'
                 }
             }
@@ -172,10 +163,9 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                     $versionID1 | Move-JiraVersion -Position First -ErrorAction Stop
                 } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 0 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID1/move" -and
+                    $URI -like "rest/api/latest/version/$versionID1/move" -and
                     $Body -match '"position":\s*"First"'
                 }
             }
@@ -185,10 +175,9 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                 $restUrl = (Get-JiraVersion -Id $versionID2).RestUrl
                 { Move-JiraVersion -Version $versionID1 -After $versionID2 -ErrorAction Stop } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID1/move" -and
+                    $URI -like "rest/api/latest/version/$versionID1/move" -and
                     $Body -match """after"":\s*""$restUrl"""
                 }
             }
@@ -197,10 +186,9 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                 $version1 = Get-JiraVersion -ID $versionID1
                 { Move-JiraVersion -Version $version1 -After $versionID2 -ErrorAction Stop } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 3 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID1/move" -and
+                    $URI -like "rest/api/latest/version/$versionID1/move" -and
                     $Body -match """after"":\s*""$restUrl"""
                 }
             }
@@ -208,10 +196,9 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                 $version2 = Get-JiraVersion -ID $versionID2
                 { Move-JiraVersion -Version $versionID1 -After $version2 -ErrorAction Stop } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID1/move" -and
+                    $URI -like "rest/api/latest/version/$versionID1/move" -and
                     $Body -match """after"":\s*""$($version2.RestUrl)"""
                 }
             }
@@ -219,10 +206,9 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                 $version2 = Get-JiraVersion -ID $versionID2
                 { $versionID1 | Move-JiraVersion -After $version2 -ErrorAction Stop } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID1/move" -and
+                    $URI -like "rest/api/latest/version/$versionID1/move" -and
                     $Body -match """after"":\s*""$($version2.RestUrl)"""
                 }
             }
@@ -231,10 +217,9 @@ Describe "Move-JiraVersion" -Tag 'Unit' {
                 $version2 = Get-JiraVersion -ID $versionID2
                 { $version1 | Move-JiraVersion -After $version2 -ErrorAction Stop } | Should Not Throw
                 Assert-MockCalled 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraConfigServer' -Times 1 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter {
                     $Method -eq 'POST' -and
-                    $URI -like "$jiraServer/rest/api/latest/version/$versionID1/move" -and
+                    $URI -like "rest/api/latest/version/$versionID1/move" -and
                     $Body -match """after"":\s*""$($version2.RestUrl)"""
                 }
             }

@@ -37,7 +37,6 @@ Describe "Get-JiraComponent" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $projectKey = 'TEST'
         $projectId = '10004'
@@ -51,14 +50,14 @@ Describe "Get-JiraComponent" -Tag 'Unit' {
         $restResultAll = @"
 [
     {
-        "self": "$jiraServer/rest/api/2/component/$componentId",
+        "self": "rest/api/2/component/$componentId",
         "id": "$componentId",
         "name": "$componentName",
         "project": "$projectKey",
         "projectId": "$projectId"
     },
     {
-        "self": "$jiraServer/rest/api/2/component/$componentId2",
+        "self": "rest/api/2/component/$componentId2",
         "id": "$componentId2",
         "name": "$componentName2",
         "project": "$projectKey",
@@ -70,7 +69,7 @@ Describe "Get-JiraComponent" -Tag 'Unit' {
         $restResultOne = @"
 [
     {
-        "self": "$jiraServer/rest/api/2/component/$componentId",
+        "self": "rest/api/2/component/$componentId",
         "id": "$componentId",
         "name": "$componentName",
         "project": "$projectKey",
@@ -78,10 +77,6 @@ Describe "Get-JiraComponent" -Tag 'Unit' {
     }
 ]
 "@
-
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "rest/api/latest/component/$componentId"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'

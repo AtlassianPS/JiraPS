@@ -37,7 +37,6 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $TestIssueJSONs = @{
 
@@ -218,10 +217,6 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
 
         }
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Mock Get-JiraIssue {
             $obj = $TestIssueJSONs[$Key] | ConvertFrom-Json
 
@@ -231,11 +226,11 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
             return $obj
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$URI -like "$jiraServer/rest/api/*/issue/TEST-1?*" -and $Method -eq "Delete"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$URI -like "rest/api/*/issue/TEST-1?*" -and $Method -eq "Delete"} {
             return $null
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$URI -like "$jiraServer/rest/api/*/issue/TEST-2?deleteSubTasks=False" -and $Method -eq "Delete"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$URI -like "rest/api/*/issue/TEST-2?deleteSubTasks=False" -and $Method -eq "Delete"} {
 
           Write-Error -Exception  -ErrorId
             $MockedResponse = @"
@@ -259,7 +254,7 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
             $PSCmdlet.WriteError($errorItem)
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$URI -like "$jiraServer/rest/api/*/issue/TEST-2?deleteSubTasks=True" -and $Method -eq "Delete"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$URI -like "rest/api/*/issue/TEST-2?deleteSubTasks=True" -and $Method -eq "Delete"} {
             return $null
         }
 

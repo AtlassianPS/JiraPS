@@ -55,14 +55,14 @@ BeforeAll {
             foreach ($_id in $Id) {
             $basicFilter = New-Object -TypeName PSCustomObject -Property @{
                 Id = $Id
-                RestUrl = "$jiraServer/rest/api/2/filter/$Id"
+                RestUrl = "rest/api/2/filter/$Id"
             }
             $basicFilter.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
             $basicFilter
         }
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "rest/api/*/filter/*/permission"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $sampleResponse
         }
@@ -87,7 +87,7 @@ BeforeAll {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Get' -and
-                    $URI -like '*/rest/api/*/filter/23456/permission'
+                    $URI -like 'rest/api/*/filter/23456/permission'
                 }
             }
 
@@ -96,7 +96,7 @@ BeforeAll {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Get' -and
-                    $URI -like '*/rest/api/*/filter/23456/permission'
+                    $URI -like 'rest/api/*/filter/23456/permission'
                 }
             }
         }

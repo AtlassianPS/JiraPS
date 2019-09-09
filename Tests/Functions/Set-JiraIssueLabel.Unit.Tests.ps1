@@ -37,16 +37,10 @@ Describe "Set-JiraIssueLabel" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'https://jira.example.com'
-
-        Mock Get-JiraConfigServer {
-            $jiraServer
-        }
-
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{
                 'Id'      = 123
-                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
+                'RestURL' = "rest/api/2/issue/12345"
                 'Labels'  = @('existingLabel1', 'existingLabel2')
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
@@ -57,7 +51,7 @@ Describe "Set-JiraIssueLabel" -Tag 'Unit' {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq "Put" -and $Uri -like "rest/api/*/issue/12345"} {
         }
 
         Mock Invoke-JiraMethod {
@@ -87,24 +81,24 @@ Describe "Set-JiraIssueLabel" -Tag 'Unit' {
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*update*labels*set*testLabel1*testLabel2*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like 'rest/api/2/issue/12345' -and $Body -like '*update*labels*set*testLabel1*testLabel2*' }
             }
 
             It "Adds new labels if the Add parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Add 'testLabel3' } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*update*labels*set*testLabel3*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like 'rest/api/2/issue/12345' -and $Body -like '*update*labels*set*testLabel3*' }
             }
 
             It "Removes labels if the Remove parameter is supplied" {
                 # The issue already has labels existingLabel1 and
                 # existingLabel2. It should be set to just existingLabel2.
                 { Set-JiraIssueLabel -Issue TEST-001 -Remove 'existingLabel1' } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*update*labels*set*existingLabel2*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like 'rest/api/2/issue/12345' -and $Body -like '*update*labels*set*existingLabel2*' }
             }
 
             It "Clears all labels if the Clear parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Clear } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/rest/api/2/issue/12345' -and $Body -like '*update*labels*set*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like 'rest/api/2/issue/12345' -and $Body -like '*update*labels*set*' }
             }
 
             It "Allows use of both Add and Remove parameters at the same time" {

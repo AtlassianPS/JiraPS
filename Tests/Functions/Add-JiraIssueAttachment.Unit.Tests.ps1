@@ -42,7 +42,6 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
 
         $pass = ConvertTo-SecureString -AsPlainText -Force -String "passowrd"
         $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("user", $pass)
-        $jiraServer = 'http://jiraserver.example.com'
         $issueKey = "FOO-1234"
         $file = New-Item -Path "TestDrive:\MyFile.txt" -ItemType File -Force
         $fileName = $file.Name
@@ -51,11 +50,11 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
 
         $attachmentJson = @"
 {
-    "self": "$jiraServer/rest/api/2/attachment/$attachmentId",
+    "self": "rest/api/2/attachment/$attachmentId",
     "id": "$attachmentId",
     "filename": "$fileName",
     "author": {
-        "self": "$jiraServer/rest/api/2/user?username=admin",
+        "self": "rest/api/2/user?username=admin",
         "name": "admin",
         "key": "admin",
         "accountId": "0000:000000-0000-0000-0000-ab899c878d00",
@@ -82,7 +81,7 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
         Mock Get-JiraIssue -ModuleName JiraPS {
             $Issue = [PSCustomObject]@{
                 Key     = $issueKey
-                RestURL = "$jiraServer/rest/api/latest/issue/$issueKey"
+                RestURL = "rest/api/latest/issue/$issueKey"
             }
             $Issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             $Issue
@@ -92,7 +91,7 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueKey/attachments" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "rest/api/latest/issue/$issueKey/attachments" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json -InputObject $attachmentJson
         }

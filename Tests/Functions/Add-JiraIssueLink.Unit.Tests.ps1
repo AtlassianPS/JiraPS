@@ -43,10 +43,6 @@ Describe 'Add-JiraIssueLink' -Tag 'Unit' {
             type         = [PSCustomObject]@{name = "Composition"}
         }
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Mock Get-JiraIssue -ParameterFilter { $Key -eq $issueKey } {
             $object = [PSCustomObject]@{
                 Key = $issueKey

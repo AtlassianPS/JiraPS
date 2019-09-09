@@ -45,7 +45,7 @@ BeforeAll {
         $filterPermission2.Id = 2222
         $fullFilter = New-Object -TypeName PSCustomObject -Property @{
             Id = 12345
-            RestUrl = "$jiraServer/rest/api/2/filter/12345"
+            RestUrl = "rest/api/2/filter/12345"
             FilterPermissions = @(
                 $filterPermission1
                 $filterPermission2
@@ -54,7 +54,7 @@ BeforeAll {
         $fullFilter.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
         $basicFilter = New-Object -TypeName PSCustomObject -Property @{
             Id = 23456
-            RestUrl = "$jiraServer/rest/api/2/filter/23456"
+            RestUrl = "rest/api/2/filter/23456"
         }
         $basicFilter.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
 
@@ -70,7 +70,7 @@ BeforeAll {
             $fullFilter
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission*"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Delete' -and $URI -like "rest/api/*/filter/*/permission*"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 
@@ -97,11 +97,11 @@ BeforeAll {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Delete' -and
-                    $URI -like '*/rest/api/*/filter/12345/permission/1111'
+                    $URI -like 'rest/api/*/filter/12345/permission/1111'
                 }
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Delete' -and
-                    $URI -like '*/rest/api/*/filter/12345/permission/2222'
+                    $URI -like 'rest/api/*/filter/12345/permission/2222'
                 }
             }
 
@@ -112,11 +112,11 @@ BeforeAll {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Delete' -and
-                    $URI -like '*/rest/api/*/filter/23456/permission/3333'
+                    $URI -like 'rest/api/*/filter/23456/permission/3333'
                 }
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Delete' -and
-                    $URI -like '*/rest/api/*/filter/23456/permission/4444'
+                    $URI -like 'rest/api/*/filter/23456/permission/4444'
                 }
             }
         }

@@ -38,7 +38,6 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Definitions
-        $jiraServer = 'http://jiraserver.example.com'
         $versionName1 = 'v1.0'
         $versionName2 = 'v2.0'
         $versionName3 = 'v3.0'
@@ -62,7 +61,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
 "@
         $testJson1 = @"
 {
-    "self" : "$jiraServer/rest/api/latest/version/$versionID1",
+    "self" : "rest/api/latest/version/$versionID1",
     "id" : $versionID1,
     "description" : "$versionName1",
     "name" : "$versionName1",
@@ -73,7 +72,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
 "@
         $testJson2 = @"
 {
-    "self" : "$jiraServer/rest/api/latest/version/$versionID2",
+    "self" : "rest/api/latest/version/$versionID2",
     "id" : $versionID2,
     "description" : "$versionName2",
     "name" : "$versionName2",
@@ -85,7 +84,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
         $testJsonAll = @"
 [
     {
-        "self" : "$jiraServer/rest/api/latest/version/$versionID1",
+        "self" : "rest/api/latest/version/$versionID1",
         "id" : $versionID1,
         "description" : "$versionName1",
         "name" : "$versionName1",
@@ -94,7 +93,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
         "projectId" : "$projectId"
     },
     {
-        "self" : "$jiraServer/rest/api/latest/version/$versionID2",
+        "self" : "rest/api/latest/version/$versionID2",
         "id" : $versionID2,
         "description" : "$versionName2",
         "name" : "$versionName2",
@@ -103,7 +102,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
         "projectId" : "$projectId"
     },
     {
-        "self" : "$jiraServer/rest/api/latest/version/$versionID3",
+        "self" : "rest/api/latest/version/$versionID3",
         "id" : $versionID3,
         "description" : "$versionName3",
         "name" : "$versionName3",
@@ -116,9 +115,6 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
         #endregion Definitions
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraProject -ModuleName JiraPS {
             $json = ConvertFrom-Json $JiraProjectData
@@ -137,22 +133,22 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
             $result
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionId1" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "rest/api/latest/version/$versionId1" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $testJson1
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/version/$versionId2" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "rest/api/*/version/$versionId2" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $testJson2
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/version" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "rest/api/*/version" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $testJsonAll
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/project/*/version" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "rest/api/*/project/*/version" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $testJsonAll
         }
@@ -185,7 +181,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/version/$versionID1"
+                        $URI -like "rest/api/*/version/$versionID1"
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -213,7 +209,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/version/$versionID1"
+                        $URI -like "rest/api/*/version/$versionID1"
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -226,7 +222,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/version/$versionID2"
+                        $URI -like "rest/api/*/version/$versionID2"
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -258,7 +254,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/version/$versionID2"
+                        $URI -like "rest/api/*/version/$versionID2"
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -286,7 +282,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/$projectKey/version" -and
+                        $URI -like "rest/api/*/project/$projectKey/version" -and
                         $Paging -eq $true
                     }
                     Scope           = 'It'
@@ -324,7 +320,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/$projectKey/version" -and
+                        $URI -like "rest/api/*/project/$projectKey/version" -and
                         $Paging -eq $true
                     }
                     Scope           = 'It'
@@ -364,7 +360,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/*/version" -and
+                        $URI -like "rest/api/*/project/*/version" -and
                         $Paging -eq $true
                     }
                     Scope           = 'It'
@@ -402,7 +398,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/*/version" -and
+                        $URI -like "rest/api/*/project/*/version" -and
                         $Paging -eq $true
                     }
                     Scope           = 'It'
@@ -440,7 +436,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/*/version" -and
+                        $URI -like "rest/api/*/project/*/version" -and
                         $Paging -eq $true
                     }
                     Scope           = 'It'
@@ -476,7 +472,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/project/*/version' -and
+                        $URI -like 'rest/api/*/project/*/version' -and
                         $Paging -eq $true -and
                         $PSCmdlet.PagingParameters.Skip -eq 10
                     }
@@ -495,7 +491,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/project/*/version' -and
+                        $URI -like 'rest/api/*/project/*/version' -and
                         $Paging -eq $true -and
                         $PSCmdlet.PagingParameters.First -eq 50
                     }

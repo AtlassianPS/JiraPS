@@ -37,7 +37,6 @@ Describe "Remove-JiraRemoteLink" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $testIssueKey = 'EX-1'
 
@@ -62,10 +61,6 @@ Describe "Remove-JiraRemoteLink" -Tag 'Unit' {
     }
 }
 "@
-
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{

@@ -41,10 +41,6 @@ Describe "New-JiraIssue" -Tag 'Unit' {
         $jiraServer = 'https://jira.example.com'
         $issueTypeTest = 1
 
-        Mock Get-JiraConfigServer {
-            $jiraServer
-        }
-
         # If we don't override this in a context or test, we don't want it to
         # actually try to query a JIRA instance
         Mock Invoke-JiraMethod {
@@ -132,14 +128,14 @@ Describe "New-JiraIssue" -Tag 'Unit' {
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/issue" }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "rest/api/*/issue" }
             }
             It "Creates an issue in JIRA from pipeline" {
                 { $pipelineParams | New-JiraIssue } | Should Not Throw
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/issue" }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "rest/api/*/issue" }
             }
         }
 

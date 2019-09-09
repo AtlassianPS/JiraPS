@@ -37,11 +37,10 @@ Describe "ConvertTo-JiraComponent" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $sampleJson = @"
 {
-    "self": "$jiraServer/rest/api/2/component/11000",
+    "self": "rest/api/2/component/11000",
     "id": "11000",
     "name": "test component"
 }
@@ -61,6 +60,6 @@ Describe "ConvertTo-JiraComponent" -Tag 'Unit' {
 
         defProp $r 'Id' '11000'
         defProp $r 'Name' 'test component'
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/component/11000"
+        defProp $r 'RestUrl' "rest/api/2/component/11000"
     }
 }

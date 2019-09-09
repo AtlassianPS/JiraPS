@@ -37,8 +37,6 @@ Describe "Get-JiraServerInformation" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-
         $restResult = @"
 {
     "baseUrl":"$jiraServer",
@@ -52,11 +50,8 @@ Describe "Get-JiraServerInformation" -Tag 'Unit' {
     "serverTitle":"JIRA"
 }
 "@
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/serverInfo"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "rest/api/latest/serverInfo"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $restResult
         }

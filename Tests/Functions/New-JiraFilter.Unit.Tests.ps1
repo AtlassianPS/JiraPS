@@ -41,7 +41,7 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
 
         $responseFilter = @"
 {
-    "self": "$jiraServer/rest/api/latest/filter/12844",
+    "self": "rest/api/latest/filter/12844",
     "id": "12844",
     "name": "{0}",
     "jql": "{1}",
@@ -63,7 +63,7 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
             ConvertTo-JiraFilter
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/filter"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -like "rest/api/*/filter"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
             ConvertFrom-Json $responseFilter
         }
@@ -100,7 +100,7 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like '*/rest/api/*/filter' -and
+                    $URI -like 'rest/api/*/filter' -and
                     $Body -match "`"name`":\s*`"myName`"" -and
                     $Body -match "`"description`":\s*`"myDescription`"" -and
                     $Body -match "`"jql`":\s*`"myJQL`"" -and

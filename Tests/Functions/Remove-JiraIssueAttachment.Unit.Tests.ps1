@@ -37,7 +37,6 @@ Describe "Remove-JiraIssueAttachment" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $issueKey = "FOO-123"
         $attachmentId1 = 1010
         $attachmentId2 = 1011
@@ -46,9 +45,6 @@ Describe "Remove-JiraIssueAttachment" -Tag 'Unit' {
 
 
         #region Mock
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraIssueAttachment -ModuleName JiraPS {
             $all = @()
@@ -87,10 +83,10 @@ Describe "Remove-JiraIssueAttachment" -Tag 'Unit' {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId1" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "rest/api/latest/attachment/$attachmentId1" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/latest/attachment/$attachmentId2" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "rest/api/latest/attachment/$attachmentId2" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 
@@ -149,8 +145,8 @@ Describe "Remove-JiraIssueAttachment" -Tag 'Unit' {
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 0 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 8 -Scope It
-                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/latest/attachment/$attachmentId1" } -Exactly -Times 5 -Scope It
-                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/latest/attachment/$attachmentId2" } -Exactly -Times 3 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "rest/api/latest/attachment/$attachmentId1" } -Exactly -Times 5 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "rest/api/latest/attachment/$attachmentId2" } -Exactly -Times 3 -Scope It
             }
             It 'accepts positional parameters' {
                 { Remove-JiraIssueAttachment $attachmentId1 -Force } | Should Not Throw

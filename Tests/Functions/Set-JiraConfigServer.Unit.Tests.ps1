@@ -37,7 +37,8 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
+        $jiraServer = "http://jiraserver.example.com"
+
         $sampleServersConfigContent =
             "{`r`n" +
             "    `"Test`":  {`r`n" +

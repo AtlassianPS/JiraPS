@@ -37,7 +37,6 @@ Describe "ConvertTo-JiraProject" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $projectKey = 'IT'
         $projectId = '10003'
@@ -46,13 +45,13 @@ Describe "ConvertTo-JiraProject" -Tag 'Unit' {
         $sampleJson = @"
 {
     "expand": "description,lead,url,projectKeys",
-    "self": "$jiraServer/rest/api/2/project/$projectId",
+    "self": "rest/api/2/project/$projectId",
     "id": "$projectId",
     "key": "$projectKey",
     "name": "$projectName",
     "description": "",
     "lead": {
-        "self":  "$jiraServer/rest/api/2/user?username=admin",
+        "self":  "rest/api/2/user?username=admin",
         "key": "admin",
         "name": "admin",
         "avatarUrls": {
@@ -73,14 +72,14 @@ Describe "ConvertTo-JiraProject" -Tag 'Unit' {
     },
     "projectKeys": "HCC",
     "projectCategory": {
-        "self": "$jiraServer/rest/api/latest/projectCategory/10000",
+        "self": "rest/api/latest/projectCategory/10000",
         "id":  "10000",
         "name":  "Home Connect",
         "description":  "Home Connect Projects"
     },
     "projectTypeKey": "software",
     "components": {
-        "self": "$jiraServer/rest/api/2/component/11000",
+        "self": "rest/api/2/component/11000",
         "id": "11000",
         "description": "A test component",
         "name": "test component"
@@ -100,7 +99,7 @@ Describe "ConvertTo-JiraProject" -Tag 'Unit' {
         defProp $r 'Id' $projectId
         defProp $r 'Key' $projectKey
         defProp $r 'Name' $projectName
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/project/$projectId"
+        defProp $r 'RestUrl' "rest/api/2/project/$projectId"
 
         checkPsType $r.Lead 'JiraPS.User'
         # checkPsType $r.IssueTypes 'JiraPS.IssueType'

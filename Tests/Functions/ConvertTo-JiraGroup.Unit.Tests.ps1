@@ -37,12 +37,11 @@ Describe "ConvertTo-JiraGroup" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $groupName = 'powershell-testgroup'
 
         $sampleJson = @"
 {
-    "self": "$jiraServer/rest/api/2/group?groupname=$groupName",
+    "self": "rest/api/2/group?groupname=$groupName",
     "name": "$groupName",
     "users": {
         "size": 1,
@@ -65,7 +64,7 @@ Describe "ConvertTo-JiraGroup" -Tag 'Unit' {
         checkPsType $r 'JiraPS.Group'
 
         defProp $r 'Name' $groupName
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/group?groupname=$groupName"
+        defProp $r 'RestUrl' "rest/api/2/group?groupname=$groupName"
         defProp $r 'Size' 1
     }
 }

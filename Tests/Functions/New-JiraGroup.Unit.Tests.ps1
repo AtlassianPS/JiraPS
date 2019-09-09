@@ -37,14 +37,13 @@ Describe "New-JiraGroup" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $testGroupName = 'testGroup'
 
         $testJson = @"
 {
     "name": "$testGroupName",
-    "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
+    "self": "rest/api/2/group?groupname=$testGroupName",
     "users": {
         "size": 0,
         "items": [],
@@ -56,11 +55,7 @@ Describe "New-JiraGroup" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/group"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "rest/api/latest/group"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $testJson
         }
@@ -90,7 +85,7 @@ Describe "New-JiraGroup" -Tag 'Unit' {
         #     $newResult = New-JiraGroup -GroupName $testGroupName
         #     (Get-Member -InputObject $newResult).TypeName | Should Be 'JiraPS.Group'
         #     $newResult.Name | Should Be $testGroupName
-        #     $newResult.RestUrl | Should Be "$jiraServer/rest/api/2/group?groupname=$testGroupName"
+        #     $newResult.RestUrl | Should Be "rest/api/2/group?groupname=$testGroupName"
         # }
     }
 }

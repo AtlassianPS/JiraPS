@@ -37,7 +37,6 @@ Describe "ConvertTo-JiraVersion" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $versionId = '10000'
         $versionName = 'New Version 1'
@@ -46,7 +45,7 @@ Describe "ConvertTo-JiraVersion" -Tag 'Unit' {
 
         $sampleJson = @"
 {
-    "self": "$jiraServer/rest/api/2/version/$versionId",
+    "self": "rest/api/2/version/$versionId",
     "id": "$versionId",
     "description": "$versionDescription",
     "name": "$versionName",
@@ -85,6 +84,6 @@ Describe "ConvertTo-JiraVersion" -Tag 'Unit' {
         hasProp $r 'Archived'
         hasProp $r 'Released'
         hasProp $r 'Overdue'
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/version/$versionId"
+        defProp $r 'RestUrl' "rest/api/2/version/$versionId"
     }
 }

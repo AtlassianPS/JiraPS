@@ -37,13 +37,12 @@ Describe "ConvertTo-JiraLink" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $LinkID = "10000"
 
         $sampleJson = @"
 {
     "id": 10000,
-    "self": "http://jiraserver.example.com/rest/api/issue/MKY-1/remotelink/10000",
+    "self": "rest/api/issue/MKY-1/remotelink/10000",
     "globalId": "system=http://www.mycompany.com/support&id=1",
     "application": {
         "type": "com.acme.tracker",
@@ -80,6 +79,6 @@ Describe "ConvertTo-JiraLink" -Tag 'Unit' {
         checkPsType $r 'JiraPS.Link'
 
         defProp $r 'id' $LinkId
-        defProp $r 'RestUrl' "$jiraServer/rest/api/issue/MKY-1/remotelink/10000"
+        defProp $r 'RestUrl' "rest/api/issue/MKY-1/remotelink/10000"
     }
 }

@@ -37,8 +37,6 @@ Describe "Get-JiraProject" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-
         $projectKey = 'IT'
         $projectId = '10003'
         $projectName = 'Information Technology'
@@ -50,24 +48,24 @@ Describe "Get-JiraProject" -Tag 'Unit' {
         $restResultAll = @"
 [
     {
-        "self": "$jiraServer/rest/api/2/project/10003",
+        "self": "rest/api/2/project/10003",
         "id": "$projectId",
         "key": "$projectKey",
         "name": "$projectName",
         "projectCategory": {
-            "self": "$jiraServer/rest/api/2/projectCategory/10000",
+            "self": "rest/api/2/projectCategory/10000",
             "id": "10000",
             "description": "All Project Catagories",
             "name": "All Project"
         }
     },
     {
-        "self": "$jiraServer/rest/api/2/project/10121",
+        "self": "rest/api/2/project/10121",
         "id": "$projectId2",
         "key": "$projectKey2",
         "name": "$projectName2",
         "projectCategory": {
-            "self": "$jiraServer/rest/api/2/projectCategory/10000",
+            "self": "rest/api/2/projectCategory/10000",
             "id": "10000",
             "description": "All Project Catagories",
             "name": "All Project"
@@ -79,12 +77,12 @@ Describe "Get-JiraProject" -Tag 'Unit' {
         $restResultOne = @"
 [
     {
-        "self": "$jiraServer/rest/api/2/project/10003",
+        "self": "rest/api/2/project/10003",
         "id": "$projectId",
         "key": "$projectKey",
         "name": "$projectName",
         "projectCategory": {
-            "self": "$jiraServer/rest/api/2/projectCategory/10000",
+            "self": "rest/api/2/projectCategory/10000",
             "id": "10000",
             "description": "All Project Catagories",
             "name": "All Project"
@@ -92,16 +90,13 @@ Describe "Get-JiraProject" -Tag 'Unit' {
     }
 ]
 "@
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/project*"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "rest/api/*/project*"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $restResultAll
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/project/$projectKey?*"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "rest/api/*/project/$projectKey?*"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $restResultOne
         }

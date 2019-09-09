@@ -37,7 +37,6 @@ Describe "Remove-JiraUser" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $testUsername = 'powershell-test'
         $testEmail = "$testUsername@example.com"
@@ -46,7 +45,7 @@ Describe "Remove-JiraUser" -Tag 'Unit' {
         # Trimmed from this example JSON: expand, groups, avatarURL
         $testJsonGet = @"
 {
-    "self": "$jiraServer/rest/api/2/user?username=$testUsername",
+    "self": "rest/api/2/user?username=$testUsername",
     "key": "$testUsername",
     "name": "$testUsername",
     "emailAddress": "$testEmail",
@@ -55,17 +54,13 @@ Describe "Remove-JiraUser" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Mock Get-JiraUser -ModuleName JiraPS {
             $object = ConvertFrom-Json $testJsonGet
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
             return $object
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -like "rest/api/*/user?username=$testUsername"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This REST method should produce no output
         }

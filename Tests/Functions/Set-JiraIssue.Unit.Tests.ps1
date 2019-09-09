@@ -37,10 +37,6 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-
-        Mock Get-JiraConfigServer {
-            $jiraServer
-        }
         Mock Get-JiraUser {
             [PSCustomObject] @{
                 'Name' = 'username'
@@ -51,7 +47,7 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
 
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{
-                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
+                'RestURL' = "rest/api/2/issue/12345"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $object
@@ -61,10 +57,10 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq "Put" -and $Uri -like "rest/api/*/issue/12345"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345/assignee"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq "Put" -and $Uri -like "rest/api/*/issue/12345/assignee"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 
@@ -100,38 +96,38 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345" -and $Body -like '*summary*set*New summary*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/2/issue/12345" -and $Body -like '*summary*set*New summary*' }
             }
 
             It "Modifies the description of an issue if the -Description parameter is passed" {
                 { Set-JiraIssue -Issue TEST-001 -Description 'New description' } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345" -and $Body -like '*description*set*New description*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/2/issue/12345" -and $Body -like '*description*set*New description*' }
             }
 
             It "Modifies the description of an issue without sending notifications if the -Description parameter is passed" {
                 { Set-JiraIssue -Issue TEST-001 -Description 'New description' -SkipNotification } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345" -and $Body -like '*description*set*New description*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/2/issue/12345" -and $Body -like '*description*set*New description*' }
             }
 
             It "Modifies the assignee of an issue if -Assignee is passed" {
                 { Set-JiraIssue -Issue TEST-001 -Assignee username } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345/assignee" -and $Body -like '*name*username*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/2/issue/12345/assignee" -and $Body -like '*name*username*' }
             }
 
             It "Unassigns an issue if 'Unassigned' is passed to the -Assignee parameter" {
                 { Set-JiraIssue -Issue TEST-001 -Assignee unassigned } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345/assignee" -and $Body -like '*"name":*null*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/2/issue/12345/assignee" -and $Body -like '*"name":*null*' }
             }
 
             It "Sets the default assignee to an issue if 'Default' is passed to the -Assignee parameter" {
                 { Set-JiraIssue -Issue TEST-001 -Assignee default } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345/assignee" -and $Body -like '*"name":*"-1"*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/2/issue/12345/assignee" -and $Body -like '*"name":*"-1"*' }
             }
 
             It "Calls Invoke-JiraMethod twice if using Assignee and another field" {
                 { Set-JiraIssue -Issue TEST-001 -Summary 'New summary' -Assignee username } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345" -and $Body -like '*summary*set*New summary*' }
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/2/issue/12345/assignee" -and $Body -like '*name*username*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/2/issue/12345" -and $Body -like '*summary*set*New summary*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/2/issue/12345/assignee" -and $Body -like '*name*username*' }
             }
 
             It "Uses Set-JiraIssueLabel with the -Set parameter when the -Label parameter is used" {
@@ -141,7 +137,7 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
 
             It "Adds a comment if the -AddComemnt parameter is passed" {
                 { Set-JiraIssue -Issue TEST-001 -AddComment 'New Comment' } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $Uri -like "$jiraServer/rest/api/2/issue/12345" -and $Body -like '*comment*add*body*New Comment*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $Uri -like "rest/api/2/issue/12345" -and $Body -like '*comment*add*body*New Comment*' }
             }
 
             It "Updates custom fields if provided to the -Fields parameter" {
@@ -152,9 +148,9 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
                     }
                 }
                 { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345' = 'foo'; 'customfield_67890' = 'bar'; 'customfield_111222' = @(@{'value' = 'foobar'})} } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/issue/12345" -and $Body -like '*customfield_12345*set*foo*' }
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/issue/12345" -and $Body -like '*customfield_67890*set*bar*' }
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/issue/12345" -and $Body -like '*customfield_111222*set*foobar*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/*/issue/12345" -and $Body -like '*customfield_12345*set*foo*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/*/issue/12345" -and $Body -like '*customfield_67890*set*bar*' }
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/*/issue/12345" -and $Body -like '*customfield_111222*set*foobar*' }
             }
 
         }

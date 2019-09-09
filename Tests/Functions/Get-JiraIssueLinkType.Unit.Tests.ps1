@@ -37,13 +37,6 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-
-
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Context "Sanity checking" {
             $command = Get-Command -Name Get-JiraIssueLinkType
 
@@ -51,8 +44,8 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
             defParam $command 'Session'
         }
 
-        $filterAll = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType"}
-        $filterOne = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType/10000"}
+        $filterAll = {$Method -eq 'Get' -and $Uri -ceq "rest/api/latest/issueLinkType"}
+        $filterOne = {$Method -eq 'Get' -and $Uri -ceq "rest/api/latest/issueLinkType/10000"}
 
         Mock ConvertTo-JiraIssueLinkType {
             ShowMockInfo 'ConvertTo-JiraIssueLinkType'

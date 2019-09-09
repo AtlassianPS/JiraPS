@@ -37,11 +37,10 @@ Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $sampleJson = @"
 {
-    "baseUrl":"$jiraServer",
+    "baseUrl":"http://test/",
     "version":"1000.1323.0",
     "versionNumbers":[1000,1323,0],
     "deploymentType":"Cloud",
@@ -63,7 +62,7 @@ Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
         checkPsType $r 'JiraPS.ServerInfo'
 
 
-        defProp $r 'BaseURL' $jiraServer
+        defProp $r 'BaseURL' "http://test/"
         defProp $r 'Version' ([Version]"1000.1323.0")
         defProp $r 'DeploymentType' "Cloud"
         defProp $r 'BuildNumber' 100062

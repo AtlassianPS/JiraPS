@@ -38,9 +38,6 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            'https://jira.example.com'
-        }
 
         Mock Get-JiraUser -ModuleName JiraPS {
             $object = [PSCustomObject] @{
@@ -60,7 +57,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
             Write-Output $obj
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/group/member' -and $GetParameter["groupname"] -eq "testgroup" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like 'rest/api/*/group/member' -and $GetParameter["groupname"] -eq "testgroup" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json @'
 {
@@ -99,7 +96,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member'
+                        $URI -like 'rest/api/*/group/member'
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -116,7 +113,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member' -and
+                        $URI -like 'rest/api/*/group/member' -and
                         $PSCmdlet.PagingParameters.Skip -eq 10
                     }
                     Scope           = 'It'
@@ -134,7 +131,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member' -and
+                        $URI -like 'rest/api/*/group/member' -and
                         $PSCmdlet.PagingParameters.First -eq 50
                     }
                     Scope           = 'It'
@@ -154,7 +151,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member' -and
+                        $URI -like 'rest/api/*/group/member' -and
                         $GetParameter["groupname"] -eq "testgroup"
                     }
                     Scope           = 'It'
@@ -174,7 +171,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member' -and
+                        $URI -like 'rest/api/*/group/member' -and
                         $GetParameter["groupname"] -eq "testgroup"
                     }
                     Scope           = 'It'

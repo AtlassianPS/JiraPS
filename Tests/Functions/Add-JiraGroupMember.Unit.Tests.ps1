@@ -37,16 +37,11 @@ Describe "Add-JiraGroupMember" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         # In most test cases, user 1 is a member of the group and user 2 is not
         $testGroupName = 'testGroup'
         $testUsername1 = 'testUsername1'
         $testUsername2 = 'testUsername2'
-
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraGroup -ModuleName JiraPS {
             $object = [PSCustomObject] @{

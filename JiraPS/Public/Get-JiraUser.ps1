@@ -89,7 +89,7 @@ function Get-JiraUser {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$user [$user]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f $user
+                        URI        = $resourceURi -f [System.Uri]::EscapeDataString($user)
                         Method     = "GET"
                         Session    = $Session
                     }

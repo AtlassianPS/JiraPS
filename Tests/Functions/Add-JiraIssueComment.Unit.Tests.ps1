@@ -37,13 +37,12 @@ Describe "Add-JiraIssueComment" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
         $issueKey = 'IT-3676'
 
         $restResponse = @"
 {
-    "self": "$jiraServer/rest/api/2/issue/$issueID/comment/90730",
+    "self": "rest/api/2/issue/$issueID/comment/90730",
     "id": "90730",
     "body": "Test comment",
     "created": "2015-05-01T16:24:38.000-0500",
@@ -51,15 +50,11 @@ Describe "Add-JiraIssueComment" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer {
-            Write-Output $jiraServer
-        }
-
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl = "rest/api/latest/issue/$issueID"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $object
@@ -69,7 +64,7 @@ Describe "Add-JiraIssueComment" -Tag 'Unit' {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
+        Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "rest/api/latest/issue/$issueID/comment"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $restResponse
         }

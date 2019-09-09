@@ -37,7 +37,6 @@ Describe "Set-JiraUser" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $testUsername = 'powershell-test'
         $testDisplayName = 'PowerShell Test User'
@@ -48,7 +47,7 @@ Describe "Set-JiraUser" -Tag 'Unit' {
 
         $restResultGet = @"
 {
-    "self": "$jiraServer/rest/api/2/user?username=$testUsername",
+    "self": "rest/api/2/user?username=$testUsername",
     "key": "$testUsername",
     "name": "$testUsername",
     "displayName": "$testDisplayName",
@@ -57,17 +56,13 @@ Describe "Set-JiraUser" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Mock Get-JiraUser -ModuleName JiraPS {
             $object = ConvertFrom-Json $restResultGet
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
             return $object
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Put' -and $URI -eq "$jiraServer/rest/api/latest/user?username=$testUsername"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Put' -and $URI -eq "rest/api/latest/user?username=$testUsername"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $restResultGet
         }

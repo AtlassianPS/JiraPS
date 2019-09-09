@@ -37,7 +37,6 @@ Describe "Remove-JiraIssueLink" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $issueLinkId = 1234
 
@@ -51,10 +50,6 @@ Describe "Remove-JiraIssueLink" -Tag 'Unit' {
     "outwardIssue": {}
 }
 "@
-
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraIssueLink -ModuleName JiraPS {
             $obj = [PSCustomObject]@{
@@ -75,7 +70,7 @@ Describe "Remove-JiraIssueLink" -Tag 'Unit' {
             return $issue
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/issueLink/1234"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Delete' -and $URI -like "rest/api/*/issueLink/1234"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 

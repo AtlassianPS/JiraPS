@@ -37,8 +37,6 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'https://jira.example.com'
-
         $restResult = @"
 {
     "expand": "projects",
@@ -213,10 +211,6 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer {
-            $jiraserver
-        }
-
         Mock Get-JiraProject -ModuleName JiraPS {
             $issueObject = [PSCustomObject] @{
                 ID   = 2
@@ -236,7 +230,7 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
             $InputObject
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraserver/rest/api/*/issue/createmeta?*"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "rest/api/*/issue/createmeta?*"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             return $restResult
         }

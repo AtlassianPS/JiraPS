@@ -41,11 +41,11 @@ Describe 'Get-JiraFilter' -Tag 'Unit' {
 
         $responseFilter = @"
 {
-    "self": "$jiraServer/rest/api/latest/filter/12844",
+    "self": "rest/api/latest/filter/12844",
     "id": "12844",
     "name": "All JIRA Bugs",
     "owner": {
-        "self": "$jiraServer/rest/api/2/user?username=scott@atlassian.com",
+        "self": "rest/api/2/user?username=scott@atlassian.com",
         "key": "scott@atlassian.com",
         "name": "scott@atlassian.com",
         "avatarUrls": {
@@ -59,7 +59,7 @@ Describe 'Get-JiraFilter' -Tag 'Unit' {
     },
     "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
     "viewUrl": "$jiraServer/secure/IssueNavigator.jspa?mode=hide&requestId=12844",
-    "searchUrl": "$jiraServer/rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
+    "searchUrl": "rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
     "favourite": false,
     "sharePermissions": [
         {
@@ -87,21 +87,21 @@ Describe 'Get-JiraFilter' -Tag 'Unit' {
         $responseFilterCollection = @"
 [
     {
-        "self": "$jiraServer/rest/api/latest/filter/13844",
+        "self": "rest/api/latest/filter/13844",
         "id": "13844",
         "name": "Filter 1",
         "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
         "favourite": true
     },
     {
-        "self": "$jiraServer/rest/api/latest/filter/14844",
+        "self": "rest/api/latest/filter/14844",
         "id": "14844",
         "name": "Filter 2",
         "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
         "favourite": true
     },
     {
-        "self": "$jiraServer/rest/api/latest/filter/15844",
+        "self": "rest/api/latest/filter/15844",
         "id": "15844",
         "name": "Filter 3",
         "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",

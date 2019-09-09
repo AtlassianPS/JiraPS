@@ -37,7 +37,6 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $versionName = '1.0.0.0'
         $versionID = '16840'
         $projectKey = 'LDD'
@@ -57,7 +56,7 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
 "@
         $testJsonOne = @"
 {
-    "self" : "$jiraServer/rest/api/2/version/$versionID",
+    "self" : "rest/api/2/version/$versionID",
     "id" : $versionID,
     "description" : "$versionName",
     "name" : "$versionName",
@@ -68,9 +67,6 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
 "@
 
         #region Mock
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraProject -ModuleName JiraPS {
             $Projects = ConvertFrom-Json $JiraProjectData
@@ -93,7 +89,7 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
             $result
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/*/version/$versionID" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $testJsonOne
         }
@@ -128,7 +124,7 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
                 Assert-MockCalled 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Get-JiraProject' -Times 0 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 3 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
+                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/*/version/$versionID" }
             }
             It "sets an Issue's Version Name using the pipeline" {
                 $results = Get-JiraVersion -Project $projectKey | Set-JiraVersion -Name "NewName" -ErrorAction Stop
@@ -137,7 +133,7 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
                 Assert-MockCalled 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Get-JiraProject' -Times 0 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 3 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
+                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "rest/api/*/version/$versionID" }
             }
             It "assert VerifiableMock" {
                 Assert-VerifiableMock

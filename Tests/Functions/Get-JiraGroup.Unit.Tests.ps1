@@ -37,8 +37,6 @@ Describe "Get-JiraGroup" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-
         $testGroupName = 'Test Group'
         $testGroupNameEscaped = ConvertTo-URLEncoded $testGroupName
         $testGroupSize = 1
@@ -46,7 +44,7 @@ Describe "Get-JiraGroup" -Tag 'Unit' {
         $restResult = @"
 {
     "name": "$testGroupName",
-    "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
+    "self": "rest/api/2/group?groupname=$testGroupName",
     "users": {
         "size": "$testGroupSize",
         "items": [],
@@ -58,12 +56,8 @@ Describe "Get-JiraGroup" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         # Searching for a group.
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/group?groupname=$testGroupNameEscaped"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "rest/api/latest/group?groupname=$testGroupNameEscaped"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json -InputObject $restResult
         }

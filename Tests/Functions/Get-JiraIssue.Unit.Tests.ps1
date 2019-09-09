@@ -71,13 +71,13 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
             [PSCustomObject]@{
                 PSTypeName = "JiraPS.Filter"
                 Id         = 12345
-                SearchUrl  = "https://jira.example.com/rest/api/latest/filter/12345"
+                SearchUrl  = "rest/api/latest/filter/12345"
             }
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
             $Method -eq 'Get' -and
-            $URI -like "$jiraServer/rest/api/*/issue/TEST-001*"
+            $URI -like "rest/api/*/issue/TEST-001*"
         } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $response
@@ -85,7 +85,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
             $Method -eq 'Get' -and
-            $URI -like "$jiraServer/rest/api/*/search" -and
+            $URI -like "rest/api/*/search" -and
             $GetParameter["jql"] -eq $jqlEscaped
         } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
@@ -94,7 +94,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
             $Method -eq 'Get' -and
-            $URI -like "$jiraServer/rest/api/*/filter/*"
+            $URI -like "rest/api/*/filter/*"
         } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $response
@@ -130,7 +130,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/issue/TEST-001*'
+                        $URI -like 'rest/api/*/issue/TEST-001*'
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -147,7 +147,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/search" -and
+                        $URI -like "rest/api/*/search" -and
                         $GetParameter["jql"] -eq $jqlEscaped
                     }
                     Scope           = 'It'
@@ -165,7 +165,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/search" -and
+                        $URI -like "rest/api/*/search" -and
                         $GetParameter["jql"] -eq $jqlEscaped -and
                         $PSCmdlet.PagingParameters.Skip -eq 10
                         $PSCmdlet.PagingParameters.First -eq 50
@@ -185,7 +185,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/search" -and
+                        $URI -like "rest/api/*/search" -and
                         $GetParameter["jql"] -eq $jqlEscaped -and
                         $GetParameter["maxResults"] -eq 25
                     }
@@ -273,7 +273,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/issue/TEST-001*"
+                        $URI -like "rest/api/*/issue/TEST-001*"
                     }
                     Scope           = 'It'
                     Exactly         = $true
@@ -297,7 +297,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
                     ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/issue/TEST-001*"
+                        $URI -like "rest/api/*/issue/TEST-001*"
                     }
                     Scope           = 'It'
                     Exactly         = $true

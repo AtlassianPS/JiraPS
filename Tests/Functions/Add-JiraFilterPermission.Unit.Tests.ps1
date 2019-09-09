@@ -49,18 +49,18 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
     "id": 10010,
     "type": "project",
     "project": {
-      "self": "$jiraServer/jira/rest/api/2/project/EX",
+      "self": "jira/rest/api/2/project/EX",
       "id": "10000",
       "key": "EX",
       "name": "Example",
       "avatarUrls": {
-        "48x48": "$jiraServer/jira/secure/projectavatar?size=large&pid=10000",
-        "24x24": "$jiraServer/jira/secure/projectavatar?size=small&pid=10000",
-        "16x16": "$jiraServer/jira/secure/projectavatar?size=xsmall&pid=10000",
-        "32x32": "$jiraServer/jira/secure/projectavatar?size=medium&pid=10000"
+        "48x48": "jira/secure/projectavatar?size=large&pid=10000",
+        "24x24": "jira/secure/projectavatar?size=small&pid=10000",
+        "16x16": "jira/secure/projectavatar?size=xsmall&pid=10000",
+        "32x32": "jira/secure/projectavatar?size=medium&pid=10000"
       },
       "projectCategory": {
-        "self": "$jiraServer/jira/rest/api/2/projectCategory/10000",
+        "self": "jira/rest/api/2/projectCategory/10000",
         "id": "10000",
         "name": "FIRST",
         "description": "First Project Category"
@@ -72,18 +72,18 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
     "id": 10010,
     "type": "project",
     "project": {
-      "self": "$jiraServer/jira/rest/api/2/project/MKY",
+      "self": "jira/rest/api/2/project/MKY",
       "id": "10002",
       "key": "MKY",
       "name": "Example",
       "avatarUrls": {
-        "48x48": "$jiraServer/jira/secure/projectavatar?size=large&pid=10002",
-        "24x24": "$jiraServer/jira/secure/projectavatar?size=small&pid=10002",
-        "16x16": "$jiraServer/jira/secure/projectavatar?size=xsmall&pid=10002",
-        "32x32": "$jiraServer/jira/secure/projectavatar?size=medium&pid=10002"
+        "48x48": "jira/secure/projectavatar?size=large&pid=10002",
+        "24x24": "jira/secure/projectavatar?size=small&pid=10002",
+        "16x16": "jira/secure/projectavatar?size=xsmall&pid=10002",
+        "32x32": "jira/secure/projectavatar?size=medium&pid=10002"
       },
       "projectCategory": {
-        "self": "$jiraServer/jira/rest/api/2/projectCategory/10000",
+        "self": "jira/rest/api/2/projectCategory/10000",
         "id": "10000",
         "name": "FIRST",
         "description": "First Project Category"
@@ -91,7 +91,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
       "simplified": false
     },
     "role": {
-      "self": "$jiraServer/jira/rest/api/2/project/MKY/role/10360",
+      "self": "jira/rest/api/2/project/MKY/role/10360",
       "name": "Developers",
       "id": 10360,
       "description": "A project role that represents developers in a project",
@@ -116,7 +116,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
     "type": "group",
     "group": {
       "name": "jira-administrators",
-      "self": "$jiraServer/jira/rest/api/2/group?groupname=jira-administrators"
+      "self": "jira/rest/api/2/group?groupname=jira-administrators"
     }
   }
 ]
@@ -139,14 +139,14 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
             foreach ($_id in $Id) {
                 $object = New-Object -TypeName PSCustomObject -Property @{
                 id = $_id
-                RestUrl = "$jiraServer/rest/api/latest/filter/$_id"
+                RestUrl = "rest/api/latest/filter/$_id"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
             $object
         }
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -like "rest/api/*/filter/*/permission"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
             ConvertFrom-Json $permissionJSON
         }
@@ -175,7 +175,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like '*/rest/api/*/filter/12844/permission'
+                    $URI -like 'rest/api/*/filter/12844/permission'
                 }
 
                 Assert-MockCalled -CommandName ConvertTo-JiraFilter -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -188,7 +188,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like '*/rest/api/*/filter/12844/permission'
+                    $URI -like 'rest/api/*/filter/12844/permission'
                 }
 
                 Assert-MockCalled -CommandName ConvertTo-JiraFilter -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -260,7 +260,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like '*/rest/api/*/filter/12844/permission' -and
+                    $URI -like 'rest/api/*/filter/12844/permission' -and
                     $Body -match '"type":\s*"global"' -and
                     $Body -notmatch ','
                 }
@@ -271,7 +271,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like '*/rest/api/*/filter/12844/permission' -and
+                    $URI -like 'rest/api/*/filter/12844/permission' -and
                     $Body -match '"type":\s*"authenticated"' -and
                     $Body -notmatch ","
                 }
@@ -282,7 +282,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like '*/rest/api/*/filter/12844/permission' -and
+                    $URI -like 'rest/api/*/filter/12844/permission' -and
                     $Body -match '"type":\s*"group"' -and
                     $Body -match '"groupname":\s*"administrators"'
                 }
@@ -293,7 +293,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like '*/rest/api/*/filter/12844/permission' -and
+                    $URI -like 'rest/api/*/filter/12844/permission' -and
                     $Body -match '"type":\s*"project"' -and
                     $Body -match '"projectId":\s*"11822"'
                 }
@@ -304,7 +304,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like '*/rest/api/*/filter/12844/permission' -and
+                    $URI -like 'rest/api/*/filter/12844/permission' -and
                     $Body -match '"type":\s*"projectRole"' -and
                     $Body -match '"projectRoleId":\s*"11822"'
                 }

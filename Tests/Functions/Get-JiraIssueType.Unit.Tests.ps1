@@ -37,15 +37,13 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-
         $issueTypeId = 2
         $issueTypeName = 'Desktop Support'
 
         $restResult = @"
 [
     {
-        "self": "$jiraServer/rest/api/latest/issuetype/12",
+        "self": "rest/api/latest/issuetype/12",
         "id": "12",
         "description": "This issue type is no longer used.",
         "iconUrl": "$jiraServer/images/icons/issuetypes/delete.png",
@@ -53,7 +51,7 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
         "subtask": false
     },
     {
-        "self": "$jiraServer/rest/api/latest/issuetype/11",
+        "self": "rest/api/latest/issuetype/11",
         "id": "11",
         "description": "An issue related to classroom technology, moodle, library services",
         "iconUrl": "$jiraServer/images/icons/issuetypes/documentation.png",
@@ -61,7 +59,7 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
         "subtask": false
     },
     {
-        "self": "$jiraServer/rest/api/latest/issuetype/4",
+        "self": "rest/api/latest/issuetype/4",
         "id": "4",
         "description": "An issue related to network connectivity or infrastructure including Access Control.",
         "iconUrl": "$jiraServer/images/icons/issuetypes/improvement.png",
@@ -69,7 +67,7 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
         "subtask": false
     },
     {
-        "self": "$jiraServer/rest/api/latest/issuetype/6",
+        "self": "rest/api/latest/issuetype/6",
         "id": "6",
         "description": "An issue related to telephone services",
         "iconUrl": "$jiraServer/images/icons/issuetypes/genericissue.png",
@@ -77,7 +75,7 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
         "subtask": false
     },
     {
-        "self": "$jiraServer/rest/api/latest/issuetype/8",
+        "self": "rest/api/latest/issuetype/8",
         "id": "8",
         "description": "An issue related to A/V and media services including teacher stations",
         "iconUrl": "$jiraServer/images/icons/issuetypes/genericissue.png",
@@ -85,7 +83,7 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
         "subtask": false
     },
     {
-        "self": "$jiraServer/rest/api/latest/issuetype/1",
+        "self": "rest/api/latest/issuetype/1",
         "id": "1",
         "description": "An issue related to Banner, MU Online, Oracle Reports, MU Account Suite, Hobsons, or CS Gold",
         "iconUrl": "$jiraServer/images/icons/issuetypes/bug.png",
@@ -93,7 +91,7 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
         "subtask": false
     },
     {
-        "self": "$jiraServer/rest/api/latest/issuetype/10",
+        "self": "rest/api/latest/issuetype/10",
         "id": "10",
         "description": "The sub-task of the issue",
         "iconUrl": "$jiraServer/images/icons/issuetypes/subtask_alternate.png",
@@ -101,7 +99,7 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
         "subtask": true
     },
     {
-        "self": "$jiraServer/rest/api/latest/issuetype/2",
+        "self": "rest/api/latest/issuetype/2",
         "id": "2",
         "description": "An issue related to end-user workstations.",
         "iconUrl": "$jiraServer/images/icons/issuetypes/newfeature.png",
@@ -111,15 +109,11 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
 ]
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Mock ConvertTo-JiraIssueType {
             $inputObject
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/issuetype"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "rest/api/latest/issuetype"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $restResult
         }

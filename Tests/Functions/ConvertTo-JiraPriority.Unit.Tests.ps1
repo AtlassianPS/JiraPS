@@ -37,7 +37,6 @@ Describe "ConvertTo-JiraPriority" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $priorityId = 1
         $priorityName = 'Critical'
@@ -45,7 +44,7 @@ Describe "ConvertTo-JiraPriority" -Tag 'Unit' {
 
         $sampleJson = @"
 {
-    "self": "$jiraServer/rest/api/2/priority/1",
+    "self": "rest/api/2/priority/1",
     "statusColor": "#cc0000",
     "description": "$priorityDescription",
     "name": "$priorityName",
@@ -64,7 +63,7 @@ Describe "ConvertTo-JiraPriority" -Tag 'Unit' {
 
         defProp $r 'Id' $priorityId
         defProp $r 'Name' $priorityName
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/priority/$priorityId"
+        defProp $r 'RestUrl' "rest/api/2/priority/$priorityId"
         defProp $r 'Description' $priorityDescription
         defProp $r 'StatusColor' '#cc0000'
     }
