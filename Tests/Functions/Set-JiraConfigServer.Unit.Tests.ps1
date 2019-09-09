@@ -41,20 +41,21 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
 
         $sampleServersConfigContent =
             "{`r`n" +
-            "    `"Test`":  {`r`n" +
-            "                 `"Server`":  `"http://jiraserver.example.com/`"`r`n" +
-            "             },`r`n" +
             "    `"Default`":  {`r`n" +
             "                    `"Server`":  `"http://jiraserver.example.com/`"`r`n" +
-            "                }`r`n" +
+            "                },`r`n" +
+            "    `"Test`":  {`r`n" +
+            "                 `"Server`":  `"http://jiraserver.example.com/`"`r`n" +
+            "             }`r`n" +
             "}`r`n"
 
         $script:serversConfig = "TestDrive:\serversConfig"
+        $script:JiraServerConfigs = New-Object psobject
 
         It "stores the server address in the module session" {
             Set-JiraConfigServer -Server $jiraServer
 
-            $config = $script:JiraServerConfigs["Default"]
+            $config = $script:JiraServerConfigs.Default
             $config | Should -Not -BeNullOrEmpty
             $config.Server | Should -Be "$jiraServer/"
         }
@@ -62,7 +63,7 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
         It "can store few servers configs" {
             Set-JiraConfigServer -Server $jiraServer -Name "Test"
 
-            $config = $script:JiraServerConfigs["Test"]
+            $config = $script:JiraServerConfigs.Test
             $config | Should -Not -BeNullOrEmpty
             $config.Server | Should -Be "$jiraServer/"
         }

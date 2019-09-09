@@ -15,7 +15,9 @@ function Get-JiraConfigServer {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if (-not $script:JiraServerConfigs.ContainsKey($Name)) {
+        $config = $script:JiraServerConfigs.$Name
+
+        if (-not $config) {
             $exception = ([System.InvalidOperationException]"Can not find $name configuration!")
             $errorId = 'ConfigServer.NotFound'
             $errorCategory = 'InvalidOperation'
@@ -25,7 +27,7 @@ function Get-JiraConfigServer {
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
-        return $script:JiraServerConfigs[$Name]
+        return $config
     }
 
     end {

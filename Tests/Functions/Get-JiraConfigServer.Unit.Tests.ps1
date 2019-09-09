@@ -40,13 +40,17 @@ Describe "Get-JiraConfigServer" -Tag 'Unit' {
         $sampleServerConfig = New-Object -TypeName psobject
 
         It "returns the server stored in the module's session" {
-            $script:JiraServerConfigs["Default"] = $sampleServerConfig
+            $script:JiraServerConfigs =
+                New-Object -TypeName psobject |
+                Add-Member -NotePropertyName "Default" -NotePropertyValue $sampleServerConfig -PassThru
 
             Get-JiraConfigServer | Should -BeExactly $sampleServerConfig
         }
 
         It "return the named server stored in the module's session" {
-            $script:JiraServerConfigs["Test"] = $sampleServerConfig
+            $script:JiraServerConfigs =
+                New-Object -TypeName psobject |
+                Add-Member -NotePropertyName "Test" -NotePropertyValue $sampleServerConfig -PassThru
 
             Get-JiraConfigServer -Name "Test" | Should -BeExactly $sampleServerConfig
         }
