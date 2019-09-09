@@ -82,8 +82,9 @@ function Invoke-JiraMethod {
         }
 
         # if instance of URI is relative path - convert it to abosolute URI using session's ServerUri as base URI
-        if ($URI.UriKind -eq [System.UriKind]::Relative) {
-            $URI = New-Object -TypeName uri -ArgumentList @($Session.ServerConfig.Server, $URI)
+        if (-not $URI.IsAbsoluteUri) {
+            $serverUri = New-Object -TypeName "System.Uri" -ArgumentList @($Session.ServerConfig.Server)
+            $URI = New-Object -TypeName "System.Uri" -ArgumentList @($serverUri, $URI)
         }
 
         # Amend query from URI with GetParameter
