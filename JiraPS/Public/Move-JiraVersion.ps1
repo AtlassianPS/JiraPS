@@ -1,4 +1,4 @@
-﻿function Move-JiraVersion {
+function Move-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = 'ByAfter' )]
     param(

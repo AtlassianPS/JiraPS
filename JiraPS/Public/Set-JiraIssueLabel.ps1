@@ -1,4 +1,4 @@
-﻿function Set-JiraIssueLabel {
+function Set-JiraIssueLabel {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ReplaceLabels' )]
     param(

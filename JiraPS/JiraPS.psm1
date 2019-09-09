@@ -1,4 +1,4 @@
-﻿#region Dependencies
+#region Dependencies
 # Load the ConfluencePS namespace from C#
 # if (!("" -as [Type])) {
 #     Add-Type -Path (Join-Path $PSScriptRoot JiraPS.Types.cs) -ReferencedAssemblies Microsoft.CSharp, Microsoft.PowerShell.Commands.Utility, System.Management.Automation
@@ -23,7 +23,7 @@ if (!("System.Net.Http" -as [Type])) {
 #endregion Dependencies
 
 #region Configuration
-$script:configPath = ("{0}/AtlassianPS/JiraPS" -f [Environment]::GetFolderPath('ApplicationData'))
+$script:configPath = "$($env:APPDATA)/AtlassianPS/JiraPS"
 $script:serversConfig = "$script:configPath\servers.json"
 
 if (-not (Test-Path $script:configPath)) {

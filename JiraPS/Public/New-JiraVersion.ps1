@@ -1,4 +1,4 @@
-﻿function New-JiraVersion {
+function New-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'byObject' )]
     param(
