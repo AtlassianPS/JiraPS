@@ -84,7 +84,9 @@ function ConvertTo-JiraSession {
                 }
             }
             "ByArgs" {
-                &$newSessionScript
+                $session = &$newSessionScript
+                $session.Name = $Name
+                Write-Output $session
             }
         }
     }

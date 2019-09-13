@@ -16,8 +16,22 @@ function Remove-JiraSession {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($Session = Get-JiraSession) {
-            $MyInvocation.MyCommand.Module.PrivateData.Session = $null
+        $sessionName = $null
+
+        if ("JiraPS.Session" -in $Session.PSObject.TypeNames) {
+            $sessionName = $Session.Name
+        }
+
+        if ($Session -is [string]) {
+            $sessionName = $Session
+        }
+
+        if (-not $Session) {
+            $sessionName = "Default"
+        }
+
+        if ($sessionName -and $script:JiraSessions.ContainsKey($sessionName)) {
+            $script:JiraSessions.Remove($sessionName)
         }
     }
 

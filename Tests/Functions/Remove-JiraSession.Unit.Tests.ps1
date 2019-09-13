@@ -35,6 +35,15 @@ Describe "Remove-JiraSession" -Tag 'Unit' {
 
     . "$PSScriptRoot/../Shared.ps1"
 
+    $newObjectSplat = @{
+        Name = "One"
+        WebSession = $webSession
+        ServerConfig = $ServerConfig
+    }
+
+    $sampleSession = New-Object -TypeName PSObject -Property $newObjectSplat
+    $sampleSession.PSObject.TypeNames.Insert(0, 'JiraPS.Session')
+
     #region Mocks
     Mock Get-JiraSession -ModuleName JiraPS {
         (Get-Module JiraPS).PrivateData.Session
@@ -47,14 +56,37 @@ Describe "Remove-JiraSession" -Tag 'Unit' {
         defParam $command 'Session'
     }
 
-    Context "Behavior testing" {
-        It "Closes a removes the JiraPS.Session data from module PrivateData" {
-            (Get-Module JiraPS).PrivateData = @{ Session = $true }
-            (Get-Module JiraPS).PrivateData.Session | Should -Not -BeNullOrEmpty
+    InModuleScope JiraPS {
+        Context "Behavior testing" {
+            It "removes default session" {
+                $script:JiraSessions = @{
+                    "Default" = $sampleSession
+                }
 
-            Remove-JiraSession
+                Remove-JiraSession
 
-            (Get-Module JiraPS).PrivateData.Session | Should -BeNullOrEmpty
+                $script:JiraSessions["Default"] | Should -BeNullOrEmpty
+            }
+
+            It "removes the session by name" {
+                $script:JiraSessions = @{
+                    "One" = $sampleSession
+                }
+
+                Remove-JiraSession -Session "One"
+
+                $script:JiraSessions["One"] | Should -BeNullOrEmpty
+            }
+
+            It "removes the session by instance of JiraPS.Session" {
+                $script:JiraSessions = @{
+                    "One" = $sampleSession
+                }
+
+                Remove-JiraSession -Session $sampleSession
+
+                $script:JiraSessions["One"] | Should -BeNullOrEmpty
+            }
         }
     }
 }
