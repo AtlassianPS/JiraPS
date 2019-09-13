@@ -3,7 +3,7 @@ function Invoke-JiraMethod {
     [CmdletBinding( SupportsPaging )]
     param(
         [Parameter( Mandatory )]
-        [psobject]
+        [uri]
         $URI,
 
         [Microsoft.PowerShell.Commands.WebRequestMethod]
@@ -75,11 +75,6 @@ function Invoke-JiraMethod {
         #endregion
 
         #region Manage URI
-
-        # if provided value for URI is string - convert it to an instance of URI
-        if ($URI -is [string]) {
-            $URI = New-Object -TypeName "System.Uri" -ArgumentList @($URI, [System.UriKind]::RelativeOrAbsolute)
-        }
 
         # if instance of URI is relative path - convert it to abosolute URI using session's ServerUri as base URI
         if (-not $URI.IsAbsoluteUri) {
