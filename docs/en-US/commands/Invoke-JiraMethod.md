@@ -18,7 +18,7 @@ Invoke a specific call to a Jira REST Api endpoint
 ```powershell
 Invoke-JiraMethod [-URI] <Uri> [[-Method] <WebRequestMethod>] [[-Body] <String>] [-RawBody]
  [[-Headers] <Hashtable>] [[-GetParameter] <Hashtable>] [[-Paging] <Switch>] [[-InFile] <String>]
- [[-OutFile] <String>] [-StoreSession] [[-OutputType] <String>] [[-Credential] <PSCredential>]
+ [[-OutFile] <String>] [[-OutputType] <String>] [[-Session] <PSObject>]
  [[-Cmdlet] <System.Management.Automation.PSCmdlet>] [<CommonParameters>]
 ```
 
@@ -53,7 +53,7 @@ This call would either be executed anonymously or require a session to be availa
 ### Example 2
 
 ```powershell
-Invoke-JiraMethod -URI "rest/api/latest/project" -Credential (Get-Credential)
+Invoke-JiraMethod -URI "rest/api/latest/project" -Session $session
 ```
 
 Prompts the user for his Jira credentials and send a GET request,
@@ -98,7 +98,6 @@ $params = @{
     Uri = "rest/api/latest/mypermissions"
     Method = "GET"
     Body = $body
-    StoreSession = $true
     Credential = $cred
 }
 Invoke-JiraMethod @params
@@ -160,7 +159,7 @@ Could be relative or absolute URL.
 Keep in mind that mostly you should use relative path (ex. rest/api) and seek to avoid use absolute path (ex. /rest/api).
 
 ```yaml
-Type: Uri, string
+Type: Uri
 Parameter Sets: (All)
 Aliases:
 
@@ -313,22 +312,6 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -StoreSession
-
-Instead of returning the response, it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 7
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### -OutputType
 
 Name of the data type that is expected to be returned.
@@ -347,17 +330,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use for the authentication with the REST Api.
-
-If none are provided, `Get-JiraSession` will be used for authentication.
-If no sessions is available, the request will be executed anonymously.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: 9

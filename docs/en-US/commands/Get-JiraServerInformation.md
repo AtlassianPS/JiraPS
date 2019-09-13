@@ -16,7 +16,7 @@ This function returns the information about the JIRA Server
 ## SYNTAX
 
 ```powershell
-Get-JiraServerInformation [[-Credential] <PSCredential>] [<CommonParameters>]
+Get-JiraServerInformation [[-Session] <PSObject>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -35,15 +35,16 @@ This example returns information about the JIRA server.
 
 ## PARAMETERS
 
-### -Credential
+### -Session
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: 1
@@ -65,7 +66,7 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Session` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 

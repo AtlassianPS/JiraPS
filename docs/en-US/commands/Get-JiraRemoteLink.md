@@ -16,7 +16,7 @@ Returns a remote link from a Jira issue
 ## SYNTAX
 
 ```powershell
-Get-JiraRemoteLink [-Issue] <Object> [[-LinkId] <Int32>] [[-Credential] <PSCredential>] [<CommonParameters>]
+Get-JiraRemoteLink [-Issue] <Object> [[-LinkId] <Int32>] [[-Session] <PSObject>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -28,7 +28,7 @@ This function returns information on remote links from a  JIRA issue.
 ### EXAMPLE 1
 
 ```powershell
-Get-JiraRemoteLink -Issue TEST-001 -Credential $cred
+Get-JiraRemoteLink -Issue TEST-001 -Session $session
 ```
 
 Returns information about all remote links from the issue "TEST-001"
@@ -36,7 +36,7 @@ Returns information about all remote links from the issue "TEST-001"
 ### EXAMPLE 2
 
 ```powershell
-Get-JiraRemoteLink -Issue TEST-001 -LinkId 100000 -Credential $cred
+Get-JiraRemoteLink -Issue TEST-001 -LinkId 100000 -Session $session
 ```
 
 Returns information about a specific remote link from the issue "TEST-001"
@@ -77,15 +77,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: 3
@@ -109,7 +110,7 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Session` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 

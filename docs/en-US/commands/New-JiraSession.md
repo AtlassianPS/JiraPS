@@ -16,7 +16,7 @@ Creates a persistent JIRA authenticated session which can be used by other JiraP
 ## SYNTAX
 
 ```powershell
-New-JiraSession [-Credential] <PSCredential> [[-Headers] <Hashtable>] [<CommonParameters>]
+New-JiraSession [-Credential] <PSCredential> [[-Headers] <Hashtable>] [[-SessionName] <String>] [[-ServerName] <String>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -71,6 +71,38 @@ Aliases:
 Required: False
 Position: 2
 Default value: @{}
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -SessionName
+
+Name of an instance of session
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 3
+Default value: Default
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ServerName
+
+Name of server's configuration that should be used by session
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 4
+Default value: Default
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

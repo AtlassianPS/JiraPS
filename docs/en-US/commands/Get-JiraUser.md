@@ -18,19 +18,19 @@ Returns a user from Jira
 ### Self (Default)
 
 ```powershell
-Get-JiraUser [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraUser [-Session <PSObject>] [<CommonParameters>]
 ```
 
 ### ByUserName
 
 ```powershell
-Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
+Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Session <PSObject>] [-Exact] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
-Get-JiraUser [-InputObject] <Object[]> [-IncludeInactive] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
+Get-JiraUser [-InputObject] <Object[]> [-IncludeInactive] [-Session <PSObject>] [-Exact] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -50,7 +50,7 @@ Returns information about all users with username like user1
 ### EXAMPLE 2
 
 ```powershell
-Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
+Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Session $session
 ```
 
 This example searches Active Directory for "John*Smith", then obtains their JIRA user accounts.
@@ -58,7 +58,7 @@ This example searches Active Directory for "John*Smith", then obtains their JIRA
 ### EXAMPLE 3
 
 ```powershell
-Get-JiraUser -Credential $cred
+Get-JiraUser -Session $session
 ```
 
 This example returns the JIRA user that is executing the command.
@@ -181,15 +181,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use to connect to JIRA.
-If not specified, this function will use anonymous access.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: Named
@@ -215,7 +216,7 @@ Username, name, or e-mail address
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Session` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 

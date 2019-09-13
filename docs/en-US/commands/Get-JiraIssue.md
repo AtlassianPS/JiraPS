@@ -19,14 +19,14 @@ Returns information about an issue in JIRA.
 
 ```powershell
 Get-JiraIssue [-Key] <String[]> [-Fields <String[]>] [-IncludeTotalCount]
- [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+ [-Skip <UInt64>] [-First <UInt64>] [-Session <PSObject>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
 Get-JiraIssue [-InputObject] <Object[]> [-Fields <String[]>] [-IncludeTotalCount]
- [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+ [-Skip <UInt64>] [-First <UInt64>] [-Session <PSObject>] [<CommonParameters>]
 ```
 
 ### ByJQL
@@ -34,7 +34,7 @@ Get-JiraIssue [-InputObject] <Object[]> [-Fields <String[]>] [-IncludeTotalCount
 ```powershell
 Get-JiraIssue -Query <String> [-Fields <String[]>] [-StartIndex <UInt32>]
 [-MaxResults <UInt32>] [[PageSize] <UInt32>] [-IncludeTotalCount] [-Skip <UInt64>]
- [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+ [-First <UInt64>] [-Session <PSObject>] [<CommonParameters>]
 ```
 
 ### ByFilter
@@ -42,7 +42,7 @@ Get-JiraIssue -Query <String> [-Fields <String[]>] [-StartIndex <UInt32>]
 ```powershell
 Get-JiraIssue -Filter <Object> [-Fields <String[]>][-StartIndex <UInt32>]
  [-MaxResults <UInt32>] [[PageSize] <UInt32>] [-IncludeTotalCount] [-Skip <UInt64>]
- [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+ [-First <UInt64>] [-Session <PSObject>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -328,15 +328,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: Named
@@ -364,7 +365,7 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Session` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
