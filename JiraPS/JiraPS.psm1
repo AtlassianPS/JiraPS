@@ -30,10 +30,10 @@ if (-not (Test-Path $script:configPath)) {
     $null = New-Item -Path $script:configPath -ItemType Directory -Force
 }
 
-if (Test-Path $script:serversConfig) {
-    $script:JiraServerConfigs = Get-Content $script:serversConfig | ConvertFrom-Json
-} elseif (Test-Path "$script:configPath\server_config") {
-    $serverUrl = Get-Content "$script:configPath\server_config"
+if (Test-Path -Path $script:serversConfig) {
+    $script:JiraServerConfigs = Get-Content -Path $script:serversConfig -Raw | ConvertFrom-Json
+} elseif (Test-Path -Path "$script:configPath\server_config") {
+    $serverUrl = Get-Content -Path "$script:configPath\server_config"
 
     $script:JiraServerConfigs = @{
         Default = (New-Object psobject -Property @{ Server = $serverUrl })

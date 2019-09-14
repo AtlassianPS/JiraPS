@@ -39,6 +39,8 @@ Describe "Get-JiraConfigServer" -Tag 'Unit' {
 
         $sampleServerConfig = New-Object -TypeName psobject
 
+        $script:JiraServerConfigs = @{}
+
         It "returns the server stored in the module's session" {
             $script:JiraServerConfigs =
                 New-Object -TypeName psobject |

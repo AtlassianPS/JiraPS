@@ -37,13 +37,7 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = "http://jiraserver.example.com"
-
-        $sampleServersConfigContent =
-            New-Object psobject |
-            Add-Member "Default" (New-Object psobject -Property @{ Server =  "http://jiraserver.example.com/" }) -PassThru |
-            Add-Member "Test" (New-Object psobject -Property @{ Server =  "http://jiraserver.example.com/" }) -PassThru |
-            ConvertTo-Json
+        $jiraServer = 'http://jiraserver.example.com'
 
         $script:serversConfig = "TestDrive:\serversConfig"
         $script:JiraServerConfigs = New-Object psobject
@@ -67,7 +61,9 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
         It "stores the server address in a config file" {
             $script:serversConfig | Should -Exist
 
-            Get-Content -Path $script:serversConfig -Raw | Should -Be $sampleServersConfigContent
+            $config = Get-Content -Path $script:serversConfig -Raw | ConvertFrom-Json
+            $config.Default.Server | Should -BeExactly "http://jiraserver.example.com/"
+            $config.Test.Server | Should -BeExactly "http://jiraserver.example.com/"
         }
     }
 }
