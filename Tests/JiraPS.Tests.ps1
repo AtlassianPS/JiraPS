@@ -25,14 +25,23 @@ Describe "General project validation" -Tag Unit {
         Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-
         # Import-Module $env:BHManifestToTest
 
-        $oldAPPDATA = $env:APPDATA
-        $env:APPDATA = "TestDrive:\"
+        $configFile = ("{0}/AtlassianPS/JiraPS/servers.json" -f [Environment]::GetFolderPath('ApplicationData'))
+        $legacyConfigFile = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData'))
+
+        $configContent = Get-Content $configFile -ErrorAction SilentlyContinue
+        $legacyConfigContent = Get-Content $legacyConfigFile -ErrorAction SilentlyContinue
     }
     AfterAll {
-        $env:APPDATA = $oldAPPDATA
+
+        if ($configContent) {
+            Set-Content -Value $configContent -Path $configFile -Force
+        }
+
+        if ($legacyConfigContent) {
+            Set-Content -Value $legacyConfigContent -Path $legacyConfigFile -Force
+        }
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Remove-Module BuildHelpers -ErrorAction SilentlyContinue
@@ -67,8 +76,8 @@ Describe "General project validation" -Tag Unit {
     }
 
     It "module uses the previous server config when loaded" {
-        New-Item -Path "$($env:APPDATA)/AtlassianPS/JiraPS/servers.json" -Force | Out-Null
-        Set-Content -Path "$($env:APPDATA)/AtlassianPS/JiraPS/servers.json" -Value "{ Default: { Server: `"https://example.com`" } }" -Force
+        New-Item -Path $configFile -Force | Out-Null
+        Set-Content -Path $configFile -Value "{ Default: { Server: `"https://example.com`" } }" -Force
 
         Import-Module $env:BHManifestToTest -Force
 

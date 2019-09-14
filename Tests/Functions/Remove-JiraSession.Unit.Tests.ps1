@@ -37,8 +37,6 @@ Describe "Remove-JiraSession" -Tag 'Unit' {
 
     $newObjectSplat = @{
         Name = "One"
-        WebSession = $webSession
-        ServerConfig = $ServerConfig
     }
 
     $sampleSession = New-Object -TypeName PSObject -Property $newObjectSplat

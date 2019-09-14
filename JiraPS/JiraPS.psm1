@@ -23,7 +23,7 @@ if (!("System.Net.Http" -as [Type])) {
 #endregion Dependencies
 
 #region Configuration
-$script:configPath = "$($env:APPDATA)/AtlassianPS/JiraPS"
+$script:configPath = ("{0}/AtlassianPS/JiraPS" -f [Environment]::GetFolderPath('ApplicationData'))
 $script:serversConfig = "$script:configPath\servers.json"
 
 if (-not (Test-Path $script:configPath)) {

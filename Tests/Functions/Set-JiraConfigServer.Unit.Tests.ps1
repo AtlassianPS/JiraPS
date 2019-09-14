@@ -40,14 +40,10 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
         $jiraServer = "http://jiraserver.example.com"
 
         $sampleServersConfigContent =
-            "{`r`n" +
-            "    `"Default`":  {`r`n" +
-            "                    `"Server`":  `"http://jiraserver.example.com/`"`r`n" +
-            "                },`r`n" +
-            "    `"Test`":  {`r`n" +
-            "                 `"Server`":  `"http://jiraserver.example.com/`"`r`n" +
-            "             }`r`n" +
-            "}`r`n"
+            New-Object psobject |
+            Add-Member "Default" (New-Object psobject -Property @{ Server =  "http://jiraserver.example.com/" }) -PassThru |
+            Add-Member "Test" (New-Object psobject -Property @{ Server =  "http://jiraserver.example.com/" }) -PassThru |
+            ConvertTo-Json
 
         $script:serversConfig = "TestDrive:\serversConfig"
         $script:JiraServerConfigs = New-Object psobject
