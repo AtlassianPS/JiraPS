@@ -62,8 +62,8 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
             $script:serversConfig | Should -Exist
 
             $config = Get-Content -Path $script:serversConfig -Raw | ConvertFrom-Json
-            $config.Default.Server | Should -BeExactly "http://jiraserver.example.com/"
-            $config.Test.Server | Should -BeExactly "http://jiraserver.example.com/"
+            $config.Default.Server | Should -BeExactly "$jiraServer/"
+            $config.Test.Server | Should -BeExactly "$jiraServer/"
         }
     }
 }

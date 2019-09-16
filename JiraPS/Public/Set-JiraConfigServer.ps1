@@ -23,7 +23,7 @@ function Set-JiraConfigServer {
             $Server = New-Object -TypeName uri -ArgumentList $Server,($Server.AbsolutePath + "/")
         }
 
-        $config = New-Object psobject -Property @{ Server = $Server }
+        $config = New-Object psobject -Property @{ Server = $Server.ToString() }
 
         $script:JiraServerConfigs | Add-Member -NotePropertyName $Name -NotePropertyValue $config -Force
         $script:JiraServerConfigs | ConvertTo-Json | Set-Content -Path $script:serversConfig
