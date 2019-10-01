@@ -152,6 +152,11 @@ function Invoke-JiraMethod {
         #endregion Constructe IWR Parameter
 
         #region Execute the actual query
+        # Normal ProgressPreference really slows down invoke-webrequest as it tries to update the screen for bytes received.
+        # By setting ProgressPreference to silentlyContinue it doesn't try to update the screen and speeds up the downloads.
+        # See https://stackoverflow.com/a/43477248/2641196
+        $oldProgressPreference = $progressPreference
+        $progressPreference = 'silentlyContinue'
         try {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($splatParameters.Method) $($splatParameters.Uri)"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$splatParameters: $($splatParameters | Out-String)"
@@ -164,6 +169,8 @@ function Invoke-JiraMethod {
             $exception = $_
             $webResponse = $exception.Exception.Response
         }
+        # Reset the progressPreference to the value it was before the Invoke-WebRequest
+        $progressPreference = $oldProgressPreference
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
         Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
