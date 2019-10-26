@@ -18,7 +18,7 @@ Modifies user properties in JIRA
 ### ByNamedParameters (Default)
 
 ```powershell
-Set-JiraUser [-User] <Object[]> [-DisplayName <String>] [-EmailAddress <String>] [-Credential <PSCredential>]
+Set-JiraUser [-User] <Object[]> [-DisplayName <String>] [-EmailAddress <String>] [[-Active] <Boolean>] [-Credential <PSCredential>]
  [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -94,6 +94,22 @@ E-mail address to set.
 
 ```yaml
 Type: String
+Parameter Sets: ByNamedParameters
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Active
+
+Sets user to active or inactive.
+
+```yaml
+Type: Boolean
 Parameter Sets: ByNamedParameters
 Aliases:
 
@@ -204,10 +220,7 @@ to the JIRA user modified.  Otherwise, this function does not provide output.
 
 ## NOTES
 
-It is currently NOT possible to enable and disable users with this function.
-JIRA does not currently provide this ability via their REST API.
-
-> If you'd like to see this ability added to JIRA and to this module, please vote on Atlassian's site for this issue: [https://jira.atlassian.com/browse/JRA-37294](https://jira.atlassian.com/browse/JRA-37294)
+The '-Active' parameter is supported only in Jira Server version 8.3.0 and above.
 
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
