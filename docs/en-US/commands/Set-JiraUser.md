@@ -18,8 +18,8 @@ Modifies user properties in JIRA
 ### ByNamedParameters (Default)
 
 ```powershell
-Set-JiraUser [-User] <Object[]> [-DisplayName <String>] [-EmailAddress <String>] [[-Active] <Boolean>] [-Credential <PSCredential>]
- [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
+Set-JiraUser [-User] <Object[]> [-DisplayName <String>] [-EmailAddress <String>] [[-Active] <Boolean>]
+ [-Credential <PSCredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByHashtable
