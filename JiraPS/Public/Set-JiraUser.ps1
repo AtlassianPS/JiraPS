@@ -55,6 +55,10 @@ function Set-JiraUser {
         [String]
         $EmailAddress,
 
+        [Parameter( ParameterSetName = 'ByNamedParameters' )]
+        [Boolean]
+        $Active,
+
         [Parameter( Position = 1, Mandatory, ParameterSetName = 'ByHashtable' )]
         [Hashtable]
         $Property,
@@ -87,7 +91,7 @@ function Set-JiraUser {
 
             switch ($PSCmdlet.ParameterSetName) {
                 'ByNamedParameters' {
-                    if (-not ($DisplayName -or $EmailAddress)) {
+                    if (-not ($DisplayName -or $EmailAddress -or $PSBoundParameters.ContainsKey('Active'))) {
                         $errorMessage = @{
                             Category         = "InvalidArgument"
                             CategoryActivity = "Validating Arguments"
@@ -103,6 +107,10 @@ function Set-JiraUser {
 
                     if ($EmailAddress) {
                         $requestBody.emailAddress = $EmailAddress
+                    }
+
+                    if ($PSBoundParameters.ContainsKey('Active')) {
+                        $requestBody.active = $Active
                     }
                 }
                 'ByHashtable' {

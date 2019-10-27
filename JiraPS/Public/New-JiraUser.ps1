@@ -35,7 +35,7 @@ function New-JiraUser {
         $requestBody = @{
             "name"         = $UserName
             "emailAddress" = $EmailAddress
-            "notify"       = $Notify
+            "notification" = $Notify
         }
 
         if ($DisplayName) {
