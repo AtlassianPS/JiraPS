@@ -220,7 +220,7 @@ to the JIRA user modified.  Otherwise, this function does not provide output.
 
 ## NOTES
 
-The '-Active' parameter is supported only in Jira Server version 8.3.0 and above.
+The `-Active` parameter is supported only in Jira Server version 8.3.0 and above.
 
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
