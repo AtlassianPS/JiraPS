@@ -7,6 +7,7 @@ schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Set-JiraUser/
 ---
+
 # Set-JiraUser
 
 ## SYNOPSIS
@@ -20,6 +21,7 @@ Modifies user properties in JIRA
 ```powershell
 Set-JiraUser [-User] <Object[]> [-DisplayName <String>] [-EmailAddress <String>] [[-Active] <Boolean>]
  [-Session <PSObject>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
 
 ### ByHashtable
 
@@ -216,7 +218,7 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 ### [JiraPS.User]
 
 If the `-PassThru` parameter is provided, this function will provide a reference
-to the JIRA user modified.  Otherwise, this function does not provide output.
+to the JIRA user modified. Otherwise, this function does not provide output.
 
 ## NOTES
 
