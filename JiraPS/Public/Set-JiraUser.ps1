@@ -55,6 +55,10 @@ function Set-JiraUser {
         [String]
         $EmailAddress,
 
+        [Parameter( ParameterSetName = 'ByNamedParameters' )]
+        [Boolean]
+        $Active,
+
         [Parameter( Position = 1, Mandatory, ParameterSetName = 'ByHashtable' )]
         [Hashtable]
         $Property,
@@ -84,13 +88,13 @@ function Set-JiraUser {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-            $userObj = Get-JiraUser -UserName $_user -Credential $Credential -ErrorAction Stop
+            $userObj = Resolve-JiraUser -InputObject $_user -Exact -Credential $Credential -ErrorAction Stop
 
             $requestBody = @{}
 
             switch ($PSCmdlet.ParameterSetName) {
                 'ByNamedParameters' {
-                    if (-not ($DisplayName -or $EmailAddress)) {
+                    if (-not ($DisplayName -or $EmailAddress -or $PSBoundParameters.ContainsKey('Active'))) {
                         $errorMessage = @{
                             Category         = "InvalidArgument"
                             CategoryActivity = "Validating Arguments"
@@ -106,6 +110,10 @@ function Set-JiraUser {
 
                     if ($EmailAddress) {
                         $requestBody.emailAddress = $EmailAddress
+                    }
+
+                    if ($PSBoundParameters.ContainsKey('Active')) {
+                        $requestBody.active = $Active
                     }
                 }
                 'ByHashtable' {
@@ -124,7 +132,7 @@ function Set-JiraUser {
                 $result = Invoke-JiraMethod @parameter
 
                 if ($PassThru) {
-                    Write-Output (Get-JiraUser -inputObject $result)
+                    Write-Output (Get-JiraUser -InputObject $result)
                 }
             }
         }

@@ -308,3 +308,5 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 [Remove-JiraVersion](../Remove-JiraVersion/)
 
 [Set-JiraVersion](../Set-JiraVersion/)
+
+[Move-JiraVersion](../Move-JiraVersion/)

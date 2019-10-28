@@ -3,7 +3,7 @@ function Get-JiraUser {
     [CmdletBinding( DefaultParameterSetName = 'Self' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByUserName' )]
-        [ValidateNotNullOrEmpty()]
+        [AllowEmptyString()]
         [Alias('User', 'Name')]
         [String[]]
         $UserName,
@@ -60,7 +60,7 @@ function Get-JiraUser {
 
         $ParameterSetName = ''
         switch ($PsCmdlet.ParameterSetName) {
-            'ByInputObject' { $UserName = $InputObject.Name; $ParameterSetName = 'ByUserName' }
+            'ByInputObject' { $UserName = $InputObject.Name; $ParameterSetName = 'ByUserName'; $Exact = $true }
             'ByUserName' { $ParameterSetName = 'ByUserName' }
             'Self' { $ParameterSetName = 'Self' }
         }
@@ -77,7 +77,7 @@ function Get-JiraUser {
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
 
-                Get-JiraUser -UserName $result.Name
+                Get-JiraUser -UserName $result.Name -Exact
             }
             "ByInputObject" {
                 $UserName = $InputObject.Name

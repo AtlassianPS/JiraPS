@@ -2,6 +2,29 @@
 
 ## [NEXT VERSION] - YYYY-MM-DD
 
+## [2.12] - 2019-08-15
+
+### Added
+
+- Added cmdlet for sorting versions: `Move-JiraVersion` (#363, [@kb-cs])
+- Added cmdlet for finding filters by name: `Find-JiraFilter` (#365, [@vercellone])
+
+### Changed
+
+- Changed the way users as interpreted by functions (#369, [@lipkau])
+- Changed how the config of a jira server is stored (#370, [@lipkau])
+
+## [2.11] - 2019-07-02
+
+### Added
+
+- Unit test for synopsis in cmdlet documentation (#344, [@alexsuslin])
+
+### Changed
+
+- `Invoke-JiraIssueTransition` to find username with exact match (#351, [@mirrorgleam])
+- Fixed `-Add <String>` parameter for `Set-JiraIssueLabel` on issues without labels (#358, [@lipkau])
+
 ## [2.10] - 2019-02-21
 
 ### Added
@@ -311,25 +334,29 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
 ### Fixed
 
 <!-- reference-style links -->
-  [@alexsuslin]: https://github.com/alexsuslin
-  [@axxelG]: https://github.com/axxelG
-  [@beaudryj]: https://github.com/beaudryj
-  [@brianbunke]: https://github.com/brianbunke
-  [@Clijsters]: https://github.com/Clijsters
-  [@ctolan]: https://github.com/ctolan
-  [@colhal]: https://github.com/colhal
-  [@Dejulia489]: https://github.com/Dejulia489
-  [@ebekker]: https://github.com/ebekker
-  [@hmmwhatsthisdo]: https://github.com/hmmwhatsthisdo
-  [@jkknorr]: https://github.com/jkknorr
-  [@kittholland]: https://github.com/kittholland
-  [@LiamLeane]: https://github.com/LiamLeane
-  [@lipkau]: https://github.com/lipkau
-  [@lukhase]: https://github.com/lukhase
-  [@michalporeba]: https://github.com/michalporeba
-  [@nojp]: https://github.com/nojp
-  [@padgers]: https://github.com/padgers
-  [@ThePSAdmin]: https://github.com/ThePSAdmin
-  [@tuxgoose]: https://github.com/tuxgoose
-  [@WindowsAdmin92]: https://github.com/WindowsAdmin92
-  [@wisemoth]: https://github.com/wisemoth
+
+[@alexsuslin]: https://github.com/alexsuslin
+[@axxelg]: https://github.com/axxelG
+[@beaudryj]: https://github.com/beaudryj
+[@brianbunke]: https://github.com/brianbunke
+[@clijsters]: https://github.com/Clijsters
+[@ctolan]: https://github.com/ctolan
+[@colhal]: https://github.com/colhal
+[@dejulia489]: https://github.com/Dejulia489
+[@ebekker]: https://github.com/ebekker
+[@hmmwhatsthisdo]: https://github.com/hmmwhatsthisdo
+[@jkknorr]: https://github.com/jkknorr
+[@kb-cs]: https://github.com/kb-cs
+[@kittholland]: https://github.com/kittholland
+[@liamleane]: https://github.com/LiamLeane
+[@lipkau]: https://github.com/lipkau
+[@lukhase]: https://github.com/lukhase
+[@michalporeba]: https://github.com/michalporeba
+[@mirrorgleam]: https://github.com/mirrorgleam
+[@nojp]: https://github.com/nojp
+[@padgers]: https://github.com/padgers
+[@thepsadmin]: https://github.com/ThePSAdmin
+[@tuxgoose]: https://github.com/tuxgoose
+[@vercellone]: https://github.com/vercellone
+[@windowsadmin92]: https://github.com/WindowsAdmin92
+[@wisemoth]: https://github.com/wisemoth

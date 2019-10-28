@@ -26,8 +26,13 @@ Describe "General project validation" -Tag Unit {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         # Import-Module $env:BHManifestToTest
+
+        $configFile = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData'))
+        $oldConfig = Get-Content $configFile
     }
     AfterAll {
+        Set-Content -Value $oldConfig -Path $configFile -Force
+
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Remove-Module BuildHelpers -ErrorAction SilentlyContinue
         Remove-Item -Path Env:\BH*
@@ -58,6 +63,14 @@ Describe "General project validation" -Tag Unit {
     It "module uses a valid version" {
         [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
         [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
+    }
+
+    It "module uses the previous server config when loaded" {
+        Set-Content -Value "https://example.com" -Path $configFile -Force
+
+        Import-Module $env:BHManifestToTest -Force
+
+        Get-JiraConfigServer | Should -Be "https://example.com"
     }
 
     # It "module is imported with default prefix" {

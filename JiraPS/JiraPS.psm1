@@ -23,9 +23,16 @@ if (!("System.Net.Http" -as [Type])) {
 #endregion Dependencies
 
 #region Configuration
+$script:serverConfig = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData'))
+
+if (-not (Test-Path $script:serverConfig)) {
+    $null = New-Item -Path $script:serverConfig -ItemType File -Force
+}
+$script:JiraServerUrl = [Uri](Get-Content $script:serverConfig)
+
 $script:DefaultContentType = "application/json; charset=utf-8"
 $script:DefaultPageSize = 25
-$script:DefaultHeaders= @{ "Accept-Charset" = "utf-8" }
+$script:DefaultHeaders = @{ "Accept-Charset" = "utf-8" }
 # Bug in PSv3's .Net API
 if ($PSVersionTable.PSVersion.Major -gt 3) {
     $script:DefaultHeaders["Accept"] = "application/json"

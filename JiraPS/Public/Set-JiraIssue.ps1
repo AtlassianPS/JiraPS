@@ -96,7 +96,7 @@ function Set-JiraIssue {
                 $validAssignee = $true
             }
             else {
-                if ($assigneeObj = Get-JiraUser -UserName $Assignee -Credential $Credential -Exact) {
+                if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Exact -Credential $Credential) {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                     $assigneeString = $assigneeObj.Name
                     $validAssignee = $true
