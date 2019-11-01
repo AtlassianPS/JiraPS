@@ -8,18 +8,15 @@ function Get-JiraGroup {
         [String[]]
         $GroupName,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/group?groupname={0}"
+        $resourceURi = "rest/api/latest/group?groupname={0}"
     }
 
     process {
@@ -35,7 +32,7 @@ function Get-JiraGroup {
             $parameter = @{
                 URI        = $resourceURi -f $escapedGroupName
                 Method     = "GET"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod @parameter

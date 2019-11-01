@@ -37,40 +37,38 @@ Describe "Get-JiraPriority" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-
         $restResultAll = @"
 [
     {
-        "self": "$jiraServer/rest/api/2/priority/1",
+        "self": "rest/api/2/priority/1",
         "statusColor": "#cc0000",
         "description": "Cannot continue work. Affects teaching and learning",
         "name": "Critical",
         "id": "1"
     },
     {
-        "self": "$jiraServer/rest/api/2/priority/2",
+        "self": "rest/api/2/priority/2",
         "statusColor": "#ff0000",
         "description": "High priority, attention needed immediately",
         "name": "High",
         "id": "2"
     },
     {
-        "self": "$jiraServer/rest/api/2/priority/3",
+        "self": "rest/api/2/priority/3",
         "statusColor": "#ffff66",
         "description": "Typical request for information or service",
         "name": "Normal",
         "id": "3"
     },
     {
-        "self": "$jiraServer/rest/api/2/priority/4",
+        "self": "rest/api/2/priority/4",
         "statusColor": "#006600",
         "description": "Upcoming project, planned request",
         "name": "Project",
         "id": "4"
     },
     {
-        "self": "$jiraServer/rest/api/2/priority/5",
+        "self": "rest/api/2/priority/5",
         "statusColor": "#0000ff",
         "description": "General questions, request for enhancement, wish list",
         "name": "Low",
@@ -81,7 +79,7 @@ Describe "Get-JiraPriority" -Tag 'Unit' {
 
         $restResultOne = @"
 {
-    "self": "$jiraServer/rest/api/2/priority/1",
+    "self": "rest/api/2/priority/1",
     "statusColor": "#cc0000",
     "description": "Cannot continue work. Affects teaching and learning",
     "name": "Critical",
@@ -89,19 +87,15 @@ Describe "Get-JiraPriority" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Mock ConvertTo-JiraPriority -ModuleName JiraPS {
             $InputObject
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/priority"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "rest/api/latest/priority"} {
             ConvertFrom-Json $restResultAll
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/priority/1"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "rest/api/latest/priority/1"} {
             ConvertFrom-Json $restResultOne
         }
 

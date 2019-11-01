@@ -1,4 +1,4 @@
-﻿function New-JiraVersion {
+function New-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'byObject' )]
     param(
@@ -79,18 +79,15 @@
         [DateTime]
         $StartDate,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/version"
+        $resourceURi = "rest/api/latest/version"
     }
 
     process {
@@ -140,7 +137,7 @@
                     }
                 }
                 else {
-                    $requestBody["projectId"] = (Get-JiraProject $Project -Credential $Credential).Id
+                    $requestBody["projectId"] = (Get-JiraProject $Project -Session $Session).Id
                 }
             }
         }
@@ -149,7 +146,7 @@
             URI        = $resourceURi
             Method     = "POST"
             Body       = ConvertTo-Json -InputObject $requestBody
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($Name, "Creating new Version on JIRA")) {

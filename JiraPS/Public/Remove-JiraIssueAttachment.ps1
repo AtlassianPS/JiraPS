@@ -38,10 +38,9 @@ function Remove-JiraIssueAttachment {
         [String[]]
         $FileName,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $Force
@@ -50,9 +49,7 @@ function Remove-JiraIssueAttachment {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/attachment/{0}"
+        $resourceURi = "rest/api/latest/attachment/{0}"
 
         if ($Force) {
             Write-DebugMessage "[Remove-JiraGroupMember] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -74,7 +71,7 @@ function Remove-JiraIssueAttachment {
                     $parameter = @{
                         URI        = $resourceURi -f $_id
                         Method     = "DELETE"
-                        Credential = $Credential
+                        Session    = $Session
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     if ($PSCmdlet.ShouldProcess($thisUrl, "Removing an attachment")) {
@@ -97,8 +94,8 @@ function Remove-JiraIssueAttachment {
                 }
 
                 # Find the proper object for the Issue
-                $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
-                $attachments = Get-JiraIssueAttachment -Issue $IssueObj -Credential $Credential -ErrorAction Stop
+                $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Session $Session
+                $attachments = Get-JiraIssueAttachment -Issue $IssueObj -Session $Session -ErrorAction Stop
 
                 if ($FileName) {
                     $_attachments = @()
@@ -115,7 +112,7 @@ function Remove-JiraIssueAttachment {
                     $parameter = @{
                         URI        = $resourceURi -f $attachment.Id
                         Method     = "DELETE"
-                        Credential = $Credential
+                        Session    = $Session
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     if ($PSCmdlet.ShouldProcess($Issue.Key, "Removing attachment '$($attachment.FileName)'")) {

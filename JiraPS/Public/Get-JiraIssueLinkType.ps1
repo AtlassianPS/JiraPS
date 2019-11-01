@@ -27,18 +27,15 @@ function Get-JiraIssueLinkType {
         [Object]
         $LinkType,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/issueLinkType{0}"
+        $resourceURi = "rest/api/latest/issueLinkType{0}"
     }
 
     process {
@@ -50,7 +47,7 @@ function Get-JiraIssueLinkType {
                 $parameter = @{
                     URI        = $resourceURi -f ""
                     Method     = "GET"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
@@ -64,7 +61,7 @@ function Get-JiraIssueLinkType {
                     $parameter = @{
                         URI        = $resourceURi -f "/$LinkType"
                         Method     = "GET"
-                        Credential = $Credential
+                        Session    = $Session
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter
@@ -72,7 +69,7 @@ function Get-JiraIssueLinkType {
                     Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
                 }
                 else {
-                    Write-Output (Get-JiraIssueLinkType -Credential $Credential | Where-Object { $_.Name -like $LinkType })
+                    Write-Output (Get-JiraIssueLinkType -Session $Session | Where-Object { $_.Name -like $LinkType })
                 }
             }
         }

@@ -63,10 +63,9 @@ function Set-JiraUser {
         [Hashtable]
         $Property,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $PassThru
@@ -75,9 +74,7 @@ function Set-JiraUser {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/user?username={0}"
+        $resourceURi = "rest/api/latest/user?username={0}"
     }
 
     process {
@@ -88,7 +85,7 @@ function Set-JiraUser {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-            $userObj = Resolve-JiraUser -InputObject $_user -Exact -Credential $Credential -ErrorAction Stop
+            $userObj = Resolve-JiraUser -InputObject $_user -Exact -Session $Session -ErrorAction Stop
 
             $requestBody = @{}
 
@@ -125,7 +122,7 @@ function Set-JiraUser {
                 URI        = $resourceURi -f $userObj.Name
                 Method     = "PUT"
                 Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($UserObj.DisplayName, "Updating user")) {

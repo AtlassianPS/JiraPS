@@ -17,18 +17,15 @@ function New-JiraUser {
         [Boolean]
         $Notify = $true,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/user"
+        $resourceURi = "rest/api/latest/user"
     }
 
     process {
@@ -53,7 +50,7 @@ function New-JiraUser {
             URI        = $resourceURi
             Method     = "POST"
             Body       = ConvertTo-Json -InputObject $requestBody
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {

@@ -26,11 +26,9 @@ function Resolve-JiraIssueObject {
         [Object]
         $InputObject,
 
-        # Authentication credentials
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     # As we are not able to use proper type casting in the parameters, this is a workaround
@@ -42,10 +40,10 @@ function Resolve-JiraIssueObject {
     }
     elseif ("JiraPS.Issue" -in $InputObject.PSObject.TypeNames -and $InputObject.Key) {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
-        return (Get-JiraIssue -Key $InputObject.Key -Credential $Credential -ErrorAction Stop)
+        return (Get-JiraIssue -Key $InputObject.Key -Session $Session -ErrorAction Stop)
     }
     else {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
-        return (Get-JiraIssue -Key $InputObject.ToString() -Credential $Credential -ErrorAction Stop)
+        return (Get-JiraIssue -Key $InputObject.ToString() -Session $Session -ErrorAction Stop)
     }
 }

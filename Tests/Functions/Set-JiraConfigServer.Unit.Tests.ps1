@@ -39,16 +39,31 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
 
         $jiraServer = 'http://jiraserver.example.com'
 
+        $script:serversConfig = "TestDrive:\serversConfig"
+        $script:JiraServerConfigs = New-Object psobject
+
         It "stores the server address in the module session" {
             Set-JiraConfigServer -Server $jiraServer
 
-            $script:JiraServerUrl | Should -Be "$jiraServer/"
+            $config = $script:JiraServerConfigs.Default
+            $config | Should -Not -BeNullOrEmpty
+            $config.Server | Should -Be "$jiraServer/"
+        }
+
+        It "can store few servers configs" {
+            Set-JiraConfigServer -Server $jiraServer -Name "Test"
+
+            $config = $script:JiraServerConfigs.Test
+            $config | Should -Not -BeNullOrEmpty
+            $config.Server | Should -Be "$jiraServer/"
         }
 
         It "stores the server address in a config file" {
-            $script:serverConfig | Should -Exist
+            $script:serversConfig | Should -Exist
 
-            Get-Content $script:serverConfig | Should -Be "$jiraServer/"
+            $config = Get-Content -Path $script:serversConfig -Raw | ConvertFrom-Json
+            $config.Default.Server | Should -BeExactly "$jiraServer/"
+            $config.Test.Server | Should -BeExactly "$jiraServer/"
         }
     }
 }

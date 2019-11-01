@@ -18,13 +18,13 @@ Moves an existing Version in JIRA
 ### ByAfter (Default)
 
 ```powershell
-Move-JiraVersion [-Version] <JiraPS.Version> [-After] <JiraPS.Version> [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Move-JiraVersion [-Version] <JiraPS.Version> [-After] <JiraPS.Version> [[-Session] <PSObject>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByPosition
 
 ```powershell
-Move-JiraVersion [-Version] <JiraPS.Version> [-Position] <String> [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Move-JiraVersion [-Version] <JiraPS.Version> [-Position] <String> [[-Session] <PSObject>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -109,15 +109,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: 3
@@ -137,7 +138,7 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Session` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 

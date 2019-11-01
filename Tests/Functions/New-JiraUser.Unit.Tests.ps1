@@ -37,7 +37,6 @@ Describe "New-JiraUser" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $testUsername = 'powershell-test'
         $testEmail = "$testUsername@example.com"
@@ -46,7 +45,7 @@ Describe "New-JiraUser" -Tag 'Unit' {
         # Trimmed from this example JSON: expand, groups, avatarURL
         $testJson = @"
 {
-    "self": "$jiraServer/rest/api/2/user?username=testUser",
+    "self": "rest/api/2/user?username=testUser",
     "key": "$testUsername",
     "name": "$testUsername",
     "emailAddress": "$testEmail",
@@ -55,11 +54,7 @@ Describe "New-JiraUser" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/user"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "rest/api/latest/user"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $testJson
         }

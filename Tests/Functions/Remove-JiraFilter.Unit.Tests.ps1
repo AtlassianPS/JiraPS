@@ -38,15 +38,14 @@ Describe 'Remove-JiraFilter' -Tag 'Unit' {
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Definitions
-        $jiraServer = "https://jira.example.com"
 
         $responseFilter = @"
 {
-    "self": "$jiraServer/rest/api/latest/filter/12844",
+    "self": "rest/api/latest/filter/12844",
     "id": "12844",
     "name": "All JIRA Bugs",
     "owner": {
-        "self": "$jiraServer/rest/api/2/user?username=scott@atlassian.com",
+        "self": "rest/api/2/user?username=scott@atlassian.com",
         "key": "scott@atlassian.com",
         "name": "scott@atlassian.com",
         "avatarUrls": {
@@ -60,7 +59,7 @@ Describe 'Remove-JiraFilter' -Tag 'Unit' {
     },
     "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
     "viewUrl": "$jiraServer/secure/IssueNavigator.jspa?mode=hide&requestId=12844",
-    "searchUrl": "$jiraServer/rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
+    "searchUrl": "rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
     "favourite": false,
     "sharePermissions": [
         {
@@ -87,9 +86,6 @@ Describe 'Remove-JiraFilter' -Tag 'Unit' {
         #endregion Definitions
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            $jiraServer
-        }
 
         Mock ConvertTo-JiraFilter -ModuleName JiraPS {
             foreach ($i in $InputObject) {
@@ -105,7 +101,7 @@ Describe 'Remove-JiraFilter' -Tag 'Unit' {
             }
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/filter/*"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Delete' -and $URI -like "rest/api/*/filter/*"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $responseFilter
         }
@@ -120,7 +116,7 @@ Describe 'Remove-JiraFilter' -Tag 'Unit' {
             $command = Get-Command -Name Remove-JiraFilter
 
             defParam $command 'InputObject'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {
@@ -128,14 +124,14 @@ Describe 'Remove-JiraFilter' -Tag 'Unit' {
             It "deletes a filter based on one or more InputObjects" {
                 { Get-JiraFilter -Id 12844 | Remove-JiraFilter } | Should Not Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844'}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Delete' -and $URI -like 'rest/api/*/filter/12844'}
             }
 
             It "deletes a filter based on one ore more filter ids" {
                 { Remove-JiraFilter -Id 12844 } | Should Not Throw
 
                 Assert-MockCalled -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1 -Scope It
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844'}
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Delete' -and $URI -like 'rest/api/*/filter/12844'}
             }
         }
 

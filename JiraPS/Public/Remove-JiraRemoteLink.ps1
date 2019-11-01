@@ -32,10 +32,9 @@ function Remove-JiraRemoteLink {
         [Int[]]
         $LinkId,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $Force
@@ -44,9 +43,7 @@ function Remove-JiraRemoteLink {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/issue/{0}/remotelink/{1}"
+        $resourceURi = "rest/api/latest/issue/{0}/remotelink/{1}"
 
         if ($Force) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -64,7 +61,7 @@ function Remove-JiraRemoteLink {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
 
             # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Session $Session
 
             foreach ($_link in $LinkId) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_link]"
@@ -73,7 +70,7 @@ function Remove-JiraRemoteLink {
                 $parameter = @{
                     URI        = $resourceURi -f $issueObj.Key, $_link
                     Method     = "DELETE"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) {

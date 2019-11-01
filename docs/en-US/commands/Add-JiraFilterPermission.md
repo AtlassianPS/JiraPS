@@ -19,7 +19,7 @@ Share a Filter with other users.
 
 ```powershell
 Add-JiraFilterPermission [-Filter] <JiraPS.Filter> [-Type] <String>
- [[-Value] <String>] [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
+ [[-Value] <String>] [[-Session] <PSObject>] [-WhatIf] [-Confirm]
   [<CommonParameters>]
 ```
 
@@ -27,7 +27,7 @@ Add-JiraFilterPermission [-Filter] <JiraPS.Filter> [-Type] <String>
 
 ```powershell
 Add-JiraFilterPermission [-Id] <UInt32> [-Type] <String> [[-Value] <String>]
- [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-Session] <PSObject>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -145,15 +145,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: 3
@@ -217,8 +218,7 @@ This functions does not validate the input for `-Value`.
 In case the value is invalid, unexpected or missing, the API will response with
 an error.
 
-This function requires either the `-Credential` parameter to be passed or
-a persistent JIRA session.
+This function requires either the `-Session` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 

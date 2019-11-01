@@ -37,16 +37,10 @@ Describe 'Add-JiraIssueLink' -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-
         $issueKey = "TEST-01"
         $issueLink = [PSCustomObject]@{
             outwardIssue = [PSCustomObject]@{key = "TEST-10"}
             type         = [PSCustomObject]@{name = "Composition"}
-        }
-
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
         }
 
         Mock Get-JiraIssue -ParameterFilter { $Key -eq $issueKey } {
@@ -67,7 +61,7 @@ Describe 'Add-JiraIssueLink' -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issueLink"} {
+        Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "rest/api/latest/issueLink"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             return $true
         }
@@ -82,7 +76,7 @@ Describe 'Add-JiraIssueLink' -Tag 'Unit' {
             defParam $command 'Issue'
             defParam $command 'IssueLink'
             defParam $command 'Comment'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Functionality" {

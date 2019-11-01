@@ -10,18 +10,15 @@ function Get-JiraIssueEditMetadata {
           Once we have custom classes, this should be a JiraPS.Issue
         #>
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/issue/{0}/editmeta"
+        $resourceURi = "rest/api/latest/issue/{0}/editmeta"
     }
 
     process {
@@ -35,7 +32,7 @@ function Get-JiraIssueEditMetadata {
               When the Input is typecasted to a JiraPS.Issue, the `self` of the issue can be used
             #>
             Method     = "GET"
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod @parameter

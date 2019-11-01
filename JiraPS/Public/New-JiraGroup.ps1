@@ -1,4 +1,4 @@
-﻿function New-JiraGroup {
+function New-JiraGroup {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
@@ -7,18 +7,15 @@
         [String[]]
         $GroupName,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/group"
+        $resourceURi = "rest/api/latest/group"
     }
 
     process {
@@ -37,7 +34,7 @@
                 URI        = $resourceURi
                 Method     = "POST"
                 Body       = ConvertTo-Json -InputObject $requestBody
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($GroupName, "Creating group [$GroupName] to JIRA")) {

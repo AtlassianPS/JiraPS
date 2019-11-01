@@ -37,7 +37,6 @@ Describe "ConvertTo-JiraIssueLink" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $issueLinkId = 41313
         $issueKeyInward = "TEST-01"

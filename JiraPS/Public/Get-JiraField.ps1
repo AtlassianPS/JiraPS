@@ -1,4 +1,4 @@
-﻿function Get-JiraField {
+function Get-JiraField {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
@@ -6,18 +6,15 @@
         [String[]]
         $Field,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/field"
+        $resourceURi = "rest/api/latest/field"
     }
 
     process {
@@ -29,7 +26,7 @@
                 $parameter = @{
                     URI        = $resourceURi
                     Method     = "GET"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
@@ -41,7 +38,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_field]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_field [$_field]"
 
-                    $allFields = Get-JiraField -Credential $Credential
+                    $allFields = Get-JiraField -Session $Session
 
                     Write-Output ($allFields | Where-Object -FilterScript {($_.Id -eq $_field) -or ($_.Name -like $_field)})
                 }

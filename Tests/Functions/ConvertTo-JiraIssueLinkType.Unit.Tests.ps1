@@ -37,7 +37,6 @@ Describe "ConvertTo-JiraIssueLinkType" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $sampleJson = @'
 {

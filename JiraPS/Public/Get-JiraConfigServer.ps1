@@ -1,8 +1,11 @@
 function Get-JiraConfigServer {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
-    [OutputType([System.String])]
-    param()
+    [OutputType([psobject])]
+    param(
+        [string]
+        $Name = "Default"
+    )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
@@ -12,7 +15,19 @@ function Get-JiraConfigServer {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        return ($script:JiraServerUrl -replace "\/$", "")
+        $config = $script:JiraServerConfigs.$Name
+
+        if (-not $config) {
+            $exception = ([System.InvalidOperationException]"Can not find $name configuration!")
+            $errorId = 'ConfigServer.NotFound'
+            $errorCategory = 'InvalidOperation'
+            $errorTarget = $_
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+            $errorItem.ErrorDetails = "Wrong value for Name parameter provided. Use Set-JiraConfigServer to solve the problem."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
+        }
+
+        return $config
     }
 
     end {

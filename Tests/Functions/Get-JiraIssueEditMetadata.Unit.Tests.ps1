@@ -37,7 +37,6 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = "https://jira.example.com"
         $issueID = 41701
         $issueKey = 'IT-3676'
 
@@ -66,7 +65,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
             "hasDefaultValue": false,
             "operations": [],
             "allowedValues": [{
-                "self": "$jiraServer/rest/api/2/issuetype/2",
+                "self": "rest/api/2/issuetype/2",
                 "id": "2",
                 "description": "This is a test issue type",
                 "iconUrl": "$jiraServer/images/icons/issuetypes/newfeature.png",
@@ -98,12 +97,12 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
                 "set"
             ],
             "allowedValues": [{
-                "self": "$jiraServer/rest/api/2/project/10003",
+                "self": "rest/api/2/project/10003",
                 "id": "10003",
                 "key": "TEST",
                 "name": "Test Project",
                 "projectCategory": {
-                    "self": "$jiraServer/rest/api/2/projectCategory/10000",
+                    "self": "rest/api/2/projectCategory/10000",
                     "id": "10000",
                     "description": "All Project Catagories",
                     "name": "All Project"
@@ -117,7 +116,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
                 "system": "reporter"
             },
             "name": "Reporter",
-            "autoCompleteUrl": "$jiraServer/rest/api/latest/user/search?username=",
+            "autoCompleteUrl": "rest/api/latest/user/search?username=",
             "hasDefaultValue": false,
             "operations": [
                 "set"
@@ -130,7 +129,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
                 "system": "assignee"
             },
             "name": "Assignee",
-            "autoCompleteUrl": "$jiraServer/rest/api/latest/user/assignable/search?issueKey=null&username=",
+            "autoCompleteUrl": "rest/api/latest/user/assignable/search?issueKey=null&username=",
             "hasDefaultValue": false,
             "operations": [
                 "set"
@@ -148,31 +147,31 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
                 "set"
             ],
             "allowedValues": [{
-                    "self": "$jiraServer/rest/api/2/priority/1",
+                    "self": "rest/api/2/priority/1",
                     "iconUrl": "$jiraServer/images/icons/priorities/blocker.png",
                     "name": "Blocker",
                     "id": "1"
                 },
                 {
-                    "self": "$jiraServer/rest/api/2/priority/2",
+                    "self": "rest/api/2/priority/2",
                     "iconUrl": "$jiraServer/images/icons/priorities/critical.png",
                     "name": "Critical",
                     "id": "2"
                 },
                 {
-                    "self": "$jiraServer/rest/api/2/priority/3",
+                    "self": "rest/api/2/priority/3",
                     "iconUrl": "$jiraServer/images/icons/priorities/major.png",
                     "name": "Major",
                     "id": "3"
                 },
                 {
-                    "self": "$jiraServer/rest/api/2/priority/4",
+                    "self": "rest/api/2/priority/4",
                     "iconUrl": "$jiraServer/images/icons/priorities/minor.png",
                     "name": "Minor",
                     "id": "4"
                 },
                 {
-                    "self": "$jiraServer/rest/api/2/priority/5",
+                    "self": "rest/api/2/priority/5",
                     "iconUrl": "$jiraServer/images/icons/priorities/trivial.png",
                     "name": "Trivial",
                     "id": "5"
@@ -187,7 +186,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
                 "system": "labels"
             },
             "name": "Labels",
-            "autoCompleteUrl": "$jiraServer/rest/api/1.0/labels/suggest?query=",
+            "autoCompleteUrl": "rest/api/1.0/labels/suggest?query=",
             "hasDefaultValue": false,
             "operations": [
                 "add",
@@ -199,15 +198,11 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer {
-            $jiraServer
-        }
-
         Mock Get-JiraIssue -ModuleName JiraPS {
             [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl = "rest/api/latest/issue/$issueID"
             }
         }
 
@@ -215,7 +210,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
             $InputObject
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "rest/api/*/issue/$issueID/editmeta"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $restResult
         }
@@ -229,7 +224,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
             $command = Get-Command -Name Get-JiraIssueEditMetadata
 
             defParam $command 'Issue'
-            defParam $command 'Credential'
+            defParam $command 'Session'
         }
 
         Context "Behavior testing" {

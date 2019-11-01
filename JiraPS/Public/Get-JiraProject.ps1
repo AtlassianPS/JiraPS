@@ -6,18 +6,15 @@ function Get-JiraProject {
         [String[]]
         $Project,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/project{0}?expand=description,lead,issueTypes,url,projectKeys"
+        $resourceURi = "rest/api/latest/project{0}?expand=description,lead,issueTypes,url,projectKeys"
     }
 
     process {
@@ -29,7 +26,7 @@ function Get-JiraProject {
                 $parameter = @{
                     URI        = $resourceURi -f ""
                     Method     = "GET"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
@@ -44,7 +41,7 @@ function Get-JiraProject {
                     $parameter = @{
                         URI        = $resourceURi -f "/$($_project)"
                         Method     = "GET"
-                        Credential = $Credential
+                        Session    = $Session
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter

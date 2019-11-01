@@ -27,10 +27,9 @@ function Get-JiraIssueAttachmentFile {
         [String]
         $Path,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -54,7 +53,7 @@ function Get-JiraIssueAttachmentFile {
                 Method     = 'Get'
                 Headers    = @{"Accept" = $_Attachment.MimeType}
                 OutFile    = $filename
-                Credential = $Credential
+                Session    = $Session
             }
 
             $result = Invoke-JiraMethod @iwParameters

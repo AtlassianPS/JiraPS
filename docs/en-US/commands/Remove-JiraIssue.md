@@ -19,14 +19,14 @@ Removes an existing issue from JIRA.
 ### ByInputObject (Default)
 
 ```powershell
-Remove-JiraIssue [-InputObject] <Object[]> [-IncludeSubTasks] [[-Credential] <PSCredential>] [-Force] [-WhatIf]
+Remove-JiraIssue [-InputObject] <Object[]> [-IncludeSubTasks] [[-Session] <PSObject>] [-Force] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
 ### ByIssueId 
 
 ```powershell
-Remove-JiraIssue [-IssueId] <String[]> [-IncludeSubTasks] [[-Credential] <PSCredential>] [-Force] [-WhatIf]
+Remove-JiraIssue [-IssueId] <String[]> [-IncludeSubTasks] [[-Session] <PSObject>] [-Force] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
@@ -120,14 +120,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use to connect to JIRA.  
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: 2
@@ -202,7 +204,8 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 If the issue has subtasks you must include the parameter IncludeSubTasks to delete the issue. You cannot delete an issue without its subtasks also being deleted.
 
-This function requires either the \`-Credential\` parameter to be passed or a persistent JIRA session.
-See \`New-JiraSession\` for more details.
+This function requires either the `-Session` parameter to be passed or a persistent JIRA session.
+See `New-JiraSession` for more details.
+If neither are supplied, this function will run with anonymous access to JIRA.
 
 ## RELATED LINKS

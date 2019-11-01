@@ -38,7 +38,6 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
         . "$PSScriptRoot/../Shared.ps1"
 
 
-        $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
         $issueKey = 'IT-3676'
 
@@ -49,7 +48,7 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
     "total": 1,
     "comments": [
         {
-            "self": "$jiraServer/rest/api/2/issue/$issueID/comment/90730",
+            "self": "rest/api/2/issue/$issueID/comment/90730",
             "id": "90730",
             "body": "Test comment",
             "created": "2015-05-01T16:24:38.000-0500",
@@ -64,15 +63,12 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
 "@
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraIssue -ModuleName JiraPS {
             $object = [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl = "rest/api/latest/issue/$issueID"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $object
@@ -83,7 +79,7 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
         }
 
         # Obtaining comments from an issue...this is IT-3676 in the test environment
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/comment"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "rest/api/latest/issue/$issueID/comment"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             (ConvertFrom-Json -InputObject $restResult).comments
         }

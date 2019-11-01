@@ -28,10 +28,9 @@ function Remove-JiraUser {
         [Object[]]
         $User,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $Force
@@ -40,9 +39,7 @@ function Remove-JiraUser {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/user?username={0}"
+        $resourceURi = "rest/api/latest/user?username={0}"
 
         if ($Force) {
             Write-DebugMessage "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -59,12 +56,12 @@ function Remove-JiraUser {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-            $userObj = Resolve-JiraUser -InputObject $_user -Credential $Credential -ErrorAction Stop
+            $userObj = Resolve-JiraUser -InputObject $_user -Session $Session -ErrorAction Stop
 
             $parameter = @{
                 URI        = $resourceURi -f $userObj.Name
                 Method     = "DELETE"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($userObj.Name, 'Remove user')) {

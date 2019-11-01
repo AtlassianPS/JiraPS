@@ -13,10 +13,9 @@ function Get-JiraFilterPermission {
         [UInt32[]]
         $Id,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -37,7 +36,7 @@ function Get-JiraFilterPermission {
             $parameter = @{
                 URI        = $resourceURi -f $_filter.RestURL
                 Method     = "GET"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $result = Invoke-JiraMethod @parameter

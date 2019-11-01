@@ -1,4 +1,4 @@
-﻿function Get-JiraFilter {
+function Get-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding(DefaultParameterSetName = 'ByFilterID')]
     param(
@@ -42,18 +42,15 @@
         [Switch]
         $Favorite,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/filter/{0}"
+        $resourceURi = "rest/api/latest/filter/{0}"
     }
 
     process {
@@ -69,7 +66,7 @@
                     $parameter = @{
                         URI        = $resourceURi -f $_id
                         Method     = "GET"
-                        Credential = $Credential
+                        Session    = $Session
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter
@@ -90,14 +87,14 @@
                         Write-Verbose "[$($MyInvocation.MyCommand.Name)] ID is assumed to be [$thisId] via ToString()"
                     }
 
-                    Write-Output (Get-JiraFilter -Id $thisId -Credential $Credential)
+                    Write-Output (Get-JiraFilter -Id $thisId -Session $Session)
                 }
             }
             "MyFavorite" {
                 $parameter = @{
                     URI        = $resourceURi -f "favourite"
                     Method     = "GET"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter

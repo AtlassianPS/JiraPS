@@ -1,4 +1,4 @@
-﻿function Get-JiraVersion {
+function Get-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'byId' )]
     param(
@@ -38,18 +38,15 @@
         [UInt32]
         $PageSize = $script:DefaultPageSize,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/{0}"
+        $resourceURi = "rest/api/latest/{0}"
     }
 
     process {
@@ -73,7 +70,7 @@
                     $parameter = @{
                         URI        = $resourceURi -f "version/$_id"
                         Method     = "GET"
-                        Credential = $Credential
+                        Session    = $Session
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod @parameter
@@ -86,7 +83,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
-                    $projectData = Get-JiraProject -Project $_project -Credential $Credential
+                    $projectData = Get-JiraProject -Project $_project -Session $Session
 
                     $parameter = @{
                         URI          = $resourceURi -f "project/$($projectData.key)/version"
@@ -97,7 +94,7 @@
                         }
                         Paging       = $true
                         OutputType   = "JiraVersion"
-                        Credential   = $Credential
+                        Session      = $Session
                     }
                     # Paging
                     ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {

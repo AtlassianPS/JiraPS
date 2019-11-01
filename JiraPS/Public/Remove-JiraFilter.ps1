@@ -12,10 +12,9 @@ function Remove-JiraFilter {
         [UInt32[]]
         $Id,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
@@ -36,7 +35,7 @@ function Remove-JiraFilter {
             $parameter = @{
                 URI        = $filter.RestURL
                 Method     = "DELETE"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) {

@@ -27,11 +27,21 @@ Describe "General project validation" -Tag Unit {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         # Import-Module $env:BHManifestToTest
 
-        $configFile = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData'))
-        $oldConfig = Get-Content $configFile
+        $configFile = ("{0}/AtlassianPS/JiraPS/servers.json" -f [Environment]::GetFolderPath('ApplicationData'))
+        $legacyConfigFile = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData'))
+
+        $configContent = Get-Content $configFile -ErrorAction SilentlyContinue
+        $legacyConfigContent = Get-Content $legacyConfigFile -ErrorAction SilentlyContinue
     }
     AfterAll {
-        Set-Content -Value $oldConfig -Path $configFile -Force
+
+        if ($configContent) {
+            Set-Content -Value $configContent -Path $configFile -Force
+        }
+
+        if ($legacyConfigContent) {
+            Set-Content -Value $legacyConfigContent -Path $legacyConfigFile -Force
+        }
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Remove-Module BuildHelpers -ErrorAction SilentlyContinue
@@ -66,11 +76,13 @@ Describe "General project validation" -Tag Unit {
     }
 
     It "module uses the previous server config when loaded" {
-        Set-Content -Value "https://example.com" -Path $configFile -Force
+        New-Item -Path $configFile -Force | Out-Null
+        Set-Content -Path $configFile -Value "{ Default: { Server: `"https://example.com`" } }" -Force
 
         Import-Module $env:BHManifestToTest -Force
 
-        Get-JiraConfigServer | Should -Be "https://example.com"
+        $config = Get-JiraConfigServer
+        $config.Server | Should -Be "https://example.com"
     }
 
     # It "module is imported with default prefix" {

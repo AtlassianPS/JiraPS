@@ -37,7 +37,6 @@ Describe "ConvertTo-JiraStatus" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $statusName = 'In Progress'
         $statusId = 3
@@ -45,13 +44,13 @@ Describe "ConvertTo-JiraStatus" -Tag 'Unit' {
 
         $sampleJson = @"
 {
-    "self": "$jiraServer/rest/api/2/status/$statusId",
+    "self": "rest/api/2/status/$statusId",
     "description": "$statusDesc",
     "iconUrl": "$jiraServer/images/icons/statuses/inprogress.png",
     "name": "$statusName",
     "id": "$statusId",
     "statusCategory": {
-        "self": "$jiraServer/rest/api/2/statuscategory/4",
+        "self": "rest/api/2/statuscategory/4",
         "id": 4,
         "key": "indeterminate",
         "colorName": "yellow",
@@ -73,6 +72,6 @@ Describe "ConvertTo-JiraStatus" -Tag 'Unit' {
         defProp $r 'Name' $statusName
         defProp $r 'Description' $statusDesc
         defProp $r 'IconUrl' "$jiraServer/images/icons/statuses/inprogress.png"
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/status/$statusId"
+        defProp $r 'RestUrl' "rest/api/2/status/$statusId"
     }
 }

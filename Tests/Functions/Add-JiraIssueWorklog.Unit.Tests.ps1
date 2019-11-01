@@ -37,7 +37,6 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $jiraUsername = 'powershell-test'
         $jiraUserDisplayName = 'PowerShell Test User'
         $jiraUserEmail = 'noreply@example.com'
@@ -48,7 +47,7 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
         $restResponse = @"
 {
     "id": "$worklogitemID",
-    "self": "$jiraServer/rest/api/latest/issue/$issueID/worklog/$worklogitemID",
+    "self": "rest/api/latest/issue/$issueID/worklog/$worklogitemID",
     "comment": "Test description",
     "created": "2015-05-01T16:24:38.000-0500",
     "updated": "2015-05-01T16:24:38.000-0500",
@@ -56,7 +55,7 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
     "timeSpent": "1h",
     "timeSpentSeconds": "3600",
     "author": {
-        "self": "$jiraServer/rest/api/2/user?username=powershell-test",
+        "self": "rest/api/2/user?username=powershell-test",
         "name": "$jiraUsername",
         "emailAddress": "$jiraUserEmail",
         "avatarUrls": {
@@ -69,7 +68,7 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
         "active": true
     },
     "updateAuthor": {
-        "self": "$jiraServer/rest/api/2/user?username=powershell-test",
+        "self": "rest/api/2/user?username=powershell-test",
         "name": "powershell-test",
         "emailAddress": "$jiraUserEmail",
         "avatarUrls": {
@@ -84,15 +83,11 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
         Mock Get-JiraIssue -ModuleName JiraPS {
             $result = [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl = "rest/api/latest/issue/$issueID"
             }
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             Write-Output $result
@@ -102,7 +97,7 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/worklog"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "rest/api/latest/issue/$issueID/worklog"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
             ConvertFrom-Json $restResponse
         }

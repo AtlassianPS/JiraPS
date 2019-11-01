@@ -1,4 +1,4 @@
-﻿function Move-JiraVersion {
+function Move-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = 'ByAfter' )]
     param(
@@ -56,18 +56,15 @@
         [Object]
         $After,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $versionResourceUri = "$server/rest/api/latest/version/{0}/move"
+        $versionResourceUri = "rest/api/latest/version/{0}/move"
     }
 
     process {
@@ -82,7 +79,7 @@
             'ByAfter' {
                 $afterSelfUri = ''
                 if ($After -is [Int]) {
-                    $versionObj = Get-JiraVersion -Id $After -Credential $Credential -ErrorAction Stop
+                    $versionObj = Get-JiraVersion -Id $After -Session $Session -ErrorAction Stop
                     $afterSelfUri = $versionObj.RestUrl
                 }
                 else {
@@ -103,7 +100,7 @@
             URI        = $versionResourceUri -f $versionId
             Method     = "POST"
             Body       = ConvertTo-Json $requestBody
-            Credential = $Credential
+            Session    = $Session
         }
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

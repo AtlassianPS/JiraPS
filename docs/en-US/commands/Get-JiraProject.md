@@ -18,13 +18,13 @@ Returns a project from Jira
 ### _All (Default)
 
 ```powershell
-Get-JiraProject [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraProject [-Session <PSObject>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraProject [-Project] <String[]> [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraProject [-Project] <String[]> [-Session <PSObject>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -41,7 +41,7 @@ The `-Project` parameter will accept either a project ID or a project key.
 ### EXAMPLE 1
 
 ```powershell
-Get-JiraProject -Project TEST -Credential $cred
+Get-JiraProject -Project TEST -Session $session
 ```
 
 Returns information about the project TEST
@@ -49,7 +49,7 @@ Returns information about the project TEST
 ### EXAMPLE 2
 
 ```powershell
-Get-JiraProject 2 -Credential $cred
+Get-JiraProject 2 -Session $session
 ```
 
 Returns information about the project with ID 2
@@ -80,15 +80,16 @@ Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: Named
@@ -110,7 +111,7 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Session` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 

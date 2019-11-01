@@ -2,18 +2,15 @@ function Get-JiraServerInformation {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/serverInfo"
+        $resourceURi = "rest/api/latest/serverInfo"
     }
 
     process {
@@ -23,7 +20,7 @@ function Get-JiraServerInformation {
         $parameter = @{
             URI        = $resourceURi
             Method     = "GET"
-            Credential = $Credential
+            Session    = $Session
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod @parameter

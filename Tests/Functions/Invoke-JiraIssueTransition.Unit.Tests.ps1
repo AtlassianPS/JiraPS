@@ -37,14 +37,9 @@ Describe "Invoke-JiraIssueTransition" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
         $issueKey = 'IT-3676'
 
-
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
 
         Mock Get-JiraField {
             $object = [PSCustomObject] @{
@@ -70,7 +65,7 @@ Describe "Invoke-JiraIssueTransition" -Tag 'Unit' {
             $object = [PSCustomObject] @{
                 ID         = $issueID
                 Key        = $issueKey
-                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl    = "rest/api/latest/issue/$issueID"
                 Transition = @($t1, $t2)
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
@@ -81,7 +76,7 @@ Describe "Invoke-JiraIssueTransition" -Tag 'Unit' {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/transitions"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "rest/api/latest/issue/$issueID/transitions"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This should return a 204 status code, so no data should actually be returned
         }
@@ -135,32 +130,32 @@ Describe "Invoke-JiraIssueTransition" -Tag 'Unit' {
                 Invoke-JiraIssueTransition @parameter
             } | Should Not Throw
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_12345*set*foo*' }
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_67890*set*bar*' }
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_12345*set*foo*' }
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "rest/api/latest/issue/$issueID/transitions" -and $Body -like '*customfield_67890*set*bar*' }
         }
 
         It "Updates assignee name if provided to the -Assignee parameter" {
             Mock Get-JiraUser {
                 [PSCustomObject] @{
                     'Name'    = 'powershell-user'
-                    'RestUrl' = "$jiraServer/rest/api/2/user?username=powershell-user"
+                    'RestUrl' = "rest/api/2/user?username=powershell-user"
                 }
             }
             { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'powershell-user'} | Should Not Throw
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*name*powershell-user*' }
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "rest/api/latest/issue/$issueID/transitions" -and $Body -like '*name*powershell-user*' }
         }
 
         It "Unassigns an issue if 'Unassigned' is passed to the -Assignee parameter" {
             { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'Unassigned'} | Should Not Throw
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*name*""*' }
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "rest/api/latest/issue/$issueID/transitions" -and $Body -like '*name*""*' }
         }
 
         It "Adds a comment if provide to the -Comment parameter" {
             { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Comment 'test comment'} | Should Not Throw
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*body*test comment*' }
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "rest/api/latest/issue/$issueID/transitions" -and $Body -like '*body*test comment*' }
         }
 
         It "Returns the Issue object when -Passthru is provided" {

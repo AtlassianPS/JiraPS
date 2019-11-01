@@ -7,6 +7,7 @@ schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Set-JiraUser/
 ---
+
 # Set-JiraUser
 
 ## SYNOPSIS
@@ -19,13 +20,13 @@ Modifies user properties in JIRA
 
 ```powershell
 Set-JiraUser [-User] <Object[]> [-DisplayName <String>] [-EmailAddress <String>] [[-Active] <Boolean>]
- [-Credential <PSCredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-Session <PSObject>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByHashtable
 
 ```powershell
-Set-JiraUser [-User] <Object[]> [-Property] <Hashtable> [-Credential <PSCredential>] [-PassThru] [-WhatIf]
+Set-JiraUser [-User] <Object[]> [-Property] <Hashtable> [-Session <PSObject>] [-PassThru] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
@@ -136,15 +137,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: Named
@@ -216,13 +218,13 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 ### [JiraPS.User]
 
 If the `-PassThru` parameter is provided, this function will provide a reference
-to the JIRA user modified.  Otherwise, this function does not provide output.
+to the JIRA user modified. Otherwise, this function does not provide output.
 
 ## NOTES
 
 The `-Active` parameter is supported only in Jira Server version 8.3.0 and above.
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Session` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 

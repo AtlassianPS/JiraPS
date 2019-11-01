@@ -1,4 +1,4 @@
-﻿function Remove-JiraGroup {
+function Remove-JiraGroup {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'High' )]
     param(
@@ -28,10 +28,9 @@
         [Object[]]
         $Group,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $Force
@@ -40,9 +39,7 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/group?groupname={0}"
+        $resourceURi = "rest/api/latest/group?groupname={0}"
 
         if ($Force) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -59,12 +56,12 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
+            $groupObj = Get-JiraGroup -GroupName $_group -Session $Session -ErrorAction Stop
 
             $parameter = @{
                 URI        = $resourceURi -f $groupObj.Name
                 Method     = "DELETE"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove group")) {

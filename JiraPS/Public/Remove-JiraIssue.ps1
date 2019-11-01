@@ -38,9 +38,9 @@ function Remove-JiraIssue {
         [Alias("deleteSubtasks")]
         $IncludeSubTasks,
 
-        [System.Management.Automation.CredentialAttribute()]
-        [System.Management.Automation.PSCredential]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $Force
@@ -49,9 +49,7 @@ function Remove-JiraIssue {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/issue/{0}?deleteSubtasks={1}"
+        $resourceURi = "rest/api/latest/issue/{0}?deleteSubtasks={1}"
 
         if ($Force) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -73,7 +71,7 @@ function Remove-JiraIssue {
         foreach ($issueItem in $PrimaryIterator) {
 
             if ($PsCmdlet.ParameterSetName -eq "ByIssueId") {
-                $_issue = Get-JiraIssue -Key $issueItem -Credential $Credential -ErrorAction Stop
+                $_issue = Get-JiraIssue -Key $issueItem -Session $Session -ErrorAction Stop
             } Else {
                 $_issue = $issueItem
             }
@@ -86,7 +84,7 @@ function Remove-JiraIssue {
             $parameter = @{
                 URI        = $resourceURi -f $_issue.Key,$IncludeSubTasks
                 Method     = "DELETE"
-                Credential = $Credential
+                Session    = $Session
                 Cmdlet = $PsCmdlet
             }
 

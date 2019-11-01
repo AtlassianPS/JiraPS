@@ -1,4 +1,4 @@
-﻿function Resolve-JiraError {
+function Resolve-JiraError {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

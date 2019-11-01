@@ -3,7 +3,7 @@ function Invoke-JiraMethod {
     [CmdletBinding( SupportsPaging )]
     param(
         [Parameter( Mandatory )]
-        [Uri]
+        [uri]
         $URI,
 
         [Microsoft.PowerShell.Commands.WebRequestMethod]
@@ -30,8 +30,9 @@ function Invoke-JiraMethod {
         [String]
         $OutFile,
 
-        [Switch]
-        $StoreSession,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [ValidateSet(
             "JiraComment",
@@ -41,11 +42,6 @@ function Invoke-JiraMethod {
         )]
         [String]
         $OutputType,
-
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         # [Parameter( DontShow )]
         [ValidateNotNullOrEmpty()]
@@ -73,7 +69,19 @@ function Invoke-JiraMethod {
         $_headers = Join-Hashtable -Hashtable $script:DefaultHeaders, $PSDefaultParameterValues["Invoke-WebRequest:Headers"], $Headers
         #endregion Headers
 
+        #region Session
+        # Convert a value provide by the argument to JiraPS.Session
+        $Session = ConvertTo-JiraSession -InputObject $Session
+        #endregion
+
         #region Manage URI
+
+        # if instance of URI is relative path - convert it to abosolute URI using session's ServerUri as base URI
+        if (-not $URI.IsAbsoluteUri) {
+            $serverUri = New-Object -TypeName "System.Uri" -ArgumentList @($Session.ServerConfig.Server)
+            $URI = New-Object -TypeName "System.Uri" -ArgumentList @($serverUri, $URI)
+        }
+
         # Amend query from URI with GetParameter
         $uriQuery = ConvertTo-ParameterHash -Uri $Uri
         $internalGetParameter = Join-Hashtable $uriQuery, $GetParameter
@@ -112,6 +120,7 @@ function Invoke-JiraMethod {
             Credential      = $Credential
             ErrorAction     = "Stop"
             Verbose         = $false
+            WebSession      = $Session.WebSession
         }
 
         if ($_headers.ContainsKey("Content-Type")) {
@@ -127,20 +136,9 @@ function Invoke-JiraMethod {
             else {
                 # Encode Body to preserve special chars
                 # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
-                $splatParameters["Body"] = [System.Text.Encoding]::UTF8.GetBytes($Body)
+                $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($Body)
+                $splatParameters["Body"] = $bodyBytes
             }
-        }
-
-        if ((-not $Credential) -or ($Credential -eq [System.Management.Automation.PSCredential]::Empty)) {
-            $splatParameters.Remove("Credential")
-            if ($session = Get-JiraSession -ErrorAction SilentlyContinue) {
-                $splatParameters["WebSession"] = $session.WebSession
-            }
-        }
-
-        if ($StoreSession) {
-            $splatParameters["SessionVariable"] = "newSessionVar"
-            $splatParameters.Remove("WebSession")
         }
 
         if ($InFile) {
@@ -193,9 +191,6 @@ function Invoke-JiraMethod {
 
             #region Code 399-
             else {
-                if ($StoreSession) {
-                    return & $script:SessionTransformationMethod -Session $newSessionVar -Username $Credential.UserName
-                }
 
                 if ($webResponse.Content) {
                     $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))

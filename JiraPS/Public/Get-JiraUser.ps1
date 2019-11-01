@@ -28,20 +28,17 @@ function Get-JiraUser {
         [UInt64]
         $Skip = 0,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $selfResourceUri = "$server/rest/api/latest/myself"
-        $searchResourceUri = "$server/rest/api/latest/user/search?username={0}"
-        $exactResourceUri = "$server/rest/api/latest/user?username={0}"
+        $selfResourceUri = "rest/api/latest/myself"
+        $searchResourceUri = "rest/api/latest/user/search?username={0}"
+        $exactResourceUri = "rest/api/latest/user?username={0}"
 
         if ($IncludeInactive) {
             $searchResourceUri += "&includeInactive=true"
@@ -72,7 +69,7 @@ function Get-JiraUser {
                 $parameter = @{
                     URI        = $resourceURi
                     Method     = "GET"
-                    Credential = $Credential
+                    Session    = $Session
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
@@ -92,9 +89,9 @@ function Get-JiraUser {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$user [$user]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f $user
+                        URI        = $resourceURi -f [System.Uri]::EscapeDataString($user)
                         Method     = "GET"
-                        Credential = $Credential
+                        Session    = $Session
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     if ($users = Invoke-JiraMethod @parameter) {
@@ -102,7 +99,7 @@ function Get-JiraUser {
                             $parameter = @{
                                 URI        = "{0}&expand=groups" -f $item.self
                                 Method     = "GET"
-                                Credential = $Credential
+                                Session    = $Session
                             }
                             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                             $result = Invoke-JiraMethod @parameter

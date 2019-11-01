@@ -30,18 +30,15 @@ function Remove-JiraIssueLink {
         [Object[]]
         $IssueLink,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Alias("Credential")]
+        [psobject]
+        $Session
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/latest/issueLink/{0}"
+        $resourceURi = "rest/api/latest/issueLink/{0}"
     }
 
     process {
@@ -65,7 +62,7 @@ function Remove-JiraIssueLink {
             $parameter = @{
                 URI        = $resourceURi -f $link.id
                 Method     = "DELETE"
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) {

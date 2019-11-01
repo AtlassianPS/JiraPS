@@ -37,18 +37,17 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
         $issueKey = 'IT-3676'
 
         $attachments = @"
 [
     {
-        "self": "$jiraServer/rest/api/2/attachment/10013",
+        "self": "rest/api/2/attachment/10013",
         "id": "10013",
         "filename": "foo.pdf",
         "author": {
-            "self": "$jiraServer/rest/api/2/user?username=admin",
+            "self": "rest/api/2/user?username=admin",
             "name": "admin",
             "key": "admin",
             "accountId": "000000:000000-0000-0000-0000-ab899c878d00",
@@ -64,11 +63,11 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
         "content": "$jiraServer/secure/attachment/10013/foo.pdf"
     },
     {
-        "self": "$jiraServer/rest/api/2/attachment/10010",
+        "self": "rest/api/2/attachment/10010",
         "id": "10010",
         "filename": "bar.pdf",
         "author": {
-            "self": "$jiraServer/rest/api/2/user?username=admin",
+            "self": "rest/api/2/user?username=admin",
             "name": "admin",
             "key": "admin",
             "accountId": "000000:000000-0000-0000-0000-ab899c878d00",
@@ -90,7 +89,7 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
             $IssueObj = [PSCustomObject]@{
                 ID         = $issueID
                 Key        = $issueKey
-                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl    = "rest/api/latest/issue/$issueID"
                 attachment = (ConvertFrom-Json -InputObject $attachments)
             }
             $IssueObj.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')

@@ -37,7 +37,6 @@ Describe "ConvertTo-JiraTransition" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $tId = 11
         $tName = 'Start Progress'
@@ -52,13 +51,13 @@ Describe "ConvertTo-JiraTransition" -Tag 'Unit' {
     "id": "$tId",
     "name": "$tName",
     "to": {
-        "self": "$jiraServer/rest/api/2/status/$tRId",
+        "self": "rest/api/2/status/$tRId",
         "description": "$tRDesc",
         "iconUrl": "$jiraServer/images/icons/statuses/inprogress.png",
         "name": "$tRName",
         "id": "$tRId",
         "statusCategory": {
-            "self": "$jiraServer/rest/api/2/statuscategory/4",
+            "self": "rest/api/2/statuscategory/4",
             "id": 4,
             "key": "indeterminate",
             "colorName": "yellow",

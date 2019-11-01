@@ -37,14 +37,13 @@ Describe "ConvertTo-JiraUser" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
         $username = 'powershell-test'
         $displayName = 'PowerShell Test User'
         $email = 'noreply@example.com'
 
         $sampleJson = @"
 {
-    "self":"$jiraServer/rest/api/2/user?username=$username",
+    "self":"rest/api/2/user?username=$username",
     "key":"$username",
     "accountId":"500058:1500a9f1-0000-42b3-0000-ab8900008d00",
     "name":"$username",
@@ -64,19 +63,19 @@ Describe "ConvertTo-JiraUser" -Tag 'Unit' {
         "items":[
             {
                 "name":"administrators",
-                "self":"$jiraServer/rest/api/2/group?groupname=administrators"
+                "self":"rest/api/2/group?groupname=administrators"
             },
             {
                 "name":"balsamiq-mockups-editors",
-                "self":"$jiraServer/rest/api/2/group?groupname=balsamiq-mockups-editors"
+                "self":"rest/api/2/group?groupname=balsamiq-mockups-editors"
             },
             {
                 "name":"jira-administrators",
-                "self":"$jiraServer/rest/api/2/group?groupname=jira-administrators"
+                "self":"rest/api/2/group?groupname=jira-administrators"
             },
             {
                 "name":"site-admins",
-                "self":"$jiraServer/rest/api/2/group?groupname=site-admins"
+                "self":"rest/api/2/group?groupname=site-admins"
             }
         ]
     },
@@ -103,7 +102,7 @@ Describe "ConvertTo-JiraUser" -Tag 'Unit' {
         defProp $r 'DisplayName' $displayName
         defProp $r 'EmailAddress' $email
         defProp $r 'Active' $true
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/user?username=$username"
+        defProp $r 'RestUrl' "rest/api/2/user?username=$username"
         hasProp $r 'AvatarUrl'
         defProp $r 'TimeZone' "Europe/Berlin"
         defProp $r 'Locale' "en_Us"

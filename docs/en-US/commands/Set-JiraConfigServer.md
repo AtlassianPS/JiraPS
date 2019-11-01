@@ -17,7 +17,7 @@ Defines the configured URL for the JIRA server
 ## SYNTAX
 
 ```powershell
-Set-JiraConfigServer [-Server] <Uri> [<CommonParameters>]
+Set-JiraConfigServer [-Server] <Uri> [[-Name] <String>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -48,6 +48,22 @@ Aliases: Uri
 Required: True
 Position: 1
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Name
+
+The name of the Jira instance
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 2
+Default value: "Default"
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

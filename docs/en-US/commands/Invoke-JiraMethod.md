@@ -18,7 +18,7 @@ Invoke a specific call to a Jira REST Api endpoint
 ```powershell
 Invoke-JiraMethod [-URI] <Uri> [[-Method] <WebRequestMethod>] [[-Body] <String>] [-RawBody]
  [[-Headers] <Hashtable>] [[-GetParameter] <Hashtable>] [[-Paging] <Switch>] [[-InFile] <String>]
- [[-OutFile] <String>] [-StoreSession] [[-OutputType] <String>] [[-Credential] <PSCredential>]
+ [[-OutFile] <String>] [[-OutputType] <String>] [[-Session] <PSObject>]
  [[-Cmdlet] <System.Management.Automation.PSCmdlet>] [<CommonParameters>]
 ```
 
@@ -44,7 +44,7 @@ This will import the module if not already loaded or even download it from the P
 ### Example 1
 
 ```powershell
-Invoke-JiraMethod -URI "$(Get-JiraConfigServer)/rest/api/latest/project"
+Invoke-JiraMethod -URI "rest/api/latest/project"
 ```
 
 Sends a GET request which will return all the projects on the Jira server.
@@ -53,7 +53,7 @@ This call would either be executed anonymously or require a session to be availa
 ### Example 2
 
 ```powershell
-Invoke-JiraMethod -URI "$(Get-JiraConfigServer)/rest/api/latest/project" -Credential (Get-Credential)
+Invoke-JiraMethod -URI "rest/api/latest/project" -Session $session
 ```
 
 Prompts the user for his Jira credentials and send a GET request,
@@ -63,7 +63,7 @@ which will return all the projects on the Jira server.
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
+    URI = "rest/api/latest/project"
     Method = "POST"
     Credential = $cred
 }
@@ -81,7 +81,7 @@ See next example
 ```powershell
 $body = '{"name": "NewGroup"}'
 $params = @{
-    Uri = "$(Get-JiraConfigServer)/rest/api/latest/group"
+    Uri = "rest/api/latest/group"
     Method = "POST"
     Body = $body
     Credential = $cred
@@ -95,10 +95,9 @@ Creates a new group named "NewGroup"
 
 ```powershell
 $params = @{
-    Uri = "$(Get-JiraConfigServer)/rest/api/latest/mypermissions"
+    Uri = "rest/api/latest/mypermissions"
     Method = "GET"
     Body = $body
-    StoreSession = $true
     Credential = $cred
 }
 Invoke-JiraMethod @params
@@ -111,7 +110,7 @@ it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
 
 ```powershell
 $params = @{
-    Uri = "$(Get-JiraConfigServer)/rest/api/latest/issue/10000"
+    Uri = "rest/api/latest/issue/10000"
     Method = "POST"
     InFile = "c:\temp\20001231_Connection.log"
     Credential = $cred
@@ -125,7 +124,7 @@ Executes a POST request on the defined URI and uploads the InFile with a multipa
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
+    URI = "rest/api/latest/project"
     Method = "GET"
     OutFile = "c:\temp\jira_projects.json"
     Credential = $cred
@@ -139,7 +138,7 @@ Executes a GET request on all available projects and stores the response json in
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
+    URI = "rest/api/latest/project"
     Method = "GET"
     Headers = @{"Accept" = "text/plain"}
     OutFile = "c:\temp\jira_projects.json"
@@ -156,6 +155,8 @@ It also uses the Headers to define what mimeTypes are expected in the response.
 ### -URI
 
 URI address of the REST API endpoint.
+Could be relative or absolute URL.
+Keep in mind that mostly you should use relative path (ex. rest/api) and seek to avoid use absolute path (ex. /rest/api).
 
 ```yaml
 Type: Uri
@@ -311,22 +312,6 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -StoreSession
-
-Instead of returning the response, it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 7
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### -OutputType
 
 Name of the data type that is expected to be returned.
@@ -345,17 +330,16 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Credential
+### -Session
 
-Credentials to use for the authentication with the REST Api.
-
-If none are provided, `Get-JiraSession` will be used for authentication.
-If no sessions is available, the request will be executed anonymously.
+Session to use to connect to JIRA.  
+If not specified, this function will use default session.
+The name of a session, PSCredential object or session's instance itself is accepted to pass as value for the parameter.
 
 ```yaml
-Type: PSCredential
+Type: psobject
 Parameter Sets: (All)
-Aliases:
+Aliases: Credential
 
 Required: False
 Position: 9

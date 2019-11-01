@@ -53,10 +53,9 @@ function Add-JiraIssueAttachment {
         [String[]]
         $FilePath,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        [Alias("Credential")]
+        [psobject]
+        $Session,
 
         [Switch]
         $PassThru
@@ -83,7 +82,7 @@ function Add-JiraIssueAttachment {
         }
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Session $Session
 
         foreach ($file in $FilePath) {
             $file = Resolve-FilePath -Path $file
@@ -115,7 +114,7 @@ Content-Type: application/octet-stream
                 Body       = $bodyLines
                 Headers    = $headers
                 RawBody    = $true
-                Credential = $Credential
+                Session    = $Session
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Adding attachment '$($fileName)'.")) {

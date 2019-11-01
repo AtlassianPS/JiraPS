@@ -37,7 +37,6 @@ Describe "ConvertTo-JiraIssueType" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $issueTypeId = 2
         $issueTypeName = 'Test Issue Type'
@@ -45,7 +44,7 @@ Describe "ConvertTo-JiraIssueType" -Tag 'Unit' {
 
         $sampleJson = @"
 {
-    "self": "$jiraServer/rest/api/latest/issuetype/2",
+    "self": "rest/api/latest/issuetype/2",
     "id": "$issueTypeId",
     "description": "$issueTypeDescription",
     "iconUrl": "$jiraServer/images/icons/issuetypes/newfeature.png",
@@ -65,7 +64,7 @@ Describe "ConvertTo-JiraIssueType" -Tag 'Unit' {
         defProp $r 'Id' $issueTypeId
         defProp $r 'Name' $issueTypeName
         defProp $r 'Description' $issueTypeDescription
-        defProp $r 'RestUrl' "$jiraServer/rest/api/latest/issuetype/$issueTypeId"
+        defProp $r 'RestUrl' "rest/api/latest/issuetype/$issueTypeId"
         defProp $r 'IconUrl' "$jiraServer/images/icons/issuetypes/newfeature.png"
         defProp $r 'Subtask' $false
     }

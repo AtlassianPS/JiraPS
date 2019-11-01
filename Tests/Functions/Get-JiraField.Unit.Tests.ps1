@@ -37,8 +37,6 @@ Describe "Get-JiraField" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-
         # In my Jira instance, this returns 34 objects. I've stripped it down quite a bit for testing.
         $restResult = @"
 [
@@ -166,11 +164,7 @@ Describe "Get-JiraField" -Tag 'Unit' {
 ]
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/latest/field"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "rest/api/latest/field"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $restResult
         }

@@ -7,7 +7,10 @@ function Set-JiraConfigServer {
         [ValidateNotNullOrEmpty()]
         [Alias('Uri')]
         [Uri]
-        $Server
+        $Server,
+
+        [string]
+        $Name = "Default"
     )
 
     begin {
@@ -15,9 +18,15 @@ function Set-JiraConfigServer {
     }
 
     process {
-        $script:JiraServerUrl = $Server
 
-        Set-Content -Value $Server -Path "$script:serverConfig"
+        if (-not $Server.AbsolutePath.EndsWith("/")) {
+            $Server = New-Object -TypeName uri -ArgumentList $Server,($Server.AbsolutePath + "/")
+        }
+
+        $config = New-Object psobject -Property @{ Server = $Server.ToString() }
+
+        $script:JiraServerConfigs | Add-Member -NotePropertyName $Name -NotePropertyValue $config -Force
+        $script:JiraServerConfigs | ConvertTo-Json | Set-Content -Path $script:serversConfig
     }
 
     end {

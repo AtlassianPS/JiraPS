@@ -37,7 +37,6 @@ Describe "ConvertTo-JiraAttachment" -Tag 'Unit' {
 
         . "$PSScriptRoot/../Shared.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
 
         $attachmentID1 = "270709"
         $attachmentName1 = "Nav2-HCF.PNG"
@@ -46,11 +45,11 @@ Describe "ConvertTo-JiraAttachment" -Tag 'Unit' {
         $sampleJson = @"
 [
     {
-        "self":  "$jiraServer/rest/api/2/attachment/$attachmentID1",
+        "self":  "rest/api/2/attachment/$attachmentID1",
         "id":  "$attachmentID1",
         "filename":  "$attachmentName1",
         "author":  {
-            "self":  "$jiraServer/rest/api/2/user?username=JonDoe",
+            "self":  "rest/api/2/user?username=JonDoe",
             "name":  "JonDoe",
             "key":  "JonDoe",
             "emailAddress":  "JonDoe@server.com",
@@ -66,11 +65,11 @@ Describe "ConvertTo-JiraAttachment" -Tag 'Unit' {
         "thumbnail":  "$jiraServer/secure/thumbnail/$attachmentID1/_thumb_$attachmentID1.png"
     },
     {
-        "self":  "$jiraServer/rest/api/2/attachment/$attachmentID2",
+        "self":  "rest/api/2/attachment/$attachmentID2",
         "id":  "$attachmentID2",
         "filename":  "Nav-HCF.PNG",
         "author":  {
-            "self":  "$jiraServer/rest/api/2/user?username=JonDoe",
+            "self":  "rest/api/2/user?username=JonDoe",
             "name":  "JonDoe",
             "key":  "JonDoe",
             "emailAddress":  "JonDoe@server.com",
