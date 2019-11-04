@@ -45,13 +45,12 @@ Get-JiraIssue TEST-01 -Credential $cred
 ## API Token
 
 API tokens (also called Private Access Token (PAT)) are tokens generated
-by the user. This token is necessary when the user has a two-step verification
-activated for his account.
+by the user for authenticating against the API of Jira Cloud server.
 
 An API token can be used for authenticating JiraPS with the server
 in the same way as described in [HTTP Basic](#http-basic).
-The only difference is, that instead of providing the password for the account,
-the API token must be used.
+The difference is, that instead of providing the username and password for the account,
+the email address and the API token must be used.
 
 > As of December 1st 2018, Atlassian requires API authentication
 > with **Cloud Servers** to **always** use API Tokens.
