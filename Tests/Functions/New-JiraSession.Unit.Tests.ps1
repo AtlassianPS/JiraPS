@@ -56,7 +56,7 @@ Describe "New-JiraSession" -Tag 'Unit' {
 
         Mock ConvertTo-JiraSession -ModuleName JiraPS { }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -like "*/rest/api/*/mypermissions"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $Uri -like "*/rest/api/*/myself" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
         }
