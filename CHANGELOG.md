@@ -2,6 +2,16 @@
 
 ## [NEXT VERSION] - YYYY-MM-DD
 
+## [2.13] - 2020-02-23
+
+### Added
+
+- Add support for activation/deactivation of accounts via `Set-JiraUser` (#385, [@johnheusinger])
+
+### Changed
+
+- Removed progress bar from `Invoke-WebRequest` for better performance (#380, [@sgtwilko])
+
 ## [2.12] - 2019-08-15
 
 ### Added
@@ -30,7 +40,7 @@
 ### Added
 
 - Parameter for retrieving information about a specific user with `Get-JiraUser` (#328, [@michalporeba])
-  - this implementations will be changed with the next major update in favor of #306
+    - this implementations will be changed with the next major update in favor of #306
 
 ### Changed
 
@@ -346,6 +356,7 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
 [@ebekker]: https://github.com/ebekker
 [@hmmwhatsthisdo]: https://github.com/hmmwhatsthisdo
 [@jkknorr]: https://github.com/jkknorr
+[@johnheusinger]: https://github.com/johnheusinger
 [@kb-cs]: https://github.com/kb-cs
 [@kittholland]: https://github.com/kittholland
 [@liamleane]: https://github.com/LiamLeane
@@ -355,6 +366,7 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
 [@mirrorgleam]: https://github.com/mirrorgleam
 [@nojp]: https://github.com/nojp
 [@padgers]: https://github.com/padgers
+[@sgtwilko]: https://github.com/sgtwilko
 [@thepsadmin]: https://github.com/ThePSAdmin
 [@tuxgoose]: https://github.com/tuxgoose
 [@vercellone]: https://github.com/vercellone
