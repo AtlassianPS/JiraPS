@@ -64,19 +64,19 @@ task GetNextVersion {
 
 #region HarmonizeVariables
 switch ($true) {
-    {$IsWindows} {
+    { $IsWindows } {
         $OS = "Windows"
         if (-not ($IsCoreCLR)) {
             $OSVersion = $PSVersionTable.BuildVersion.ToString()
         }
     }
-    {$IsLinux} {
+    { $IsLinux } {
         $OS = "Linux"
     }
-    {$IsMacOs} {
+    { $IsMacOs } {
         $OS = "OSX"
     }
-    {$IsCoreCLR} {
+    { $IsCoreCLR } {
         $OSVersion = $PSVersionTable.OS
     }
 }
@@ -185,7 +185,7 @@ task GenerateExternalHelp Init, {
 task UpdateManifest GetNextVersion, {
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
     Import-Module $env:BHPSModuleManifest -Force
-    $ModuleAlias = @(Get-Alias | Where-Object {$_.ModuleName -eq "$env:BHProjectName"})
+    $ModuleAlias = @(Get-Alias | Where-Object { $_.ModuleName -eq "$env:BHProjectName" })
 
     BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName ModuleVersion -Value $env:NextBuildVersion
     # BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName FileList -Value (Get-ChildItem "$env:BHBuildOutput/$env:BHProjectName" -Recurse).Name
@@ -247,7 +247,7 @@ task Deploy Init, PublishToGallery, TagReplository, UpdateHomepage
 # Synpsis: Publish the $release to the PSGallery
 task PublishToGallery {
     Assert-True (-not [String]::IsNullOrEmpty($PSGalleryAPIKey)) "No key for the PSGallery"
-    Assert-True {Get-Module $env:BHProjectName -ListAvailable} "Module $env:BHProjectName is not available"
+    Assert-True { Get-Module $env:BHProjectName -ListAvailable } "Module $env:BHProjectName is not available"
 
     Remove-Module $env:BHProjectName -ErrorAction Ignore
 
@@ -257,6 +257,8 @@ task PublishToGallery {
 # Synopsis: push a tag with the version to the git repository
 task TagReplository GetNextVersion, Package, {
     $releaseText = "Release version $env:NextBuildVersion"
+
+    Set-GitUser
 
     # Push a tag to the repository
     Write-Build Gray "git checkout $ENV:BHBranchName"
@@ -283,6 +285,8 @@ task TagReplository GetNextVersion, Package, {
 # Synopsis: Update the version of this module that the homepage uses
 task UpdateHomepage {
     try {
+        Set-GitUser
+
         Write-Build Gray "git close .../AtlassianPS.github.io --recursive"
         $null = cmd /c "git clone https://github.com/AtlassianPS/AtlassianPS.github.io --recursive 2>&1"
 
@@ -307,7 +311,7 @@ task UpdateHomepage {
 
         Pop-Location
     }
-    catch { Write-Warning "Failed to deploy to homepage"}
+    catch { Write-Warning "Failed to deploy to homepage" }
 }
 #endregion Publish
 
