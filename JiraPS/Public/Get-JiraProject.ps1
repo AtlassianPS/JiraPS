@@ -17,7 +17,7 @@ function Get-JiraProject {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/project{0}?expand=description,lead,issueTypes,url,projectKeys"
+        $resourceURi = "$server/rest/api/2/project{0}?expand=description,lead,issueTypes,url,projectKeys"
     }
 
     process {

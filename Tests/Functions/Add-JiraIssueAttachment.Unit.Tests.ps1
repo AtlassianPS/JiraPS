@@ -82,7 +82,7 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
         Mock Get-JiraIssue -ModuleName JiraPS {
             $Issue = [PSCustomObject]@{
                 Key     = $issueKey
-                RestURL = "$jiraServer/rest/api/latest/issue/$issueKey"
+                RestURL = "$jiraServer/rest/api/2/issue/$issueKey"
             }
             $Issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             $Issue
@@ -92,7 +92,7 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueKey/attachments" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json -InputObject $attachmentJson
         }

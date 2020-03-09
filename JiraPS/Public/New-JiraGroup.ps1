@@ -18,7 +18,7 @@
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/group"
+        $resourceURi = "$server/rest/api/2/group"
     }
 
     process {
