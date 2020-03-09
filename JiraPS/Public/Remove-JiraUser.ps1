@@ -42,7 +42,7 @@ function Remove-JiraUser {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/user?username={0}"
+        $resourceURi = "$server/rest/api/2/user?username={0}"
 
         if ($Force) {
             Write-DebugMessage "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"

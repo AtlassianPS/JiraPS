@@ -145,7 +145,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
             foreach ($_id in $Id) {
                 $object = New-Object -TypeName PSCustomObject -Property @{
                 id = $_id
-                RestUrl = "$jiraServer/rest/api/latest/filter/$_id"
+                RestUrl = "$jiraServer/rest/api/2/filter/$_id"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
             $object

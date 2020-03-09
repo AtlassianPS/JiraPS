@@ -47,28 +47,28 @@ Describe "ConvertTo-JiraIssueLinkType" -Tag 'Unit' {
             "name": "Blocks",
             "inward": "is blocked by",
             "outward": "blocks",
-            "self": "http://jira.example.com/rest/api/latest/issueLinkType/10000"
+            "self": "http://jira.example.com/rest/api/2/issueLinkType/10000"
         },
         {
             "id": "10001",
             "name": "Cloners",
             "inward": "is cloned by",
             "outward": "clones",
-            "self": "http://jira.example.com/rest/api/latest/issueLinkType/10001"
+            "self": "http://jira.example.com/rest/api/2/issueLinkType/10001"
         },
         {
             "id": "10002",
             "name": "Duplicate",
             "inward": "is duplicated by",
             "outward": "duplicates",
-            "self": "http://jira.example.com/rest/api/latest/issueLinkType/10002"
+            "self": "http://jira.example.com/rest/api/2/issueLinkType/10002"
         },
         {
             "id": "10003",
             "name": "Relates",
             "inward": "relates to",
             "outward": "relates to",
-            "self": "http://jira.example.com/rest/api/latest/issueLinkType/10003"
+            "self": "http://jira.example.com/rest/api/2/issueLinkType/10003"
         }
     ]
 }
@@ -87,7 +87,7 @@ Describe "ConvertTo-JiraIssueLinkType" -Tag 'Unit' {
         defProp $r 'Name' 'Blocks'
         defProp $r 'InwardText' 'is blocked by'
         defProp $r 'OutwardText' 'blocks'
-        defProp $r 'RestUrl' 'http://jira.example.com/rest/api/latest/issueLinkType/10000'
+        defProp $r 'RestUrl' 'http://jira.example.com/rest/api/2/issueLinkType/10000'
 
         It "Provides an array of objects if an array is passed" {
             $r2 = ConvertTo-JiraIssueLinkType -InputObject $sampleObject
