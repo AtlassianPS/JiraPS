@@ -50,7 +50,7 @@ Describe "Help tests" -Tag Documentation {
     )
 
     $module = Get-Module $env:BHProjectName
-    $commands = Get-Command -Module $module -CommandType Cmdlet, Function, Workflow  # Not alias
+    $commands = Get-Command -Module $env:BHProjectName -CommandType Cmdlet, Function  # Not alias
     # $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
     # $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
 
