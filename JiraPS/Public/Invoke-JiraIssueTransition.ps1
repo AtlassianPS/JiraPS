@@ -28,6 +28,32 @@ function Invoke-JiraIssueTransition {
         [Object]
         $Issue,
 
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if (("JiraPS.Resolution" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+                    $errorId = 'ParameterType.NotJiraResolution'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $_
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Resolution] or [String], but was $($_.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    <#
+                      #ToDo:CustomClass
+                      Once we have custom classes, this check can be done with Type declaration
+                    #>
+                }
+                else {
+                    return $true
+                }
+            }
+        )]
+        [Alias('Res')]
+        [Object]
+        $Resolution,
+
         [Parameter( Mandatory )]
         [Object]
         $Transition,
@@ -138,7 +164,50 @@ function Invoke-JiraIssueTransition {
         }
 
         $requestBody += @{
-            'update' = @{}
+            'update' = @{ }
+        }
+
+        if ($Resolution) {
+            if ("JiraPS.Resolution" -in $Resolution.PSObject.TypeNames) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolution parameter is a JiraPS.Resolution object"
+                $ResolutionId = $Resolution.Id
+            }
+            else {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Attempting to cast Resolution parameter [$Resolution] as int for Resolution ID"
+                try {
+                    $ResolutionId = [Int]"$Transition"
+                }
+                catch {
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter")
+                    $errorId = 'ParameterType.NotJiraResolution'
+                    $errorCategory = 'InvalidArgumenty'
+                    $errorTarget = $Transition
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTargetError
+                    $errorItem.ErrorDetails = "Wrong object type provided for Resolution. Expected [JiraPS.Resolution] or [Int], but was $($Resolution.GetType().Name)"
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                }
+            }
+
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Checking that the issue can perform the given resolution"
+            $ResolutionIDs = Get-JiraResolution | Select-Object -ExpandProperty Id
+            if (($ResolutionIDs) -notcontains $ResolutionId) {
+                $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                $errorId = 'ParameterValue.InvalidResolution'
+                $errorCategory = 'InvalidArgument'
+                $errorTarget = $Resolution
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                $errorItem.ErrorDetails = "The specified Jira Resolution does not exists [$ResolutionId]. Please provide a valid resolution ID."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
+            }
+
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating Resolution"
+            $requestBody += @{
+                'fields' = @{
+                    'resolution' = @{
+                        'id' = $ResolutionId
+                    }
+                }
+            }
         }
 
         if ($Fields) {
