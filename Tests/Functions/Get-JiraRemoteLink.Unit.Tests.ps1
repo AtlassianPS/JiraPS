@@ -44,7 +44,7 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
         $restResult = @"
 {
     "id": 10000,
-    "self": "$jiraServer/rest/api/latest/issue/MKY-1/remotelink/10000",
+    "self": "$jiraServer/rest/api/2/issue/MKY-1/remotelink/10000",
     "globalId": "system=http://www.mycompany.com/support&id=1",
     "application": {
         "type": "com.acme.tracker",
@@ -69,7 +69,7 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
 
         Mock Get-JiraIssue {
             $object = [PSCustomObject] @{
-                'RestURL' = "$jiraServer/rest/api/latest/issue/12345"
+                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
                 'Key'     = $issueKey
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')

@@ -49,7 +49,7 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
         "key": "TEST",
         "name": "Test Project",
         "issuetypes": [{
-            "self": "$jiraserver/rest/api/latest/issuetype/2",
+            "self": "$jiraserver/rest/api/2/issuetype/2",
             "id": "2",
             "iconUrl": "$jiraserver/images/icons/issuetypes/newfeature.png",
             "name": "Test Issue Type",
@@ -129,7 +129,7 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
                         "system": "reporter"
                     },
                     "name": "Reporter",
-                    "autoCompleteUrl": "$jiraserver/rest/api/latest/user/search?username=",
+                    "autoCompleteUrl": "$jiraserver/rest/api/2/user/search?username=",
                     "hasDefaultValue": false,
                     "operations": [
                         "set"
@@ -142,7 +142,7 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
                         "system": "assignee"
                     },
                     "name": "Assignee",
-                    "autoCompleteUrl": "$jiraserver/rest/api/latest/user/assignable/search?issueKey=null&username=",
+                    "autoCompleteUrl": "$jiraserver/rest/api/2/user/assignable/search?issueKey=null&username=",
                     "hasDefaultValue": false,
                     "operations": [
                         "set"
