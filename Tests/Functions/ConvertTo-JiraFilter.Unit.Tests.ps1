@@ -40,7 +40,7 @@ Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
         # Obtained from Atlassian's public JIRA instance
         $sampleJson = @'
 {
-    "self": "https://jira.atlassian.com/rest/api/latest/filter/12844",
+    "self": "https://jira.atlassian.com/rest/api/2/filter/12844",
     "id": "12844",
     "name": "All JIRA Bugs",
     "owner": {
@@ -58,7 +58,7 @@ Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
     },
     "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
     "viewUrl": "https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844",
-    "searchUrl": "https://jira.atlassian.com/rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
+    "searchUrl": "https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
     "favourite": false,
     "sharePermissions": [
         {
@@ -184,9 +184,9 @@ Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
         defProp $r 'Id' 12844
         defProp $r 'Name' 'All JIRA Bugs'
         defProp $r 'JQL' 'project = 10240 AND issuetype = 1 ORDER BY key DESC'
-        defProp $r 'RestUrl' 'https://jira.atlassian.com/rest/api/latest/filter/12844'
+        defProp $r 'RestUrl' 'https://jira.atlassian.com/rest/api/2/filter/12844'
         defProp $r 'ViewUrl' 'https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844'
-        defProp $r 'SearchUrl' 'https://jira.atlassian.com/rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
+        defProp $r 'SearchUrl' 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
         defProp $r 'Favourite' $false
         It "Defines the 'Favorite' property as an alias of 'Favourite'" {
             ($r | Get-Member -Name Favorite).MemberType | Should -Be "AliasProperty"

@@ -21,7 +21,7 @@ function Get-JiraIssueEditMetadata {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/issue/{0}/editmeta"
+        $resourceURi = "$server/rest/api/2/issue/{0}/editmeta"
     }
 
     process {

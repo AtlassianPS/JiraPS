@@ -51,8 +51,8 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
             defParam $command 'Credential'
         }
 
-        $filterAll = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType"}
-        $filterOne = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/latest/issueLinkType/10000"}
+        $filterAll = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/2/issueLinkType"}
+        $filterOne = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/2/issueLinkType/10000"}
 
         Mock ConvertTo-JiraIssueLinkType {
             ShowMockInfo 'ConvertTo-JiraIssueLinkType'
