@@ -13,7 +13,7 @@ function Get-JiraServerInformation {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/serverInfo"
+        $resourceURi = "$server/rest/api/2/serverInfo"
     }
 
     process {
