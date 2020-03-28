@@ -42,7 +42,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
 
         $responseFilter = @"
 {
-    "self": "$jiraServer/rest/api/latest/filter/12844",
+    "self": "$jiraServer/rest/api/2/filter/12844",
     "id": "12844",
     "name": "All JIRA Bugs",
     "owner": {
@@ -60,7 +60,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
     },
     "jql": "project = 10240 AND issuetype = 1 ORDER BY key DESC",
     "viewUrl": "$jiraServer/secure/IssueNavigator.jspa?mode=hide&requestId=12844",
-    "searchUrl": "$jiraServer/rest/api/latest/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
+    "searchUrl": "$jiraServer/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC",
     "favourite": false,
     "sharePermissions": [
         {

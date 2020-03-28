@@ -96,8 +96,8 @@ function Get-JiraIssue {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $searchURi = "$server/rest/api/latest/search"
-        $resourceURi = "$server/rest/api/latest/issue/{0}"
+        $searchURi = "$server/rest/api/2/search"
+        $resourceURi = "$server/rest/api/2/issue/{0}"
 
         [String]$Fields = $Fields -join ","
     }

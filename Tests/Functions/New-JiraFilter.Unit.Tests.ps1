@@ -42,7 +42,7 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
 
         $responseFilter = @"
 {
-    "self": "$jiraServer/rest/api/latest/filter/12844",
+    "self": "$jiraServer/rest/api/2/filter/12844",
     "id": "12844",
     "name": "{0}",
     "jql": "{1}",

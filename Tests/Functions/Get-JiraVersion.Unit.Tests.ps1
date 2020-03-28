@@ -62,7 +62,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
 "@
         $testJson1 = @"
 {
-    "self" : "$jiraServer/rest/api/latest/version/$versionID1",
+    "self" : "$jiraServer/rest/api/2/version/$versionID1",
     "id" : $versionID1,
     "description" : "$versionName1",
     "name" : "$versionName1",
@@ -73,7 +73,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
 "@
         $testJson2 = @"
 {
-    "self" : "$jiraServer/rest/api/latest/version/$versionID2",
+    "self" : "$jiraServer/rest/api/2/version/$versionID2",
     "id" : $versionID2,
     "description" : "$versionName2",
     "name" : "$versionName2",
@@ -85,7 +85,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
         $testJsonAll = @"
 [
     {
-        "self" : "$jiraServer/rest/api/latest/version/$versionID1",
+        "self" : "$jiraServer/rest/api/2/version/$versionID1",
         "id" : $versionID1,
         "description" : "$versionName1",
         "name" : "$versionName1",
@@ -94,7 +94,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
         "projectId" : "$projectId"
     },
     {
-        "self" : "$jiraServer/rest/api/latest/version/$versionID2",
+        "self" : "$jiraServer/rest/api/2/version/$versionID2",
         "id" : $versionID2,
         "description" : "$versionName2",
         "name" : "$versionName2",
@@ -103,7 +103,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
         "projectId" : "$projectId"
     },
     {
-        "self" : "$jiraServer/rest/api/latest/version/$versionID3",
+        "self" : "$jiraServer/rest/api/2/version/$versionID3",
         "id" : $versionID3,
         "description" : "$versionName3",
         "name" : "$versionName3",
@@ -137,7 +137,7 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
             $result
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/latest/version/$versionId1" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/version/$versionId1" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $testJson1
         }

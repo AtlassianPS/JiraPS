@@ -90,7 +90,7 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
             $IssueObj = [PSCustomObject]@{
                 ID         = $issueID
                 Key        = $issueKey
-                RestUrl    = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
                 attachment = (ConvertFrom-Json -InputObject $attachments)
             }
             $IssueObj.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
