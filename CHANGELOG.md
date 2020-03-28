@@ -2,6 +2,15 @@
 
 ## [NEXT VERSION] - YYYY-MM-DD
 
+## [2.14] - 2020-03-28
+
+### Changed
+
+- Changed all commands to only use Jira's api version 2. (#409, [@lipkau])  
+  This is a temporary fix and should be reverted to version `latest` as soon as
+  a proper handling of how users work between cloud and on-premise is
+  implemented
+
 ## [2.13] - 2020-02-23
 
 ### Added

@@ -117,7 +117,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
                 "system": "reporter"
             },
             "name": "Reporter",
-            "autoCompleteUrl": "$jiraServer/rest/api/latest/user/search?username=",
+            "autoCompleteUrl": "$jiraServer/rest/api/2/user/search?username=",
             "hasDefaultValue": false,
             "operations": [
                 "set"
@@ -130,7 +130,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
                 "system": "assignee"
             },
             "name": "Assignee",
-            "autoCompleteUrl": "$jiraServer/rest/api/latest/user/assignable/search?issueKey=null&username=",
+            "autoCompleteUrl": "$jiraServer/rest/api/2/user/assignable/search?issueKey=null&username=",
             "hasDefaultValue": false,
             "operations": [
                 "set"
@@ -207,7 +207,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
             [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
             }
         }
 

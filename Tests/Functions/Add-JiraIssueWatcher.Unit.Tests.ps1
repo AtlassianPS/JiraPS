@@ -49,7 +49,7 @@ Describe "Add-JiraIssueWatcher" -Tag 'Unit' {
             $object = [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $object
@@ -59,7 +59,7 @@ Describe "Add-JiraIssueWatcher" -Tag 'Unit' {
             Get-JiraIssue -Key $Issue
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/watchers"} {
             ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri', 'Method'
         }
 

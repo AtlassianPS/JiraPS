@@ -41,7 +41,7 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
 
         # An example of how an issue will look when returned from JIRA's REST API.
         # You can obtain most of this with a one-liner:
-        # (Invoke-WebRequest -Method Get -Uri '$jiraServer/rest/api/latest/issue/JRA-37294?expand=transitions').Content
+        # (Invoke-WebRequest -Method Get -Uri '$jiraServer/rest/api/2/issue/JRA-37294?expand=transitions').Content
 
         # I have edited the result just a bit to add a fake Transitions
         # property that matches the expected results from JIRA. I'm not
@@ -51,7 +51,7 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
 {
     "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog,versionedRepresentations",
     "id": "320391",
-    "self": "$jiraServer/rest/api/latest/issue/320391",
+    "self": "$jiraServer/rest/api/2/issue/320391",
     "key": "JRA-37294",
     "fields": {
         "customfield_12130": null,
@@ -911,7 +911,7 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
 
             defProp $r 'Key' 'JRA-37294'
             defProp $r 'Id' '320391'
-            defProp $r 'RestUrl' "$jiraServer/rest/api/latest/issue/320391"
+            defProp $r 'RestUrl' "$jiraServer/rest/api/2/issue/320391"
             defProp $r 'HttpUrl' "$jiraServer/browse/JRA-37294"
             defProp $r 'Summary' 'Allow set active/inactive via REST API'
             It "Defines the 'Attachment' property" {
