@@ -73,7 +73,7 @@ Describe "ConvertTo-JiraProject" -Tag 'Unit' {
     },
     "projectKeys": "HCC",
     "projectCategory": {
-        "self": "$jiraServer/rest/api/latest/projectCategory/10000",
+        "self": "$jiraServer/rest/api/2/projectCategory/10000",
         "id":  "10000",
         "name":  "Home Connect",
         "description":  "Home Connect Projects"

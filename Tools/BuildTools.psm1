@@ -10,13 +10,6 @@ function Invoke-Init {
     begin {
         Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
         Add-ToModulePath -Path $env:BHBuildOutput
-
-        # github's PAT is stored to ~\.git-credentials within the Release Pipeline
-        # to avoid it being passed as parameter
-
-        git config --global user.email "support@atlassianps.net"
-        git config --global user.name "AtlassianPS Automated User"
-        git config --global credential.helper "store --file ~/.git-credentials"
     }
 }
 
@@ -66,7 +59,8 @@ function Install-Dependency {
     try {
         Set-PSRepository PSGallery -InstallationPolicy Trusted
         $RequiredModules | Install-Module -Scope $Scope -Repository PSGallery -SkipPublisherCheck -AllowClobber
-    } finally {
+    }
+    finally {
         Set-PSRepository PSGallery -InstallationPolicy $Policy
     }
     $RequiredModules | Import-Module
@@ -252,6 +246,17 @@ function Remove-Utf8Bom {
             Write-Error -ErrorRecord $_
         }
     }
+}
+
+function Set-GitUser {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
+    param()
+    # github's PAT is stored to ~\.git-credentials within the Release Pipeline
+    # to avoid it being passed as parameter
+
+    if (-not (git config user.email)) { git config user.email "support@atlassianps.net" }
+    if (-not (git config user.name)) { git config user.name "AtlassianPS Automated User" }
+    if (-not (git config credential.helper)) { git config credential.helper "store --file ~/.git-credentials" }
 }
 
 Export-ModuleMember -Function * -Alias *

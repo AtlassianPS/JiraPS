@@ -75,7 +75,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
             [PSCustomObject]@{
                 PSTypeName = "JiraPS.Filter"
                 Id         = 12345
-                SearchUrl  = "https://jira.example.com/rest/api/latest/filter/12345"
+                SearchUrl  = "https://jira.example.com/rest/api/2/filter/12345"
             }
         }
 
