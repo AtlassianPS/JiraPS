@@ -32,7 +32,7 @@ function New-JiraFilter {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/filter"
+        $resourceURi = "$server/rest/api/2/filter"
     }
 
     process {

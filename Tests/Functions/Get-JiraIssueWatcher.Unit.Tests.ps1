@@ -67,7 +67,7 @@ Describe "Get-JiraIssueWatcher" -Tag 'Unit' {
             $object = [PSCustomObject] @{
                 ID      = $issueID
                 Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/latest/issue/$issueID"
+                RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $object
@@ -78,7 +78,7 @@ Describe "Get-JiraIssueWatcher" -Tag 'Unit' {
         }
 
         # Obtaining watchers from an issue...this is IT-3676 in the test environment
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/latest/issue/$issueID/watchers"} {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/watchers"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json -InputObject $restResult
         }

@@ -134,14 +134,14 @@ Describe "New-JiraVersion" -Tag 'Unit' {
                 $results = $version | New-JiraVersion -ErrorAction Stop
                 $results | Should Not BeNullOrEmpty
                 checkType $results "JiraPS.Version"
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/latest/version" }
+                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/2/version" }
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
             }
             It "creates a Version using parameters" {
                 $results = New-JiraVersion -Name $versionName -Project $projectKey -ErrorAction Stop
                 $results | Should Not BeNullOrEmpty
                 checkType $results "JiraPS.Version"
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/latest/version" }
+                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/2/version" }
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
             }
             It "creates a Version using splatting" {
@@ -160,7 +160,7 @@ Describe "New-JiraVersion" -Tag 'Unit' {
                 $results = New-JiraVersion @splat -ErrorAction Stop
                 $results | Should Not BeNullOrEmpty
                 checkType $results "JiraPS.Version"
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/latest/version" }
+                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/2/version" }
                 Assert-MockCalled 'ConvertTo-JiraVersion' -Times 1 -Scope It -ModuleName JiraPS -Exactly
             }
 

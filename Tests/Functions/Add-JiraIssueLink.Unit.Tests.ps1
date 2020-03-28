@@ -67,7 +67,7 @@ Describe 'Add-JiraIssueLink' -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/latest/issueLink"} {
+        Mock Invoke-JiraMethod -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issueLink"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             return $true
         }

@@ -41,7 +41,7 @@ function Remove-JiraIssueLink {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/latest/issueLink/{0}"
+        $resourceURi = "$server/rest/api/2/issueLink/{0}"
     }
 
     process {
