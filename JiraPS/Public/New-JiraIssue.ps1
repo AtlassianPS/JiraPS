@@ -42,6 +42,11 @@ function New-JiraIssue {
         $FixVersion,
 
         [Parameter( ValueFromPipelineByPropertyName )]
+        [String[]]
+        $ComponentId,
+
+
+        [Parameter( ValueFromPipelineByPropertyName )]
         [PSCustomObject]
         $Fields,
 
@@ -116,6 +121,13 @@ function New-JiraIssue {
             foreach ($item in $FixVersion) {
                 $null = $requestBody["fixVersions"].Add( @{ name = "$item" } )
             }
+        }
+
+        if ($ComponentId) {
+            $requestBody['components'] = [System.Collections.ArrayList]@()
+            foreach ($id in $ComponentId) {
+                $null = $requestBody["components"].Add(@{ "id" = "$id"} )
+            }           
         }
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
