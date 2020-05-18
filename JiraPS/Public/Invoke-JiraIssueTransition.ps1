@@ -73,7 +73,7 @@ function Invoke-JiraIssueTransition {
             catch {
                 $exception = ([System.ArgumentException]"Invalid Type for Parameter")
                 $errorId = 'ParameterType.NotJiraTransition'
-                $errorCategory = 'InvalidArgumenty'
+                $errorCategory = 'InvalidArgument'
                 $errorTarget = $Transition
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTargetError
                 $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
