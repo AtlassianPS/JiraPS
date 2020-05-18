@@ -29,7 +29,6 @@ function Invoke-JiraIssueTransition {
         $Issue,
 
         [Parameter( Mandatory )]
-        [Object]
         $Transition,
 
         [PSCustomObject]
