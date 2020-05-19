@@ -181,7 +181,7 @@ function Invoke-JiraIssueTransition {
         $parameter = @{
             URI        = "{0}/transitions" -f $issueObj.RestURL
             Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
+            Body       = ConvertTo-Json -InputObject $requestBody -Depth 5
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
