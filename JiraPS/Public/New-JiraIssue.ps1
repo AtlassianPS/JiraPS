@@ -58,7 +58,7 @@ function New-JiraIssue {
     process {
         $server = Get-JiraConfigServer -ErrorAction Stop -Debug:$false
 
-        $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
+        # $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
 
         $resourceURi = "$server/rest/api/2/issue"
 
@@ -138,28 +138,6 @@ function New-JiraIssue {
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                 $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
                 $PSCmdlet.ThrowTerminatingError($errorItem)
-            }
-        }
-
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Validating fields with metadata"
-        foreach ($c in $createmeta) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Checking metadata for `$c [$c]"
-            if ($c.Required) {
-                if ($requestBody.ContainsKey($c.Id)) {
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Required field (id=[$($c.Id)], name=[$($c.Name)]) was provided (value=[$($requestBody.$($c.Id))])"
-                }
-                else {
-                    $exception = ([System.ArgumentException]"Invalid or missing value Parameter")
-                    $errorId = 'ParameterValue.CreateMetaFailure'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Fields
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided (name=[$($c.Name)], id=[$($c.Id)]). Use Get-JiraIssueCreateMetadata for more information."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-            }
-            else {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Non-required field (id=[$($c.Id)], name=[$($c.Name)])"
             }
         }
 
