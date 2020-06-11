@@ -44,12 +44,36 @@
             try {
                 $responseObject = ConvertFrom-Json -InputObject $responseBody -ErrorAction Stop
 
-                foreach ($_error in ($responseObject.errorMessages + $responseObject.errors)) {
+                $allErrors = @()
+                if ($null -ne $responseObject.errorMessages) {
+                    $allErrors += @($responseObject.errorMessages)
+                }
+                if ($null -ne $responseObject.message) {
+                    $allErrors += @($responseObject.message)
+                }
+                if ($null -ne $responseObject.errors) {
+                    if ($responseObject.errors -is [PSCustomObject]) {
+                        $allErrors += @($responseObject.errors.PSObject.Properties.Value)
+                    }
+                    else {
+                        $allErrors += @($responseObject.errors)
+                    }
+                }
+
+                if ($allErrors.Count -eq 0) {
+                    throw "Unable to handle error"
+                }
+
+                foreach ($_error in $allErrors) {
                     # $_error is a PSCustomObject - therefore can't be $false
                     if ($_error -is [PSCustomObject]) {
                         [String]$_error = ($_error | Out-String)
                     }
-                    if (-not $_error) { throw "Unable to handle error" }
+
+                    $_error = (Out-String -InputObject $_error).Trim()
+                    if (-not $_error) {
+                        continue
+                    }
 
                     $writeErrorSplat = @{
                         Exception    = $exception

@@ -74,7 +74,6 @@
     }
 
     process {
-        $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
 
         $resourceURi = ConvertTo-JiraRestApiV3Url -Url "/rest/api/2/issue" -IsCloud $isCloud
 
@@ -127,9 +126,8 @@
         if ($Unassign) {
             # When `assignee` is required by the project's createmeta, Jira
             # will reject the unassign payload server-side. We deliberately
-            # do not short-circuit here: the required-field check above
-            # already runs first, and the resulting Jira error is the
-            # source of truth for "is unassign permitted on this project".
+            # defer to Jira's response rather than attempting to duplicate
+            # create-screen validation in the client.
             $requestBody["assignee"] = Resolve-JiraUserPayload -UserObject $null -IsCloud $isCloud
         }
         elseif ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
@@ -240,53 +238,6 @@
             }
         }
 
-
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Validating fields with metadata"
-        foreach ($c in $createmeta) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Checking metadata for `$c [$c]"
-            if (-not $c.Required) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Non-required field (id=[$($c.Id)], name=[$($c.Name)])"
-                continue
-            }
-
-            if ($requestBody.ContainsKey($c.Id)) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Required field (id=[$($c.Id)], name=[$($c.Name)]) was provided (value=[$($requestBody.$($c.Id))])"
-                continue
-            }
-
-            # Jira marks a field as `required: true` whenever the project's
-            # field configuration says it must be present on issue create.
-            # However, when the same field also has `hasDefaultValue: true`
-            # the server applies the configured default at create time when
-            # the caller omits the value (this is what the Atlassian REST
-            # docs guarantee, and what the Jira UI relies on for fields like
-            # Reporter -> acting user, Priority -> project default, etc.).
-            # Treating "Required + HasDefaultValue" as a hard client-side
-            # requirement rejects perfectly valid create payloads. Mirror the
-            # server semantics: only error out for fields that are required
-            # AND have no default value the server can fall back on.
-            if ($c.HasDefaultValue) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Required field (id=[$($c.Id)], name=[$($c.Name)]) was not provided but has a server-side default; relying on Jira to populate it"
-                continue
-            }
-
-            # Embed the field name + id directly in the exception Message
-            # (not just ErrorDetails). Pester, Write-Error, and most logging
-            # surfaces print Exception.Message but skip ErrorRecord.ErrorDetails,
-            # so a generic "Invalid or missing value Parameter" message turns
-            # the cause into a guessing game. Including the field name lets
-            # the caller fix the problem (or pass `-Fields @{ <id> = '...' }`)
-            # without having to re-run with -ErrorVariable to inspect the
-            # ErrorRecord.
-            $missingFieldDescriptor = "field [$($c.Name)] (id=[$($c.Id)]) on project [$Project] / issuetype [$IssueType]"
-            $exception = ([System.ArgumentException]"Invalid or missing value for required $missingFieldDescriptor. The field is marked required by Jira's createmeta and has no server-side default; supply it via the matching parameter or via -Fields. Use Get-JiraIssueCreateMetadata for more information.")
-            $errorId = 'ParameterValue.CreateMetaFailure'
-            $errorCategory = 'InvalidArgument'
-            $errorTarget = $Fields
-            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-            $errorItem.ErrorDetails = "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided and has no server-side default (name=[$($c.Name)], id=[$($c.Id)]). Use Get-JiraIssueCreateMetadata for more information."
-            $PSCmdlet.ThrowTerminatingError($errorItem)
-        }
 
         $hashtable = @{
             'fields' = ([PSCustomObject]$requestBody)

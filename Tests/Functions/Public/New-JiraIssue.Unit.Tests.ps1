@@ -151,6 +151,13 @@ InModuleScope JiraPS {
                 Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/issue" }
             }
 
+            It "defers required-field validation to Jira instead of client-side createmeta checks" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke -CommandName Get-JiraIssueCreateMetadata -ModuleName JiraPS -Times 0
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1
+            }
+
             It "populates components in the request body when -Components is supplied" {
                 { New-JiraIssue @newParams -Components '10001', '10002' } | Should -Not -Throw
 
@@ -264,8 +271,7 @@ InModuleScope JiraPS {
                 }
             }
             Context "Negative cases" {
-                It "Checks to make sure all required fields are provided" {
-                    # We'll create a custom field that's required, then see what happens when we don't provide it
+                It "does not reject a create when createmeta marks an omitted field as required" {
                     Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
                         Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
                         @(
@@ -279,29 +285,8 @@ InModuleScope JiraPS {
                         )
                     }
 
-                    { New-JiraIssue @newParams } | Should -Throw -ExpectedMessage "*Invalid or missing value*"
-                }
-
-                It "Skips required fields that have a server-side default value" {
-                    # Mirror real Jira createmeta: the project's field config
-                    # marks a custom field as required, but the field also has
-                    # a default value the server will auto-populate when the
-                    # caller omits it. New-JiraIssue should defer to the
-                    # server's default rather than rejecting the create call.
-                    Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
-                        Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
-                        @(
-                            @{Name = 'Project'; ID = 'Project'; Required = $true }
-                            @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
-                            @{Name = 'Priority'; ID = 'Priority'; Required = $true }
-                            @{Name = 'Summary'; ID = 'Summary'; Required = $true }
-                            @{Name = 'Description'; ID = 'Description'; Required = $true }
-                            @{Name = 'Reporter'; ID = 'Reporter'; Required = $true }
-                            @{Name = 'CustomField'; ID = 'CustomField'; Required = $true; HasDefaultValue = $true }
-                        )
-                    }
-
                     { New-JiraIssue @newParams } | Should -Not -Throw
+                    Should -Invoke -CommandName Get-JiraIssueCreateMetadata -ModuleName JiraPS -Times 0
                 }
             }
         }
