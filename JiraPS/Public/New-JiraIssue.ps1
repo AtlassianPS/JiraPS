@@ -58,8 +58,6 @@ function New-JiraIssue {
     process {
         $server = Get-JiraConfigServer -ErrorAction Stop -Debug:$false
 
-        # $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
-
         $resourceURi = "$server/rest/api/2/issue"
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
