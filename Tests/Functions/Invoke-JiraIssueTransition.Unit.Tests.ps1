@@ -163,6 +163,12 @@ Describe "Invoke-JiraIssueTransition" -Tag 'Unit' {
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/2/issue/$issueID/transitions" -and $Body -like '*body*test comment*' }
         }
 
+        It "Adds a worklog if provide to the -TimeSpent parameter" {
+            { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -TimeSpent '15m'} | Should Not Throw
+
+            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/latest/issue/$issueID/transitions" -and $Body -like '*timeSpent*15m*' }
+        }
+
         It "Returns the Issue object when -Passthru is provided" {
             { $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Passthru} | Should Not Throw
             $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Passthru
