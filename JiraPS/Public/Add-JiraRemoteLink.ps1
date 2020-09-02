@@ -32,21 +32,16 @@ function Add-JiraRemoteLink {
         [ValidateScript(
             {
                 $objectProperties = Get-Member -InputObject $_ -MemberType *Property
-                if (-not(
-                        ($objectProperties.Name -contains "url") -and
-                        ($objectProperties.Name -contains "title")
-                    )) {
-                    $exception = ([System.ArgumentException]"Invalid Parameter") #fix code highlighting]
-                    $errorId = 'ParameterProperties.Incomplete'
+                if (($objectProperties.Name -contains "RestUrl") -or
+                    ($objectProperties.Name -contains "Id")
+                    ) {
+                    $exception = ([System.ArgumentException]"Invalid Parameter")
+                    $errorId = 'ParameterProperties.Invalid'
                     $errorCategory = 'InvalidArgument'
                     $errorTarget = $_
                     $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "The RemoteLink provided does not contain the information needed."
+                    $errorItem.ErrorDetails = "The RemoteLink provided contains a Id and or a RestUrl which is not allowed for adding RemoteLinks."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
                 }
                 else {
                     return $true
@@ -65,7 +60,7 @@ function Add-JiraRemoteLink {
 	begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }
-	
+
 
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
@@ -77,20 +72,13 @@ function Add-JiraRemoteLink {
 
             foreach ($_remoteLink in $RemoteLink) {
 
-                $body = @{
-					object = @{
-						url   = $_remoteLink.url
-						title = $_remoteLink.title
-					}
-                }
-				
 				$parameter = @{
 					URI        = "{0}/remotelink" -f $issueObj.RestUrl
 					Method     = "POST"
-					Body       = ConvertTo-Json -InputObject $body
+					Body       = ConvertTo-Json -InputObject (ConvertFrom-JiraLink $_remoteLink)
 					Credential = $Credential
 				}
-			
+
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
                     Invoke-JiraMethod @parameter
