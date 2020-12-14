@@ -1,7 +1,7 @@
 #requires -modules BuildHelpers
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
 
-Describe "Get-JiraGroupMember" -Tag 'Unit' {
+Describe "Get-JiraIssue" -Tag 'Unit' {
 
     BeforeAll {
         Remove-Item -Path Env:\BH*
