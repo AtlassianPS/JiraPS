@@ -29,7 +29,6 @@ function Invoke-JiraIssueTransition {
         $Issue,
 
         [Parameter( Mandatory )]
-        [Object]
         $Transition,
 
         [PSCustomObject]
@@ -73,7 +72,7 @@ function Invoke-JiraIssueTransition {
             catch {
                 $exception = ([System.ArgumentException]"Invalid Type for Parameter")
                 $errorId = 'ParameterType.NotJiraTransition'
-                $errorCategory = 'InvalidArgumenty'
+                $errorCategory = 'InvalidArgument'
                 $errorTarget = $Transition
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTargetError
                 $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
@@ -182,7 +181,7 @@ function Invoke-JiraIssueTransition {
         $parameter = @{
             URI        = "{0}/transitions" -f $issueObj.RestURL
             Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
+            Body       = ConvertTo-Json -InputObject $requestBody -Depth 5
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
