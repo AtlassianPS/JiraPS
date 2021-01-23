@@ -73,10 +73,10 @@ function Add-JiraGroupMember {
                 else {
                     $errorMessage = @{
                         Category         = "ResourceExists"
-                        CategoryActivity = "Adding [$user] to [$_group]"
+                        ErrorId          = "Adding [$user] to [$_group]"
                         Message          = "User [$user] is already a member of group [$_group]"
                     }
-                    Write-Error @errorMessage
+                    WriteError @errorMessage
                 }
             }
 
