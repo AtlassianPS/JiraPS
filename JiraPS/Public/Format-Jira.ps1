@@ -94,7 +94,7 @@ function Format-Jira {
             [void] $thisLine.Append("$n|")
 
             foreach ($h in $headers) {
-                $value = $InputObject.$h
+                $value = $i.$h
                 if ($value) {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding property (name=[$h], value=[$value])"
                     [void] $thisLine.Append("$value|")
