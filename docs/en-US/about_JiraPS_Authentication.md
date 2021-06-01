@@ -56,6 +56,8 @@ the email address and the API token must be used.
 > with **Cloud Servers** to **always** use API Tokens.
 > More information in the [Deprecation notice](https://developer.atlassian.com/cloud/jira/platform/deprecation-notice-basic-auth-and-cookie-based-auth/).
 
+Some implementations of Jira Server (on-premise) might not be able to use HTTP Basic authentication method noted above when using API tokens. For this, you may need to create a new Jira session using `New-JiraSession` and pass a custom Authorization header.
+
 _More information on the API tokens and how to create one can be found at:_
 _<https://confluence.atlassian.com/cloud/api-tokens-938839638.html>_
 
@@ -84,6 +86,19 @@ manage this session internally.
 The session is stored in the module's runtime.
 This means that it will not be available in a new Powershell session
 or if the module is reloaded.
+
+### Creating a Session Using Custom Authorization Headers
+
+Some implementations of Jira Server (on-premise) might not be able to use the methods listed above of using HTTP Basic authentication by passing an email address and token to authenticate. In this case, you will need to create a session by passing the API Token as a bearer token in a custom Authorization header.
+
+To create a session using the API Token as the bearer token, you can use the New-JiraSession function:
+
+```powershell
+$personalAccessToken = "<your_token_here>"
+$headers = @{ Authorization = "Bearer $($personalAccessToken)" }
+
+New-JiraSession -Headers $headers
+```
 
 ## What About OAuth
 
