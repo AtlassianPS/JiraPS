@@ -44,7 +44,29 @@ function Resolve-ErrorWebResponse {
             try {
                 $responseObject = ConvertFrom-Json -InputObject $responseBody -ErrorAction Stop
 
+                $errorArray = @()
                 foreach ($_error in ($responseObject.errorMessages + $responseObject.errors)) {
+
+                    foreach ($_err in $_error.PSObject.Properties.Value) {
+                        if ($_err -like "*You must specify a summary of the issue." -Or $_err -like "*is required.") {
+                            Write-Debug $_err
+                            $errorArray += $_err
+                        } else {
+                            # unhandled value
+                        }
+                    }
+
+                    if ($errorArray.count -gt 0) {
+                        $errorParameter = @{
+                            ExceptionType = "System.Net.Http.HttpRequestException"
+                            Message       = "Missing Required Fields: $errorArray"
+                            ErrorId       = "AuthenticationFailed"
+                            Category      = "AuthenticationError"
+                            Cmdlet        = $Cmdlet
+                        }
+                        ThrowError @errorParameter
+                    }
+
                     # $_error is a PSCustomObject - therefore can't be $false
                     if ($_error -is [PSCustomObject]) {
                         [String]$_error = ($_error | Out-String)
