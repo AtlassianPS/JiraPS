@@ -226,6 +226,8 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 ## RELATED LINKS
 
+[Get-JiraIssueWorklog](../Get-JiraIssueWorklog)
+
 [Get-JiraIssue](../Get-JiraIssue/)
 
 [Format-Jira](../Format-Jira/)

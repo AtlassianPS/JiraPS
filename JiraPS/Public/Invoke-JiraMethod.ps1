@@ -37,7 +37,8 @@ function Invoke-JiraMethod {
             "JiraComment",
             "JiraIssue",
             "JiraUser",
-            "JiraVersion"
+            "JiraVersion",
+            "JiraWorklogItem"
         )]
         [String]
         $OutputType,
