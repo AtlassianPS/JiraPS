@@ -145,13 +145,18 @@ function New-JiraIssue {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Required field (id=[$($c.Id)], name=[$($c.Name)]) was provided (value=[$($requestBody.$($c.Id))])"
                 }
                 else {
-                    $exception = ([System.ArgumentException]"Invalid or missing value Parameter")
-                    $errorId = 'ParameterValue.CreateMetaFailure'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Fields
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided (name=[$($c.Name)], id=[$($c.Id)]). Use Get-JiraIssueCreateMetadata for more information."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                    if($c.autoCompleteUrl) {
+                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Required field (id=[$($c.Id)], name=[$($c.Name)]) was not provided but it's okay, we'll rely on automCompleteUri $($c.autoCompleteUrl)"
+                    }
+                    else {
+                        $exception = ([System.ArgumentException]"Invalid or missing value Parameter")
+                        $errorId = 'ParameterValue.CreateMetaFailure'
+                        $errorCategory = 'InvalidArgument'
+                        $errorTarget = $Fields
+                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                        $errorItem.ErrorDetails = "Jira's metadata for project [$Project] and issue type [$IssueType] specifies that a field is required that was not provided (name=[$($c.Name)], id=[$($c.Id)]). Use Get-JiraIssueCreateMetadata for more information."
+                        $PSCmdlet.ThrowTerminatingError($errorItem)
+                    }
                 }
             }
             else {
