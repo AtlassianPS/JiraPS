@@ -20,8 +20,6 @@ function Get-JiraIssueCreateMetadata {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop
-
-        $resourceURi = "$server/rest/api/2/issue/createmeta?projectIds={0}&issuetypeIds={1}&expand=projects.issuetypes.fields"
     }
 
     process {
@@ -30,6 +28,9 @@ function Get-JiraIssueCreateMetadata {
 
         $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
         $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {$_.Id -eq $IssueType -or $_.Name -eq $IssueType}
+
+        # Endpoint to get the fields
+        $fieldsResourceURi = "$server/rest/api/2/issue/createmeta/$($projectObj.Id)/issuetypes/$($issueTypeObj.Id)"
 
         if ($null -eq $issueTypeObj.Id)
         {
@@ -42,7 +43,7 @@ function Get-JiraIssueCreateMetadata {
         }
 
         $parameter = @{
-            URI        = $resourceURi -f $projectObj.Id, $issueTypeObj.Id
+            URI        = $fieldsResourceURi
             Method     = "GET"
             Credential = $Credential
         }
@@ -84,7 +85,8 @@ function Get-JiraIssueCreateMetadata {
                 Write-Error @errorMessage
             }
 
-            Write-Output (ConvertTo-JiraCreateMetaField -InputObject $result)
+            # Seems unnecessary for our purposes.
+            # Write-Output (ConvertTo-JiraCreateMetaField -InputObject $result)
         }
         else {
             $exception = ([System.ArgumentException]"No results")
