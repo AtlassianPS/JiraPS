@@ -1,4 +1,4 @@
-function Get-JiraIssueCreateMetadata {
+function Get-JiraIssueCreateMetadata-Fix {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
@@ -23,14 +23,14 @@ function Get-JiraIssueCreateMetadata {
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage-Public "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage-Public "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
         $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {$_.Id -eq $IssueType -or $_.Name -eq $IssueType}
-        
-        # use to get the fields under this issue type.
-        $fieldsResourceURi = "$server/rest/api/2/issue/createmeta/$projectObj.Id/issuetypes/issueTypeObj.Id"
+
+        # Endpoint to get the fields
+        $fieldsResourceURi = "$server/rest/api/2/issue/createmeta/$($projectObj.Id)/issuetypes/$($issueTypeObj.Id)"
 
         if ($null -eq $issueTypeObj.Id)
         {
@@ -85,7 +85,8 @@ function Get-JiraIssueCreateMetadata {
                 Write-Error @errorMessage
             }
 
-            Write-Output (ConvertTo-JiraCreateMetaField -InputObject $result)
+            # Seems unnecessary for our purposes.
+            # Write-Output (ConvertTo-JiraCreateMetaField -InputObject $result)
         }
         else {
             $exception = ([System.ArgumentException]"No results")
