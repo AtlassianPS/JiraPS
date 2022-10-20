@@ -1,4 +1,4 @@
-function Get-JiraIssueCreateMetadata-Fix {
+function Get-JiraIssueCreateMetadata {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
