@@ -198,7 +198,10 @@ function Invoke-JiraMethod {
                 }
 
                 if ($webResponse.Content) {
-                    $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))
+                    $rawContentStream = ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))
+                    $rawContentStreamFixed = $rawContentStream.Replace("toString","toStatusString")
+                    #$response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))
+                    $response = ConvertFrom-Json $RawContentStreamFixed
 
                     if ($Paging) {
                         # Remove Parameters that don't need propagation
