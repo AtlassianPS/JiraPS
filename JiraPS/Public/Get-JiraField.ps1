@@ -6,6 +6,14 @@
         [String[]]
         $Field,
 
+        [Parameter]
+        [Switch]
+        $filterByName,
+
+        [Parameter]
+        [Switch]
+        $filterById,
+
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
@@ -43,7 +51,21 @@
 
                     $allFields = Get-JiraField -Credential $Credential
 
-                    Write-Output ($allFields | Where-Object -FilterScript {($_.Id -eq $_field) -or ($_.Name -like $_field)})
+                    Write-Output ($allFields | Where-Object -FilterScript {
+                            if (($filterByName -and $filterById) -or (-not $filterByName -and -not $filterById))
+                            {
+                                ($_.Id -eq $_field) -or ($_.Name -like $_field)
+
+                            }
+                            elseif ($filterByName)
+                            {
+                                ($_.Name -like $_field)
+                            }
+                            elseif ($filterById)
+                            {
+                                ($_.Id -eq $_field)
+                            }
+                        })
                 }
             }
         }
