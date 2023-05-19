@@ -47,6 +47,10 @@ function Set-JiraIssue {
         [PSCustomObject]
         $Fields,
 
+        #this is to fix case when there are multiple fields of the same name
+        [PSCustomObject]
+        $filterFieldsById,
+
         [String]
         $AddComment,
 
@@ -162,7 +166,7 @@ function Set-JiraIssue {
                     $name = $_key
                     $value = $Fields.$_key
 
-                    $field = Get-JiraField -Field $name -Credential $Credential -ErrorAction Stop
+                    $field = Get-JiraField -Field $name -Credential $Credential -filterById:$filterFieldsById -ErrorAction Stop
 
                     # For some reason, this was coming through as a hashtable instead of a String,
                     # which was causing ConvertTo-Json to crash later.
