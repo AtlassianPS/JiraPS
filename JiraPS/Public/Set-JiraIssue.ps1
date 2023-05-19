@@ -48,7 +48,7 @@ function Set-JiraIssue {
         $Fields,
 
         #this is to fix case when there are multiple fields of the same name
-        [PSCustomObject]
+        [Switch]
         $filterFieldsById,
 
         [String]
