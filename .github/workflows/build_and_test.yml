@@ -25,3 +25,21 @@ jobs:
           name: Release
           path: ./Release/
 
+  test_on_windows:
+    name: Test Module on Windows (PS v5)
+    runs-on: windows-latest
+    steps:
+      - name: Download
+        uses: actions/download-artifact@v3
+        with:
+          name: Release
+          path: ./Release/
+      - name: Setup
+        shell: powershell
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+      - name: Test
+        shell: powershell
+        run: |
+          Invoke-Build -Task Test
