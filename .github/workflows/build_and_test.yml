@@ -17,3 +17,8 @@ jobs:
       - name: Build
         run: |
           Invoke-Build -Task Clean, Build
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: Release
+          path: ./Release/
