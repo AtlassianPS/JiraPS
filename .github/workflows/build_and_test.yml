@@ -27,6 +27,7 @@ jobs:
 
   test_on_windows:
     name: Test Module on Windows (PS v5)
+    needs: build_module
     runs-on: windows-latest
     steps:
       - name: Download
