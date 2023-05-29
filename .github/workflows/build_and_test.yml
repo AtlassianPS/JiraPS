@@ -10,7 +10,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build Module
+      - name: Setup
         run: |
           ./Tools/setup.ps1
           Invoke-Build -Task ShowInfo
+      - name: Build
+        run: |
+          Invoke-Build -Task Clean, Build
