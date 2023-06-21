@@ -1,0 +1,137 @@
+name: Build and Test
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build_module:
+    name: Build Module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup
+        shell: pwsh
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+      - name: Build
+        shell: pwsh
+        run: |
+          Invoke-Build -Task Clean, Build
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: Release
+          path: ./Release/
+
+  test_on_windows_v5:
+    name: Test Module on Windows (PS v5)
+    needs: build_module
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download
+        uses: actions/download-artifact@v3
+        with:
+          name: Release
+          path: ./Release/
+      - name: Setup
+        shell: powershell
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+      - name: Test
+        shell: powershell
+        run: |
+          Invoke-Build -Task Test
+
+  test_on_windows_v7:
+    name: Test Module on Windows (PS v7)
+    needs: build_module
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download
+        uses: actions/download-artifact@v3
+        with:
+          name: Release
+          path: ./Release/
+      - name: Setup
+        shell: pwsh
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+      - name: Test
+        shell: pwsh
+        run: |
+          Invoke-Build -Task Test
+
+  test_on_ubuntu:
+    name: Test Module on Ubuntu
+    needs: build_module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download
+        uses: actions/download-artifact@v3
+        with:
+          name: Release
+          path: ./Release/
+      - name: Setup
+        shell: pwsh
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+      - name: Test
+        shell: pwsh
+        run: |
+          Invoke-Build -Task Test
+
+  test_on_macos:
+    name: Test Module on macOS
+    needs: build_module
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download
+        uses: actions/download-artifact@v3
+        with:
+          name: Release
+          path: ./Release/
+      - name: Setup
+        shell: pwsh
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+      - name: Test
+        shell: pwsh
+        run: |
+          Invoke-Build -Task Test
+
+  test_against_cloud:
+    env:
+      JiraURI: ${{ secrets.JiraURI }}
+      JiraUser: ${{ secrets.JiraUser }}
+      JiraPass: ${{ secrets.JiraPass }}
+    name: Test Module against Cloud Server
+    needs: build_module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download
+        uses: actions/download-artifact@v3
+        with:
+          name: Release
+          path: ./Release/
+      - name: Setup
+        shell: pwsh
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+      - name: Test
+        shell: pwsh
+        run: |
+          Invoke-Build -Task Test -Tag "Integration" -ExcludeTag ""
+        if: ${{ env.JiraURI != '' }}
