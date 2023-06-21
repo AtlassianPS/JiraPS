@@ -5,7 +5,7 @@ permalink: /module/JiraPS/
 # [JiraPS](https://atlassianps.org/module/JiraPS)
 
 [![GitHub release](https://img.shields.io/github/release/AtlassianPS/JiraPS.svg?style=for-the-badge)](https://github.com/AtlassianPS/JiraPS/releases/latest)
-[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/AtlassianPS/JiraPS/build_and_test.yml?style=for-the-badge)](https://github.com/AtlassianPS/JiraPS/actions/workflows/build_and_test.yml)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/JiraPS.svg?style=for-the-badge)](https://www.powershellgallery.com/packages/JiraPS)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)
 
@@ -61,18 +61,16 @@ Check out our guidelines on [Contributing] to our modules and documentation.
 
 ## Tested on
 
-|Configuration|Status|
-|-------------|------|
-|Windows Powershell v3||
-|Windows Powershell v4||
-|Windows Powershell v5.1|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
-|Powershell Core (latest) on Windows|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
-|Powershell Core (latest) on Ubuntu|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
-|Powershell Core (latest) on MacOS|[![Build Status](https://img.shields.io/vso/build/AtlassianPS/JiraPS/11/master.svg?style=for-the-badge)](https://dev.azure.com/AtlassianPS/JiraPS/_build/latest?definitionId=11)|
+* Windows Powershell v3
+* Windows Powershell v4
+* Windows Powershell v5.1
+* Powershell Core (latest) on Windows
+* Powershell Core (latest) on Ubuntu
+* Powershell Core (latest) on MacOS
 
 ## Acknowledgements
 
-* Thanks to [replicaJunction] for getting this module on it's feet
+* Thanks to [replicaJunction] for getting this module on its feet
 * Thanks to everyone ([Our Contributors](https://atlassianps.org/#people)) that helped with this module
 
 ## Useful links
