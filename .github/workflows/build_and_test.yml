@@ -29,7 +29,7 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Build -Task Clean, Build
-      - name: Upload
+      - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: Release
@@ -61,6 +61,12 @@ jobs:
         shell: powershell
         run: |
           Invoke-Build -Task Test
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
 
   test_on_windows_v7:
     name: Test Module on Windows (PS v7)
@@ -88,6 +94,12 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Build -Task Test
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
 
   test_on_ubuntu:
     name: Test Module on Ubuntu
@@ -115,6 +127,12 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Build -Task Test
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
 
   test_on_macos:
     name: Test Module on macOS
@@ -142,6 +160,12 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Build -Task Test
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
 
   test_against_cloud:
     env:
@@ -174,3 +198,9 @@ jobs:
         run: |
           Invoke-Build -Task Test -Tag "Integration" -ExcludeTag ""
         if: ${{ env.JiraURI != '' }}
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
