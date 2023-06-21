@@ -3,7 +3,7 @@ function New-JiraSession {
     [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
-        [Parameter( Mandatory )]
+        [Parameter( )]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
         $Credential,
@@ -29,8 +29,8 @@ function New-JiraSession {
             Method       = "GET"
             Headers      = $Headers
             StoreSession = $true
-            Credential   = $Credential
         }
+        if ($Credential) { $parameter.Add('Credential',$Credential) }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod @parameter
 
