@@ -14,6 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
@@ -40,6 +46,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: powershell
         run: |
@@ -61,6 +73,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
@@ -82,6 +100,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
@@ -103,6 +127,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
@@ -128,6 +158,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
