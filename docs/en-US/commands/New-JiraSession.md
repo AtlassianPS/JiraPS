@@ -41,6 +41,19 @@ Get-JiraIssue TEST-01
 Creates a Jira session for jiraUsername.
 The following `Get-JiraIssue` is run using the saved session for jiraUsername.
 
+### EXAMPLE 2
+
+```powershell
+$personalAccessToken = "<your_token_here>"
+$headers = @{ Authorization = "Bearer $($personalAccessToken)" }
+
+New-JiraSession -Headers $headers
+Get-JiraIssue TEST-01
+```
+
+Creates a Jira session using a Personal Access Token (PAT) as a bearer token in a custom Authorization header.
+The following `Get-JiraIssue` is run using the saved session created using the PAT.
+
 ## PARAMETERS
 
 ### -Credential
@@ -52,7 +65,7 @@ Type: PSCredential
 Parameter Sets: (All)
 Aliases:
 
-Required: True
+Required: False
 Position: 1
 Default value: None
 Accept pipeline input: False
