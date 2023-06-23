@@ -14,6 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
@@ -23,7 +29,7 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Build -Task Clean, Build
-      - name: Upload
+      - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: Release
@@ -40,6 +46,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: powershell
         run: |
@@ -49,6 +61,12 @@ jobs:
         shell: powershell
         run: |
           Invoke-Build -Task Test
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
 
   test_on_windows_v7:
     name: Test Module on Windows (PS v7)
@@ -61,6 +79,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
@@ -70,6 +94,12 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Build -Task Test
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
 
   test_on_ubuntu:
     name: Test Module on Ubuntu
@@ -82,6 +112,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
@@ -91,6 +127,12 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Build -Task Test
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
 
   test_on_macos:
     name: Test Module on macOS
@@ -103,6 +145,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
@@ -112,6 +160,12 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Build -Task Test
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
 
   test_against_cloud:
     env:
@@ -128,6 +182,12 @@ jobs:
         with:
           name: Release
           path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
@@ -138,3 +198,9 @@ jobs:
         run: |
           Invoke-Build -Task Test -Tag "Integration" -ExcludeTag ""
         if: ${{ env.JiraURI != '' }}
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-Unit-Tests
+          path: Test*.xml
+    if: ${{ always() }}
