@@ -11,6 +11,6 @@ jobs:
       - name: "Add default reviewers to PR"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_URL: ${{ github.event.pull_request.html_url }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
         run: |
-          gh pr edit $PR --add-reviewer @atlassianps/reviewers
+          gh pr edit $PR_URL --add-reviewer @atlassianps/reviewers
