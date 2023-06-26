@@ -8,5 +8,8 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[*.md]
+[*.{md,yml,yaml}]
 trim_trailing_whitespace = false
+
+[*.{yml,yaml}]
+indent_size = 2
