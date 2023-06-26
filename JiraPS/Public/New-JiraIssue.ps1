@@ -45,6 +45,11 @@ function New-JiraIssue {
         [PSCustomObject]
         $Fields,
 
+        [Parameter( ValueFromPipelineByPropertyName )]
+        [AllowNull()]
+        [String[]]
+        $Components,
+
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
@@ -104,6 +109,13 @@ function New-JiraIssue {
             $requestBody["labels"] = [System.Collections.ArrayList]@()
             foreach ($item in $Labels) {
                 $null = $requestBody["labels"].Add($item)
+            }
+        }
+
+        if ($Components) {
+            $requestBody["components"] = [System.Collections.ArrayList]@()
+            foreach ($item in $Components) {
+                $null = $requestBody["components"].Add( @{ id = "$item" } )
             }
         }
 
