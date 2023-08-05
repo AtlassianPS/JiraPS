@@ -88,7 +88,10 @@ function Get-JiraIssue {
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
+
+        [Parameter()]
+        [Switch][Bool]$GetHistory
     )
 
     begin {
@@ -113,6 +116,7 @@ function Get-JiraIssue {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
 
                     $getParameter = @{ expand = "transitions" }
+                    if ($GetHistory -eq $true) { $getParameter = @{ expand = "transitions,changelog" }}
                     if ($Fields) {
                         $getParameter["fields"] = $Fields
                     }
@@ -140,13 +144,15 @@ function Get-JiraIssue {
                 }
             }
             'ByJQL' {
+                $expandValue = "transitions"
+                if ($GetHistory -eq $true) { $expandValue = "transitions,changelog" }
                 $parameter = @{
                     URI          = $searchURi
                     Method       = "GET"
                     GetParameter = @{
                         jql           = (ConvertTo-URLEncoded $Query)
                         validateQuery = $true
-                        expand        = "transitions"
+                        expand        = $expandValue
                         maxResults    = $PageSize
 
                     }
@@ -181,13 +187,14 @@ function Get-JiraIssue {
                   #ToDo:CustomClass
                   Once we have custom classes, this will no longer be necessary
                 #>
-
+                $expandValue = "transitions"
+                if ($GetHistory -eq $true) { $expandValue = "transitions,changelog" }
                 $parameter = @{
                     URI          = $filterObj
                     Method       = "GET"
                     GetParameter = @{
                         validateQuery = $true
-                        expand        = "transitions"
+                        expand        = $expandvalue
                         maxResults    = $PageSize
                     }
                     OutputType   = "JiraIssue"
