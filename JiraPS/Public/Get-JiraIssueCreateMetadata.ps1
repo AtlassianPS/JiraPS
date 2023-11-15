@@ -68,7 +68,7 @@ function Get-JiraIssueCreateMetadata {
             # Check the following release notes:
             # https://confluence.atlassian.com/jiracore/createmeta-rest-endpoint-to-be-removed-975040986.html
             $resultFields = @{}
-            $result.values | ForEach-Object { $resultFields[$_.name] = $_ }
+            $result.values | ForEach-Object { $resultFields[$_.fieldid] = $_ }
             $result = [PSCustomObject] @{
                 projects = @(
                     [PSCustomObject] @{
