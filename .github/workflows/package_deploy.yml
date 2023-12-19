@@ -37,12 +37,7 @@ jobs:
         with:
           name: JiraPS.zip
           path: ./Release/JiraPS.zip
-      - name: Package
-        shell: pwsh
-        run: |
-          Invoke-Build -Task Package
       - name: Deploy
-        if: ${{ github.ref == 'refs/heads/master' }}
         shell: pwsh
         run: |
           # Invoke-Build -Task Deploy
