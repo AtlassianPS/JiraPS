@@ -8,8 +8,8 @@ on:
 
 
 jobs:
-  build_module:
-    name: Build Module
+  build_package_deploy:
+    name: Deploy Module
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
