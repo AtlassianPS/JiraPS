@@ -204,3 +204,37 @@ jobs:
           name: ${{ runner.os }}-Unit-Tests
           path: Test*.xml
     if: ${{ always() }}
+
+  package:
+    name: Package
+    needs: [build_module, test_on_windows_v5, test_on_windows_v7, test_on_ubuntu, test_on_macos, test_against_cloud]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download
+        uses: actions/download-artifact@v3
+        with:
+          name: Release
+          path: ./Release/
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
+      - name: Setup
+        shell: pwsh
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+      - name: Package
+        shell: pwsh
+        run: |
+          Invoke-Build -Task Package
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: JiraPS.zip
+          path: ./Release/JiraPS.zip
+    if: ${{ success() }}
+
