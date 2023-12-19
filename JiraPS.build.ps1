@@ -194,6 +194,13 @@ task UpdateManifest GetNextVersion, {
     if ($ModuleAlias) {
         BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName AliasesToExport -Value @($ModuleAlias.Name)
     }
+
+    $Prerelease = ''
+    if ("$env:BHBranchName" -notin @('master','main')) {
+        $Prerelease = "$env:BHBranchName".ToLower() -replace '[^a-zA-Z0-9]'
+    }
+    BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName Prerelease -Value $Prerelease
+
 }
 
 # Synopsis: Create a ZIP file with this build
