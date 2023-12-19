@@ -1,0 +1,51 @@
+name: Package and Deploy
+
+on:
+  push:
+    branches:
+      - feature/package-artifact
+  workflow_dispatch:
+
+
+jobs:
+  build_module:
+    name: Build Module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup PowerShell module cache
+        id: cacher
+        uses: actions/cache@v3
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
+      - name: Setup
+        shell: pwsh
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+      - name: Build
+        shell: pwsh
+        run: |
+          Invoke-Build -Task Clean, Build
+      - name: Package
+        shell: pwsh
+        run: |
+          Invoke-Build -Task Package
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: JiraPS.zip
+          path: ./Release/JiraPS.zip
+      - name: Package
+        shell: pwsh
+        run: |
+          Invoke-Build -Task Package
+      - name: Deploy
+        if: ${{ github.ref == 'refs/heads/master' }}
+        shell: pwsh
+        run: |
+          # Invoke-Build -Task Deploy
+          Write-Warning "SKIPPING: Invoke-Build -Task Deploy"
+    if: ${{ success() }}
+
