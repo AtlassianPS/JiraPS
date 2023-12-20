@@ -1,0 +1,90 @@
+name: CI
+
+on: [pull_request]
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v3
+        id: cacher
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
+
+      - name: Setup
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+
+      - name: Build
+        run: |
+          Invoke-Build -Task Clean, Build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Release
+          path: ./Release/
+
+  test:
+    needs: build
+
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        shell: [pwsh]
+        include:
+          - os: windows-latest
+            shell: powershell
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: Release
+          path: ./Release/
+
+      - uses: actions/cache@v3
+        id: cacher
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
+
+      - name: Setup
+        run: ${{ matrix.shell }} -c ". ./Tools/setup.ps1; Invoke-Build -Task ShowInfo"
+
+      - name: Test
+        run: ${{ matrix.shell }} -c "Invoke-Build -Task Test"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-${{ matrix.shell }}-Unit-Tests
+          path: Test*.xml
+          if-no-files-found: error
+    if: ${{ always() }}
+
+  # test_against_cloud:
+  #   env:
+  #     JiraURI: ${{ secrets.JiraURI }}
+  #     JiraUser: ${{ secrets.JiraUser }}
+  #     JiraPass: ${{ secrets.JiraPass }}
+  #   name: Test Module against Cloud Server
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #  ...
+  #     - name: Test
+  #       run: |
+  #         Invoke-Build -Task Test -Tag "Integration" -ExcludeTag ""
+  #       if: ${{ env.JiraURI != '' }}
+  #  ...
