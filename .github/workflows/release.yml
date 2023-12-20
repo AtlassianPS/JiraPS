@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - feature/package-artifact # TODO: what should be a trigger?
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4 # TODO: this file is not available, as it's an artefact from another pipeline
+      # https://github.com/actions/download-artifact#download-artifacts-from-other-workflow-runs-or-repositories
+        with:
+          name: Release
+          path: ./Release/
+
+      - uses: actions/cache@v3
+        id: cacher
+        with:
+          path: "~/.local/share/powershell/Modules"
+          key: ${{ runner.os }}-PSModules
+
+      - name: Setup
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo
+
+      - name: Deploy
+        env:
+          NUGET_API_KEY: ${{ secrets.shhh }} # TODO: this is not the correct secret yet.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Invoke-Build -Task Deploy
+          Write-Warning "SKIPPING: Invoke-Build -Task Deploy"
