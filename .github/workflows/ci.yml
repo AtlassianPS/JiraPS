@@ -2,13 +2,13 @@ name: Continous Integration
 
 on:
   push:
-    branches: [master]
+    branches: [master, develop]
     paths:
       - "docs/**"
       - "JiraPS/**"
       - "Tests/**"
   pull_request:
-    branches: [master]
+    branches: [master, develop]
     paths:
       - ".github/workflows/**"
       - "docs/**"
