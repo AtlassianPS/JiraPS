@@ -23,5 +23,6 @@
             ]
         }
     },
+    "postCreateCommand": "pwsh -c '../Tools/setup.ps1",
     "remoteUser": "vscode"
 }
