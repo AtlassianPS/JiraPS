@@ -1,10 +1,11 @@
-name: Release
+name: Continous Deployment
 
 on:
-  push:
-    branches:
-      - feature/package-artifact # TODO: what should be a trigger?
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Continous Integration"]
+    branches: ["master", "feature/package-artifact"] #TODO: remove test branch
+    types:
+      - completed
 
 defaults:
   run:
@@ -17,11 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4 # TODO: this file is not available, as it's an artefact from another pipeline
-      # https://github.com/actions/download-artifact#download-artifacts-from-other-workflow-runs-or-repositories
+      - uses: actions/download-artifact@v4
         with:
           name: Release
           path: ./Release/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
 
       - uses: actions/cache@v3
         id: cacher

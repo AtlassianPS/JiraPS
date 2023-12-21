@@ -1,6 +1,23 @@
-name: CI
+name: Continous Integration
 
-on: [pull_request]
+on:
+  push:
+    branches: [master]
+    paths:
+      - "docs/**"
+      - "JiraPS/**"
+      - "Tests/**"
+  pull_request:
+    branches: [master]
+    paths:
+      - ".github/workflows/**"
+      - "docs/**"
+      - "JiraPS/**"
+      - "Tests/**"
+      - "Tools/**"
+      - "JiraPS.build.ps1"
+      - "PSScriptAnalyzerSettings.psd1"
+  workflow_dispatch:
 
 defaults:
   run:
