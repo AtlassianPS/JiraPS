@@ -28,13 +28,15 @@ jobs:
       - uses: actions/cache@v3
         id: cacher
         with:
-          path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
+          path: "~/.local/share/powershell/Modules"
 
       - name: Setup
-        run: |
-          ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+        if: ${{ steps.cacher.outputs.cache-hit != 'true' }}
+        run: ./Tools/setup.ps1
+
+      - name: CI Context Info
+        run: Invoke-Build -Task ShowInfo
 
       - name: Deploy
         env:
