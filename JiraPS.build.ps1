@@ -5,9 +5,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingEmptyCatchBlock', '')]
 param(
     [String[]]$Tag,
-    [String[]]$ExcludeTag = @("Integration"),
-    [String]$PSGalleryAPIKey,
-    [String]$GithubAccessToken
+    [String[]]$ExcludeTag = @("Integration")
 )
 
 $WarningPreference = "Continue"
@@ -168,7 +166,7 @@ task CompileModule Init, {
     Set-Content -LiteralPath $targetFile -Value $compiled -Encoding UTF8 -Force
     Remove-Utf8Bom -Path $targetFile
 
-    "Private", "Public" | Foreach-Object { Remove-Item -Path "$env:BHBuildOutput/$env:BHProjectName/$_" -Recurse -Force }
+    "Private", "Public" | ForEach-Object { Remove-Item -Path "$env:BHBuildOutput/$env:BHProjectName/$_" -Recurse -Force }
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
@@ -194,16 +192,14 @@ task UpdateManifest GetNextVersion, {
     if ($ModuleAlias) {
         BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName AliasesToExport -Value @($ModuleAlias.Name)
     }
-}
 
-# Synopsis: Create a ZIP file with this build
-task Package Init, {
-    Assert-True { Test-Path "$env:BHBuildOutput\$env:BHProjectName" } "Missing files to package"
+    $Prerelease = ''
+    if ("$env:BHBranchName" -notin @('master', 'main')) {
+        $Prerelease = "$env:BHBranchName".ToLower() -replace '[^a-zA-Z0-9]'
+    }
+    BuildHelpers\Update-Metadata -Path "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1" -PropertyName Prerelease -Value $Prerelease
 
-    Remove-Item "$env:BHBuildOutput\$env:BHProjectName.zip" -ErrorAction SilentlyContinue
-    $null = Compress-Archive -Path "$env:BHBuildOutput\$env:BHProjectName" -DestinationPath "$env:BHBuildOutput\$env:BHProjectName.zip"
 }
-#endregion BuildRelease
 
 #region Test
 task Test Init, {
@@ -246,6 +242,7 @@ task Deploy Init, PublishToGallery, TagReplository, UpdateHomepage
 
 # Synpsis: Publish the $release to the PSGallery
 task PublishToGallery {
+    $PSGalleryAPIKey = $env:NUGET_API_KEY
     Assert-True (-not [String]::IsNullOrEmpty($PSGalleryAPIKey)) "No key for the PSGallery"
     Assert-True { Get-Module $env:BHProjectName -ListAvailable } "Module $env:BHProjectName is not available"
 
@@ -256,6 +253,8 @@ task PublishToGallery {
 
 # Synopsis: push a tag with the version to the git repository
 task TagReplository GetNextVersion, Package, {
+    $GithubAccessToken = $env:GITHUB_TOKEN
+    Assert-True (-not [String]::IsNullOrEmpty($GithubAccessToken)) "No key for the PSGallery"
     $releaseText = "Release version $env:NextBuildVersion"
 
     Set-GitUser
@@ -277,7 +276,7 @@ task TagReplository GetNextVersion, Package, {
         Name            = "Version $env:NextBuildVersion"
         ReleaseText     = $releaseText
         RepositoryOwner = "AtlassianPS"
-        Artifact        = "$env:BHBuildOutput\$env:BHProjectName.zip"
+        Artifact        = "$env:BHBuildOutput\$env:BHProjectName.zip" # TODO: probably not the right file
     }
     Publish-GithubRelease @release
 }

@@ -113,6 +113,9 @@
             # External dependent modules of this module
             # ExternalModuleDependencies = ''
 
+            # Prerelease string of this module
+            Prerelease = ''
+
         } # End of PSData hashtable
 
     } # End of PrivateData hashtable

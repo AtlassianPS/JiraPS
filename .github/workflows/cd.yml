@@ -1,0 +1,47 @@
+name: Continous Deployment
+
+on:
+  workflow_run:
+    workflows: ["Continous Integration"]
+    branches: ["master", "feature/package-artifact"] #TODO: remove test branch
+    types:
+      - completed
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: Release
+          path: ./Release/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - uses: actions/cache@v3
+        id: cacher
+        with:
+          key: ${{ runner.os }}-PSModules
+          path: "~/.local/share/powershell/Modules"
+
+      - name: Setup
+        if: ${{ steps.cacher.outputs.cache-hit != 'true' }}
+        run: ./Tools/setup.ps1
+
+      - name: CI Context Info
+        run: Invoke-Build -Task ShowInfo
+
+      - name: Deploy
+        env:
+          NUGET_API_KEY: ${{ secrets.shhh }} # TODO: this is not the correct secret yet.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Invoke-Build -Task Deploy
+          Write-Warning "SKIPPING: Invoke-Build -Task Deploy"
