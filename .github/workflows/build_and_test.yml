@@ -13,7 +13,7 @@ jobs:
     name: Build Module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup PowerShell module cache
         id: cacher
         uses: actions/cache@v3
@@ -40,7 +40,7 @@ jobs:
     needs: build_module
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
         uses: actions/download-artifact@v4
         with:
@@ -73,7 +73,7 @@ jobs:
     needs: build_module
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
         uses: actions/download-artifact@v4
         with:
@@ -106,7 +106,7 @@ jobs:
     needs: build_module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
         uses: actions/download-artifact@v4
         with:
@@ -139,7 +139,7 @@ jobs:
     needs: build_module
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
         uses: actions/download-artifact@v4
         with:
@@ -176,7 +176,7 @@ jobs:
     needs: build_module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
         uses: actions/download-artifact@v4
         with:
