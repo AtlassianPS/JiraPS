@@ -4,15 +4,15 @@
     "files.encoding": "utf8",
     "files.insertFinalNewline": true,
     "files.trimTrailingWhitespace": true,
-
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
-
     // https://en.wikipedia.org/wiki/Indentation_style#Styles
     "powershell.codeFormatting.preset": "Stroustrup",
     "powershell.codeFormatting.ignoreOneLineBlock": true,
     "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
-
+    "[shellscript]": {
+        "files.eol": "\n"
+    },
     "[markdown]": {
         "editor.tabSize": 2,
         "editor.trimAutoWhitespace": false,
@@ -21,22 +21,22 @@
     "[yaml]": {
         "editor.tabSize": 2
     },
-
     "markdownlint.config": {
         "MD009": false,
         "MD024": false,
         "MD025": false,
         "MD028": false
     },
-    "cSpell.dictionaryDefinitions": [{
-        "name": "customDictionary",
-        "path": "./.spelling"
-    }],
+    "cSpell.dictionaryDefinitions": [
+        {
+            "name": "customDictionary",
+            "path": "./.spelling"
+        }
+    ],
     "cSpell.dictionaries": [
         "customDictionary"
     ],
     "cSpell.language": "en"
-
     // Recomendations for "USER SETTINGS":
     // "editor.formatOnType": true,
     // "editor.formatOnPaste": true,
