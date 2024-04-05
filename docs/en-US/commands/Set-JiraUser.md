@@ -48,7 +48,7 @@ The original value is overridden.
 ### EXAMPLE 2
 
 ```powershell
-Set-JiraUser -User user2 -Properties @{EmailAddress='user2_new@example.com';DisplayName='User 2'}
+Set-JiraUser -User user2 -Property @{emailAddress='user2_new@example.com';displayName='User 2'}
 ```
 
 This example modifies a user's properties using a hashtable.
