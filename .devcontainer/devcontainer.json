@@ -1,6 +1,25 @@
+// https://github.com/devcontainers/images/tree/main/src/dotnet/.devcontainer
 {
-    "name": "AtlassianPS Dev Environment",
-    "dockerFile": "Dockerfile",
+    "build": {
+        "dockerfile": "./Dockerfile",
+        "context": "."
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": "true",
+            "username": "vscode",
+            "userUid": "1000",
+            "userGid": "1000",
+            "upgradePackages": "true"
+        },
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "none"
+        },
+        "ghcr.io/devcontainers/features/git:1": {
+            "version": "latest",
+            "ppa": "false"
+        }
+    },
     "customizations": {
         "vscode": {
             "settings": {
@@ -23,6 +42,6 @@
             ]
         }
     },
-    "postCreateCommand": "pwsh -c './Tools/setup.ps1'",
-    "remoteUser": "vscode"
+    "remoteUser": "vscode",
+    "postCreateCommand": "pwsh -c './Tools/setup.ps1'"
 }
