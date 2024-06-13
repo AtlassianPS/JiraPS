@@ -17,7 +17,7 @@ Creates a new issue in JIRA
 
 ```powershell
 New-JiraIssue [-Project] <String> [-IssueType] <String> [-Summary] <String> [[-Priority] <Int32>]
- [[-Description] <String>] [[-Reporter] <String>] [[-Labels] <String[]>] [[-Parent] <String>]
+ [[-Description] <String>] [[-Reporter] <String>] [[-Labels] <String[]>] [[-Components] <String[]>] [[-Parent] <String>]
  [[-FixVersion] <String[]>] [[-Fields] <PSCustomObject>] [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
@@ -270,6 +270,21 @@ Aliases:
 
 Required: False
 Position: 11
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+### -Components
+
+List of component ids which will be added to the issue.
+
+```yaml
+Type: String[]
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 12
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
