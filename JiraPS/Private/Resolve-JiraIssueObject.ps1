@@ -33,19 +33,21 @@ function Resolve-JiraIssueObject {
         $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
-    # As we are not able to use proper type casting in the parameters, this is a workaround
-    # to extract the data from a JiraPS.Issue object
-    # This shall be removed once we have custom classes for the module
-    if ("JiraPS.Issue" -in $InputObject.PSObject.TypeNames -and $InputObject.RestURL) {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$InputObject as object"
-        return $InputObject
-    }
-    elseif ("JiraPS.Issue" -in $InputObject.PSObject.TypeNames -and $InputObject.Key) {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
-        return (Get-JiraIssue -Key $InputObject.Key -Credential $Credential -ErrorAction Stop)
-    }
-    else {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
-        return (Get-JiraIssue -Key $InputObject.ToString() -Credential $Credential -ErrorAction Stop)
+    process {
+        # As we are not able to use proper type casting in the parameters, this is a workaround
+        # to extract the data from a JiraPS.Issue object
+        # This shall be removed once we have custom classes for the module
+        if ("JiraPS.Issue" -in $InputObject.PSObject.TypeNames -and $InputObject.RestURL) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$InputObject as object"
+            return $InputObject
+        }
+        elseif ("JiraPS.Issue" -in $InputObject.PSObject.TypeNames -and $InputObject.Key) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
+            return (Get-JiraIssue -Key $InputObject.Key -Credential $Credential -ErrorAction Stop)
+        }
+        else {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue to object"
+            return (Get-JiraIssue -Key $InputObject.ToString() -Credential $Credential -ErrorAction Stop)
+        }
     }
 }
