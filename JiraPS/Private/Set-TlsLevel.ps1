@@ -10,16 +10,14 @@ function Set-TlsLevel {
     )
 
     begin {
-        switch ($PSCmdlet.ParameterSetName) {
-            "Set" {
-                $Script:OriginalTlsSettings = [Net.ServicePointManager]::SecurityProtocol
+        if ($Tls12) {
+            $Script:OriginalTlsSettings = [Net.ServicePointManager]::SecurityProtocol
 
-                [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-            }
-            "Revert" {
-                if ($Script:OriginalTlsSettings) {
-                    [Net.ServicePointManager]::SecurityProtocol = $Script:OriginalTlsSettings
-                }
+            [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        }
+        if ($Revert) {
+            if ($Script:OriginalTlsSettings) {
+                [Net.ServicePointManager]::SecurityProtocol = $Script:OriginalTlsSettings
             }
         }
     }

@@ -1,4 +1,5 @@
 #requires -modules BuildHelpers
+#requires -modules Metadata
 #requires -modules Pester
 
 Describe "General project validation" -Tag Unit {
@@ -53,16 +54,16 @@ Describe "General project validation" -Tag Unit {
     }
 
     It "module uses the correct root module" {
-        Get-Metadata -Path $env:BHManifestToTest -PropertyName RootModule | Should -Be 'JiraPS.psm1'
+        Metadata\Get-Metadata -Path $env:BHManifestToTest -PropertyName RootModule | Should -Be 'JiraPS.psm1'
     }
 
     It "module uses the correct guid" {
-        Get-Metadata -Path $env:BHManifestToTest -PropertyName Guid | Should -Be '4bf3eb15-037e-43b7-9e47-20a30436324f'
+        Metadata\Get-Metadata -Path $env:BHManifestToTest -PropertyName Guid | Should -Be '4bf3eb15-037e-43b7-9e47-20a30436324f'
     }
 
     It "module uses a valid version" {
-        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
-        [Version](Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
+        [Version](Metadata\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -Not -BeNullOrEmpty
+        [Version](Metadata\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion) | Should -BeOfType [Version]
     }
 
     It "module uses the previous server config when loaded" {
