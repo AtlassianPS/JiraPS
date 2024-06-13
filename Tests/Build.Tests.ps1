@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules Configuration
+#requires -modules Metadata
 #requires -modules Pester
 
 Describe "Validation of build environment" -Tag Unit {
