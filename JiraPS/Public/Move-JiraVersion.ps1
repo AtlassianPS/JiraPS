@@ -1,4 +1,4 @@
-﻿function Move-JiraVersion {
+function Move-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = 'ByAfter' )]
     param(
@@ -95,7 +95,8 @@
 
         if ($Version.Id) {
             $versionId = $Version.Id
-        } else {
+        }
+        else {
             $versionId = $Version
         }
 

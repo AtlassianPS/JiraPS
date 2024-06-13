@@ -1,4 +1,4 @@
-﻿function Set-JiraVersion {
+function Set-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(

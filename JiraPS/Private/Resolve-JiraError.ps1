@@ -1,4 +1,4 @@
-﻿function Resolve-JiraError {
+function Resolve-JiraError {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]
@@ -44,7 +44,7 @@
                 }
             }
             elseif ($i.errors) {
-                $keys = (Get-Member -InputObject $i.errors | Where-Object -FilterScript {$_.MemberType -eq 'NoteProperty'}).Name
+                $keys = (Get-Member -InputObject $i.errors | Where-Object -FilterScript { $_.MemberType -eq 'NoteProperty' }).Name
                 foreach ($k in $keys) {
                     if ($WriteError) {
                         $exception = ([System.ArgumentException]"Server responded with Error")
