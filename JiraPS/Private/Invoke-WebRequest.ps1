@@ -7,6 +7,7 @@ function Invoke-WebRequest {
         Cmdlet
     #>
     [CmdletBinding(HelpUri = 'https://go.microsoft.com/fwlink/?LinkID=217035')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '')] # TODO: fix this
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         "PSAvoidUsingConvertToSecureStringWithPlainText",
         "",
@@ -129,7 +130,7 @@ Content-Type: application/octet-stream
                 $PSBoundParameters['OutBuffer'] = 1
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Invoke-WebRequest', [System.Management.Automation.CommandTypes]::Cmdlet)
-            $scriptCmd = {& $wrappedCmd @PSBoundParameters }
+            $scriptCmd = { & $wrappedCmd @PSBoundParameters }
             $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
             $steppablePipeline.Begin($PSCmdlet)
         }
@@ -169,6 +170,7 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
         .ForwardHelpCategory
             Cmdlet
         #>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '')] # TODO: fix this
         [CmdletBinding(DefaultParameterSetName = 'StandardMethod', HelpUri = 'https://go.microsoft.com/fwlink/?LinkID=217035')]
         param(
             [switch]
@@ -316,7 +318,7 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
                     $PSBoundParameters['OutBuffer'] = 1
                 }
                 $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Invoke-WebRequest', [System.Management.Automation.CommandTypes]::Cmdlet)
-                $scriptCmd = {& $wrappedCmd @PSBoundParameters }
+                $scriptCmd = { & $wrappedCmd @PSBoundParameters }
                 $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
                 $steppablePipeline.Begin($PSCmdlet)
             }
