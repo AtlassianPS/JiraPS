@@ -10,6 +10,7 @@ on:
     branches:
       - master
       - develop
+  workflow_dispatch:
 
 jobs:
   build_module:
@@ -67,7 +68,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-Unit-Tests
+          name: ${{ runner.os }}v5-Unit-Tests
           path: Test*.xml
     if: ${{ always() }}
 
@@ -100,7 +101,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-Unit-Tests
+          name: ${{ runner.os }}v7-Unit-Tests
           path: Test*.xml
     if: ${{ always() }}
 
