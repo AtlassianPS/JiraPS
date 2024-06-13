@@ -6,6 +6,7 @@ function ThrowError {
         Thanks to Jaykul:
         https://github.com/PoshCode/Configuration/blob/master/Source/Metadata.psm1
     #>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '')] # TODO: fix this
     param
     (
         [Parameter()]

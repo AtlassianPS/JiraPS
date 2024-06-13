@@ -45,6 +45,7 @@ Describe "Help tests" -Tag Documentation {
         'OutVariable'
         'OutBuffer'
         'PipelineVariable'
+        'ProgressAction'
         'WhatIf'
         'Confirm'
     )
