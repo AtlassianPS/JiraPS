@@ -44,7 +44,7 @@ Describe "Validation of build environment" -Tag Unit {
     Context "CHANGELOG" {
 
         foreach ($line in (Get-Content $changelogFile)) {
-            if ($line -match "(?:##|\<h2.*?\>)\s*\[(?<Version>(\d+\.?){1,2})\]") {
+            if ($line -match "(?:##|\<h2.*?\>)\s*\[(?<Version>(\d+\.?){1,2})(\-(?<Prerelease>(?:alpha|beta|rc)\d*))?\]") {
                 $changelogVersion = $matches.Version
                 break
             }
@@ -55,12 +55,12 @@ Describe "Validation of build environment" -Tag Unit {
         }
 
         It "has a valid version in the changelog" {
-            $changelogVersion            | Should -Not -BeNullOrEmpty
+            $changelogVersion             | Should -Not -BeNullOrEmpty
             [Version]($changelogVersion)  | Should -BeOfType [Version]
         }
 
         It "has a version changelog that matches the manifest version" {
-            Configuration\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion | Should -BeLike "$changelogVersion*"
+            Metadata\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion | Should -BeLike "$changelogVersion*"
         }
     }
 }
