@@ -2,6 +2,28 @@
 
 ## [NEXT VERSION] - YYYY-MM-DD
 
+## [2.15-alpha1] - 2024-06-13
+
+### Added
+
+- Added `-Components` to `New-JiraIssue`. This will be a comma-separated list of Component IDs. (#483, [@micheleliberman])
+- Added `Get-JiraIssueWorklog` (#451, [@asherber])
+- Allow `New-JiraSession` to be called without `-Credential` so to use `-Header` (#439, [@pwshmatt])
+
+### Changed
+
+- Improved `-Transition` behavior in `Invoke-JiraIssueTransition` (#416, [@Rufus125])
+
+### Fixed
+
+- Fixed example and improved documentation on `-Properties` hashtable for `Set-JiraUser` (#509, [@jschlackman])
+- Fixed `Get-JiraIssueCreateMetadata` to conform with Atlassian's API changes ([documentation](https://confluence.atlassian.com/jiracore/createmeta-rest-endpoint-to-be-removed-975040986.html)) (#488, [@robertmbaker])
+- Removed `reporter` from `New-JiraIssue` when project is "next-gen" (#407, [@LaurentGoderre])
+- Fixed `-ErrorAction` in `Add-JiraGroupMember` (#426, [@spascoe])
+- Fixed copy/paste error in test files for `Get-JiraIssue` (#427, [@borislol])
+- Fixed JSON conversion in `Invoke-JiraIssueTransition` (#417, [@Rufus125])
+- Fixed type in `Invoke-JiraIssueTransition` (#417, [@Rufus125])
+
 ## [2.14] - 2020-03-28
 
 ### Changed
@@ -144,8 +166,8 @@ More detailed description about the changes can be found on [Our Website](https:
 - Fix empty header (#206, [@lipkau][])
 - Bad Body (#224, [@lipkau][])
 - Add Labels to array (#226, [@lipkau][])
-- Fix removing labels with `Set-JiraIssueLabel -Remove` (#244, [lipkau][])
-- Fix adding of multiple labels at once with `Set-JiraIssueLabel -Add` (#244, [lipkau][])
+- Fix removing labels with `Set-JiraIssueLabel -Remove` (#244, [@lipkau][])
+- Fix adding of multiple labels at once with `Set-JiraIssueLabel -Add` (#244, [@lipkau][])
 
 ## [2.5] - 2018-03-23
 
@@ -355,27 +377,36 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
 <!-- reference-style links -->
 
 [@alexsuslin]: https://github.com/alexsuslin
+[@asherber]: https://github.com/asherber
 [@axxelg]: https://github.com/axxelG
 [@beaudryj]: https://github.com/beaudryj
+[@borislol]: https://github.com/borislol
 [@brianbunke]: https://github.com/brianbunke
 [@clijsters]: https://github.com/Clijsters
-[@ctolan]: https://github.com/ctolan
 [@colhal]: https://github.com/colhal
+[@ctolan]: https://github.com/ctolan
 [@dejulia489]: https://github.com/Dejulia489
 [@ebekker]: https://github.com/ebekker
 [@hmmwhatsthisdo]: https://github.com/hmmwhatsthisdo
 [@jkknorr]: https://github.com/jkknorr
 [@johnheusinger]: https://github.com/johnheusinger
+[@jschlackman]: https://github.com/jschlackman
 [@kb-cs]: https://github.com/kb-cs
 [@kittholland]: https://github.com/kittholland
+[@LaurentGoderre]: https://github.com/LaurentGoderre
 [@liamleane]: https://github.com/LiamLeane
 [@lipkau]: https://github.com/lipkau
 [@lukhase]: https://github.com/lukhase
 [@michalporeba]: https://github.com/michalporeba
+[@micheleliberman]: https://github.com/micheleliberman
 [@mirrorgleam]: https://github.com/mirrorgleam
 [@nojp]: https://github.com/nojp
 [@padgers]: https://github.com/padgers
+[@pwshmatt]: https://github.com/pwshmatt
+[@robertmbaker]: https://github.com/robertmbaker
+[@Rufus125]: https://github.com/Rufus125
 [@sgtwilko]: https://github.com/sgtwilko
+[@spascoe]: https://github.com/spascoe
 [@thepsadmin]: https://github.com/ThePSAdmin
 [@tuxgoose]: https://github.com/tuxgoose
 [@vercellone]: https://github.com/vercellone
