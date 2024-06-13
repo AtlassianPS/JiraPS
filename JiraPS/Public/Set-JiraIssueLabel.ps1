@@ -1,4 +1,4 @@
-﻿function Set-JiraIssueLabel {
+function Set-JiraIssueLabel {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ReplaceLabels' )]
     param(
@@ -69,7 +69,7 @@
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
-            $labels = [System.Collections.ArrayList]@($issueObj.labels | Where-Object {$_})
+            $labels = [System.Collections.ArrayList]@($issueObj.labels | Where-Object { $_ })
 
             # As of JIRA 6.4, the Add and Remove verbs in the REST API for
             # updating issues do not support arrays of parameters - you
