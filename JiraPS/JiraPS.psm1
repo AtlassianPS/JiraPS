@@ -23,7 +23,7 @@ if (!("System.Net.Http" -as [Type])) {
 #endregion Dependencies
 
 #region Configuration
-$script:serverConfig = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData'))
+$script:serverConfig = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData', 'Create'))
 
 if (-not (Test-Path $script:serverConfig)) {
     $null = New-Item -Path $script:serverConfig -ItemType File -Force
