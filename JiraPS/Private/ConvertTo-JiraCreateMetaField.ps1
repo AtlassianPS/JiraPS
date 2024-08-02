@@ -14,6 +14,8 @@ function ConvertTo-JiraCreateMetaField {
             $fieldList = $null
 
             If ($null -ne $i.values) {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Input appears to be from Jira 9+ CreateMeta"
+
                 $fieldList = $i.values | ForEach-Object {
                     @{
                         Name = $_.fieldId
@@ -22,6 +24,7 @@ function ConvertTo-JiraCreateMetaField {
                 }
             }
             Elseif ($null -ne $i.projects.issuetypes.fields) {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Input appears to be from Jira 8 (or below) CreateMeta"
 
                 $fields = $i.projects.issuetypes.fields
                 $fieldNames = (Get-Member -InputObject $fields -MemberType '*Property').Name
