@@ -22,7 +22,16 @@ function Get-JiraIssueCreateMetadata {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/issue/createmeta?projectIds={0}&issuetypeIds={1}&expand=projects.issuetypes.fields"
+        $JiraVersion = Get-JiraServerInfo -ErrorAction Stop
+
+        # Beginning with Jira 9, the old instance-level CreateMeta endpoint is no longer available.
+        # Instead, CreateMeta is inherently scoped to project and issue type.
+        If ($JiraVersion.Version -gt [System.version](9.0.0)) {
+            $resourceURi = "$server/rest/api/2/issue/createmeta/{0}/issuetypes/{1}"
+        } Else {
+            $resourceURi = "$server/rest/api/2/issue/createmeta?projectIds={0}&issuetypeIds={1}&expand=projects.issuetypes.fields"
+        }
+
     }
 
     process {
