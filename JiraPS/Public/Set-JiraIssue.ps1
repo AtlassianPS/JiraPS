@@ -171,17 +171,20 @@ function Set-JiraIssue {
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
                 foreach ($_key in $Fields.Keys) {
 
+                    $name = $_key
+                    $value = $Fields.$_key
+
                     # The Fields hashtable supports both name- and ID-based lookup for custom fields, so we have to search both.
-                    if ($AvailableFieldsById.ContainsKey($_key)) {
-                        $field = $AvailableFieldsById[$_key][0]
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] $_key appears to be a field ID"
-                    } elseif ($AvailableFieldsById.ContainsKey("customfield_$_key")) {
-                        $field = $AvailableFieldsById["customfield_$_key"][0]
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] $_key appears to be a numerical field ID (customfield_$_key)"
-                    } elseif ($AvailableFieldsByName.ContainsKey($_key) -and $AvailableFieldsByName[$_key].Count -eq 1) {
-                        $field = $AvailableFieldsByName[$_key][0]
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] $_key appears to be a human-readable field name ($($field.ID))"
-                    } elseif ($AvailableFieldsByName.ContainsKey($_key)) {
+                    if ($AvailableFieldsById.ContainsKey($name)) {
+                        $field = $AvailableFieldsById[$name][0]
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
+                    } elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
+                        $field = $AvailableFieldsById["customfield_$name"][0]
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
+                    } elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
+                        $field = $AvailableFieldsByName[$name][0]
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
+                    } elseif ($AvailableFieldsByName.ContainsKey($name)) {
                         # Jira does not prevent multiple custom fields with the same name, so we have to ensure
                         # any name references are unambiguous.
 
