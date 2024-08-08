@@ -159,9 +159,11 @@ function Set-JiraIssue {
 
             if ($Fields) {
 
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Enumerating fields defined on the server"
+
                 # Fetch all available fields ahead-of-time to avoid repeated API calls in the upcoming loop.
                 # Eventually, this may be better to extract from EditMeta.
-                $AvailableFields = Get-JiraField -Credential $Credential -ErrorAction Stop
+                $AvailableFields = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
 
                 $AvailableFieldsById = $AvailableFields | Group-Object -Property Id -AsHashTable -AsString
                 $AvailableFieldsByName = $AvailableFields | Group-Object -Property Name -AsHashTable -AsString
