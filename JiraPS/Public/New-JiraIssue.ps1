@@ -135,13 +135,13 @@ function New-JiraIssue {
                 # The Fields hashtable supports both name- and ID-based lookup for custom fields, so we have to search both.
                 if ($AvailableFieldsById.ContainsKey($name)) {
                     $field = $AvailableFieldsById[$name][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] $name appears to be a field ID"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
                 } elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
                     $field = $AvailableFieldsById["customfield_$name"][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] $name appears to be a numerical field ID (customfield_$name)"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
                 } elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
                     $field = $AvailableFieldsByName[$name][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] $name appears to be a human-readable field name ($($field.ID))"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
                 } elseif ($AvailableFieldsByName.ContainsKey($name)) {
                     # Jira does not prevent multiple custom fields with the same name, so we have to ensure
                     # any name references are unambiguous.
