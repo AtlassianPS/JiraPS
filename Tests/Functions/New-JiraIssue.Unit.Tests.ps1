@@ -81,7 +81,20 @@ Describe "New-JiraIssue" -Tag 'Unit' {
 
         # This one needs to be able to output multiple objects
         Mock Get-JiraField {
-            $Field | % {
+
+            $(If ($null -eq $Field) {
+                @(
+                    'Project'
+                    'IssueType'
+                    'Priority'
+                    'Summary'
+                    'Description'
+                    'Reporter'
+                    'CustomField'
+                )
+            } Else {
+                $Field
+            }) | % {
                 $object = [PSCustomObject] @{
                     'Id' = $_
                 }
