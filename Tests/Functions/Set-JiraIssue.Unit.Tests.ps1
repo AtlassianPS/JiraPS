@@ -58,6 +58,32 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
             return $object
         }
 
+        Mock Get-JiraField {
+
+            $(If ($null -eq $Field) {
+                @(
+                    'Project'
+                    'IssueType'
+                    'Priority'
+                    'Summary'
+                    'Description'
+                    'Reporter'
+                    'CustomField'
+                    'customfield_12345'
+                    'customfield_67890'
+                    'customfield_111222'
+                )
+            } Else {
+                $Field
+            }) | % {
+                $object = [PSCustomObject] @{
+                    'Id' = $_
+                }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                $object
+            }
+        }
+
         Mock Resolve-JiraIssueObject -ModuleName JiraPS {
             Get-JiraIssue -Key $Issue
         }
@@ -73,7 +99,7 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
         # actually try to query a JIRA instance
         Mock Invoke-JiraMethod {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            throw "Unidentified call to Invoke-JiraMethod"
+            throw "Unidentified call ($Method $Uri) to Invoke-JiraMethod"
         }
 
         Context "Sanity checking" {
