@@ -156,6 +156,64 @@ Describe "New-JiraIssue" -Tag 'Unit' {
             }
         }
 
+        Context "New-JiraIssue handles duplicate fields" {
+            # Intentionally output multiple objects of different IDs but with the same name
+            Mock Get-JiraField {
+                $Field | % {
+                    $name = $_
+                    if ($name -eq 'Reporter') {
+                        'Reporter', 'Reporter_mismatched' | % {
+                            $fieldname = $_
+                            $object = [PSCustomObject] @{
+                                'Id' = "$fieldname"
+                            }
+                            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                            $object
+                        }
+                    }
+                    else {
+                        $object = [PSCustomObject] @{
+                            'Id' = "$name"
+                        }
+                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                        $object
+                    }
+                }
+            }
+
+            It "finds the right field which has a matching name and id" {
+                Mock Get-JiraIssueCreateMetadata {
+                    @(
+                        @{Name = 'Project'; ID = 'Project'; Required = $true}
+                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true}
+                        @{Name = 'Priority'; ID = 'Priority'; Required = $true}
+                        @{Name = 'Summary'; ID = 'Summary'; Required = $true}
+                        @{Name = 'Description'; ID = 'Description'; Required = $true}
+                        @{Name = 'Reporter'; ID = 'Reporter'; Required = $true}
+                        @{Name = 'Reporter'; ID = 'Reporter_mismatch'; Required = $false}
+                    )
+                }
+
+                { New-JiraIssue @newParams } | Should Not Throw
+            }
+
+            It "throws when a field name return multiple fields without a field has matching name and id" {
+                Mock Get-JiraIssueCreateMetadata {
+                    @(
+                        @{Name = 'Project'; ID = 'Project'; Required = $true}
+                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true}
+                        @{Name = 'Priority'; ID = 'Priority'; Required = $true}
+                        @{Name = 'Summary'; ID = 'Summary'; Required = $true}
+                        @{Name = 'Description'; ID = 'Description'; Required = $true}
+                        @{Name = 'Reporter'; ID = 'Reporter_mismatch1'; Required = $true}
+                        @{Name = 'Reporter'; ID = 'Reporter_mismatch2'; Required = $false}
+                    )
+                }
+
+                { New-JiraIssue @newParams } | Should Throw
+            }
+        }
+
         Context "Input testing" {
             It "Checks to make sure all required fields are provided" {
                 # We'll create a custom field that's required, then see what happens when we don't provide it
