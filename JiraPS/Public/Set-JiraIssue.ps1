@@ -41,6 +41,7 @@ function Set-JiraIssue {
         [Object]
         $Assignee,
 
+        [Alias("Labels")]
         [String[]]
         $Label,
 
