@@ -134,7 +134,7 @@ Describe "New-JiraIssue" -Tag 'Unit' {
             defParam $command 'Summary'
             defParam $command 'Description'
             defParam $command 'Reporter'
-            defParam $command 'Labels'
+            defParam $command 'Label'
             defParam $command 'Fields'
             defParam $command 'Credential'
         }
