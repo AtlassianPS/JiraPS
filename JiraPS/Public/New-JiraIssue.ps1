@@ -29,8 +29,9 @@ function New-JiraIssue {
         $Reporter,
 
         [Parameter( ValueFromPipelineByPropertyName )]
+        [Alias("Labels")]
         [String[]]
-        $Labels,
+        $Label,
 
         [Parameter( ValueFromPipelineByPropertyName )]
         [String]
@@ -105,9 +106,9 @@ function New-JiraIssue {
             $requestBody["parent"] = @{"key" = $Parent}
         }
 
-        if ($Labels) {
+        if ($Label) {
             $requestBody["labels"] = [System.Collections.ArrayList]@()
-            foreach ($item in $Labels) {
+            foreach ($item in $Label) {
                 $null = $requestBody["labels"].Add($item)
             }
         }
