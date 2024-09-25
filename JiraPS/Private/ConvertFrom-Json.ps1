@@ -37,7 +37,7 @@ if ($PSVersionTable.PSVersion.Major -lt 6) {
                             $pairObjectValue = ConvertFrom-Collection $pairObjectValue
                         }
 
-                        $returnObject | Add-Member Noteproperty $key $pairObjectValue
+                        $returnObject | Add-Member Noteproperty $key $pairObjectValue -ErrorAction Ignore
                     }
 
                     return $returnObject
