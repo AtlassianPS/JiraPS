@@ -17,7 +17,7 @@ Performs an issue transition on a JIRA issue changing it's status
 
 ```powershell
 Invoke-JiraIssueTransition [-Issue] <Object> [-Transition] <Object> [[-Fields] <PSCustomObject>]
- [[-Assignee] <Object>] [[-Comment] <String>] [[-Credential] <PSCredential>] [-Passthru] [<CommonParameters>]
+ [[-Assignee] <Object>] [[-Comment] <String>] [[-TimeSpent] <String>] [[-Credential] <PSCredential>] [-Passthru] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -48,11 +48,11 @@ Invokes transition ID 11 on issue TEST-01.
 ### EXAMPLE 2
 
 ```powershell
-Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition comment'
+Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment -TimeSpent "15m" 'Transition comment'
 ```
 
-Invokes transition ID 11 on issue TEST-01 with a comment.
-Requires the comment field to be configured visible for transition.
+Invokes transition ID 11 on issue TEST-01 with a comment and worklog of 15m (you can use jira suffixes, e.g. 8h)
+Requires the comment field to be configured visible for transition and Time Tracking to be enabled in JIRA instance
 
 ### EXAMPLE 3
 
@@ -176,6 +176,24 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -TimeSpent
+
+Time Spent worklog should be added to issue
+
+Time Tracking should be enabled on JIRA instance.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 6
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -Credential
 
 Credentials to use to connect to JIRA.
@@ -187,7 +205,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 6
+Position: 7
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -212,7 +230,7 @@ Accept wildcard characters: False
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+For more information, see about_CommonParameters (<http://go.microsoft.com/fwlink/?LinkID=113216>).
 
 ## INPUTS
 
