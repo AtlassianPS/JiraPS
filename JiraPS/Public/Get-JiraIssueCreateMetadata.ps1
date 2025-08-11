@@ -22,7 +22,7 @@ function Get-JiraIssueCreateMetadata {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/issue/createmeta?projectIds={0}&issuetypeIds={1}&expand=projects.issuetypes.fields"
+        $resourceURi = "$server/rest/api/2/issue/createmeta/{0}/issuetypes/{1}"
     }
 
     process {
@@ -51,38 +51,35 @@ function Get-JiraIssueCreateMetadata {
         $result = Invoke-JiraMethod @parameter
 
         if ($result) {
-            if (@($result.projects).Count -eq 0) {
+
+            if (@($result.values).Count -eq 0) {
                 $errorMessage = @{
                     Category         = "InvalidResult"
                     CategoryActivity = "Validating response"
-                    Message          = "No projects were found for the given project [$Project]. Use Get-JiraProject for more details."
-                }
-                Write-Error @errorMessage
-            }
-            elseif (@($result.projects).Count -gt 1) {
-                $errorMessage = @{
-                    Category         = "InvalidResult"
-                    CategoryActivity = "Validating response"
-                    Message          = "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
+                    Message          = "No fields were found for the given project [$Project] and issue type [$IssueType]."
                 }
                 Write-Error @errorMessage
             }
 
-            if (@($result.projects.issuetypes) -eq 0) {
-                $errorMessage = @{
-                    Category         = "InvalidResult"
-                    CategoryActivity = "Validating response"
-                    Message          = "No issue types were found for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
-                }
-                Write-Error @errorMessage
-            }
-            elseif (@($result.projects.issuetypes).Count -gt 1) {
-                $errorMessage = @{
-                    Category         = "InvalidResult"
-                    CategoryActivity = "Validating response"
-                    Message          = "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
-                }
-                Write-Error @errorMessage
+            # Before Jira v9 there was a /createmetadata endpoint that returned
+            # an object containing projects, their issue types and their fields.
+            # Since then, only a list of fields is returned. To keep the old
+            # format, fake the old result by creating such an object. This is a
+            # workaround until the official JiraPS project fixed the issue.
+            # Check the following release notes:
+            # https://confluence.atlassian.com/jiracore/createmeta-rest-endpoint-to-be-removed-975040986.html
+            $resultFields = @{}
+            $result.values | ForEach-Object { $resultFields[$_.fieldid] = $_ }
+            $result = [PSCustomObject] @{
+                projects = @(
+                    [PSCustomObject] @{
+                        issuetypes = @(
+                            [PSCustomObject] @{
+                                fields = [PSCustomObject] $resultFields
+                            }
+                        )
+                    }
+                )
             }
 
             Write-Output (ConvertTo-JiraCreateMetaField -InputObject $result)
