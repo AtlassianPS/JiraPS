@@ -141,7 +141,7 @@ function Get-JiraIssue {
             }
             'ByJQL' {
                 $parameter = @{
-                    URI          = $searchURi
+                    URI          = $searchURi + '/jql'
                     Method       = "GET"
                     GetParameter = @{
                         jql           = (ConvertTo-URLEncoded $Query)
