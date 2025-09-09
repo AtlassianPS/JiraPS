@@ -202,7 +202,7 @@ function Invoke-JiraMethod {
                     $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))
 
                     if ($Paging) {
-                        Invoke-PaginatedRequest
+                        Invoke-PaginatedRequest -URI $URI -Method $Method -Body $Body -RawBody $RawBody -Headers $Headers -GetParameter $GetParameter -Paging $Paging -InFile $InFile -OutFile $OutFile -StoreSession $StoreSession -OutputType $OutputType -Credential $Credential -Cmdlet $Cmdlet -Response $response
                     }
                     else {
                         $response

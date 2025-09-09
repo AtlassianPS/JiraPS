@@ -1,9 +1,64 @@
 function Invoke-PaginatedRequest {
-    param() # NOTE: We probably need all parameters for Invoke-JiraMethod
+    param(
+        [Parameter( Mandatory )]
+        [Uri]
+        $URI,
+
+        [Microsoft.PowerShell.Commands.WebRequestMethod]
+        $Method = "GET",
+
+        [String]
+        $Body,
+
+        [Switch]
+        $RawBody,
+
+        [Hashtable]
+        $Headers = @{},
+
+        [Hashtable]
+        $GetParameter = @{},
+
+        [Switch]
+        $Paging,
+
+        [String]
+        $InFile,
+
+        [String]
+        $OutFile,
+
+        [Switch]
+        $StoreSession,
+
+        [ValidateSet(
+            "JiraComment",
+            "JiraIssue",
+            "JiraUser",
+            "JiraVersion",
+            "JiraWorklogItem"
+        )]
+        [String]
+        $OutputType,
+
+        [Parameter()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
+
+        # [Parameter( DontShow )]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.PSCmdlet]
+        $Cmdlet = $PSCmdlet,
+
+        [Parameter( Mandatory = $true )]
+        [PSCustomObject]
+        $response
+    )
 
     process {
         # Remove Parameters that don't need propagation
-        $script:PSDefaultParameterValues.Remove("$($MyInvocation.MyCommand.Name):IncludeTotalCount")
+        #$script:PSDefaultParameterValues.Remove("$($MyInvocation.MyCommand.Name):IncludeTotalCount")
         $null = $PSBoundParameters.Remove("Paging")
         $null = $PSBoundParameters.Remove("Skip")
         if (-not $PSBoundParameters["GetParameter"]) {
@@ -18,8 +73,12 @@ function Invoke-PaginatedRequest {
             $result = Expand-Result -InputObject $response # NOTE: $response still need to be added as input to this function
 
             $total += @($result).Count
-            $pageSize = $response.maxResults
+            $pageSize = 50; #Default Value https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-search/#api-rest-api-3-search-jql-get
+            if ([string]::IsNullOrEmpty($response.maxResults)) {
+                $pageSize = $response.maxResults
+            }
 
+            write-host ($PSCmdlet.PagingParameters | ConvertTo-Json)
             if ($total -gt $PSCmdlet.PagingParameters.First) {
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $($PSCmdlet.PagingParameters.First % $pageSize) of page"
                 $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
@@ -28,8 +87,8 @@ function Invoke-PaginatedRequest {
             Convert-Result -InputObject $result -OutputType $OutputType
             Write-DebugMessage ($result | Out-String)
 
-            if (@($result).Count -lt $response.maxResults) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($response.maxResults)"
+            if (@($result).Count -lt $pageSize) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($pageSize)"
                 break
             }
 
