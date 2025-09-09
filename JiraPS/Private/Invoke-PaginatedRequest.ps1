@@ -1,5 +1,6 @@
 function Invoke-PaginatedRequest {
     [CmdletBinding(SupportsPaging = $true)]
+    # TODO: rethink design of recursion
     param(
         [Parameter( Mandatory )]
         [Uri]
@@ -72,11 +73,10 @@ function Invoke-PaginatedRequest {
         $onceMore = $true
         do {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
-write-host $total
-            $result = Expand-Result -InputObject $response # NOTE: $response still need to be added as input to this function
+            $result = Expand-Result -InputObject $response
 
             $total += @($result).Count
-            $pageSize = 50; #Default Value https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-search/#api-rest-api-3-search-jql-get
+            $pageSize = $script:DefaultPageSize
             if ([string]::IsNullOrEmpty($response.maxResults)) {
                 $pageSize = $response.maxResults
             }
@@ -86,8 +86,12 @@ write-host $total
                 $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
             }
 
-            Convert-Result -InputObject $result -OutputType $OutputType
-            Write-DebugMessage ($result | Out-String)
+            Convert-Result -InputObject $result -OutputType $OutputType # TODO: should this not be in `Invoke-JiraMethod`?
+
+            if ($response.isLast) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as isLast is true"
+                break
+            }
 
             if (@($result).Count -lt $pageSize) {
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($pageSize)"
@@ -105,11 +109,7 @@ write-host $total
                     if ($response.PSObject.properties.name.Contains("nextPageToken")) {
                         $PSBoundParameters["GetParameter"]["nextPageToken"] = $response.nextPageToken
                     }
-                    else {
-                        # Fix Last page
-                        Write-DebugMessage "Last Page"
-                        $onceMore = $false # NOTE: I would like to remove this and have the same behavior as v2: it's fine if we query 1 empty page at the end
-                    }
+                    else { break } # safe-guard. Should not happen
                 }
                 default {
                     # calculate the size of the next page
@@ -117,14 +117,14 @@ write-host $total
                     $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
                     if ($expectedTotal -gt $PSCmdlet.PagingParameters.First) {
                         $reduceBy = $expectedTotal - $PSCmdlet.PagingParameters.First
-                        $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy # TODO: I think we can drop this. Why change the maxResults only for the last page?
+                        $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
                     }
                 }
             }
 
             # Inquire the next page
             $response = Invoke-JiraMethod @PSBoundParameters
-        } while (($response.isLast -eq $false) -or $onceMore ) # keep the previous logic: fetch one more page and repeat if not empty -- or: optimize by comparing results on page to pagesize
+        } while (@($result).Count -gt 0)
 
         if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
             [double]$Accuracy = 1.0

@@ -45,6 +45,8 @@ function New-JiraSession {
             }
         }
 
+        $script:serverInformation = Get-JiraServerInformation
+
         Write-Output $result
     }
 
