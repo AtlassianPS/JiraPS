@@ -211,45 +211,91 @@ function Invoke-JiraMethod {
                         }
 
                         $total = 0
-                        do {
-                            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
+                        if ($PSBoundParameters['Uri'] -match 'api/3') {
+   do {
+                                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
 
-                            $result = Expand-Result -InputObject $response
+                                $result = Expand-Result -InputObject $response
 
-                            $total += @($result).Count
-                            $pageSize = $response.maxResults
+                                $total += @($result).Count
+                                $pageSize = $response.maxResults
 
-                            if ($total -gt $PSCmdlet.PagingParameters.First) {
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $($PSCmdlet.PagingParameters.First % $pageSize) of page"
-                                $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
-                            }
+                                if ($total -gt $PSCmdlet.PagingParameters.First) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $($PSCmdlet.PagingParameters.First % $pageSize) of page"
+                                    $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
+                                }
 
-                            Convert-Result -InputObject $result -OutputType $OutputType
-                            Write-DebugMessage ($result | Out-String)
+                                Convert-Result -InputObject $result -OutputType $OutputType
+                                Write-DebugMessage ($result | Out-String)
 
-                            if (@($result).Count -lt $response.maxResults) {
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($response.maxResults)"
-                                break
-                            }
+                                if (@($result).Count -lt $response.maxResults) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($response.maxResults)"
+                                    break
+                                }
 
-                            if ($total -ge $PSCmdlet.PagingParameters.First) {
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as $total reached $($PSCmdlet.PagingParameters.First)"
-                                break
-                            }
+                                if ($total -ge $PSCmdlet.PagingParameters.First) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as $total reached $($PSCmdlet.PagingParameters.First)"
+                                    break
+                                }
 
-                            # calculate the size of the next page
-                            $PSBoundParameters["GetParameter"]["startAt"] = $total + $offset
-                            $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
-                            if ($expectedTotal -gt $PSCmdlet.PagingParameters.First) {
-                                $reduceBy = $expectedTotal - $PSCmdlet.PagingParameters.First
-                                $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
-                            }
+                                #API v3 use difretn tactic for paginaction
+                                if ($null -ne $response.nextPageToken) {
+                                    $PSBoundParameters["GetParameter"]["nextPageToken"] = $response.nextPageToken
+                                }
 
-                            # Inquire the next page
-                            $response = Invoke-JiraMethod @PSBoundParameters
+                                # Inquire the next page
+                                $response = Invoke-JiraMethod @PSBoundParameters
 
-                            $result = Expand-Result -InputObject $response
-                        } while (@($result).Count -gt 0)
+                                $result = Expand-Result -InputObject $response
+
+                            } while ($response.isLast -eq $false)
+                        }
+                        else {
+                            do {
+                                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
+
+                                $result = Expand-Result -InputObject $response
+
+                                $total += @($result).Count
+                                $pageSize = $response.maxResults
+
+                                if ($total -gt $PSCmdlet.PagingParameters.First) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $($PSCmdlet.PagingParameters.First % $pageSize) of page"
+                                    $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
+                                }
+
+                                Convert-Result -InputObject $result -OutputType $OutputType
+                                Write-DebugMessage ($result | Out-String)
+
+                                if (@($result).Count -lt $response.maxResults) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($response.maxResults)"
+                                    break
+                                }
+
+                                if ($total -ge $PSCmdlet.PagingParameters.First) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as $total reached $($PSCmdlet.PagingParameters.First)"
+                                    break
+                                }
+
+                                # calculate the size of the next page
+                                $PSBoundParameters["GetParameter"]["startAt"] = $total + $offset
+                                $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
+                                if ($expectedTotal -gt $PSCmdlet.PagingParameters.First) {
+                                    $reduceBy = $expectedTotal - $PSCmdlet.PagingParameters.First
+                                    $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
+                                }
+
+                                #API wv3 use difretn tactic for paginaction
+                                if ($null -ne $response.nextPageToken) {
+                                    $PSBoundParameters["GetParameter"]["nextPageToken"] = $response.nextPageToken
+                                }
+
+                                # Inquire the next page
+                                $response = Invoke-JiraMethod @PSBoundParameters
+
+                                $result = Expand-Result -InputObject $response
+                            } while ((@($result).Count -gt 0))
+                        }
 
                         if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
                             [double]$Accuracy = 1.0

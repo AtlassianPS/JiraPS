@@ -96,7 +96,7 @@ function Get-JiraIssue {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $searchURi = "$server/rest/api/2/search"
+        $searchURi = "$server/rest/api/3/search/jql"
         $resourceURi = "$server/rest/api/2/issue/{0}"
 
         [String]$Fields = $Fields -join ","
@@ -141,7 +141,7 @@ function Get-JiraIssue {
             }
             'ByJQL' {
                 $parameter = @{
-                    URI          = $searchURi + '/jql'
+                    URI          = $searchURi
                     Method       = "GET"
                     GetParameter = @{
                         jql           = (ConvertTo-URLEncoded $Query)
@@ -170,7 +170,6 @@ function Get-JiraIssue {
                     Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-MaxResults' has been marked as deprecated. For more information, plase read the help."
                     $parameter["First"] = $MaxResults
                 }
-
 
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod @parameter
