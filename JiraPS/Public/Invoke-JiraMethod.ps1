@@ -212,7 +212,8 @@ function Invoke-JiraMethod {
 
                         $total = 0
                         if ($PSBoundParameters['Uri'] -match 'api/3') {
-   do {
+                            $onceMore = $true
+                            do {
                                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
 
                                 $result = Expand-Result -InputObject $response
@@ -242,13 +243,16 @@ function Invoke-JiraMethod {
                                 if ($null -ne $response.nextPageToken) {
                                     $PSBoundParameters["GetParameter"]["nextPageToken"] = $response.nextPageToken
                                 }
+                                else {
+                                    # Fix Las page
+                                    $onceMore = $false
+                                }
 
                                 # Inquire the next page
                                 $response = Invoke-JiraMethod @PSBoundParameters
-
                                 $result = Expand-Result -InputObject $response
 
-                            } while ($response.isLast -eq $false)
+                            } while (($response.isLast -eq $false) -or $onceMore )
                         }
                         else {
                             do {
