@@ -72,7 +72,6 @@ function Invoke-PaginatedRequest {
         $onceMore = $true
         do {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
-write-host $total
             $result = Expand-Result -InputObject $response # NOTE: $response still need to be added as input to this function
 
             $total += @($result).Count
