@@ -289,11 +289,6 @@ function Invoke-JiraMethod {
                                     $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
                                 }
 
-                                #API wv3 use difretn tactic for paginaction
-                                if ($null -ne $response.nextPageToken) {
-                                    $PSBoundParameters["GetParameter"]["nextPageToken"] = $response.nextPageToken
-                                }
-
                                 # Inquire the next page
                                 $response = Invoke-JiraMethod @PSBoundParameters
 
