@@ -57,7 +57,7 @@ Describe "ConvertTo-JiraIssueType" -Tag 'Unit' {
 
         $r = ConvertTo-JiraIssueType $sampleObject
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.IssueType'

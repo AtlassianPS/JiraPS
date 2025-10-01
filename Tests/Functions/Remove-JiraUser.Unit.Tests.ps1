@@ -81,28 +81,28 @@ Describe "Remove-JiraUser" -Tag 'Unit' {
         #############
 
         It "Accepts a username as a String to the -User parameter" {
-            { Remove-JiraUser -User $testUsername -Force } | Should Not Throw
+            { Remove-JiraUser -User $testUsername -Force } | Should -Not -Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 
         It "Accepts a JiraPS.User object to the -User parameter" {
             $user = Get-JiraUser -UserName $testUsername
-            { Remove-JiraUser -User $user -Force } | Should Not Throw
+            { Remove-JiraUser -User $user -Force } | Should -Not -Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 
         It "Accepts pipeline input from Get-JiraUser" {
-            { Get-JiraUser -UserName $testUsername | Remove-JiraUser -Force } | Should Not Throw
+            { Get-JiraUser -UserName $testUsername | Remove-JiraUser -Force } | Should -Not -Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 
         It "Removes a user from JIRA" {
-            { Remove-JiraUser -User $testUsername -Force } | Should Not Throw
+            { Remove-JiraUser -User $testUsername -Force } | Should -Not -Throw
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
         }
 
         It "Provides no output" {
-            Remove-JiraUser -User $testUsername -Force | Should BeNullOrEmpty
+            Remove-JiraUser -User $testUsername -Force | Should -BeNullOrEmpty
         }
     }
 }

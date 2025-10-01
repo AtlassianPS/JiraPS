@@ -257,12 +257,12 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
         Context "Behavior testing" {
 
             It "Queries Jira for metadata information about creating an issue" {
-                { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should Not Throw
+                { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "Uses ConvertTo-JiraCreateMetaField to output CreateMetaField objects if JIRA returns data" {
-                { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should Not Throw
+                { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
 
                 # There are 2 example fields in our mock above, but they should

@@ -92,7 +92,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
         Context "Behavior testing" {
 
             It "Obtains members about a provided group in JIRA" {
-                { Get-JiraGroupMember -Group testgroup } | Should Not Throw
+                { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -109,7 +109,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
             }
 
             It "Supports the -StartIndex parameters to page through search results" {
-                { Get-JiraGroupMember -Group testgroup -StartIndex 10 } | Should Not Throw
+                { Get-JiraGroupMember -Group testgroup -StartIndex 10 } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -127,7 +127,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
             }
 
             It "Supports the -MaxResults parameters to page through search results" {
-                { Get-JiraGroupMember -Group testgroup -MaxResults 50 } | Should Not Throw
+                { Get-JiraGroupMember -Group testgroup -MaxResults 50 } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -147,7 +147,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
 
         Context "Input testing" {
             It "Accepts a group name for the -Group parameter" {
-                { Get-JiraGroupMember -Group testgroup } | Should Not Throw
+                { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -167,7 +167,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
             It "Accepts a group object for the -InputObject parameter" {
                 $group = Get-JiraGroup -GroupName testgroup
 
-                { Get-JiraGroupMember -Group $group } | Should Not Throw
+                { Get-JiraGroupMember -Group $group } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'

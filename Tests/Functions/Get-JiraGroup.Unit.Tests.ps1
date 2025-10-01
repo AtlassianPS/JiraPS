@@ -82,7 +82,7 @@ Describe "Get-JiraGroup" -Tag 'Unit' {
 
         It "Gets information about a provided Jira group" {
             $getResult = Get-JiraGroup -GroupName $testGroupName
-            $getResult | Should Not BeNullOrEmpty
+            $getResult | Should -Not -BeNullOrEmpty
         }
 
         It "Uses ConvertTo-JiraGroup to beautify output" {

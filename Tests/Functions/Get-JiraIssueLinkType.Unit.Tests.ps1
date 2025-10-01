@@ -98,7 +98,7 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
             }
 
             It 'Returns all link types if no value is passed to the -LinkType parameter' {
-                $output | Should Not BeNullOrEmpty
+                $output | Should -Not -BeNullOrEmpty
             }
 
             It 'Uses the helper method ConvertTo-JiraIssueLinkType to process output' {
@@ -121,16 +121,16 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
             It 'Returns a single link type if an ID number is passed to the -LinkType parameter' {
                 $output = Get-JiraIssueLinkType -LinkType 10000
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter $filterOne -Exactly -Times 1 -Scope It
-                $output | Should Not BeNullOrEmpty
-                @($output).Count | Should Be 1
+                $output | Should -Not -BeNullOrEmpty
+                @($output).Count | Should -Be 1
             }
 
             It 'Returns the correct link type it a type name is passed to the -LinkType parameter' {
                 $output = Get-JiraIssueLinkType -LinkType 'myLink'
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter $filterAll -Exactly -Times 1 -Scope It
-                $output | Should Not BeNullOrEmpty
-                @($output).Count | Should Be 1
-                $output.ID | Should Be 5
+                $output | Should -Not -BeNullOrEmpty
+                @($output).Count | Should -Be 1
+                $output.ID | Should -Be 5
             }
         }
     }

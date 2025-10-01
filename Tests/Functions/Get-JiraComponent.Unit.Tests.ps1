@@ -100,14 +100,14 @@ Describe "Get-JiraComponent" -Tag 'Unit' {
 
         It "Returns details about specific components if the component ID is supplied" {
             $oneResult = Get-JiraComponent -Id $componentId
-            $oneResult | Should Not BeNullOrEmpty
-            @($oneResult).Count | Should Be 1
-            $oneResult.Id | Should Be $componentId
+            $oneResult | Should -Not -BeNullOrEmpty
+            @($oneResult).Count | Should -Be 1
+            $oneResult.Id | Should -Be $componentId
         }
 
         It "Provides the Id of the component" {
             $oneResult = Get-JiraComponent -Id $componentId
-            $oneResult.Id | Should Be $componentId
+            $oneResult.Id | Should -Be $componentId
         }
 
 

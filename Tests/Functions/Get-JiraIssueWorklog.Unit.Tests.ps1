@@ -104,12 +104,12 @@ Describe "Get-JiraIssueWorklog" -Tag 'Unit' {
         It "Obtains all Jira worklogs from a Jira issue if the issue key is provided" {
             $worklogs = Get-JiraIssueWorklog -Issue $issueKey
 
-            $worklogs | Should Not BeNullOrEmpty
-            @($worklogs).Count | Should Be 1
-            $worklogs.ID | Should Be 90730
-            $worklogs.Comment | Should Be 'Test comment'
-            $worklogs.TimeSpent | Should Be '3m'
-            $worklogs.TimeSpentSeconds | Should Be 180
+            $worklogs | Should -Not -BeNullOrEmpty
+            @($worklogs).Count | Should -Be 1
+            $worklogs.ID | Should -Be 90730
+            $worklogs.Comment | Should -Be 'Test comment'
+            $worklogs.TimeSpent | Should -Be '3m'
+            $worklogs.TimeSpentSeconds | Should -Be 180
 
             # Get-JiraIssue should be called to identify the -Issue parameter
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -123,8 +123,8 @@ Describe "Get-JiraIssueWorklog" -Tag 'Unit' {
             $issue = Get-JiraIssue -Key $issueKey
             $worklogs = Get-JiraIssueWorklog -Issue $issue
 
-            $worklogs | Should Not BeNullOrEmpty
-            $worklogs.ID | Should Be 90730
+            $worklogs | Should -Not -BeNullOrEmpty
+            $worklogs.ID | Should -Be 90730
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
@@ -132,8 +132,8 @@ Describe "Get-JiraIssueWorklog" -Tag 'Unit' {
         It "Handles pipeline input from Get-JiraIssue" {
             $worklogs = Get-JiraIssue -Key $issueKey | Get-JiraIssueWorklog
 
-            $worklogs | Should Not BeNullOrEmpty
-            $worklogs.ID | Should Be 90730
+            $worklogs | Should -Not -BeNullOrEmpty
+            $worklogs.ID | Should -Be 90730
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }

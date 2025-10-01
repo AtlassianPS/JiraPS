@@ -104,11 +104,11 @@ Describe "Get-JiraIssueWatcher" -Tag 'Unit' {
 
             It "Obtains all Jira watchers from a Jira issue if the issue key is provided" {
                 $watchers = Get-JiraIssueWatcher -Issue $issueKey
-                $watchers | Should Not BeNullOrEmpty
-                @($watchers).Count | Should Be 1
-                $watchers.Name | Should Be "fred"
-                $watchers.DisplayName | Should Be "Fred F. User"
-                $watchers.self | Should Be "$jiraServer/jira/rest/api/2/user?username=fred"
+                $watchers | Should -Not -BeNullOrEmpty
+                @($watchers).Count | Should -Be 1
+                $watchers.Name | Should -Be "fred"
+                $watchers.DisplayName | Should -Be "Fred F. User"
+                $watchers.self | Should -Be "$jiraServer/jira/rest/api/2/user?username=fred"
 
                 # Get-JiraIssue should be called to identify the -Issue parameter
                 Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -121,15 +121,15 @@ Describe "Get-JiraIssueWatcher" -Tag 'Unit' {
             It "Obtains all Jira watchers from a Jira issue if the Jira object is provided" {
                 $issue = Get-JiraIssue -Key $issueKey
                 $watchers = Get-JiraIssueWatcher -Issue $issue
-                $watchers | Should Not BeNullOrEmpty
-                $watchers.name | Should Be "fred"
+                $watchers | Should -Not -BeNullOrEmpty
+                $watchers.name | Should -Be "fred"
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "Handles pipeline input from Get-JiraIssue" {
                 $watchers = Get-JiraIssue -Key $issueKey | Get-JiraIssueWatcher
-                $watchers | Should Not BeNullOrEmpty
-                $watchers.name | Should Be "fred"
+                $watchers | Should -Not -BeNullOrEmpty
+                $watchers.name | Should -Be "fred"
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
         }

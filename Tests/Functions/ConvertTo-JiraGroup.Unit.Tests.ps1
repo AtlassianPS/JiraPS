@@ -59,7 +59,7 @@ Describe "ConvertTo-JiraGroup" -Tag 'Unit' {
         $r = ConvertTo-JiraGroup -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.Group'

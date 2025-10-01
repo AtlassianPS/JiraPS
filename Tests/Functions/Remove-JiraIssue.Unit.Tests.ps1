@@ -288,34 +288,34 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
                 {
                     $issue = Get-JiraIssue -Key TEST-1
                     Remove-JiraIssue -Issue $issue -Force
-                } | Should Not Throw
+                } | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
             It "Accepts string-based input as a non-pipelined parameter" {
-              {Remove-JiraIssue -IssueId TEST-1 -Force} | Should Not Throw
+              {Remove-JiraIssue -IssueId TEST-1 -Force} | Should -Not -Throw
               Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
             It "Accepts a JiraPS.Issue object over the pipeline" {
-                { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Force} | Should Not Throw
+                { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Force} | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
             It "Writes an error on issues with subtasks" {
                 # Pester is not capable of (easily) asserting non-terminating errors,
                 # so the error is upgraded to a terminating one in this situation.
-                { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorAction Stop} | Should Throw
+                { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorAction Stop} | Should -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
             It "Passes on issues with subtasks and -DeleteSubTasks" {
-                { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Force} | Should Not Throw
+                { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Force} | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
             It "Validates pipeline input" {
-                { @{id = 1} | Remove-JiraIssue -ErrorAction Stop} | Should Throw
+                { @{id = 1} | Remove-JiraIssue -ErrorAction Stop} | Should -Throw
             }
         }
     }

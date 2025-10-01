@@ -176,7 +176,7 @@ Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
         $r = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.Filter'

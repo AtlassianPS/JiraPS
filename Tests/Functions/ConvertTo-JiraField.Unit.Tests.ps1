@@ -42,7 +42,7 @@ Describe "ConvertTo-JiraField" -Tag 'Unit' {
 
         $r = ConvertTo-JiraField $sampleObject
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.Field'

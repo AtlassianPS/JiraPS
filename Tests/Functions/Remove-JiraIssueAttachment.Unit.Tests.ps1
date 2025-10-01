@@ -125,22 +125,22 @@ Describe "Remove-JiraIssueAttachment" -Tag 'Unit' {
 
             It 'validates the parameters' {
                 # AttachmentId can't be null or empty
-                { Remove-JiraIssueAttachment -AttachmentId $null -Force } | Should Throw
+                { Remove-JiraIssueAttachment -AttachmentId $null -Force } | Should -Throw
                 # Issue can't be null or empty
-                { Remove-JiraIssueAttachment -Issue "" -Force } | Should Throw
+                { Remove-JiraIssueAttachment -Issue "" -Force } | Should -Throw
                 # AttachmentId must be an Int
-                { Remove-JiraIssueAttachment -AttachmentId "a" -Force } | Should Throw
+                { Remove-JiraIssueAttachment -AttachmentId "a" -Force } | Should -Throw
                 # Issue must be an Issue or a String
-                { Remove-JiraIssueAttachment -Issue (Get-Date) -Force } | Should Throw
+                { Remove-JiraIssueAttachment -Issue (Get-Date) -Force } | Should -Throw
                 # Issue can't be an array
-                { Remove-JiraIssueAttachment -Issue $issueKey, $issueKey -Force } | Should Throw
+                { Remove-JiraIssueAttachment -Issue $issueKey, $issueKey -Force } | Should -Throw
 
                 # All Parameters for DefaultParameterSet
-                { Remove-JiraIssueAttachment -AttachmentId $attachmentId1 -Force } | Should Not Throw
-                { Remove-JiraIssueAttachment -AttachmentId $attachmentId1, $attachmentId2 -Force } | Should Not Throw
-                { Remove-JiraIssueAttachment -Issue (Get-JiraIssue $issueKey) -Force } | Should Not Throw
-                { Remove-JiraIssueAttachment -Issue $issueKey -FileName $attachmentFile1 -Force } | Should Not Throw
-                { Remove-JiraIssueAttachment -Issue $issueKey -FileName $attachmentFile1, $attachmentFile2 -Force } | Should Not Throw
+                { Remove-JiraIssueAttachment -AttachmentId $attachmentId1 -Force } | Should -Not -Throw
+                { Remove-JiraIssueAttachment -AttachmentId $attachmentId1, $attachmentId2 -Force } | Should -Not -Throw
+                { Remove-JiraIssueAttachment -Issue (Get-JiraIssue $issueKey) -Force } | Should -Not -Throw
+                { Remove-JiraIssueAttachment -Issue $issueKey -FileName $attachmentFile1 -Force } | Should -Not -Throw
+                { Remove-JiraIssueAttachment -Issue $issueKey -FileName $attachmentFile1, $attachmentFile2 -Force } | Should -Not -Throw
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 4 -Scope It
@@ -153,9 +153,9 @@ Describe "Remove-JiraIssueAttachment" -Tag 'Unit' {
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/attachment/$attachmentId2" } -Exactly -Times 3 -Scope It
             }
             It 'accepts positional parameters' {
-                { Remove-JiraIssueAttachment $attachmentId1 -Force } | Should Not Throw
-                { Remove-JiraIssueAttachment $attachmentId1, $attachmentId2 -Force } | Should Not Throw
-                { Remove-JiraIssueAttachment $issueKey -Force } | Should Not Throw
+                { Remove-JiraIssueAttachment $attachmentId1 -Force } | Should -Not -Throw
+                { Remove-JiraIssueAttachment $attachmentId1, $attachmentId2 -Force } | Should -Not -Throw
+                { Remove-JiraIssueAttachment $issueKey -Force } | Should -Not -Throw
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssueAttachment' -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -167,7 +167,7 @@ Describe "Remove-JiraIssueAttachment" -Tag 'Unit' {
 
             It 'has no output' {
                 $result = Remove-JiraIssueAttachment -Issue $issueKey -Force
-                $result | Should BeNullOrEmpty
+                $result | Should -BeNullOrEmpty
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssueAttachment' -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -177,7 +177,7 @@ Describe "Remove-JiraIssueAttachment" -Tag 'Unit' {
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 2 -Scope It
             }
             It 'accepts input over the pipeline' {
-                { Get-JiraIssueAttachment $issueKey | Remove-JiraIssueAttachment -Force } | Should Not Throw
+                { Get-JiraIssueAttachment $issueKey | Remove-JiraIssueAttachment -Force } | Should -Not -Throw
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssueAttachment' -ModuleName JiraPS -Exactly -Times 1 -Scope It

@@ -57,7 +57,7 @@ Describe "ConvertTo-JiraPriority" -Tag 'Unit' {
         $r = ConvertTo-JiraPriority -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.Priority'

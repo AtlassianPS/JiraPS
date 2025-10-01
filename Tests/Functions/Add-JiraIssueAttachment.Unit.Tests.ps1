@@ -126,17 +126,17 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
             #>
             It 'validates the parameters' {
                 # Issue can't be null or empty
-                { Add-JiraIssueAttachment -Issue "" -FilePath $filePath } | Should Throw
+                { Add-JiraIssueAttachment -Issue "" -FilePath $filePath } | Should -Throw
                 # Issue must be an Issue or a String
-                { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath -verbose } | Should Throw
+                { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath -verbose } | Should -Throw
                 # Issue can't be an array
-                { Add-JiraIssueAttachment -Issue $issueKey, $issueKey -FilePath $filePath } | Should Throw
+                { Add-JiraIssueAttachment -Issue $issueKey, $issueKey -FilePath $filePath } | Should -Throw
                 # File must exist
-                { Add-JiraIssueAttachment -Issue $issueKey -FilePath "c:\no-file.txt" } | Should Throw
+                { Add-JiraIssueAttachment -Issue $issueKey -FilePath "c:\no-file.txt" } | Should -Throw
                 # All Parameters for DefaultParameterSet
-                { Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath } | Should Not Throw
-                { Add-JiraIssueAttachment -Issue (Get-JiraIssue $issueKey) -FilePath $filePath -Credential $Cred } | Should Not Throw
-                { Add-JiraIssueAttachment -Issue $issueKey -FilePath @($filePath, $filePath) -Credential $Cred -PassThru } | Should Not Throw
+                { Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath } | Should -Not -Throw
+                { Add-JiraIssueAttachment -Issue (Get-JiraIssue $issueKey) -FilePath $filePath -Credential $Cred } | Should -Not -Throw
+                { Add-JiraIssueAttachment -Issue $issueKey -FilePath @($filePath, $filePath) -Credential $Cred -PassThru } | Should -Not -Throw
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 4 -Scope It
@@ -147,7 +147,7 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 0 -Scope It
             }
             It 'accepts positional parameters' {
-                { Add-JiraIssueAttachment $issueKey @($filePath, $filePath) } | Should Not Throw
+                { Add-JiraIssueAttachment $issueKey @($filePath, $filePath) } | Should -Not -Throw
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -159,7 +159,7 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
             }
             It 'has no output by default' {
                 $result = Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath
-                $result | Should BeNullOrEmpty
+                $result | Should -BeNullOrEmpty
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -171,7 +171,7 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
             }
             It 'returns an object when specified' {
                 $result = Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath -PassThru
-                $result | Should Not BeNullOrEmpty
+                $result | Should -Not -BeNullOrEmpty
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -182,9 +182,9 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
                 Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 0 -Scope It
             }
             It 'accepts files over the pipeline' {
-                { $filePath | Add-JiraIssueAttachment $issueKey  } | Should Not Throw
-                { @($filePath, $filePath) | Add-JiraIssueAttachment $issueKey  } | Should Not Throw
-                { Get-Item $filePath | Add-JiraIssueAttachment $issueKey  } | Should Not Throw
+                { $filePath | Add-JiraIssueAttachment $issueKey  } | Should -Not -Throw
+                { @($filePath, $filePath) | Add-JiraIssueAttachment $issueKey  } | Should -Not -Throw
+                { Get-Item $filePath | Add-JiraIssueAttachment $issueKey  } | Should -Not -Throw
 
                 # ensure the calls under the hood
                 Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 4 -Scope It

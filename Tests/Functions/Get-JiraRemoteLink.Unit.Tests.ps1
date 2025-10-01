@@ -102,7 +102,7 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
 
         It "Gets information of all remote link from a Jira issue" {
             $getResult = Get-JiraRemoteLink -Issue $issueKey
-            $getResult | Should Not BeNullOrEmpty
+            $getResult | Should -Not -BeNullOrEmpty
 
             $assertMockCalledSplat = @{
                 CommandName = 'Invoke-JiraMethod'
@@ -129,7 +129,7 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
 
         It "Gets information of all remote link from a Jira issue" {
             $getResult = Get-JiraRemoteLink -Issue $issueKey -LinkId 10000
-            $getResult | Should Not BeNullOrEmpty
+            $getResult | Should -Not -BeNullOrEmpty
 
             $assertMockCalledSplat = @{
                 CommandName = 'Invoke-JiraMethod'

@@ -92,7 +92,7 @@ Describe "ConvertTo-JiraAttachment" -Tag 'Unit' {
 
         $r = ConvertTo-JiraAttachment -InputObject $sampleObject
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.Attachment'
@@ -100,31 +100,31 @@ Describe "ConvertTo-JiraAttachment" -Tag 'Unit' {
         defProp $r[0] 'Id' $attachmentID1
         defProp $r[0] 'FileName' $attachmentName1
         It "Defines Date fields as Date objects" {
-            $r[0].created | Should Not BeNullOrEmpty
+            $r[0].created | Should -Not -BeNullOrEmpty
             checkType $r[0].created 'System.DateTime'
         }
         It "Defines Author field as User objects" {
-            $r[0].author | Should Not BeNullOrEmpty
+            $r[0].author | Should -Not -BeNullOrEmpty
             checkType $r[0].author 'JiraPS.User'
         }
         It "Defines the 'self' property" {
-            $r[0].self | Should Not BeNullOrEmpty
+            $r[0].self | Should -Not -BeNullOrEmpty
         }
         It "Defines the 'size' property" {
-            $r[0].size | Should Not BeNullOrEmpty
+            $r[0].size | Should -Not -BeNullOrEmpty
             checkType $r[0].size 'System.Int32'
         }
         It "Defines the 'content' property" {
-            $r[0].content | Should Not BeNullOrEmpty
+            $r[0].content | Should -Not -BeNullOrEmpty
         }
         defProp $r[0] 'mimeType' 'image/png'
         It "Defines the 'thumbnail' property" {
-            $r[0].thumbnail | Should Not BeNullOrEmpty
+            $r[0].thumbnail | Should -Not -BeNullOrEmpty
         }
 
         It "Handles pipeline input" {
             $r = $sampleObject | ConvertTo-JiraAttachment
-            @($r).Count | Should Be 2
+            @($r).Count | Should -Be 2
         }
     }
 }

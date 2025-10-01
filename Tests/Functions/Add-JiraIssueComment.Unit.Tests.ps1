@@ -86,7 +86,7 @@ Describe "Add-JiraIssueComment" -Tag 'Unit' {
 
         It "Adds a comment to an issue in JIRA" {
             $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
-            $commentResult | Should Not BeNullOrEmpty
+            $commentResult | Should -Not -BeNullOrEmpty
 
             Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
             Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -95,7 +95,7 @@ Describe "Add-JiraIssueComment" -Tag 'Unit' {
 
         It "Accepts pipeline input from Get-JiraIssue" {
             $commentResult = Get-JiraIssue -Key $IssueKey | Add-JiraIssueComment -Comment 'This is a test comment from Pester, using the pipeline!'
-            $commentResult | Should Not BeNullOrEmpty
+            $commentResult | Should -Not -BeNullOrEmpty
 
             Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 2 -Scope It
             Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It

@@ -181,30 +181,30 @@ Describe "Get-JiraField" -Tag 'Unit' {
 
         It "Gets all fields in Jira if called with no parameters" {
             $allResults = Get-JiraField
-            $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be @((ConvertFrom-Json -InputObject $restResult)).Count
+            $allResults | Should -Not -BeNullOrEmpty
+            @($allResults).Count | Should -Be @((ConvertFrom-Json -InputObject $restResult)).Count
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Gets a specified field if a field ID is provided" {
             $oneResult = Get-JiraField -Field issuetype
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be 'issuetype'
-            $oneResult.Name | Should Be 'Issue Type'
+            $oneResult | Should -Not -BeNullOrEmpty
+            $oneResult.ID | Should -Be 'issuetype'
+            $oneResult.Name | Should -Be 'Issue Type'
         }
 
         It "Gets a specified issue type if an issue type name is provided" {
             $oneResult = Get-JiraField -Field 'Issue Type'
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be 'issuetype'
-            $oneResult.Name | Should Be 'Issue Type'
+            $oneResult | Should -Not -BeNullOrEmpty
+            $oneResult.ID | Should -Be 'issuetype'
+            $oneResult.Name | Should -Be 'Issue Type'
         }
 
         It "Handles positional parameters correctly" {
             $oneResult = Get-JiraField 'Issue Type'
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be issuetype
-            $oneResult.Name | Should Be 'Issue Type'
+            $oneResult | Should -Not -BeNullOrEmpty
+            $oneResult.ID | Should -Be issuetype
+            $oneResult.Name | Should -Be 'Issue Type'
         }
 
         It "Uses ConvertTo-JiraField to beautify output" {

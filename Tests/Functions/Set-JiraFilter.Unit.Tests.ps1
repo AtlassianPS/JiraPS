@@ -139,7 +139,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         Favorite    = $true
                     }
                     Get-JiraFilter -Id 12844 | Set-JiraFilter @newData
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Put' -and
@@ -157,7 +157,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         Description = ""
                     }
                     Get-JiraFilter -Id 12844 | Set-JiraFilter @newData
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Put' -and
@@ -167,7 +167,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
             }
 
             It "Skips the filter if no value was changed" {
-                { Get-JiraFilter -Id 12844 | Set-JiraFilter } | Should Not Throw
+                { Get-JiraFilter -Id 12844 | Set-JiraFilter } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
             }
@@ -175,30 +175,30 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
 
         Context "Input testing" {
             It "accepts a filter object for the -InputObject parameter" {
-                { Set-JiraFilter -InputObject (Get-JiraFilter "12345") -Name "test" } | Should Not Throw
+                { Set-JiraFilter -InputObject (Get-JiraFilter "12345") -Name "test" } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "accepts a filter object without the -InputObject parameter" {
-                { Set-JiraFilter (Get-JiraFilter "12345") -Name "test" } | Should Not Throw
+                { Set-JiraFilter (Get-JiraFilter "12345") -Name "test" } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "fails with multiple filter objects to the -Filter parameter" {
-                { Set-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) -Name "test" } | Should Throw
+                { Set-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) -Name "test" } | Should -Throw
             }
 
             It "accepts a JiraPS.Filter object via pipeline" {
-                { Get-JiraFilter 12345, 12345 | Set-JiraFilter -Name "test" } | Should Not Throw
+                { Get-JiraFilter 12345, 12345 | Set-JiraFilter -Name "test" } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
             }
 
             It "fails if something other than [JiraPS.Filter] is provided to InputObject" {
-                { "12345" | Set-JiraFilter -ErrorAction Stop } | Should Throw
-                { Set-JiraFilter "12345" -ErrorAction Stop} | Should Throw
+                { "12345" | Set-JiraFilter -ErrorAction Stop } | Should -Throw
+                { Set-JiraFilter "12345" -ErrorAction Stop} | Should -Throw
             }
 
             It "accepts -InputObject" {
@@ -207,7 +207,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         InputObject = Get-JiraFilter "12345"
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
             }
@@ -218,7 +218,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         Name = "newName"
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -229,7 +229,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         Description = "newDescription"
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -240,7 +240,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         JQL = "newJQL"
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -251,7 +251,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         Favorite = $true
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -263,7 +263,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         Description = "newDescription"
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -275,7 +275,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         JQL = "newJQL"
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -287,7 +287,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         Favorite = $true
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -300,7 +300,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         JQL = "newJQL"
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -313,7 +313,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         Favorite = $true
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -327,7 +327,7 @@ Describe 'Set-JiraFilter' -Tag 'Unit' {
                         Favorite = $true
                     }
                     Set-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }

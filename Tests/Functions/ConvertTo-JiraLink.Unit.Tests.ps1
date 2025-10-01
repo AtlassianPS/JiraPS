@@ -74,7 +74,7 @@ Describe "ConvertTo-JiraLink" -Tag 'Unit' {
         $r = ConvertTo-JiraLink -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.Link'

@@ -57,7 +57,7 @@ Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
         $r = ConvertTo-JiraServerInfo -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.ServerInfo'

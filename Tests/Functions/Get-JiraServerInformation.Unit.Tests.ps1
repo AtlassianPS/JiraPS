@@ -73,14 +73,14 @@ Describe "Get-JiraServerInformation" -Tag 'Unit' {
 
         It "Returns the server information" {
             $allResults = Get-JiraServerInformation
-            $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be @(ConvertFrom-Json -InputObject $restResult).Count
+            $allResults | Should -Not -BeNullOrEmpty
+            @($allResults).Count | Should -Be @(ConvertFrom-Json -InputObject $restResult).Count
         }
 
         It "Answers to the alias 'Get-JiraServerInfo'" {
             $thisAlias = (Get-Alias -Name "Get-JiraServerInfo")
-            $thisAlias.ResolvedCommandName | Should Be "Get-JiraServerInformation"
-            $thisAlias.ModuleName | Should Be "JiraPS"
+            $thisAlias.ResolvedCommandName | Should -Be "Get-JiraServerInformation"
+            $thisAlias.ModuleName | Should -Be "JiraPS"
         }
     }
 }

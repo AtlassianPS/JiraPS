@@ -92,7 +92,7 @@ Describe "ConvertTo-JiraUser" -Tag 'Unit' {
         $r = ConvertTo-JiraUser -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.User'
@@ -108,7 +108,7 @@ Describe "ConvertTo-JiraUser" -Tag 'Unit' {
         defProp $r 'TimeZone' "Europe/Berlin"
         defProp $r 'Locale' "en_Us"
         It "Defines the 'Group' property" {
-            $r.Groups.Count | Should Be 4
+            $r.Groups.Count | Should -Be 4
         }
     }
 }

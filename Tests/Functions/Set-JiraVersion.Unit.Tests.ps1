@@ -123,7 +123,7 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
             It "sets an Issue's Version Name" {
                 $version = Get-JiraVersion -Project $projectKey -Name $versionName
                 $results = Set-JiraVersion -Version $version -Name "NewName" -ErrorAction Stop
-                $results | Should Not BeNullOrEmpty
+                $results | Should -Not -BeNullOrEmpty
                 checkType $results "JiraPS.Version"
                 Assert-MockCalled 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Get-JiraProject' -Times 0 -Scope It -ModuleName JiraPS -Exactly
@@ -132,7 +132,7 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
             }
             It "sets an Issue's Version Name using the pipeline" {
                 $results = Get-JiraVersion -Project $projectKey | Set-JiraVersion -Name "NewName" -ErrorAction Stop
-                $results | Should Not BeNullOrEmpty
+                $results | Should -Not -BeNullOrEmpty
                 checkType $results "JiraPS.Version"
                 Assert-MockCalled 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
                 Assert-MockCalled 'Get-JiraProject' -Times 0 -Scope It -ModuleName JiraPS -Exactly
