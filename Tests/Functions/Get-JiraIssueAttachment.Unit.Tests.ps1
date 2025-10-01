@@ -118,15 +118,15 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
         $issueObject = Get-JiraIssue -Key $issueKey
 
         It 'only accepts String or JiraPS.Issue as input' {
-            { Get-JiraIssueAttachment -Issue (Get-Date) } | Should Throw
-            { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should Throw
-            { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should Not Throw
-            { Get-JiraIssueAttachment -Issue (Get-JiraIssue -Key "foo") } | Should Not Throw
+            { Get-JiraIssueAttachment -Issue (Get-Date) } | Should -Throw
+            { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should -Throw
+            { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should -Not -Throw
+            { Get-JiraIssueAttachment -Issue (Get-JiraIssue -Key "foo") } | Should -Not -Throw
         }
 
         It 'takes the issue input over the pipeline' {
-            { $issueObject | Get-JiraIssueAttachment } | Should Not Throw
-            { $issueKey | Get-JiraIssueAttachment } | Should Not Throw
+            { $issueObject | Get-JiraIssueAttachment } | Should -Not -Throw
+            { $issueKey | Get-JiraIssueAttachment } | Should -Not -Throw
         }
 
         It 'converts the attachments to objects' {
@@ -136,8 +136,8 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
         }
 
         It 'filters the result by FileName' {
-            @($issueObject | Get-JiraIssueAttachment).Count | Should Be 2
-            @($issueObject | Get-JiraIssueAttachment -FileName 'foo.pdf').Count | Should Be 1
+            @($issueObject | Get-JiraIssueAttachment).Count | Should -Be 2
+            @($issueObject | Get-JiraIssueAttachment -FileName 'foo.pdf').Count | Should -Be 1
         }
     }
 }

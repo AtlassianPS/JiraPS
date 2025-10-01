@@ -106,8 +106,8 @@ Describe "ConvertTo-JiraCreateMetaField" -Tag 'Unit' {
         $r = ConvertTo-JiraCreateMetaField $sampleObject
 
         It "Creates PSObjects out of JSON input" {
-            $r | Should Not BeNullOrEmpty
-            $r.Count | Should Be 2
+            $r | Should -Not -BeNullOrEmpty
+            $r.Count | Should -Be 2
         }
 
         checkPsType $r[0] 'JiraPS.CreateMetaField'
@@ -124,13 +124,13 @@ Describe "ConvertTo-JiraCreateMetaField" -Tag 'Unit' {
             defProp $summary 'Operations' @('set')
 
             It "Defines the 'Schema' property if available" {
-                $summary.Schema | Should Not BeNullOrEmpty
-                $priority.Schema | Should Not BeNullOrEmpty
+                $summary.Schema | Should -Not -BeNullOrEmpty
+                $priority.Schema | Should -Not -BeNullOrEmpty
             }
 
             It "Defines the 'AllowedValues' property if available" {
-                $summary.AllowedValues | Should BeNullOrEmpty
-                $priority.AllowedValues | Should Not BeNullOrEmpty
+                $summary.AllowedValues | Should -BeNullOrEmpty
+                $priority.AllowedValues | Should -Not -BeNullOrEmpty
             }
         }
     }

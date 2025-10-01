@@ -133,7 +133,7 @@ Describe "Get-JiraUser" -Tag 'Unit' {
         It "Gets intormation about the loged in Jira user" {
             $getResult = Get-JiraUser
 
-            $getResult | Should Not BeNullOrEmpty
+            $getResult | Should -Not -BeNullOrEmpty
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/myself"}
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
@@ -142,7 +142,7 @@ Describe "Get-JiraUser" -Tag 'Unit' {
         It "Gets information about a provided Jira user" {
             $getResult = Get-JiraUser -UserName $testUsername
 
-            $getResult | Should Not BeNullOrEmpty
+            $getResult | Should -Not -BeNullOrEmpty
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user/search?*username=$testUsername*"}
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
@@ -151,7 +151,7 @@ Describe "Get-JiraUser" -Tag 'Unit' {
         It "Gets information about a provided Jira exact user" {
             $getResult = Get-JiraUser -UserName $testUsername -Exact
 
-            $getResult | Should Not BeNullOrEmpty
+            $getResult | Should -Not -BeNullOrEmpty
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername"}
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
@@ -162,10 +162,10 @@ Describe "Get-JiraUser" -Tag 'Unit' {
 
             $restObj = ConvertFrom-Json -InputObject $restResult
 
-            $getResult.self | Should Be $restObj.self
-            $getResult.Name | Should Be $restObj.name
-            $getResult.DisplayName | Should Be $restObj.displayName
-            $getResult.Active | Should Be $restObj.active
+            $getResult.self | Should -Be $restObj.self
+            $getResult.Name | Should -Be $restObj.name
+            $getResult.DisplayName | Should -Be $restObj.displayName
+            $getResult.Active | Should -Be $restObj.active
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
         }
@@ -174,8 +174,8 @@ Describe "Get-JiraUser" -Tag 'Unit' {
             $getResult = Get-JiraUser -UserName $testUsername
             $result2 = Get-JiraUser -InputObject $getResult
 
-            $result2 | Should Not BeNullOrEmpty
-            $result2.Name | Should Be $testUsername
+            $result2 | Should -Not -BeNullOrEmpty
+            $result2.Name | Should -Be $testUsername
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 2 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
         }
@@ -207,8 +207,8 @@ Describe "Get-JiraUser" -Tag 'Unit' {
         It "Provides information about the user's group membership in Jira" {
             $getResult = Get-JiraUser -UserName $testUsername
 
-            $getResult.groups.size | Should Be 2
-            $getResult.groups.items[0].Name | Should Be $testGroup1
+            $getResult.groups.size | Should -Be 2
+            $getResult.groups.items[0].Name | Should -Be $testGroup1
         }
 
         Context "Output checking" {

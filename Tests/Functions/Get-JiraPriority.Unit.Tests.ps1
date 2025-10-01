@@ -117,14 +117,14 @@ Describe "Get-JiraPriority" -Tag 'Unit' {
 
         It "Gets all available priorities if called with no parameters" {
             $getResult = Get-JiraPriority
-            $getResult | Should Not BeNullOrEmpty
-            $getResult.Count | Should Be 5
+            $getResult | Should -Not -BeNullOrEmpty
+            $getResult.Count | Should -Be 5
         }
 
         It "Gets one priority if the ID parameter is supplied" {
             $getResult = Get-JiraPriority -Id 1
-            $getResult | Should Not BeNullOrEmpty
-            @($getResult).Count | Should Be 1
+            $getResult | Should -Not -BeNullOrEmpty
+            @($getResult).Count | Should -Be 1
         }
     }
 }

@@ -163,19 +163,19 @@ Describe 'Get-JiraFilter' -Tag 'Unit' {
 
         Context "Behavior testing" {
             It "Queries JIRA for a filter with a given ID" {
-                { Get-JiraFilter -Id 12345 } | Should Not Throw
+                { Get-JiraFilter -Id 12345 } | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
             }
 
             It "Uses ConvertTo-JiraFilter to output a Filter object if JIRA returns data" {
                 Mock Invoke-JiraMethod -ModuleName JiraPS { $true }
                 Mock ConvertTo-JiraFilter -ModuleName JiraPS {}
-                { Get-JiraFilter -Id 12345 } | Should Not Throw
+                { Get-JiraFilter -Id 12345 } | Should -Not -Throw
                 Assert-MockCalled -CommandName ConvertTo-JiraFilter -ModuleName JiraPS
             }
 
             It "Finds all favorite filters of the user" {
-                { Get-JiraFilter -Favorite } | Should Not Throw
+                { Get-JiraFilter -Favorite } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/favourite'}
             }
@@ -185,32 +185,32 @@ Describe 'Get-JiraFilter' -Tag 'Unit' {
             $sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
 
             It "Accepts a filter ID for the -Filter parameter" {
-                { Get-JiraFilter -Id "12345" } | Should Not Throw
+                { Get-JiraFilter -Id "12345" } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "Accepts a filter ID without the -Filter parameter" {
-                { Get-JiraFilter "12345" } | Should Not Throw
+                { Get-JiraFilter "12345" } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "Accepts multiple filter IDs to the -Filter parameter" {
-                { Get-JiraFilter -Id '12345', '67890' } | Should Not Throw
+                { Get-JiraFilter -Id '12345', '67890' } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345'}
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/67890'}
             }
 
             It "Accepts a JiraPS.Filter object to the InputObject parameter" {
-                { Get-JiraFilter -InputObject $sampleFilter } | Should Not Throw
+                { Get-JiraFilter -InputObject $sampleFilter } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844'}
             }
 
             It "Accepts a JiraPS.Filter object via pipeline" {
-                { $sampleFilter | Get-JiraFilter } | Should Not Throw
+                { $sampleFilter | Get-JiraFilter } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844'}
             }

@@ -97,7 +97,7 @@ BeforeAll {
             It "Deletes Permission from Filter Object" {
                 {
                     Get-JiraFilterPermission -Id 1 | Remove-JiraFilterPermission
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Delete' -and
@@ -112,7 +112,7 @@ BeforeAll {
             It "Deletes Permission from FilterId + PermissionId" {
                 {
                     Remove-JiraFilterPermission -FilterId 1 -PermissionId 3333, 4444
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Delete' -and

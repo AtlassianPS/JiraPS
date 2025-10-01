@@ -51,11 +51,11 @@ Describe "ConvertTo-JiraComponent" -Tag 'Unit' {
         $r = ConvertTo-JiraComponent -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         It "Sets the type name to JiraPS.Project" {
-            # (Get-Member -InputObject $r).TypeName | Should Be 'JiraPS.Component'
+            # (Get-Member -InputObject $r).TypeName | Should -Be 'JiraPS.Component'
             checkType $r "JiraPS.Component"
         }
 

@@ -73,7 +73,7 @@ Describe "ConvertTo-JiraVersion" -Tag 'Unit' {
         $r = ConvertTo-JiraVersion -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.Version'

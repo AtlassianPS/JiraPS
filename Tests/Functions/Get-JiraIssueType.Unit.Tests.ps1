@@ -132,30 +132,30 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
 
         It "Gets all issue types in Jira if called with no parameters" {
             $allResults = Get-JiraIssueType
-            $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be 8
+            $allResults | Should -Not -BeNullOrEmpty
+            @($allResults).Count | Should -Be 8
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Gets a specified issue type if an issue type ID is provided" {
             $oneResult = Get-JiraIssueType -IssueType $issueTypeId
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be $issueTypeId
-            $oneResult.Name | Should Be $issueTypeName
+            $oneResult | Should -Not -BeNullOrEmpty
+            $oneResult.ID | Should -Be $issueTypeId
+            $oneResult.Name | Should -Be $issueTypeName
         }
 
         It "Gets a specified issue type if an issue type name is provided" {
             $oneResult = Get-JiraIssueType -IssueType $issueTypeName
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be $issueTypeId
-            $oneResult.Name | Should Be $issueTypeName
+            $oneResult | Should -Not -BeNullOrEmpty
+            $oneResult.ID | Should -Be $issueTypeId
+            $oneResult.Name | Should -Be $issueTypeName
         }
 
         It "Handles positional parameters correctly" {
             $oneResult = Get-JiraIssueType 'Desktop Support'
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be 2
-            $oneResult.Name | Should Be 'Desktop Support'
+            $oneResult | Should -Not -BeNullOrEmpty
+            $oneResult.ID | Should -Be 2
+            $oneResult.Name | Should -Be 'Desktop Support'
         }
 
         Context "Output Checking" {

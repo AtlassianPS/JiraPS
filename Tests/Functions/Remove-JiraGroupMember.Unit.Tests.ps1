@@ -104,13 +104,13 @@ BeforeAll {
 
         Context "Behavior testing" {
             It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to remove them" {
-                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should Not Throw
+                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Get-JiraGroup -ModuleName "JiraPS" -Exactly -Times 1 -Scope It
             }
 
             It "Removes a user from a JIRA group if the user is a member" {
-                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should Not Throw
+                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -140,7 +140,7 @@ BeforeAll {
                 }
 
                 # Should use the REST method twice, since at present, you can only delete one group member per API call
-                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 -Force } | Should Not Throw
+                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 -Force } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -159,7 +159,7 @@ BeforeAll {
 
         Context "Input testing" {
             It "Accepts a group name as a String to the -Group parameter" {
-                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should Not Throw
+                { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -181,7 +181,7 @@ BeforeAll {
                 {
                     $group = Get-JiraGroup -GroupName $testGroupName
                     Remove-JiraGroupMember -Group $group -User $testUsername1 -Force
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -200,7 +200,7 @@ BeforeAll {
             }
 
             It "Accepts pipeline input from Get-JiraGroup" {
-                { Get-JiraGroup -GroupName $testGroupName | Remove-JiraGroupMember -User $testUsername1 -Force} | Should Not Throw
+                { Get-JiraGroup -GroupName $testGroupName | Remove-JiraGroupMember -User $testUsername1 -Force} | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'
@@ -222,7 +222,7 @@ BeforeAll {
                 {
                     $user = Get-JiraUser -UserName $testUsername1
                     Remove-JiraGroupMember -Group $testGroupName -User $user -Force
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-JiraMethod'

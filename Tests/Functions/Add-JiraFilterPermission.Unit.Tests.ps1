@@ -177,7 +177,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
             It "Adds share permission to Filter Object" {
                 {
                     Add-JiraFilterPermission -Filter (Get-JiraFilter -Id 12844) -Type "Global"
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
@@ -190,7 +190,7 @@ Describe 'Add-JiraFilterPermission' -Tag 'Unit' {
             It "Adds share permission to FilterId" {
                 {
                     Add-JiraFilterPermission -Id 12844 -Type "Global"
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and

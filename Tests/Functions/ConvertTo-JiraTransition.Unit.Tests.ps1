@@ -72,7 +72,7 @@ Describe "ConvertTo-JiraTransition" -Tag 'Unit' {
         $r = ConvertTo-JiraTransition -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.Transition'
@@ -81,8 +81,8 @@ Describe "ConvertTo-JiraTransition" -Tag 'Unit' {
         defProp $r 'Name' $tName
 
         It "Defines the 'ResultStatus' property as a JiraPS.Status object" {
-            $r.ResultStatus.Id | Should Be $tRId
-            $r.ResultStatus.Name | Should Be $tRName
+            $r.ResultStatus.Id | Should -Be $tRId
+            $r.ResultStatus.Name | Should -Be $tRName
         }
     }
 }

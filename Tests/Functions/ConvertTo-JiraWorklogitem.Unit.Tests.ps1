@@ -90,7 +90,7 @@ Describe "ConvertTo-JiraWorklogitem" -Tag 'Unit' {
 
         It "Creates a PSObject out of JSON input" {
             $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         It "Sets the type name to JiraPS.WorklogItem" {

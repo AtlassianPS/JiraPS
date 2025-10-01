@@ -904,7 +904,7 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
             $r = ConvertTo-JiraIssue -InputObject $sampleObject
 
             It "Creates a PSObject out of JSON input" {
-                $r | Should Not BeNullOrEmpty
+                $r | Should -Not -BeNullOrEmpty
             }
 
             checkPsType $r 'JiraPS.Issue'
@@ -915,7 +915,7 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
             defProp $r 'HttpUrl' "$jiraServer/browse/JRA-37294"
             defProp $r 'Summary' 'Allow set active/inactive via REST API'
             It "Defines the 'Attachment' property" {
-                $r.Attachment | Should Not BeNullOrEmpty
+                $r.Attachment | Should -Not -BeNullOrEmpty
             }
         }
 
@@ -936,7 +936,7 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
                 $dateFields = @('Created', 'Updated') # LastViewed should be in here too, but in this example issue from Atlassian, that value is null
                 foreach ($f in $dateFields) {
                     $value = $r.$f
-                    $value | Should Not BeNullOrEmpty
+                    $value | Should -Not -BeNullOrEmpty
                     checkType $value 'System.DateTime'
                 }
             }
@@ -945,8 +945,8 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
                 $userFields = @('Creator', 'Reporter') # Again, Assigned is another user field, but in this example it's unassigned
                 foreach ($f in $userFields) {
                     $value = $r.$f
-                    $value | Should Not BeNullOrEmpty
-                    # (Get-Member -InputObject $value).TypeName | Should Be 'JiraPS.User'
+                    $value | Should -Not -BeNullOrEmpty
+                    # (Get-Member -InputObject $value).TypeName | Should -Be 'JiraPS.User'
                     checkType $value 'JiraPS.User'
                 }
 
@@ -955,7 +955,7 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
             }
 
             It "Uses ConvertTo-JiraProject to return the project as an object" {
-                # (Get-Member -InputObject $r.Project).TypeName | Should Be 'JiraPS.Project'
+                # (Get-Member -InputObject $r.Project).TypeName | Should -Be 'JiraPS.Project'
                 checkType $r.Project 'JiraPS.Project'
             }
 

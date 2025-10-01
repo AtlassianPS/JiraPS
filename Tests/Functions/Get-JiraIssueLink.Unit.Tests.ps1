@@ -87,22 +87,22 @@ Describe "Get-JiraIssueLink" -Tag 'Unit' {
 
         It "Returns details about specific issuelink" {
             $result = Get-JiraIssueLink -Id $issueLinkId
-            $result | Should Not BeNullOrEmpty
-            @($result).Count | Should Be 1
+            $result | Should -Not -BeNullOrEmpty
+            @($result).Count | Should -Be 1
         }
 
         It "Provides the key of the project" {
             $result = Get-JiraIssueLink -Id $issueLinkId
-            $result.Id | Should Be $issueLinkId
+            $result.Id | Should -Be $issueLinkId
         }
 
         It "Accepts input from pipeline" {
             $result = (Get-JiraIssue -Key TEST-01).issuelinks | Get-JiraIssueLink
-            $result.Id | Should Be $issueLinkId
+            $result.Id | Should -Be $issueLinkId
         }
 
         It 'Fails if input from the pipeline is of the wrong type' {
-            { [PSCustomObject]@{id = $issueLinkId} | Get-JiraIssueLink } | Should Throw
+            { [PSCustomObject]@{id = $issueLinkId} | Get-JiraIssueLink } | Should -Throw
         }
     }
 }

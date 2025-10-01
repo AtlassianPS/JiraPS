@@ -101,23 +101,23 @@ Describe "Remove-JiraIssueLink" -Tag 'Unit' {
             It "Accepts generic object with the correct properties" {
                 $issueLink = Get-JiraIssueLink -Id 1234
                 $issue = Get-JiraIssue -Key TEST-01
-                { Remove-JiraIssueLink -IssueLink $issueLink } | Should Not Throw
-                { Remove-JiraIssueLink -IssueLink $issue } | Should Not Throw
+                { Remove-JiraIssueLink -IssueLink $issueLink } | Should -Not -Throw
+                { Remove-JiraIssueLink -IssueLink $issue } | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 2 -Scope It
             }
 
             It "Accepts a JiraPS.Issue object over the pipeline" {
-                { Get-JiraIssue -Key TEST-01 | Remove-JiraIssueLink } | Should Not Throw
+                { Get-JiraIssue -Key TEST-01 | Remove-JiraIssueLink } | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
             It "Accepts a JiraPS.IssueType over the pipeline" {
-                { Get-JiraIssueLink -Id 1234 | Remove-JiraIssueLink } | Should Not Throw
+                { Get-JiraIssueLink -Id 1234 | Remove-JiraIssueLink } | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
             }
 
             It "Validates pipeline input" {
-                { @{id = 1} | Remove-JiraIssueLink -ErrorAction SilentlyContinue } | Should Throw
+                { @{id = 1} | Remove-JiraIssueLink -ErrorAction SilentlyContinue } | Should -Throw
             }
         }
     }

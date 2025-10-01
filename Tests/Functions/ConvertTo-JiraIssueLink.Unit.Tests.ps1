@@ -66,7 +66,7 @@ Describe "ConvertTo-JiraIssueLink" -Tag 'Unit' {
 
         $r = ConvertTo-JiraIssueLink -InputObject $sampleObject
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.IssueLink'
@@ -78,7 +78,7 @@ Describe "ConvertTo-JiraIssueLink" -Tag 'Unit' {
 
         It "Handles pipeline input" {
             $r = $sampleObject | ConvertTo-JiraIssueLink
-            @($r).Count | Should Be 1
+            @($r).Count | Should -Be 1
         }
     }
 }

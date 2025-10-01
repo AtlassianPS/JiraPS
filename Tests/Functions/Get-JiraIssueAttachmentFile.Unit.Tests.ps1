@@ -111,14 +111,14 @@ Describe "Get-JiraIssueAttachmentFile" -Tag 'Unit' {
         #############
 
         It 'only accepts JiraPS.Attachment as input' {
-            { Get-JiraIssueAttachmentFile -Attachment (Get-Date) } | Should Throw
-            { Get-JiraIssueAttachmentFile -Attachment (Get-ChildItem) } | Should Throw
-            { Get-JiraIssueAttachmentFile -Attachment @('foo', 'bar') } | Should Throw
-            { Get-JiraIssueAttachmentFile -Attachment (Get-JiraIssueAttachment -Issue "Foo") } | Should Not Throw
+            { Get-JiraIssueAttachmentFile -Attachment (Get-Date) } | Should -Throw
+            { Get-JiraIssueAttachmentFile -Attachment (Get-ChildItem) } | Should -Throw
+            { Get-JiraIssueAttachmentFile -Attachment @('foo', 'bar') } | Should -Throw
+            { Get-JiraIssueAttachmentFile -Attachment (Get-JiraIssueAttachment -Issue "Foo") } | Should -Not -Throw
         }
 
         It 'takes the issue input over the pipeline' {
-            { Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile } | Should Not Throw
+            { Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile } | Should -Not -Throw
         }
 
         It 'uses Invoke-JiraMethod for saving to disk' {
