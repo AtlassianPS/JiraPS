@@ -235,12 +235,12 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
         Context "Behavior testing" {
 
             It "Queries Jira for metadata information about editing an issue" {
-                { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
+                { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
-                { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
+                { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
 
                 # There are 2 example fields in our mock above, but they should

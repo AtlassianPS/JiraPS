@@ -41,7 +41,7 @@ Describe "ConvertFrom-Json" -Tag 'Unit' {
         $sampleObject = ConvertFrom-Json -InputObject $sampleJson
 
         It "Creates a PSObject out of JSON input" {
-            $sampleObject | Should Not BeNullOrEmpty
+            $sampleObject | Should -Not -BeNullOrEmpty
         }
 
         defProp $sampleObject 'Id' 'issuetype'
@@ -50,11 +50,11 @@ Describe "ConvertFrom-Json" -Tag 'Unit' {
 
         Context "Sanity checking" {
             It "Does not crash on a null or empty input" {
-                { ConvertFrom-Json -InputObject '' } | Should Not Throw
+                { ConvertFrom-Json -InputObject '' } | Should -Not -Throw
             }
 
             It "Accepts pipeline input" {
-                { @($sampleJson, $sampleJson) | ConvertFrom-Json } | Should Not Throw
+                { @($sampleJson, $sampleJson) | ConvertFrom-Json } | Should -Not -Throw
             }
 
             It "Provides the same output as ConvertFrom-Json for JSON strings the latter can handle" {
@@ -63,7 +63,7 @@ Describe "ConvertFrom-Json" -Tag 'Unit' {
                 $sampleNative = ConvertFrom-Json -InputObject $sampleJson
                 foreach ($p in $sampleObject.PSObject.Properties.Name) {
                     # Force converting everything to a string isn't the best test of equality, but it's good enough for what we need here.
-                    "$($sampleObject.$p)" | Should Be "$($sampleNative.$p)"
+                    "$($sampleObject.$p)" | Should -Be "$($sampleNative.$p)"
                 }
             }
         }

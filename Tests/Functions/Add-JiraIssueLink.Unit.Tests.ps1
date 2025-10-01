@@ -88,18 +88,18 @@ Describe 'Add-JiraIssueLink' -Tag 'Unit' {
         Context "Functionality" {
 
             It 'Adds a new IssueLink' {
-                { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should Not Throw
+                { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It 'Validates the IssueType provided' {
                 $issueLink = [PSCustomObject]@{ type = "foo" }
-                { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should Throw
+                { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should -Throw
             }
 
             It 'Validates pipeline input object' {
-                { "foo" | Add-JiraIssueLink -IssueLink $issueLink } | Should Throw
+                { "foo" | Add-JiraIssueLink -IssueLink $issueLink } | Should -Throw
             }
         }
     }

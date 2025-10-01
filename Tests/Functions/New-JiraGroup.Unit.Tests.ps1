@@ -79,7 +79,7 @@ Describe "New-JiraGroup" -Tag 'Unit' {
 
         It "Creates a group in JIRA and returns a result" {
             $newResult = New-JiraGroup -GroupName $testGroupName
-            $newResult | Should Not BeNullOrEmpty
+            $newResult | Should -Not -BeNullOrEmpty
         }
 
         It "Uses ConvertTo-JiraGroup to beautify output" {
@@ -88,9 +88,9 @@ Describe "New-JiraGroup" -Tag 'Unit' {
 
         # It "Outputs a JiraPS.Group object" {
         #     $newResult = New-JiraGroup -GroupName $testGroupName
-        #     (Get-Member -InputObject $newResult).TypeName | Should Be 'JiraPS.Group'
-        #     $newResult.Name | Should Be $testGroupName
-        #     $newResult.RestUrl | Should Be "$jiraServer/rest/api/2/group?groupname=$testGroupName"
+        #     (Get-Member -InputObject $newResult).TypeName | Should -Be 'JiraPS.Group'
+        #     $newResult.Name | Should -Be $testGroupName
+        #     $newResult.RestUrl | Should -Be "$jiraServer/rest/api/2/group?groupname=$testGroupName"
         # }
     }
 }

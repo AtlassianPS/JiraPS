@@ -53,19 +53,19 @@ Describe "Resolve-JiraError" -Tag 'Unit' {
 
         It "Converts a JIRA result into a PSObject with error results" {
             $obj = Resolve-JiraError -InputObject (ConvertFrom-Json $testJson)
-            $obj | Should Not BeNullOrEmpty
-            $obj.Key | Should Be $testErrorKey
-            $obj.Message | Should Be $testError
+            $obj | Should -Not -BeNullOrEmpty
+            $obj.Key | Should -Be $testErrorKey
+            $obj.Message | Should -Be $testError
         }
 
         It "Writes output to the Error stream if the -WriteError parameter is passed" {
             $obj = Resolve-JiraError -InputObject (ConvertFrom-Json $testJson) -WriteError -ErrorAction SilentlyContinue -ErrorVariable errOutput
-            $errOutput | Should Be $testErrorMessage
+            $errOutput | Should -Be $testErrorMessage
         }
 
         It "Does not write a PSObject if the -WriteError parameter is passed" {
             $obj = Resolve-JiraError -InputObject (ConvertFrom-Json $testJson) -WriteError -ErrorAction SilentlyContinue -ErrorVariable errOutput
-            $obj | Should BeNullOrEmpty
+            $obj | Should -BeNullOrEmpty
         }
     }
 }

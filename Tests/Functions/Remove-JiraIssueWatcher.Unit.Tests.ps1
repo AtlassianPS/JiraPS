@@ -85,7 +85,7 @@ Describe "Remove-JiraIssueWatcher" -Tag 'Unit' {
 
             It "Removes a Watcher from an issue in JIRA" {
                 $WatcherResult = Remove-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
-                $WatcherResult | Should BeNullOrEmpty
+                $WatcherResult | Should -BeNullOrEmpty
 
                 # Get-JiraIssue should be used to identiyf the issue parameter
                 Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -96,7 +96,7 @@ Describe "Remove-JiraIssueWatcher" -Tag 'Unit' {
 
             It "Accepts pipeline input from Get-JiraIssue" {
                 $WatcherResult = Get-JiraIssue -Key $IssueKey | Remove-JiraIssueWatcher -Watcher 'fred'
-                $WatcherResult | Should BeNullOrEmpty
+                $WatcherResult | Should -BeNullOrEmpty
 
                 # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
                 Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It

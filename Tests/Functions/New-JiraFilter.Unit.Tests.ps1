@@ -100,7 +100,7 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
                         Favorite    = $true
                     }
                     New-JiraFilter @newData
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'Post' -and
@@ -121,7 +121,7 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
                         JQL         = "newJQL"
                     }
                     New-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -133,7 +133,7 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
                         JQL         = "newJQL"
                     }
                     New-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
@@ -146,12 +146,12 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
                         Favorite    = $true
                     }
                     New-JiraFilter @parameter
-                } | Should Not Throw
+                } | Should -Not -Throw
 
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
             It "maps the properties of an object to the parameters" {
-                { Get-JiraFilter "12345" | New-JiraFilter } | Should Not Throw
+                { Get-JiraFilter "12345" | New-JiraFilter } | Should -Not -Throw
             }
         }
     }

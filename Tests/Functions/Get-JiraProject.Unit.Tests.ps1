@@ -118,30 +118,30 @@ Describe "Get-JiraProject" -Tag 'Unit' {
 
         It "Returns all projects if called with no parameters" {
             $allResults = Get-JiraProject
-            $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be (ConvertFrom-Json -InputObject $restResultAll).Count
+            $allResults | Should -Not -BeNullOrEmpty
+            @($allResults).Count | Should -Be (ConvertFrom-Json -InputObject $restResultAll).Count
         }
 
         It "Returns details about specific projects if the project key is supplied" {
             $oneResult = Get-JiraProject -Project $projectKey
-            $oneResult | Should Not BeNullOrEmpty
-            @($oneResult).Count | Should Be 1
+            $oneResult | Should -Not -BeNullOrEmpty
+            @($oneResult).Count | Should -Be 1
         }
 
         It "Returns details about specific projects if the project ID is supplied" {
             $oneResult = Get-JiraProject -Project $projectId
-            $oneResult | Should Not BeNullOrEmpty
-            @($oneResult).Count | Should Be 1
+            $oneResult | Should -Not -BeNullOrEmpty
+            @($oneResult).Count | Should -Be 1
         }
 
         It "Provides the key of the project" {
             $oneResult = Get-JiraProject -Project $projectKey
-            $oneResult.Key | Should Be $projectKey
+            $oneResult.Key | Should -Be $projectKey
         }
 
         It "Provides the ID of the project" {
             $oneResult = Get-JiraProject -Project $projectKey
-            $oneResult.Id | Should Be $projectId
+            $oneResult.Id | Should -Be $projectId
         }
     }
 }

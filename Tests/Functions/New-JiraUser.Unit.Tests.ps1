@@ -76,7 +76,7 @@ Describe "New-JiraUser" -Tag 'Unit' {
 
         It "Creates a user in JIRA and returns a result" {
             $newResult = New-JiraUser -UserName $testUsername -EmailAddress $testEmail -DisplayName $testDisplayName
-            $newResult | Should Not BeNullOrEmpty
+            $newResult | Should -Not -BeNullOrEmpty
         }
 
         Context "Output checking" {

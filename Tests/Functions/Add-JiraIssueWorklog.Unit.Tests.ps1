@@ -119,7 +119,7 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
 
         It "Adds a worklog item to an issue in JIRA" {
             $commentResult = Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent 3600 -DateStarted "2018-01-01"
-            $commentResult | Should Not BeNullOrEmpty
+            $commentResult | Should -Not -BeNullOrEmpty
 
             # Get-JiraIssue should be used to identify the issue parameter
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -130,7 +130,7 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
 
         It "Accepts pipeline input from Get-JiraIssue" {
             $commentResult = Get-JiraIssue -Key $IssueKey | Add-JiraIssueWorklog -Comment 'This is a test worklog item from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
-            $commentResult | Should Not BeNullOrEmpty
+            $commentResult | Should -Not -BeNullOrEmpty
 
             # Get-JiraIssue should be called once here to fetch the initial test issue
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It

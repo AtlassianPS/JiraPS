@@ -102,10 +102,10 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
         It "Obtains all Jira comments from a Jira issue if the issue key is provided" {
             $comments = Get-JiraIssueComment -Issue $issueKey
 
-            $comments | Should Not BeNullOrEmpty
-            @($comments).Count | Should Be 1
-            $comments.ID | Should Be 90730
-            $comments.Body | Should Be 'Test comment'
+            $comments | Should -Not -BeNullOrEmpty
+            @($comments).Count | Should -Be 1
+            $comments.ID | Should -Be 90730
+            $comments.Body | Should -Be 'Test comment'
 
             # Get-JiraIssue should be called to identify the -Issue parameter
             Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
@@ -119,8 +119,8 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
             $issue = Get-JiraIssue -Key $issueKey
             $comments = Get-JiraIssueComment -Issue $issue
 
-            $comments | Should Not BeNullOrEmpty
-            $comments.ID | Should Be 90730
+            $comments | Should -Not -BeNullOrEmpty
+            $comments.ID | Should -Be 90730
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
@@ -128,8 +128,8 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
         It "Handles pipeline input from Get-JiraIssue" {
             $comments = Get-JiraIssue -Key $issueKey | Get-JiraIssueComment
 
-            $comments | Should Not BeNullOrEmpty
-            $comments.ID | Should Be 90730
+            $comments | Should -Not -BeNullOrEmpty
+            $comments.ID | Should -Be 90730
 
             Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
