@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
 
