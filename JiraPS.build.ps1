@@ -220,15 +220,28 @@ task Test Init, {
     $codeCoverageFiles = Get-ChildItem @params #>
 
     try {
+        $testConfig = New-PesterConfiguration -Hashtable @{
+            Run = @{
+                PassThru = $true
+                Path = "$env:BHBuildOutput/Tests/*"
+            }
+            TestResult = @{
+                OutputFormat = 'NUnitXml'
+                OutputPath = "$env:BHProjectPath/Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
+            }
+            Output = @{
+                Verbosity = 'Detailed'
+            }
+            Filter = @{
+                Tag        = $Tag
+                ExcludeTag = $ExcludeTag
+            }
+            <# CodeCoverage = @{
+                Path = $codeCoverageFiles
+            } #>
+        }
         $parameter = @{
-            Script       = "$env:BHBuildOutput/Tests/*"
-            Tag          = $Tag
-            ExcludeTag   = $ExcludeTag
-            Show         = "Fails"
-            PassThru     = $true
-            OutputFile   = "$env:BHProjectPath/Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
-            OutputFormat = "NUnitXml"
-            # CodeCoverage = $codeCoverageFiles
+            Configuration = $testConfig
         }
         $testResults = Invoke-Pester @parameter
 
