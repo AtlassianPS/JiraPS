@@ -17,13 +17,11 @@ jobs:
     name: Build Module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Setup PowerShell module cache
         id: cacher
         uses: actions/cache@v4
         with:
           path: "~/.local/share/powershell/Modules"
-          key: ${{ runner.os }}-PSModules
       - name: Setup
         shell: pwsh
         run: |
