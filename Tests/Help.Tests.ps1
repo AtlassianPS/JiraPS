@@ -1,8 +1,69 @@
 #requires -modules BuildHelpers
 #requires -modules Pester
 
-Describe "Help tests" -Tag Documentation {
+BeforeDiscovery {
+    #NOTE: Unsure if full clean/build is needed here, but keeping it anyway
+    $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
+    if ($projectRoot -like "*Release") {
+        $projectRoot = (Resolve-Path "$projectRoot/..").Path
+    }
 
+    Import-Module BuildHelpers
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+
+    $env:BHManifestToTest = $env:BHPSModuleManifest
+    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+    if ($script:isBuild) {
+        $Pattern = [regex]::Escape($env:BHProjectPath)
+
+        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+        $env:BHManifestToTest = $env:BHBuildModuleManifest
+    }
+
+    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    $module = Import-Module $env:BHManifestToTest -PassThru -Force
+
+    $DefaultParams = @(
+        'Verbose'
+        'Debug'
+        'ErrorAction'
+        'WarningAction'
+        'InformationAction'
+        'ErrorVariable'
+        'WarningVariable'
+        'InformationVariable'
+        'OutVariable'
+        'OutBuffer'
+        'PipelineVariable'
+        'ProgressAction'
+        'WhatIf'
+        'Confirm'
+    )
+    $commandList = @(Get-Command -Module $module.Name -CommandType Cmdlet, Function | # Not alias
+        ForEach-Object {
+            @{
+                CommandName = $_.Name -replace $module.Prefix, ''
+                Command = $_
+                Help = Get-Help $_.Name -ErrorAction SilentlyContinue
+                Parameters = @($_.Parameters.GetEnumerator() |
+                    Where-Object { $_.Value.Name -notin $DefaultParams} |
+                    ForEach-Object {
+                        @{
+                            ParameterName = $_.Value.Name
+                            Parameter = $_.Value
+                        }
+                    }
+                )
+            }
+        }
+    )
+    # $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
+    # $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
+}
+
+Describe "Help tests" -Tag Documentation {
     BeforeAll {
         Remove-Item -Path Env:\BH*
         $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
@@ -27,43 +88,13 @@ Describe "Help tests" -Tag Documentation {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
     }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    $DefaultParams = @(
-        'Verbose'
-        'Debug'
-        'ErrorAction'
-        'WarningAction'
-        'InformationAction'
-        'ErrorVariable'
-        'WarningVariable'
-        'InformationVariable'
-        'OutVariable'
-        'OutBuffer'
-        'PipelineVariable'
-        'ProgressAction'
-        'WhatIf'
-        'Confirm'
-    )
-
-    $module = Get-Module $env:BHProjectName
-    $commands = Get-Command -Module $env:BHProjectName -CommandType Cmdlet, Function  # Not alias
-    # $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
-    # $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
 
     #region Public Functions
-    foreach ($command in $commands) {
-        $commandName = $command.Name -replace $module.Prefix, ''
-        $markdownFile = Resolve-Path "$env:BHProjectPath/docs/en-US/commands/$commandName.md"
-
-        # The module-qualified command fails on Microsoft.PowerShell.Archive cmdlets
-        $help = Get-Help $command.Name -ErrorAction Stop
-
-        Context "Function $commandName's Help" {
+    Context "<CommandName> Function" -ForEach $commandList {
+        Context "Overall Help Contents" {
+            BeforeAll {
+                $markdownFile = Resolve-Path "$env:BHProjectPath/docs/en-US/commands/$CommandName.md"
+            }
 
             It "is described in a markdown file" {
                 $markdownFile | Should -Not -BeNullOrEmpty
@@ -71,11 +102,11 @@ Describe "Help tests" -Tag Documentation {
             }
 
             It "does not have Comment-Based Help" {
-                # We use .EXAMPLE, as we test this extensivly and it is never auto-generated
-                $command.Definition | Should -Not -BeNullOrEmpty
+                # We use .EXAMPLE, as we test this extensively and it is never auto-generated
+                $Command.Definition | Should -Not -BeNullOrEmpty
                 $Pattern = [regex]::Escape(".EXAMPLE")
 
-                $command.Definition | Should -Not -Match "^\s*$Pattern"
+                $Command.Definition | Should -Not -Match "^\s*$Pattern"
             }
 
             It "has no platyPS template artifacts" {
@@ -84,108 +115,102 @@ Describe "Help tests" -Tag Documentation {
             }
 
             It "has a link to the 'Online Version'" {
-                [Uri]$onlineLink = ($help.relatedLinks.navigationLink | Where-Object linkText -eq "Online Version:").Uri
+                [Uri]$onlineLink = ($Help.relatedLinks.navigationLink |
+                    Where-Object linkText -eq "Online Version:").Uri
 
                 $onlineLink.Authority | Should -Be "atlassianps.org"
                 $onlineLink.Scheme | Should -Be "https"
-                $onlineLink.PathAndQuery | Should -Be "/docs/$env:BHProjectName/commands/$commandName/"
+                $onlineLink.PathAndQuery | Should -Be "/docs/$env:BHProjectName/commands/$CommandName/"
             }
 
-            it "has a valid HelpUri" {
-                $command.HelpUri | Should -Not -BeNullOrEmpty
-                $Pattern = [regex]::Escape("https://atlassianps.org/docs/$env:BHProjectName/commands/$commandName")
+            It "has a valid HelpUri" {
+                $Command.HelpUri | Should -Not -BeNullOrEmpty
+                $Pattern = [regex]::Escape("https://atlassianps.org/docs/$env:BHProjectName/commands/$CommandName")
 
-                $command.HelpUri | Should -Match $Pattern
+                $Command.HelpUri | Should -Match $Pattern
             }
 
             It "defines the frontmatter for the homepage" {
                 $markdownFile | Should -Not -BeNullOrEmpty
                 $markdownFile | Should -FileContentMatch "Module Name: $env:BHProjectName"
                 $markdownFile | Should -FileContentMatchExactly "layout: documentation"
-                $markdownFile | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/commands/$commandName/"
+                $markdownFile | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/commands/$CommandName/"
             }
 
             # Should be a synopsis for every function
             It "has a synopsis" {
-                $help.Synopsis | Should -Not -BeNullOrEmpty
+                $Help.Synopsis | Should -Not -BeNullOrEmpty
             }
 
             # Should be a syntax for every function
             It "has a syntax" {
                 # syntax is starting with a small case as all the standard powershell commands have syntax with lower case, see (Get-Help Get-ChildItem) | gm
-                $help.syntax | Should -Not -BeNullOrEmpty
+                $Help.syntax | Should -Not -BeNullOrEmpty
             }
 
             # Should be a description for every function
             It "has a description" {
-                $help.Description.Text -join '' | Should -Not -BeNullOrEmpty
+                $Help.Description.Text -join '' | Should -Not -BeNullOrEmpty
             }
 
             # Should be at least one example
             It "has examples" {
-                ($help.Examples.Example | Select-Object -First 1).Code | Should -Not -BeNullOrEmpty
+                ($Help.Examples.Example | Select-Object -First 1).Code | Should -Not -BeNullOrEmpty
             }
 
             # Should be at least one example description
-            It "has desciptions for all examples" {
-                foreach ($example in ($help.Examples.Example)) {
-                    $example.remarks.Text | Should -Not -BeNullOrEmpty
+            It "has descriptions for all examples" {
+                foreach ($example in ($Help.Examples.Example)) {
+                    $Example.remarks.Text | Should -Not -BeNullOrEmpty
                 }
             }
 
             It "has at least as many examples as ParameterSets" {
-                ($help.Examples.Example | Measure-Object).Count | Should -BeGreaterOrEqual $command.ParameterSets.Count
+                ($Help.Examples.Example | Measure-Object).Count |
+                    Should -BeGreaterOrEqual $Command.ParameterSets.Count
             }
+        }
 
-            # It "does not define parameter position for functions with only one ParameterSet" {
-            #     if ($command.ParameterSets.Count -eq 1) {
-            #         $command.Parameters.Keys | Foreach-Object {
-            #             $command.Parameters[$_].ParameterSets.Values.Position | Should -BeLessThan 0
-            #         }
-            #     }
-            # }
+        Context "Parameters" -Skip:(-NOT ($Help.Parameters | Get-Member -Name Parameter)) {
+            Context "<ParameterName> parameter" -ForEach $Parameters {
+                BeforeAll {
+                    $parameterCode = $Command.Parameters[$ParameterName]
+                    $parameterHelp = $Help.Parameters.Parameter |
+                        Where-Object Name -EQ $ParameterName
+                }
 
-            foreach ($parameterName in $command.Parameters.Keys) {
-                $parameterCode = $command.Parameters[$parameterName]
+                It "has a description for parameter [-$ParameterName] in $CommandName" {
+                    $parameterHelp.Description.Text | Should -Not -BeNullOrEmpty
+                }
 
-                if ($help.Parameters | Get-Member -Name Parameter) {
-                    $parameterHelp = $help.Parameters.Parameter | Where-Object Name -EQ $parameterName
+                It "has a mandatory flag for parameter [-$ParameterName] in $CommandName" {
+                    $isMandatory = $parameterCode.ParameterSets.Values.IsMandatory -contains "True"
 
-                    if ($parameterName -notin $DefaultParams) {
-                        It "has a description for parameter [-$parameterName] in $commandName" {
-                            $parameterHelp.Description.Text | Should -Not -BeNullOrEmpty
-                        }
+                    $parameterHelp.Required | Should -BeLike $isMandatory.ToString()
+                }
 
-                        It "has a mandatory flag for parameter [-$parameterName] in $commandName" {
-                            $isMandatory = $parameterCode.ParameterSets.Values.IsMandatory -contains "True"
-
-                            $parameterHelp.Required | Should -BeLike $isMandatory.ToString()
-                        }
-
-                        It "matches the type of the parameter in code and help" {
-                            $codeType = $parameterCode.ParameterType.Name
-                            if ($codeType -eq "Object") {
-                                if (($parameterCode.Attributes) -and ($parameterCode.Attributes | Get-Member -Name PSTypeName)) {
-                                    $codeType = $parameterCode.Attributes[0].PSTypeName
-                                }
-                            }
-                            # To avoid calling Trim method on a null object.
-                            $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
-                            if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
-
-                            $helpType | Should -Be $codeType
+                It "matches the type of the parameter in code and help" {
+                    $codeType = $parameterCode.ParameterType.Name
+                    if ($codeType -eq "Object") {
+                        if (($parameterCode.Attributes) -and ($parameterCode.Attributes | Get-Member -Name PSTypeName)) {
+                            $codeType = $parameterCode.Attributes[0].PSTypeName
                         }
                     }
+                    # To avoid calling Trim method on a null object.
+                    $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
+                    if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
+
+                    $helpType | Should -Be $codeType
                 }
             }
 
             It "does not have parameters that are not in the code" {
                 $parameter = @()
-                if ($help.Parameters | Get-Member -Name Parameter) {
-                    $parameter = $help.Parameters.Parameter.Name | Sort-Object -Unique
+                if ($Help.Parameters | Get-Member -Name Parameter) {
+                    $parameter = $Help.Parameters.Parameter.Name | Sort-Object -Unique
                 }
-                foreach ($helpParm in $parameter) {
-                    $command.Parameters.Keys | Should -Contain $helpParm
+                foreach ($helpParam in $parameter) {
+                    $Command.Parameters.Keys | Should -Contain $helpParam
                 }
             }
         }
@@ -193,6 +218,8 @@ Describe "Help tests" -Tag Documentation {
     #endregion Public Functions
 
     #region Classes
+    #NOTE: Not currently in use. If wanting to reuse later, will need to be converted to Pester v5
+
     <# foreach ($class in $classes) {
         Context "Classes $($class.BaseName) Help" {
 
@@ -226,6 +253,8 @@ Describe "Help tests" -Tag Documentation {
     #endregion Classes
 
     #region Enumerations
+    #NOTE: Not currently in use. If wanting to reuse later, will need to be converted to Pester v5
+
     <# foreach ($enum in $enums) {
         Context "Enumeration $($enum.BaseName) Help" {
 
@@ -256,4 +285,10 @@ Describe "Help tests" -Tag Documentation {
         }
     } #>
     #endregion Enumerations
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 }
