@@ -1,8 +1,12 @@
 #requires -modules BuildHelpers
 #requires -modules Pester
 
-Describe "General project validation" -Tag Unit {
+BeforeDiscovery {
+    $projectPublicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1").BaseName
+    $projectPrivateFunctions = (Get-ChildItem "$env:BHModulePath/Private/*.ps1").BaseName
+}
 
+Describe "General project validation" -Tag Unit {
     BeforeAll {
         Remove-Item -Path Env:\BH*
         $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
@@ -26,30 +30,28 @@ Describe "General project validation" -Tag Unit {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
+
+        $module = Get-Module $env:BHProjectName
+        $testFiles = Get-ChildItem $PSScriptRoot -Include "*.Tests.ps1" -Recurse
     }
+
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Remove-Module BuildHelpers -ErrorAction SilentlyContinue
         Remove-Item -Path Env:\BH*
     }
 
-    $module = Get-Module $env:BHProjectName
-    $testFiles = Get-ChildItem $PSScriptRoot -Include "*.Tests.ps1" -Recurse
 
     Context "Public functions" {
-        $publicFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1").BaseName
-
-        foreach ($function in $publicFunctions) {
-
-            # TODO
-            It "has a test file for $function" {
-                $expectedTestFile = "$function.Unit.Tests.ps1"
+        Context "<_>" -ForEach $projectPublicFunctions {
+            It "has a test file" {
+                $expectedTestFile = "$_.Unit.Tests.ps1"
 
                 $testFiles.Name | Should -Contain $expectedTestFile
             }
 
-            It "exports $function" {
-                $expectedFunctionName = $function -replace "\-", "-$($module.Prefix)"
+            It "exports" {
+                $expectedFunctionName = $_ -replace "\-", "-$($module.Prefix)"
 
                 $module.ExportedCommands.keys | Should -Contain $expectedFunctionName
             }
@@ -57,21 +59,22 @@ Describe "General project validation" -Tag Unit {
     }
 
     Context "Private functions" {
-        $privateFunctions = (Get-ChildItem "$env:BHModulePath/Private/*.ps1").BaseName
-
-        foreach ($function in $privateFunctions) {
-
-            # TODO
-            # It "has a test file for $function" {
-            #     $expectedTestFile = "$function.Unit.Tests.ps1"
-
-            #     $testFiles.Name | Should -Contain $expectedTestFile
-            # }
-
-            It "does not export $function" {
-                $expectedFunctionName = $function -replace "\-", "-$($module.Prefix)"
+        Context "<_>" -ForEach $projectPrivateFunctions {
+            It "does not export" {
+                $expectedFunctionName = $_ -replace "\-", "-$($module.Prefix)"
 
                 $module.ExportedCommands.keys | Should -Not -Contain $expectedFunctionName
+            }
+        }
+    }
+
+    Context "Project structure" {
+        It "has all the public functions as a file in '$env:BHProjectName/Public'" {
+            $publicFunctions = (Get-Module -Name $env:BHProjectName).ExportedFunctions.Keys
+            foreach ($function in $publicFunctions) {
+                # $function = $function.Replace((Get-Module -Name $env:BHProjectName).Prefix, '')
+
+                (Get-ChildItem "$env:BHModulePath/Public").BaseName | Should -Contain $function
             }
         }
     }
@@ -98,15 +101,4 @@ Describe "General project validation" -Tag Unit {
     }
 #>
 
-    Context "Project stucture" {
-        $publicFunctions = (Get-Module -Name $env:BHProjectName).ExportedFunctions.Keys
-
-        It "has all the public functions as a file in '$env:BHProjectName/Public'" {
-            foreach ($function in $publicFunctions) {
-                # $function = $function.Replace((Get-Module -Name $env:BHProjectName).Prefix, '')
-
-                (Get-ChildItem "$env:BHModulePath/Public").BaseName | Should -Contain $function
-            }
-        }
-    }
 }

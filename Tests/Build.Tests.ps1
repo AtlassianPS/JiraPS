@@ -27,6 +27,7 @@ Describe "Validation of build environment" -Tag Unit {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         # Import-Module $env:BHManifestToTest
+
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -34,19 +35,20 @@ Describe "Validation of build environment" -Tag Unit {
         Remove-Item -Path Env:\BH*
     }
 
-    $changelogFile = if ($script:isBuild) {
-        "$env:BHBuildOutput/$env:BHProjectName/CHANGELOG.md"
-    }
-    else {
-        "$env:BHProjectPath/CHANGELOG.md"
-    }
 
     Context "CHANGELOG" {
-
-        foreach ($line in (Get-Content $changelogFile)) {
-            if ($line -match "(?:##|\<h2.*?\>)\s*\[(?<Version>(\d+\.?){1,2})(\-(?<Prerelease>(?:alpha|beta|rc)\d*))?\]") {
-                $changelogVersion = $matches.Version
-                break
+        BeforeAll {
+            $changelogFile = if ($script:isBuild) {
+                "$env:BHBuildOutput/$env:BHProjectName/CHANGELOG.md"
+            }
+            else {
+                "$env:BHProjectPath/CHANGELOG.md"
+            }
+            foreach ($line in (Get-Content $changelogFile)) {
+                if ($line -match "(?:##|\<h2.*?\>)\s*\[(?<Version>(\d+\.?){1,2})(\-(?<Prerelease>(?:alpha|beta|rc)\d*))?\]") {
+                    $changelogVersion = $matches.Version
+                    break
+                }
             }
         }
 
