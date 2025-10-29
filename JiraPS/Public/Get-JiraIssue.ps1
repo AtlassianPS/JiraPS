@@ -96,8 +96,9 @@ function Get-JiraIssue {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $searchURi = "$server/rest/api/2/search"
-        $resourceURi = "$server/rest/api/2/issue/{0}"
+        # Update endpoints to use API v3 JQL search
+        $searchURi = "$server/rest/api/3/search/jql"
+        $resourceURi = "$server/rest/api/3/issue/{0}"
 
         [String]$Fields = $Fields -join ","
     }

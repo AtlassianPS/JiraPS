@@ -211,6 +211,8 @@ function Invoke-JiraMethod {
                         }
 
                         $total = 0
+                        $nextPageToken = $null
+                        $isJqlV3 = $Uri -like "*/rest/api/3/search/jql"
                         do {
                             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
 
@@ -227,29 +229,38 @@ function Invoke-JiraMethod {
                             Convert-Result -InputObject $result -OutputType $OutputType
                             Write-DebugMessage ($result | Out-String)
 
-                            if (@($result).Count -lt $response.maxResults) {
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($response.maxResults)"
-                                break
-                            }
-
-                            if ($total -ge $PSCmdlet.PagingParameters.First) {
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as $total reached $($PSCmdlet.PagingParameters.First)"
-                                break
-                            }
-
-                            # calculate the size of the next page
-                            $PSBoundParameters["GetParameter"]["startAt"] = $total + $offset
-                            $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
-                            if ($expectedTotal -gt $PSCmdlet.PagingParameters.First) {
-                                $reduceBy = $expectedTotal - $PSCmdlet.PagingParameters.First
-                                $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
+                            if ($isJqlV3) {
+                                $nextPageToken = $response.nextPageToken
+                                if (-not $nextPageToken) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, no nextPageToken returned."
+                                    break
+                                }
+                                $PSBoundParameters["GetParameter"]["nextPageToken"] = $nextPageToken
+                                # Remove old paging params
+                                $PSBoundParameters["GetParameter"].Remove("startAt")
+                                $PSBoundParameters["GetParameter"].Remove("maxResults")
+                            } else {
+                                if (@($result).Count -lt $response.maxResults) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($response.maxResults)"
+                                    break
+                                }
+                                if ($total -ge $PSCmdlet.PagingParameters.First) {
+                                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as $total reached $($PSCmdlet.PagingParameters.First)"
+                                    break
+                                }
+                                $PSBoundParameters["GetParameter"]["startAt"] = $total + $offset
+                                $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
+                                if ($expectedTotal -gt $PSCmdlet.PagingParameters.First) {
+                                    $reduceBy = $expectedTotal - $PSCmdlet.PagingParameters.First
+                                    $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
+                                }
                             }
 
                             # Inquire the next page
                             $response = Invoke-JiraMethod @PSBoundParameters
 
                             $result = Expand-Result -InputObject $response
-                        } while (@($result).Count -gt 0)
+                        } while ($isJqlV3 ? $nextPageToken : @($result).Count -gt 0)
 
                         if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
                             [double]$Accuracy = 1.0
