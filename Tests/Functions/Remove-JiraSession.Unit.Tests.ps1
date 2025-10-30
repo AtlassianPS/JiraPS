@@ -26,6 +26,14 @@ Describe "Remove-JiraSession" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
+
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
+
+        #region Mocks
+        Mock Get-JiraSession -ModuleName JiraPS {
+            (Get-Module JiraPS).PrivateData.Session
+        }
+        #endregion Mocks
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -33,18 +41,12 @@ Describe "Remove-JiraSession" -Tag 'Unit' {
         Remove-Item -Path Env:\BH*
     }
 
-    . "$PSScriptRoot/../Shared.ps1"
-
-    #region Mocks
-    Mock Get-JiraSession -ModuleName JiraPS {
-        (Get-Module JiraPS).PrivateData.Session
-    }
-    #endregion Mocks
-
     Context "Sanity checking" {
-        $command = Get-Command -Name Remove-JiraSession
+        It "Has expected parameters" {
+            $command = Get-Command -Name Remove-JiraSession
 
-        defParam $command 'Session'
+            defParam $command 'Session'
+        }
     }
 
     Context "Behavior testing" {
