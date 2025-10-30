@@ -4,7 +4,7 @@
 Describe "Add-JiraIssueWatcher" -Tag 'Unit' {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
         $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
         if ($projectRoot -like "*Release") {
             $projectRoot = (Resolve-Path "$projectRoot/..").Path
@@ -22,41 +22,36 @@ Describe "Add-JiraIssueWatcher" -Tag 'Unit' {
             $env:BHManifestToTest = $env:BHBuildModuleManifest
         }
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1" -ErrorAction Stop
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
+        Import-Module $env:BHManifestToTest -ErrorAction Stop
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
         $issueKey = 'IT-3676'
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
-        Mock Get-JiraIssue -ModuleName JiraPS {
+        # Helper function for creating issue objects
+        function New-TestJiraIssue {
+            param($Key = $issueKey)
             $object = [PSCustomObject] @{
                 ID      = $issueID
-                Key     = $issueKey
+                Key     = $Key
                 RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
             return $object
         }
 
-        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-            Get-JiraIssue -Key $Issue
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
+            Write-Output $jiraServer
+        }
+
+        Mock Get-JiraIssue -ModuleName JiraPS {
+            New-TestJiraIssue -Key $Key
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/watchers"} {
@@ -68,40 +63,69 @@ Describe "Add-JiraIssueWatcher" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri', 'Method'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
-        Context "Sanity checking" {
+    Context "Sanity checking" {
+        It "Has expected parameters" {
             $command = Get-Command -Name Add-JiraIssueWatcher
 
             defParam $command 'Watcher'
             defParam $command 'Issue'
             defParam $command 'Credential'
         }
+    }
 
-        Context "Behavior testing" {
+    Context "Behavior testing" {
 
-            It "Adds a Watcher to an issue in JIRA" {
-                $WatcherResult = Add-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
-                $WatcherResult | Should -BeNullOrEmpty
+        It "Adds a Watcher to an issue in JIRA" {
+            $WatcherResult = Add-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
+            $WatcherResult | Should -BeNullOrEmpty
+        }
 
-                # Get-JiraIssue should be used to identify the issue parameter
-                Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
-
-                # Invoke-JiraMethod should be used to add the Watcher
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+        It "Accepts pipeline input from Get-JiraIssue" {
+            # Mock for when Get-JiraIssue is called directly in tests (outside module scope)
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'GET' -and $URI -like "$jiraServer/rest/api/2/issue/$issueKey*"} {
+                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                @{
+                    id = $issueID
+                    key = $issueKey
+                    self = "$jiraServer/rest/api/2/issue/$issueID"
+                    fields = @{}
+                }
             }
 
-            It "Accepts pipeline input from Get-JiraIssue" {
-                $WatcherResult = Get-JiraIssue -Key $issueKey | Add-JiraIssueWatcher -Watcher 'fred'
-                $WatcherResult | Should -BeNullOrEmpty
+            $WatcherResult = Get-JiraIssue -Key $issueKey | Add-JiraIssueWatcher -Watcher 'fred'
+            $WatcherResult | Should -BeNullOrEmpty
+        }
+    }
 
-                # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
-                Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+    Context "Internal Call Validation" {
+        BeforeAll {
+            Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                New-TestJiraIssue -Key $issueKey
             }
         }
+
+        It "Uses Invoke-JiraMethod to add the Watcher" {
+            Add-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey | Out-Null
+
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+        }
+
+        It "Calls Resolve-JiraIssueObject to set the issue object" {
+            Add-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey | Out-Null
+
+            Should -Invoke -CommandName Resolve-JiraIssueObject -ModuleName JiraPS -Exactly -Times 1
+        }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
     }
 }

@@ -30,9 +30,7 @@ function defParam($command, $name) {
 }
 
 function defAlias($command, $name, $definition) {
-    It "Supports the $name alias for the $definition parameter" {
         $command.Parameters.Item($definition).Aliases | Where-Object -FilterScript {$_ -eq $name} | Should -Not -BeNullOrEmpty
-    }
 }
 
 # This function must be used from within an It block
