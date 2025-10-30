@@ -26,16 +26,8 @@ BeforeAll {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
 
         #region Definitions
         $jiraServer = "https://jira.example.com"
@@ -85,12 +77,14 @@ BeforeAll {
         #endregion Mocks
 
         Context "Sanity checking" {
-            $command = Get-Command -Name Remove-JiraFilterPermission
+            It "Has expected parameters" {
+                $command = Get-Command -Name Remove-JiraFilterPermission
 
-            defParam $command 'Filter'
-            defParam $command 'FilterId'
-            defParam $command 'PermissionId'
-            defParam $command 'Credential'
+                defParam $command 'Filter'
+                defParam $command 'FilterId'
+                defParam $command 'PermissionId'
+                defParam $command 'Credential'
+            }
         }
 
         Context "Behavior testing" {
@@ -99,11 +93,11 @@ BeforeAll {
                     Get-JiraFilterPermission -Id 1 | Remove-JiraFilterPermission
                 } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                     $Method -eq 'Delete' -and
                     $URI -like '*/rest/api/*/filter/12345/permission/1111'
                 }
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                     $Method -eq 'Delete' -and
                     $URI -like '*/rest/api/*/filter/12345/permission/2222'
                 }
@@ -114,11 +108,11 @@ BeforeAll {
                     Remove-JiraFilterPermission -FilterId 1 -PermissionId 3333, 4444
                 } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                     $Method -eq 'Delete' -and
                     $URI -like '*/rest/api/*/filter/23456/permission/3333'
                 }
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                     $Method -eq 'Delete' -and
                     $URI -like '*/rest/api/*/filter/23456/permission/4444'
                 }
@@ -134,7 +128,7 @@ BeforeAll {
             It "finds the filter by FilterId" {
                 { Remove-JiraFilterPermission -FilterId 1 -PermissionId 1111 } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "does not accept negative FilterIds" {
@@ -168,13 +162,18 @@ BeforeAll {
             It "resolves positional parameters" {
                 { Remove-JiraFilterPermission 12345 1111 } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
 
                 $filter = Get-JiraFilterPermission -Id 1
                 { Remove-JiraFilterPermission $filter } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 3 -Scope It
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 3
             }
         }
     }
+}
+AfterAll {
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+    Remove-Item -Path Env:\BH*
 }
