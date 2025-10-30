@@ -26,16 +26,8 @@ BeforeAll {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
 
         #region Definitions
         $jiraServer = 'http://jiraserver.example.com'
@@ -93,20 +85,22 @@ BeforeAll {
         # Tests
         #############
         Context "Sanity checking" {
-            $command = Get-Command -Name Remove-JiraGroupMember
+            It "Has expected parameters" {
+                $command = Get-Command -Name Remove-JiraGroupMember
 
-            defParam $command 'Group'
-            defParam $command 'User'
-            defParam $command 'Credential'
-            defParam $command 'PassThru'
-            defParam $command 'Force'
+                defParam $command 'Group'
+                defParam $command 'User'
+                defParam $command 'Credential'
+                defParam $command 'PassThru'
+                defParam $command 'Force'
+            }
         }
 
         Context "Behavior testing" {
             It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to remove them" {
                 { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Get-JiraGroup -ModuleName "JiraPS" -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Get-JiraGroup -ModuleName "JiraPS" -Exactly -Times 1
             }
 
             It "Removes a user from a JIRA group if the user is a member" {
@@ -123,7 +117,7 @@ BeforeAll {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "Removes multiple users to a JIRA group if they are passed to the -User parameter" {
@@ -153,7 +147,7 @@ BeforeAll {
                     Times           = 2
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
         }
 
@@ -174,7 +168,7 @@ BeforeAll {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "Accepts a JiraPS.Group object to the -Group parameter" {
@@ -196,7 +190,7 @@ BeforeAll {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "Accepts pipeline input from Get-JiraGroup" {
@@ -215,7 +209,7 @@ BeforeAll {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "Accepts a JiraPS.User as input for -User parameter" {
@@ -237,8 +231,13 @@ BeforeAll {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
         }
     }
+}
+AfterAll {
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+    Remove-Item -Path Env:\BH*
 }

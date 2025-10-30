@@ -26,16 +26,8 @@ Describe "Remove-JiraGroup" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
 
         $jiraServer = 'http://jiraserver.example.com'
 
@@ -83,27 +75,32 @@ Describe "Remove-JiraGroup" -Tag 'Unit' {
 
         It "Accepts a group name as a String to the -Group parameter" {
             { Remove-JiraGroup -Group $testGroupName -Force } | Should -Not -Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
         }
 
         It "Accepts a JiraPS.Group object to the -Group parameter" {
             $group = Get-JiraGroup -GroupName $testGroupName
             { Remove-JiraGroup -Group $group -Force } | Should -Not -Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
         }
 
         It "Accepts pipeline input from Get-JiraGroup" {
             { Get-JiraGroup -GroupName $testGroupName | Remove-JiraGroup -Force } | Should -Not -Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
         }
 
         It "Removes a group from JIRA" {
             { Remove-JiraGroup -Group $testGroupName -Force } | Should -Not -Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
         }
 
         It "Provides no output" {
             Remove-JiraGroup -Group $testGroupName -Force | Should -BeNullOrEmpty
         }
     }
+}
+AfterAll {
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+    Remove-Item -Path Env:\BH*
 }
