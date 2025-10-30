@@ -26,16 +26,8 @@ Describe "New-JiraGroup" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
 
         $jiraServer = 'http://jiraserver.example.com'
 
@@ -71,26 +63,35 @@ Describe "New-JiraGroup" -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        Mock ConvertTo-JiraGroup { $InputObject }
-
-        #############
-        # Tests
-        #############
-
-        It "Creates a group in JIRA and returns a result" {
-            $newResult = New-JiraGroup -GroupName $testGroupName
-            $newResult | Should -Not -BeNullOrEmpty
-        }
-
-        It "Uses ConvertTo-JiraGroup to beautify output" {
-            Assert-MockCalled 'ConvertTo-JiraGroup'
-        }
-
-        # It "Outputs a JiraPS.Group object" {
-        #     $newResult = New-JiraGroup -GroupName $testGroupName
-        #     (Get-Member -InputObject $newResult).TypeName | Should -Be 'JiraPS.Group'
-        #     $newResult.Name | Should -Be $testGroupName
-        #     $newResult.RestUrl | Should -Be "$jiraServer/rest/api/2/group?groupname=$testGroupName"
-        # }
+        Mock ConvertTo-JiraGroup -ModuleName JiraPS { $InputObject }
     }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
+
+    #############
+    # Tests
+    #############
+
+    It "Creates a group in JIRA and returns a result" {
+        $newResult = New-JiraGroup -GroupName $testGroupName
+        $newResult | Should -Not -BeNullOrEmpty
+    }
+
+    Context "Output checking" {
+        It "Uses ConvertTo-JiraGroup to beautify output" {
+            New-JiraGroup -GroupName $testGroupName
+            Should -Invoke 'ConvertTo-JiraGroup' -ModuleName JiraPS
+        }
+    }
+
+    # It "Outputs a JiraPS.Group object" {
+    #     $newResult = New-JiraGroup -GroupName $testGroupName
+    #     (Get-Member -InputObject $newResult).TypeName | Should -Be 'JiraPS.Group'
+    #     $newResult.Name | Should -Be $testGroupName
+    #     $newResult.RestUrl | Should -Be "$jiraServer/rest/api/2/group?groupname=$testGroupName"
+    # }
 }
