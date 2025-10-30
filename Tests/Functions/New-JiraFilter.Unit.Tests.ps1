@@ -26,14 +26,6 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
@@ -52,19 +44,16 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
         #endregion Definitions
 
         #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            $jiraServer
-        }
 
-        Mock ConvertTo-JiraFilter -ModuleName JiraPS {
+        #helper function to generate test JiraFilter object
+        function Get-TestJiraFilter {
             $i = (ConvertFrom-Json $responseFilter)
             $i.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
             $i | Add-Member -MemberType AliasProperty -Name 'RestURL' -Value 'self'
             $i
         }
-
-        Mock Get-JiraFilter -ModuleName JiraPS {
-            ConvertTo-JiraFilter
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
+            $jiraServer
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/filter"} {
@@ -77,8 +66,16 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mocks
+    }
 
-        Context "Sanity checking" {
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
+
+    Context "Sanity checking" {
+        It "Has expected parameters" {
             $command = Get-Command -Name New-JiraFilter
 
             defParam $command 'Name'
@@ -89,70 +86,70 @@ Describe 'New-JiraFilter' -Tag 'Unit' {
 
             defAlias $command 'Favourite' 'Favorite'
         }
+    }
 
-        Context "Behavior testing" {
-            It "Invokes the Jira API to create a filter" {
-                {
-                    $newData = @{
-                        Name        = "myName"
-                        Description = "myDescription"
-                        JQL         = "myJQL"
-                        Favorite    = $true
-                    }
-                    New-JiraFilter @newData
-                } | Should -Not -Throw
-
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
-                    $Method -eq 'Post' -and
-                    $URI -like '*/rest/api/*/filter' -and
-                    $Body -match "`"name`":\s*`"myName`"" -and
-                    $Body -match "`"description`":\s*`"myDescription`"" -and
-                    $Body -match "`"jql`":\s*`"myJQL`"" -and
-                    $Body -match "`"favourite`":\s*true"
+    Context "Behavior testing" {
+        It "Invokes the Jira API to create a filter" {
+            {
+                $newData = @{
+                    Name        = "myName"
+                    Description = "myDescription"
+                    JQL         = "myJQL"
+                    Favorite    = $true
                 }
-            }
+                New-JiraFilter @newData
+            } | Should -Not -Throw
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Post' -and
+                $URI -like '*/rest/api/*/filter' -and
+                $Body -match "`"name`":\s*`"myName`"" -and
+                $Body -match "`"description`":\s*`"myDescription`"" -and
+                $Body -match "`"jql`":\s*`"myJQL`"" -and
+                $Body -match "`"favourite`":\s*true"
+            } -Exactly 1
         }
+    }
 
-        Context "Input testing" {
-            It "-Name and -JQL" {
-                {
-                    $parameter = @{
-                        Name        = "newName"
-                        JQL         = "newJQL"
-                    }
-                    New-JiraFilter @parameter
-                } | Should -Not -Throw
+    Context "Input testing" {
+        It "-Name and -JQL" {
+            {
+                $parameter = @{
+                    Name        = "newName"
+                    JQL         = "newJQL"
+                }
+                New-JiraFilter @parameter
+            } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-            }
-            It "-Name and -Description and -JQL" {
-                {
-                    $parameter = @{
-                        Name        = "newName"
-                        Description = "newDescription"
-                        JQL         = "newJQL"
-                    }
-                    New-JiraFilter @parameter
-                } | Should -Not -Throw
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly 1
+        }
+        It "-Name and -Description and -JQL" {
+            {
+                $parameter = @{
+                    Name        = "newName"
+                    Description = "newDescription"
+                    JQL         = "newJQL"
+                }
+                New-JiraFilter @parameter
+            } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-            }
-            It "-Name and -Description and -JQL and -Favorite" {
-                {
-                    $parameter = @{
-                        Name        = "newName"
-                        Description = "newDescription"
-                        JQL         = "newJQL"
-                        Favorite    = $true
-                    }
-                    New-JiraFilter @parameter
-                } | Should -Not -Throw
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly 1
+        }
+        It "-Name and -Description and -JQL and -Favorite" {
+            {
+                $parameter = @{
+                    Name        = "newName"
+                    Description = "newDescription"
+                    JQL         = "newJQL"
+                    Favorite    = $true
+                }
+                New-JiraFilter @parameter
+            } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-            }
-            It "maps the properties of an object to the parameters" {
-                { Get-JiraFilter "12345" | New-JiraFilter } | Should -Not -Throw
-            }
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly 1
+        }
+        It "Allows pipeline input" {
+            { Get-TestJiraFilter | New-JiraFilter } | Should -Not -Throw
         }
     }
 }
