@@ -26,14 +26,6 @@ Describe "Get-JiraIssueLink" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
@@ -52,21 +44,9 @@ Describe "Get-JiraIssueLink" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
-        # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName JiraPS {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            throw "Unidentified call to Invoke-JiraMethod"
-        }
-
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/issueLink/1234"} {
-            ConvertFrom-Json $resultsJson
-        }
-
-        Mock Get-JiraIssue -ModuleName JiraPS -ParameterFilter {$Key -eq "TEST-01"} {
+        # Helper function for creating issue objects
+        function Get-TestJiraIssue {
+            param([string]$Key = $issueKey)
             # We don't care about the content of any field except for the id
             $obj = [PSCustomObject]@{
                 "id"          = $issueLinkId
@@ -81,28 +61,48 @@ Describe "Get-JiraIssueLink" -Tag 'Unit' {
             }
         }
 
-        #############
-        # Tests
-        #############
-
-        It "Returns details about specific issuelink" {
-            $result = Get-JiraIssueLink -Id $issueLinkId
-            $result | Should -Not -BeNullOrEmpty
-            @($result).Count | Should -Be 1
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
+            Write-Output $jiraServer
         }
 
-        It "Provides the key of the project" {
-            $result = Get-JiraIssueLink -Id $issueLinkId
-            $result.Id | Should -Be $issueLinkId
+        # Generic catch-all. This will throw an exception if we forgot to mock something.
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        It "Accepts input from pipeline" {
-            $result = (Get-JiraIssue -Key TEST-01).issuelinks | Get-JiraIssueLink
-            $result.Id | Should -Be $issueLinkId
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/issueLink/1234"} {
+            ConvertFrom-Json $resultsJson
         }
+    }
 
-        It 'Fails if input from the pipeline is of the wrong type' {
-            { [PSCustomObject]@{id = $issueLinkId} | Get-JiraIssueLink } | Should -Throw
-        }
+    #############
+    # Tests
+    #############
+
+    It "Returns details about specific issuelink" {
+        $result = Get-JiraIssueLink -Id $issueLinkId
+        $result | Should -Not -BeNullOrEmpty
+        @($result).Count | Should -Be 1
+    }
+
+    It "Provides the key of the project" {
+        $result = Get-JiraIssueLink -Id $issueLinkId
+        $result.Id | Should -Be $issueLinkId
+    }
+
+    It "Accepts input from pipeline" {
+        $result = (Get-TestJiraIssue -Key TEST-01).issuelinks | Get-JiraIssueLink
+        $result.Id | Should -Be $issueLinkId
+    }
+
+    It 'Fails if input from the pipeline is of the wrong type' {
+        { [PSCustomObject]@{id = $issueLinkId} | Get-JiraIssueLink } | Should -Throw
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }

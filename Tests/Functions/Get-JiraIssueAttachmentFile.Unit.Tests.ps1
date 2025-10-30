@@ -26,15 +26,8 @@ Describe "Get-JiraIssueAttachmentFile" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -86,11 +79,16 @@ Describe "Get-JiraIssueAttachmentFile" -Tag 'Unit' {
 ]
 "@
 
-        Mock Get-JiraIssueAttachment -ModuleName JiraPS {
+        # Helper function for creating attachment objects
+        function Get-TestJiraIssueAttachment {
             $object = ConvertFrom-Json -InputObject $attachments
             $object[0].PSObject.TypeNames.Insert(0, 'JiraPS.Attachment')
             $object[1].PSObject.TypeNames.Insert(0, 'JiraPS.Attachment')
             $object
+        }
+
+        Mock Get-JiraIssueAttachment -ModuleName JiraPS {
+            Get-TestJiraIssueAttachment
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
@@ -105,49 +103,55 @@ Describe "Get-JiraIssueAttachmentFile" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
-        It 'only accepts JiraPS.Attachment as input' {
-            { Get-JiraIssueAttachmentFile -Attachment (Get-Date) } | Should -Throw
-            { Get-JiraIssueAttachmentFile -Attachment (Get-ChildItem) } | Should -Throw
-            { Get-JiraIssueAttachmentFile -Attachment @('foo', 'bar') } | Should -Throw
-            { Get-JiraIssueAttachmentFile -Attachment (Get-JiraIssueAttachment -Issue "Foo") } | Should -Not -Throw
-        }
+    #NOTE: These tests are a real piece of work.
 
-        It 'takes the issue input over the pipeline' {
-            { Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile } | Should -Not -Throw
-        }
+    It 'only accepts JiraPS.Attachment as input' {
+        { Get-JiraIssueAttachmentFile -Attachment (Get-Date) } | Should -Throw
+        { Get-JiraIssueAttachmentFile -Attachment (Get-ChildItem) } | Should -Throw
+        { Get-JiraIssueAttachmentFile -Attachment @('foo', 'bar') } | Should -Throw
+        { Get-JiraIssueAttachmentFile -Attachment (Get-TestJiraIssueAttachment) } | Should -Not -Throw
+    }
 
-        It 'uses Invoke-JiraMethod for saving to disk' {
-            Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile
-            Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile -Path "../"
+    It 'takes the issue input over the pipeline' {
+        { Get-TestJiraIssueAttachment | Get-JiraIssueAttachmentFile } | Should -Not -Throw
+    }
 
-            $assertMockCalledSplat = @{
-                CommandName     = 'Invoke-JiraMethod'
-                ModuleName      = "JiraPS"
-                ParameterFilter = {
-                    $OutFile -in @("foo.pdf", "bar.pdf")
-                }
-                Exactly         = $true
-                Times           = 2
-                Scope           = 'It'
+    It 'uses Invoke-JiraMethod for saving to disk' {
+        Get-TestJiraIssueAttachment | Get-JiraIssueAttachmentFile
+        Get-TestJiraIssueAttachment | Get-JiraIssueAttachmentFile -Path "../"
+
+        $assertMockCalledSplat = @{
+            CommandName     = 'Invoke-JiraMethod'
+            ModuleName      = "JiraPS"
+            ParameterFilter = {
+                $OutFile -in @("foo.pdf", "bar.pdf")
             }
-            Assert-MockCalled @assertMockCalledSplat
-
-            $assertMockCalledSplat = @{
-                CommandName     = 'Invoke-JiraMethod'
-                ModuleName      = "JiraPS"
-                ParameterFilter = {
-                    $OutFile -like "..*.pdf"
-                }
-                Exactly         = $true
-                Times           = 2
-                Scope           = 'It'
-            }
-            Assert-MockCalled @assertMockCalledSplat
+            Exactly         = $true
+            Times           = 2
         }
+        Should -Invoke @assertMockCalledSplat
+
+        $assertMockCalledSplat = @{
+            CommandName     = 'Invoke-JiraMethod'
+            ModuleName      = "JiraPS"
+            ParameterFilter = {
+                $OutFile -like "..*.pdf"
+            }
+            Exactly         = $true
+            Times           = 2
+        }
+        Should -Invoke @assertMockCalledSplat
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }

@@ -26,15 +26,8 @@ Describe "Get-JiraUser" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -125,98 +118,103 @@ Describe "Get-JiraUser" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        It "Gets intormation about the loged in Jira user" {
-            $getResult = Get-JiraUser
+    #############
+    # Tests
+    #############
 
-            $getResult | Should -Not -BeNullOrEmpty
+    It "Gets information about the logged-in Jira user" {
+        $getResult = Get-JiraUser
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/myself"}
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
+        $getResult | Should -Not -BeNullOrEmpty
+
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {$URI -like "$jiraServer/rest/api/*/myself"}
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
+    }
+
+    It "Gets information about a provided Jira user" {
+        $getResult = Get-JiraUser -UserName $testUsername
+
+        $getResult | Should -Not -BeNullOrEmpty
+
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user/search?*username=$testUsername*"}
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
+    }
+
+    It "Gets information about a provided Jira exact user" {
+        $getResult = Get-JiraUser -UserName $testUsername -Exact
+
+        $getResult | Should -Not -BeNullOrEmpty
+
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername"}
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
+    }
+
+    It "Returns all available properties about the returned user object" {
+        $getResult = Get-JiraUser -UserName $testUsername
+
+        $restObj = ConvertFrom-Json -InputObject $restResult
+
+        $getResult.self | Should -Be $restObj.self
+        $getResult.Name | Should -Be $restObj.name
+        $getResult.DisplayName | Should -Be $restObj.displayName
+        $getResult.Active | Should -Be $restObj.active
+
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
+    }
+
+    It "Gets information for a provided Jira user if a JiraPS.User object is provided to the InputObject parameter" {
+        $getResult = Get-JiraUser -UserName $testUsername
+        $result2 = Get-JiraUser -InputObject $getResult
+
+        $result2 | Should -Not -BeNullOrEmpty
+        $result2.Name | Should -Be $testUsername
+
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 2 -Exactly -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
+    }
+
+    It "Allow it search for multiple users" {
+        Get-JiraUser -UserName "%"
+
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            $URI -like "$jiraServer/rest/api/*/user/search?*username=%25*"
         }
+    }
 
-        It "Gets information about a provided Jira user" {
-            $getResult = Get-JiraUser -UserName $testUsername
+    It "Allows to change the max number of users to be returned" {
+        Get-JiraUser -UserName "%" -MaxResults 100
 
-            $getResult | Should -Not -BeNullOrEmpty
-
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user/search?*username=$testUsername*"}
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            $URI -like "$jiraServer/rest/api/*/user/search?*maxResults=100*"
         }
+    }
 
-        It "Gets information about a provided Jira exact user" {
-            $getResult = Get-JiraUser -UserName $testUsername -Exact
+    It "Can skip a certain amount of results" {
+        Get-JiraUser -UserName "%" -Skip 10
 
-            $getResult | Should -Not -BeNullOrEmpty
-
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername"}
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            $URI -like "$jiraServer/rest/api/*/user/search?*startAt=10*"
         }
+    }
 
-        It "Returns all available properties about the returned user object" {
-            $getResult = Get-JiraUser -UserName $testUsername
+    It "Provides information about the user's group membership in Jira" {
+        $getResult = Get-JiraUser -UserName $testUsername
 
-            $restObj = ConvertFrom-Json -InputObject $restResult
+        $getResult.groups.size | Should -Be 2
+        $getResult.groups.items[0].Name | Should -Be $testGroup1
+    }
 
-            $getResult.self | Should -Be $restObj.self
-            $getResult.Name | Should -Be $restObj.name
-            $getResult.DisplayName | Should -Be $restObj.displayName
-            $getResult.Active | Should -Be $restObj.active
-
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
-        }
-
-        It "Gets information for a provided Jira user if a JiraPS.User object is provided to the InputObject parameter" {
-            $getResult = Get-JiraUser -UserName $testUsername
-            $result2 = Get-JiraUser -InputObject $getResult
-
-            $result2 | Should -Not -BeNullOrEmpty
-            $result2.Name | Should -Be $testUsername
-
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 2 -Scope It -ParameterFilter {$URI -like "$jiraServer/rest/api/*/user?username=$testUsername&expand=groups"}
-        }
-
-        It "Allow it search for multiple users" {
-            Get-JiraUser -UserName "%"
-
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {
-                $URI -like "$jiraServer/rest/api/*/user/search?*username=%25*"
-            }
-        }
-
-        It "Allows to change the max number of users to be returned" {
-            Get-JiraUser -UserName "%" -MaxResults 100
-
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {
-                $URI -like "$jiraServer/rest/api/*/user/search?*maxResults=100*"
-            }
-        }
-
-        It "Can skip a certain amount of results" {
-            Get-JiraUser -UserName "%" -Skip 10
-
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly 1 -Scope It -ParameterFilter {
-                $URI -like "$jiraServer/rest/api/*/user/search?*startAt=10*"
-            }
-        }
-
-        It "Provides information about the user's group membership in Jira" {
-            $getResult = Get-JiraUser -UserName $testUsername
-
-            $getResult.groups.size | Should -Be 2
-            $getResult.groups.items[0].Name | Should -Be $testGroup1
-        }
-
-        Context "Output checking" {
+    Context "Output checking" {
+        It "Uses ConvertTo-JiraUser to beautify output" {
             Get-JiraUser -Username $testUsername | Out-Null
-
-            It "Uses ConvertTo-JiraUser to beautify output" {
-                Assert-MockCalled 'ConvertTo-JiraUser'
-            }
+            Should -Invoke 'ConvertTo-JiraUser' -ModuleName JiraPS
         }
     }
 }
