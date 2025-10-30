@@ -26,14 +26,6 @@ Describe "Get-JiraIssueWorklog" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
@@ -41,6 +33,18 @@ Describe "Get-JiraIssueWorklog" -Tag 'Unit' {
         $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
         $issueKey = 'IT-3676'
+
+        # Helper function to create test JiraIssue object
+        function Get-TestJiraIssue {
+            param($Key, $ID)
+            $object = [PSCustomObject] @{
+                ID      = $ID
+                Key     = $Key
+                RestUrl = "$jiraServer/rest/api/2/issue/$ID"
+            }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
 
         $restResult = @"
 {
@@ -71,17 +75,7 @@ Describe "Get-JiraIssueWorklog" -Tag 'Unit' {
         }
 
         Mock Get-JiraIssue -ModuleName JiraPS {
-            $object = [PSCustomObject] @{
-                ID      = $issueID
-                Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
-            }
-            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
-            return $object
-        }
-
-        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-            Get-JiraIssue -Key $Issue
+            Get-TestJiraIssue -Key $Key -ID $issueID
         }
 
         # Obtaining worklog from an issue...this is IT-3676 in the test environment
@@ -96,11 +90,13 @@ Describe "Get-JiraIssueWorklog" -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mocks
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
+    Context "Behavior checking" {
         It "Obtains all Jira worklogs from a Jira issue if the issue key is provided" {
             $worklogs = Get-JiraIssueWorklog -Issue $issueKey
 
@@ -110,32 +106,54 @@ Describe "Get-JiraIssueWorklog" -Tag 'Unit' {
             $worklogs.Comment | Should -Be 'Test comment'
             $worklogs.TimeSpent | Should -Be '3m'
             $worklogs.TimeSpentSeconds | Should -Be 180
-
-            # Get-JiraIssue should be called to identify the -Issue parameter
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
-
-            # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueComment, but
-            # since we've mocked Get-JiraIssue out, it will only be called once.
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Obtains all Jira worklogs from a Jira issue if the Jira object is provided" {
+            Mock Get-JiraIssue {
+                Get-TestJiraIssue -Key $Key -ID $issueID
+            }
             $issue = Get-JiraIssue -Key $issueKey
             $worklogs = Get-JiraIssueWorklog -Issue $issue
 
             $worklogs | Should -Not -BeNullOrEmpty
             $worklogs.ID | Should -Be 90730
-
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
 
         It "Handles pipeline input from Get-JiraIssue" {
+            Mock Get-JiraIssue {
+                Get-TestJiraIssue -Key $Key -ID $issueID
+            }
             $worklogs = Get-JiraIssue -Key $issueKey | Get-JiraIssueWorklog
 
             $worklogs | Should -Not -BeNullOrEmpty
             $worklogs.ID | Should -Be 90730
-
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
         }
+    }
+
+    Context "Internal call validation" {
+        It "Calls Invoke-JiraMethod to obtain the worklog" {
+            Get-JiraIssueWorklog -Issue $issueKey | Out-Null
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly 1
+        }
+
+        It "Calls Get-JiraIssue when an issue key is provided" {
+            Get-JiraIssueWorklog -Issue $issueKey | Out-Null
+
+            Should -Invoke 'Get-JiraIssue' -ModuleName JiraPS -Exactly 1
+        }
+
+        It "Does not call Get-JiraIssue if a JiraPS.Issue object is provided" {
+            $issue = Get-TestJiraIssue $issueKey $issueID
+            Get-JiraIssueWorklog -Issue $issue | Out-Null
+
+            Should -Invoke 'Get-JiraIssue' -ModuleName JiraPS -Exactly 0
+        }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }

@@ -26,15 +26,8 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -86,10 +79,12 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
 ]
 "@
 
-        Mock Get-JiraIssue -ModuleName JiraPS {
+        # Helper function for creating issue objects
+        function Get-TestJiraIssue {
+            param([string]$Key = $issueKey)
             $IssueObj = [PSCustomObject]@{
                 ID         = $issueID
-                Key        = $issueKey
+                Key        = $Key
                 RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
                 attachment = (ConvertFrom-Json -InputObject $attachments)
             }
@@ -97,9 +92,13 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
             $IssueObj
         }
 
-        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-            Get-JiraIssue -Key $Issue
+        Mock Get-JiraIssue -ModuleName JiraPS {
+            Get-TestJiraIssue -Key $issueKey
         }
+
+        # Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+        #     Get-JiraIssue -Key $Issue
+        # }
 
         Mock ConvertTo-JiraAttachment -ModuleName JiraPS {
             $InputObject
@@ -111,33 +110,39 @@ Describe "Get-JiraIssueAttachment" -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        #############
-        # Tests
-        #############
+        $issueObject = Get-TestJiraIssue -Key $issueKey
+    }
 
-        $issueObject = Get-JiraIssue -Key $issueKey
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        It 'only accepts String or JiraPS.Issue as input' {
-            { Get-JiraIssueAttachment -Issue (Get-Date) } | Should -Throw
-            { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should -Throw
-            { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should -Not -Throw
-            { Get-JiraIssueAttachment -Issue (Get-JiraIssue -Key "foo") } | Should -Not -Throw
-        }
+    #############
+    # Tests
+    #############
 
-        It 'takes the issue input over the pipeline' {
-            { $issueObject | Get-JiraIssueAttachment } | Should -Not -Throw
-            { $issueKey | Get-JiraIssueAttachment } | Should -Not -Throw
-        }
+    It 'only accepts String or JiraPS.Issue as input' {
+        { Get-JiraIssueAttachment -Issue (Get-Date) } | Should -Throw
+        { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should -Throw
+        { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should -Not -Throw
+        { Get-JiraIssueAttachment -Issue (Get-TestJiraIssue) } | Should -Not -Throw
+    }
 
-        It 'converts the attachments to objects' {
-            $issueObject | Get-JiraIssueAttachment
-            Get-JiraIssueAttachment -Issue $issueKey
-            Assert-MockCalled -CommandName ConvertTo-JiraAttachment -Exactly 2 -Scope It
-        }
+    It 'takes the issue input over the pipeline' {
+        { $issueObject | Get-JiraIssueAttachment } | Should -Not -Throw
+        { $issueKey | Get-JiraIssueAttachment } | Should -Not -Throw
+    }
 
-        It 'filters the result by FileName' {
-            @($issueObject | Get-JiraIssueAttachment).Count | Should -Be 2
-            @($issueObject | Get-JiraIssueAttachment -FileName 'foo.pdf').Count | Should -Be 1
-        }
+    It 'converts the attachments to objects' {
+        $issueObject | Get-JiraIssueAttachment
+        Get-JiraIssueAttachment -Issue $issueKey
+        Should -Invoke -CommandName ConvertTo-JiraAttachment -ModuleName JiraPS -Times 2 -Exactly
+    }
+
+    It 'filters the result by FileName' {
+        @($issueObject | Get-JiraIssueAttachment).Count | Should -Be 2
+        @($issueObject | Get-JiraIssueAttachment -FileName 'foo.pdf').Count | Should -Be 1
     }
 }

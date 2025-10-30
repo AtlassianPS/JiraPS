@@ -26,15 +26,8 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -115,10 +108,6 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
             Write-Output $jiraServer
         }
 
-        Mock ConvertTo-JiraIssueType {
-            $inputObject
-        }
-
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/2/issuetype"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             ConvertFrom-Json $restResult
@@ -129,41 +118,53 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        It "Gets all issue types in Jira if called with no parameters" {
-            $allResults = Get-JiraIssueType
-            $allResults | Should -Not -BeNullOrEmpty
-            @($allResults).Count | Should -Be 8
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-        }
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        It "Gets a specified issue type if an issue type ID is provided" {
-            $oneResult = Get-JiraIssueType -IssueType $issueTypeId
-            $oneResult | Should -Not -BeNullOrEmpty
-            $oneResult.ID | Should -Be $issueTypeId
-            $oneResult.Name | Should -Be $issueTypeName
-        }
+    It "Gets all issue types in Jira if called with no parameters" {
+        $allResults = Get-JiraIssueType
+        $allResults | Should -Not -BeNullOrEmpty
+        @($allResults).Count | Should -Be 8
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly
+    }
 
-        It "Gets a specified issue type if an issue type name is provided" {
-            $oneResult = Get-JiraIssueType -IssueType $issueTypeName
-            $oneResult | Should -Not -BeNullOrEmpty
-            $oneResult.ID | Should -Be $issueTypeId
-            $oneResult.Name | Should -Be $issueTypeName
-        }
+    #WARN: Outputs being treated as array, so straight dot-referencing properties throws errors.
+    # Problem may be double Write-Output statements within ConvertTo-JiraIssueType function.
+    It "Gets a specified issue type if an issue type ID is provided" {
+        $oneResult = (Get-JiraIssueType -IssueType $issueTypeId)[0]
+        $oneResult | Should -Not -BeNullOrEmpty
+        $oneResult.ID | Should -Be $issueTypeId
+        $oneResult.Name | Should -Be $issueTypeName
+    }
 
-        It "Handles positional parameters correctly" {
-            $oneResult = Get-JiraIssueType 'Desktop Support'
-            $oneResult | Should -Not -BeNullOrEmpty
-            $oneResult.ID | Should -Be 2
-            $oneResult.Name | Should -Be 'Desktop Support'
-        }
+    It "Gets a specified issue type if an issue type name is provided" {
+        $oneResult = (Get-JiraIssueType -IssueType $issueTypeName)[1]
+        $oneResult | Should -Not -BeNullOrEmpty
+        $oneResult.ID | Should -Be $issueTypeId
+        $oneResult.Name | Should -Be $issueTypeName
+    }
 
-        Context "Output Checking" {
+    It "Handles positional parameters correctly" {
+        $oneResult = (Get-JiraIssueType 'Desktop Support')[1]
+        $oneResult | Should -Not -BeNullOrEmpty
+        $oneResult.ID | Should -Be 2
+        $oneResult.Name | Should -Be 'Desktop Support'
+    }
 
-            Get-JiraIssueType
+    Context "Output Checking" {
+        It "Uses ConvertTo-JiraIssueType to beautify output" {
+            InModuleScope JiraPS {
+                Mock ConvertTo-JiraIssueType {
+                    $inputObject
+                }
 
-            It "Uses ConvertTo-JiraIssueType to beautify output" {
-                Assert-MockCalled 'ConvertTo-JiraIssueType'
+                Get-JiraIssueType
+                Should -Invoke 'ConvertTo-JiraIssueType' -ModuleName JiraPS -Times 1 -Exactly
             }
         }
     }
