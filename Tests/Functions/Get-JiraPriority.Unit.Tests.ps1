@@ -26,15 +26,8 @@ Describe "Get-JiraPriority" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -110,21 +103,27 @@ Describe "Get-JiraPriority" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        It "Gets all available priorities if called with no parameters" {
-            $getResult = Get-JiraPriority
-            $getResult | Should -Not -BeNullOrEmpty
-            $getResult.Count | Should -Be 5
-        }
+    #############
+    # Tests
+    #############
 
-        It "Gets one priority if the ID parameter is supplied" {
-            $getResult = Get-JiraPriority -Id 1
-            $getResult | Should -Not -BeNullOrEmpty
-            @($getResult).Count | Should -Be 1
-        }
+    It "Gets all available priorities if called with no parameters" {
+        $getResult = Get-JiraPriority
+        $getResult | Should -Not -BeNullOrEmpty
+        $getResult.Count | Should -Be 5
+    }
+
+    It "Gets one priority if the ID parameter is supplied" {
+        $getResult = Get-JiraPriority -Id 1
+        $getResult | Should -Not -BeNullOrEmpty
+        @($getResult).Count | Should -Be 1
     }
 }

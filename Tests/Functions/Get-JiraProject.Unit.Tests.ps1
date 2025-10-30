@@ -26,14 +26,6 @@ Describe "Get-JiraProject" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
@@ -111,12 +103,13 @@ Describe "Get-JiraProject" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
-        It "Returns all projects if called with no parameters" {
+    It "Returns all projects if called with no parameters" {
             $allResults = Get-JiraProject
             $allResults | Should -Not -BeNullOrEmpty
             @($allResults).Count | Should -Be (ConvertFrom-Json -InputObject $restResultAll).Count
@@ -143,5 +136,10 @@ Describe "Get-JiraProject" -Tag 'Unit' {
             $oneResult = Get-JiraProject -Project $projectKey
             $oneResult.Id | Should -Be $projectId
         }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }

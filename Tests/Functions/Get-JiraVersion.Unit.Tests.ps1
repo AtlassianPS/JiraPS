@@ -26,14 +26,6 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
@@ -115,26 +107,46 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
 "@
         #endregion Definitions
 
-        #region Mocks
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
-        Mock Get-JiraProject -ModuleName JiraPS {
+        # Helper function to create test JiraProject object
+        function Get-TestJiraProject {
+            param($Project)
             $json = ConvertFrom-Json $JiraProjectData
             $object = $json | Where-Object {$_.Key -in $Project}
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
             return $object
         }
 
-        Mock ConvertTo-JiraVersion -ModuleName JiraPS {
+        # Helper function to create test JiraVersion object
+        function Get-TestJiraVersion {
+            param($Version)
+
             $result = New-Object -TypeName PSObject -Property @{
+                Id      = $Version.Id
+                Name    = $Version.Name
+                Project = $Version.projectId
+            }
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+            $result
+        }
+
+        #region Mocks
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
+            Write-Output $jiraServer
+        }
+
+        Mock Get-JiraProject -ModuleName JiraPS {
+            Get-TestJiraProject -Project $Project
+        }
+
+        Mock ConvertTo-JiraVersion -ModuleName JiraPS {
+            Get-TestJiraVersion $InputObject
+            <# $result = New-Object -TypeName PSObject -Property @{
                 Id      = $InputObject.Id
                 Name    = $InputObject.name
                 Project = $InputObject.projectId
             }
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
-            $result
+            $result #>
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/2/version/$versionId1" } {
@@ -163,8 +175,10 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mocks
+    }
 
-        Context "Sanity checking" {
+    Context "Sanity checking" {
+        It "Has expected parameters" {
             $command = Get-Command -Name Get-JiraVersion
 
             defParam $command 'Project'
@@ -172,343 +186,177 @@ Describe "Get-JiraVersion" -Tag 'Unit' {
             defParam $command 'ID'
             defParam $command 'Credential'
         }
+    }
 
-        Context "Behavior checking" {
+    Context "Behavior checking" {
+        It "gets a Version using Id Parameter Set" {
+            $results = Get-JiraVersion -Id $versionID1
 
-            It "gets a Version using Id Parameter Set" {
-                $results = Get-JiraVersion -Id $versionID1
+            $results | Should -Not -BeNullOrEmpty
 
-                $results | Should -Not -BeNullOrEmpty
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*/rest/api/*/version/$versionID1"
+            } -Exactly 1
 
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/version/$versionID1"
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'ConvertTo-JiraVersion'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "gets a Version using multiple IDs" {
-                $results = Get-JiraVersion -Id $versionID1, $versionID2
-
-                $results | Should -Not -BeNullOrEmpty
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/version/$versionID1"
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/version/$versionID2"
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'ConvertTo-JiraVersion'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 2
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "gets a Version using the pipeline from another Version" {
-                $version1 = ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2)})
-                $version2 = ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2); project = "lorem"})
-
-                $results1 = ($version1 | Get-JiraVersion)
-                $results2 = ($version2 | Get-JiraVersion)
-                $results1 | Should -Not -BeNullOrEmpty
-                $results2 | Should -Not -BeNullOrEmpty
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/version/$versionID2"
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 2
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'ConvertTo-JiraVersion'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 4
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "gets all Versions using Project Parameter Set" {
-                $results = Get-JiraVersion -Project $projectKey
-
-                $results | Should -Not -BeNullOrEmpty
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/$projectKey/version" -and
-                        $Paging -eq $true
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'Get-JiraProject'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'ConvertTo-JiraVersion'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 0
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "gets all Versions using Project as pipe input" {
-                $results = Get-JiraProject -Project $projectKey | Get-JiraVersion
-
-                $results | Should -Not -BeNullOrEmpty
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/$projectKey/version" -and
-                        $Paging -eq $true
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                # Get-JiraProject is called once in the It block
-                # and once in the `Get-JiraVersion`
-                $assertMockCalledSplat = @{
-                    CommandName = 'Get-JiraProject'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 2
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'ConvertTo-JiraVersion'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 0
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "gets all Versions from multiple Projects" {
-                $results = Get-JiraVersion -Project $projectKey, "foo"
-
-                $results | Should -Not -BeNullOrEmpty
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/*/version" -and
-                        $Paging -eq $true
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 2
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'Get-JiraProject'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 2
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'ConvertTo-JiraVersion'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 0
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "filters the Versions from a Project by Name" {
-                $results = Get-JiraVersion -Project $projectKey -Name $versionName1
-
-                $results | Should -Not -BeNullOrEmpty
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/*/version" -and
-                        $Paging -eq $true
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'Get-JiraProject'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'ConvertTo-JiraVersion'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 0
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "filters the Versions from a Project by multiple Names" {
-                $results = Get-JiraVersion -Project $projectKey -Name $versionName1, $versionName2
-
-                $results | Should -Not -BeNullOrEmpty
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like "*/rest/api/*/project/*/version" -and
-                        $Paging -eq $true
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'Get-JiraProject'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName = 'ConvertTo-JiraVersion'
-                    ModuleName  = 'JiraPS'
-                    Scope       = 'It'
-                    Exactly     = $true
-                    Times       = 0
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "Supports the -Skip parameters to page through search results" {
-                { Get-JiraVersion -Project $projectKey -Skip 10 } | Should -Not -Throw
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/project/*/version' -and
-                        $Paging -eq $true -and
-                        $PSCmdlet.PagingParameters.Skip -eq 10
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "Supports the -First parameters to page through search results" {
-                { Get-JiraVersion -Project $projectKey -First 50 } | Should -Not -Throw
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/project/*/version' -and
-                        $Paging -eq $true -and
-                        $PSCmdlet.PagingParameters.First -eq 50
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "assert VerifiableMock" {
-                Assert-VerifiableMock
-            }
+            Should -Invoke 'ConvertTo-JiraVersion' -ModuleName JiraPS -Exactly 1
         }
+
+        It "gets a Version using multiple IDs" {
+            $results = Get-JiraVersion -Id $versionID1, $versionID2
+
+            $results | Should -Not -BeNullOrEmpty
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*/rest/api/*/version/$versionID1"
+            } -Exactly 1
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*/rest/api/*/version/$versionID2"
+            } -Exactly 1
+
+            Should -Invoke 'ConvertTo-JiraVersion' -ModuleName JiraPS -Exactly 2
+        }
+
+        It "gets a Version using the pipeline from another Version" {
+            $version1 = Get-TestJiraVersion ([PSCustomObject]@{
+                Id = [int]($versionID2)
+                Name = $versionName1
+                ProjectId = $projectId
+            })
+            $version2 = Get-TestJiraVersion ([PSCustomObject]@{
+                Id = [int]($versionID2)
+                Name = $versionName2
+                ProjectId = $projectId
+            })
+
+            $results1 = ($version1 | Get-JiraVersion)
+            $results2 = ($version2 | Get-JiraVersion)
+            $results1 | Should -Not -BeNullOrEmpty
+            $results2 | Should -Not -BeNullOrEmpty
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*/rest/api/*/version/$versionID2"
+            } -Exactly 2
+
+            Should -Invoke 'ConvertTo-JiraVersion' -ModuleName JiraPS -Exactly 2
+        }
+
+        It "gets all Versions using Project Parameter Set" {
+            $results = Get-JiraVersion -Project $projectKey
+
+            $results | Should -Not -BeNullOrEmpty
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*/rest/api/*/project/$projectKey/version" -and
+                $Paging -eq $true
+            } -Exactly 1
+
+            Should -Invoke 'Get-JiraProject' -ModuleName JiraPS -Exactly 1
+
+            Should -Invoke 'ConvertTo-JiraVersion' -ModuleName JiraPS -Exactly 0
+        }
+
+        It "gets all Versions using Project as pipe input" {
+            $results = Get-TestJiraProject -Project $projectKey | Get-JiraVersion
+
+            $results | Should -Not -BeNullOrEmpty
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*/rest/api/*/project/$projectKey/version" -and
+                $Paging -eq $true
+            } -Exactly 1
+
+            # Get-JiraProject is called once in the It block
+            # and once in the `Get-JiraVersion`
+            Should -Invoke 'Get-JiraProject' -ModuleName JiraPS -Exactly 1
+
+            Should -Invoke 'ConvertTo-JiraVersion' -ModuleName JiraPS -Exactly 0
+        }
+
+        It "gets all Versions from multiple Projects" {
+            $results = Get-JiraVersion -Project $projectKey, "foo"
+
+            $results | Should -Not -BeNullOrEmpty
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*/rest/api/*/project/*/version" -and
+                $Paging -eq $true
+            } -Exactly 2
+
+            Should -Invoke 'Get-JiraProject' -ModuleName JiraPS -Exactly 2
+
+            Should -Invoke 'ConvertTo-JiraVersion' -ModuleName JiraPS -Exactly 0
+        }
+
+        It "filters the Versions from a Project by Name" {
+            $results = Get-JiraVersion -Project $projectKey -Name $versionName1
+
+            $results | Should -Not -BeNullOrEmpty
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*/rest/api/*/project/*/version" -and
+                $Paging -eq $true
+            } -Exactly 1
+
+            Should -Invoke 'Get-JiraProject' -ModuleName JiraPS -Exactly 1
+
+            Should -Invoke 'ConvertTo-JiraVersion' -ModuleName JiraPS -Exactly 0
+        }
+
+        It "filters the Versions from a Project by multiple Names" {
+            $results = Get-JiraVersion -Project $projectKey -Name $versionName1, $versionName2
+
+            $results | Should -Not -BeNullOrEmpty
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*/rest/api/*/project/*/version" -and
+                $Paging -eq $true
+            } -Exactly 1
+
+            Should -Invoke 'Get-JiraProject' -ModuleName JiraPS -Exactly 1
+
+            Should -Invoke 'ConvertTo-JiraVersion' -ModuleName JiraPS -Exactly 0
+        }
+
+        It "Supports the -Skip parameters to page through search results" {
+            { Get-JiraVersion -Project $projectKey -Skip 10 } | Should -Not -Throw
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like '*/rest/api/*/project/*/version' -and
+                $Paging -eq $true -and
+                $Skip -eq 10
+            } -Exactly 1
+        }
+
+        It "Supports the -First parameters to page through search results" {
+            { Get-JiraVersion -Project $projectKey -First 50 } | Should -Not -Throw
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like '*/rest/api/*/project/*/version' -and
+                $Paging -eq $true -and
+                $First -eq 50
+            } -Exactly 1
+        }
+
+        It "assert VerifiableMock" {
+            Assert-VerifiableMock
+        }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }
