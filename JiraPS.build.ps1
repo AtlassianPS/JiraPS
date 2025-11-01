@@ -5,7 +5,7 @@
 [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingEmptyCatchBlock', '')]
 param(
     [String[]]$Tag,
-    [String[]]$ExcludeTag = @("Integration"),
+    [String[]]$ExcludeTag = @("Integration","NotImplemented"),
     [String]$PSGalleryAPIKey,
     [String]$GithubAccessToken
 )
@@ -226,8 +226,9 @@ task Test Init, {
                 Path = "$env:BHBuildOutput/Tests/*"
             }
             TestResult = @{
+                Enabled = $true
                 OutputFormat = 'NUnitXml'
-                OutputPath = "$env:BHProjectPath/Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
+                OutputPath = "Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
             }
             Output = @{
                 Verbosity = 'Detailed'
