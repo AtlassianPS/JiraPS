@@ -8,15 +8,11 @@ $script:ShowMockData = $false
 $script:ShowDebugText = $false
 
 function defProp($obj, $propName, $propValue) {
-    It "Defines the '$propName' property" {
-        $obj.$propName | Should -Be $propValue
-    }
+    $obj.$propName | Should -Be $propValue
 }
 
 function hasProp($obj, $propName) {
-    It "Defines the '$propName' property" {
-        $obj | Get-Member -MemberType *Property -Name $propName | Should -Not -BeNullOrEmpty
-    }
+    $obj | Get-Member -MemberType *Property -Name $propName | Should -Not -BeNullOrEmpty
 }
 
 function hasNotProp($obj, $propName) {
@@ -54,15 +50,6 @@ function castsToString($obj) {
     }
 
     $o.ToString() | Should -Not -BeNullOrEmpty
-}
-
-function checkPsType($obj, $typeName) {
-    It "Uses output type of '$typeName'" {
-        checkType $obj $typeName
-    }
-    It "Can cast to string" {
-        castsToString($obj)
-    }
 }
 
 function ShowMockInfo {
