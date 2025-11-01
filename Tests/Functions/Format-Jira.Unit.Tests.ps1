@@ -4,7 +4,7 @@
 Describe "Format-Jira" -Tag 'Unit' {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
         $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
         if ($projectRoot -like "*Release") {
             $projectRoot = (Resolve-Path "$projectRoot/..").Path
@@ -22,19 +22,12 @@ Describe "Format-Jira" -Tag 'Unit' {
             $env:BHManifestToTest = $env:BHBuildModuleManifest
         }
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1" -ErrorAction Stop
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
+        Import-Module $env:BHManifestToTest -ErrorAction Stop
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $n = [System.Environment]::NewLine
@@ -51,6 +44,36 @@ Describe "Format-Jira" -Tag 'Unit' {
             D = '12345'
         }
 
+        Mock Get-Process {
+            $obj = [PSCustomObject] @{
+                CompanyName = 'Microsoft Corporation'
+                Handle      = 5368
+                Id          = 4496
+                MachineName = '.'
+                Name        = 'explorer'
+                Path        = 'C:\Windows\Explorer.EXE'
+            }
+
+            # Since we're mocking this with a PSCustomObject, we need to define its default property set
+            [String[]] $DefaultProperties = @('Name', 'Id')
+            $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet', $DefaultProperties
+            $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
+            Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
+
+            Write-Output $obj
+        }
+    }
+
+    Context "Sanity checking" {
+        It "Has expected parameters" {
+            $command = Get-Command -Name Format-Jira
+
+            defParam $command 'InputObject'
+            defParam $command 'Property'
+        }
+    }
+
+    Context "Behavior testing" {
         It "Translates an object into a String" {
 
             $expected = "||A||B||C||$n|123|456|789|"
@@ -83,18 +106,6 @@ Describe "Format-Jira" -Tag 'Unit' {
         }
 
         It "Returns only selected properties if the -Property argument is passed" {
-            Mock Get-Process {
-                # Rather than actually running Get-Process, we'll use a known example of what
-                # its output *could* be, so we can produce repeatable results.
-                [PSCustomObject] @{
-                    CompanyName = 'Microsoft Corporation'
-                    Handle      = 5368
-                    Id          = 4496
-                    MachineName = '.'
-                    Name        = 'explorer'
-                    Path        = 'C:\Windows\Explorer.EXE'
-                }
-            }
 
             $expected1 = "||Name||Id||$n|explorer|4496|"
             $expected2 = "||Name||CompanyName||Id||MachineName||Handle||$n|explorer|Microsoft Corporation|4496|.|5368|"
@@ -104,24 +115,6 @@ Describe "Format-Jira" -Tag 'Unit' {
         }
 
         It "Returns an object's default properties if the -Property argument is not passed" {
-            Mock Get-Process {
-                $obj = [PSCustomObject] @{
-                    CompanyName = 'Microsoft Corporation'
-                    Handle      = 5368
-                    Id          = 4496
-                    MachineName = '.'
-                    Name        = 'explorer'
-                    Path        = 'C:\Windows\Explorer.EXE'
-                }
-
-                # Since we're mocking this with a PSCustomObject, we need to define its default property set
-                [String[]] $DefaultProperties = @('Name', 'Id')
-                $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet', $DefaultProperties
-                $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
-                Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
-
-                Write-Output $obj
-            }
 
             $expected = "||Name||Id||$n|explorer|4496|"
 
@@ -129,27 +122,16 @@ Describe "Format-Jira" -Tag 'Unit' {
         }
 
         It "Returns ALL object's default properties if the -Property argument is not passed" {
-            Mock Get-Process {
-                $obj = [PSCustomObject] @{
-                    CompanyName = 'Microsoft Corporation'
-                    Handle      = 5368
-                    Id          = 4496
-                    MachineName = '.'
-                    Name        = 'explorer'
-                    Path        = 'C:\Windows\Explorer.EXE'
-                }
-
-                [String[]] $DefaultProperties = @('Name', 'Id')
-                $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet', $DefaultProperties
-                $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
-                Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
-
-                Write-Output $obj
-            }
 
             $expected = "||CompanyName||Handle||Id||MachineName||Name||Path||$n|Microsoft Corporation|5368|4496|.|explorer|C:\Windows\Explorer.EXE|"
 
             Get-Process | Format-Jira -Property * | Should -Be $expected
         }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
     }
 }
