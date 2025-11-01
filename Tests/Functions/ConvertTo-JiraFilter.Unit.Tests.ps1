@@ -1,41 +1,35 @@
 #requires -modules BuildHelpers
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
-Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
-
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+BeforeDiscovery {
+    Remove-Item -Path Env:\BH*
+    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
+    if ($projectRoot -like "*Release") {
+        $projectRoot = (Resolve-Path "$projectRoot/..").Path
     }
 
-    InModuleScope JiraPS {
+    Import-Module BuildHelpers
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
 
-        . "$PSScriptRoot/../Shared.ps1"
+    $env:BHManifestToTest = $env:BHPSModuleManifest
+    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+    if ($script:isBuild) {
+        $Pattern = [regex]::Escape($env:BHProjectPath)
+
+        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+        $env:BHManifestToTest = $env:BHBuildModuleManifest
+    }
+
+    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Import-Module $env:BHManifestToTest
+}
+
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkType / castsToString)
 
         # Obtained from Atlassian's public JIRA instance
         $sampleJson = @'
@@ -166,38 +160,53 @@ Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
 ]
 "@
 
-        Mock ConvertTo-JiraFilterPermission -ModuleName JiraPS {
-            $i = New-Object -TypeName PSCustomObject -Property @{ Id = 1111 }
-            $i.PSObject.TypeNames.Insert(0, 'JiraPS.FilterPermission')
-            $i
         }
 
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-        $r = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
+        Context "Sanity checking" {
+            BeforeAll {
+                Mock ConvertTo-JiraFilterPermission {
+                    $i = New-Object -TypeName PSCustomObject -Property @{ Id = 1111 }
+                    $i.PSObject.TypeNames.Insert(0, 'JiraPS.FilterPermission')
+                    $i
+                }
 
-        It "Creates a PSObject out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
-        }
+                $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+                $r = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
+            }
 
-        checkPsType $r 'JiraPS.Filter'
+            It "Creates a PSObject out of JSON input" {
+                $r | Should -Not -BeNullOrEmpty
+            }
 
-        defProp $r 'Id' 12844
-        defProp $r 'Name' 'All JIRA Bugs'
-        defProp $r 'JQL' 'project = 10240 AND issuetype = 1 ORDER BY key DESC'
-        defProp $r 'RestUrl' 'https://jira.atlassian.com/rest/api/2/filter/12844'
-        defProp $r 'ViewUrl' 'https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844'
-        defProp $r 'SearchUrl' 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
-        defProp $r 'Favourite' $false
-        It "Defines the 'Favorite' property as an alias of 'Favourite'" {
-            ($r | Get-Member -Name Favorite).MemberType | Should -Be "AliasProperty"
-        }
+            It "Uses correct output type" {
+                checkType $r 'JiraPS.Filter'
+            }
 
-        It "Uses output type of 'JiraPS.FilterPermission' for property 'FilterPermissions'" {
-            checkType $r.FilterPermissions 'JiraPS.FilterPermission'
-        }
+            It "Can cast to string" {
+                castsToString $r
+            }
 
-        It "uses ConvertTo-JiraFilterPermission" {
-            Assert-MockCalled -CommandName ConvertTo-JiraFilterPermission -Module JiraPS -Exactly -Times 1 -Scope Describe
+            It "Defines expected properties" {
+                defProp $r 'Id' 12844
+                defProp $r 'Name' 'All JIRA Bugs'
+                defProp $r 'JQL' 'project = 10240 AND issuetype = 1 ORDER BY key DESC'
+                defProp $r 'RestUrl' 'https://jira.atlassian.com/rest/api/2/filter/12844'
+                defProp $r 'ViewUrl' 'https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844'
+                defProp $r 'SearchUrl' 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
+                defProp $r 'Favourite' $false
+            }
+
+            It "Defines the 'Favorite' property as an alias of 'Favourite'" {
+                ($r | Get-Member -Name Favorite).MemberType | Should -Be "AliasProperty"
+            }
+
+            It "Uses output type of 'JiraPS.FilterPermission' for property 'FilterPermissions'" {
+                checkType $r.FilterPermissions 'JiraPS.FilterPermission'
+            }
+
+            It "uses ConvertTo-JiraFilterPermission" {
+                Should -Invoke -CommandName ConvertTo-JiraFilterPermission -Exactly -Times 1 -Scope Context
+            }
         }
     }
 }
