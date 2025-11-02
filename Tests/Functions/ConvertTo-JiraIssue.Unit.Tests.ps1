@@ -1,45 +1,40 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
-Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
-
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+BeforeDiscovery {
+    Remove-Item -Path Env:\BH*
+    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
+    if ($projectRoot -like "*Release") {
+        $projectRoot = (Resolve-Path "$projectRoot/..").Path
     }
 
-    InModuleScope JiraPS {
+    Import-Module BuildHelpers
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
 
-        . "$PSScriptRoot/../Shared.ps1"
+    $env:BHManifestToTest = $env:BHPSModuleManifest
+    $isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+    if ($isBuild) {
+        $Pattern = [regex]::Escape($env:BHProjectPath)
 
-        $jiraServer = 'http://jiraserver.example.com'
+        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+        $env:BHManifestToTest = $env:BHBuildModuleManifest
+    }
 
-        # An example of how an issue will look when returned from JIRA's REST API.
+    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Import-Module $env:BHManifestToTest
+}
+
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
+
+        BeforeAll {
+            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkPsType / checkType)
+
+            $jiraServer = 'http://jiraserver.example.com'
+
+            # An example of how an issue will look when returned from JIRA's REST API.
         # You can obtain most of this with a one-liner:
         # (Invoke-WebRequest -Method Get -Uri '$jiraServer/rest/api/2/issue/JRA-37294?expand=transitions').Content
 
@@ -899,54 +894,66 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
 }
 "@
         $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+        }
 
         Context "Basic behavior testing" {
-            $r = ConvertTo-JiraIssue -InputObject $sampleObject
-
             It "Creates a PSObject out of JSON input" {
-                $r | Should Not BeNullOrEmpty
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
+                $r | Should -Not -BeNullOrEmpty
             }
 
-            checkPsType $r 'JiraPS.Issue'
+            It "Uses correct output type" {
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
+                checkType $r "JiraPS.Issue"
+            }
 
-            defProp $r 'Key' 'JRA-37294'
-            defProp $r 'Id' '320391'
-            defProp $r 'RestUrl' "$jiraServer/rest/api/2/issue/320391"
-            defProp $r 'HttpUrl' "$jiraServer/browse/JRA-37294"
-            defProp $r 'Summary' 'Allow set active/inactive via REST API'
+            It "Can cast to string" {
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
+                castsToString $r
+            }
+
+            It "Defines expected properties" {
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
+                defProp $r 'Key' 'JRA-37294'
+                defProp $r 'Id' '320391'
+                defProp $r 'RestUrl' "$jiraServer/rest/api/2/issue/320391"
+                defProp $r 'HttpUrl' "$jiraServer/browse/JRA-37294"
+                defProp $r 'Summary' 'Allow set active/inactive via REST API'
+            }
+
             It "Defines the 'Attachment' property" {
-                $r.Attachment | Should Not BeNullOrEmpty
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
+                $r.Attachment | Should -Not -BeNullOrEmpty
             }
         }
 
         Context "Output formatting" {
-
-            # Other ConvertTo-Jira* functions call each other in some cases, so
-            # we need to mock out a few others to avoid our Assert-MockCalled
-            # counts being unexpected.
+        # Other ConvertTo-Jira* functions call each other in some cases, so
+        # we need to mock out a few others to avoid our Assert-MockCalled
+        # counts being unexpected.
 
             #            Mock ConvertTo-JiraComment -ModuleName JiraPS { $InputObject }
             #            Mock ConvertTo-JiraProject -ModuleName JiraPS { $InputObject }
             #            Mock ConvertTo-JiraTransition -ModuleName JiraPS { $InputObject }
             #            Mock ConvertTo-JiraUser -ModuleName JiraPS { $InputObject }
 
-            $r = ConvertTo-JiraIssue -InputObject $sampleObject
-
             It "Defines Date fields as Date objects" {
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
                 $dateFields = @('Created', 'Updated') # LastViewed should be in here too, but in this example issue from Atlassian, that value is null
                 foreach ($f in $dateFields) {
                     $value = $r.$f
-                    $value | Should Not BeNullOrEmpty
+                    $value | Should -Not -BeNullOrEmpty
                     checkType $value 'System.DateTime'
                 }
             }
 
             It "Uses ConvertTo-JiraUser to return user fields as User objects" {
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
                 $userFields = @('Creator', 'Reporter') # Again, Assigned is another user field, but in this example it's unassigned
                 foreach ($f in $userFields) {
                     $value = $r.$f
-                    $value | Should Not BeNullOrEmpty
-                    # (Get-Member -InputObject $value).TypeName | Should Be 'JiraPS.User'
+                    $value | Should -Not -BeNullOrEmpty
+                    # (Get-Member -InputObject $value).TypeName | Should -Be 'JiraPS.User'
                     checkType $value 'JiraPS.User'
                 }
 
@@ -955,15 +962,18 @@ Describe "ConvertTo-JiraIssue" -Tag 'Unit' {
             }
 
             It "Uses ConvertTo-JiraProject to return the project as an object" {
-                # (Get-Member -InputObject $r.Project).TypeName | Should Be 'JiraPS.Project'
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
+                # (Get-Member -InputObject $r.Project).TypeName | Should -Be 'JiraPS.Project'
                 checkType $r.Project 'JiraPS.Project'
             }
 
             It "Uses ConvertTo-JiraTransition to return the issue's transitions as an object" {
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
                 checkType $r.Transition[0] 'JiraPS.Transition'
             }
 
             It "Uses ConvertTo-JiraAttachment to return the issue's attachments as an object" {
+                $r = ConvertTo-JiraIssue -InputObject $sampleObject
                 checkType $r.Attachment 'JiraPS.Attachment'
             }
         }

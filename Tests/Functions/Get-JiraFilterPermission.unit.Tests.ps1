@@ -1,9 +1,9 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe 'Get-JiraFilterPermission' -Tag 'Unit' {
 
-BeforeAll {
+    BeforeAll {
         Remove-Item -Path Env:\BH*
         $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
         if ($projectRoot -like "*Release") {
@@ -26,14 +26,6 @@ BeforeAll {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
@@ -46,6 +38,17 @@ BeforeAll {
   "type": "global"
 }
 "@
+
+        # Helper function to create test JiraFilter object
+        function Get-TestJiraFilter {
+            param($Id = 23456)
+            $object = New-Object -TypeName PSCustomObject -Property @{
+                Id = $Id
+                RestUrl = "$jiraServer/rest/api/2/filter/$Id"
+            }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+            $object
+        }
         #endregion Definitions
 
         #region Mocks
@@ -57,13 +60,8 @@ BeforeAll {
 
         Mock Get-JiraFilter -ModuleName JiraPS {
             foreach ($_id in $Id) {
-            $basicFilter = New-Object -TypeName PSCustomObject -Property @{
-                Id = $Id
-                RestUrl = "$jiraServer/rest/api/2/filter/$Id"
+                Get-TestJiraFilter -Id $_id
             }
-            $basicFilter.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
-            $basicFilter
-        }
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission"} {
@@ -76,79 +74,87 @@ BeforeAll {
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mocks
+    }
 
-        Context "Sanity checking" {
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
+
+    Context "Sanity checking" {
+        It "Has expected parameters" {
             $command = Get-Command -Name Get-JiraFilterPermission
 
             defParam $command 'Filter'
             defParam $command 'Id'
             defParam $command 'Credential'
         }
+    }
 
-        Context "Behavior testing" {
-            It "Retrieves the permissions of a Filter by Object" {
-                { Get-JiraFilter -Id 23456 | Get-JiraFilterPermission } | Should -Not -Throw
+    Context "Behavior testing" {
+        It "Retrieves the permissions of a Filter by Object" {
+            { Get-TestJiraFilter -Id 23456 | Get-JiraFilterPermission } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
-                    $Method -eq 'Get' -and
-                    $URI -like '*/rest/api/*/filter/23456/permission'
-                }
-            }
-
-            It "Retrieves the permissions of a Filter by Id" {
-                { 23456 | Get-JiraFilterPermission } | Should -Not -Throw
-
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
-                    $Method -eq 'Get' -and
-                    $URI -like '*/rest/api/*/filter/23456/permission'
-                }
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like '*/rest/api/*/filter/23456/permission'
             }
         }
 
-        Context "Input testing" {
-            It "finds the filter by Id" {
-                { Get-JiraFilterPermission -Id 23456 } | Should -Not -Throw
+        It "Retrieves the permissions of a Filter by Id" {
+            { 23456 | Get-JiraFilterPermission } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like '*/rest/api/*/filter/23456/permission'
             }
+        }
+    }
 
-            It "does not accept negative Ids" {
-                { Get-JiraFilterPermission -Id -1 } | Should -Throw
-            }
+    Context "Input testing" {
+        It "finds the filter by Id" {
+            { Get-JiraFilterPermission -Id 23456 } | Should -Not -Throw
 
-            It "can process multiple Ids" {
-                { Get-JiraFilterPermission -Id 23456, 23456 } | Should -Not -Throw
+            Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
+        }
 
-                Assert-MockCalled -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1 -Scope It
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
-            }
+        It "does not accept negative Ids" {
+            { Get-JiraFilterPermission -Id -1 } | Should -Throw
+        }
 
-            It "allows for the filter to be passed over the pipeline" {
-                { Get-JiraFilter -Id 23456 | Get-JiraFilterPermission } | Should -Not -Throw
+        It "can process multiple Ids" {
+            { Get-JiraFilterPermission -Id 23456, 23456 } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-            }
+            Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+        }
 
-            It "can ony process one Filter objects" {
-                $filter = @()
-                $filter += Get-JiraFilter -Id 23456
-                $filter += Get-JiraFilter -Id 23456
+        It "allows for the filter to be passed over the pipeline" {
+            { Get-TestJiraFilter -Id 23456 | Get-JiraFilterPermission } | Should -Not -Throw
 
-                { Get-JiraFilterPermission -Filter $filter } | Should -Not -Throw
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+        }
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
-            }
+        It "can only process multiple Filter objects" {
+            $filter = @()
+            $filter += Get-TestJiraFilter -Id 23456
+            $filter += Get-TestJiraFilter -Id 23456
 
-            It "resolves positional parameters" {
-                { Get-JiraFilterPermission 23456 } | Should -Not -Throw
+            { Get-JiraFilterPermission -Filter $filter } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+        }
 
-                $filter = Get-JiraFilter -Id 23456
-                { Get-JiraFilterPermission $filter } | Should -Not -Throw
+        It "resolves positional parameters" {
+            { Get-JiraFilterPermission 23456 } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
-            }
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+
+            $filter = Get-TestJiraFilter -Id 23456
+            { Get-JiraFilterPermission $filter } | Should -Not -Throw
+
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
         }
     }
 }

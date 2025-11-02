@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraProject" -Tag 'Unit' {
 
@@ -26,14 +26,6 @@ Describe "Get-JiraProject" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
@@ -111,37 +103,43 @@ Describe "Get-JiraProject" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
-        It "Returns all projects if called with no parameters" {
+    It "Returns all projects if called with no parameters" {
             $allResults = Get-JiraProject
-            $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be (ConvertFrom-Json -InputObject $restResultAll).Count
+            $allResults | Should -Not -BeNullOrEmpty
+            @($allResults).Count | Should -Be (ConvertFrom-Json -InputObject $restResultAll).Count
         }
 
         It "Returns details about specific projects if the project key is supplied" {
             $oneResult = Get-JiraProject -Project $projectKey
-            $oneResult | Should Not BeNullOrEmpty
-            @($oneResult).Count | Should Be 1
+            $oneResult | Should -Not -BeNullOrEmpty
+            @($oneResult).Count | Should -Be 1
         }
 
         It "Returns details about specific projects if the project ID is supplied" {
             $oneResult = Get-JiraProject -Project $projectId
-            $oneResult | Should Not BeNullOrEmpty
-            @($oneResult).Count | Should Be 1
+            $oneResult | Should -Not -BeNullOrEmpty
+            @($oneResult).Count | Should -Be 1
         }
 
         It "Provides the key of the project" {
             $oneResult = Get-JiraProject -Project $projectKey
-            $oneResult.Key | Should Be $projectKey
+            $oneResult.Key | Should -Be $projectKey
         }
 
         It "Provides the ID of the project" {
             $oneResult = Get-JiraProject -Project $projectKey
-            $oneResult.Id | Should Be $projectId
+            $oneResult.Id | Should -Be $projectId
         }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }

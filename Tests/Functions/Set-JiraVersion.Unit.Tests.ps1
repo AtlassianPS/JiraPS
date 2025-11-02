@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Set-JiraVersion" -Tag 'Unit' {
 
@@ -26,16 +26,8 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
 
         $jiraServer = 'http://jiraserver.example.com'
         $versionName = '1.0.0.0'
@@ -68,6 +60,21 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
 "@
 
         #region Mock
+
+        #helper functions to generate test Jira objects
+        function Get-TestJiraVersion {
+            $InputObject = ConvertFrom-Json $testJsonOne
+
+            $result = New-Object -TypeName PSObject -Property @{
+                Id      = $InputObject.Id
+                Name    = $InputObject.name
+                Project = $InputObject.projectId
+                RestUrl = $InputObject.self
+            }
+            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+            $result
+        }
+
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
@@ -79,7 +86,7 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
         }
 
         Mock Get-JiraVersion -ModuleName JiraPS {
-            ConvertTo-JiraVersion -InputObject (ConvertFrom-Json $testJsonOne)
+            Get-TestJiraVersion
         }
 
         Mock ConvertTo-JiraVersion -ModuleName JiraPS {
@@ -104,8 +111,10 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mock
+    }
 
-        Context "Sanity checking" {
+    Context "Sanity checking" {
+        It "Has expected parameters" {
             $command = Get-Command -Name Set-JiraVersion
 
             defParam $command 'Version'
@@ -118,30 +127,33 @@ Describe "Set-JiraVersion" -Tag 'Unit' {
             defParam $command 'Project'
             defParam $command 'Credential'
         }
+    }
 
-        Context "Behavior checking" {
-            It "sets an Issue's Version Name" {
-                $version = Get-JiraVersion -Project $projectKey -Name $versionName
-                $results = Set-JiraVersion -Version $version -Name "NewName" -ErrorAction Stop
-                $results | Should Not BeNullOrEmpty
-                checkType $results "JiraPS.Version"
-                Assert-MockCalled 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraProject' -Times 0 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'ConvertTo-JiraVersion' -Times 3 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
-            }
-            It "sets an Issue's Version Name using the pipeline" {
-                $results = Get-JiraVersion -Project $projectKey | Set-JiraVersion -Name "NewName" -ErrorAction Stop
-                $results | Should Not BeNullOrEmpty
-                checkType $results "JiraPS.Version"
-                Assert-MockCalled 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Get-JiraProject' -Times 0 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'ConvertTo-JiraVersion' -Times 3 -Scope It -ModuleName JiraPS -Exactly
-                Assert-MockCalled 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
-            }
-            It "assert VerifiableMock" {
-                Assert-VerifiableMock
-            }
+    Context "Behavior checking" {
+        It "sets an Issue's Version Name" {
+            $version = Get-TestJiraVersion
+            $results = Set-JiraVersion -Version $version -Name "NewName" -ErrorAction Stop
+            $results | Should -Not -BeNullOrEmpty
+            checkType $results "JiraPS.Version"
+            Should -Invoke 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
+            Should -Invoke 'Get-JiraProject' -Times 0 -ModuleName JiraPS -Exactly
+            Should -Invoke 'ConvertTo-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
+            Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
         }
+        It "sets an Issue's Version Name using the pipeline" {
+            $results = Get-TestJiraVersion | Set-JiraVersion -Name "NewName" -ErrorAction Stop
+            $results | Should -Not -BeNullOrEmpty
+            checkType $results "JiraPS.Version"
+            Should -Invoke 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
+            Should -Invoke 'Get-JiraProject' -Times 0 -ModuleName JiraPS -Exactly
+            Should -Invoke 'ConvertTo-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
+            Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
+        }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }

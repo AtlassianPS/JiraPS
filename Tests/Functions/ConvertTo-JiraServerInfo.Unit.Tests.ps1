@@ -1,45 +1,40 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
-Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
-
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+BeforeDiscovery {
+    Remove-Item -Path Env:\BH*
+    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
+    if ($projectRoot -like "*Release") {
+        $projectRoot = (Resolve-Path "$projectRoot/..").Path
     }
 
-    InModuleScope JiraPS {
+    Import-Module BuildHelpers
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
 
-        . "$PSScriptRoot/../Shared.ps1"
+    $env:BHManifestToTest = $env:BHPSModuleManifest
+    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+    if ($script:isBuild) {
+        $Pattern = [regex]::Escape($env:BHProjectPath)
 
-        $jiraServer = 'http://jiraserver.example.com'
+        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+        $env:BHManifestToTest = $env:BHBuildModuleManifest
+    }
 
-        $sampleJson = @"
+    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Import-Module $env:BHManifestToTest
+}
+
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
+
+        BeforeAll {
+            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkType / castsToString)
+
+            $jiraServer = 'http://jiraserver.example.com'
+
+            $sampleJson = @"
 {
     "baseUrl":"$jiraServer",
     "version":"1000.1323.0",
@@ -53,23 +48,36 @@ Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
 }
 "@
 
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-        $r = ConvertTo-JiraServerInfo -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $sampleObject = ConvertFrom-Json -InputObject $sampleJson
         }
 
-        checkPsType $r 'JiraPS.ServerInfo'
+        Context "Sanity checking" {
+            BeforeAll {
+                $r = ConvertTo-JiraServerInfo -InputObject $sampleObject
+            }
 
+            It "Creates a PSObject out of JSON input" {
+                $r | Should -Not -BeNullOrEmpty
+            }
 
-        defProp $r 'BaseURL' $jiraServer
-        defProp $r 'Version' ([Version]"1000.1323.0")
-        defProp $r 'DeploymentType' "Cloud"
-        defProp $r 'BuildNumber' 100062
-        defProp $r 'BuildDate' (Get-Date '2017-09-26T00:00:00.000+0200')
-        defProp $r 'ServerTime' (Get-Date '2017-09-27T09:59:25.520+0200')
-        defProp $r 'ScmInfo' "f3c60100df073e3576f9741fb7a3dc759b416fde"
-        defProp $r 'ServerTitle' "JIRA"
+            It "Uses correct output type" {
+                checkType $r 'JiraPS.ServerInfo'
+            }
+
+            It "Can cast to string" {
+                castsToString $r
+            }
+
+            It "Defines expected properties" {
+                defProp $r 'BaseURL' $jiraServer
+                defProp $r 'Version' ([Version]"1000.1323.0")
+                defProp $r 'DeploymentType' "Cloud"
+                defProp $r 'BuildNumber' 100062
+                defProp $r 'BuildDate' (Get-Date '2017-09-26T00:00:00.000+0200')
+                defProp $r 'ServerTime' (Get-Date '2017-09-27T09:59:25.520+0200')
+                defProp $r 'ScmInfo' "f3c60100df073e3576f9741fb7a3dc759b416fde"
+                defProp $r 'ServerTitle' "JIRA"
+            }
+        }
     }
 }

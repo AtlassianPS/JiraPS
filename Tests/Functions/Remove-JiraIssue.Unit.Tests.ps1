@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Remove-JiraIssue" -Tag 'Unit' {
 
@@ -26,16 +26,8 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
 
         $jiraServer = 'http://jiraserver.example.com'
 
@@ -218,17 +210,23 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
 
         }
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
-        Mock Get-JiraIssue {
+        #helper function to generate test JiraIssue object
+        function Get-TestJiraIssue {
+            param($Key)
             $obj = $TestIssueJSONs[$Key] | ConvertFrom-Json
 
             $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
 
             $obj | Add-Member -MemberType ScriptMethod -Name ToString -Value {return ""} -Force
             return $obj
+        }
+
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
+            Write-Output $jiraServer
+        }
+
+        Mock Get-JiraIssue -ModuleName JiraPS {
+            Get-TestJiraIssue -Key $Key
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$URI -like "$jiraServer/rest/api/*/issue/TEST-1?*" -and $Method -eq "Delete"} {
@@ -268,12 +266,19 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
-        Context "Sanity checking" {
+    Context "Sanity checking" {
+        It "Has expected parameters" {
             $command = Get-Command -Name Remove-JiraIssue
 
             defParam $command 'IssueId'
@@ -281,42 +286,42 @@ Describe "Remove-JiraIssue" -Tag 'Unit' {
             defParam $command 'IncludeSubTasks'
             defParam $command 'Credential'
         }
+    }
 
-        Context "Functionality" {
+    Context "Functionality" {
 
-            It "Accepts generic object with the correct properties" {
-                {
-                    $issue = Get-JiraIssue -Key TEST-1
-                    Remove-JiraIssue -Issue $issue -Force
-                } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-            }
+        It "Accepts generic object with the correct properties" {
+            {
+                $issue = Get-TestJiraIssue -Key TEST-1
+                Remove-JiraIssue -Issue $issue -Force
+            } | Should -Not -Throw
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+        }
 
-            It "Accepts string-based input as a non-pipelined parameter" {
-              {Remove-JiraIssue -IssueId TEST-1 -Force} | Should Not Throw
-              Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-            }
+        It "Accepts string-based input as a non-pipelined parameter" {
+          {Remove-JiraIssue -IssueId TEST-1 -Force} | Should -Not -Throw
+          Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+        }
 
-            It "Accepts a JiraPS.Issue object over the pipeline" {
-                { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Force} | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-            }
+        It "Accepts a JiraPS.Issue object over the pipeline" {
+            { Get-TestJiraIssue -Key TEST-1 | Remove-JiraIssue -Force} | Should -Not -Throw
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+        }
 
-            It "Writes an error on issues with subtasks" {
-                # Pester is not capable of (easily) asserting non-terminating errors,
-                # so the error is upgraded to a terminating one in this situation.
-                { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorAction Stop} | Should Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-            }
+        It "Writes an error on issues with subtasks" {
+            # Pester is not capable of (easily) asserting non-terminating errors,
+            # so the error is upgraded to a terminating one in this situation.
+            { Get-TestJiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorAction Stop} | Should -Throw
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+        }
 
-            It "Passes on issues with subtasks and -DeleteSubTasks" {
-                { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Force} | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-            }
+        It "Passes on issues with subtasks and -DeleteSubTasks" {
+            { Get-TestJiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Force} | Should -Not -Throw
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+        }
 
-            It "Validates pipeline input" {
-                { @{id = 1} | Remove-JiraIssue -ErrorAction Stop} | Should Throw
-            }
+        It "Validates pipeline input" {
+            { @{id = 1} | Remove-JiraIssue -ErrorAction Stop} | Should -Throw
         }
     }
 }

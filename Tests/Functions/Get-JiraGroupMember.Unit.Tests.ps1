@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraGroupMember" -Tag 'Unit' {
 
@@ -26,18 +26,26 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         #region Mocks
+
+        $testGroupName = "testgroup"
+
+        #helper function to simulate Get-JiraGroup
+        function Get-TestJiraGroup {
+            param([string]$GroupName = $testGroupName)
+            $obj = [PSCustomObject] @{
+                'Name'    = $GroupName
+                'RestUrl' = 'https://jira.example.com/rest/api/2/group?groupname=testgroup'
+                'Size'    = 2
+            }
+            $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
+            $obj
+        }
+
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             'https://jira.example.com'
         }
@@ -51,13 +59,7 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
         }
 
         Mock Get-JiraGroup -ModuleName JiraPS {
-            $obj = [PSCustomObject] @{
-                'Name'    = 'testgroup'
-                'RestUrl' = 'https://jira.example.com/rest/api/2/group?groupname=testgroup'
-                'Size'    = 2
-            }
-            $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
-            Write-Output $obj
+            Get-TestJiraGroup -GroupName $testGroupName
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/group/member' -and $GetParameter["groupname"] -eq "testgroup" } {
@@ -73,13 +75,15 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
 
         # If we don't override this in a context or test, we don't want it to
         # actually try to query a JIRA instance
-        Mock Invoke-JiraMethod {
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mocks
+    }
 
-        Context "Sanity checking" {
+    Context "Sanity checking" {
+        It "Has expected parameters" {
             $command = Get-Command -Name Get-JiraGroupMember
 
             defParam $command 'Group'
@@ -88,105 +92,108 @@ Describe "Get-JiraGroupMember" -Tag 'Unit' {
             defParam $command 'MaxResults'
             defParam $command 'Credential'
         }
+    }
 
-        Context "Behavior testing" {
+    Context "Behavior testing" {
+        It "Obtains members about a provided group in JIRA" {
+            { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
 
-            It "Obtains members about a provided group in JIRA" {
-                { Get-JiraGroupMember -Group testgroup } | Should Not Throw
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member'
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
+            $assertMockCalledSplat = @{
+                CommandName     = 'Invoke-JiraMethod'
+                ModuleName      = 'JiraPS'
+                ParameterFilter = {
+                    $Method -eq 'Get' -and
+                    $URI -like '*/rest/api/*/group/member'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Scope           = 'It'
+                Exactly         = $true
+                Times           = 1
             }
-
-            It "Supports the -StartIndex parameters to page through search results" {
-                { Get-JiraGroupMember -Group testgroup -StartIndex 10 } | Should Not Throw
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member' -and
-                        $PSCmdlet.PagingParameters.Skip -eq 10
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "Supports the -MaxResults parameters to page through search results" {
-                { Get-JiraGroupMember -Group testgroup -MaxResults 50 } | Should Not Throw
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member' -and
-                        $PSCmdlet.PagingParameters.First -eq 50
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
+            Should -Invoke @assertMockCalledSplat
         }
 
-        Context "Input testing" {
-            It "Accepts a group name for the -Group parameter" {
-                { Get-JiraGroupMember -Group testgroup } | Should Not Throw
+        It "Supports the -StartIndex parameters to page through search results" {
+            { Get-JiraGroupMember -Group testgroup -StartIndex 10 } | Should -Not -Throw
 
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member' -and
-                        $GetParameter["groupname"] -eq "testgroup"
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
+            $assertMockCalledSplat = @{
+                CommandName     = 'Invoke-JiraMethod'
+                ModuleName      = 'JiraPS'
+                ParameterFilter = {
+                    $Method -eq 'Get' -and
+                    $URI -like '*/rest/api/*/group/member' -and
+                    $Skip -eq 10
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Exactly         = $true
+                Times           = 1
             }
-
-            It "Accepts a group object for the -InputObject parameter" {
-                $group = Get-JiraGroup -GroupName testgroup
-
-                { Get-JiraGroupMember -Group $group } | Should Not Throw
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Method -eq 'Get' -and
-                        $URI -like '*/rest/api/*/group/member' -and
-                        $GetParameter["groupname"] -eq "testgroup"
-                    }
-                    Scope           = 'It'
-                    Exactly         = $true
-                    Times           = 1
-                }
-                Assert-MockCalled @assertMockCalledSplat
-
-                # We called Get-JiraGroup once manually, and it should be
-                # called once by Get-JiraGroupMember.
-                Assert-MockCalled -CommandName Get-JiraGroup -Exactly -Times 2 -Scope It
-            }
+            Should -Invoke @assertMockCalledSplat
         }
+
+        It "Supports the -MaxResults parameters to page through search results" {
+            { Get-JiraGroupMember -Group testgroup -MaxResults 50 } | Should -Not -Throw
+
+            $assertMockCalledSplat = @{
+                CommandName     = 'Invoke-JiraMethod'
+                ModuleName      = 'JiraPS'
+                ParameterFilter = {
+                    $Method -eq 'Get' -and
+                    $URI -like '*/rest/api/*/group/member' -and
+                    $First -eq 50
+                }
+                Scope           = 'It'
+                Exactly         = $true
+                Times           = 1
+            }
+            Should -Invoke @assertMockCalledSplat
+        }
+    }
+
+    Context "Input testing" {
+        It "Accepts a group name for the -Group parameter" {
+            { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
+
+            $assertMockCalledSplat = @{
+                CommandName     = 'Invoke-JiraMethod'
+                ModuleName      = 'JiraPS'
+                ParameterFilter = {
+                    $Method -eq 'Get' -and
+                    $URI -like '*/rest/api/*/group/member' -and
+                    $GetParameter["groupname"] -eq "testgroup"
+                }
+                Scope           = 'It'
+                Exactly         = $true
+                Times           = 1
+            }
+            Should -Invoke @assertMockCalledSplat
+        }
+
+        It "Accepts a group object for the -InputObject parameter" {
+            $group = Get-TestJiraGroup
+
+            { Get-JiraGroupMember -Group $group } | Should -Not -Throw
+
+            $assertMockCalledSplat = @{
+                CommandName     = 'Invoke-JiraMethod'
+                ModuleName      = 'JiraPS'
+                ParameterFilter = {
+                    $Method -eq 'Get' -and
+                    $URI -like '*/rest/api/*/group/member' -and
+                    $GetParameter["groupname"] -eq "testgroup"
+                }
+                Exactly         = $true
+                Times           = 1
+            }
+            Should -Invoke @assertMockCalledSplat
+
+            # We called Get-JiraGroup once manually, and it should be
+            # called once by Get-JiraGroupMember.
+            Should -Invoke -CommandName Get-JiraGroup -ModuleName JiraPS -Times 1 -Exactly
+        }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }

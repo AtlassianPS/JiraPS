@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
 
@@ -26,35 +26,21 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
+        $testLinkName = 'myLink'
 
 
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
-        Context "Sanity checking" {
-            $command = Get-Command -Name Get-JiraIssueLinkType
-
-            defParam $command 'LinkType'
-            defParam $command 'Credential'
-        }
-
         $filterAll = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/2/issueLinkType"}
         $filterOne = {$Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/2/issueLinkType/10000"}
 
-        Mock ConvertTo-JiraIssueLinkType {
+        Mock ConvertTo-JiraIssueLinkType -ModuleName JiraPS {
             ShowMockInfo 'ConvertTo-JiraIssueLinkType'
 
             # We also don't care what comes out of here - this function has its own tests
@@ -70,17 +56,17 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
 
-        Mock Invoke-JiraMethod -ParameterFilter $filterAll {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter $filterAll {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             [PSCustomObject] @{
                 issueLinkTypes = @(
-                    # We don't care what data actually comes back here
                     'foo'
+                    $testLinkName
                 )
             }
         }
 
-        Mock Invoke-JiraMethod -ParameterFilter $filterOne {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter $filterOne {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             [PSCustomObject] @{
                 issueLinkTypes = @(
@@ -88,29 +74,47 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
                 )
             }
         }
+    }
 
-        Context "Behavior testing - returning all link types" {
+    Context "Sanity checking" {
+        It "Has the expected parameters" {
+            $command = Get-Command -Name Get-JiraIssueLinkType
 
+            defParam $command 'LinkType'
+            defParam $command 'Credential'
+        }
+    }
+
+    Context "Behavior testing - returning all link types" {
+        BeforeAll {
             $output = Get-JiraIssueLinkType
-
-            It 'Uses Invoke-JiraMethod to communicate with JIRA' {
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter $filterAll -Exactly -Times 1 -Scope Context
-            }
-
-            It 'Returns all link types if no value is passed to the -LinkType parameter' {
-                $output | Should Not BeNullOrEmpty
-            }
-
-            It 'Uses the helper method ConvertTo-JiraIssueLinkType to process output' {
-                Assert-MockCalled -CommandName ConvertTo-JiraIssueLinkType -ParameterFilter {$InputObject -contains 'foo'} -Exactly -Times 1 -Scope Context
-            }
         }
 
-        Context "Behavior testing - returning one link type" {
-            Mock ConvertTo-JiraIssueLinkType {
+        It 'Uses Invoke-JiraMethod to communicate with JIRA' {
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter $filterAll -Exactly 1 -Scope Context
+        }
+
+        It 'Returns all link types if no value is passed to the -LinkType parameter' {
+            $output | Should -Not -BeNullOrEmpty
+        }
+
+        It 'Uses the helper method ConvertTo-JiraIssueLinkType to process output' {
+            Should -Invoke 'ConvertTo-JiraIssueLinkType' -ModuleName JiraPS -ParameterFilter {$InputObject -contains 'foo'} -Exactly 1 -Scope Context
+        }
+    }
+
+    Context "Behavior testing - returning one link type" {
+        It 'Returns a single link type if an ID number is passed to the -LinkType parameter' {
+            $output = Get-JiraIssueLinkType -LinkType 10000
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter $filterOne -Exactly 1
+            $output | Should -Not -BeNullOrEmpty
+            @($output).Count | Should -Be 1
+        }
+
+        It 'Returns the correct link type if a type name is passed to the -LinkType parameter' {
+            Mock ConvertTo-JiraIssueLinkType -ModuleName JiraPS {
                 ShowMockInfo 'ConvertTo-JiraIssueLinkType'
 
-                # We also don't care what comes out of here - this function has its own tests
                 [PSCustomObject] @{
                     PSTypeName = 'JiraPS.IssueLinkType'
                     Name       = 'myLink'
@@ -118,20 +122,17 @@ Describe 'Get-JiraIssueLinkType' -Tag 'Unit' {
                 }
             }
 
-            It 'Returns a single link type if an ID number is passed to the -LinkType parameter' {
-                $output = Get-JiraIssueLinkType -LinkType 10000
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter $filterOne -Exactly -Times 1 -Scope It
-                $output | Should Not BeNullOrEmpty
-                @($output).Count | Should Be 1
-            }
-
-            It 'Returns the correct link type it a type name is passed to the -LinkType parameter' {
-                $output = Get-JiraIssueLinkType -LinkType 'myLink'
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ParameterFilter $filterAll -Exactly -Times 1 -Scope It
-                $output | Should Not BeNullOrEmpty
-                @($output).Count | Should Be 1
-                $output.ID | Should Be 5
-            }
+            $output = Get-JiraIssueLinkType -LinkType $testLinkName
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter $filterAll -Exactly 1
+            $output | Should -Not -BeNullOrEmpty
+            @($output).Count | Should -Be 1
+            $output.ID | Should -Be 5
         }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }
