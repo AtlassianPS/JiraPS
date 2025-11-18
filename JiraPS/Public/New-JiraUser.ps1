@@ -28,7 +28,7 @@ function New-JiraUser {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/user"
+        $resourceURi = "$server/rest/api/3/user"
     }
 
     process {

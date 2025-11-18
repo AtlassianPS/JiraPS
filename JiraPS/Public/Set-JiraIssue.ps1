@@ -135,7 +135,8 @@ function Set-JiraIssue {
             }
 
             if ($Description) {
-                $issueProps.update["description"] = @(@{ 'set' = $Description })
+                # API v3 requires description in Atlassian Document Format (ADF)
+                $issueProps.update["description"] = @(@{ 'set' = ConvertTo-AtlassianDocumentFormat -PlainText $Description })
             }
 
             if ($FixVersion) {
@@ -147,10 +148,11 @@ function Set-JiraIssue {
             }
 
             if ($AddComment) {
+                # API v3 requires comment body in Atlassian Document Format (ADF)
                 $issueProps.update["comment"] = @(
                     @{
                         'add' = @{
-                            'body' = $AddComment
+                            'body' = ConvertTo-AtlassianDocumentFormat -PlainText $AddComment
                         }
                     }
                 )

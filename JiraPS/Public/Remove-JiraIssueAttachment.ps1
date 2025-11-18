@@ -52,7 +52,7 @@ function Remove-JiraIssueAttachment {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/attachment/{0}"
+        $resourceURi = "$server/rest/api/3/attachment/{0}"
 
         if ($Force) {
             Write-DebugMessage "[Remove-JiraGroupMember] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"

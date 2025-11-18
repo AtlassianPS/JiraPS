@@ -10,9 +10,16 @@ function ConvertTo-JiraComment {
         foreach ($i in $InputObject) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
+            # Convert Body from ADF to plain text for API v3 compatibility
+            $bodyText = if ($i.body) {
+                ConvertFrom-AtlassianDocumentFormat -InputObject $i.body
+            } else {
+                $null
+            }
+
             $props = @{
                 'ID'         = $i.id
-                'Body'       = $i.body
+                'Body'       = $bodyText
                 'Visibility' = $i.visibility
                 'RestUrl'    = $i.self
             }

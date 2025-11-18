@@ -49,7 +49,7 @@ function Get-JiraVersion {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/{0}"
+        $resourceURi = "$server/rest/api/3/{0}"
     }
 
     process {
