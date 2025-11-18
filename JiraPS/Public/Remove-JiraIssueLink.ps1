@@ -6,18 +6,18 @@ function Remove-JiraIssueLink {
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
-                $Input = $_
-                $objectProperties = $Input | Get-Member -MemberType *Property
+                $_input = $_
+                $objectProperties = $_input | Get-Member -MemberType *Property
                 switch ($true) {
-                    {("JiraPS.Issue" -in $Input.PSObject.TypeNames) -and ("issueLinks" -in $objectProperties.Name)} { return $true }
-                    {("JiraPS.IssueLink" -in $Input.PSObject.TypeNames) -and ("Id" -in $objectProperties.Name)} { return $true }
+                    { ("JiraPS.Issue" -in $_input.PSObject.TypeNames) -and ("issueLinks" -in $objectProperties.Name) } { return $true }
+                    { ("JiraPS.IssueLink" -in $_input.PSObject.TypeNames) -and ("Id" -in $objectProperties.Name) } { return $true }
                     default {
                         $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
                         $errorId = 'ParameterType.NotJiraIssue'
                         $errorCategory = 'InvalidArgument'
-                        $errorTarget = $Input
+                        $errorTarget = $_input
                         $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                        $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($Input.GetType().Name)"
+                        $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($_input.GetType().Name)"
                         $PSCmdlet.ThrowTerminatingError($errorItem)
                         <#
                           #ToDo:CustomClass
@@ -41,7 +41,7 @@ function Remove-JiraIssueLink {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/issueLink/{0}"
+        $resourceURi = "$server/rest/api/3/issueLink/{0}"
     }
 
     process {

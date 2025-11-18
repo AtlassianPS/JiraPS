@@ -39,9 +39,9 @@ function Get-JiraUser {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $selfResourceUri = "$server/rest/api/2/myself"
-        $searchResourceUri = "$server/rest/api/2/user/search?username={0}"
-        $exactResourceUri = "$server/rest/api/2/user?username={0}"
+        $selfResourceUri = "$server/rest/api/3/myself"
+        $searchResourceUri = "$server/rest/api/3/user/search?username={0}"
+        $exactResourceUri = "$server/rest/api/3/user?username={0}"
 
         if ($IncludeInactive) {
             $searchResourceUri += "&includeInactive=true"

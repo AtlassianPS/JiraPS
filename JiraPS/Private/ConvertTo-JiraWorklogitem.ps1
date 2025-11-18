@@ -10,10 +10,17 @@ function ConvertTo-JiraWorklogItem {
         foreach ($i in $InputObject) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
+            # Convert Comment from ADF to plain text for API v3 compatibility
+            $commentText = if ($i.comment) {
+                ConvertFrom-AtlassianDocumentFormat -InputObject $i.comment
+            } else {
+                $null
+            }
+
             $props = @{
                 'ID'         = $i.id
                 'Visibility' = $i.visibility
-                'Comment'    = $i.comment
+                'Comment'    = $commentText
                 'RestUrl'    = $i.self
             }
 

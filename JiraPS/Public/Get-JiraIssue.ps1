@@ -96,8 +96,8 @@ function Get-JiraIssue {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $searchURi = "$server/rest/api/2/search"
-        $resourceURi = "$server/rest/api/2/issue/{0}"
+        $searchURi = "$server/rest/api/3/search/jql"
+        $resourceURi = "$server/rest/api/3/issue/{0}"
 
         [String]$Fields = $Fields -join ","
     }
@@ -140,22 +140,35 @@ function Get-JiraIssue {
                 }
             }
             'ByJQL' {
+                # Build the JSON body for the new API v3 search/jql endpoint
+                $bodyObject = @{
+                    jql        = $Query
+                    maxResults = $PageSize
+                }
+
+                # API v3 requires explicit fields - if not specified, only returns ID
+                if ($Fields -and $Fields -ne "*all") {
+                    # Convert comma-separated fields to array
+                    $fieldArray = $Fields -split ',' | ForEach-Object { $_.Trim() }
+                    $bodyObject["fields"] = $fieldArray
+                } else {
+                    # Request all navigable fields + comment (default behavior for v2 compatibility)
+                    # API v3 doesn't include comment in *navigable, so we add it explicitly
+                    $bodyObject["fields"] = @("*navigable", "comment")
+                }
+
+                # API v3: Request expanded fields to include comments and other related data
+                # This ensures comments are loaded (similar to API v2 behavior)
+                # Note: expand must be a string, not an array
+                $bodyObject["expand"] = "renderedFields"
+
                 $parameter = @{
                     URI          = $searchURi
-                    Method       = "GET"
-                    GetParameter = @{
-                        jql           = (ConvertTo-URLEncoded $Query)
-                        validateQuery = $true
-                        expand        = "transitions"
-                        maxResults    = $PageSize
-
-                    }
+                    Method       = "POST"
+                    Body         = ConvertTo-Json -InputObject $bodyObject -Depth 10
                     OutputType   = "JiraIssue"
                     Paging       = $true
                     Credential   = $Credential
-                }
-                if ($Fields) {
-                    $parameter["GetParameter"]["fields"] = $Fields
                 }
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {

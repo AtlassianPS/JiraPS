@@ -1,4 +1,4 @@
-﻿function Get-JiraVersion {
+function Get-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'byId' )]
     param(
@@ -49,7 +49,7 @@
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/{0}"
+        $resourceURi = "$server/rest/api/3/{0}"
     }
 
     process {
@@ -109,7 +109,7 @@
                         $result | Where-Object {
                             $__ = $_.Name
                             Write-DebugMessage ($__ | Out-String)
-                            $Name | Foreach-Object {
+                            $Name | ForEach-Object {
                                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Matching $_ against $($__)"
                                 $__ -like $_
                             }

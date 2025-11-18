@@ -19,7 +19,7 @@ function Get-JiraGroup {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/group?groupname={0}"
+        $resourceURi = "$server/rest/api/3/group?groupname={0}"
     }
 
     process {

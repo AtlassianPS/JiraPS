@@ -1,5 +1,6 @@
 function Get-JiraIssueEditMetadata {
     # .ExternalHelp ..\JiraPS-help.xml
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '')]
     [CmdletBinding()]
     param(
         [Parameter( Mandatory )]
@@ -21,7 +22,7 @@ function Get-JiraIssueEditMetadata {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/issue/{0}/editmeta"
+        $resourceURi = "$server/rest/api/3/issue/{0}/editmeta"
     }
 
     process {

@@ -60,7 +60,7 @@ function New-JiraIssue {
 
         $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
 
-        $resourceURi = "$server/rest/api/2/issue"
+        $resourceURi = "$server/rest/api/3/issue"
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
@@ -89,11 +89,15 @@ function New-JiraIssue {
         }
 
         if ($Description) {
-            $requestBody["description"] = $Description
+            # API v3 requires description in Atlassian Document Format (ADF)
+            $requestBody["description"] = ConvertTo-AtlassianDocumentFormat -PlainText $Description
         }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
-            $requestBody["reporter"] = @{"name" = "$Reporter"}
+            Write-Warning "The -Reporter parameter is deprecated in Jira Cloud API v3 and will be ignored. The reporter is automatically set to the authenticated user."
+            # Note: Jira Cloud API v3 does not support setting reporter - it's always the authenticated user
+            # Jira Server may still support this, but it's deprecated
+            # $requestBody["reporter"] = @{"name" = "$Reporter"}
         }
 
         if ($Parent) {
@@ -173,7 +177,7 @@ function New-JiraIssue {
         if ($PSCmdlet.ShouldProcess($Summary, "Creating new Issue on JIRA")) {
             if ($result = Invoke-JiraMethod @parameter) {
                 # REST result will look something like this:
-                # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/2/issue/12345"}
+                # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/3/issue/12345"}
                 # This will fetch the created issue to return it with all it'a properties
                 Write-Output (Get-JiraIssue -Key $result.Key -Credential $Credential)
             }

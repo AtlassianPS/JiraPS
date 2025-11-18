@@ -1,5 +1,6 @@
 function Get-JiraIssueCreateMetadata {
     # .ExternalHelp ..\JiraPS-help.xml
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '')]
     [CmdletBinding()]
     param(
         [Parameter( Mandatory )]
@@ -21,7 +22,7 @@ function Get-JiraIssueCreateMetadata {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/issue/createmeta?projectIds={0}&issuetypeIds={1}&expand=projects.issuetypes.fields"
+        $resourceURi = "$server/rest/api/3/issue/createmeta?projectIds={0}&issuetypeIds={1}&expand=projects.issuetypes.fields"
     }
 
     process {

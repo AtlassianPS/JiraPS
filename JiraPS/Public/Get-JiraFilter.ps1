@@ -1,4 +1,4 @@
-﻿function Get-JiraFilter {
+function Get-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding(DefaultParameterSetName = 'ByFilterID')]
     param(
@@ -53,7 +53,7 @@
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/filter/{0}"
+        $resourceURi = "$server/rest/api/3/filter/{0}"
     }
 
     process {

@@ -1,4 +1,4 @@
-﻿function Get-JiraField {
+function Get-JiraField {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
@@ -17,7 +17,7 @@
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/field"
+        $resourceURi = "$server/rest/api/3/field"
     }
 
     process {
@@ -43,7 +43,7 @@
 
                     $allFields = Get-JiraField -Credential $Credential
 
-                    Write-Output ($allFields | Where-Object -FilterScript {($_.Id -eq $_field) -or ($_.Name -like $_field)})
+                    Write-Output ($allFields | Where-Object -FilterScript { ($_.Id -eq $_field) -or ($_.Name -like $_field) })
                 }
             }
         }

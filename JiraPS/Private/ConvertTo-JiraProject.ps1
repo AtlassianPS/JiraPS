@@ -10,11 +10,18 @@ function ConvertTo-JiraProject {
         foreach ($i in $InputObject) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
+            # Convert Description from ADF to plain text for API v3 compatibility
+            $descriptionText = if ($i.description) {
+                ConvertFrom-AtlassianDocumentFormat -InputObject $i.description
+            } else {
+                $null
+            }
+
             $props = @{
                 'ID'          = $i.id
                 'Key'         = $i.key
                 'Name'        = $i.name
-                'Description' = $i.description
+                'Description' = $descriptionText
                 'Lead'        = ConvertTo-JiraUser $i.lead
                 'IssueTypes'  = ConvertTo-JiraIssueType $i.issueTypes
                 'Roles'       = $i.roles

@@ -1,4 +1,4 @@
-﻿function New-JiraGroup {
+function New-JiraGroup {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
@@ -18,7 +18,7 @@
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/group"
+        $resourceURi = "$server/rest/api/3/group"
     }
 
     process {

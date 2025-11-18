@@ -171,9 +171,10 @@ function Invoke-JiraIssueTransition {
 
         if ($Comment) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding comment"
+            # API v3 requires comment body in Atlassian Document Format (ADF)
             $requestBody.update.comment += , @{
                 'add' = @{
-                    'body' = $Comment
+                    'body' = ConvertTo-AtlassianDocumentFormat -PlainText $Comment
                 }
             }
         }

@@ -17,7 +17,7 @@ function New-JiraSession {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/myself"
+        $resourceURi = "$server/rest/api/3/myself"
     }
 
     process {
