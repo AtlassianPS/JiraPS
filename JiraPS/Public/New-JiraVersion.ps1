@@ -1,4 +1,4 @@
-﻿function New-JiraVersion {
+function New-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'byObject' )]
     param(
@@ -35,18 +35,18 @@
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
-                $Input = $_
+                $_input = $_
 
                 switch ($true) {
-                    {"JiraPS.Project" -in $Input.PSObject.TypeNames} { return $true }
-                    {$Input -is [String]} { return $true}
+                    { "JiraPS.Project" -in $_input.PSObject.TypeNames } { return $true }
+                    { $_input -is [String] } { return $true }
                     Default {
                         $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
                         $errorId = 'ParameterType.NotJiraProject'
                         $errorCategory = 'InvalidArgument'
-                        $errorTarget = $Input
+                        $errorTarget = $_input
                         $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                        $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($Input.GetType().Name)"
+                        $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($_input.GetType().Name)"
                         $PSCmdlet.ThrowTerminatingError($errorItem)
                         <#
                           #ToDo:CustomClass

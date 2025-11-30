@@ -4,19 +4,23 @@ on:
   pull_request:
     branches:
       - master
+      - develop
+      - release/*
   push:
     branches:
       - master
+      - develop
+  workflow_dispatch:
 
 jobs:
   build_module:
     name: Build Module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -30,7 +34,7 @@ jobs:
         run: |
           Invoke-Build -Task Clean, Build
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Release
           path: ./Release/
@@ -40,15 +44,15 @@ jobs:
     needs: build_module
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -62,9 +66,9 @@ jobs:
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-Unit-Tests
+          name: ${{ runner.os }}v5-Unit-Tests
           path: Test*.xml
     if: ${{ always() }}
 
@@ -73,15 +77,15 @@ jobs:
     needs: build_module
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -95,9 +99,9 @@ jobs:
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-Unit-Tests
+          name: ${{ runner.os }}v7-Unit-Tests
           path: Test*.xml
     if: ${{ always() }}
 
@@ -106,15 +110,15 @@ jobs:
     needs: build_module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -128,7 +132,7 @@ jobs:
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}-Unit-Tests
           path: Test*.xml
@@ -139,15 +143,15 @@ jobs:
     needs: build_module
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -161,7 +165,7 @@ jobs:
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}-Unit-Tests
           path: Test*.xml
@@ -176,15 +180,15 @@ jobs:
     needs: build_module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -199,7 +203,7 @@ jobs:
           Invoke-Build -Task Test -Tag "Integration" -ExcludeTag ""
         if: ${{ env.JiraURI != '' }}
       - name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}-Unit-Tests
           path: Test*.xml

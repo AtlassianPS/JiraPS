@@ -7,6 +7,7 @@ if ($PSVersionTable.PSVersion.Major -lt 6) {
         ConvertFrom-Json implementation does not allow for overriding JSON maxlength.
         The default limit is easy to exceed with large issue lists.
     #>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '')]
         [CmdletBinding()]
         param(
             [Parameter( Mandatory, ValueFromPipeline )]

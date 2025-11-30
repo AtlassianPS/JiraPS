@@ -59,6 +59,26 @@ We appreciate [everyone](https://atlassianps.org/#people) who invests their time
 
 Check out our guidelines on [Contributing] to our modules and documentation.
 
+#### DevContainer
+
+This repository offers a ["devcontainer"](https://containers.dev/) setup.
+
+> **What are Development Containers?**  
+> A development container (or dev container for short) allows you to use
+> a container as a full-featured development environment.
+> It can be used to run an application, to separate tools, libraries,
+> or runtimes needed for working with a codebase,
+> and to aid in continuous integration and testing.
+
+You can use the devcontainer to spin up a fine tuned development environment with
+everything you need for working on this project.
+
+The easiest way for using DevContainers is with [VS Code](https://code.visualstudio.com/),
+its extension `ms-vscode-remote.remote-containers`,
+and [docker](https://docs.docker.com/engine/install/).  
+When opening the repository in VS Code, it will recommend the installation of the extension.
+And once installed, you will be prompted to "Reopen in Container".
+
 ## Tested on
 
 * Windows Powershell v3

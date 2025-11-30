@@ -48,7 +48,7 @@ The original value is overridden.
 ### EXAMPLE 2
 
 ```powershell
-Set-JiraUser -User user2 -Properties @{EmailAddress='user2_new@example.com';DisplayName='User 2'}
+Set-JiraUser -User user2 -Property @{emailAddress='user2_new@example.com';displayName='User 2'}
 ```
 
 This example modifies a user's properties using a hashtable.
@@ -123,6 +123,8 @@ Accept wildcard characters: False
 ### -Property
 
 Hashtable (dictionary) of additional information to set.
+
+Property names defined in the hashtable are strictly case-sensitive and must match the exact format defined in the [JIRA API schema](https://docs.atlassian.com/software/jira/docs/api/REST/latest/#api/2/user-updateUser), which typically uses camel case. For example, "name" and "displayName" will work correctly when passed in the hashtable but "Name" and "DisplayName" do not.
 
 ```yaml
 Type: Hashtable
