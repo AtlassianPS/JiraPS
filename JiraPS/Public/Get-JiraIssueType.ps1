@@ -1,4 +1,4 @@
-﻿function Get-JiraIssueType {
+function Get-JiraIssueType {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
@@ -43,8 +43,8 @@
 
                     $allIssueTypes = Get-JiraIssueType -Credential $Credential
 
-                    Write-Output ($allIssueTypes | Where-Object -FilterScript {$_.Id -eq $_issueType})
-                    Write-Output ($allIssueTypes | Where-Object -FilterScript {$_.Name -like $_issueType})
+                    Write-Output ($allIssueTypes | Where-Object -FilterScript { $_.Id -eq $_issueType })
+                    Write-Output ($allIssueTypes | Where-Object -FilterScript { $_.Name -like $_issueType })
                 }
             }
         }

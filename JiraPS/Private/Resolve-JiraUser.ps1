@@ -36,15 +36,17 @@ function Resolve-JiraUser {
         $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
-    # As we are not able to use proper type casting in the parameters, this is a workaround
-    # to extract the data from a JiraPS.Issue object
-    # This shall be removed once we have custom classes for the module
-    if ("JiraPS.User" -in $InputObject.PSObject.TypeNames) {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$InputObject as object"
-        return $InputObject
-    }
-    else {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve User to object"
-        return (Get-JiraUser -UserName $InputObject -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+    process {
+        # As we are not able to use proper type casting in the parameters, this is a workaround
+        # to extract the data from a JiraPS.Issue object
+        # This shall be removed once we have custom classes for the module
+        if ("JiraPS.User" -in $InputObject.PSObject.TypeNames) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$InputObject as object"
+            return $InputObject
+        }
+        else {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve User to object"
+            return (Get-JiraUser -UserName $InputObject -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+        }
     }
 }

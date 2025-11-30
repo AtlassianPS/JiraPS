@@ -5,6 +5,7 @@ CHANGELOG.md merge=union
 * text=auto
 
 # Explicitly declare text files we want to always be normalized.
+*.sh            text  eol=lf
 *.md            text  eol=crlf
 *.gitattributes text  eol=crlf
 *.gitignore     text  eol=crlf

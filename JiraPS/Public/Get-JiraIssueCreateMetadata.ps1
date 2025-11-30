@@ -1,5 +1,6 @@
 function Get-JiraIssueCreateMetadata {
     # .ExternalHelp ..\JiraPS-help.xml
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '')]
     [CmdletBinding()]
     param(
         [Parameter( Mandatory )]
