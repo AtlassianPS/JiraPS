@@ -81,7 +81,20 @@ Describe "New-JiraIssue" -Tag 'Unit' {
 
         # This one needs to be able to output multiple objects
         Mock Get-JiraField {
-            $Field | % {
+
+            $(If ($null -eq $Field) {
+                @(
+                    'Project'
+                    'IssueType'
+                    'Priority'
+                    'Summary'
+                    'Description'
+                    'Reporter'
+                    'CustomField'
+                )
+            } Else {
+                $Field
+            }) | % {
                 $object = [PSCustomObject] @{
                     'Id' = $_
                 }
@@ -121,7 +134,7 @@ Describe "New-JiraIssue" -Tag 'Unit' {
             defParam $command 'Summary'
             defParam $command 'Description'
             defParam $command 'Reporter'
-            defParam $command 'Labels'
+            defParam $command 'Label'
             defParam $command 'Fields'
             defParam $command 'Credential'
         }
@@ -140,6 +153,64 @@ Describe "New-JiraIssue" -Tag 'Unit' {
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/issue" }
+            }
+        }
+
+        Context "New-JiraIssue handles duplicate fields" {
+            # Intentionally output multiple objects of different IDs but with the same name
+            Mock Get-JiraField {
+                $Field | % {
+                    $name = $_
+                    if ($name -eq 'Reporter') {
+                        'Reporter', 'Reporter_mismatched' | % {
+                            $fieldname = $_
+                            $object = [PSCustomObject] @{
+                                'Id' = "$fieldname"
+                            }
+                            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                            $object
+                        }
+                    }
+                    else {
+                        $object = [PSCustomObject] @{
+                            'Id' = "$name"
+                        }
+                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                        $object
+                    }
+                }
+            }
+
+            It "finds the right field which has a matching name and id" {
+                Mock Get-JiraIssueCreateMetadata {
+                    @(
+                        @{Name = 'Project'; ID = 'Project'; Required = $true}
+                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true}
+                        @{Name = 'Priority'; ID = 'Priority'; Required = $true}
+                        @{Name = 'Summary'; ID = 'Summary'; Required = $true}
+                        @{Name = 'Description'; ID = 'Description'; Required = $true}
+                        @{Name = 'Reporter'; ID = 'Reporter'; Required = $true}
+                        @{Name = 'Reporter'; ID = 'Reporter_mismatch'; Required = $false}
+                    )
+                }
+
+                { New-JiraIssue @newParams } | Should Not Throw
+            }
+
+            It "throws when a field name return multiple fields without a field has matching name and id" {
+                Mock Get-JiraIssueCreateMetadata {
+                    @(
+                        @{Name = 'Project'; ID = 'Project'; Required = $true}
+                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true}
+                        @{Name = 'Priority'; ID = 'Priority'; Required = $true}
+                        @{Name = 'Summary'; ID = 'Summary'; Required = $true}
+                        @{Name = 'Description'; ID = 'Description'; Required = $true}
+                        @{Name = 'Reporter'; ID = 'Reporter_mismatch1'; Required = $true}
+                        @{Name = 'Reporter'; ID = 'Reporter_mismatch2'; Required = $false}
+                    )
+                }
+
+                { New-JiraIssue @newParams } | Should Throw
             }
         }
 

@@ -58,6 +58,32 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
             return $object
         }
 
+        Mock Get-JiraField {
+
+            $(If ($null -eq $Field) {
+                @(
+                    'Project'
+                    'IssueType'
+                    'Priority'
+                    'Summary'
+                    'Description'
+                    'Reporter'
+                    'CustomField'
+                    'customfield_12345'
+                    'customfield_67890'
+                    'customfield_111222'
+                )
+            } Else {
+                $Field
+            }) | % {
+                $object = [PSCustomObject] @{
+                    'Id' = $_
+                }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                $object
+            }
+        }
+
         Mock Resolve-JiraIssueObject -ModuleName JiraPS {
             Get-JiraIssue -Key $Issue
         }
@@ -73,7 +99,7 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
         # actually try to query a JIRA instance
         Mock Invoke-JiraMethod {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            throw "Unidentified call to Invoke-JiraMethod"
+            throw "Unidentified call ($Method $Uri) to Invoke-JiraMethod"
         }
 
         Context "Sanity checking" {
@@ -146,12 +172,6 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
             }
 
             It "Updates custom fields if provided to the -Fields parameter" {
-                Mock Get-JiraField {
-                    [PSCustomObject] @{
-                        'Name' = $Field
-                        'ID'   = $Field
-                    }
-                }
                 { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345' = 'foo'; 'customfield_67890' = 'bar'; 'customfield_111222' = @(@{'value' = 'foobar'})} } | Should Not Throw
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/issue/12345" -and $Body -like '*customfield_12345*set*foo*' }
                 Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/issue/12345" -and $Body -like '*customfield_67890*set*bar*' }
