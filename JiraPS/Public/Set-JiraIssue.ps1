@@ -41,6 +41,7 @@ function Set-JiraIssue {
         [Object]
         $Assignee,
 
+        [Alias("Labels")]
         [String[]]
         $Label,
 
@@ -156,17 +157,56 @@ function Set-JiraIssue {
                 )
             }
 
+
             if ($Fields) {
+
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Enumerating fields defined on the server"
+
+                # Fetch all available fields ahead-of-time to avoid repeated API calls in the upcoming loop.
+                # Eventually, this may be better to extract from EditMeta.
+                $AvailableFields = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
+
+                $AvailableFieldsById = $AvailableFields | Group-Object -Property Id -AsHashTable -AsString
+                $AvailableFieldsByName = $AvailableFields | Group-Object -Property Name -AsHashTable -AsString
+
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
                 foreach ($_key in $Fields.Keys) {
+
                     $name = $_key
                     $value = $Fields.$_key
 
-                    $field = Get-JiraField -Field $name -Credential $Credential -ErrorAction Stop
+                    # The Fields hashtable supports both name- and ID-based lookup for custom fields, so we have to search both.
+                    if ($AvailableFieldsById.ContainsKey($name)) {
+                        $field = $AvailableFieldsById[$name][0]
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
+                    } elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
+                        $field = $AvailableFieldsById["customfield_$name"][0]
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
+                    } elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
+                        $field = $AvailableFieldsByName[$name][0]
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
+                    } elseif ($AvailableFieldsByName.ContainsKey($name)) {
+                        # Jira does not prevent multiple custom fields with the same name, so we have to ensure
+                        # any name references are unambiguous.
 
-                    # For some reason, this was coming through as a hashtable instead of a String,
-                    # which was causing ConvertTo-Json to crash later.
-                    # Not sure why, but this forces $id to be a String and not a hashtable.
+                        # More than one value in $AvailableFieldsByName (i.e. .Count -gt 1) indicates two duplicate custom fields.
+                        $exception = ([System.ArgumentException]"Ambiguously Referenced Parameter")
+                        $errorId = 'ParameterValue.AmbiguousParameter'
+                        $errorCategory = 'InvalidArgument'
+                        $errorTarget = $Fields
+                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                        $errorItem.ErrorDetails = "Field name [$name] in -Fields hashtable ambiguously refers to more than one field. Use Get-JiraField for more information, or specify the custom field by its ID."
+                        $PSCmdlet.ThrowTerminatingError($errorItem)
+                    } else {
+                        $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                        $errorId = 'ParameterValue.InvalidFields'
+                        $errorCategory = 'InvalidArgument'
+                        $errorTarget = $Fields
+                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                        $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
+                        $PSCmdlet.ThrowTerminatingError($errorItem)
+                    }
+
                     $id = [string]$field.Id
                     $issueProps.update[$id] = @(@{ 'set' = $value })
                 }
