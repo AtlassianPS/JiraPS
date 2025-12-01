@@ -63,7 +63,7 @@ Check out our guidelines on [Contributing] to our modules and documentation.
 
 This repository offers a ["devcontainer"](https://containers.dev/) setup.
 
-> **What are Development Containers?**  
+> **What are Development Containers?**
 > A development container (or dev container for short) allows you to use
 > a container as a full-featured development environment.
 > It can be used to run an application, to separate tools, libraries,
@@ -75,7 +75,7 @@ everything you need for working on this project.
 
 The easiest way for using DevContainers is with [VS Code](https://code.visualstudio.com/),
 its extension `ms-vscode-remote.remote-containers`,
-and [docker](https://docs.docker.com/engine/install/).  
+and [docker](https://docs.docker.com/engine/install/).
 When opening the repository in VS Code, it will recommend the installation of the extension.
 And once installed, you will be prompted to "Reopen in Container".
 
@@ -116,6 +116,3 @@ Hopefully this is obvious, but:
   [replicaJunction]: https://github.com/replicaJunction
   [MIT license]: https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE
   [Contributing]: http://atlassianps.org/docs/Contributing
-
-<!-- [//]: # (Sweet online markdown editor at http://dillinger.io) -->
-<!-- [//]: # ("GitHub Flavored Markdown" https://help.github.com/articles/github-flavored-markdown/) -->
