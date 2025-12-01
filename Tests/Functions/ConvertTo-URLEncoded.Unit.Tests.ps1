@@ -26,11 +26,11 @@ Describe "ConvertTo-URLEncoded" -Tag 'Unit' {
                 { ConvertTo-URLEncoded -InputString "" } | Should -Throw
             }
             It "accepts pipeline input" {
-                { "lorem ipsum" | ConvertTo-URLEncoded } | Should -Not Throw
+                { "lorem ipsum" | ConvertTo-URLEncoded } | Should -Not -Throw
             }
             It "accepts multiple InputStrings" {
-                { ConvertTo-URLEncoded -InputString "lorem", "ipsum" } | Should -Not Throw
-                { "lorem", "ipsum" | ConvertTo-URLEncoded } | Should -Not Throw
+                { ConvertTo-URLEncoded -InputString "lorem", "ipsum" } | Should -Not -Throw
+                { "lorem", "ipsum" | ConvertTo-URLEncoded } | Should -Not -Throw
             }
         }
         Context "Handling of Outputs" {
