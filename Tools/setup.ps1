@@ -3,10 +3,21 @@
 [CmdletBinding()]
 param()
 
-# PowerShell 5.1 and bellow need the PSGallery to be initialized
-if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue | Out-Null)) {
-    Write-Output "Installing PackageProvider NuGet"
-    $null = Install-PackageProvider -Name NuGet -Force -ErrorAction SilentlyContinue
+# Ensure NuGet provider is installed
+Write-Output "Installing PackageProvider NuGet"
+$null = Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -ErrorAction SilentlyContinue
+
+# Ensure PSGallery repository is registered and available
+if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
+    Write-Output "Registering PSGallery repository"
+    Register-PSRepository -Default -ErrorAction SilentlyContinue
+}
+
+# Set PSGallery to Trusted to avoid prompts in CI
+$psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
+if ($psGallery -and $psGallery.InstallationPolicy -ne 'Trusted') {
+    Write-Output "Setting PSGallery to Trusted"
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 }
 
 # Update PowerShellGet if needed
