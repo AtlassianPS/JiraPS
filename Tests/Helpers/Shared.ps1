@@ -2,17 +2,21 @@
 
 # Dot source this script in any Pester test script that requires the module to be imported.
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '', Scope = '*', Target = 'ShowMockData')]
+[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'ShowMockData')]
 $script:ShowMockData = $false
-[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '', Scope = '*', Target = 'ShowDebugText')]
+[System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '', Scope = '*', Target = 'ShowDebugText')]
 $script:ShowDebugText = $false
 
 function defProp($obj, $propName, $propValue) {
-    $obj.$propName | Should -Be $propValue
+    It "Defines the '$propName' property" {
+        $obj.$propName | Should -Be $propValue
+    }
 }
 
 function hasProp($obj, $propName) {
-    $obj | Get-Member -MemberType *Property -Name $propName | Should -Not -BeNullOrEmpty
+    It "Defines the '$propName' property" {
+        $obj | Get-Member -MemberType *Property -Name $propName | Should -Not -BeNullOrEmpty
+    }
 }
 
 function hasNotProp($obj, $propName) {
@@ -22,11 +26,17 @@ function hasNotProp($obj, $propName) {
 }
 
 function defParam($command, $name) {
-    $command.Parameters.Item($name) | Should -Not -BeNullOrEmpty
+    It "Has a -$name parameter" {
+        $command.Parameters.Item($name) | Should -Not -BeNullOrEmpty
+    }
 }
 
 function defAlias($command, $name, $definition) {
-        $command.Parameters.Item($definition).Aliases | Where-Object -FilterScript {$_ -eq $name} | Should -Not -BeNullOrEmpty
+    It "Supports the $name alias for the $definition parameter" {
+        $command.Parameters.Item($definition).Aliases |
+            Where-Object -FilterScript { $_ -eq $name } |
+            Should -Not -BeNullOrEmpty
+    }
 }
 
 # This function must be used from within an It block
@@ -50,6 +60,15 @@ function castsToString($obj) {
     }
 
     $o.ToString() | Should -Not -BeNullOrEmpty
+}
+
+function checkPsType($obj, $typeName) {
+    It "Uses output type of '$typeName'" {
+        checkType $obj $typeName
+    }
+    It "Can cast to string" {
+        castsToString($obj)
+    }
 }
 
 function ShowMockInfo {
