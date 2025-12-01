@@ -47,6 +47,14 @@ function Add-ToModulePath ([String]$Path) {
     }
 }
 
+function Get-Dependency {
+    [CmdletBinding()]
+    param()
+
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$RequiredModules = Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName "build.requirements.psd1"
+    $RequiredModules
+}
+
 function Install-Dependency {
     [CmdletBinding()]
     param(
@@ -54,8 +62,15 @@ function Install-Dependency {
         $Scope = "CurrentUser"
     )
 
-    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$RequiredModules = Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName "build.requirements.psd1"
-    $Policy = (Get-PSRepository PSGallery).InstallationPolicy
+    $RequiredModules = Get-Dependency
+
+    # Ensure PSGallery exists
+    $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
+    if (-not $psGallery) {
+        throw "PSGallery repository is not available. Run setup.ps1 first to initialize the PowerShell Gallery."
+    }
+
+    $Policy = $psGallery.InstallationPolicy
     try {
         Set-PSRepository PSGallery -InstallationPolicy Trusted
         $RequiredModules | Install-Module -Scope $Scope -Repository PSGallery -SkipPublisherCheck -AllowClobber
