@@ -145,17 +145,20 @@ AfterAll {
             
             # Order matters! Process compound operators first, then simpler ones
             
+            # Should Not Throw → Should -Not -Throw (must be before "Should Throw")
+            $content = $content -replace 'Should Not Throw\b', 'Should -Not -Throw'
+            
             # Should Not BeNullOrEmpty → Should -Not -BeNullOrEmpty
             $content = $content -replace 'Should Not BeNullOrEmpty\b', 'Should -Not -BeNullOrEmpty'
+            
+            # Should Not Be → Should -Not -Be (specific pattern, before "Should Be")
+            $content = $content -replace 'Should Not Be\b', 'Should -Not -Be'
             
             # Should BeNullOrEmpty → Should -BeNullOrEmpty
             $content = $content -replace 'Should BeNullOrEmpty\b', 'Should -BeNullOrEmpty'
             
             # Should Throw → Should -Throw
             $content = $content -replace 'Should Throw\b', 'Should -Throw'
-            
-            # Should Not Be → Should -Not -Be (specific pattern)
-            $content = $content -replace 'Should Not Be\b', 'Should -Not -Be'
             
             # Should Be → Should -Be (when not already dashed)
             $content = $content -replace '\| Should Be\b(?! -)', '| Should -Be'
