@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download artifact from commit that got tagged
-        uses: dawidd6/action-download-artifact@v9
+        uses: dawidd6/action-download-artifact@v11
         with:
           workflow: build_and_test.yml
           workflow_conclusion: success
