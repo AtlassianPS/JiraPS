@@ -43,16 +43,16 @@ Describe "ConvertFrom-URLEncoded" -Tag 'Unit' {
             defParam $command 'InputString'
         }
         Context "Handling of Inputs" {
-            It "does not not allow a null or empty input" {
-                { ConvertFrom-URLEncoded -InputString $null } | Should Throw
-                { ConvertFrom-URLEncoded -InputString "" } | Should Throw
+            It "does not allow a null or empty input" {
+                { ConvertFrom-URLEncoded -InputString $null } | Should -Throw
+                { ConvertFrom-URLEncoded -InputString "" } | Should -Throw
             }
             It "accepts pipeline input" {
-                { "lorem ipsum" | ConvertFrom-URLEncoded } | Should Not Throw
+                { "lorem ipsum" | ConvertFrom-URLEncoded } | Should -Not -Throw
             }
             It "accepts multiple InputStrings" {
-                { ConvertFrom-URLEncoded -InputString "lorem", "ipsum" } | Should Not Throw
-                { "lorem", "ipsum" | ConvertFrom-URLEncoded } | Should Not Throw
+                { ConvertFrom-URLEncoded -InputString "lorem", "ipsum" } | Should -Not -Throw
+                { "lorem", "ipsum" | ConvertFrom-URLEncoded } | Should -Not -Throw
             }
         }
         Context "Handling of Outputs" {
@@ -67,7 +67,7 @@ Describe "ConvertFrom-URLEncoded" -Tag 'Unit' {
             }
             It "decodes URL encoded strings" {
                 $output = ConvertFrom-URLEncoded -InputString "Hello%20World%3F"
-                $output | Should Be 'Hello World?'
+                $output | Should -Be 'Hello World?'
             }
         }
     }

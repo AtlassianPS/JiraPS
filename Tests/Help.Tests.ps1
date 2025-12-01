@@ -1,69 +1,54 @@
-#requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Help tests" -Tag Documentation {
+Describe "Help tests" -Tag "Documentation", "Build" {
+    BeforeDiscovery {
+        . "$PSScriptRoot/Helpers/Resolve-ModuleSource.ps1"
+        $script:moduleToTest = Resolve-ModuleSource
 
+        $dependentModules = Get-Module | Where-Object { $_.RequiredModules.Name -eq 'JiraPS' }
+    $dependentModules, "JiraPS" | Remove-Module -Force -ErrorAction SilentlyContinue
+        Import-Module $moduleToTest -Force -ErrorAction Stop
+
+        $script:commands = Get-Command -Module JiraPS -CommandType Cmdlet, Function | ForEach-Object { @{
+                Command     = $_
+                CommandName = $_.Name
+                Help        = (Get-Help $_.Name)
+            }
+        }
+
+        $script:DefaultParams = @(
+            'Verbose'
+            'Debug'
+            'ErrorAction'
+            'WarningAction'
+            'InformationAction'
+            'ErrorVariable'
+            'WarningVariable'
+            'InformationVariable'
+            'OutVariable'
+            'OutBuffer'
+            'PipelineVariable'
+            'ProgressAction'
+            'WhatIf'
+            'Confirm'
+        )
+    }
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        $script:module = Get-Module JiraPS
     }
 
-    $DefaultParams = @(
-        'Verbose'
-        'Debug'
-        'ErrorAction'
-        'WarningAction'
-        'InformationAction'
-        'ErrorVariable'
-        'WarningVariable'
-        'InformationVariable'
-        'OutVariable'
-        'OutBuffer'
-        'PipelineVariable'
-        'ProgressAction'
-        'WhatIf'
-        'Confirm'
-    )
-
-    $module = Get-Module $env:BHProjectName
-    $commands = Get-Command -Module $env:BHProjectName -CommandType Cmdlet, Function  # Not alias
-    # $classes = Get-ChildItem "$env:BHProjectPath/docs/en-US/classes/*"
-    # $enums = Get-ChildItem "$env:BHProjectPath/docs/en-US/enumerations/*"
-
-    #region Public Functions
-    foreach ($command in $commands) {
-        $commandName = $command.Name -replace $module.Prefix, ''
-        $markdownFile = Resolve-Path "$env:BHProjectPath/docs/en-US/commands/$commandName.md"
-
-        # The module-qualified command fails on Microsoft.PowerShell.Archive cmdlets
-        $help = Get-Help $command.Name -ErrorAction Stop
-
-        Context "Function $commandName's Help" {
+    Describe "Public Functions" {
+        Describe "Command <_.CommandName>" -ForEach $commands {
+            BeforeDiscovery {
+                $script:parameters = $_.Command.Parameters.Keys | Where-Object { $_ -NotIn $DefaultParams }
+            }
+            BeforeAll {
+                $script:command = $_.Command
+                $script:commandName = $_.CommandName
+                $script:help = $_.Help
+                $script:commandName = $command.Name -replace $module.Prefix, ''
+                $script:markdownFile = Resolve-Path "$moduleToTest/../../docs/en-US/commands/$commandName.md"
+            }
 
             It "is described in a markdown file" {
                 $markdownFile | Should -Not -BeNullOrEmpty
@@ -84,49 +69,44 @@ Describe "Help tests" -Tag Documentation {
             }
 
             It "has a link to the 'Online Version'" {
-                [Uri]$onlineLink = ($help.relatedLinks.navigationLink | Where-Object linkText -eq "Online Version:").Uri
+                [Uri]$onlineLink = ($help.relatedLinks.navigationLink | Where-Object linkText -EQ "Online Version:").Uri
 
                 $onlineLink.Authority | Should -Be "atlassianps.org"
                 $onlineLink.Scheme | Should -Be "https"
-                $onlineLink.PathAndQuery | Should -Be "/docs/$env:BHProjectName/commands/$commandName/"
+                $onlineLink.PathAndQuery | Should -Be "/docs/JiraPS/commands/$commandName/"
             }
 
-            it "has a valid HelpUri" {
+            It "has a valid HelpUri" {
                 $command.HelpUri | Should -Not -BeNullOrEmpty
-                $Pattern = [regex]::Escape("https://atlassianps.org/docs/$env:BHProjectName/commands/$commandName")
+                $Pattern = [regex]::Escape("https://atlassianps.org/docs/JiraPS/commands/$commandName")
 
                 $command.HelpUri | Should -Match $Pattern
             }
 
             It "defines the frontmatter for the homepage" {
                 $markdownFile | Should -Not -BeNullOrEmpty
-                $markdownFile | Should -FileContentMatch "Module Name: $env:BHProjectName"
+                $markdownFile | Should -FileContentMatch "Module Name: JiraPS"
                 $markdownFile | Should -FileContentMatchExactly "layout: documentation"
-                $markdownFile | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/commands/$commandName/"
+                $markdownFile | Should -FileContentMatch "permalink: /docs/JiraPS/commands/$commandName/"
             }
 
-            # Should be a synopsis for every function
             It "has a synopsis" {
                 $help.Synopsis | Should -Not -BeNullOrEmpty
             }
 
-            # Should be a syntax for every function
             It "has a syntax" {
                 # syntax is starting with a small case as all the standard powershell commands have syntax with lower case, see (Get-Help Get-ChildItem) | gm
                 $help.syntax | Should -Not -BeNullOrEmpty
             }
 
-            # Should be a description for every function
             It "has a description" {
                 $help.Description.Text -join '' | Should -Not -BeNullOrEmpty
             }
 
-            # Should be at least one example
             It "has examples" {
                 ($help.Examples.Example | Select-Object -First 1).Code | Should -Not -BeNullOrEmpty
             }
 
-            # Should be at least one example description
             It "has desciptions for all examples" {
                 foreach ($example in ($help.Examples.Example)) {
                     $example.remarks.Text | Should -Not -BeNullOrEmpty
@@ -145,37 +125,36 @@ Describe "Help tests" -Tag Documentation {
             #     }
             # }
 
-            foreach ($parameterName in $command.Parameters.Keys) {
-                $parameterCode = $command.Parameters[$parameterName]
+            Describe "Parameter: <_>" -ForEach $parameters {
+                BeforeAll {
+                    $script:parameterName = $_
+                    $script:parameterCode = $command.Parameters[$parameterName]
+                    $script:parameterHelp = $help.Parameters.Parameter | Where-Object Name -EQ $parameterName
+                }
 
-                if ($help.Parameters | Get-Member -Name Parameter) {
-                    $parameterHelp = $help.Parameters.Parameter | Where-Object Name -EQ $parameterName
+                It "has a description for parameter [-<_>] in $commandName" {
+                    $parameterHelp.Description.Text | Should -Not -BeNullOrEmpty
+                }
 
-                    if ($parameterName -notin $DefaultParams) {
-                        It "has a description for parameter [-$parameterName] in $commandName" {
-                            $parameterHelp.Description.Text | Should -Not -BeNullOrEmpty
-                        }
+                It "has a mandatory flag for parameter [-<_>] in $commandName" {
+                    $isMandatory = $parameterCode.ParameterSets.Values.IsMandatory -contains "True"
 
-                        It "has a mandatory flag for parameter [-$parameterName] in $commandName" {
-                            $isMandatory = $parameterCode.ParameterSets.Values.IsMandatory -contains "True"
+                    $command | Should -HaveParameter $parameterName -Mandatory:$isMandatory
+                    $parameterHelp.Required | Should -BeLike $isMandatory.ToString()
+                }
 
-                            $parameterHelp.Required | Should -BeLike $isMandatory.ToString()
-                        }
-
-                        It "matches the type of the parameter in code and help" {
-                            $codeType = $parameterCode.ParameterType.Name
-                            if ($codeType -eq "Object") {
-                                if (($parameterCode.Attributes) -and ($parameterCode.Attributes | Get-Member -Name PSTypeName)) {
-                                    $codeType = $parameterCode.Attributes[0].PSTypeName
-                                }
-                            }
-                            # To avoid calling Trim method on a null object.
-                            $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
-                            if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
-
-                            $helpType | Should -Be $codeType
+                It "matches the type of the parameter in code and help" {
+                    $codeType = $parameterCode.ParameterType.Name
+                    if ($codeType -eq "Object") {
+                        if (($parameterCode.Attributes) -and ($parameterCode.Attributes | Get-Member -Name PSTypeName)) {
+                            $codeType = $parameterCode.Attributes[0].PSTypeName
                         }
                     }
+                    # To avoid calling Trim method on a null object.
+                    $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
+                    if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
+
+                    $helpType | Should -Be $codeType
                 }
             }
 
@@ -190,7 +169,6 @@ Describe "Help tests" -Tag Documentation {
             }
         }
     }
-    #endregion Public Functions
 
     #region Classes
     <# foreach ($class in $classes) {
@@ -208,9 +186,9 @@ Describe "Help tests" -Tag Documentation {
 
             It "defines the frontmatter for the homepage" {
                 $class.FullName | Should -Not -BeNullOrEmpty
-                $class.FullName | Should -FileContentMatch "Module Name: $env:BHProjectName"
+                $class.FullName | Should -FileContentMatch "Module Name: JiraPS"
                 $class.FullName | Should -FileContentMatchExactly "layout: documentation"
-                $class.FullName | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/classes/$($class.BaseName)/"
+                $class.FullName | Should -FileContentMatch "permalink: /docs/JiraPS/classes/$($class.BaseName)/"
             }
         }
     }
@@ -241,9 +219,9 @@ Describe "Help tests" -Tag Documentation {
 
             It "defines the frontmatter for the homepage" {
                 $enum.FullName | Should -Not -BeNullOrEmpty
-                $enum.FullName | Should -FileContentMatch "Module Name: $env:BHProjectName"
+                $enum.FullName | Should -FileContentMatch "Module Name: JiraPS"
                 $enum.FullName | Should -FileContentMatchExactly "layout: documentation"
-                $enum.FullName | Should -FileContentMatch "permalink: /docs/$env:BHProjectName/enumerations/$($enum.BaseName)/"
+                $enum.FullName | Should -FileContentMatch "permalink: /docs/JiraPS/enumerations/$($enum.BaseName)/"
             }
         }
     }

@@ -1,18 +1,5 @@
 #requires -Modules @{ModuleName='PowerShellGet';ModuleVersion='1.6.0'}
 
-[CmdletBinding()]
-param()
-
-function Invoke-Init {
-    [Alias("Init")]
-    [CmdletBinding()]
-    param()
-    begin {
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
-        Add-ToModulePath -Path $env:BHBuildOutput
-    }
-}
-
 function Assert-True {
     [CmdletBinding( DefaultParameterSetName = 'ByBool' )]
     param(
@@ -33,18 +20,66 @@ function Assert-True {
     }
 }
 
-function LogCall {
-    Assert-True { Test-Path TestDrive:\ } "This function only work inside pester"
+function Test-ContainsAll {
+    [CmdletBinding()]
+    [OutputType([Boolean])]
+    param(
+        [Parameter(Mandatory)]
+        [String[]]$Haystack,
+        [Parameter(Mandatory)]
+        [String[]]$Needle
+    )
 
-    Set-Content -Value "$($MyInvocation.Invocationname) $($MyInvocation.UnBoundArguments -join " ")" -Path "TestDrive:\FunctionCalled.$($MyInvocation.Invocationname).txt" -Force
+    begin {
+        $result = $Needle | ForEach-Object {
+            if ($Haystack -notcontains $_) {
+                return "missing"
+            }
+        }
+        return -not ($result -eq "missing")
+    }
 }
 
-function Add-ToModulePath ([String]$Path) {
-    $PSModulePath = $env:PSModulePath -split ([IO.Path]::PathSeparator)
-    if ($Path -notin $PSModulePath) {
-        $PSModulePath += $Path
-        $env:PSModulePath = $PSModulePath -join ([IO.Path]::PathSeparator)
+function Get-HostInformation {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingEmptyCatchBlock', '')]
+    [OutputType([String], [String])]
+    [CmdletBinding()]
+    param()
+    try {
+        $script:IsWindows = (-not (Get-Variable -Name IsWindows -ErrorAction Ignore)) -or $IsWindows
+        $script:IsLinux = (Get-Variable -Name IsLinux -ErrorAction Ignore) -and $IsLinux
+        $script:IsMacOS = (Get-Variable -Name IsMacOS -ErrorAction Ignore) -and $IsMacOS
+        $script:IsCoreCLR = $PSVersionTable.ContainsKey('PSEdition') -and $PSVersionTable.PSEdition -eq 'Core'
     }
+    catch {}
+
+    switch ($true) {
+        { $IsWindows } {
+            $OS = "Windows"
+            if (-not ($IsCoreCLR)) {
+                $OSVersion = $PSVersionTable.BuildVersion.ToString()
+            }
+        }
+        { $IsLinux } {
+            $OS = "Linux"
+        }
+        { $IsMacOs } {
+            $OS = "OSX"
+        }
+        { $IsCoreCLR } {
+            $OSVersion = $PSVersionTable.OS
+        }
+    }
+
+    return $OS, $OSVersion
+}
+
+function Get-Dependency {
+    [CmdletBinding()]
+    param()
+
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$RequiredModules = Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName "build.requirements.psd1"
+    $RequiredModules
 }
 
 function Install-Dependency {
@@ -54,7 +89,7 @@ function Install-Dependency {
         $Scope = "CurrentUser"
     )
 
-    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$RequiredModules = Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName "build.requirements.psd1"
+    $RequiredModules = Get-Dependency
     $Policy = (Get-PSRepository PSGallery).InstallationPolicy
     try {
         Set-PSRepository PSGallery -InstallationPolicy Trusted
@@ -246,17 +281,6 @@ function Remove-Utf8Bom {
             Write-Error -ErrorRecord $_
         }
     }
-}
-
-function Set-GitUser {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
-    param()
-    # github's PAT is stored to ~\.git-credentials within the Release Pipeline
-    # to avoid it being passed as parameter
-
-    if (-not (git config user.email)) { git config user.email "support@atlassianps.net" }
-    if (-not (git config user.name)) { git config user.name "AtlassianPS Automated User" }
-    if (-not (git config credential.helper)) { git config credential.helper "store --file ~/.git-credentials" }
 }
 
 Export-ModuleMember -Function * -Alias *
