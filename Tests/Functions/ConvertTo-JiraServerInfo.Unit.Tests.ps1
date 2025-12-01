@@ -1,40 +1,23 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-BeforeDiscovery {
-    Remove-Item -Path Env:\BH*
-    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-    if ($projectRoot -like "*Release") {
-        $projectRoot = (Resolve-Path "$projectRoot/..").Path
+Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
+
+    BeforeAll {
+        . "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+        $moduleToTest = Resolve-ModuleSource
+        Import-Module $moduleToTest -Force
+    }
+    AfterAll {
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
 
-    Import-Module BuildHelpers
-    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    InModuleScope JiraPS {
 
-    $env:BHManifestToTest = $env:BHPSModuleManifest
-    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-    if ($script:isBuild) {
-        $Pattern = [regex]::Escape($env:BHProjectPath)
+        . "$PSScriptRoot/../Shared.ps1"
 
-        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-        $env:BHManifestToTest = $env:BHBuildModuleManifest
-    }
+        $jiraServer = 'http://jiraserver.example.com'
 
-    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHManifestToTest
-}
-
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
-
-        BeforeAll {
-            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkType / castsToString)
-
-            $jiraServer = 'http://jiraserver.example.com'
-
-            $sampleJson = @"
+        $sampleJson = @"
 {
     "baseUrl":"$jiraServer",
     "version":"1000.1323.0",
@@ -48,36 +31,23 @@ InModuleScope JiraPS {
 }
 "@
 
-            $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+        $r = ConvertTo-JiraServerInfo -InputObject $sampleObject
+
+        It "Creates a PSObject out of JSON input" {
+            $r | Should -Not -BeNullOrEmpty
         }
 
-        Context "Sanity checking" {
-            BeforeAll {
-                $r = ConvertTo-JiraServerInfo -InputObject $sampleObject
-            }
+        checkPsType $r 'JiraPS.ServerInfo'
 
-            It "Creates a PSObject out of JSON input" {
-                $r | Should -Not -BeNullOrEmpty
-            }
 
-            It "Uses correct output type" {
-                checkType $r 'JiraPS.ServerInfo'
-            }
-
-            It "Can cast to string" {
-                castsToString $r
-            }
-
-            It "Defines expected properties" {
-                defProp $r 'BaseURL' $jiraServer
-                defProp $r 'Version' ([Version]"1000.1323.0")
-                defProp $r 'DeploymentType' "Cloud"
-                defProp $r 'BuildNumber' 100062
-                defProp $r 'BuildDate' (Get-Date '2017-09-26T00:00:00.000+0200')
-                defProp $r 'ServerTime' (Get-Date '2017-09-27T09:59:25.520+0200')
-                defProp $r 'ScmInfo' "f3c60100df073e3576f9741fb7a3dc759b416fde"
-                defProp $r 'ServerTitle' "JIRA"
-            }
-        }
+        defProp $r 'BaseURL' $jiraServer
+        defProp $r 'Version' ([Version]"1000.1323.0")
+        defProp $r 'DeploymentType' "Cloud"
+        defProp $r 'BuildNumber' 100062
+        defProp $r 'BuildDate' (Get-Date '2017-09-26T00:00:00.000+0200')
+        defProp $r 'ServerTime' (Get-Date '2017-09-27T09:59:25.520+0200')
+        defProp $r 'ScmInfo' "f3c60100df073e3576f9741fb7a3dc759b416fde"
+        defProp $r 'ServerTitle' "JIRA"
     }
 }

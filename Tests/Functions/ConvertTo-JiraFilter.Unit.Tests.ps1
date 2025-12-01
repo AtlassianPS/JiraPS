@@ -1,35 +1,19 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-BeforeDiscovery {
-    Remove-Item -Path Env:\BH*
-    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-    if ($projectRoot -like "*Release") {
-        $projectRoot = (Resolve-Path "$projectRoot/..").Path
+Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
+
+    BeforeAll {
+        . "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+        $moduleToTest = Resolve-ModuleSource
+        Import-Module $moduleToTest -Force
+    }
+    AfterAll {
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
 
-    Import-Module BuildHelpers
-    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    InModuleScope JiraPS {
 
-    $env:BHManifestToTest = $env:BHPSModuleManifest
-    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-    if ($script:isBuild) {
-        $Pattern = [regex]::Escape($env:BHProjectPath)
-
-        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-        $env:BHManifestToTest = $env:BHBuildModuleManifest
-    }
-
-    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHManifestToTest
-}
-
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
-        BeforeAll {
-            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkType / castsToString)
+        . "$PSScriptRoot/../Shared.ps1"
 
         # Obtained from Atlassian's public JIRA instance
         $sampleJson = @'
@@ -160,53 +144,38 @@ InModuleScope JiraPS {
 ]
 "@
 
+        Mock ConvertTo-JiraFilterPermission -ModuleName JiraPS {
+            $i = New-Object -TypeName PSCustomObject -Property @{ Id = 1111 }
+            $i.PSObject.TypeNames.Insert(0, 'JiraPS.FilterPermission')
+            $i
         }
 
-        Context "Sanity checking" {
-            BeforeAll {
-                Mock ConvertTo-JiraFilterPermission {
-                    $i = New-Object -TypeName PSCustomObject -Property @{ Id = 1111 }
-                    $i.PSObject.TypeNames.Insert(0, 'JiraPS.FilterPermission')
-                    $i
-                }
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+        $r = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
 
-                $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-                $r = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
-            }
+        It "Creates a PSObject out of JSON input" {
+            $r | Should -Not -BeNullOrEmpty
+        }
 
-            It "Creates a PSObject out of JSON input" {
-                $r | Should -Not -BeNullOrEmpty
-            }
+        checkPsType $r 'JiraPS.Filter'
 
-            It "Uses correct output type" {
-                checkType $r 'JiraPS.Filter'
-            }
+        defProp $r 'Id' 12844
+        defProp $r 'Name' 'All JIRA Bugs'
+        defProp $r 'JQL' 'project = 10240 AND issuetype = 1 ORDER BY key DESC'
+        defProp $r 'RestUrl' 'https://jira.atlassian.com/rest/api/2/filter/12844'
+        defProp $r 'ViewUrl' 'https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844'
+        defProp $r 'SearchUrl' 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
+        defProp $r 'Favourite' $false
+        It "Defines the 'Favorite' property as an alias of 'Favourite'" {
+            ($r | Get-Member -Name Favorite).MemberType | Should -Be "AliasProperty"
+        }
 
-            It "Can cast to string" {
-                castsToString $r
-            }
+        It "Uses output type of 'JiraPS.FilterPermission' for property 'FilterPermissions'" {
+            checkType $r.FilterPermissions 'JiraPS.FilterPermission'
+        }
 
-            It "Defines expected properties" {
-                defProp $r 'Id' 12844
-                defProp $r 'Name' 'All JIRA Bugs'
-                defProp $r 'JQL' 'project = 10240 AND issuetype = 1 ORDER BY key DESC'
-                defProp $r 'RestUrl' 'https://jira.atlassian.com/rest/api/2/filter/12844'
-                defProp $r 'ViewUrl' 'https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844'
-                defProp $r 'SearchUrl' 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
-                defProp $r 'Favourite' $false
-            }
-
-            It "Defines the 'Favorite' property as an alias of 'Favourite'" {
-                ($r | Get-Member -Name Favorite).MemberType | Should -Be "AliasProperty"
-            }
-
-            It "Uses output type of 'JiraPS.FilterPermission' for property 'FilterPermissions'" {
-                checkType $r.FilterPermissions 'JiraPS.FilterPermission'
-            }
-
-            It "uses ConvertTo-JiraFilterPermission" {
-                Should -Invoke -CommandName ConvertTo-JiraFilterPermission -Exactly -Times 1 -Scope Context
-            }
+        It "uses ConvertTo-JiraFilterPermission" {
+            Assert-MockCalled -CommandName ConvertTo-JiraFilterPermission -Module JiraPS -Exactly -Times 1 -Scope Describe
         }
     }
 }

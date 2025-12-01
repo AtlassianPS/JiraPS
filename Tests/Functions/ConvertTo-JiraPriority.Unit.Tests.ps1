@@ -1,44 +1,27 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-BeforeDiscovery {
-    Remove-Item -Path Env:\BH*
-    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-    if ($projectRoot -like "*Release") {
-        $projectRoot = (Resolve-Path "$projectRoot/..").Path
+Describe "ConvertTo-JiraPriority" -Tag 'Unit' {
+
+    BeforeAll {
+        . "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+        $moduleToTest = Resolve-ModuleSource
+        Import-Module $moduleToTest -Force
+    }
+    AfterAll {
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
 
-    Import-Module BuildHelpers
-    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    InModuleScope JiraPS {
 
-    $env:BHManifestToTest = $env:BHPSModuleManifest
-    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-    if ($script:isBuild) {
-        $Pattern = [regex]::Escape($env:BHProjectPath)
+        . "$PSScriptRoot/../Shared.ps1"
 
-        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-        $env:BHManifestToTest = $env:BHBuildModuleManifest
-    }
+        $jiraServer = 'http://jiraserver.example.com'
 
-    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+        $priorityId = 1
+        $priorityName = 'Critical'
+        $priorityDescription = 'Cannot contine normal operations'
 
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHManifestToTest
-}
-
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraPriority" -Tag 'Unit' {
-
-        BeforeAll {
-            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkType / castsToString)
-
-            $jiraServer = 'http://jiraserver.example.com'
-
-            $priorityId = 1
-            $priorityName = 'Critical'
-            $priorityDescription = 'Cannot contine normal operations'
-
-            $sampleJson = @"
+        $sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/priority/1",
     "statusColor": "#cc0000",
@@ -47,33 +30,20 @@ InModuleScope JiraPS {
     "id": "$priorityId"
   }
 "@
-            $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+
+        $r = ConvertTo-JiraPriority -InputObject $sampleObject
+
+        It "Creates a PSObject out of JSON input" {
+            $r | Should -Not -BeNullOrEmpty
         }
 
-        Context "Sanity checking" {
-            BeforeAll {
-                $r = ConvertTo-JiraPriority -InputObject $sampleObject
-            }
+        checkPsType $r 'JiraPS.Priority'
 
-            It "Creates a PSObject out of JSON input" {
-                $r | Should -Not -BeNullOrEmpty
-            }
-
-            It "Uses correct output type" {
-                checkType $r 'JiraPS.Priority'
-            }
-
-            It "Can cast to string" {
-                castsToString $r
-            }
-
-            It "Defines expected properties" {
-                defProp $r 'Id' $priorityId
-                defProp $r 'Name' $priorityName
-                defProp $r 'RestUrl' "$jiraServer/rest/api/2/priority/$priorityId"
-                defProp $r 'Description' $priorityDescription
-                defProp $r 'StatusColor' '#cc0000'
-            }
-        }
+        defProp $r 'Id' $priorityId
+        defProp $r 'Name' $priorityName
+        defProp $r 'RestUrl' "$jiraServer/rest/api/2/priority/$priorityId"
+        defProp $r 'Description' $priorityDescription
+        defProp $r 'StatusColor' '#cc0000'
     }
 }

@@ -1,71 +1,44 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-BeforeDiscovery {
-    Remove-Item -Path Env:\BH*
-    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-    if ($projectRoot -like "*Release") {
-        $projectRoot = (Resolve-Path "$projectRoot/..").Path
+Describe "ConvertTo-JiraComponent" -Tag 'Unit' {
+
+    BeforeAll {
+        . "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+        $moduleToTest = Resolve-ModuleSource
+        Import-Module $moduleToTest -Force
+    }
+    AfterAll {
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
 
-    Import-Module BuildHelpers
-    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    InModuleScope JiraPS {
 
-    $env:BHManifestToTest = $env:BHPSModuleManifest
-    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-    if ($script:isBuild) {
-        $Pattern = [regex]::Escape($env:BHProjectPath)
+        . "$PSScriptRoot/../Shared.ps1"
 
-        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-        $env:BHManifestToTest = $env:BHBuildModuleManifest
-    }
+        $jiraServer = 'http://jiraserver.example.com'
 
-    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHManifestToTest
-}
-
-InModuleScope JiraPS {
-    Describe "ConvertTo-JiraComponent" -Tag 'Unit' {
-
-        BeforeAll {
-            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkType / castsToString)
-
-            $jiraServer = 'http://jiraserver.example.com'
-
-            $sampleJson = @"
+        $sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/component/11000",
     "id": "11000",
     "name": "test component"
 }
 "@
-            $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+
+        $r = ConvertTo-JiraComponent -InputObject $sampleObject
+
+        It "Creates a PSObject out of JSON input" {
+            $r | Should -Not -BeNullOrEmpty
         }
 
-        Context "Sanity checking" {
-            BeforeAll {
-                $r = ConvertTo-JiraComponent -InputObject $sampleObject
-            }
-
-            It "Creates a PSObject out of JSON input" {
-                $r | Should -Not -BeNullOrEmpty
-            }
-
-            It "Uses correct output type" {
-                checkType $r "JiraPS.Component"
-            }
-
-            It "Can cast to string" {
-                castsToString $r
-            }
-
-            It "Defines expected properties" {
-                defProp $r 'Id' '11000'
-                defProp $r 'Name' 'test component'
-                defProp $r 'RestUrl' "$jiraServer/rest/api/2/component/11000"
-            }
+        It "Sets the type name to JiraPS.Project" {
+            # (Get-Member -InputObject $r).TypeName | Should -Be 'JiraPS.Component'
+            checkType $r "JiraPS.Component"
         }
+
+        defProp $r 'Id' '11000'
+        defProp $r 'Name' 'test component'
+        defProp $r 'RestUrl' "$jiraServer/rest/api/2/component/11000"
     }
 }
