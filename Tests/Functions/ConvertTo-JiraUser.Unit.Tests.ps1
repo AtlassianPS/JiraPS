@@ -1,36 +1,14 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "ConvertTo-JiraUser" -Tag 'Unit' {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
+        . "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+        $moduleToTest = Resolve-ModuleSource
+        Import-Module $moduleToTest -Force
     }
     AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
 
     InModuleScope JiraPS {
@@ -92,7 +70,7 @@ Describe "ConvertTo-JiraUser" -Tag 'Unit' {
         $r = ConvertTo-JiraUser -InputObject $sampleObject
 
         It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $r | Should -Not -BeNullOrEmpty
         }
 
         checkPsType $r 'JiraPS.User'
@@ -108,7 +86,7 @@ Describe "ConvertTo-JiraUser" -Tag 'Unit' {
         defProp $r 'TimeZone' "Europe/Berlin"
         defProp $r 'Locale' "en_Us"
         It "Defines the 'Group' property" {
-            $r.Groups.Count | Should Be 4
+            $r.Groups.Count | Should -Be 4
         }
     }
 }
