@@ -1,30 +1,30 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-Describe "ConvertTo-JiraTransition" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraTransition" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:tId = 11
+            $script:tName = 'Start Progress'
 
-        $tId = 11
-        $tName = 'Start Progress'
+            # Transition result status
+            $script:tRId = 3
+            $script:tRName = 'In Progress'
+            $script:tRDesc = 'This issue is being actively worked on at the moment by the assignee.'
 
-        # Transition result status
-        $tRId = 3
-        $tRName = 'In Progress'
-        $tRDesc = 'This issue is being actively worked on at the moment by the assignee.'
-
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "id": "$tId",
     "name": "$tName",
@@ -44,22 +44,67 @@ Describe "ConvertTo-JiraTransition" -Tag 'Unit' {
     }
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $r = ConvertTo-JiraTransition -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.Transition'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraTransition -InputObject $sampleObject
+                }
 
-        defProp $r 'Id' $tId
-        defProp $r 'Name' $tName
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
 
-        It "Defines the 'ResultStatus' property as a JiraPS.Status object" {
-            $r.ResultStatus.Id | Should -Be $tRId
-            $r.ResultStatus.Name | Should -Be $tRName
+                It "adds custom type 'JiraPS.Transition'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Transition'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraTransition -InputObject $sampleObject
+                }
+
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be $tId
+                }
+
+                It "defines 'Name' property with correct value" {
+                    $result.Name | Should -Be $tName
+                }
+
+                It "defines 'ResultStatus' property as JiraPS.Status object" {
+                    $result.ResultStatus.Id | Should -Be $tRId
+                    $result.ResultStatus.Name | Should -Be $tRName
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraTransition -InputObject $sampleObject
+                }
+
+                It "converts Id to correct type" {
+                    $result.Id | Should -BeOfType [long]
+                }
+
+                It "converts ResultStatus to JiraPS.Status type" {
+                    $result.ResultStatus.PSObject.TypeNames[0] | Should -Be 'JiraPS.Status'
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraTransition
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
         }
     }
 }

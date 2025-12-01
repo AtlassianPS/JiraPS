@@ -1,47 +1,24 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+InModuleScope JiraPS {
+    Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+            # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+            #region Definitions
+            $script:jiraServer = "https://jira.example.com"
+            $script:issueID = 41701
+            $script:issueKey = 'IT-3676'
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = "https://jira.example.com"
-        $issueID = 41701
-        $issueKey = 'IT-3676'
-
-        $restResult = @"
+            $script:restResult = @"
 {
     "fields": {
         "summary": {
@@ -198,56 +175,73 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
     }
 }
 "@
+            #endregion Definitions
 
-        Mock Get-JiraConfigServer {
-            $jiraServer
+            #region Mocks
+            Mock Get-JiraConfigServer -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraConfigServer'
+                $jiraServer
+            }
+
+            Mock Get-JiraIssue -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraIssue' 'Key'
+                [PSCustomObject] @{
+                    ID      = $issueID
+                    Key     = $issueKey
+                    RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
+                }
+            }
+
+            Mock ConvertTo-JiraEditMetaField -ModuleName JiraPS {
+                Write-MockDebugInfo 'ConvertTo-JiraEditMetaField' 'InputObject'
+                $InputObject
+            }
+
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"} {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                ConvertFrom-Json $restResult
+            }
+
+            Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraMethod"
+            }
+            #endregion Mocks
         }
 
-        Mock Get-JiraIssue -ModuleName JiraPS {
-            [PSCustomObject] @{
-                ID      = $issueID
-                Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
+        Describe "Signature" {
+            Context "Parameter Types" {
+                # TODO: Add parameter type validation tests
+            }
+
+            Context "Mandatory Parameters" {}
+
+            Context "Default Values" {}
+        }
+
+        Describe "Behavior" {
+            Context "Behavior testing" {
+                It "Queries Jira for metadata information about editing an issue" {
+                    { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                }
+
+                It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
+                    { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+
+                    # There are 2 example fields in our mock above, but they should
+                    # be passed to Convert-JiraCreateMetaField as a single object.
+                    # The method should only be called once.
+                    Should -Invoke ConvertTo-JiraEditMetaField -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                }
             }
         }
 
-        Mock ConvertTo-JiraEditMetaField -ModuleName JiraPS {
-            $InputObject
-        }
+        Describe "Input Validation" {
+            Context "Type Validation - Positive Cases" {}
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta"} {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json $restResult
-        }
-
-        Mock Invoke-JiraMethod -ModuleName JiraPS {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            throw "Unidentified call to Invoke-JiraMethod"
-        }
-
-        Context "Sanity checking" {
-            $command = Get-Command -Name Get-JiraIssueEditMetadata
-
-            defParam $command 'Issue'
-            defParam $command 'Credential'
-        }
-
-        Context "Behavior testing" {
-
-            It "Queries Jira for metadata information about editing an issue" {
-                { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-            }
-
-            It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
-                { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-
-                # There are 2 example fields in our mock above, but they should
-                # be passed to Convert-JiraCreateMetaField as a single object.
-                # The method should only be called once.
-                Assert-MockCalled -CommandName ConvertTo-JiraEditMetaField -ModuleName JiraPS -Exactly -Times 1 -Scope It
-            }
+            Context "Type Validation - Negative Cases" {}
         }
     }
 }

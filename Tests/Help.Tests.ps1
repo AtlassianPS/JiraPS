@@ -1,14 +1,16 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
+BeforeDiscovery {
+    Import-Module "$PSScriptRoot/Helpers/TestTools.psm1"
+
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
+
 Describe "Help tests" -Tag "Documentation", "Build" {
     BeforeDiscovery {
-        . "$PSScriptRoot/Helpers/Resolve-ModuleSource.ps1"
-        $script:moduleToTest = Resolve-ModuleSource
-
-        $dependentModules = Get-Module | Where-Object { $_.RequiredModules.Name -eq 'JiraPS' }
-    $dependentModules, "JiraPS" | Remove-Module -Force -ErrorAction SilentlyContinue
-        Import-Module $moduleToTest -Force -ErrorAction Stop
-
         $script:commands = Get-Command -Module JiraPS -CommandType Cmdlet, Function | ForEach-Object { @{
                 Command     = $_
                 CommandName = $_.Name
@@ -40,7 +42,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
     Describe "Public Functions" {
         Describe "Command <_.CommandName>" -ForEach $commands {
             BeforeDiscovery {
-                $script:parameters = $_.Command.Parameters.Keys | Where-Object { $_ -NotIn $DefaultParams }
+                $script:parameters = $_.Command.Parameters.Keys | Where-Object { $_ -notin $DefaultParams }
             }
             BeforeAll {
                 $script:command = $_.Command

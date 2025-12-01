@@ -1,20 +1,21 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-Describe "ConvertTo-JiraCreateMetaField" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraCreateMetaField" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        $sampleJson = @'
+            #region Definitions
+            $sampleJson = @'
 {
     "values": [
         {
@@ -78,36 +79,84 @@ Describe "ConvertTo-JiraCreateMetaField" -Tag 'Unit' {
     ]
 }
 '@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-
-        $r = ConvertTo-JiraCreateMetaField $sampleObject
-
-        It "Creates PSObjects out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
-            $r.Count | Should -Be 2
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
         }
 
-        checkPsType $r[0] 'JiraPS.CreateMetaField'
-
-        Context "Data validation" {
-            # Our sample JSON includes two fields: summary and priority.
-            $summary = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Summary'}
-            $priority = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Priority'}
-
-            defProp $summary 'Id' 'summary'
-            defProp $summary 'Name' 'Summary'
-            defProp $summary 'HasDefaultValue' $false
-            defProp $summary 'Required' $true
-            defProp $summary 'Operations' @('set')
-
-            It "Defines the 'Schema' property if available" {
-                $summary.Schema | Should -Not -BeNullOrEmpty
-                $priority.Schema | Should -Not -BeNullOrEmpty
+        Describe "Behavior" {
+            BeforeAll {
+                $script:result = ConvertTo-JiraCreateMetaField -InputObject $sampleObject
             }
 
-            It "Defines the 'AllowedValues' property if available" {
-                $summary.AllowedValues | Should -BeNullOrEmpty
-                $priority.AllowedValues | Should -Not -BeNullOrEmpty
+            Context "Object Conversion" {
+                It "creates a PSObject out of JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                    $result | Should -BeOfType [PSCustomObject]
+                    $result | Should -HaveCount 2
+                }
+
+                It "adds custom type 'JiraPS.CreateMetaField' to each item" {
+                    $result[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.CreateMetaField'
+                    $result[1].PSObject.TypeNames[0] | Should -Be 'JiraPS.CreateMetaField'
+                }
+            }
+
+            Context "Inputs" {
+                It "converts multiple attachments from array input" {
+                    ConvertTo-JiraCreateMetaField -InputObject $sampleObject, $sampleObject | Should -HaveCount 4
+                }
+
+                It "accepts input from pipeline" {
+                    $sampleObject, $sampleObject | ConvertTo-JiraCreateMetaField | Should -HaveCount 4
+                }
+            }
+
+            Context "Property Mapping" {
+                # Our sample JSON includes two fields: summary and priority.
+                Context "Example: Summary" {
+                    BeforeAll {
+                        $script:summary = (ConvertTo-JiraCreateMetaField -InputObject $sampleObject) | Where-Object -FilterScript { $_.Name -eq 'Summary' }
+                    }
+
+                    It "defines '<property>' of type '<type>' with value '<value>'" -TestCases @(
+                        @{ property = "Id"; type = [string]; value = 'summary' }
+                        @{ property = "Name"; type = [string]; value = 'Summary' }
+                        @{ property = "HasDefaultValue"; type = [bool]; value = $false }
+                        @{ property = "Required"; type = [bool]; value = $true }
+                        @{ property = "Operations"; type = [string]; value = 'set' }
+                        @{ property = "Schema"; type = [PSCustomObject]; value = $null }
+                    ) {
+                        if ($value) { $summary.$($property) | Should -Be $value }
+                        else { $summary.$($property) | Should -Not -BeNullOrEmpty }
+
+                        if ($type -is [string]) {
+                            $summary.$($property).PSObject.TypeNames[0] | Should -Be $type
+                        }
+                        else { $summary.$($property) | Should -BeOfType $type }
+                    }
+                }
+            }
+
+            Context "Example: Priority" {
+                BeforeAll {
+                    $script:priority = (ConvertTo-JiraCreateMetaField -InputObject $sampleObject) | Where-Object -FilterScript { $_.Name -eq 'Priority' }
+                }
+
+                It "defines '<property>' of type '<type>' with value '<value>'" -TestCases @(
+                    @{ property = "HasDefaultValue"; type = [bool]; value = $true }
+                    @{ property = "Required"; type = [bool]; value = $false }
+                    @{ property = "Operations"; type = [string]; value = 'set' }
+                    @{ property = "Schema"; type = [PSCustomObject]; value = $null }
+                    @{ property = "AllowedValues"; type = [PSCustomObject]; value = $null }
+                ) {
+                    if ($value) { $priority.$($property) | Should -Be $value }
+                    else { $priority.$($property) | Should -Not -BeNullOrEmpty }
+
+                    if ($type -is [string]) {
+                        $priority.$($property).PSObject.TypeNames[0] | Should -Be $type
+                    }
+                    else { $priority.$($property) | Should -BeOfType $type }
+                }
             }
         }
     }

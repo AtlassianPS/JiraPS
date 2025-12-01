@@ -1,23 +1,24 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-Describe "ConvertTo-JiraGroup" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraGroup" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-        $groupName = 'powershell-testgroup'
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:groupName = 'powershell-testgroup'
 
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/group?groupname=$groupName",
     "name": "$groupName",
@@ -31,18 +32,62 @@ Describe "ConvertTo-JiraGroup" -Tag 'Unit' {
     "expand": "users"
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $r = ConvertTo-JiraGroup -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.Group'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraGroup -InputObject $sampleObject
+                }
 
-        defProp $r 'Name' $groupName
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/group?groupname=$groupName"
-        defProp $r 'Size' 1
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
+
+                It "adds custom type 'JiraPS.Group'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Group'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraGroup -InputObject $sampleObject
+                }
+
+                It "defines 'Name' property with correct value" {
+                    $result.Name | Should -Be $groupName
+                }
+
+                It "defines 'RestUrl' property with correct value" {
+                    $result.RestUrl | Should -Be "$jiraServer/rest/api/2/group?groupname=$groupName"
+                }
+
+                It "defines 'Size' property with correct value" {
+                    $result.Size | Should -Be 1
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraGroup -InputObject $sampleObject
+                }
+
+                It "converts Size to correct type" {
+                    $result.Size | Should -BeOfType [int]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraGroup
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
     }
 }

@@ -1,107 +1,125 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Remove-JiraIssueWatcher" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "Remove-JiraIssueWatcher" -Tag 'Unit' {
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+            # $VerbosePreference = 'Continue'
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:issueID = 41701
+            $script:issueKey = 'IT-3676'
+            #endregion Definitions
 
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-        $issueID = 41701
-        $issueKey = 'IT-3676'
-
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
-        Mock Get-JiraIssue -ModuleName JiraPS {
-            $object = [PSCustomObject] @{
-                ID      = $issueID
-                Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
-            }
-            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
-            return $object
-        }
-
-        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-            Get-JiraIssue -Key $Issue
-        }
-
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/watchers?username=fred"} {
-            ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri', 'Method'
-        }
-
-        # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName JiraPS {
-            ShowMockInfo 'Invoke-JiraMethod' -Params 'Uri', 'Method'
-            throw "Unidentified call to Invoke-JiraMethod"
-        }
-
-        #############
-        # Tests
-        #############
-
-        Context "Sanity checking" {
-            $command = Get-Command -Name Remove-JiraIssueWatcher
-
-            defParam $command 'Watcher'
-            defParam $command 'Issue'
-            defParam $command 'Credential'
-        }
-
-        Context "Behavior testing" {
-
-            It "Removes a Watcher from an issue in JIRA" {
-                $WatcherResult = Remove-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
-                $WatcherResult | Should BeNullOrEmpty
-
-                # Get-JiraIssue should be used to identiyf the issue parameter
-                Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
-
-                # Invoke-JiraMethod should be used to add the Watcher
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            #region Mocks
+            Mock Get-JiraConfigServer -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraConfigServer'
+                $jiraServer
             }
 
-            It "Accepts pipeline input from Get-JiraIssue" {
-                $WatcherResult = Get-JiraIssue -Key $IssueKey | Remove-JiraIssueWatcher -Watcher 'fred'
-                $WatcherResult | Should BeNullOrEmpty
-
-                # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
-                Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            Mock Get-JiraIssue -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraIssue' 'Key'
+                $object = [PSCustomObject] @{
+                    ID      = $issueID
+                    Key     = $issueKey
+                    RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
+                }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                return $object
             }
+
+            Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
+                Get-JiraIssue -Key $Issue
+            }
+
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/watchers?username=fred"} {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Uri', 'Method'
+            }
+
+            # Generic catch-all. This will throw an exception if we forgot to mock something.
+            Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Uri', 'Method'
+                throw "Unidentified call to Invoke-JiraMethod"
+            }
+            #endregion Mocks
+        }
+
+        Describe "Signature" {
+            BeforeAll {
+                $script:command = Get-Command -Name Remove-JiraIssueWatcher
+            }
+
+            Context "Parameter Types" {
+                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
+                    @{ parameter = 'Watcher'; type = 'String[]' }
+                    @{ parameter = 'Issue'; type = 'Object' }
+                    @{ parameter = 'Credential'; type = 'PSCredential' }
+                ) {
+                    param($parameter, $type)
+                    $command | Should -HaveParameter $parameter -Type $type
+                }
+            }
+
+            Context "Mandatory Parameters" {}
+
+            Context "Default Values" {}
+        }
+
+        Describe "Behavior" {
+            Context "Watcher Removal" {
+                It "removes a watcher from an existing issue" {
+                    { Remove-JiraIssueWatcher -Watcher $testUsername -Issue $issueKey } | Should -Not -Throw
+
+                    $assertMockCalledSplat = @{
+                        CommandName     = 'Invoke-JiraMethod'
+                        ModuleName      = 'JiraPS'
+                        ParameterFilter = {
+                            $Method -eq 'Delete' -and
+                            $URI -like "$jiraServer/rest/api/*/issue/$issueId/watchers*"
+                        }
+                        Scope           = 'It'
+                        Exactly         = $true
+                        Times           = 1
+                    }
+                    Should -Invoke @assertMockCalledSplat
+                }
+                    $WatcherResult = Remove-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
+                    $WatcherResult | Should -BeNullOrEmpty
+
+                    # Get-JiraIssue should be used to identify the issue parameter
+                    Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+
+                    # Invoke-JiraMethod should be used to remove the Watcher
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                }
+
+                It "Accepts pipeline input from Get-JiraIssue" {
+                    $WatcherResult = Get-JiraIssue -Key $IssueKey | Remove-JiraIssueWatcher -Watcher 'fred'
+                    $WatcherResult | Should -BeNullOrEmpty
+
+                    # Get-JiraIssue should be called once here, and once inside Remove-JiraIssueWatcher (to identify the InputObject parameter)
+                    Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                }
+            }
+        }
+
+        Describe "Input Validation" {
+            Context "Type Validation - Positive Cases" {}
+
+            Context "Type Validation - Negative Cases" {}
         }
     }
 }

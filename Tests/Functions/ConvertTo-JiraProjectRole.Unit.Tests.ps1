@@ -1,20 +1,21 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-Describe "ConvertTo-JiraProjectRole" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraProjectRole" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        $sampleJson = @"
+            #region Definitions
+            $script:sampleJson = @"
 [
   {
     "self": "http://www.example.com/jira/rest/api/2/project/MKY/role/10360",
@@ -38,20 +39,70 @@ Describe "ConvertTo-JiraProjectRole" -Tag 'Unit' {
   }
 ]
 "@
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-        $r = ConvertTo-JiraProjectRole -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.ProjectRole'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraProjectRole -InputObject $sampleObject
+                }
 
-        defProp $r 'Id' 10360
-        defProp $r 'Name' "Developers"
-        defProp $r 'Description' "A project role that represents developers in a project"
-        hasProp $r 'Actors'
-        defProp $r 'RestUrl' "http://www.example.com/jira/rest/api/2/project/MKY/role/10360"
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
+
+                It "adds custom type 'JiraPS.ProjectRole'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.ProjectRole'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraProjectRole -InputObject $sampleObject
+                }
+
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be 10360
+                }
+
+                It "defines 'Name' property with correct value" {
+                    $result.Name | Should -Be "Developers"
+                }
+
+                It "defines 'Description' property with correct value" {
+                    $result.Description | Should -Be "A project role that represents developers in a project"
+                }
+
+                It "defines 'Actors' property" {
+                    $result.Actors | Should -Not -BeNullOrEmpty
+                }
+
+                It "defines 'RestUrl' property with correct value" {
+                    $result.RestUrl | Should -Be "http://www.example.com/jira/rest/api/2/project/MKY/role/10360"
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraProjectRole -InputObject $sampleObject
+                }
+
+                It "converts Id to correct type" {
+                    $result.Id | Should -BeOfType [long]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraProjectRole
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
     }
 }

@@ -1,23 +1,24 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-Describe "ConvertTo-JiraLink" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraLink" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
-        $LinkID = "10000"
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:LinkID = "10000"
 
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "id": 10000,
     "self": "http://jiraserver.example.com/rest/api/issue/MKY-1/remotelink/10000",
@@ -46,17 +47,58 @@ Describe "ConvertTo-JiraLink" -Tag 'Unit' {
     }
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $r = ConvertTo-JiraLink -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.Link'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraLink -InputObject $sampleObject
+                }
 
-        defProp $r 'id' $LinkId
-        defProp $r 'RestUrl' "$jiraServer/rest/api/issue/MKY-1/remotelink/10000"
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
+
+                It "adds custom type 'JiraPS.Link'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Link'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraLink -InputObject $sampleObject
+                }
+
+                It "defines 'id' property with correct value" {
+                    $result.id | Should -Be $LinkId
+                }
+
+                It "defines 'RestUrl' property with correct value" {
+                    $result.RestUrl | Should -Be "$jiraServer/rest/api/issue/MKY-1/remotelink/10000"
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraLink -InputObject $sampleObject
+                }
+
+                It "converts id to correct type" {
+                    $result.id | Should -BeOfType [long]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraLink
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
     }
 }

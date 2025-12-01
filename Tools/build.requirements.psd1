@@ -6,4 +6,3 @@
     @{ ModuleName = "platyPS"; RequiredVersion = "0.14.2" }
     @{ ModuleName = "PSScriptAnalyzer"; RequiredVersion = "1.24.0" }
 )
-

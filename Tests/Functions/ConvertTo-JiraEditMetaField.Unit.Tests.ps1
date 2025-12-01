@@ -1,20 +1,21 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-Describe "ConvertTo-JiraEditMetaField" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraEditMetaField" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        $sampleJson = @'
+            #region Definitions
+            $sampleJson = @'
 {
     "fields": {
         "summary": {
@@ -76,36 +77,89 @@ Describe "ConvertTo-JiraEditMetaField" -Tag 'Unit' {
     }
 }
 '@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-
-        $r = ConvertTo-JiraEditMetaField $sampleObject
-
-        It "Creates PSObjects out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
-            $r.Count | Should -Be 2
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
         }
 
-        checkPsType $r[0] 'JiraPS.EditMetaField'
-
-        Context "Data validation" {
-            # Our sample JSON includes two fields: summary and priority.
-            $summary = ConvertTo-JiraEditMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Summary'}
-            $priority = ConvertTo-JiraEditMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Priority'}
-
-            defProp $summary 'Id' 'summary'
-            defProp $summary 'Name' 'Summary'
-            defProp $summary 'HasDefaultValue' $false
-            defProp $summary 'Required' $true
-            defProp $summary 'Operations' @('set')
-
-            It "Defines the 'Schema' property if available" {
-                $summary.Schema | Should -Not -BeNullOrEmpty
-                $priority.Schema | Should -Not -BeNullOrEmpty
+        Describe "Behavior" {
+            BeforeAll {
+                $script:result = ConvertTo-JiraEditMetaField -InputObject $sampleObject
             }
 
-            It "Defines the 'AllowedValues' property if available" {
-                $summary.AllowedValues | Should -BeNullOrEmpty
-                $priority.AllowedValues | Should -Not -BeNullOrEmpty
+            Context "Object Conversion" {
+                It "creates PSObject array from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                    $result | Should -BeOfType [PSCustomObject]
+                    $result | Should -HaveCount 2
+                }
+
+                It "adds custom type 'JiraPS.EditMetaField' to each item" {
+                    $result[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.EditMetaField'
+                    $result[1].PSObject.TypeNames[0] | Should -Be 'JiraPS.EditMetaField'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    # Our sample JSON includes two fields: summary and priority.
+                    $script:summary = (ConvertTo-JiraEditMetaField -InputObject $sampleObject) | Where-Object -FilterScript { $_.Name -eq 'Summary' }
+                    $script:priority = (ConvertTo-JiraEditMetaField -InputObject $sampleObject) | Where-Object -FilterScript { $_.Name -eq 'Priority' }
+                }
+
+                It "maps 'Id' property correctly" {
+                    $summary.Id | Should -Be 'summary'
+                }
+
+                It "maps 'Name' property correctly" {
+                    $summary.Name | Should -Be 'Summary'
+                }
+
+                It "maps 'HasDefaultValue' property correctly" {
+                    $summary.HasDefaultValue | Should -Be $false
+                    $priority.HasDefaultValue | Should -Be $true
+                }
+
+                It "maps 'Required' property correctly" {
+                    $summary.Required | Should -Be $true
+                    $priority.Required | Should -Be $false
+                }
+
+                It "maps 'Operations' property correctly" {
+                    $summary.Operations | Should -Be @('set')
+                    $priority.Operations | Should -Be @('set')
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:summary = (ConvertTo-JiraEditMetaField -InputObject $sampleObject) | Where-Object -FilterScript { $_.Name -eq 'Summary' }
+                    $script:priority = (ConvertTo-JiraEditMetaField -InputObject $sampleObject) | Where-Object -FilterScript { $_.Name -eq 'Priority' }
+                }
+
+                It "includes 'Schema' property when available" {
+                    $summary.Schema | Should -Not -BeNullOrEmpty
+                    $priority.Schema | Should -Not -BeNullOrEmpty
+                }
+
+                It "includes 'AllowedValues' property when available" {
+                    $summary.AllowedValues | Should -BeNullOrEmpty
+                    $priority.AllowedValues | Should -Not -BeNullOrEmpty
+                    $priority.AllowedValues.Count | Should -Be 5
+                }
+            }
+        }
+
+        Describe "Input Validation" {
+            It "accepts positional parameters" {
+                ConvertTo-JiraEditMetaField $sampleObject | Should -HaveCount 2
+            }
+
+            It "converts multiple attachments from array input" {
+                ConvertTo-JiraEditMetaField -InputObject $sampleObject, $sampleObject | Should -HaveCount 4
+            }
+
+            It "accepts input from pipeline" {
+                $sampleObject, $sampleObject | ConvertTo-JiraEditMetaField | Should -HaveCount 4
             }
         }
     }

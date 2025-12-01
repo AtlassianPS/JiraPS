@@ -11,7 +11,7 @@ function ConvertTo-JiraStatus {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
             $props = @{
-                'ID'          = $i.id
+                'ID'          = [long]$i.id
                 'Name'        = $i.name
                 'Description' = $i.description
                 'IconUrl'     = $i.iconUrl

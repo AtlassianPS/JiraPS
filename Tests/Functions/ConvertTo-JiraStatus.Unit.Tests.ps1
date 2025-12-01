@@ -1,26 +1,26 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    Import-Module "$PSScriptRoot/../Helpers/TestTools.psm1"
 
-Describe "ConvertTo-JiraStatus" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraStatus" -Tag 'Unit' {
+        BeforeAll {
+            Import-Module "$PSScriptRoot/../Helpers/TestTools.psm1"
 
-        $jiraServer = 'http://jiraserver.example.com'
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:statusName = 'In Progress'
+            $script:statusId = 3
+            $script:statusDesc = 'This issue is being actively worked on at the moment by the assignee.'
 
-        $statusName = 'In Progress'
-        $statusId = 3
-        $statusDesc = 'This issue is being actively worked on at the moment by the assignee.'
-
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/status/$statusId",
     "description": "$statusDesc",
@@ -36,20 +36,70 @@ Describe "ConvertTo-JiraStatus" -Tag 'Unit' {
     }
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $r = ConvertTo-JiraStatus -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.Status'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraStatus -InputObject $sampleObject
+                }
 
-        defProp $r 'Id' $statusId
-        defProp $r 'Name' $statusName
-        defProp $r 'Description' $statusDesc
-        defProp $r 'IconUrl' "$jiraServer/images/icons/statuses/inprogress.png"
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/status/$statusId"
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
+
+                It "adds custom type 'JiraPS.Status'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Status'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraStatus -InputObject $sampleObject
+                }
+
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be $statusId
+                }
+
+                It "defines 'Name' property with correct value" {
+                    $result.Name | Should -Be $statusName
+                }
+
+                It "defines 'Description' property with correct value" {
+                    $result.Description | Should -Be $statusDesc
+                }
+
+                It "defines 'IconUrl' property with correct value" {
+                    $result.IconUrl | Should -Be "$jiraServer/images/icons/statuses/inprogress.png"
+                }
+
+                It "defines 'RestUrl' property with correct value" {
+                    $result.RestUrl | Should -Be "$jiraServer/rest/api/2/status/$statusId"
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraStatus -InputObject $sampleObject
+                }
+
+                It "converts Id to correct type" {
+                    $result.Id | Should -BeOfType [long]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraStatus
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
     }
 }

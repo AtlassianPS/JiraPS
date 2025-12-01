@@ -1,20 +1,21 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-Describe "ConvertTo-JiraFilterPermission" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraFilterPermission" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        $sampleJson = @"
+            #region Definitions
+            $script:sampleJson = @'
 [
   {
     "id": 10000,
@@ -95,31 +96,104 @@ Describe "ConvertTo-JiraFilterPermission" -Tag 'Unit' {
     }
   }
 ]
-"@
+'@
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-        $r = ConvertTo-JiraFilterPermission -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.FilterPermission'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraFilterPermission -InputObject $sampleObject
+                }
 
-        defProp $r 'Id' @(10000, 10010, 10010, 10010)
-        defProp $r 'Type' @('global', 'project', 'project', 'group')
-        It "Defines the 'Group' property of type 'JiraPS.Group'" {
-            checkType $r[3].Group 'JiraPS.Group'
-            $r.Group.Name | Should -Be 'jira-administrators'
-        }
-        It "Defines the 'Project' property of type 'JiraPS.Project'" {
-            checkType $r[1].Project 'JiraPS.Project'
-            $r.Project.Name | Should -Be @('Example', 'Example')
-        }
+                It "creates PSObject array from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                    $result | Should -HaveCount 4
+                }
 
-        It "Defines the 'Role' property of type 'JiraPS.ProjectRole'" {
-            checkType $r[2].Role 'JiraPS.ProjectRole'
-            $r.Role.Name | Should -Be 'Developers'
+                It "adds custom type 'JiraPS.FilterPermission' to each item" {
+                    $result[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
+                    $result[1].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
+                    $result[2].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
+                    $result[3].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraFilterPermission -InputObject $sampleObject
+                }
+
+                It "maps 'Id' property correctly" {
+                    $result[0].Id | Should -Be 10000
+                    $result[1].Id | Should -Be 10010
+                    $result[2].Id | Should -Be 10010
+                    $result[3].Id | Should -Be 10010
+                }
+
+                It "maps 'Type' property correctly" {
+                    $result[0].Type | Should -Be 'global'
+                    $result[1].Type | Should -Be 'project'
+                    $result[2].Type | Should -Be 'project'
+                    $result[3].Type | Should -Be 'group'
+                }
+
+                It "maps 'Project' property when available" {
+                    $result[0].Project | Should -BeNullOrEmpty
+                    $result[1].Project | Should -Not -BeNullOrEmpty
+                    $result[1].Project.Name | Should -Be 'Example'
+                    $result[2].Project | Should -Not -BeNullOrEmpty
+                    $result[2].Project.Name | Should -Be 'Example'
+                }
+
+                It "maps 'Role' property when available" {
+                    $result[2].Role | Should -Not -BeNullOrEmpty
+                    $result[2].Role.Name | Should -Be 'Developers'
+                }
+
+                It "maps 'Group' property when available" {
+                    $result[3].Group | Should -Not -BeNullOrEmpty
+                    $result[3].Group.Name | Should -Be 'jira-administrators'
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraFilterPermission -InputObject $sampleObject
+                }
+
+                It "converts nested Project to 'JiraPS.Project' type" {
+                    $result[1].Project.PSObject.TypeNames[0] | Should -Be 'JiraPS.Project'
+                }
+
+                It "converts nested Role to 'JiraPS.ProjectRole' type" {
+                    $result[2].Role.PSObject.TypeNames[0] | Should -Be 'JiraPS.ProjectRole'
+                }
+
+                It "converts nested Group to 'JiraPS.Group' type" {
+                    $result[3].Group.PSObject.TypeNames[0] | Should -Be 'JiraPS.Group'
+                }
+
+                It "converts Id to numeric type" {
+                    $result[0].Id | Should -BeOfType [ValueType]
+                    $result[0].Id.GetType().Name | Should -Match '^(Int32|Int64)$'
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    { $sampleObject | ConvertTo-JiraFilterPermission } | Should -Not -Throw
+                }
+
+                It "processes array of permissions from pipeline" {
+                    $result = @($sampleObject, $sampleObject) | ConvertTo-JiraFilterPermission
+                    $result | Should -HaveCount 8
+                }
+            }
         }
     }
 }

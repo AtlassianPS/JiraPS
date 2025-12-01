@@ -2,18 +2,14 @@
 
 Describe "Validation of build environment" -Tag Unit {
     BeforeAll {
-        . "$PSScriptRoot/Helpers/Resolve-ModuleSource.ps1"
-        . "$PSScriptRoot/Helpers/Resolve-ProjectRoot.ps1"
+        Import-Module "$PSScriptRoot/Helpers/TestTools.psm1"
+
+        Initialize-TestEnvironment
         $script:moduleToTest = Resolve-ModuleSource
         $script:moduleRoot = Resolve-ProjectRoot
-
-        Remove-Module PSIni -ErrorAction SilentlyContinue
-    }
-    AfterEach {
-        Remove-Module PSIni -ErrorAction SilentlyContinue
     }
 
-    Describe "CHANGELOG" {
+    Context "CHANGELOG" {
         BeforeAll {
             $changelogFile = "$moduleRoot/CHANGELOG.md"
 

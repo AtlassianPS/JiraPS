@@ -1,34 +1,37 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 BeforeDiscovery {
-    $script:ThisTest = "Add-JiraIssueLink"
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    . "$PSScriptRoot/../Helpers/Resolve-ModuleSource.ps1"
+    Initialize-TestEnvironment
     $script:moduleToTest = Resolve-ModuleSource
 
-    $dependentModules = Get-Module | Where-Object { $_.RequiredModules.Name -eq 'JiraPS' }
-    $dependentModules, "JiraPS" | Remove-Module -Force -ErrorAction SilentlyContinue
-    Import-Module $moduleToTest -Force -ErrorAction Stop
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
 }
 
 InModuleScope JiraPS {
-    Describe "$ThisTest" -Tag 'Unit' {
+    Describe "Add-JiraIssueLink" -Tag 'Unit' {
         BeforeAll {
-            . "$PSScriptRoot/../Helpers/Shared.ps1"
+            . "$PSScriptRoot/../Helpers/TestTools.ps1" -Force
 
+            #region Definitions
             $jiraServer = 'http://jiraserver.example.com'
 
-            $issueKey = "TEST-01"
-            $issueLink = [PSCustomObject]@{
+            $script:issueKey = "TEST-01"
+            $script:issueLink = [PSCustomObject]@{
                 outwardIssue = [PSCustomObject]@{key = "TEST-10" }
                 type         = [PSCustomObject]@{name = "Composition" }
             }
+            #endregion Definitions
 
+            #region Mocks
             Mock Get-JiraConfigServer -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraConfigServer'
                 Write-Output $jiraServer
             }
 
-            Mock Get-JiraIssue -ParameterFilter { $Key -eq $issueKey } {
+            Mock Get-JiraIssue -ModuleName JiraPS -ParameterFilter { $Key -eq $issueKey } {
+                Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [PSCustomObject]@{
                     Key = $issueKey
                 }
@@ -37,67 +40,90 @@ InModuleScope JiraPS {
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
+                if ($Issue -eq "foo") {
+                    throw "Invalid Issue"
+                }
                 Get-JiraIssue -Key $Issue
+            }
+
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'POST' -and
+                $URI -eq "$jiraServer/rest/api/2/issueLink"
+            } {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+                return $true
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
             Mock Invoke-JiraMethod -ModuleName JiraPS {
-                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
                 throw "Unidentified call to Invoke-JiraMethod"
             }
-
-            Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issueLink" } {
-                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                return $true
-            }
+            #endregion Mocks
         }
 
         Describe "Signature" {
             BeforeAll {
-                $script:command = Get-Command -Name $ThisTest
+                $script:command = Get-Command -Name "Add-JiraIssueLink"
             }
 
-            It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                @{ parameter = "Issue"; type = "Object[]" }
-                @{ parameter = "IssueLink"; type = "Object[]" }
-                @{ parameter = "Comment"; type = "String" }
-                @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
-            ) {
-                $command | Should -HaveParameter $parameter
+            Context "Parameter Types" {
+                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
+                    @{ parameter = "Issue"; type = "Object[]" }
+                    @{ parameter = "IssueLink"; type = "Object[]" }
+                    @{ parameter = "Comment"; type = "String" }
+                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                ) {
+                    $command | Should -HaveParameter $parameter
 
-                #ToDo:CustomClass
-                # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
+                    #ToDo:CustomClass
+                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
                     (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
+                }
             }
 
-            It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
-            ) {
-                $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
+            Context "Default Values" {
+                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
+                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
+                ) {
+                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
+                }
             }
 
-            It "parameter '<parameter>' is mandatory" -TestCases @(
-                @{ parameter = "Issue" }
-                @{ parameter = "IssueLink" }
-            ) {
-                $command | Should -HaveParameter $parameter -Mandatory
+            Context "Mandatory Parameters" {
+                It "parameter '<parameter>' is mandatory" -TestCases @(
+                    @{ parameter = "Issue" }
+                    @{ parameter = "IssueLink" }
+                ) {
+                    $command | Should -HaveParameter $parameter -Mandatory
+                }
             }
         }
 
-        Describe "Behaviour" {
+        Describe "Behavior" {
             It 'Adds a new IssueLink' {
                 { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should -Not -Throw
 
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
+        }
 
-            It 'Validates the IssueType provided' {
-                $issueLink = [PSCustomObject]@{ type = "foo" }
-                { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should -Throw
-            }
+        Describe "Input Validation" {
+            Context "Type Validation - Positive Cases" { }
 
-            It 'Validates pipeline input object' {
-                { "foo" | Add-JiraIssueLink -IssueLink $issueLink } | Should -Throw
+            Context "Type Validation - Negative Cases" {
+                It 'pipeline input must be JiraPS.Issue or String' {
+                    { (Get-Date) | Add-JiraIssueLink -IssueLink $issueLink -ErrorAction SilentlyContinue } | Should -Throw -ErrorId 'ParameterType.NotJiraIssue,Add-JiraIssueLink'
+                }
+
+                It "requires a specific object type for -IssueLink" {
+                    $string = "invalid-object"
+                    $incompleteObject = [PSCustomObject]@{ type = "foo" }
+
+                    { Add-JiraIssueLink -Issue $issueKey -IssueLink $string } | Should -Throw -ErrorId 'ParameterProperties.Incomplete,Add-JiraIssueLink'
+                    { Add-JiraIssueLink -Issue $issueKey -IssueLink $incompleteObject } | Should -Throw -ErrorId 'ParameterProperties.Incomplete,Add-JiraIssueLink'
+                }
             }
         }
     }

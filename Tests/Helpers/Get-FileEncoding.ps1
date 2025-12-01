@@ -1,4 +1,4 @@
-﻿function Get-FileEncoding {
+function Get-FileEncoding {
     <#
     .SYNOPSIS
         Attempt to determine a file type based on a BOM or file header.

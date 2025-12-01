@@ -1,29 +1,69 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-Describe "ConvertTo-JiraSession" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraSession" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        $sampleUsername = 'powershell-test'
-        $sampleSession = @{}
+            #region Definitions
+            $script:sampleUsername = 'powershell-test'
+            $script:sampleSession = @{}
+            #endregion Definitions
 
-        $r = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
-
-        It "Creates a PSObject out of Web request data" {
-            $r | Should -Not -BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.Session'
-        defProp $r 'Username' $sampleUsername
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
+                }
+
+                It "creates PSObject from session data" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
+
+                It "adds custom type 'JiraPS.Session'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Session'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
+                }
+
+                It "defines 'Username' property with correct value" {
+                    $result.Username | Should -Be $sampleUsername
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
+                }
+
+                It "converts Username to correct type" {
+                    $result.Username | Should -BeOfType [string]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts session parameter" {
+                    $result = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
     }
 }

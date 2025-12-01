@@ -1,27 +1,27 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-# Import module at script level for Pester v5 InModuleScope compatibility
-. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-$moduleToTest = Resolve-ModuleSource
-Import-Module $moduleToTest -Force
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-Describe "ConvertTo-JiraIssueLink" -Tag 'Unit' {
-    AfterAll {
-        Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-    InModuleScope JiraPS {
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        . "$PSScriptRoot/../Shared.ps1"
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraIssueLink" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        $jiraServer = 'http://jiraserver.example.com'
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:issueLinkId = 41313
+            $script:issueKeyInward = "TEST-01"
+            $script:issueKeyOutward = "TEST-10"
+            $script:linkTypeName = "Composition"
 
-        $issueLinkId = 41313
-        $issueKeyInward = "TEST-01"
-        $issueKeyOutward = "TEST-10"
-        $linkTypeName = "Composition"
-
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "id": "$issueLinkId",
     "type": {
@@ -38,24 +38,66 @@ Describe "ConvertTo-JiraIssueLink" -Tag 'Unit' {
     }
 }
 "@
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-
-        $r = ConvertTo-JiraIssueLink -InputObject $sampleObject
-        It "Creates a PSObject out of JSON input" {
-            $r | Should -Not -BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.IssueLink'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraIssueLink -InputObject $sampleObject
+                }
 
-        defProp $r 'Id' $issueLinkId
-        defProp $r 'Type' "Composition"
-        defProp $r 'InwardIssue' "[$issueKeyInward] "
-        defProp $r 'OutwardIssue' "[$issueKeyOutward] "
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
 
-        It "Handles pipeline input" {
-            $r = $sampleObject | ConvertTo-JiraIssueLink
-            @($r).Count | Should -Be 1
+                It "adds custom type 'JiraPS.IssueLink'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueLink'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraIssueLink -InputObject $sampleObject
+                }
+
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be $issueLinkId
+                }
+
+                It "defines 'Type' property with correct value" {
+                    $result.Type | Should -Be "Composition"
+                }
+
+                It "defines 'InwardIssue' property with correct value" {
+                    $result.InwardIssue | Should -Be "[$issueKeyInward] "
+                }
+
+                It "defines 'OutwardIssue' property with correct value" {
+                    $result.OutwardIssue | Should -Be "[$issueKeyOutward] "
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraIssueLink -InputObject $sampleObject
+                }
+
+                It "converts Id to correct type" {
+                    $result.Id | Should -BeOfType [long]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraIssueLink
+                    @($result) | Should -HaveCount 1
+                }
+            }
         }
     }
 }

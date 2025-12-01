@@ -12,7 +12,7 @@ Describe "Format-Jira" -Tag 'Unit' {
 
     InModuleScope JiraPS {
 
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Helpers/Shared.ps1"
 
         $n = [System.Environment]::NewLine
         $obj = [PSCustomObject] @{
