@@ -90,7 +90,14 @@ function Install-Dependency {
     )
 
     $RequiredModules = Get-Dependency
-    $Policy = (Get-PSRepository PSGallery).InstallationPolicy
+
+    # Ensure PSGallery exists
+    $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
+    if (-not $psGallery) {
+        throw "PSGallery repository is not available. Run setup.ps1 first to initialize the PowerShell Gallery."
+    }
+
+    $Policy = $psGallery.InstallationPolicy
     try {
         Set-PSRepository PSGallery -InstallationPolicy Trusted
         $RequiredModules | Install-Module -Scope $Scope -Repository PSGallery -SkipPublisherCheck -AllowClobber
