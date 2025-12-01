@@ -1,105 +1,104 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = 'Pester'; ModuleVersion = '5.7.1' }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe 'Add-JiraIssueLink' -Tag 'Unit' {
+BeforeDiscovery {
+    $script:ThisTest = "Add-JiraIssueLink"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
+    . "$PSScriptRoot/../Helpers/Resolve-ModuleSource.ps1"
+    $script:moduleToTest = Resolve-ModuleSource
 
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like '*Release') {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    $dependentModules = Get-Module | Where-Object { $_.RequiredModules.Name -eq 'JiraPS' }
+    $dependentModules, "JiraPS" | Remove-Module -Force -ErrorAction SilentlyContinue
+    Import-Module $moduleToTest -Force -ErrorAction Stop
+}
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $pattern = [regex]::Escape($env:BHProjectPath)
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1" -ErrorAction Stop
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest -ErrorAction Stop
-
-        # helpers used by tests (defParam / ShowMockInfo)
-        . "$PSScriptRoot/../Shared.ps1"
-
-    }
-
-    #############
-    # Tests
-    #############
-
-    Context 'Sanity checking' {
-        It "Has expected parameters" {
-            $command = Get-Command -Name Add-JiraIssueLink
-            defParam $command 'Issue'
-            defParam $command 'IssueLink'
-            defParam $command 'Comment'
-            defParam $command 'Credential'
-        }
-    }
-
-    Context 'Functionality' {
+InModuleScope JiraPS {
+    Describe "$ThisTest" -Tag 'Unit' {
         BeforeAll {
-            # common test data
+            . "$PSScriptRoot/../Helpers/Shared.ps1"
+
             $jiraServer = 'http://jiraserver.example.com'
-            $issueKey   = 'TEST-01'
-            $issueLink  = [pscustomobject]@{
-                outwardIssue = [pscustomobject]@{ key = 'TEST-10' }
-                type         = [pscustomobject]@{ name = 'Composition' }
+
+            $issueKey = "TEST-01"
+            $issueLink = [PSCustomObject]@{
+                outwardIssue = [PSCustomObject]@{key = "TEST-10" }
+                type         = [PSCustomObject]@{name = "Composition" }
             }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS { $jiraServer }
+            Mock Get-JiraConfigServer -ModuleName JiraPS {
+                Write-Output $jiraServer
+            }
 
-            Mock Get-JiraIssue {
-                $obj = [pscustomobject]@{ Key = $issueKey }
-                $obj.PSObject.TypeNames.Insert(0,'JiraPS.Issue')
-                $obj
+            Mock Get-JiraIssue -ParameterFilter { $Key -eq $issueKey } {
+                $object = [PSCustomObject]@{
+                    Key = $issueKey
+                }
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                return $object
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Get-JiraIssue -Key $issueKey
+                Get-JiraIssue -Key $Issue
             }
 
-            # catch-all: fail on unexpected Invoke-JiraMethod usage
+            # Generic catch-all. This will throw an exception if we forgot to mock something.
             Mock Invoke-JiraMethod -ModuleName JiraPS {
-                ShowMockInfo 'Invoke-JiraMethod' 'Method','Uri'
-                throw 'Unidentified call to Invoke-JiraMethod'
+                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraMethod"
             }
 
-            # specific POST for issueLink
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
-                $Method -eq 'POST' -and $Uri -eq "$jiraServer/rest/api/2/issueLink"
-            } { $true }
+            Mock Invoke-JiraMethod -ParameterFilter { $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issueLink" } {
+                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                return $true
+            }
         }
 
-        It 'Adds a new IssueLink' {
-            { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should -Not -Throw
-            Should -Invoke -CommandName 'Invoke-JiraMethod' -ModuleName JiraPS -Times 1 -Exactly
+        Describe "Signature" {
+            BeforeAll {
+                $script:command = Get-Command -Name $ThisTest
+            }
+
+            It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
+                @{ parameter = "Issue"; type = "Object[]" }
+                @{ parameter = "IssueLink"; type = "Object[]" }
+                @{ parameter = "Comment"; type = "String" }
+                @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+            ) {
+                $command | Should -HaveParameter $parameter
+
+                #ToDo:CustomClass
+                # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
+                    (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
+            }
+
+            It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
+                @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
+            ) {
+                $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
+            }
+
+            It "parameter '<parameter>' is mandatory" -TestCases @(
+                @{ parameter = "Issue" }
+                @{ parameter = "IssueLink" }
+            ) {
+                $command | Should -HaveParameter $parameter -Mandatory
+            }
         }
 
-        It 'Validates the IssueType provided' {
-            $bad = [pscustomobject]@{ type = 'foo' }
-            { Add-JiraIssueLink -Issue $issueKey -IssueLink $bad } | Should -Throw "Invalid Parameter"
+        Describe "Behaviour" {
+            It 'Adds a new IssueLink' {
+                { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should -Not -Throw
+
+                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            }
+
+            It 'Validates the IssueType provided' {
+                $issueLink = [PSCustomObject]@{ type = "foo" }
+                { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should -Throw
+            }
+
+            It 'Validates pipeline input object' {
+                { "foo" | Add-JiraIssueLink -IssueLink $issueLink } | Should -Throw
+            }
         }
-
-        #BUG: Bad test originally. Command call was throwing, but because it was hitting the catch-all mock,
-        # not because of actual pipeline validation (confirm by specifying a certain throw message)
-        <# It 'Validates pipeline input object' {
-            { 'foo' | Add-JiraIssueLink -IssueLink $issueLink } | Should -Throw "*parameter 'Issue'*"
-        } #>
-    }
-
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
     }
 }

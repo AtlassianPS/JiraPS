@@ -1,45 +1,28 @@
-#requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Validation of example codes in the documentation" -Tag Documentation, NotImplemented {
+    BeforeDiscovery {
+        . "$PSScriptRoot/Helpers/Resolve-ModuleSource.ps1"
+        $script:moduleToTest = Resolve-ModuleSource
 
+        $dependentModules = Get-Module | Where-Object { $_.RequiredModules.Name -eq 'JiraPS' }
+    $dependentModules, "JiraPS" | Remove-Module -Force -ErrorAction SilentlyContinue
+        Import-Module $moduleToTest -Force -ErrorAction Stop
+
+        $script:commands = Get-Command -Module JiraPS -CommandType Cmdlet, Function
+    }
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        # Import-Module $env:BHManifestToTest
-
-        Assert-True $script:isBuild "Examples can only be tested in the build environment. Please run `Invoke-Build -Task Build`."
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+        $script:module = Get-Module JiraPS
     }
 
-    # $functions = Get-Command -Module $env:BHProjectName | Get-Help
-    # foreach ($function in $functions) {
-    #     Context "Examples of $($function.Name)" {
+    Describe "Examples" {
+        Describe "Examples for <_.Name>" -ForEach $commands {
+            BeforeAll {
+                $script:command = $_
+                $script:help = Get-Help $command
+            }
 
-
-    #     }
-    # }
+            # TODO:
+        }
+    }
 }

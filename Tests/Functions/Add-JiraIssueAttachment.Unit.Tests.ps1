@@ -1,55 +1,25 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
-#NOTE: Advanced refactor
-
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 param()
 
-Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
+BeforeDiscovery {
+    $script:ThisTest = "Add-JiraIssueAttachment"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    . "$PSScriptRoot/../Helpers/Resolve-ModuleSource.ps1"
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    $dependentModules = Get-Module | Where-Object { $_.RequiredModules.Name -eq 'JiraPS' }
+    $dependentModules, "JiraPS" | Remove-Module -Force -ErrorAction SilentlyContinue
+    Import-Module $moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1" -ErrorAction Stop
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest -ErrorAction Stop
-
-        # helpers used by tests (defParam / ShowMockInfo)
-        . "$PSScriptRoot/../Shared.ps1"
-    }
-
-    #region Tests
-    Context "Sanity checking" {
-        It "Has expected parameters" {
-            $command = Get-Command -Name Add-JiraIssueAttachment
-            $command.Parameters.Item('Issue') | Should -Not -BeNullOrEmpty
-            $command.Parameters.Item('FilePath') | Should -Not -BeNullOrEmpty
-            $command.Parameters.Item('Credential') | Should -Not -BeNullOrEmpty
-            $command.Parameters.Item('PassThru') | Should -Not -BeNullOrEmpty
-        }
-    }
-
-    Context "Behavior checking" {
+InModuleScope JiraPS {
+    Describe "$ThisTest" -Tag 'Unit' {
         BeforeAll {
-            $pass = ConvertTo-SecureString -AsPlainText -Force -String "password"
-            $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("user", $pass)
+            . "$PSScriptRoot/../Helpers/Shared.ps1"
+
+            $pass = ConvertTo-SecureString -AsPlainText -Force -String "passowrd"
+            $script:Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("user", $pass)
             $jiraServer = 'http://jiraserver.example.com'
             $issueKey = "FOO-1234"
             $file = New-Item -Path "TestDrive:\MyFile.txt" -ItemType File -Force
@@ -80,18 +50,7 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
 }
 "@
 
-            Set-Content $filePath -value "my test text."
-
-            # Helper functions for test objects
-            function New-TestJiraIssue {
-                param($Key = $issueKey)
-                $Issue = [PSCustomObject]@{
-                    Key     = $Key
-                    RestURL = "$jiraServer/rest/api/2/issue/$Key"
-                }
-                $Issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
-                $Issue
-            }
+            Set-Content $filePath -Value "my test text."
 
             #region Mock
             Mock ConvertTo-JiraAttachment -ModuleName JiraPS {
@@ -99,7 +58,16 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
             }
 
             Mock Get-JiraIssue -ModuleName JiraPS {
-                New-TestJiraIssue -Key $Key
+                $Issue = [PSCustomObject]@{
+                    Key     = $issueKey
+                    RestURL = "$jiraServer/rest/api/2/issue/$issueKey"
+                }
+                $Issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $Issue
+            }
+
+            Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                Get-JiraIssue -Key $Issue
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" } {
@@ -114,123 +82,129 @@ Describe "Add-JiraIssueAttachment" -Tag 'Unit' {
             }
             #endregion Mock
         }
-        <#
-        Remember to check for:
-            - each ParameterSet
-            - each Parameter
-            - each ValueFromPipeline
-            - each 'Throw'
-            - each possible Output
-            - each object type
-        #>
-        #NOTE: These really should be broken up into separate context blocks, like 'Parameter Validation' and 'Positional Parameters' and 'Internal call verification' etc. The tests as-is are doing way too much and it's extremely difficult to identify individual issues.
-        Context "Intended Processing" {
-            It "Does not throw with an Issue key string" {
-                { Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath } |
-                    Should -Not -Throw
+
+        #region Tests
+        Describe "Signature" {
+            BeforeAll {
+                $script:command = Get-Command -Name $ThisTest
             }
 
-            It "Does not throw with a JiraPS.Issue object" {
-                { Add-JiraIssueAttachment -Issue (New-TestJiraIssue) -FilePath $filePath -Credential $Cred } |
-                    Should -Not -Throw
+            It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
+                @{ parameter = "Issue"; type = "Object" }
+                @{ parameter = "FilePath"; type = "String[]" }
+                @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                @{ parameter = "Passthru"; type = "Switch" }
+            ) {
+                $command | Should -HaveParameter $parameter
+
+                #ToDo:CustomClass
+                # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
+                    (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
             }
 
-            It "Accepts positional parameters" {
-                { Add-JiraIssueAttachment $issueKey @($filePath, $filePath) } |
-                    Should -Not -Throw
+            It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
+                @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
+            ) {
+                $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
             }
 
-            It "has no output by default" {
+            It "parameter '<parameter>' is mandatory" -TestCases @(
+                @{ parameter = "Issue" }
+                @{ parameter = "FilePath" }
+            ) {
+                $command | Should -HaveParameter $parameter -Mandatory
+            }
+        }
+
+        Context "Behavior" {
+            <#
+            Remember to check for:
+                - each ParameterSet
+                - each Parameter
+                - each ValueFromPipeline
+                - each 'Throw'
+                - each possible Output
+                - each object type
+            #>
+            It 'validates the parameters' {
+                # Issue can't be null or empty
+                { Add-JiraIssueAttachment -Issue "" -FilePath $filePath } | Should -Throw
+                # Issue must be an Issue or a String
+                { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath -Verbose } | Should -Throw
+                # Issue can't be an array
+                { Add-JiraIssueAttachment -Issue $issueKey, $issueKey -FilePath $filePath } | Should -Throw
+                # File must exist
+                { Add-JiraIssueAttachment -Issue $issueKey -FilePath "c:\no-file.txt" } | Should -Throw
+                # All Parameters for DefaultParameterSet
+                { Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath } | Should -Not -Throw
+                { Add-JiraIssueAttachment -Issue (Get-JiraIssue $issueKey) -FilePath $filePath -Credential $Cred } | Should -Not -Throw
+                { Add-JiraIssueAttachment -Issue $issueKey -FilePath @($filePath, $filePath) -Credential $Cred -PassThru } | Should -Not -Throw
+
+                # ensure the calls under the hood
+                Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 4 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 3 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 4 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 0 -Scope It
+            }
+
+            It 'accepts positional parameters' {
+                { Add-JiraIssueAttachment $issueKey @($filePath, $filePath) } | Should -Not -Throw
+
+                # ensure the calls under the hood
+                Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 2 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 0 -Scope It
+            }
+
+            It 'has no output by default' {
                 $result = Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath
                 $result | Should -BeNullOrEmpty
+
+                # ensure the calls under the hood
+                Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 0 -Scope It
             }
 
-            It "Returns an object when specified" {
+            It 'returns an object when specified' {
                 $result = Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath -PassThru
                 $result | Should -Not -BeNullOrEmpty
+
+                # ensure the calls under the hood
+                Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 1 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 0 -Scope It
             }
 
-            It "Accepts files over the pipeline" {
-                { $filePath | Add-JiraIssueAttachment $issueKey  } | Should -Not -Throw
-                { @($filePath, $filePath) | Add-JiraIssueAttachment $issueKey  } | Should -Not -Throw
-                { Get-Item $filePath | Add-JiraIssueAttachment $issueKey  } | Should -Not -Throw
-            }
-        }
+            It 'accepts files over the pipeline' {
+                { $filePath | Add-JiraIssueAttachment $issueKey } | Should -Not -Throw
+                { @($filePath, $filePath) | Add-JiraIssueAttachment $issueKey } | Should -Not -Throw
+                { Get-Item $filePath | Add-JiraIssueAttachment $issueKey } | Should -Not -Throw
 
-        Context "Parameter Validation" {
-            It "Throws if -Issue is empty" {
-                { Add-JiraIssueAttachment -Issue "" -FilePath $filePath } | Should -Throw
-            }
-            It "Throws if -Issue is not an issue object or string" {
-                { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath } | Should -Throw
-            }
-            It "Throws if -Issue is an array" {
-                { Add-JiraIssueAttachment -Issue $issueKey, $issueKey -FilePath $filePath } | Should -Throw
-            }
-            It "Throws if the file doesn't exist" {
-                { Add-JiraIssueAttachment -Issue $issueKey -FilePath "c:\no-file.txt" } | Should -Throw
-            }
-        }
-
-        Context "Internal Call Validation" {
-            Context "Invoke-JiraMethod" {
-                It "Did not call Invoke-JiraMethod with GET,PUT, or DELETE methods at all" {
-                    $verifyParams = @{
-                        Invoke = $true
-                        CommandName = "Invoke-JiraMethod"
-                        ModuleName = 'JiraPS'
-                        Times = 0
-                        Exactly = $true
-                        Scope = "Describe"
-                    }
-                    Should @verifyParams -ParameterFilter { $Method -eq 'Get' }
-                    Should @verifyParams -ParameterFilter { $Method -eq 'Put' }
-                    Should @verifyParams -ParameterFilter { $Method -eq 'Delete' }
-                }
-
-                It "Only calls Invoke-JiraMethod with POST method" {
-                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Times 1 -Scope Describe
-                }
-
-                It "Only calls Invoke-JiraMethod once for a single file" {
-                    Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath
-
-                    Should -Invoke "Invoke-JiraMethod" -ModuleName JiraPS -Times 1 -Exactly
-                }
-
-                It "Calls Invoke-JiraMethod once for each file" {
-                    Add-JiraIssueAttachment $issueKey @($filePath, $filePath, $filePath)
-
-                    Should -Invoke "Invoke-JiraMethod" -ModuleName JiraPS -Times 3 -Exactly
-                }
+                # ensure the calls under the hood
+                Assert-MockCalled 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 4 -Scope It
+                Assert-MockCalled 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 4 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 4 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' } -Exactly -Times 0 -Scope It
+                Assert-MockCalled 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 0 -Scope It
             }
 
-            Context "Resolve-JiraIssueObject" {
-                BeforeAll {
-                    Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                        New-TestJiraIssue -Key $issueKey
-                    }
-                }
-
-                It "Calls Resolve-JiraIssueObject once when adding a single file" {
-                    Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath
-
-                    Should -Invoke "Resolve-JiraIssueObject" -ModuleName JiraPS -Times 1 -Exactly
-                }
-
-                It "Calls Resolve-JiraIssueObject once even when adding multiple files" {
-                    Add-JiraIssueAttachment -Issue $issueKey -FilePath @($filePath,$filePath)
-
-                    Should -Invoke "Resolve-JiraIssueObject" -ModuleName JiraPS -Times 1 -Exactly
-                }
+            It "assert VerifiableMock" {
+                Assert-VerifiableMock
             }
         }
-    }
-    #endregion Tests
-
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
+        #endregion Tests
     }
 }
