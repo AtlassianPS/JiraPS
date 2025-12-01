@@ -103,25 +103,44 @@ process {
             Write-MigrationLog "  Removing BuildHelpers dependency..." -Level Info
             $content = $content -replace '(?m)^#requires -modules BuildHelpers\r?\n', ''
             
-            # Step 3: Replace BuildHelpers setup pattern with lightweight helper
-            Write-MigrationLog "  Replacing BuildHelpers setup pattern..." -Level Info
+            # Step 3: Replace BuildHelpers setup pattern with script-level import for Pester v5
+            Write-MigrationLog "  Replacing BuildHelpers setup pattern with script-level import..." -Level Info
             
-            # Pattern to match the BuildHelpers BeforeAll block
+            # Pattern to match the Describe line followed by BeforeAll block
+            $describePattern = @'
+(?s)(Describe .+? \{)\s+BeforeAll \{\s+\. "\$PSScriptRoot/\.\./\.\./Tests/Helpers/Resolve-ModuleSource\.ps1"\s+\$moduleToTest = Resolve-ModuleSource\s+Import-Module \$moduleToTest -Force\s+\}
+'@
+            
+            $scriptLevelImport = @'
+# Import module at script level for Pester v5 InModuleScope compatibility
+. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+$moduleToTest = Resolve-ModuleSource
+Import-Module $moduleToTest -Force
+
+$1
+'@
+            
+            # For newly migrated files with BuildHelpers pattern
             $buildHelpersPattern = @'
-(?s)BeforeAll \{.*?Remove-Item -Path Env:\\BH\*.*?Set-BuildEnvironment.*?Import-Module \$env:BHManifestToTest.*?\}
+(?s)(Describe .+? \{)\s+BeforeAll \{.*?Remove-Item -Path Env:\\BH\*.*?Set-BuildEnvironment.*?Import-Module \$env:BHManifestToTest.*?\}
 '@
             
-            $newBeforeAll = @'
-BeforeAll {
-        . "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-        $moduleToTest = Resolve-ModuleSource
-        Import-Module $moduleToTest -Force
-    }
+            $newPattern = @'
+# Import module at script level for Pester v5 InModuleScope compatibility
+. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+$moduleToTest = Resolve-ModuleSource
+Import-Module $moduleToTest -Force
+
+$1
 '@
             
-            # Only replace if it matches the BuildHelpers pattern
-            if ($content -match $buildHelpersPattern) {
-                $content = $content -replace $buildHelpersPattern, $newBeforeAll
+            # Try the script-level pattern first (for re-running on already converted files)
+            if ($content -match $describePattern) {
+                $content = $content -replace $describePattern, $scriptLevelImport
+            }
+            # Then try BuildHelpers pattern (for first-time conversion)
+            elseif ($content -match $buildHelpersPattern) {
+                $content = $content -replace $buildHelpersPattern, $newPattern
             }
             
             # Step 4: Clean up AfterAll to remove BuildHelpers cleanup

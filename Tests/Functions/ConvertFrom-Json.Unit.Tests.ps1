@@ -1,12 +1,11 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertFrom-Json" -Tag 'Unit' {
+# Import module at script level for Pester v5 InModuleScope compatibility
+. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+$moduleToTest = Resolve-ModuleSource
+Import-Module $moduleToTest -Force
 
-    BeforeAll {
-        . "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-        $moduleToTest = Resolve-ModuleSource
-        Import-Module $moduleToTest -Force
-    }
+Describe "ConvertFrom-Json" -Tag 'Unit' {
     AfterAll {
         Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
