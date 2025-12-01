@@ -1,12 +1,12 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
+# Import module at script level for Pester v5 InModuleScope compatibility
+. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+$moduleToTest = Resolve-ModuleSource
+Import-Module $moduleToTest -Force
+
 Describe "ConvertFrom-URLEncoded" -Tag 'Unit' {
 
-    BeforeAll {
-        . "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-        $moduleToTest = Resolve-ModuleSource
-        Import-Module $moduleToTest -Force
-    }
     AfterAll {
         Remove-Module JiraPS -ErrorAction SilentlyContinue
     }

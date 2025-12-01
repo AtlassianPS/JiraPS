@@ -1,12 +1,11 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraProject" -Tag 'Unit' {
+# Import module at script level for Pester v5 InModuleScope compatibility
+. "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
+$moduleToTest = Resolve-ModuleSource
+Import-Module $moduleToTest -Force
 
-    BeforeAll {
-        . "$PSScriptRoot/../../Tests/Helpers/Resolve-ModuleSource.ps1"
-        $moduleToTest = Resolve-ModuleSource
-        Import-Module $moduleToTest -Force
-    }
+Describe "ConvertTo-JiraProject" -Tag 'Unit' {
     AfterAll {
         Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
