@@ -35,7 +35,7 @@ jobs:
 
       - name: Cherry pick CHANGELOG.md
         id: changelog
-        uses: MatteoCampinoti94/changelog-to-release@v1.0.0
+        uses: MatteoCampinoti94/changelog-to-release@v1.0.6
         with:
           version-name: ${{ github.ref_name }}
           configuration: ./.github/changelog.configuration.json
