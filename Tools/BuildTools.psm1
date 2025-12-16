@@ -47,6 +47,14 @@ function Add-ToModulePath ([String]$Path) {
     }
 }
 
+function Get-Dependency {
+    [CmdletBinding()]
+    param()
+
+    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$RequiredModules = Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName "build.requirements.psd1"
+    $RequiredModules
+}
+
 function Install-Dependency {
     [CmdletBinding()]
     param(

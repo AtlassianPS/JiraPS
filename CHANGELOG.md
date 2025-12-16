@@ -28,7 +28,7 @@
 
 ### Changed
 
-- Changed all commands to only use Jira's api version 2. (#409, [@lipkau])  
+- Changed all commands to only use Jira's api version 2. (#409, [@lipkau])
   This is a temporary fix and should be reverted to version `latest` as soon as
   a proper handling of how users work between cloud and on-premise is
   implemented
