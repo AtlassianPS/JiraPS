@@ -193,7 +193,8 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
     Context "Input testing" {
         It "Accepts an issue key for the -Issue parameter" {
             { Set-JiraIssue -Issue TEST-001 -Summary 'Test summary - using issue key' } | Should -Not -Throw
-            Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
+            #NOTE: There was an original assertion that Get-JiraIssue was called within function. This is only true
+            # if -PassThru is used.
             Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
         }
 
