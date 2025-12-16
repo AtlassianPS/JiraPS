@@ -74,7 +74,8 @@ function Remove-JiraIssue {
 
             if ($PsCmdlet.ParameterSetName -eq "ByIssueId") {
                 $_issue = Get-JiraIssue -Key $issueItem -Credential $Credential -ErrorAction Stop
-            } Else {
+            }
+            else {
                 $_issue = $issueItem
             }
 
@@ -84,16 +85,17 @@ function Remove-JiraIssue {
 
 
             $parameter = @{
-                URI        = $resourceURi -f $_issue.Key,$IncludeSubTasks
+                URI        = $resourceURi -f $_issue.Key, $IncludeSubTasks
                 Method     = "DELETE"
                 Credential = $Credential
-                Cmdlet = $PsCmdlet
+                Cmdlet     = $PsCmdlet
             }
 
 
-            If ($IncludeSubTasks) {
+            if ($IncludeSubTasks) {
                 $ActionText = "Remove issue and sub-tasks"
-            } Else {
+            }
+            else {
                 $ActionText = "Remove issue"
             }
 

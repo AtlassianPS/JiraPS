@@ -51,7 +51,7 @@ function Get-JiraIssueAttachment {
         if ($issueObj.Attachment) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Found Attachments on the Issue."
             if ($FileName) {
-                $attachments = $issueObj.Attachment | Where-Object {$_.Filename -like $FileName}
+                $attachments = $issueObj.Attachment | Where-Object { $_.Filename -like $FileName }
             }
             else {
                 $attachments = $issueObj.Attachment

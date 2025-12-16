@@ -1,46 +1,41 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
-Describe "ConvertTo-JiraGroup" -Tag 'Unit' {
-
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+BeforeDiscovery {
+    Remove-Item -Path Env:\BH*
+    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
+    if ($projectRoot -like "*Release") {
+        $projectRoot = (Resolve-Path "$projectRoot/..").Path
     }
 
-    InModuleScope JiraPS {
+    Import-Module BuildHelpers
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
 
-        . "$PSScriptRoot/../Shared.ps1"
+    $env:BHManifestToTest = $env:BHPSModuleManifest
+    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+    if ($script:isBuild) {
+        $Pattern = [regex]::Escape($env:BHProjectPath)
 
-        $jiraServer = 'http://jiraserver.example.com'
-        $groupName = 'powershell-testgroup'
+        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+        $env:BHManifestToTest = $env:BHBuildModuleManifest
+    }
 
-        $sampleJson = @"
+    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Import-Module $env:BHManifestToTest
+}
+
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraGroup" -Tag 'Unit' {
+
+        BeforeAll {
+            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkType / castsToString)
+
+            $jiraServer = 'http://jiraserver.example.com'
+            $groupName = 'powershell-testgroup'
+
+            $sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/group?groupname=$groupName",
     "name": "$groupName",
@@ -54,18 +49,31 @@ Describe "ConvertTo-JiraGroup" -Tag 'Unit' {
     "expand": "users"
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-
-        $r = ConvertTo-JiraGroup -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $sampleObject = ConvertFrom-Json -InputObject $sampleJson
         }
 
-        checkPsType $r 'JiraPS.Group'
+        Context "Sanity checking" {
+            BeforeAll {
+                $r = ConvertTo-JiraGroup -InputObject $sampleObject
+            }
 
-        defProp $r 'Name' $groupName
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/group?groupname=$groupName"
-        defProp $r 'Size' 1
+            It "Creates a PSObject out of JSON input" {
+                $r | Should -Not -BeNullOrEmpty
+            }
+
+            It "Uses correct output type" {
+                checkType $r 'JiraPS.Group'
+            }
+
+            It "Can cast to string" {
+                castsToString $r
+            }
+
+            It "Defines expected properties" {
+                defProp $r 'Name' $groupName
+                defProp $r 'RestUrl' "$jiraServer/rest/api/2/group?groupname=$groupName"
+                defProp $r 'Size' 1
+            }
+        }
     }
 }

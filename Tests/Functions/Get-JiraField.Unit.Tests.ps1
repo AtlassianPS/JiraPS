@@ -1,10 +1,10 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraField" -Tag 'Unit' {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
         $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
         if ($projectRoot -like "*Release") {
             $projectRoot = (Resolve-Path "$projectRoot/..").Path
@@ -22,19 +22,12 @@ Describe "Get-JiraField" -Tag 'Unit' {
             $env:BHManifestToTest = $env:BHBuildModuleManifest
         }
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1" -ErrorAction Stop
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
+        Import-Module $env:BHManifestToTest -ErrorAction Stop
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -175,40 +168,76 @@ Describe "Get-JiraField" -Tag 'Unit' {
             ConvertFrom-Json $restResult
         }
 
-        Mock ConvertTo-JiraField {
+        Mock ConvertTo-JiraField -ModuleName JiraPS {
             $InputObject
         }
 
+        # Generic catch-all. This will throw an exception if we forgot to mock something.
+        Mock Invoke-JiraMethod -ModuleName JiraPS {
+            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            throw "Unidentified call to Invoke-JiraMethod"
+        }
+    }
+
+    #############
+    # Tests
+    #############
+
+    Context "Sanity checking" {
+        It "Has expected parameters" {
+            $command = Get-Command -Name Get-JiraField
+
+            defParam $command 'Field'
+            defParam $command 'Credential'
+        }
+    }
+
+    Context "Behavior testing" {
         It "Gets all fields in Jira if called with no parameters" {
             $allResults = Get-JiraField
-            $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be @((ConvertFrom-Json -InputObject $restResult)).Count
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            $allResults | Should -Not -BeNullOrEmpty
+            @($allResults).Count | Should -Be @((ConvertFrom-Json -InputObject $restResult)).Count
         }
 
         It "Gets a specified field if a field ID is provided" {
             $oneResult = Get-JiraField -Field issuetype
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be 'issuetype'
-            $oneResult.Name | Should Be 'Issue Type'
+            $oneResult | Should -Not -BeNullOrEmpty
+            $oneResult.ID | Should -Be 'issuetype'
+            $oneResult.Name | Should -Be 'Issue Type'
         }
 
         It "Gets a specified issue type if an issue type name is provided" {
             $oneResult = Get-JiraField -Field 'Issue Type'
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be 'issuetype'
-            $oneResult.Name | Should Be 'Issue Type'
+            $oneResult | Should -Not -BeNullOrEmpty
+            $oneResult.ID | Should -Be 'issuetype'
+            $oneResult.Name | Should -Be 'Issue Type'
         }
 
         It "Handles positional parameters correctly" {
             $oneResult = Get-JiraField 'Issue Type'
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be issuetype
-            $oneResult.Name | Should Be 'Issue Type'
+            $oneResult | Should -Not -BeNullOrEmpty
+            $oneResult.ID | Should -Be issuetype
+            $oneResult.Name | Should -Be 'Issue Type'
+        }
+    }
+
+    Context "Internal Call Validation" {
+        It "Uses Invoke-JiraMethod to get fields" {
+            Get-JiraField
+
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
         }
 
         It "Uses ConvertTo-JiraField to beautify output" {
-            Assert-MockCalled 'ConvertTo-JiraField'
+            Get-JiraField
+
+            Should -Invoke -CommandName ConvertTo-JiraField -ModuleName JiraPS -Exactly -Times 1
         }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
     }
 }

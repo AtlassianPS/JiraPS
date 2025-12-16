@@ -1,6 +1,6 @@
 function Get-JiraIssueLinkType {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( DefaultParameterSetName = '_All' )]
+    [CmdletBinding(DefaultParameterSetName = '_All')]
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = '_Search' )]
         [ValidateNotNullOrEmpty()]
@@ -45,35 +45,34 @@ function Get-JiraIssueLinkType {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        switch ($PSCmdlet.ParameterSetName) {
-            '_All' {
-                $parameter = @{
-                    URI        = $resourceURi -f ""
-                    Method     = "GET"
-                    Credential = $Credential
-                }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
-
-                Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes)
+        if ($LinkType -is [Int]) {
+            # If the link type provided is an int, we can assume it's an ID number.
+            $parameter = @{
+                URI        = $resourceURi -f "/$LinkType"
+                Method     = "GET"
+                Credential = $Credential
             }
-            '_Search' {
-                # If the link type provided is an int, we can assume it's an ID number.
-                # If it's a String, it's probably a name, though, and there isn't an API call to look up a link type by name.
-                if ($LinkType -is [Int]) {
-                    $parameter = @{
-                        URI        = $resourceURi -f "/$LinkType"
-                        Method     = "GET"
-                        Credential = $Credential
-                    }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraMethod @parameter
 
-                    Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
-                }
-                else {
-                    Write-Output (Get-JiraIssueLinkType -Credential $Credential | Where-Object { $_.Name -like $LinkType })
-                }
+            Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
+        }
+        else {
+            # If it's a String, it's probably a name, though, and there isn't an API call to look up a link type by name.
+            $parameter = @{
+                URI        = $resourceURi -f ""
+                Method     = "GET"
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraMethod @parameter
+            $allLinkTypes = ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes
+
+            if ($LinkType) {
+                Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType })
+            }
+            else {
+                Write-Output $allLinkTypes
             }
         }
     }
