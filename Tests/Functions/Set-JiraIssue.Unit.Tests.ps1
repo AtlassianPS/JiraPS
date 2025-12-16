@@ -86,11 +86,42 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
             Get-TestJiraIssue
         }
 
+        Mock Resolve-JiraUser -ModuleName JiraPS {
+            ShowMockInfo 'Resolve-JiraUser' 'InputObject', 'Exact', 'Credential'
+            $object = [PSCustomObject] @{
+                'Name'    = $InputObject
+                'RestUrl' = "$jiraServer/rest/api/2/user?username=$InputObject"
+            }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+            $object
+        }
+
+        Mock Get-JiraField -ModuleName JiraPS {
+            ShowMockInfo 'Get-JiraField' 'Credential'
+            @(
+                [PSCustomObject]@{
+                    Id   = 'customfield_10001'
+                    Name = 'CustomField1'
+                }
+                [PSCustomObject]@{
+                    Id   = 'customfield_12345'
+                    Name = 'customfield_12345'
+                }
+                [PSCustomObject]@{
+                    Id   = 'customfield_67890'
+                    Name = 'customfield_67890'
+                }
+                [PSCustomObject]@{
+                    Id   = 'customfield_111222'
+                    Name = 'customfield_111222'
+                }
+            )
+        }
+
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
-
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345/assignee" } {
+        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq "Put" -and $Uri -like "*/rest/api/*/issue/12345/assignee" } {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
         }
 
@@ -121,8 +152,8 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
 
         It "Supports the Key alias for the Issue parameter" {
             $command.Parameters.Item('Issue').Aliases |
-                Where-Object -FilterScript { $_ -eq 'Key' } |
-                Should -Not -BeNullOrEmpty
+            Where-Object -FilterScript { $_ -eq 'Key' } |
+            Should -Not -BeNullOrEmpty
         }
     }
 
@@ -177,12 +208,6 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
         }
 
         It "Updates custom fields if provided to the -Fields parameter" {
-            Mock Get-JiraField -ModuleName JiraPS {
-                [PSCustomObject] @{
-                    'Name' = $Field
-                    'ID'   = $Field
-                }
-            }
             { Set-JiraIssue -Issue TEST-001 -Fields @{'customfield_12345' = 'foo'; 'customfield_67890' = 'bar'; 'customfield_111222' = @(@{'value' = 'foobar' }) } } | Should -Not -Throw
             Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/issue/12345" -and $Body -like '*customfield_12345*set*foo*' }
             Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/issue/12345" -and $Body -like '*customfield_67890*set*bar*' }
@@ -216,7 +241,7 @@ Describe "Set-JiraIssue" -Tag 'Unit' {
             Mock Get-JiraIssue -ModuleName JiraPS {}
             # We're cheating a bit here and forcing Write-Error to be a
             # terminating error.
-            { Set-JiraIssue -Key FAKE -Summary 'Test' -ErrorAction Stop } | Should -Throw
+            { Set-JiraIssue -Key 1 -Summary 'Test' -ErrorAction Stop } | Should -Throw -ErrorId "ParameterType.NotJiraIssue,Set-JiraIssue"
         }
 
         It "Throws an exception if an invalid user is specified for the -Assignee parameter" {
