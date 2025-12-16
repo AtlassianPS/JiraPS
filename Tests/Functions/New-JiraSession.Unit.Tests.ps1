@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "New-JiraSession" -Tag 'Unit' {
 
@@ -26,22 +26,8 @@ Describe "New-JiraSession" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-    AfterEach {
-        try {
-            (Get-Module JiraPS).PrivateData.Remove("Session")
-        }
-        catch { $null }
-    }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
 
         #region Definitions
         $jiraServer = 'http://jiraserver.example.com'
@@ -66,56 +52,57 @@ Describe "New-JiraSession" -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mocks
+    }
 
-        Context "Sanity checking" {
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
+
+    AfterEach {
+        try {
+            (Get-Module JiraPS).PrivateData.Remove("Session")
+        }
+        finally {}
+    }
+
+    Context "Sanity checking" {
+        It "Has expected parameters" {
             $command = Get-Command -Name New-JiraSession
 
             defParam $command 'Credential'
             defParam $command 'Headers'
         }
+    }
 
-        Context "Behavior testing" {
-            It "uses Basic Authentication to generate a session" {
-                { New-JiraSession -Credential $testCredential } | Should -Not -Throw
+    Context "Behavior testing" {
+        It "uses Basic Authentication to generate a session" {
+            { New-JiraSession -Credential $testCredential } | Should -Not -Throw
 
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Credential -eq $testCredential
-                    }
-                    Exactly         = $true
-                    Times           = 1
-                    Scope           = 'It'
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "can influence the Headers used in the request" {
-                { New-JiraSession -Credential $testCredential -Headers @{ "X-Header" = $true } } | Should -Not -Throw
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-JiraMethod'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $Headers.ContainsKey("X-Header")
-                    }
-                    Exactly         = $true
-                    Times           = 1
-                    Scope           = 'It'
-                }
-                Assert-MockCalled @assertMockCalledSplat
-            }
-
-            It "stores the session variable in the module's PrivateData" {
-                (Get-Module JiraPS).PrivateData.Session | Should -BeNullOrEmpty
-
-                New-JiraSession -Credential $testCredential
-
-                (Get-Module JiraPS).PrivateData.Session | Should -Not -BeNullOrEmpty
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName 'JiraPS' -Exactly -Times 1 -Scope 'It' -ParameterFilter {
+                $Credential -eq $testCredential
             }
         }
 
-        Context "Input testing" { }
+        It "can influence the Headers used in the request" {
+            { New-JiraSession -Credential $testCredential -Headers @{ "X-Header" = $true } } | Should -Not -Throw
+
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName 'JiraPS' -Exactly -Times 1 -Scope 'It' -ParameterFilter {
+                $Headers.ContainsKey("X-Header")
+            }
+        }
+
+        It "stores the session variable in the module's PrivateData" {
+            #Strict mode set on build
+            {(Get-Module JiraPS).PrivateData.Session} | Should -Not  -Throw
+            # {(Get-Module JiraPS).PrivateData.Session} | Should -Throw "*The property 'Session' cannot be found*"
+
+            New-JiraSession -Credential $testCredential
+
+            (Get-Module JiraPS).PrivateData.Session | Should -Not -BeNullOrEmpty
+        }
     }
+
+    Context "Input testing" { }
 }

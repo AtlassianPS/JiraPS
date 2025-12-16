@@ -1,49 +1,44 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
-Describe "ConvertTo-JiraIssueType" -Tag 'Unit' {
-
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+BeforeDiscovery {
+    Remove-Item -Path Env:\BH*
+    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
+    if ($projectRoot -like "*Release") {
+        $projectRoot = (Resolve-Path "$projectRoot/..").Path
     }
 
-    InModuleScope JiraPS {
+    Import-Module BuildHelpers
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
 
-        . "$PSScriptRoot/../Shared.ps1"
+    $env:BHManifestToTest = $env:BHPSModuleManifest
+    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+    if ($script:isBuild) {
+        $Pattern = [regex]::Escape($env:BHProjectPath)
 
-        $jiraServer = 'http://jiraserver.example.com'
+        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+        $env:BHManifestToTest = $env:BHBuildModuleManifest
+    }
 
-        $issueTypeId = 2
-        $issueTypeName = 'Test Issue Type'
-        $issueTypeDescription = 'A test issue used for...well, testing'
+    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
 
-        $sampleJson = @"
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Import-Module $env:BHManifestToTest
+}
+
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraIssueType" -Tag 'Unit' {
+
+        BeforeAll {
+            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkType / castsToString)
+
+            $jiraServer = 'http://jiraserver.example.com'
+
+            $issueTypeId = 2
+            $issueTypeName = 'Test Issue Type'
+            $issueTypeDescription = 'A test issue used for...well, testing'
+
+            $sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/issuetype/2",
     "id": "$issueTypeId",
@@ -53,20 +48,34 @@ Describe "ConvertTo-JiraIssueType" -Tag 'Unit' {
     "subtask": false
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-
-        $r = ConvertTo-JiraIssueType $sampleObject
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $sampleObject = ConvertFrom-Json -InputObject $sampleJson
         }
 
-        checkPsType $r 'JiraPS.IssueType'
+        Context "Sanity checking" {
+            BeforeAll {
+                $r = ConvertTo-JiraIssueType $sampleObject
+            }
 
-        defProp $r 'Id' $issueTypeId
-        defProp $r 'Name' $issueTypeName
-        defProp $r 'Description' $issueTypeDescription
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/issuetype/$issueTypeId"
-        defProp $r 'IconUrl' "$jiraServer/images/icons/issuetypes/newfeature.png"
-        defProp $r 'Subtask' $false
+            It "Creates a PSObject out of JSON input" {
+                $r | Should -Not -BeNullOrEmpty
+            }
+
+            It "Uses correct output type" {
+                checkType $r 'JiraPS.IssueType'
+            }
+
+            It "Can cast to string" {
+                castsToString $r
+            }
+
+            It "Defines expected properties" {
+                defProp $r 'Id' $issueTypeId
+                defProp $r 'Name' $issueTypeName
+                defProp $r 'Description' $issueTypeDescription
+                defProp $r 'RestUrl' "$jiraServer/rest/api/2/issuetype/$issueTypeId"
+                defProp $r 'IconUrl' "$jiraServer/images/icons/issuetypes/newfeature.png"
+                defProp $r 'Subtask' $false
+            }
+        }
     }
 }

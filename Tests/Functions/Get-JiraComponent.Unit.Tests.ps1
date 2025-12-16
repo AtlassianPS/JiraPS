@@ -1,10 +1,10 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraComponent" -Tag 'Unit' {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
         $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
         if ($projectRoot -like "*Release") {
             $projectRoot = (Resolve-Path "$projectRoot/..").Path
@@ -22,19 +22,12 @@ Describe "Get-JiraComponent" -Tag 'Unit' {
             $env:BHManifestToTest = $env:BHBuildModuleManifest
         }
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1" -ErrorAction Stop
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
+        Import-Module $env:BHManifestToTest -ErrorAction Stop
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -46,7 +39,6 @@ Describe "Get-JiraComponent" -Tag 'Unit' {
         $componentName = 'Component 1'
         $componentId2 = '10002'
         $componentName2 = 'Component 2'
-
 
         $restResultAll = @"
 [
@@ -93,23 +85,47 @@ Describe "Get-JiraComponent" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
+    Context "Sanity checking" {
+        It "Has expected parameters" {
+            $command = Get-Command -Name Get-JiraComponent
+
+            defParam $command 'Project'
+            defParam $command 'ComponentId'
+            defParam $command 'Credential'
+        }
+    }
+
+    Context "Behavior testing" {
         It "Returns details about specific components if the component ID is supplied" {
             $oneResult = Get-JiraComponent -Id $componentId
-            $oneResult | Should Not BeNullOrEmpty
-            @($oneResult).Count | Should Be 1
-            $oneResult.Id | Should Be $componentId
+            $oneResult | Should -Not -BeNullOrEmpty
+            @($oneResult).Count | Should -Be 1
+            $oneResult.Id | Should -Be $componentId
         }
 
         It "Provides the Id of the component" {
             $oneResult = Get-JiraComponent -Id $componentId
-            $oneResult.Id | Should Be $componentId
+            $oneResult.Id | Should -Be $componentId
         }
+    }
 
+    Context "Internal Call Validation" {
+        It "Uses Invoke-JiraMethod to get the component" {
+            Get-JiraComponent -Id $componentId
 
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+        }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
     }
 }

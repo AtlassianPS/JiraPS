@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Set-JiraConfigServer" -Tag 'Unit' {
 
@@ -26,29 +26,33 @@ Describe "Set-JiraConfigServer" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
+
     }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        It "stores the server address in the module session" {
+    It "stores the server address in the module session" {
+        InModuleScope JiraPS {
+            $jiraServer = 'http://jiraserver.example.com'
             Set-JiraConfigServer -Server $jiraServer
 
             $script:JiraServerUrl | Should -Be "$jiraServer/"
         }
+    }
 
-        It "stores the server address in a config file" {
+    It "stores the server address in a config file" {
+        InModuleScope JiraPS {
+            $jiraServer = 'http://jiraserver.example.com'
+            Set-JiraConfigServer -Server $jiraServer
+
             $script:serverConfig | Should -Exist
-
             Get-Content $script:serverConfig | Should -Be "$jiraServer/"
         }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }
