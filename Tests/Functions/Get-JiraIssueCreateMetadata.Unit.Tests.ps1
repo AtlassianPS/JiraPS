@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
 
@@ -26,15 +26,8 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'https://jira.example.com'
@@ -117,7 +110,7 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
                         "projectCategory": {
                             "self": "$jiraserver/rest/api/2/projectCategory/10000",
                             "id": "10000",
-                            "description": "All Project Catagories",
+                            "description": "All Project Categories",
                             "name": "All Project"
                         }
                     }]
@@ -213,7 +206,7 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             $jiraserver
         }
 
@@ -245,31 +238,38 @@ Describe "Get-JiraIssueCreateMetadata" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        Context "Sanity checking" {
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
+
+    Context "Sanity checking" {
+        It "Has expected parameters" {
             $command = Get-Command -Name Get-JiraIssueCreateMetadata
 
             defParam $command 'Project'
             defParam $command 'IssueType'
             defParam $command 'Credential'
         }
+    }
 
-        Context "Behavior testing" {
+    Context "Behavior testing" {
+        BeforeAll {
+            Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 | Out-Null
+        }
 
-            It "Queries Jira for metadata information about creating an issue" {
-                { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-            }
+        It "Queries Jira for metadata information about creating an issue" {
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -Scope Context
+        }
 
-            It "Uses ConvertTo-JiraCreateMetaField to output CreateMetaField objects if JIRA returns data" {
-                { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-
-                # There are 2 example fields in our mock above, but they should
-                # be passed to Convert-JiraCreateMetaField as a single object.
-                # The method should only be called once.
-                Assert-MockCalled -CommandName ConvertTo-JiraCreateMetaField -ModuleName JiraPS -Exactly -Times 1 -Scope It
-            }
+        It "Uses ConvertTo-JiraCreateMetaField to output CreateMetaField objects if JIRA returns data" {
+            # There are 2 example fields in our mock above, but they should
+            # be passed to Convert-JiraCreateMetaField as a single object.
+            # The method should only be called once.
+            Should -Invoke -CommandName ConvertTo-JiraCreateMetaField -ModuleName JiraPS -Times 1 -Exactly -Scope Context
         }
     }
 }

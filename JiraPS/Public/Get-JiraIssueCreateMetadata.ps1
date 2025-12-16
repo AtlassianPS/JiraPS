@@ -22,7 +22,7 @@ function Get-JiraIssueCreateMetadata {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi =  "$server/rest/api/2/issue/createmeta/{0}/issuetypes/{1}"
+        $resourceURi = "$server/rest/api/2/issue/createmeta/{0}/issuetypes/{1}"
     }
 
     process {
@@ -30,10 +30,9 @@ function Get-JiraIssueCreateMetadata {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
-        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {$_.Id -eq $IssueType -or $_.Name -eq $IssueType}
+        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript { $_.Id -eq $IssueType -or $_.Name -eq $IssueType }
 
-        if ($null -eq $issueTypeObj.Id)
-        {
+        if ($null -eq $issueTypeObj.Id) {
             $errorMessage = @{
                 Category         = "InvalidResult"
                 CategoryActivity = "Validating parameters"
@@ -70,7 +69,7 @@ function Get-JiraIssueCreateMetadata {
             $errorTarget = $Project
             $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "No metadata found for project $Project and issueType $IssueType."
-            Throw $errorItem
+            throw $errorItem
         }
     }
 

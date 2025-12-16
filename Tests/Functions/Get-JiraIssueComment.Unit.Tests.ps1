@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraIssueComment" -Tag 'Unit' {
 
@@ -26,17 +26,9 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
-
 
         $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
@@ -68,19 +60,25 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraIssue -ModuleName JiraPS {
+        # Helper function for creating issue objects
+        function Get-TestJiraIssue {
+            param([string]$Key = $issueKey)
             $object = [PSCustomObject] @{
                 ID      = $issueID
-                Key     = $issueKey
+                Key     = $Key
                 RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
             }
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
-            return $object
+            $object
         }
 
-        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-            Get-JiraIssue -Key $Issue
+        Mock Get-JiraIssue -ModuleName JiraPS {
+            Get-TestJiraIssue -Key $issueKey
         }
+
+        # Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+        #     Get-JiraIssue -Key $Issue
+        # }
 
         # Obtaining comments from an issue...this is IT-3676 in the test environment
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/comment"} {
@@ -94,44 +92,50 @@ Describe "Get-JiraIssueComment" -Tag 'Unit' {
             throw "Unidentified call to Invoke-JiraMethod"
         }
         #endregion Mocks
+    }
 
-        #############
-        # Tests
-        #############
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        It "Obtains all Jira comments from a Jira issue if the issue key is provided" {
-            $comments = Get-JiraIssueComment -Issue $issueKey
+    #############
+    # Tests
+    #############
 
-            $comments | Should Not BeNullOrEmpty
-            @($comments).Count | Should Be 1
-            $comments.ID | Should Be 90730
-            $comments.Body | Should Be 'Test comment'
+    It "Obtains all Jira comments from a Jira issue if the issue key is provided" {
+        $comments = Get-JiraIssueComment -Issue $issueKey
 
-            # Get-JiraIssue should be called to identify the -Issue parameter
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+        $comments | Should -Not -BeNullOrEmpty
+        @($comments).Count | Should -Be 1
+        $comments.ID | Should -Be 90730
+        $comments.Body | Should -Be 'Test comment'
 
-            # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueComment, but
-            # since we've mocked Get-JiraIssue out, it will only be called once.
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-        }
+        # Get-JiraIssue should be called to identify the -Issue parameter
+        Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Times 1 -Exactly
 
-        It "Obtains all Jira comments from a Jira issue if the Jira object is provided" {
-            $issue = Get-JiraIssue -Key $issueKey
-            $comments = Get-JiraIssueComment -Issue $issue
+        # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueComment, but
+        # since we've mocked Get-JiraIssue out, it will only be called once.
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly
+    }
 
-            $comments | Should Not BeNullOrEmpty
-            $comments.ID | Should Be 90730
+    It "Obtains all Jira comments from a Jira issue if the Jira object is provided" {
+        $issue = Get-TestJiraIssue -Key $issueKey
+        $comments = Get-JiraIssueComment -Issue $issue
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-        }
+        $comments | Should -Not -BeNullOrEmpty
+        $comments.ID | Should -Be 90730
 
-        It "Handles pipeline input from Get-JiraIssue" {
-            $comments = Get-JiraIssue -Key $issueKey | Get-JiraIssueComment
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly
+    }
 
-            $comments | Should Not BeNullOrEmpty
-            $comments.ID | Should Be 90730
+    It "Handles pipeline input from Get-JiraIssue" {
+        $comments = Get-TestJiraIssue -Key $issueKey | Get-JiraIssueComment
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-        }
+        $comments | Should -Not -BeNullOrEmpty
+        $comments.ID | Should -Be 90730
+
+        Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly
     }
 }

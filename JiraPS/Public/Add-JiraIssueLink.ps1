@@ -1,5 +1,5 @@
 function Add-JiraIssueLink {
-# .ExternalHelp ..\JiraPS-help.xml
+    # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]

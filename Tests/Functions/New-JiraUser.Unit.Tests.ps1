@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "New-JiraUser" -Tag 'Unit' {
 
@@ -26,16 +26,8 @@ Describe "New-JiraUser" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
 
         $jiraServer = 'http://jiraserver.example.com'
 
@@ -61,7 +53,7 @@ Describe "New-JiraUser" -Tag 'Unit' {
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/user"} {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json $testJson
+            return (ConvertFrom-Json $testJson)
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
@@ -69,23 +61,27 @@ Describe "New-JiraUser" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
-        It "Creates a user in JIRA and returns a result" {
-            $newResult = New-JiraUser -UserName $testUsername -EmailAddress $testEmail -DisplayName $testDisplayName
-            $newResult | Should Not BeNullOrEmpty
-        }
+    It "Creates a user in JIRA and returns a result" {
+        $newResult = New-JiraUser -UserName $testUsername -EmailAddress $testEmail -DisplayName $testDisplayName
+        $newResult | Should -Not -BeNullOrEmpty
+    }
 
-        Context "Output checking" {
-            Mock ConvertTo-JiraUser {}
+    Context "Output checking" {
+        It "Uses ConvertTo-JiraUser to beautify output" {
+            Mock ConvertTo-JiraUser -ModuleName JiraPS {}
             New-JiraUser -UserName $testUsername -EmailAddress $testEmail -DisplayName $testDisplayName
-
-            It "Uses ConvertTo-JiraUser to beautify output" {
-                Assert-MockCalled 'ConvertTo-JiraUser'
-            }
+            Should -Invoke 'ConvertTo-JiraUser' -ModuleName JiraPS
         }
     }
 }

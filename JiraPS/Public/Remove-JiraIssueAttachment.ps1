@@ -103,7 +103,7 @@ function Remove-JiraIssueAttachment {
                 if ($FileName) {
                     $_attachments = @()
                     foreach ($file in $FileName) {
-                        $_attachments += $attachments | Where-Object {$_.FileName -like $file}
+                        $_attachments += $attachments | Where-Object { $_.FileName -like $file }
                     }
                     $attachments = $_attachments
                 }

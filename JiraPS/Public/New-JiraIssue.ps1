@@ -72,10 +72,9 @@ function New-JiraIssue {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop -Debug:$false
-        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {$_.Id -eq $IssueType -or $_.Name -eq $IssueType}
+        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript { $_.Id -eq $IssueType -or $_.Name -eq $IssueType }
 
-        if ($null -eq $issueTypeObj.Id)
-        {
+        if ($null -eq $issueTypeObj.Id) {
             $errorMessage = @{
                 Category         = "InvalidResult"
                 CategoryActivity = "Validating parameters"
@@ -85,13 +84,13 @@ function New-JiraIssue {
         }
 
         $requestBody = @{
-            "project"   = @{"id" = $ProjectObj.Id}
-            "issuetype" = @{"id" = [String] $IssueTypeObj.Id}
+            "project"   = @{"id" = $ProjectObj.Id }
+            "issuetype" = @{"id" = [String] $IssueTypeObj.Id }
             "summary"   = $Summary
         }
 
         if ($Priority) {
-            $requestBody["priority"] = @{"id" = [String] $Priority}
+            $requestBody["priority"] = @{"id" = [String] $Priority }
         }
 
         if ($Description) {
@@ -99,11 +98,11 @@ function New-JiraIssue {
         }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
-            $requestBody["reporter"] = @{"name" = "$Reporter"}
+            $requestBody["reporter"] = @{"name" = "$Reporter" }
         }
 
         if ($Parent) {
-            $requestBody["parent"] = @{"key" = $Parent}
+            $requestBody["parent"] = @{"key" = $Parent }
         }
 
         if ($Label) {
@@ -127,7 +126,7 @@ function New-JiraIssue {
             }
         }
 
-        If ($Fields) {
+        if ($Fields) {
 
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Enumerating fields for server"
 
@@ -149,13 +148,16 @@ function New-JiraIssue {
                 if ($AvailableFieldsById.ContainsKey($name)) {
                     $field = $AvailableFieldsById[$name][0]
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
-                } elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
+                }
+                elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
                     $field = $AvailableFieldsById["customfield_$name"][0]
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
-                } elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
+                }
+                elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
                     $field = $AvailableFieldsByName[$name][0]
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
-                } elseif ($AvailableFieldsByName.ContainsKey($name)) {
+                }
+                elseif ($AvailableFieldsByName.ContainsKey($name)) {
                     # Jira does not prevent multiple custom fields with the same name, so we have to ensure
                     # any name references are unambiguous.
 
@@ -167,7 +169,8 @@ function New-JiraIssue {
                     $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                     $errorItem.ErrorDetails = "Field name [$name] in -Fields hashtable ambiguously refers to more than one field. Use Get-JiraField for more information, or specify the custom field by its ID."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
-                } else {
+                }
+                else {
                     $exception = ([System.ArgumentException]"Invalid value for Parameter")
                     $errorId = 'ParameterValue.InvalidFields'
                     $errorCategory = 'InvalidArgument'
