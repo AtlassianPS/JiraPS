@@ -13,9 +13,9 @@ function ConvertFrom-URLEncoded {
     )
 
     process {
-        foreach ($input in $InputString) {
+        foreach ($string in $InputString) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Decoding string from URL"
-            [System.Web.HttpUtility]::UrlDecode($input)
+            [System.Web.HttpUtility]::UrlDecode($string)
         }
     }
 }

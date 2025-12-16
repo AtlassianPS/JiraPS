@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraRemoteLink" -Tag 'Unit' {
 
@@ -26,20 +26,23 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'https://jiraserver.example.com'
 
         $issueKey = 'MKY-1'
+
+        # Helper function to create test JiraIssue object
+        function Get-TestJiraIssue {
+            param($Key)
+            $object = [PSCustomObject] @{
+                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
+                'Key'     = $Key
+            }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
 
         $restResult = @"
 {
@@ -67,17 +70,8 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
             Write-Output $jiraServer
         }
 
-        Mock Get-JiraIssue {
-            $object = [PSCustomObject] @{
-                'RestURL' = "$jiraServer/rest/api/2/issue/12345"
-                'Key'     = $issueKey
-            }
-            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
-            return $object
-        }
-
-        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-            Get-JiraIssue -Key $Issue
+        Mock Get-JiraIssue -ModuleName JiraPS {
+            Get-TestJiraIssue -Key $Key
         }
 
         Mock ConvertTo-JiraLink -ModuleName JiraPS {
@@ -95,54 +89,42 @@ Describe "Get-JiraRemoteLink" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
         It "Gets information of all remote link from a Jira issue" {
-            $getResult = Get-JiraRemoteLink -Issue $issueKey
-            $getResult | Should Not BeNullOrEmpty
+            InModuleScope JiraPS {
+                $issueKey = 'MKY-1'
+                $jiraServer = 'https://jiraserver.example.com'
 
-            $assertMockCalledSplat = @{
-                CommandName = 'Invoke-JiraMethod'
-                ModuleName = 'JiraPS'
-                ParameterFilter = {
+                $getResult = Get-JiraRemoteLink -Issue $issueKey
+                $getResult | Should -Not -BeNullOrEmpty
+
+                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
                     $Method -eq "Get" -and
                     $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink"
-                }
-                Exactly = $true
-                Times = 1
-                Scope = 'It'
-            }
-            Assert-MockCalled @assertMockCalledSplat
+                } -Exactly 1
 
-            $assertMockCalledSplat = @{
-                CommandName = 'ConvertTo-JiraLink'
-                ModuleName = 'JiraPS'
-                Exactly = $true
-                Times = 1
-                Scope = 'It'
+                Should -Invoke 'ConvertTo-JiraLink' -ModuleName JiraPS -Exactly 1
             }
-            Assert-MockCalled @assertMockCalledSplat
         }
 
         It "Gets information of all remote link from a Jira issue" {
             $getResult = Get-JiraRemoteLink -Issue $issueKey -LinkId 10000
-            $getResult | Should Not BeNullOrEmpty
+            $getResult | Should -Not -BeNullOrEmpty
 
-            $assertMockCalledSplat = @{
-                CommandName = 'Invoke-JiraMethod'
-                ModuleName = 'JiraPS'
-                ParameterFilter = {
-                    $Method -eq "Get" -and
-                    $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink/10000"
-                }
-                Exactly = $true
-                Times = 1
-                Scope = 'It'
-            }
-            Assert-MockCalled @assertMockCalledSplat
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                $Method -eq "Get" -and
+                $Uri -like "$jiraServer/rest/api/*/issue/12345/remotelink/10000"
+            } -Exactly 1
         }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }

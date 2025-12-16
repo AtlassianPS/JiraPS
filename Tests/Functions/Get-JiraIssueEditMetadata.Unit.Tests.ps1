@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
 
@@ -26,20 +26,22 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
 
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = "https://jira.example.com"
         $issueID = 41701
         $issueKey = 'IT-3676'
+
+        # Helper function to create test JiraIssue object
+        function Get-TestJiraIssue {
+            param($Key, $ID)
+            [PSCustomObject] @{
+                ID      = $ID
+                Key     = $Key
+                RestUrl = "$jiraServer/rest/api/2/issue/$ID"
+            }
+        }
 
         $restResult = @"
 {
@@ -105,7 +107,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
                 "projectCategory": {
                     "self": "$jiraServer/rest/api/2/projectCategory/10000",
                     "id": "10000",
-                    "description": "All Project Catagories",
+                    "description": "All Project Categories",
                     "name": "All Project"
                 }
             }]
@@ -199,7 +201,7 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer {
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
             $jiraServer
         }
 
@@ -224,30 +226,44 @@ Describe "Get-JiraIssueEditMetadata" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        Context "Sanity checking" {
+    Context "Sanity checking" {
+        It "Should have the expected parameters" {
             $command = Get-Command -Name Get-JiraIssueEditMetadata
 
             defParam $command 'Issue'
             defParam $command 'Credential'
         }
+    }
 
-        Context "Behavior testing" {
+    Context "Behavior testing" {
 
-            It "Queries Jira for metadata information about editing an issue" {
-                { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-            }
+        It "Queries Jira for metadata information about editing an issue" {
+            { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
+            Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly 1
+        }
 
-            It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
-                { Get-JiraIssueEditMetadata -Issue $issueID } | Should Not Throw
-                Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+        It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
+            InModuleScope JiraPS {
+                Mock ConvertTo-JiraEditMetaField {
+                    $InputObject
+                }
+                $issueID = 41701
 
+                { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
+                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly 1
                 # There are 2 example fields in our mock above, but they should
                 # be passed to Convert-JiraCreateMetaField as a single object.
                 # The method should only be called once.
-                Assert-MockCalled -CommandName ConvertTo-JiraEditMetaField -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke 'ConvertTo-JiraEditMetaField' -ModuleName JiraPS -Exactly 1
             }
         }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
     }
 }
