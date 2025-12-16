@@ -56,7 +56,8 @@ function Get-JiraIssueLinkType {
             $result = Invoke-JiraMethod @parameter
 
             Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
-        } else {
+        }
+        else {
             # If it's a String, it's probably a name, though, and there isn't an API call to look up a link type by name.
             $parameter = @{
                 URI        = $resourceURi -f ""
@@ -69,7 +70,8 @@ function Get-JiraIssueLinkType {
 
             if ($LinkType) {
                 Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType })
-            } else {
+            }
+            else {
                 Write-Output $allLinkTypes
             }
         }

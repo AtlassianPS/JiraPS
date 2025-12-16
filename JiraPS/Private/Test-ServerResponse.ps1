@@ -2,7 +2,7 @@ function Test-ServerResponse {
     [CmdletBinding()]
     <#
         .SYNOPSIS
-            Evauluate the response of the API call
+            Evaluate the response of the API call
         .LINK
             https://docs.atlassian.com/software/jira/docs/api/7.6.1/com/atlassian/jira/bc/security/login/LoginReason.html
     #>
@@ -28,7 +28,7 @@ function Test-ServerResponse {
             $loginReason = $InputObject.Headers[$loginReasonKey] -split ","
 
             switch ($true) {
-                {$loginReason -contains "AUTHENTICATED_FAILED"} {
+                { $loginReason -contains "AUTHENTICATED_FAILED" } {
                     $errorParameter = @{
                         ExceptionType = "System.Net.Http.HttpRequestException"
                         Message       = "The user could not be authenticated."
@@ -38,17 +38,17 @@ function Test-ServerResponse {
                     }
                     ThrowError @errorParameter
                 }
-                {$loginReason -contains "AUTHENTICATION_DENIED"} {
+                { $loginReason -contains "AUTHENTICATION_DENIED" } {
                     $errorParameter = @{
                         ExceptionType = "System.Net.Http.HttpRequestException"
                         Message       = "For security reasons Jira requires you to log on to the website before continuing."
-                        ErrorId       = "AuthenticaionDenied"
+                        ErrorId       = "AuthenticationDenied"
                         Category      = "AuthenticationError"
                         Cmdlet        = $Cmdlet
                     }
                     ThrowError @errorParameter
                 }
-                {$loginReason -contains "AUTHORISATION_FAILED"} {
+                { $loginReason -contains "AUTHORISATION_FAILED" } {
                     $errorParameter = @{
                         ExceptionType = "System.Net.Http.HttpRequestException"
                         Message       = "The user could not be authorised."
@@ -58,8 +58,8 @@ function Test-ServerResponse {
                     }
                     ThrowError @errorParameter
                 }
-                {$loginReason -contains "OK"} {} # The login was OK
-                {$loginReason -contains "OUT"} {} # This indicates that person has in fact logged "out"
+                { $loginReason -contains "OK" } { } # The login was OK
+                { $loginReason -contains "OUT" } { } # This indicates that person has in fact logged "out"
             }
         }
     }
