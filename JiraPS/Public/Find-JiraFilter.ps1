@@ -1,14 +1,14 @@
 function Find-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( DefaultParameterSetName='ByAccountId', SupportsPaging )]
+    [CmdletBinding( DefaultParameterSetName = 'ByAccountId', SupportsPaging )]
     param(
-        [Parameter(ValueFromPipeline,ValueFromPipelineByPropertyName)]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [string[]]$Name,
 
-        [Parameter(ParameterSetName='ByAccountId',ValueFromPipelineByPropertyName)]
+        [Parameter(ParameterSetName = 'ByAccountId', ValueFromPipelineByPropertyName)]
         [string]$AccountId,
 
-        [Parameter(ParameterSetName='ByOwner',ValueFromPipelineByPropertyName)]
+        [Parameter(ParameterSetName = 'ByOwner', ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
@@ -61,11 +61,11 @@ function Find-JiraFilter {
         [Object]
         $Project,
 
-        [Validateset('description','favourite','favouritedCount','jql','owner','searchUrl','sharePermissions','subscriptions','viewUrl')]
+        [Validateset('description', 'favourite', 'favouritedCount', 'jql', 'owner', 'searchUrl', 'sharePermissions', 'subscriptions', 'viewUrl')]
         [String[]]
-        $Fields = @('description','favourite','favouritedCount','jql','owner','searchUrl','sharePermissions','subscriptions','viewUrl'),
+        $Fields = @('description', 'favourite', 'favouritedCount', 'jql', 'owner', 'searchUrl', 'sharePermissions', 'subscriptions', 'viewUrl'),
 
-        [Validateset('description','favourite_count','is_favourite','id','name','owner')]
+        [Validateset('description', 'favourite_count', 'is_favourite', 'id', 'name', 'owner')]
         [string]$Sort,
 
         [System.Management.Automation.PSCredential]
@@ -116,7 +116,7 @@ function Find-JiraFilter {
             $parameter[$_] = $PSCmdlet.PagingParameters.$_
         }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Name')) {
-            foreach($_name in $Name) {
+            foreach ($_name in $Name) {
                 $parameter['GetParameter']['filterName'] = $_name
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
 

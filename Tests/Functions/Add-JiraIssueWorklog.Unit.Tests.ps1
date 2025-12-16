@@ -1,10 +1,7 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
-
 Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
 
     BeforeAll {
-        Remove-Item -Path Env:\BH*
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
         $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
         if ($projectRoot -like "*Release") {
             $projectRoot = (Resolve-Path "$projectRoot/..").Path
@@ -22,19 +19,12 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
             $env:BHManifestToTest = $env:BHBuildModuleManifest
         }
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1" -ErrorAction Stop
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
+        Import-Module $env:BHManifestToTest -ErrorAction Stop
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -84,22 +74,24 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
 }
 "@
 
+        # Helper function for creating issue objects
+        function New-TestJiraIssue {
+            param($Key = $issueKey)
+            $object = [PSCustomObject] @{
+                ID      = $issueID
+                Key     = $Key
+                RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
+            }
+            $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+            return $object
+        }
+
         Mock Get-JiraConfigServer -ModuleName JiraPS {
             Write-Output $jiraServer
         }
 
         Mock Get-JiraIssue -ModuleName JiraPS {
-            $result = [PSCustomObject] @{
-                ID      = $issueID
-                Key     = $issueKey
-                RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
-            }
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
-            Write-Output $result
-        }
-
-        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-            Get-JiraIssue -Key $Issue
+            New-TestJiraIssue -Key $Key
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/worklog"} {
@@ -112,39 +104,78 @@ Describe "Add-JiraIssueWorklog" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
+    Context "Sanity checking" {
+        It "Has expected parameters" {
+            $command = Get-Command -Name Add-JiraIssueWorklog
+
+            defParam $command 'Comment'
+            defParam $command 'Issue'
+            defParam $command 'TimeSpent'
+            defParam $command 'DateStarted'
+            defParam $command 'VisibleRole'
+            defParam $command 'Credential'
+        }
+    }
+
+    Context "Behavior testing" {
         It "Adds a worklog item to an issue in JIRA" {
             $commentResult = Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent 3600 -DateStarted "2018-01-01"
-            $commentResult | Should Not BeNullOrEmpty
-
-            # Get-JiraIssue should be used to identify the issue parameter
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
-
-            # Invoke-JiraMethod should be used to add the comment
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            $commentResult | Should -Not -BeNullOrEmpty
         }
 
         It "Accepts pipeline input from Get-JiraIssue" {
-            $commentResult = Get-JiraIssue -Key $IssueKey | Add-JiraIssueWorklog -Comment 'This is a test worklog item from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
-            $commentResult | Should Not BeNullOrEmpty
+            # Mock for when Get-JiraIssue is called directly in tests (outside module scope)
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'GET' -and $URI -like "$jiraServer/rest/api/2/issue/$issueKey*"} {
+                ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                @{
+                    id = $issueID
+                    key = $issueKey
+                    self = "$jiraServer/rest/api/2/issue/$issueID"
+                    fields = @{}
+                }
+            }
 
-            # Get-JiraIssue should be called once here to fetch the initial test issue
-            Assert-MockCalled -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+            $commentResult = Get-JiraIssue -Key $IssueKey | Add-JiraIssueWorklog -Comment 'This is a test worklog item from Pester, using the pipeline!' -TimeSpent "3600" -DateStarted "2018-01-01"
+            $commentResult | Should -Not -BeNullOrEmpty
         }
 
-        It "formats DateStarted independetly of the input" {
+        It "formats DateStarted independently of the input" {
             Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent "00:10:00" -DateStarted "2018-01-01"
             Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent "00:10:00" -DateStarted (Get-Date)
             Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent "00:10:00" -DateStarted (Get-Date -Date "01.01.2000")
 
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                 $Body -match '\"started\":\s*"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[\+\-]\d{4}"'
-            } -Exactly -Times 3 -Scope It
+            } -Exactly -Times 3
         }
+    }
+
+    Context "Internal Call Validation" {
+        It "Uses Invoke-JiraMethod to add the worklog" {
+            Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent 3600 -DateStarted "2018-01-01"
+
+            Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+        }
+
+        It "Calls Resolve-JiraIssueObject to set the issue object" {
+            Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                New-TestJiraIssue -Key $issueKey
+            }
+            Add-JiraIssueWorklog -Comment 'This is a test worklog entry from Pester.' -Issue $issueKey -TimeSpent 3600 -DateStarted "2018-01-01"
+
+            Should -Invoke -CommandName Resolve-JiraIssueObject -ModuleName JiraPS -Exactly -Times 1
+        }
+    }
+
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH* -ErrorAction SilentlyContinue
     }
 }

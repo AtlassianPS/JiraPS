@@ -1,43 +1,38 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
-Describe "ConvertTo-JiraCreateMetaField" -Tag 'Unit' {
-
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
+BeforeDiscovery {
+    Remove-Item -Path Env:\BH*
+    $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
+    if ($projectRoot -like "*Release") {
+        $projectRoot = (Resolve-Path "$projectRoot/..").Path
     }
 
-    InModuleScope JiraPS {
+    Import-Module BuildHelpers
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
 
-        . "$PSScriptRoot/../Shared.ps1"
+    $env:BHManifestToTest = $env:BHPSModuleManifest
+    $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
+    if ($script:isBuild) {
+        $Pattern = [regex]::Escape($env:BHProjectPath)
 
-        $sampleJson = @'
+        $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
+        $env:BHManifestToTest = $env:BHBuildModuleManifest
+    }
+
+    Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+
+    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+    Import-Module $env:BHManifestToTest
+}
+
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraCreateMetaField" -Tag 'Unit' {
+
+        BeforeAll {
+            . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defProp / checkType / castsToString)
+
+            $sampleJson = @'
 {
     "values": [
         {
@@ -101,36 +96,51 @@ Describe "ConvertTo-JiraCreateMetaField" -Tag 'Unit' {
     ]
 }
 '@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-
-        $r = ConvertTo-JiraCreateMetaField $sampleObject
-
-        It "Creates PSObjects out of JSON input" {
-            $r | Should Not BeNullOrEmpty
-            $r.Count | Should Be 2
+            $sampleObject = ConvertFrom-Json -InputObject $sampleJson
         }
 
-        checkPsType $r[0] 'JiraPS.CreateMetaField'
+        Context "Sanity checking" {
+            BeforeAll {
+                $r = ConvertTo-JiraCreateMetaField $sampleObject
+            }
+
+            It "Creates PSObjects out of JSON input" {
+                $r | Should -Not -BeNullOrEmpty
+                $r.Count | Should -Be 2
+            }
+
+            It "Uses correct output type" {
+                checkType $r[0] 'JiraPS.CreateMetaField'
+            }
+
+            It "Can cast to string" {
+                castsToString $r[0]
+            }
+        }
 
         Context "Data validation" {
-            # Our sample JSON includes two fields: summary and priority.
-            $summary = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Summary'}
-            $priority = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Priority'}
-
-            defProp $summary 'Id' 'summary'
-            defProp $summary 'Name' 'Summary'
-            defProp $summary 'HasDefaultValue' $false
-            defProp $summary 'Required' $true
-            defProp $summary 'Operations' @('set')
+            It "Defines expected properties for summary field" {
+                # Our sample JSON includes two fields: summary and priority.
+                $summary = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Summary'}
+                defProp $summary 'Id' 'summary'
+                defProp $summary 'Name' 'Summary'
+                defProp $summary 'HasDefaultValue' $false
+                defProp $summary 'Required' $true
+                defProp $summary 'Operations' @('set')
+            }
 
             It "Defines the 'Schema' property if available" {
-                $summary.Schema | Should Not BeNullOrEmpty
-                $priority.Schema | Should Not BeNullOrEmpty
+                $summary = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Summary'}
+                $priority = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Priority'}
+                $summary.Schema | Should -Not -BeNullOrEmpty
+                $priority.Schema | Should -Not -BeNullOrEmpty
             }
 
             It "Defines the 'AllowedValues' property if available" {
-                $summary.AllowedValues | Should BeNullOrEmpty
-                $priority.AllowedValues | Should Not BeNullOrEmpty
+                $summary = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Summary'}
+                $priority = ConvertTo-JiraCreateMetaField $sampleObject | Where-Object -FilterScript {$_.Name -eq 'Priority'}
+                $summary.AllowedValues | Should -BeNullOrEmpty
+                $priority.AllowedValues | Should -Not -BeNullOrEmpty
             }
         }
     }

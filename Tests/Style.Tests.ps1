@@ -26,6 +26,9 @@ Describe "Validation of code styling" {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         # Import-Module $env:BHManifestToTest
+
+        $docFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.md -Recurse
+        $codeFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.ps1, *.psm1 -Recurse
     }
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
@@ -33,8 +36,6 @@ Describe "Validation of code styling" {
         Remove-Item -Path Env:\BH*
     }
 
-    $docFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.md -Recurse
-    $codeFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.ps1, *.psm1 -Recurse
 
     It "has no trailing whitespace in code files" {
         $badLines = @(

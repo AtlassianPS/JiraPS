@@ -179,13 +179,16 @@ function Set-JiraIssue {
                     if ($AvailableFieldsById.ContainsKey($name)) {
                         $field = $AvailableFieldsById[$name][0]
                         Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
-                    } elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
+                    }
+                    elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
                         $field = $AvailableFieldsById["customfield_$name"][0]
                         Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
-                    } elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
+                    }
+                    elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
                         $field = $AvailableFieldsByName[$name][0]
                         Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
-                    } elseif ($AvailableFieldsByName.ContainsKey($name)) {
+                    }
+                    elseif ($AvailableFieldsByName.ContainsKey($name)) {
                         # Jira does not prevent multiple custom fields with the same name, so we have to ensure
                         # any name references are unambiguous.
 
@@ -197,7 +200,8 @@ function Set-JiraIssue {
                         $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                         $errorItem.ErrorDetails = "Field name [$name] in -Fields hashtable ambiguously refers to more than one field. Use Get-JiraField for more information, or specify the custom field by its ID."
                         $PSCmdlet.ThrowTerminatingError($errorItem)
-                    } else {
+                    }
+                    else {
                         $exception = ([System.ArgumentException]"Invalid value for Parameter")
                         $errorId = 'ParameterValue.InvalidFields'
                         $errorCategory = 'InvalidArgument'
@@ -221,7 +225,7 @@ function Set-JiraIssue {
             $SkipNotificationParams = @{}
             if ($SkipNotification) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Skipping notification for watchers"
-                $SkipNotificationParams = @{notifyUsers = "false"}
+                $SkipNotificationParams = @{ notifyUsers = "false" }
             }
 
             if ( @($issueProps.update.Keys).Count -gt 0 ) {

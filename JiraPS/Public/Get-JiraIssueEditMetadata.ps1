@@ -87,7 +87,7 @@ function Get-JiraIssueEditMetadata {
             $errorTarget = $Project
             $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "No metadata found for project $Project and issueType $IssueType."
-            Throw $errorItem
+            throw $errorItem
         }
     }
 
