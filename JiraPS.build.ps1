@@ -11,12 +11,28 @@ param(
 )
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force
-Import-Module (Get-Dependency) -Force -ErrorAction Stop
-
 Remove-Item -Path env:\BH* -ErrorAction SilentlyContinue
 Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
-$OS, $OSVersion = Get-HostInformation
-# Add-ToModulePath -Path $env:BHBuildOutput
+
+#region HarmonizeVariables
+switch ($true) {
+    { $IsWindows } {
+        $OS = "Windows"
+        if (-not ($IsCoreCLR)) {
+            $OSVersion = $PSVersionTable.BuildVersion.ToString()
+        }
+    }
+    { $IsLinux } {
+        $OS = "Linux"
+    }
+    { $IsMacOs } {
+        $OS = "OSX"
+    }
+    { $IsCoreCLR } {
+        $OSVersion = $PSVersionTable.OS
+    }
+}
+#endregion HarmonizeVariables
 
 if ($VersionToPublish) {
     $VersionToPublish = $VersionToPublish.TrimStart('v') -as [Version]
@@ -142,13 +158,23 @@ Task SetVersion {
 }
 
 Task Test {
-    $pesterConfig = [PesterConfiguration]::Default
-    $pesterConfig.Output.Verbosity = $PesterVerbosity
-    $pesterConfig.Run.path = @("$env:BHBuildOutput/Tests")
-    $pesterConfig.Run.PassThru = $true
-    $PesterConfig.TestResult.Enabled = $true
-    $pesterConfig.TestResult.OutputFormat = 'NUnitXml'
-    $pesterConfig.TestResult.OutputPath = "TestResults.xml"
+    $pesterConfig = New-PesterConfiguration -Hashtable @{
+        Run = @{
+            PassThru = $true
+            Path = "$env:BHBuildOutput/Tests/*"
+        }
+        TestResult = @{
+            Enabled = $true
+            OutputFormat = 'NUnitXml'
+            OutputPath = "Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
+        }
+        Output = @{
+            Verbosity = 'Detailed'
+        }
+        <# CodeCoverage = @{
+                Path = $codeCoverageFiles
+            } #>
+    }
 
     if ((Invoke-Pester -Configuration $pesterConfig).FailedCount -gt 0) {
         throw "Tests failed"
