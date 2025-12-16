@@ -8,7 +8,7 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[*.{ps1,psm1,psd1,psc1,ps1xml,clixml}]
+[*.{md,ps1,psm1,psd1,psc1,ps1xml,clixml}]
 end_of_line = crlf
 
 

@@ -127,7 +127,7 @@ Task CompileModule {
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
-task GenerateExternalHelp {
+Task GenerateExternalHelp {
     Import-Module platyPS -Force
     foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
         New-ExternalHelp -Path "$($locale.FullName)" -OutputPath "$env:BHModulePath/$($locale.Basename)" -Force
@@ -159,26 +159,25 @@ Task SetVersion {
 
 Task Test {
     $pesterConfig = New-PesterConfiguration -Hashtable @{
-        Run = @{
+        Run        = @{
             PassThru = $true
-            Path = "$env:BHBuildOutput/Tests/*"
+            Path     = "$env:BHBuildOutput/Tests"
         }
         TestResult = @{
-            Enabled = $true
+            Enabled      = $true
             OutputFormat = 'NUnitXml'
-            OutputPath = "Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
+            OutputPath   = "Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
         }
-        Output = @{
-            Verbosity = 'Detailed'
+        Output     = @{
+            Verbosity = $PesterVerbosity
         }
         <# CodeCoverage = @{
-                Path = $codeCoverageFiles
-            } #>
+            Path = $codeCoverageFiles
+        } #>
     }
 
-    if ((Invoke-Pester -Configuration $pesterConfig).FailedCount -gt 0) {
-        throw "Tests failed"
-    }
+    $testResults = Invoke-Pester -Configuration $pesterConfig
+    Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
 }
 
 Task Publish SetVersion, SignCode, Package, {

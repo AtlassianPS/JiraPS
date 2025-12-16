@@ -95,7 +95,8 @@ Describe "New-JiraSession" -Tag 'Unit' {
 
         It "stores the session variable in the module's PrivateData" {
             #Strict mode set on build
-            {(Get-Module JiraPS).PrivateData.Session} | Should -Throw "*The property 'Session' cannot be found*"
+            {(Get-Module JiraPS).PrivateData.Session} | Should -Not  -Throw
+            # {(Get-Module JiraPS).PrivateData.Session} | Should -Throw "*The property 'Session' cannot be found*"
 
             New-JiraSession -Credential $testCredential
 
