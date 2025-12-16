@@ -1,48 +1,50 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Get-JiraConfigServer" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
+
+InModuleScope JiraPS {
+    Describe "Get-JiraConfigServer" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+            # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
+
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            #endregion Definitions
+
+            #region Mocks
+            #endregion Mocks
         }
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+        Describe "Signature" {
+            Context "Parameter Types" {
+                # TODO: Add parameter type validation tests
+            }
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+            Context "Mandatory Parameters" {}
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
+            Context "Default Values" {}
         }
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+        Describe "Behavior" {
+            It "returns the server stored in the module's session" {
+                $script:JiraServerUrl = $jiraServer
 
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
+                Get-JiraConfigServer | Should -Be $jiraServer
+            }
+        }
 
-    InModuleScope JiraPS {
+        Describe "Input Validation" {
+            Context "Type Validation - Positive Cases" {}
 
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        It "returns the server stored in the module's session" {
-            $script:JiraServerUrl = $jiraServer
-
-            Get-JiraConfigServer | Should -Be $jiraServer
+            Context "Type Validation - Negative Cases" {}
         }
     }
 }

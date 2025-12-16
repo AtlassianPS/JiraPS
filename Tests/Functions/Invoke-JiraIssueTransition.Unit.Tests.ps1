@@ -1,41 +1,14 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+
+. "$PSScriptRoot/../Helpers/Resolve-ModuleSource.ps1"
+$moduleToTest = Resolve-ModuleSource
+Import-Module $moduleToTest -Force
 
 Describe "Invoke-JiraIssueTransition" -Tag 'Unit' {
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
-
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
     InModuleScope JiraPS {
 
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Helpers/Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
         $issueID = 41701
@@ -82,13 +55,13 @@ Describe "Invoke-JiraIssueTransition" -Tag 'Unit' {
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/transitions"} {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             # This should return a 204 status code, so no data should actually be returned
         }
 
         # Generic catch-all. This will throw an exception if we forgot to mock something.
         Mock Invoke-JiraMethod -ModuleName JiraPS {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
 

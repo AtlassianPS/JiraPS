@@ -1,54 +1,65 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Set-JiraConfigServer" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+InModuleScope JiraPS {
+    Describe "Set-JiraConfigServer" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+            # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
+
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            #endregion Definitions
+
+            #region Mocks
+            # No mocks needed for this simple function
+            #endregion Mocks
         }
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+        Describe "Signature" {
+            BeforeAll {
+                $script:command = Get-Command -Name Set-JiraConfigServer
+            }
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+            Context "Parameter Types" {
+                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
+                    @{ parameter = 'Server'; type = 'Uri' }
+                ) {
+                    param($parameter, $type)
+                    $command | Should -HaveParameter $parameter
+                    $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
+                }
+            }
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
+            Context "Mandatory Parameters" {}
+
+            Context "Default Values" {}
         }
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+        Describe "Behavior" {
+            It "stores the server address in the module session" {
+                Set-JiraConfigServer -Server $jiraServer
 
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
+                $script:JiraServerUrl | Should -Be "$jiraServer/"
+            }
 
-    InModuleScope JiraPS {
+            It "stores the server address in a config file" {
+                $script:serverConfig | Should -Exist
 
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        It "stores the server address in the module session" {
-            Set-JiraConfigServer -Server $jiraServer
-
-            $script:JiraServerUrl | Should -Be "$jiraServer/"
+                Get-Content $script:serverConfig | Should -Be "$jiraServer/"
+            }
         }
 
-        It "stores the server address in a config file" {
-            $script:serverConfig | Should -Exist
+        Describe "Input Validation" {
+            Context "Type Validation - Positive Cases" {}
 
-            Get-Content $script:serverConfig | Should -Be "$jiraServer/"
+            Context "Type Validation - Negative Cases" {}
         }
     }
 }

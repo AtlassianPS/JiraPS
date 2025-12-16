@@ -1,52 +1,29 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 param()
 
-Describe "Invoke-JiraMethod" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "Invoke-JiraMethod" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+            # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope $env:BHProjectName {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        #region Definitions
-
-        $utf8String = "Lorem مرحبا Здравствуйте 😁"
-        $testUsername = 'testUsername'
-        $testPassword = ConvertTo-SecureString -AsPlainText -Force 'password123'
-        $testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername, $testPassword
-        $pagedResponse1 = @"
+            #region Definitions
+            $script:utf8String = "Lorem مرحبا Здравствуйте 😁"
+            $script:testUsername = 'testUsername'
+            $script:testPassword = ConvertTo-SecureString -AsPlainText -Force 'password123'
+            $script:testCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $testUsername, $testPassword
+            $script:pagedResponse1 = @"
 {
     "startAt" : 0,
     "maxResults" : 5,
@@ -60,7 +37,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
     ]
 }
 "@
-        $pagedResponse2 = @"
+            $script:pagedResponse2 = @"
 {
     "startAt" : 5,
     "maxResults" : 5,
@@ -71,85 +48,120 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
     ]
 }
 "@
-        $pagedResponse3 = "{}"
-        $supportedTypes = @("JiraComment", "JiraIssue", "JiraUser", "JiraVersion")
-        #endregion Definitions
+            $script:pagedResponse3 = "{}"
+            $script:supportedTypes = @("JiraComment", "JiraIssue", "JiraUser", "JiraVersion")
+            #endregion
 
-        #region Mocks
-        Mock Resolve-DefaultParameterValue -ModuleName $env:BHProjectName { @{ } }
-        Mock Join-Hashtable -ModuleName $env:BHProjectName { @{ } }
-        Mock Set-TlsLevel -ModuleName $env:BHProjectName { }
-        Mock Resolve-ErrorWebResponse -ModuleName $env:BHProjectName { }
-        Mock Expand-Result -ModuleName $env:BHProjectName { }
-        Mock Convert-Result -ModuleName $env:BHProjectName { }
-        Mock Get-JiraSession -ModuleName $env:BHProjectName {
-            [PSCustomObject]@{
-                WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
+            #region Mocks
+            Mock Resolve-DefaultParameterValue -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Resolve-DefaultParameterValue'
+                @{ }
             }
+            Mock Join-Hashtable -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Join-Hashtable'
+                @{ }
+            }
+            Mock Set-TlsLevel -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Set-TlsLevel'
+            }
+            Mock Resolve-ErrorWebResponse -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Resolve-ErrorWebResponse'
+            }
+            Mock Expand-Result -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Expand-Result'
+            }
+            Mock Convert-Result -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Convert-Result'
+            }
+            Mock Get-JiraSession -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Get-JiraSession'
+                [PSCustomObject]@{
+                    WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
+                }
+            }
+            Mock Test-ServerResponse -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Test-ServerResponse'
+            }
+            Mock ConvertTo-JiraSession -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'ConvertTo-JiraSession'
+            }
+            foreach ($type in $supportedTypes) {
+                Mock -CommandName "ConvertTo-$type" -ModuleName 'JiraPS' {
+                    Write-MockDebugInfo "ConvertTo-$type"
+                }
+            }
+            Mock Invoke-WebRequest -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Invoke-WebRequest' 'Uri', 'Method', 'Body', 'Headers', 'ContentType', 'SessionVariable', 'WebSession'
+                $InvokeWebRequestSplat = @{
+                    Uri             = $Uri
+                    Method          = $Method
+                    Body            = $Body
+                    Headers         = $Headers
+                    WebSession      = $WebSession
+                    ContentType     = $ContentType
+                    UseBasicParsing = $true
+                }
+                if ($SessionVariable) {
+                    $InvokeWebRequestSplat["SessionVariable"] = $SessionVariable
+                }
+
+                Microsoft.PowerShell.Utility\Invoke-WebRequest @InvokeWebRequestSplat
+
+                if ($SessionVariable) {
+                    Set-Variable -Name $SessionVariable -Value (Get-Variable $SessionVariable).Value -Scope 3 # Pester adds 2 levels of nesting
+                }
+            }
+            #endregion
         }
-        Mock Test-ServerResponse -Module $env:BHProjectName { }
-        Mock ConvertTo-JiraSession -ModuleName $env:BHProjectName { }
-        foreach ($type in $supportedTypes) {
-            Mock -CommandName "ConvertTo-$type" -ModuleName $env:BHProjectName { }
-        }
-        Mock Invoke-WebRequest -ModuleName $env:BHProjectName {
-            ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method', 'Body', 'Headers', 'ContentType', 'SessionVariable', 'WebSession'
-            $InvokeWebRequestSplat = @{
-                Uri             = $Uri
-                Method          = $Method
-                Body            = $Body
-                Headers         = $Headers
-                WebSession      = $WebSession
-                ContentType     = $ContentType
-                UseBasicParsing = $true
-            }
-            if ($SessionVariable) {
-                $InvokeWebRequestSplat["SessionVariable"] = $SessionVariable
+
+        Describe "Signature" {
+            BeforeAll {
+                $script:command = Get-Command -Name Invoke-JiraMethod
             }
 
-            Microsoft.PowerShell.Utility\Invoke-WebRequest @InvokeWebRequestSplat
+            Context "Parameter Types" {
+                It "has a parameter '<parameter>'" -TestCases @(
+                    @{ parameter = 'URI' }
+                    @{ parameter = 'Method' }
+                    @{ parameter = 'Body' }
+                    @{ parameter = 'RawBody' }
+                    @{ parameter = 'Headers' }
+                    @{ parameter = 'GetParameter' }
+                    @{ parameter = 'Paging' }
+                    @{ parameter = 'InFile' }
+                    @{ parameter = 'OutFile' }
+                    @{ parameter = 'StoreSession' }
+                    @{ parameter = 'OutputType' }
+                    @{ parameter = 'Credential' }
+                    @{ parameter = 'CmdLet' }
+                ) {
+                    param($parameter)
+                    $command | Should -HaveParameter $parameter
+                }
 
-            if ($SessionVariable) {
-                Set-Variable -Name $SessionVariable -Value (Get-Variable $SessionVariable).Value -Scope 3 # Pester adds 2 levels of nesting
+                It "Restricts the METHODs to WebRequestMethod" {
+                    $methodType = $command.Parameters.Method.ParameterType
+                    $methodType.FullName | Should -Be "Microsoft.PowerShell.Commands.WebRequestMethod"
+                }
             }
-        }
-        #endregion Mocks
 
-        Context "Sanity checking" {
-            $command = Get-Command -Name Invoke-JiraMethod
+            Context "Mandatory Parameters" {}
 
-            defParam $command 'URI'
-            defParam $command 'Method'
-            defParam $command 'Body'
-            defParam $command 'RawBody'
-            defParam $command 'Headers'
-            defParam $command 'GetParameter'
-            defParam $command 'Paging'
-            defParam $command 'InFile'
-            defParam $command 'OutFile'
-            defParam $command 'StoreSession'
-            defParam $command 'OutputType'
-            defParam $command 'Credential'
-            defParam $command 'CmdLet'
-
-            It "Restricts the METHODs to WebRequestMethod" {
-                $methodType = $command.Parameters.Method.ParameterType
-                $methodType.FullName | Should -Be "Microsoft.PowerShell.Commands.WebRequestMethod"
-            }
+            Context "Default Values" {}
         }
 
-        Context "Behavior testing" {
+        Describe "Behavior" {
             It "uses Invoke-WebMethod under the hood" {
                 Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
 
                 $assertMockCalledSplat = @{
                     CommandName = 'Invoke-WebRequest'
-                    ModuleName  = $env:BHProjectName
+                    ModuleName  = 'JiraPS'
                     Exactly     = $true
                     Times       = 1
                     Scope       = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "parses a JSON response" {
@@ -161,21 +173,21 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
             It "resolves errors" {
                 Invoke-JiraMethod -URI "https://postman-echo.com/status/400" -ErrorAction Stop
 
-                Assert-MockCalled -CommandName Resolve-ErrorWebResponse -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Resolve-ErrorWebResponse -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
             }
 
             It "supports TLS1.2 connections" {
                 Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
 
-                Assert-MockCalled -CommandName Set-TlsLevel -ModuleName $env:BHProjectName -Exactly -Times 2 -Scope It
-                Assert-MockCalled -CommandName Set-TlsLevel -ModuleName $env:BHProjectName -ParameterFilter {$Tls12 -eq $true} -Exactly -Times 1 -Scope It
-                Assert-MockCalled -CommandName Set-TlsLevel -ModuleName $env:BHProjectName -ParameterFilter {$Revert -eq $true} -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -Exactly -Times 2 -Scope It
+                Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -ParameterFilter {$Tls12 -eq $true} -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -ParameterFilter {$Revert -eq $true} -Exactly -Times 1 -Scope It
             }
 
             It "uses global default values for parameters" {
                 Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
 
-                Assert-MockCalled -CommandName Resolve-DefaultParameterValue -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Resolve-DefaultParameterValue -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
             }
         }
 
@@ -196,7 +208,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                     $assertMockCalledSplat = @{
                         CommandName     = 'Invoke-WebRequest'
-                        ModuleName      = $env:BHProjectName
+                        ModuleName      = JiraPS
                         ParameterFilter = {
                             $Method -eq $method
                         }
@@ -204,7 +216,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                         Times           = 1
                         Scope           = 'It'
                     }
-                    Assert-MockCalled @assertMockCalledSplat
+                    Should -Invoke @assertMockCalledSplat
                 }
             }
 
@@ -218,7 +230,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-WebRequest'
-                    ModuleName      = $env:BHProjectName
+                    ModuleName      = 'JiraPS'
                     ParameterFilter = {
                         $Body -is [Byte[]] -and
                         (($Body -join " ") -eq "76 111 114 101 109 32 195 153 226 128 166 195 152 194 177 195 152 194 173 195 152 194 168 195 152 194 167 32 195 144 226 128 148 195 144 194 180 195 145 226 130 172 195 144 194 176 195 144 194 178 195 145 194 129 195 145 226 128 154 195 144 194 178 195 145 198 146 195 144 194 185 195 145 226 128 154 195 144 194 181 32 195 176 197 184 203 156 194 129" -or
@@ -228,7 +240,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "allows for skipping the UTF-8 encoding of the Body" {
@@ -242,7 +254,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-WebRequest'
-                    ModuleName      = $env:BHProjectName
+                    ModuleName      = JiraPS
                     ParameterFilter = {
                         $Body -is [String] -and
                         $Body -eq $utf8String
@@ -251,7 +263,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "overwrites module default headers with global PSDefaultParameterValues" {}
@@ -272,7 +284,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-WebRequest'
-                    ModuleName      = $env:BHProjectName
+                    ModuleName      = JiraPS
                     ParameterFilter = {
                         $inFile -eq "./file-does-not-exist.txt"
                     }
@@ -280,7 +292,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "passes the -OutFile to Invoke-WebRequest" {
@@ -293,7 +305,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-WebRequest'
-                    ModuleName      = $env:BHProjectName
+                    ModuleName      = JiraPS
                     ParameterFilter = {
                         $OutFile -eq "./file-does-not-exist.txt"
                     }
@@ -301,7 +313,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "uses ConvertTo-JiraSession to store the Session" {
@@ -315,14 +327,14 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName     = "Invoke-WebRequest"
-                    ModuleName      = $env:BHProjectName
+                    ModuleName      = JiraPS
                     ParameterFilter = {$SessionVariable -eq "newSessionVar"}
                     Exactly         = $true
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
-                Assert-MockCalled -CommandName ConvertTo-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
+                Should -Invoke @assertMockCalledSplat
+                Should -Invoke -CommandName ConvertTo-JiraSession -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
             }
 
             foreach ($type in $supportedTypes) {
@@ -331,13 +343,13 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                     $assertMockCalledSplat = @{
                         CommandName     = "Convert-Result"
-                        ModuleName      = $env:BHProjectName
+                        ModuleName      = JiraPS
                         ParameterFilter = { $OutputType -eq $type}
                         Exactly         = $true
                         Times           = 1
                         Scope           = 'It'
                     }
-                    Assert-MockCalled @assertMockCalledSplat
+                    Should -Invoke @assertMockCalledSplat
                 }
 
                 It "only uses -OutputType with -Paging [$type]" {
@@ -345,13 +357,13 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                     $assertMockCalledSplat = @{
                         CommandName     = "Convert-Result"
-                        ModuleName      = $env:BHProjectName
+                        ModuleName      = JiraPS
                         ParameterFilter = { $OutputType -eq $type}
                         Exactly         = $true
                         Times           = 0
                         Scope           = 'It'
                     }
-                    Assert-MockCalled @assertMockCalledSplat
+                    Should -Invoke @assertMockCalledSplat
                 }
             }
 
@@ -365,7 +377,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-WebRequest'
-                    ModuleName      = $env:BHProjectName
+                    ModuleName      = JiraPS
                     ParameterFilter = {
                         $WebSession -is [Microsoft.PowerShell.Commands.WebRequestSession] -and
                         $Credential -eq $null
@@ -374,12 +386,12 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
-                Assert-MockCalled -CommandName Get-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 1 -Scope It
+                Should -Invoke @assertMockCalledSplat
+                Should -Invoke -CommandName Get-JiraSession -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
             }
 
             It "uses -Credential even if session is present" {
-                Mock Get-JiraSession -ModuleName $env:BHProjectName {
+                Mock Get-JiraSession -ModuleName 'JiraPS' {
                     [PSCustomObject]@{
                         WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
                     }
@@ -395,7 +407,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-WebRequest'
-                    ModuleName      = $env:BHProjectName
+                    ModuleName      = JiraPS
                     ParameterFilter = {
                         $SessionVariable -eq $null -and
                         $Credential -ne $null
@@ -404,12 +416,12 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
-                Assert-MockCalled -CommandName Get-JiraSession -ModuleName $env:BHProjectName -Exactly -Times 0 -Scope It
+                Should -Invoke @assertMockCalledSplat
+                Should -Invoke -CommandName Get-JiraSession -ModuleName 'JiraPS' -Exactly -Times 0 -Scope It
             }
 
             It "uses -Headers for the call" {
-                Mock Join-Hashtable -ModuleName $env:BHProjectName {
+                Mock Join-Hashtable -ModuleName 'JiraPS' {
                     $table = @{ }
                     foreach ($item in $Hashtable) {
                         foreach ($key in $item.Keys) {
@@ -439,16 +451,16 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName = "Invoke-WebRequest"
-                    ModuleName  = $env:BHProjectName
+                    ModuleName  = 'JiraPS'
                     Exactly     = $true
                     Times       = 2
                     Scope       = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "uses authenticates as anonymous when no -Credential is provided and no session exists" -pending {
-                Mock Get-JiraSession -ModuleName $env:BHProjectName {
+                Mock Get-JiraSession -ModuleName 'JiraPS' {
                     $null
                 }
 
@@ -461,7 +473,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName     = "Invoke-WebRequest"
-                    ModuleName      = $env:BHProjectName
+                    ModuleName      = JiraPS
                     ParameterFilter = {
                         $Credential -eq $null -and
                         $WebSession -eq $null
@@ -470,11 +482,11 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Times           = 2
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "removes and content-type from headers and uses Invoke-WebRequest's -ContentType" {
-                Mock Join-Hashtable -ModuleName $env:BHProjectName {
+                Mock Join-Hashtable -ModuleName 'JiraPS' {
                     $table = @{ }
                     foreach ($item in $Hashtable) {
                         foreach ($key in $item.Keys) {
@@ -498,7 +510,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName     = "Invoke-WebRequest"
-                    ModuleName      = $env:BHProjectName
+                    ModuleName      = JiraPS
                     ParameterFilter = {
                         $Uri -notlike "*contentType*" -and
                         $Uri -notlike "*content-Type*" -and
@@ -508,14 +520,14 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                     Times           = 1
                     Scope           = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
 
                 $assertMockCalledSplat["ParameterFilter"] = {
                     $Uri -notlike "*contentType*" -and
                     $Uri -notlike "*content-Type*" -and
                     $ContentType -eq "text/plain"
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "can handle UTF-8 chars in the response" {
@@ -532,8 +544,8 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
         }
 
         Context "Paged restuls" {
-            Mock Invoke-WebRequest -ModuleName $env:BHProjectName {
-                ShowMockInfo 'Invoke-WebRequest' -Params 'Uri', 'Method', 'Body'
+            Mock Invoke-WebRequest -ModuleName 'JiraPS' {
+                Write-MockDebugInfo 'Invoke-WebRequest' -Params 'Uri', 'Method', 'Body'
 
                 $response = ""
                 if ($Uri -match "startAt\=(\d+)") {
@@ -559,7 +571,7 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                 $result.RawContentStream | Add-Member -MemberType ScriptMethod -Name "ToArray" -Force -Value ([Scriptblock]::Create($scriptBlock))
                 $result
             }
-            Mock Join-Hashtable -ModuleName $env:BHProjectName {
+            Mock Join-Hashtable -ModuleName 'JiraPS' {
                 $table = @{ }
                 foreach ($item in $Hashtable) {
                     foreach ($key in $item.Keys) {
@@ -568,10 +580,10 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                 }
                 $table
             }
-            Mock Convert-Result -ModuleName $env:BHProjectName {
+            Mock Convert-Result -ModuleName 'JiraPS' {
                 $InputObject
             }
-            Mock Expand-Result -ModuleName $env:BHProjectName {
+            Mock Expand-Result -ModuleName 'JiraPS' {
                 $InputObject.issues
             }
 
@@ -588,12 +600,12 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName = 'Invoke-WebRequest'
-                    ModuleName  = $env:BHProjectName
+                    ModuleName  = 'JiraPS'
                     Exactly     = $true
                     Times       = 2
                     Scope       = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "expands the data container" {
@@ -607,12 +619,12 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
 
                 $assertMockCalledSplat = @{
                     CommandName = 'Expand-Result'
-                    ModuleName  = $env:BHProjectName
+                    ModuleName  = 'JiraPS'
                     Exactly     = $true
                     Times       = 3
                     Scope       = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "fetches only the necessary amount of pages when -First is used" {
@@ -625,16 +637,16 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                 }
                 $result = Invoke-JiraMethod @invokeJiraMethodSplat
 
-                $result.Count | Should -Be 4
+                $result | Should -HaveCount 4
 
                 $assertMockCalledSplat = @{
                     CommandName = 'Invoke-WebRequest'
-                    ModuleName  = $env:BHProjectName
+                    ModuleName  = 'JiraPS'
                     Exactly     = $true
                     Times       = 1
                     Scope       = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "limits the number of results when -First is used" {
@@ -647,16 +659,16 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                 }
                 $result = Invoke-JiraMethod @invokeJiraMethodSplat
 
-                $result.Count | Should -Be 6
+                $result | Should -HaveCount 6
 
                 $assertMockCalledSplat = @{
                     CommandName = 'Invoke-WebRequest'
-                    ModuleName  = $env:BHProjectName
+                    ModuleName  = 'JiraPS'
                     Exactly     = $true
                     Times       = 2
                     Scope       = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "starts looking for results with an offset when -Skip is provided" {
@@ -669,21 +681,28 @@ Describe "Invoke-JiraMethod" -Tag 'Unit' {
                 }
                 $result = Invoke-JiraMethod @invokeJiraMethodSplat
 
-                $result.Count | Should -Be 2
+                $result | Should -HaveCount 2
 
                 $assertMockCalledSplat = @{
                     CommandName = 'Invoke-WebRequest'
-                    ModuleName  = $env:BHProjectName
+                    ModuleName  = 'JiraPS'
                     Exactly     = $true
                     Times       = 1
                     Scope       = 'It'
                 }
-                Assert-MockCalled @assertMockCalledSplat
+                Should -Invoke @assertMockCalledSplat
             }
 
             It "-totalcount" {
                 # Don't know how to test this
             }
         }
+
+        Describe "Input Validation" {
+            Context "Type Validation - Positive Cases" {}
+
+            Context "Type Validation - Negative Cases" {}
+        }
     }
 }
+

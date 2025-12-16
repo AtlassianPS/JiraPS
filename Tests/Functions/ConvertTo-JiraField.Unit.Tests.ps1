@@ -1,54 +1,77 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraField" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
+
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraField" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
+            #region Definitions
+            $script:sampleJson = '{"id":"issuetype","name":"Issue Type","custom":false,"orderable":true,"navigable":true,"searchable":true,"clauseNames":["issuetype","type"],"schema":{"type":"issuetype","system":"issuetype"}}'
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
+
+            #region Mocks
+            #endregion Mocks
         }
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraField $sampleObject
+                }
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
+                It "adds custom type 'JiraPS.Field'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Field'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraField $sampleObject
+                }
+
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be 'issuetype'
+                }
+
+                It "defines 'Name' property with correct value" {
+                    $result.Name | Should -Be 'Issue Type'
+                }
+
+                It "defines 'Custom' property with correct value" {
+                    $result.Custom | Should -Be $false
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraField $sampleObject
+                }
+
+                It "converts Custom to correct type" {
+                    $result.Custom | Should -BeOfType [bool]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraField
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
         }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $sampleJson = '{"id":"issuetype","name":"Issue Type","custom":false,"orderable":true,"navigable":true,"searchable":true,"clauseNames":["issuetype","type"],"schema":{"type":"issuetype","system":"issuetype"}}'
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-
-        $r = ConvertTo-JiraField $sampleObject
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
-        }
-
-        checkPsType $r 'JiraPS.Field'
-
-        defProp $r 'Id' 'issuetype'
-        defProp $r 'Name' 'Issue Type'
-        defProp $r 'Custom' $false
     }
 }

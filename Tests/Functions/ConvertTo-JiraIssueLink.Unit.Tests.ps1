@@ -1,50 +1,27 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraIssueLink" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraIssueLink" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:issueLinkId = 41313
+            $script:issueKeyInward = "TEST-01"
+            $script:issueKeyOutward = "TEST-10"
+            $script:linkTypeName = "Composition"
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        $issueLinkId = 41313
-        $issueKeyInward = "TEST-01"
-        $issueKeyOutward = "TEST-10"
-        $linkTypeName = "Composition"
-
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "id": "$issueLinkId",
     "type": {
@@ -61,24 +38,66 @@ Describe "ConvertTo-JiraIssueLink" -Tag 'Unit' {
     }
 }
 "@
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-
-        $r = ConvertTo-JiraIssueLink -InputObject $sampleObject
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.IssueLink'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraIssueLink -InputObject $sampleObject
+                }
 
-        defProp $r 'Id' $issueLinkId
-        defProp $r 'Type' "Composition"
-        defProp $r 'InwardIssue' "[$issueKeyInward] "
-        defProp $r 'OutwardIssue' "[$issueKeyOutward] "
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
 
-        It "Handles pipeline input" {
-            $r = $sampleObject | ConvertTo-JiraIssueLink
-            @($r).Count | Should Be 1
+                It "adds custom type 'JiraPS.IssueLink'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueLink'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraIssueLink -InputObject $sampleObject
+                }
+
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be $issueLinkId
+                }
+
+                It "defines 'Type' property with correct value" {
+                    $result.Type | Should -Be "Composition"
+                }
+
+                It "defines 'InwardIssue' property with correct value" {
+                    $result.InwardIssue | Should -Be "[$issueKeyInward] "
+                }
+
+                It "defines 'OutwardIssue' property with correct value" {
+                    $result.OutwardIssue | Should -Be "[$issueKeyOutward] "
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraIssueLink -InputObject $sampleObject
+                }
+
+                It "converts Id to correct type" {
+                    $result.Id | Should -BeOfType [long]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraIssueLink
+                    @($result) | Should -HaveCount 1
+                }
+            }
         }
     }
 }

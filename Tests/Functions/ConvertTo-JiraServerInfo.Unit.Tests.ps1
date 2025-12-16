@@ -1,45 +1,23 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "baseUrl":"$jiraServer",
     "version":"1000.1323.0",
@@ -52,24 +30,94 @@ Describe "ConvertTo-JiraServerInfo" -Tag 'Unit' {
     "serverTitle":"JIRA"
 }
 "@
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-        $r = ConvertTo-JiraServerInfo -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.ServerInfo'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraServerInfo -InputObject $sampleObject
+                }
 
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
 
-        defProp $r 'BaseURL' $jiraServer
-        defProp $r 'Version' ([Version]"1000.1323.0")
-        defProp $r 'DeploymentType' "Cloud"
-        defProp $r 'BuildNumber' 100062
-        defProp $r 'BuildDate' (Get-Date '2017-09-26T00:00:00.000+0200')
-        defProp $r 'ServerTime' (Get-Date '2017-09-27T09:59:25.520+0200')
-        defProp $r 'ScmInfo' "f3c60100df073e3576f9741fb7a3dc759b416fde"
-        defProp $r 'ServerTitle' "JIRA"
+                It "adds custom type 'JiraPS.ServerInfo'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.ServerInfo'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraServerInfo -InputObject $sampleObject
+                }
+
+                It "defines 'BaseURL' property with correct value" {
+                    $result.BaseURL | Should -Be $jiraServer
+                }
+
+                It "defines 'Version' property with correct value" {
+                    $result.Version | Should -Be ([Version]"1000.1323.0")
+                }
+
+                It "defines 'DeploymentType' property with correct value" {
+                    $result.DeploymentType | Should -Be "Cloud"
+                }
+
+                It "defines 'BuildNumber' property with correct value" {
+                    $result.BuildNumber | Should -Be 100062
+                }
+
+                It "defines 'BuildDate' property with correct value" {
+                    $result.BuildDate | Should -Be (Get-Date '2017-09-26T00:00:00.000+0200')
+                }
+
+                It "defines 'ServerTime' property with correct value" {
+                    $result.ServerTime | Should -Be (Get-Date '2017-09-27T09:59:25.520+0200')
+                }
+
+                It "defines 'ScmInfo' property with correct value" {
+                    $result.ScmInfo | Should -Be "f3c60100df073e3576f9741fb7a3dc759b416fde"
+                }
+
+                It "defines 'ServerTitle' property with correct value" {
+                    $result.ServerTitle | Should -Be "JIRA"
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraServerInfo -InputObject $sampleObject
+                }
+
+                It "converts Version to correct type" {
+                    $result.Version | Should -BeOfType [Version]
+                }
+
+                It "converts BuildNumber to correct type" {
+                    $result.BuildNumber | Should -BeOfType [int]
+                }
+
+                It "converts BuildDate to correct type" {
+                    $result.BuildDate | Should -BeOfType [DateTime]
+                }
+
+                It "converts ServerTime to correct type" {
+                    $result.ServerTime | Should -BeOfType [DateTime]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraServerInfo
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
     }
 }

@@ -1,45 +1,23 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraIssueLinkType" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraIssueLinkType" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        $sampleJson = @'
+            $script:sampleJson = @'
 {
     "issueLinkTypes": [
         {
@@ -73,34 +51,69 @@ Describe "ConvertTo-JiraIssueLinkType" -Tag 'Unit' {
     ]
 }
 '@
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson | Select-Object -ExpandProperty issueLinkTypes
+            #endregion Definitions
 
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson | Select-Object -ExpandProperty issueLinkTypes
-
-        $r = ConvertTo-JiraIssueLinkType -InputObject $sampleObject[0]
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.IssueLinkType'
+        Describe "Behavior" {
+            BeforeAll {
+                $script:result = ConvertTo-JiraIssueLinkType -InputObject $sampleObject[0]
+            }
 
-        defProp $r 'Id' '10000'
-        defProp $r 'Name' 'Blocks'
-        defProp $r 'InwardText' 'is blocked by'
-        defProp $r 'OutwardText' 'blocks'
-        defProp $r 'RestUrl' 'http://jira.example.com/rest/api/2/issueLinkType/10000'
+            Context "Object Conversion" {
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
 
-        It "Provides an array of objects if an array is passed" {
-            $r2 = ConvertTo-JiraIssueLinkType -InputObject $sampleObject
-            $r2.Count | Should Be 4
-            $r2[0].Id | Should Be '10000'
-            $r2[1].Id | Should Be '10001'
-            $r2[2].Id | Should Be '10002'
-            $r2[3].Id | Should Be '10003'
-        }
+                It "adds custom type 'JiraPS.IssueLinkType'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueLinkType'
+                }
+            }
 
-        It "Handles pipeline input" {
-            $r = $sampleObject | ConvertTo-JiraIssueLinkType
-            $r.Count | Should Be 4
+            Context "Property Mapping" {
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be '10000'
+                }
+
+                It "defines 'Name' property with correct value" {
+                    $result.Name | Should -Be 'Blocks'
+                }
+
+                It "defines 'InwardText' property with correct value" {
+                    $result.InwardText | Should -Be 'is blocked by'
+                }
+
+                It "defines 'OutwardText' property with correct value" {
+                    $result.OutwardText | Should -Be 'blocks'
+                }
+
+                It "defines 'RestUrl' property with correct value" {
+                    $result.RestUrl | Should -Be 'http://jira.example.com/rest/api/2/issueLinkType/10000'
+                }
+            }
+
+            Context "Type Conversion" {
+                It "converts Id to correct type" {
+                    $result.Id | Should -BeOfType [string]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $sampleObject | ConvertTo-JiraIssueLinkType | Should -HaveCount 4
+                }
+
+                It "provides array of objects if array is passed" {
+                    $result = ConvertTo-JiraIssueLinkType -InputObject $sampleObject
+                    $result[0].Id | Should -Be '10000'
+                    $result[1].Id | Should -Be '10001'
+                    $result[2].Id | Should -Be '10002'
+                    $result[3].Id | Should -Be '10003'
+                }
+            }
         }
     }
 }

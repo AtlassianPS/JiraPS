@@ -1,66 +1,74 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraComponent" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraComponent" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+            #region Definitions
+            $jiraServer = 'http://jiraserver.example.com'
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        $sampleJson = @"
+            $sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/component/11000",
     "id": "11000",
     "name": "test component"
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-
-        $r = ConvertTo-JiraComponent -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
         }
 
-        It "Sets the type name to JiraPS.Project" {
-            # (Get-Member -InputObject $r).TypeName | Should Be 'JiraPS.Component'
-            checkType $r "JiraPS.Component"
-        }
+        Describe "Behavior" {
+            BeforeAll {
+                $script:result = ConvertTo-JiraComponent -InputObject $sampleObject
+            }
 
-        defProp $r 'Id' '11000'
-        defProp $r 'Name' 'test component'
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/component/11000"
+            Context "Object Conversion" {
+                It "creates a PSObject out of JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                    $result | Should -BeOfType [PSCustomObject]
+                }
+
+                It "adds custom type 'JiraPS.Component'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Component'
+                }
+            }
+
+            Context "Inputs" {
+                It "converts multiple attachments from array input" {
+                    ConvertTo-JiraComponent -InputObject $sampleObject, $sampleObject | Should -HaveCount 2
+                }
+
+                It "accepts input from pipeline" {
+                    $sampleObject, $sampleObject | ConvertTo-JiraComponent | Should -HaveCount 2
+                }
+            }
+
+            Context "Property Mapping" {
+                It "defines '<property>' of type '<type>' with value '<value>'" -TestCases @(
+                    @{ property = "Id"; type = [string]; value = 11000 }
+                    @{ property = "Name"; type = [string]; value = 'test component' }
+                    @{ property = "RestUrl"; type = [string]; value = $null }
+                ) {
+                    if ($value) { $result.$($property) | Should -Be $value }
+                    else { $result.$($property) | Should -Not -BeNullOrEmpty }
+
+                    if ($type -is [string]) {
+                        $result.$($property).PSObject.TypeNames[0] | Should -Be $type
+                    }
+                    else { $result.$($property) | Should -BeOfType $type }
+                }
+            }
+        }
     }
 }

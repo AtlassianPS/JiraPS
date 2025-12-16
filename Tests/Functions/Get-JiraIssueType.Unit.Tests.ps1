@@ -1,48 +1,24 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Get-JiraIssueType" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+InModuleScope JiraPS {
+    Describe "Get-JiraIssueType" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+            # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:issueTypeId = 2
+            $script:issueTypeName = 'Desktop Support'
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        $issueTypeId = 2
-        $issueTypeName = 'Desktop Support'
-
-        $restResult = @"
+            $script:restResult = @"
 [
     {
         "self": "$jiraServer/rest/api/2/issuetype/12",
@@ -110,61 +86,81 @@ Describe "Get-JiraIssueType" -Tag 'Unit' {
     }
 ]
 "@
+            #endregion Definitions
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
+            #region Mocks
+            Mock Get-JiraConfigServer -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraConfigServer'
+                Write-Output $jiraServer
+            }
+
+            Mock ConvertTo-JiraIssueType {
+                Write-MockDebugInfo 'ConvertTo-JiraIssueType'
+                $inputObject
+            }
+
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/2/issuetype"} {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                ConvertFrom-Json $restResult
+            }
+
+            # Generic catch-all. This will throw an exception if we forgot to mock something.
+            Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraMethod"
+            }
+            #endregion Mocks
         }
 
-        Mock ConvertTo-JiraIssueType {
-            $inputObject
+        Describe "Signature" {
+            Context "Parameter Types" {
+                # TODO: Add parameter type validation tests
+            }
+
+            Context "Mandatory Parameters" {}
+
+            Context "Default Values" {}
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $Uri -eq "$jiraServer/rest/api/2/issuetype"} {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            ConvertFrom-Json $restResult
-        }
+        Describe "Behavior" {
+            It "Gets all issue types in Jira if called with no parameters" {
+                $allResults = Get-JiraIssueType
+                $allResults | Should -Not -BeNullOrEmpty
+                @($allResults) | Should -HaveCount 8
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1
+            }
 
-        # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName JiraPS {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            throw "Unidentified call to Invoke-JiraMethod"
-        }
+            It "Gets a specified issue type if an issue type ID is provided" {
+                $oneResult = Get-JiraIssueType -IssueType $issueTypeId
+                $oneResult | Should -Not -BeNullOrEmpty
+                $oneResult.ID | Should -Be $issueTypeId
+                $oneResult.Name | Should -Be $issueTypeName
+            }
 
-        It "Gets all issue types in Jira if called with no parameters" {
-            $allResults = Get-JiraIssueType
-            $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be 8
-            Assert-MockCalled -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
-        }
+            It "Gets a specified issue type if an issue type name is provided" {
+                $oneResult = Get-JiraIssueType -IssueType $issueTypeName
+                $oneResult | Should -Not -BeNullOrEmpty
+                $oneResult.ID | Should -Be $issueTypeId
+                $oneResult.Name | Should -Be $issueTypeName
+            }
 
-        It "Gets a specified issue type if an issue type ID is provided" {
-            $oneResult = Get-JiraIssueType -IssueType $issueTypeId
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be $issueTypeId
-            $oneResult.Name | Should Be $issueTypeName
-        }
-
-        It "Gets a specified issue type if an issue type name is provided" {
-            $oneResult = Get-JiraIssueType -IssueType $issueTypeName
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be $issueTypeId
-            $oneResult.Name | Should Be $issueTypeName
-        }
-
-        It "Handles positional parameters correctly" {
-            $oneResult = Get-JiraIssueType 'Desktop Support'
-            $oneResult | Should Not BeNullOrEmpty
-            $oneResult.ID | Should Be 2
-            $oneResult.Name | Should Be 'Desktop Support'
-        }
-
-        Context "Output Checking" {
-
-            Get-JiraIssueType
+            It "Handles positional parameters correctly" {
+                $oneResult = Get-JiraIssueType 'Desktop Support'
+                $oneResult | Should -Not -BeNullOrEmpty
+                $oneResult.ID | Should -Be 2
+                $oneResult.Name | Should -Be 'Desktop Support'
+            }
 
             It "Uses ConvertTo-JiraIssueType to beautify output" {
-                Assert-MockCalled 'ConvertTo-JiraIssueType'
+                Get-JiraIssueType
+                Should -Invoke ConvertTo-JiraIssueType
             }
+        }
+
+        Describe "Input Validation" {
+            Context "Type Validation - Positive Cases" {}
+
+            Context "Type Validation - Negative Cases" {}
         }
     }
 }

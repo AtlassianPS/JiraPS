@@ -1,45 +1,22 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Get-JiraPriority" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+InModuleScope JiraPS {
+    Describe "Get-JiraPriority" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+            # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        $restResultAll = @"
+            $script:restResultAll = @"
 [
     {
         "self": "$jiraServer/rest/api/2/priority/1",
@@ -79,7 +56,7 @@ Describe "Get-JiraPriority" -Tag 'Unit' {
 ]
 "@
 
-        $restResultOne = @"
+            $script:restResultOne = @"
 {
     "self": "$jiraServer/rest/api/2/priority/1",
     "statusColor": "#cc0000",
@@ -88,43 +65,65 @@ Describe "Get-JiraPriority" -Tag 'Unit' {
     "id": "1"
 }
 "@
+            #endregion Definitions
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
+            #region Mocks
+            Mock Get-JiraConfigServer -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraConfigServer'
+                Write-Output $jiraServer
+            }
+
+            Mock ConvertTo-JiraPriority -ModuleName JiraPS {
+                Write-MockDebugInfo 'ConvertTo-JiraPriority'
+                $InputObject
+            }
+
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/priority"} {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                ConvertFrom-Json $restResultAll
+            }
+
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/priority/1"} {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                ConvertFrom-Json $restResultOne
+            }
+
+            # Generic catch-all. This will throw an exception if we forgot to mock something.
+            Mock Invoke-JiraMethod {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraMethod"
+            }
+            #endregion Mocks
         }
 
-        Mock ConvertTo-JiraPriority -ModuleName JiraPS {
-            $InputObject
+        Describe "Signature" {
+            Context "Parameter Types" {
+                # TODO: Add parameter type validation tests
+            }
+
+            Context "Mandatory Parameters" {}
+
+            Context "Default Values" {}
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/priority"} {
-            ConvertFrom-Json $restResultAll
+        Describe "Behavior" {
+            It "Gets all available priorities if called with no parameters" {
+                $getResult = Get-JiraPriority
+                $getResult | Should -Not -BeNullOrEmpty
+                $getResult | Should -HaveCount 5
+            }
+
+            It "Gets one priority if the ID parameter is supplied" {
+                $getResult = Get-JiraPriority -Id 1
+                $getResult | Should -Not -BeNullOrEmpty
+                @($getResult) | Should -HaveCount 1
+            }
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/priority/1"} {
-            ConvertFrom-Json $restResultOne
-        }
+        Describe "Input Validation" {
+            Context "Type Validation - Positive Cases" {}
 
-        # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            throw "Unidentified call to Invoke-JiraMethod"
-        }
-
-        #############
-        # Tests
-        #############
-
-        It "Gets all available priorities if called with no parameters" {
-            $getResult = Get-JiraPriority
-            $getResult | Should Not BeNullOrEmpty
-            $getResult.Count | Should Be 5
-        }
-
-        It "Gets one priority if the ID parameter is supplied" {
-            $getResult = Get-JiraPriority -Id 1
-            $getResult | Should Not BeNullOrEmpty
-            @($getResult).Count | Should Be 1
+            Context "Type Validation - Negative Cases" {}
         }
     }
 }

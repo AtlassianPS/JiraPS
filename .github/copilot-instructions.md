@@ -95,31 +95,83 @@ param(
 
 -   **Test File Location**: `Tests/Functions/<FunctionName>.Unit.Tests.ps1`
 -   **Pester Version**: Tests should work with Pester 5.7+ (v5 syntax)
--   **Test Structure**:
+-   **Test Templates**: JiraPS uses standardized test templates based on function type
+
+    -   **Template A** (CRUD Functions): For Get/Set/Remove/New/Add functions - see `Add-JiraFilterPermission.Unit.Tests.ps1`
+    -   **Template B** (Converters): For ConvertTo-_/ConvertFrom-_ functions - see `ConvertTo-JiraAttachment.Unit.Tests.ps1`
+    -   See `Tests/README.md` for detailed test writing guide
+
+-   **Standard Test Structure**:
 
     ```powershell
     #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-    Describe "FunctionName" -Tag Unit {
-        BeforeAll {
-            # Setup: Load helpers, import module
-            . "$PSScriptRoot/Helpers/Resolve-ModuleSource.ps1"
-            $moduleToTest = Resolve-ModuleSource
-            Import-Module $moduleToTest -Force
-        }
+    BeforeDiscovery {
+        . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-        Context "Parameters" {
-            It "has required parameter <Name>" -TestCases @(...) { }
-        }
+        Initialize-TestEnvironment
+        $script:moduleToTest = Resolve-ModuleSource
 
-        Context "Behavior" {
+        Import-Module $script:moduleToTest -Force -ErrorAction Stop
+    }
+
+    InModuleScope JiraPS {
+        Describe "Add-JiraFilterPermission" -Tag 'Unit' {
             BeforeAll {
-                Mock Invoke-JiraMethod -ModuleName JiraPS { }
+                . "$PSScriptRoot/../Helpers/TestTools.ps1"
+                # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
+
+                #region Definitions
+                $script:jiraServer = "https://jira.example.com"
+                #endregion
+
+                #region Mocks
+                Mock Get-JiraConfigServer -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraConfigServer'
+                    $jiraServer
+                }
+
+                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+                    # Mock implementation
+                }
+                #endregion
             }
-            It "calls the correct API endpoint" { }
+
+            Describe "Signature" {
+                BeforeAll {
+                    $script:command = Get-Command -Name $ThisTest
+                }
+
+                Context "Parameter Types" {
+                    It "has a parameter '<parameter>' of type '<type>'" -TestCases @(...) {
+                        $command | Should -HaveParameter $parameter
+                    }
+                }
+            }
+
+            Describe "Behavior" {
+                Context "Feature Description" {
+                    It "performs expected action" { }
+                }
+            }
+
+            Describe "Input Validation" {
+                Context "Type Validation - Negative Cases" {
+                    It "rejects invalid input with meaningful error" {
+                        { ... } | Should -Throw -ExpectedMessage "*expected*"
+                    }
+                }
+            }
         }
     }
     ```
+
+-   **Mock Debugging**: Use `Write-MockDebugInfo` in mocks, enable with `$VerbosePreference = 'Continue'` in BeforeAll
+-   **Test Organization**: Use nested Describe/Context blocks for clarity
+    -   `Describe "Signature"`: Parameter validation tests
+    -   `Describe "Behavior"`: Functional behavior tests
+    -   `Describe "Input Validation"`: Error handling and edge cases
 
 ### Build Process
 
@@ -233,30 +285,64 @@ When JIRA API changes affect a cmdlet:
 5. **Update docs** with new parameters/behavior
 6. **Add to CHANGELOG.md** under `## [NEXT VERSION]`
 
-### Modernizing Tests (Pester 4 → 5)
+### Test Template Reference
 
-**Pester 5 Changes**:
+JiraPS uses two primary test templates based on function type. See referenced files for complete examples.
 
--   Use `BeforeAll`/`AfterAll` instead of `BeforeEach`/`AfterEach` for setup
--   `-TestCases` syntax unchanged
--   `Assert-MockCalled` → still works but deprecated (use `Should -Invoke` in future)
--   `Should -Be`/`Should -Not` syntax remains
+#### Template A: CRUD Functions
 
-**Example Migration**:
+**Reference**: `Tests/Functions/Add-JiraFilterPermission.Unit.Tests.ps1`
+**Use For**: Get/Set/Remove/New/Add functions that call APIs
+
+**Key Characteristics**:
+
+-   Three Describe blocks: "Signature", "Behavior", "Input Validation"
+-   Mocks required (typically `Invoke-JiraMethod`)
+-   Context blocks separate positive/negative test cases
+-   Focus on API interaction and error handling
+
+#### Template B: Converter Functions
+
+**Reference**: `Tests/Functions/ConvertTo-JiraAttachment.Unit.Tests.ps1`
+**Use For**: ConvertTo-_/ConvertFrom-_ functions that transform data
+
+**Key Characteristics**:
+
+-   Single Describe block: "Behavior" with four contexts
+    -   Object Conversion (type names)
+    -   Property Mapping (field presence/values)
+    -   Type Conversion (DateTime, nested objects)
+    -   Pipeline Support
+-   Large JSON fixtures in `#region Definitions`
+-   Typically no mocks needed (pure transformation)
+-   Focus on data transformation accuracy
+
+### Mock Debugging
+
+Enable mock parameter debugging in tests:
 
 ```powershell
-# Pester 4 (OLD)
-Describe "Test" {
-    BeforeEach { $var = "test" }
-    It "does thing" { $var | Should Be "test" }
-}
+BeforeAll {
+    . "$PSScriptRoot/../Helpers/Write-MockDebugInfo.ps1"
+    $VerbosePreference = 'Continue'  # Uncomment to see mock debug output
 
-# Pester 5 (NEW)
-Describe "Test" {
-    BeforeAll { $var = "test" }
-    It "does thing" { $var | Should -Be "test" }
+    Mock Invoke-JiraMethod -ModuleName JiraPS {
+        Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+        # mock implementation
+    }
 }
 ```
+
+Output format:
+
+```
+🔷 Mock: Invoke-JiraMethod
+  [Method] = "GET"
+  [Uri] = "https://jira.example.com/rest/api/2/issue/TEST-123"
+  [Body] = <null>
+```
+
+**Note**: The `-Verbose` parameter on `Invoke-Pester` does NOT enable mock debugging. You must set `$VerbosePreference = 'Continue'` inside the test file's BeforeAll block.
 
 ### Working with Custom Fields
 

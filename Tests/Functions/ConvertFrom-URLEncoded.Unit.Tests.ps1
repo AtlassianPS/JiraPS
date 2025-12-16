@@ -1,73 +1,86 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertFrom-URLEncoded" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
+
+InModuleScope JiraPS {
+    Describe "ConvertFrom-URLEncoded" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
+            #region Definitions
+            $script:sampleEncoded = "Hello%20World%3F"
+            $script:expectedDecoded = 'Hello World?'
+            #endregion Definitions
+
+            #region Mocks
+            #endregion Mocks
         }
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        Context "Sanity checking" {
-            $command = Get-Command -Name ConvertFrom-URLEncoded
-
-            defParam $command 'InputString'
-        }
-        Context "Handling of Inputs" {
-            It "does not allow a null or empty input" {
-                { ConvertFrom-URLEncoded -InputString $null } | Should -Throw
-                { ConvertFrom-URLEncoded -InputString "" } | Should -Throw
+        Describe "Signature" {
+            Context "Parameter Types" {
+                # TODO: Add parameter type validation tests
             }
-            It "accepts pipeline input" {
-                { "lorem ipsum" | ConvertFrom-URLEncoded } | Should -Not -Throw
+            Context "Default Values" {
+                # TODO: Add default value validation tests
             }
-            It "accepts multiple InputStrings" {
-                { ConvertFrom-URLEncoded -InputString "lorem", "ipsum" } | Should -Not -Throw
-                { "lorem", "ipsum" | ConvertFrom-URLEncoded } | Should -Not -Throw
+            Context "Mandatory Parameters" {
+                # TODO: Add mandatory parameter validation tests
             }
         }
-        Context "Handling of Outputs" {
-            It "returns as many objects as inputs where provided" {
-                $r1 = ConvertFrom-URLEncoded -InputString "lorem"
-                $r2 = "lorem", "ipsum" | ConvertFrom-URLEncoded
-                $r3 = ConvertFrom-URLEncoded -InputString "lorem", "ipsum", "dolor"
 
-                @($r1).Count | Should Be 1
-                @($r2).Count | Should Be 2
-                @($r3).Count | Should Be 3
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertFrom-URLEncoded -InputString $sampleEncoded
+                }
+
+                It "returns decoded string" {
+                    $result | Should -Not -BeNullOrEmpty
+                    $result | Should -BeOfType [string]
+                    $result | Should -Be $expectedDecoded
+                }
             }
-            It "decodes URL encoded strings" {
-                $output = ConvertFrom-URLEncoded -InputString "Hello%20World%3F"
-                $output | Should -Be 'Hello World?'
+
+            Context "Property Mapping" {
+                It "has InputString parameter" {
+                    $command = Get-Command -Name ConvertFrom-URLEncoded
+                    $command.Parameters.Keys | Should -Contain 'InputString'
+                }
+
+                It "returns as many objects as inputs provided" {
+                    $r1 = ConvertFrom-URLEncoded -InputString "lorem"
+                    $r2 = "lorem", "ipsum" | ConvertFrom-URLEncoded
+                    $r3 = ConvertFrom-URLEncoded -InputString "lorem", "ipsum", "dolor"
+
+                    @($r1) | Should -HaveCount 1
+                    @($r2) | Should -HaveCount 2
+                    @($r3) | Should -HaveCount 3
+                }
+            }
+            Describe "Input Validation" {
+                Context "Type Validation - Positive Cases" {
+                    It "accepts pipeline input" {
+                        { "lorem ipsum" | ConvertFrom-URLEncoded } | Should -Not -Throw
+                    }
+
+                    It "accepts multiple InputStrings" {
+                        { ConvertFrom-URLEncoded -InputString "lorem", "ipsum" } | Should -Not -Throw
+                        { "lorem", "ipsum" | ConvertFrom-URLEncoded } | Should -Not -Throw
+                    }
+                }
+                Context "Type Validation - Negative Cases" {
+                    It "does not allow null or empty input" {
+                        { ConvertFrom-URLEncoded -InputString $null } | Should -Throw
+                        { ConvertFrom-URLEncoded -InputString "" } | Should -Throw
+                    }
+                }
             }
         }
     }

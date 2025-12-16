@@ -1,44 +1,22 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        # Obtained from Atlassian's public JIRA instance
-        $sampleJson = @'
+            #region Definitions
+            # Obtained from Atlassian's public JIRA instance
+            $script:sampleJson = @'
 {
     "self": "https://jira.atlassian.com/rest/api/2/filter/12844",
     "id": "12844",
@@ -83,7 +61,7 @@ Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
 }
 '@
 
-    $samplePermission = @"
+            $script:samplePermission = @"
 [
   {
     "id": 10000,
@@ -165,39 +143,101 @@ Describe "ConvertTo-JiraFilter" -Tag 'Unit' {
   }
 ]
 "@
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        Mock ConvertTo-JiraFilterPermission -ModuleName JiraPS {
-            $i = New-Object -TypeName PSCustomObject -Property @{ Id = 1111 }
-            $i.PSObject.TypeNames.Insert(0, 'JiraPS.FilterPermission')
-            $i
+            #region Mocks
+            Mock ConvertTo-JiraFilterPermission -ModuleName JiraPS {
+                $i = New-Object -TypeName PSCustomObject -Property @{ Id = 1111 }
+                $i.PSObject.TypeNames.Insert(0, 'JiraPS.FilterPermission')
+                $i
+            }
+            #endregion Mocks
         }
 
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
-        $r = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
+                }
 
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
-        }
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
 
-        checkPsType $r 'JiraPS.Filter'
+                It "adds custom type 'JiraPS.Filter'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Filter'
+                }
+            }
 
-        defProp $r 'Id' 12844
-        defProp $r 'Name' 'All JIRA Bugs'
-        defProp $r 'JQL' 'project = 10240 AND issuetype = 1 ORDER BY key DESC'
-        defProp $r 'RestUrl' 'https://jira.atlassian.com/rest/api/2/filter/12844'
-        defProp $r 'ViewUrl' 'https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844'
-        defProp $r 'SearchUrl' 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
-        defProp $r 'Favourite' $false
-        It "Defines the 'Favorite' property as an alias of 'Favourite'" {
-            ($r | Get-Member -Name Favorite).MemberType | Should -Be "AliasProperty"
-        }
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
+                }
 
-        It "Uses output type of 'JiraPS.FilterPermission' for property 'FilterPermissions'" {
-            checkType $r.FilterPermissions 'JiraPS.FilterPermission'
-        }
+                It "maps 'Id' property correctly" {
+                    $result.Id | Should -Be 12844
+                }
 
-        It "uses ConvertTo-JiraFilterPermission" {
-            Assert-MockCalled -CommandName ConvertTo-JiraFilterPermission -Module JiraPS -Exactly -Times 1 -Scope Describe
+                It "maps 'Name' property correctly" {
+                    $result.Name | Should -Be 'All JIRA Bugs'
+                }
+
+                It "maps 'JQL' property correctly" {
+                    $result.JQL | Should -Be 'project = 10240 AND issuetype = 1 ORDER BY key DESC'
+                }
+
+                It "maps 'RestUrl' property correctly" {
+                    $result.RestUrl | Should -Be 'https://jira.atlassian.com/rest/api/2/filter/12844'
+                }
+
+                It "maps 'ViewUrl' property correctly" {
+                    $result.ViewUrl | Should -Be 'https://jira.atlassian.com/secure/IssueNavigator.jspa?mode=hide&requestId=12844'
+                }
+
+                It "maps 'SearchUrl' property correctly" {
+                    $result.SearchUrl | Should -Be 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
+                }
+
+                It "maps 'Favourite' property correctly" {
+                    $result.Favourite | Should -Be $false
+                }
+
+                It "defines the 'Favorite' property as an alias of 'Favourite'" {
+                    ($result | Get-Member -Name Favorite).MemberType | Should -Be "AliasProperty"
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
+                }
+
+                It "converts Owner to JiraPS.User object" {
+                    $result.Owner | Should -Not -BeNullOrEmpty
+                    $result.Owner.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                }
+
+                It "converts FilterPermissions to JiraPS.FilterPermission objects" {
+                    $result.FilterPermissions | Should -Not -BeNullOrEmpty
+                    $result.FilterPermissions[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
+                }
+
+                It "converts Id to string type (as returned from JSON)" {
+                    $result.Id | Should -BeOfType [String]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    { $sampleObject | ConvertTo-JiraFilter -FilterPermission $samplePermission } | Should -Not -Throw
+                }
+
+                It "processes multiple filters from pipeline" {
+                    $result = @($sampleObject, $sampleObject) | ConvertTo-JiraFilter -FilterPermission $samplePermission
+                    $result | Should -HaveCount 2
+                }
+            }
         }
     }
 }

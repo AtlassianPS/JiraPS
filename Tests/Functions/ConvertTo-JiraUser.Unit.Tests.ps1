@@ -1,48 +1,26 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraUser" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraUser" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:username = 'powershell-test'
+            $script:displayName = 'PowerShell Test User'
+            $script:email = 'noreply@example.com'
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-        $username = 'powershell-test'
-        $displayName = 'PowerShell Test User'
-        $email = 'noreply@example.com'
-
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "self":"$jiraServer/rest/api/2/user?username=$username",
     "key":"$username",
@@ -87,28 +65,94 @@ Describe "ConvertTo-JiraUser" -Tag 'Unit' {
     "expand":"groups,applicationRoles"
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $r = ConvertTo-JiraUser -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.User'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraUser -InputObject $sampleObject
+                }
 
-        defProp $r 'Key' $username
-        defProp $r 'AccountId' "500058:1500a9f1-0000-42b3-0000-ab8900008d00"
-        defProp $r 'Name' $username
-        defProp $r 'DisplayName' $displayName
-        defProp $r 'EmailAddress' $email
-        defProp $r 'Active' $true
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/user?username=$username"
-        hasProp $r 'AvatarUrl'
-        defProp $r 'TimeZone' "Europe/Berlin"
-        defProp $r 'Locale' "en_Us"
-        It "Defines the 'Group' property" {
-            $r.Groups.Count | Should Be 4
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
+
+                It "adds custom type 'JiraPS.User'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraUser -InputObject $sampleObject
+                }
+
+                It "defines 'Key' property with correct value" {
+                    $result.Key | Should -Be $username
+                }
+
+                It "defines 'AccountId' property with correct value" {
+                    $result.AccountId | Should -Be "500058:1500a9f1-0000-42b3-0000-ab8900008d00"
+                }
+
+                It "defines 'Name' property with correct value" {
+                    $result.Name | Should -Be $username
+                }
+
+                It "defines 'DisplayName' property with correct value" {
+                    $result.DisplayName | Should -Be $displayName
+                }
+
+                It "defines 'EmailAddress' property with correct value" {
+                    $result.EmailAddress | Should -Be $email
+                }
+
+                It "defines 'Active' property with correct value" {
+                    $result.Active | Should -Be $true
+                }
+
+                It "defines 'RestUrl' property with correct value" {
+                    $result.RestUrl | Should -Be "$jiraServer/rest/api/2/user?username=$username"
+                }
+
+                It "defines 'AvatarUrl' property" {
+                    $result.AvatarUrl | Should -Not -BeNullOrEmpty
+                }
+
+                It "defines 'TimeZone' property with correct value" {
+                    $result.TimeZone | Should -Be "Europe/Berlin"
+                }
+
+                It "defines 'Locale' property with correct value" {
+                    $result.Locale | Should -Be "en_Us"
+                }
+
+                It "defines 'Groups' property with correct count" {
+                    $result.Groups.Count | Should -Be 4
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraUser -InputObject $sampleObject
+                }
+
+                It "converts Active to correct type" {
+                    $result.Active | Should -BeOfType [bool]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraUser
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
         }
     }
 }

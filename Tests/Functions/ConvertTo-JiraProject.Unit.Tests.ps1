@@ -1,49 +1,26 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraProject" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraProject" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:projectKey = 'IT'
+            $script:projectId = '10003'
+            $script:projectName = 'Information Technology'
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        $projectKey = 'IT'
-        $projectId = '10003'
-        $projectName = 'Information Technology'
-
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "expand": "description,lead,url,projectKeys",
     "self": "$jiraServer/rest/api/2/project/$projectId",
@@ -87,22 +64,66 @@ Describe "ConvertTo-JiraProject" -Tag 'Unit' {
     }
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $r = ConvertTo-JiraProject -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.Project'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraProject -InputObject $sampleObject
+                }
 
-        defProp $r 'Id' $projectId
-        defProp $r 'Key' $projectKey
-        defProp $r 'Name' $projectName
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/project/$projectId"
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
 
-        checkPsType $r.Lead 'JiraPS.User'
-        # checkPsType $r.IssueTypes 'JiraPS.IssueType'
+                It "adds custom type 'JiraPS.Project'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Project'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraProject -InputObject $sampleObject
+                }
+
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be $projectId
+                }
+
+                It "defines 'Key' property with correct value" {
+                    $result.Key | Should -Be $projectKey
+                }
+
+                It "defines 'Name' property with correct value" {
+                    $result.Name | Should -Be $projectName
+                }
+
+                It "defines 'RestUrl' property with correct value" {
+                    $result.RestUrl | Should -Be "$jiraServer/rest/api/2/project/$projectId"
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraProject -InputObject $sampleObject
+                }
+
+                It "converts Lead to JiraPS.User type" {
+                    $result.Lead.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraProject
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
     }
 }

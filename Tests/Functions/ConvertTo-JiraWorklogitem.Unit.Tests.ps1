@@ -1,54 +1,32 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraWorklogitem" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraWorklogitem" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:jiraUsername = 'powershell-test'
+            $script:jiraUserDisplayName = 'PowerShell Test User'
+            $script:jiraUserEmail = 'noreply@example.com'
+            $script:issueID = 41701
+            $script:issueKey = 'IT-3676'
+            $script:worklogitemID = 73040
+            $script:commentBody = "Test description"
+            $script:worklogTimeSpent = "1h"
+            $script:worklogTimeSpentSeconds = "3600"
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-        $jiraUsername = 'powershell-test'
-        $jiraUserDisplayName = 'PowerShell Test User'
-        $jiraUserEmail = 'noreply@example.com'
-        $issueID = 41701
-        $issueKey = 'IT-3676'
-        $worklogitemID = 73040
-        $commentBody = "Test description"
-        $worklogTimeSpent = "1h"
-        $worklogTimeSpentSeconds = "3600"
-
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "id": "$worklogitemID",
     "self": "$jiraServer/rest/api/2/issue/$issueID/worklog/$worklogitemID",
@@ -86,27 +64,94 @@ Describe "ConvertTo-JiraWorklogitem" -Tag 'Unit' {
     }
 }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        It "Creates a PSObject out of JSON input" {
-            $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject
-            $r | Should Not BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        It "Sets the type name to JiraPS.WorklogItem" {
-            $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject
-            checkType $r "JiraPS.WorklogItem"
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraWorklogitem -InputObject $sampleObject
+                }
+
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
+
+                It "adds custom type 'JiraPS.WorklogItem'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.WorklogItem'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraWorklogitem -InputObject $sampleObject
+                }
+
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be $worklogitemID
+                }
+
+                It "defines 'Comment' property with correct value" {
+                    $result.Comment | Should -Be $commentBody
+                }
+
+                It "defines 'RestUrl' property with correct value" {
+                    $result.RestUrl | Should -Be "$jiraServer/rest/api/2/issue/41701/worklog/$worklogitemID"
+                }
+
+                It "defines 'Created' property with correct value" {
+                    $result.Created | Should -Be (Get-Date '2015-05-01T16:24:38.000-0500')
+                }
+
+                It "defines 'Updated' property with correct value" {
+                    $result.Updated | Should -Be (Get-Date '2015-05-01T16:24:38.000-0500')
+                }
+
+                It "defines 'Started' property with correct value" {
+                    $result.Started | Should -Be (Get-Date '2017-02-23T22:21:00.000-0500')
+                }
+
+                It "defines 'TimeSpent' property with correct value" {
+                    $result.TimeSpent | Should -Be $worklogTimeSpent
+                }
+
+                It "defines 'TimeSpentSeconds' property with correct value" {
+                    $result.TimeSpentSeconds | Should -Be $worklogTimeSpentSeconds
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraWorklogitem -InputObject $sampleObject
+                }
+
+                It "converts Id to correct type" {
+                    $result.Id | Should -BeOfType [long]
+                }
+
+                It "converts Created to correct type" {
+                    $result.Created | Should -BeOfType [DateTime]
+                }
+
+                It "converts Updated to correct type" {
+                    $result.Updated | Should -BeOfType [DateTime]
+                }
+
+                It "converts Started to correct type" {
+                    $result.Started | Should -BeOfType [DateTime]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraWorklogitem
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
         }
-
-        $r = ConvertTo-JiraWorklogitem -InputObject $sampleObject
-
-        defProp $r 'Id' $worklogitemID
-        defProp $r 'Comment' $commentBody
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/issue/41701/worklog/$worklogitemID"
-        defProp $r 'Created' (Get-Date '2015-05-01T16:24:38.000-0500')
-        defProp $r 'Updated' (Get-Date '2015-05-01T16:24:38.000-0500')
-        defProp $r 'Started' (Get-Date '2017-02-23T22:21:00.000-0500')
-        defProp $r 'TimeSpent' $worklogTimeSpent
-        defProp $r 'TimeSpentSeconds' $worklogTimeSpentSeconds
     }
 }

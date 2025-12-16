@@ -1,49 +1,26 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraPriority" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraPriority" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:priorityId = 1
+            $script:priorityName = 'Critical'
+            $script:priorityDescription = 'Cannot contine normal operations'
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        $priorityId = 1
-        $priorityName = 'Critical'
-        $priorityDescription = 'Cannot contine normal operations'
-
-        $sampleJson = @"
+            $script:sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/priority/1",
     "statusColor": "#cc0000",
@@ -52,20 +29,70 @@ Describe "ConvertTo-JiraPriority" -Tag 'Unit' {
     "id": "$priorityId"
   }
 "@
-        $sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+            #endregion Definitions
 
-        $r = ConvertTo-JiraPriority -InputObject $sampleObject
-
-        It "Creates a PSObject out of JSON input" {
-            $r | Should Not BeNullOrEmpty
+            #region Mocks
+            #endregion Mocks
         }
 
-        checkPsType $r 'JiraPS.Priority'
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraPriority -InputObject $sampleObject
+                }
 
-        defProp $r 'Id' $priorityId
-        defProp $r 'Name' $priorityName
-        defProp $r 'RestUrl' "$jiraServer/rest/api/2/priority/$priorityId"
-        defProp $r 'Description' $priorityDescription
-        defProp $r 'StatusColor' '#cc0000'
+                It "creates PSObject from JSON input" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
+
+                It "adds custom type 'JiraPS.Priority'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Priority'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraPriority -InputObject $sampleObject
+                }
+
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be $priorityId
+                }
+
+                It "defines 'Name' property with correct value" {
+                    $result.Name | Should -Be $priorityName
+                }
+
+                It "defines 'RestUrl' property with correct value" {
+                    $result.RestUrl | Should -Be "$jiraServer/rest/api/2/priority/$priorityId"
+                }
+
+                It "defines 'Description' property with correct value" {
+                    $result.Description | Should -Be $priorityDescription
+                }
+
+                It "defines 'StatusColor' property with correct value" {
+                    $result.StatusColor | Should -Be '#cc0000'
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraPriority -InputObject $sampleObject
+                }
+
+                It "converts Id to correct type" {
+                    $result.Id | Should -BeOfType [long]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts pipeline input" {
+                    $result = $sampleObject | ConvertTo-JiraPriority
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
     }
 }

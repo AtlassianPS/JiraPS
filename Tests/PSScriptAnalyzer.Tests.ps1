@@ -3,35 +3,38 @@
 
 Describe "PSScriptAnalyzer Tests" -Tag "Unit" {
     BeforeDiscovery {
-        $script:moduleToTestRoot = "$PSScriptRoot/.."
+        Import-Module "$PSScriptRoot/Helpers/TestTools.psm1"
+
+        $moduleRoot = Resolve-ProjectRoot
         ${/} = [System.IO.Path]::DirectorySeparatorChar
 
         $isaSplat = @{
-            Path          = $moduleToTestRoot
-            Settings      = "$moduleToTestRoot/PSScriptAnalyzerSettings.psd1"
+            Path          = $moduleRoot
+            Settings      = "$moduleRoot/PSScriptAnalyzerSettings.psd1"
             Severity      = @('Error', 'Warning')
             Recurse       = $true
             Verbose       = $false
             ErrorVariable = 'ErrorVariable'
             ErrorAction   = 'Stop'
         }
-        $script:scriptWarnings = Invoke-ScriptAnalyzer @isaSplat | Where-Object { $_.ScriptPath -notlike "*${/}release${/}PSIni${/}PSIni.psd1" }
-        $script:moduleFiles = Get-ChildItem $moduleToTestRoot -Recurse
+        $script:scriptWarnings = Invoke-ScriptAnalyzer @isaSplat | Where-Object { $_.ScriptPath -notlike "*${/}release${/}JiraPS${/}JiraPS.psd1" }
+        $script:moduleFiles = Get-ChildItem $moduleRoot -Recurse
     }
 
     It "has no script analyzer warnings" {
         $scriptWarnings | Should -HaveCount 0
     }
 
-    Describe "File <_.Name>" -ForEach $moduleFiles {
+    Context "File <_.Name>" -ForEach $moduleFiles {
         BeforeAll {
             $script:file = $_
         }
+
         It "has no script analyzer warnings" {
             $scriptWarnings |
-                Where-Object { $_.ScriptPath -like $file.FullName } |
-                ForEach-Object { "Problem in $($_.ScriptName) at line $($_.Line) with message: $($_.Message)" } |
-                Should -BeNullOrEmpty
+            Where-Object { $_.ScriptPath -like $file.FullName } |
+            ForEach-Object { "Problem in $($_.ScriptName) at line $($_.Line) with message: $($_.Message)" } |
+            Should -BeNullOrEmpty
         }
     }
 
@@ -39,7 +42,7 @@ Describe "PSScriptAnalyzer Tests" -Tag "Unit" {
         $Exceptions = $null
         if ($ErrorVariable) {
             $Exceptions = $ErrorVariable.Exception.Message |
-                Where-Object { $_ -match [regex]::Escape($Script.FullName) }
+            Where-Object { $_ -match [regex]::Escape($file.FullName) }
         }
 
         foreach ($Exception in $Exceptions) {

@@ -1,50 +1,29 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Remove-JiraUser" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+InModuleScope JiraPS {
+    Describe "Remove-JiraUser" -Tag 'Unit' {
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+            # $VerbosePreference = 'Continue'
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+            #region Definitions
+            $script:jiraServer = 'http://jiraserver.example.com'
+            $script:testUsername = 'powershell-test'
+            $script:testEmail = "$testUsername@example.com"
+            $script:testDisplayName = 'Test User'
 
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $jiraServer = 'http://jiraserver.example.com'
-
-        $testUsername = 'powershell-test'
-        $testEmail = "$testUsername@example.com"
-        $testDisplayName = 'Test User'
-
-        # Trimmed from this example JSON: expand, groups, avatarURL
-        $testJsonGet = @"
+            # Trimmed from this example JSON: expand, groups, avatarURL
+            $script:testJsonGet = @"
 {
     "self": "$jiraServer/rest/api/2/user?username=$testUsername",
     "key": "$testUsername",
@@ -54,55 +33,88 @@ Describe "Remove-JiraUser" -Tag 'Unit' {
     "active": true
 }
 "@
+            #endregion Definitions
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
+            #region Mocks
+            Mock Get-JiraConfigServer -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraConfigServer'
+                $jiraServer
+            }
+
+            Mock Get-JiraUser -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraUser' 'UserName'
+                $object = ConvertFrom-Json $testJsonGet
+                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                return $object
+            }
+
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername"} {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                # This REST method should produce no output
+            }
+
+            # Generic catch-all. This will throw an exception if we forgot to mock something.
+            Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraMethod"
+            }
+            #endregion Mocks
         }
 
-        Mock Get-JiraUser -ModuleName JiraPS {
-            $object = ConvertFrom-Json $testJsonGet
-            $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
-            return $object
+        Describe "Signature" {
+            BeforeAll {
+                $script:command = Get-Command -Name Remove-JiraUser
+            }
+
+            Context "Parameter Types" {
+                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
+                    @{ parameter = 'User'; type = 'Object[]' }
+                    @{ parameter = 'Credential'; type = 'PSCredential' }
+                    @{ parameter = 'Force'; type = 'Switch' }
+                ) {
+                    param($parameter, $type)
+                    $command | Should -HaveParameter $parameter -Type $type
+                }
+            }
+
+            Context "Mandatory Parameters" {}
+
+            Context "Default Values" {}
         }
 
-        Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE' -and $URI -like "$jiraServer/rest/api/*/user?username=$testUsername"} {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            # This REST method should produce no output
+        Describe "Behavior" {
+            Context "User Deletion" {
+                It "Accepts a username as a String to the -User parameter" {
+                    { Remove-JiraUser -User $testUsername -Force } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                }
+
+                It "Accepts a JiraPS.User object to the -User parameter" {
+                    $user = Get-JiraUser -UserName $testUsername
+                    { Remove-JiraUser -User $user -Force } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                }
+
+                It "Accepts pipeline input from Get-JiraUser" {
+                    { Get-JiraUser -UserName $testUsername | Remove-JiraUser -Force } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                }
+
+                It "Removes a user from JIRA" {
+                    { Remove-JiraUser -User $testUsername -Force } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                }
+
+                It "Provides no output" {
+                    Remove-JiraUser -User $testUsername -Force | Should -BeNullOrEmpty
+                }
+            }
         }
 
-        # Generic catch-all. This will throw an exception if we forgot to mock something.
-        Mock Invoke-JiraMethod -ModuleName JiraPS {
-            ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-            throw "Unidentified call to Invoke-JiraMethod"
-        }
+        Describe "Input Validation" {
+            Context "Type Validation - Positive Cases" {}
 
-        #############
-        # Tests
-        #############
-
-        It "Accepts a username as a String to the -User parameter" {
-            { Remove-JiraUser -User $testUsername -Force } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-        }
-
-        It "Accepts a JiraPS.User object to the -User parameter" {
-            $user = Get-JiraUser -UserName $testUsername
-            { Remove-JiraUser -User $user -Force } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-        }
-
-        It "Accepts pipeline input from Get-JiraUser" {
-            { Get-JiraUser -UserName $testUsername | Remove-JiraUser -Force } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-        }
-
-        It "Removes a user from JIRA" {
-            { Remove-JiraUser -User $testUsername -Force } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-        }
-
-        It "Provides no output" {
-            Remove-JiraUser -User $testUsername -Force | Should BeNullOrEmpty
+            Context "Type Validation - Negative Cases" {}
         }
     }
 }

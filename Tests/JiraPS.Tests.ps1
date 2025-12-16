@@ -1,13 +1,17 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
+BeforeDiscovery {
+    Import-Module "$PSScriptRoot/Helpers/TestTools.psm1"
+
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+
+    Import-Module $moduleToTest -Force -ErrorAction Stop
+}
+
 Describe "General project validation" -Tag Unit {
     BeforeAll {
-        . "$PSScriptRoot/Helpers/Resolve-ModuleSource.ps1"
-        . "$PSScriptRoot/Helpers/Resolve-ProjectRoot.ps1"
-        $script:moduleToTest = Resolve-ModuleSource
-        $script:moduleRoot = Resolve-ProjectRoot
-
-        Remove-Module PSIni -ErrorAction SilentlyContinue
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
 
         $script:manifest = Test-ModuleManifest -Path $moduleToTest -ErrorAction Stop -WarningAction SilentlyContinue
 
@@ -17,7 +21,7 @@ Describe "General project validation" -Tag Unit {
     AfterEach {
         Set-Content -Value $oldConfig -Path $configFile -Force
 
-        Remove-Module PSIni -ErrorAction SilentlyContinue
+        Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
 
     It "passes Test-ModuleManifest" {

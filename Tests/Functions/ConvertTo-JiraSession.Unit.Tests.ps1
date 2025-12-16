@@ -1,52 +1,69 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "ConvertTo-JiraSession" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
+
+InModuleScope JiraPS {
+    Describe "ConvertTo-JiraSession" -Tag 'Unit' {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
+            #region Definitions
+            $script:sampleUsername = 'powershell-test'
+            $script:sampleSession = @{}
+            #endregion Definitions
+
+            #region Mocks
+            #endregion Mocks
         }
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+        Describe "Behavior" {
+            Context "Object Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
+                }
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
+                It "creates PSObject from session data" {
+                    $result | Should -Not -BeNullOrEmpty
+                }
 
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
+                It "adds custom type 'JiraPS.Session'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Session'
+                }
+            }
+
+            Context "Property Mapping" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
+                }
+
+                It "defines 'Username' property with correct value" {
+                    $result.Username | Should -Be $sampleUsername
+                }
+            }
+
+            Context "Type Conversion" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
+                }
+
+                It "converts Username to correct type" {
+                    $result.Username | Should -BeOfType [string]
+                }
+            }
+
+            Context "Pipeline Support" {
+                It "accepts session parameter" {
+                    $result = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
+                    $result | Should -Not -BeNullOrEmpty
+                }
+            }
         }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        $sampleUsername = 'powershell-test'
-        $sampleSession = @{}
-
-        $r = ConvertTo-JiraSession -Session $sampleSession -Username $sampleUsername
-
-        It "Creates a PSObject out of Web request data" {
-            $r | Should Not BeNullOrEmpty
-        }
-
-        checkPsType $r 'JiraPS.Session'
-        defProp $r 'Username' $sampleUsername
     }
 }

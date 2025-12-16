@@ -1,60 +1,76 @@
-#requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Remove-JiraSession" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
+
+InModuleScope JiraPS {
+    Describe "Remove-JiraSession" -Tag 'Unit' {
+
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/TestTools.ps1"
+            # $VerbosePreference = 'Continue'
+
+            #region Definitions
+            #endregion Definitions
+
+            #region Mocks
+            Mock Get-JiraSession -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraSession'
+                (Get-Module JiraPS).PrivateData.Session
+            }
+            #endregion Mocks
         }
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
+    Describe "Signature" {
+        BeforeAll {
+            $script:command = Get-Command -Name Remove-JiraSession
         }
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
+        Context "Parameter Types" {
+            It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
+                @{ parameter = 'Session'; type = 'Object' }
+            ) {
+                param($parameter, $type)
+                $command | Should -HaveParameter $parameter -Type $type
+            }
+        }
 
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
+        Context "Mandatory Parameters" {
+            # TODO: Add tests for mandatory parameters
+        }
 
-    . "$PSScriptRoot/../Shared.ps1"
-
-    #region Mocks
-    Mock Get-JiraSession -ModuleName JiraPS {
-        (Get-Module JiraPS).PrivateData.Session
-    }
-    #endregion Mocks
-
-    Context "Sanity checking" {
-        $command = Get-Command -Name Remove-JiraSession
-
-        defParam $command 'Session'
-    }
-
-    Context "Behavior testing" {
-        It "Closes a removes the JiraPS.Session data from module PrivateData" {
-            (Get-Module JiraPS).PrivateData = @{ Session = $true }
-            (Get-Module JiraPS).PrivateData.Session | Should -Not -BeNullOrEmpty
-
-            Remove-JiraSession
-
-            (Get-Module JiraPS).PrivateData.Session | Should -BeNullOrEmpty
+        Context "Default Values" {
+            # TODO: Add tests for parameter default values
         }
     }
+
+    Describe "Behavior" {
+        Context "Session Cleanup" {
+            It "Closes and removes the JiraPS.Session data from module PrivateData" {
+                (Get-Module JiraPS).PrivateData = @{ Session = $true }
+                (Get-Module JiraPS).PrivateData.Session | Should -Not -BeNullOrEmpty
+
+                Remove-JiraSession
+
+                (Get-Module JiraPS).PrivateData.Session | Should -BeNullOrEmpty
+            }
+        }
+    }
+
+    Describe "Input Validation" {
+        Context "Positive cases" {
+            # TODO: Add positive input validation tests
+        }
+
+        Context "Negative cases" {
+            # TODO: Add negative input validation tests
+        }
+    }
+}
 }
