@@ -79,7 +79,7 @@ function Resolve-ErrorWebResponse {
                     Exception    = $exception
                     ErrorId      = $errorId
                     Category     = $errorCategory
-                    Message      = "An unknown error ocurred."
+                    Message      = "An unknown error occurred."
                     TargetObject = $targetObject
                     Cmdlet       = $Cmdlet
                 }
@@ -89,11 +89,11 @@ function Resolve-ErrorWebResponse {
         else {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Response had no Body. Using `$StatusCode for generic error"
             $writeErrorSplat = @{
-                Exception    = $exception
-                ErrorId      = $errorId
-                Category     = $errorCategory
-                Message      = "Server responsed with $StatusCode"
-                Cmdlet       = $Cmdlet
+                Exception = $exception
+                ErrorId   = $errorId
+                Category  = $errorCategory
+                Message   = "Server responded with $StatusCode"
+                Cmdlet    = $Cmdlet
             }
             WriteError @writeErrorSplat
         }

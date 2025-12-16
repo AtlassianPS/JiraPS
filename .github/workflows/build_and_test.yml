@@ -28,7 +28,7 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Build
         shell: pwsh
         run: |
@@ -60,7 +60,7 @@ jobs:
         shell: powershell
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: powershell
         run: |
@@ -93,7 +93,7 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: pwsh
         run: |
@@ -126,7 +126,7 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: pwsh
         run: |
@@ -159,7 +159,7 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: pwsh
         run: |
@@ -196,7 +196,7 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: pwsh
         run: |

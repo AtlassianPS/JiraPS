@@ -11,12 +11,28 @@ param(
 )
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force
-Import-Module (Get-Dependency) -Force -ErrorAction Stop
-
 Remove-Item -Path env:\BH* -ErrorAction SilentlyContinue
 Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
-$OS, $OSVersion = Get-HostInformation
-# Add-ToModulePath -Path $env:BHBuildOutput
+
+#region HarmonizeVariables
+switch ($true) {
+    { $IsWindows } {
+        $OS = "Windows"
+        if (-not ($IsCoreCLR)) {
+            $OSVersion = $PSVersionTable.BuildVersion.ToString()
+        }
+    }
+    { $IsLinux } {
+        $OS = "Linux"
+    }
+    { $IsMacOs } {
+        $OS = "OSX"
+    }
+    { $IsCoreCLR } {
+        $OSVersion = $PSVersionTable.OS
+    }
+}
+#endregion HarmonizeVariables
 
 if ($VersionToPublish) {
     $VersionToPublish = $VersionToPublish.TrimStart('v') -as [Version]
@@ -111,7 +127,7 @@ Task CompileModule {
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
-task GenerateExternalHelp {
+Task GenerateExternalHelp {
     Import-Module platyPS -Force
     foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
         New-ExternalHelp -Path "$($locale.FullName)" -OutputPath "$env:BHModulePath/$($locale.Basename)" -Force
@@ -142,17 +158,26 @@ Task SetVersion {
 }
 
 Task Test {
-    $pesterConfig = [PesterConfiguration]::Default
-    $pesterConfig.Output.Verbosity = $PesterVerbosity
-    $pesterConfig.Run.path = @("$env:BHBuildOutput/Tests")
-    $pesterConfig.Run.PassThru = $true
-    $PesterConfig.TestResult.Enabled = $true
-    $pesterConfig.TestResult.OutputFormat = 'NUnitXml'
-    $pesterConfig.TestResult.OutputPath = "TestResults.xml"
-
-    if ((Invoke-Pester -Configuration $pesterConfig).FailedCount -gt 0) {
-        throw "Tests failed"
+    $pesterConfig = New-PesterConfiguration -Hashtable @{
+        Run        = @{
+            PassThru = $true
+            Path     = "$env:BHBuildOutput/Tests"
+        }
+        TestResult = @{
+            Enabled      = $true
+            OutputFormat = 'NUnitXml'
+            OutputPath   = "Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
+        }
+        Output     = @{
+            Verbosity = $PesterVerbosity
+        }
+        <# CodeCoverage = @{
+            Path = $codeCoverageFiles
+        } #>
     }
+
+    $testResults = Invoke-Pester -Configuration $pesterConfig
+    Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
 }
 
 Task Publish SetVersion, SignCode, Package, {

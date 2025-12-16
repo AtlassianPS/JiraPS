@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Remove-JiraRemoteLink" -Tag 'Unit' {
 
@@ -26,16 +26,8 @@ Describe "Remove-JiraRemoteLink" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
+        . "$PSScriptRoot/../Shared.ps1"  # helpers used by tests (defParam / ShowMockInfo)
 
         $jiraServer = 'http://jiraserver.example.com'
 
@@ -63,11 +55,8 @@ Describe "Remove-JiraRemoteLink" -Tag 'Unit' {
 }
 "@
 
-        Mock Get-JiraConfigServer -ModuleName JiraPS {
-            Write-Output $jiraServer
-        }
-
-        Mock Get-JiraIssue {
+        #helper function to generate test JiraIssue object
+        function Get-TestJiraIssue {
             $object = [PSCustomObject] @{
                 'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
                 'Key'     = $testIssueKey
@@ -76,14 +65,27 @@ Describe "Remove-JiraRemoteLink" -Tag 'Unit' {
             return $object
         }
 
-        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-            Get-JiraIssue -Key $Issue
-        }
-
-        Mock Get-JiraRemoteLink {
+        #helper function to generate test JiraIssue object
+        function Get-TestJiraRemoteLink {
             $object = ConvertFrom-Json $testLink
             $object.PSObject.TypeNames.Insert(0, 'JiraPS.IssueLinkType')
             return $object
+        }
+
+        Mock Get-JiraConfigServer -ModuleName JiraPS {
+            Write-Output $jiraServer
+        }
+
+        Mock Get-JiraIssue {
+            Get-TestJiraIssue
+        }
+
+        Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+            Get-TestJiraIssue
+        }
+
+        Mock Get-JiraRemoteLink {
+            Get-TestJiraRemoteLink
         }
 
         Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {$Method -eq 'DELETE'} {
@@ -96,40 +98,45 @@ Describe "Remove-JiraRemoteLink" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
-        It "Accepts a issue key to the -Issue parameter" {
-            { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-        }
+    It "Accepts a issue key to the -Issue parameter" {
+        { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force } | Should -Not -Throw
+        Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+    }
 
-        It "Accepts a JiraPS.Issue object to the -Issue parameter" {
-            $Issue = Get-JiraIssue $testIssueKey
-            { Remove-JiraRemoteLink -Issue $Issue -LinkId 10000 -Force } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-        }
+    It "Accepts a JiraPS.Issue object to the -Issue parameter" {
+        $Issue = Get-TestJiraIssue
+        { Remove-JiraRemoteLink -Issue $Issue -LinkId 10000 -Force } | Should -Not -Throw
+        Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+    }
 
-        It "Accepts pipeline input from Get-JiraIssue" {
-            { Get-JiraIssue $testIssueKey | Remove-JiraRemoteLink -LinkId 10000 -Force } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-        }
+    It "Accepts pipeline input from Get-JiraIssue" {
+        { Get-TestJiraIssue | Remove-JiraRemoteLink -LinkId 10000 -Force } | Should -Not -Throw
+        Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+    }
 
-        It "Accepts the output of Get-JiraRemoteLink" {
-            $remoteLink = Get-JiraRemoteLink $testIssueKey
-            { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId $remoteLink.id -Force } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-        }
+    It "Accepts the output of Get-JiraRemoteLink" {
+        $remoteLink = Get-TestJiraRemoteLink
+        { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId $remoteLink.id -Force } | Should -Not -Throw
+        Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+    }
 
-        It "Removes a group from JIRA" {
-            { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force } | Should Not Throw
-            Assert-MockCalled -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
-        }
+    It "Removes a group from JIRA" {
+        { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force } | Should -Not -Throw
+        Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+    }
 
-        It "Provides no output" {
-            Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force | Should BeNullOrEmpty
-        }
+    It "Provides no output" {
+        Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force | Should -BeNullOrEmpty
     }
 }

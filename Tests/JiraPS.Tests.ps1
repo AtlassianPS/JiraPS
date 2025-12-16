@@ -44,7 +44,7 @@ Describe "General project validation" -Tag Unit {
     }
 
     It "module '$env:BHProjectName' can import cleanly" {
-        { Import-Module $env:BHManifestToTest } | Should Not Throw
+        { Import-Module $env:BHManifestToTest } | Should -Not -Throw
     }
 
     It "module '$env:BHProjectName' exports functions" {

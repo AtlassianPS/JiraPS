@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraSession" -Tag 'Unit' {
 
@@ -26,22 +26,21 @@ Describe "Get-JiraSession" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
+
+        # helpers used by tests (defParam / ShowMockInfo)
+        . "$PSScriptRoot/../Shared.ps1"
     }
+
     AfterAll {
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Remove-Module BuildHelpers -ErrorAction SilentlyContinue
         Remove-Item -Path Env:\BH*
     }
 
-    InModuleScope JiraPS {
-
-        . "$PSScriptRoot/../Shared.ps1"
-
-        It "Obtains a saved JiraPS.Session object from module PrivateData" {
-            # I don't know how to test this, since I can't access module PrivateData from Pester.
-            # The tests for New-JiraSession use this function to validate that they work, so if
-            # those tests pass, this function should be working as well.
-            # $true | Should Be $true
-        }
+    It "Obtains a saved JiraPS.Session object from module PrivateData" {
+        # I don't know how to test this, since I can't access module PrivateData from Pester.
+        # The tests for New-JiraSession use this function to validate that they work, so if
+        # those tests pass, this function should be working as well.
+        # $true | Should -Be $true
     }
 }
