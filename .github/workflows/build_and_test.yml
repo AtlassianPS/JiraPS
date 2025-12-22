@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -52,7 +52,7 @@ jobs:
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -85,7 +85,7 @@ jobs:
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -118,7 +118,7 @@ jobs:
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -151,7 +151,7 @@ jobs:
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -188,7 +188,7 @@ jobs:
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
