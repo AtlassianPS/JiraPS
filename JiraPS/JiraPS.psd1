@@ -113,7 +113,7 @@
             # External dependent modules of this module
             # ExternalModuleDependencies = ''
 
-            Prerelease = 'alpha1'
+            Prerelease = ''
 
         } # End of PSData hashtable
 

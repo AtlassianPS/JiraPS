@@ -24,13 +24,13 @@ jobs:
           path: ./Release/
           if_no_artifact_found: fail
 
-      - run: ./tools/setup.ps1
+      - run: ./Tools/setup.ps1
         shell: pwsh
 
       - run: Invoke-Build -Task ShowDebugInfo -VersionToPublish ${{ github.ref_name }}
         shell: pwsh
 
-      - run: Invoke-Build -Task Publish -VersionToPublish ${{ github.ref_name }} -PSGalleryAPIKey ${{ secrets.PSGalleryAPIKey }}
+      - run: Invoke-Build -Task Publish -VersionToPublish ${{ github.ref_name }} -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
         shell: pwsh
 
       - name: Cherry pick CHANGELOG.md
