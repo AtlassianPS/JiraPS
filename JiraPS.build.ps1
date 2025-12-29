@@ -35,9 +35,8 @@ switch ($true) {
 #endregion HarmonizeVariables
 
 if ($VersionToPublish) {
-    $VersionToPublish = $VersionToPublish.TrimStart('v') -as [Version]
+    $VersionToPublish = $VersionToPublish.TrimStart('v')
 }
-$currentVersion = (Get-Metadata -Path $env:BHPSModuleManifest) -as [Version]
 $builtManifestPath = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1"
 
 Task ShowDebugInfo {
@@ -55,7 +54,6 @@ Task ShowDebugInfo {
     Write-Build Gray ('BHCommitHash:               {0}' -f $env:BHCommitHash)
     Write-Build Gray ('BHCommitMessage:            {0}' -f $env:BHCommitMessage)
     Write-Build Gray ('BHBuildNumber               {0}' -f $env:BHBuildNumber)
-    Write-Build Gray ('CurrentVersion              {0}' -f $currentVersion)
     Write-Build Gray ('VersionToPublish            {0}' -f $VersionToPublish)
     Write-Build Gray '-------------------------------------------------------'
     Write-Build Gray ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
@@ -151,10 +149,24 @@ Task UpdateManifest {
 }
 
 Task SetVersion {
-    Assert-True { $VersionToPublish -as [Version] } "Invalid version format: $VersionToPublish"
-    Assert-True { $VersionToPublish -gt $currentVersion } "Version must be greater than the current version: $currentVersion"
+    [System.Management.Automation.SemanticVersion]$versionToPublish = $VersionToPublish
 
-    Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "ModuleVersion" -Value $VersionToPublish.ToString()
+    $latestPublished = Get-LatestPublishedVersion -Name $env:BHProjectName
+
+    Write-Build Gray "Latest published version: $latestPublished"
+    Assert-True { $versionToPublish -gt $latestPublished } "Version must be greater than latest published version: $latestPublished"
+
+    $versionString = "{0}.{1}.{2}" -f $versionToPublish.Major, $versionToPublish.Minor, $versionToPublish.Patch
+    Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "ModuleVersion" -Value $versionString
+
+    if ($versionToPublish.PreReleaseLabel) {
+        Write-Build Gray "Setting Prerelease label: $($versionToPublish.PreReleaseLabel)"
+        Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "Prerelease" -Value $versionToPublish.PreReleaseLabel
+    }
+    else {
+        Write-Build Gray "Removing Prerelease label (stable release)"
+        Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "Prerelease" -Value ''
+    }
 }
 
 Task Test {

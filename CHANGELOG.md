@@ -1,8 +1,6 @@
 # Change Log
 
-## [NEXT VERSION] - YYYY-MM-DD
-
-## [2.15-alpha1] - 2024-06-13
+## [2.15] - 2025-12-30
 
 ### Added
 
@@ -13,6 +11,7 @@
 ### Changed
 
 - Improved `-Transition` behavior in `Invoke-JiraIssueTransition` (#416, [@Rufus125])
+- Updated Pester to v5 (#543, [@SrBlackVoid])
 
 ### Fixed
 
@@ -71,7 +70,7 @@
 ### Added
 
 - Parameter for retrieving information about a specific user with `Get-JiraUser` (#328, [@michalporeba])
-    - this implementations will be changed with the next major update in favor of #306
+  - this implementations will be changed with the next major update in favor of #306
 
 ### Changed
 
@@ -407,6 +406,7 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
 [@Rufus125]: https://github.com/Rufus125
 [@sgtwilko]: https://github.com/sgtwilko
 [@spascoe]: https://github.com/spascoe
+[@SrBlackVoid]: https://github.com/SrBlackVoid
 [@thepsadmin]: https://github.com/ThePSAdmin
 [@tuxgoose]: https://github.com/tuxgoose
 [@vercellone]: https://github.com/vercellone

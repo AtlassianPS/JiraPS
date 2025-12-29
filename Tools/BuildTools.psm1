@@ -256,6 +256,50 @@ function Remove-Utf8Bom {
     }
 }
 
+function Get-LatestPublishedVersion {
+    <#
+    .SYNOPSIS
+        Gets the latest published version of a module from PowerShell Gallery.
+    .DESCRIPTION
+        Queries the PowerShell Gallery for all published versions of a module and returns the latest version as a SemanticVersion.
+        Handles both 4-part versions (e.g., "2.2.0.154") and semantic versions with pre-release labels (e.g., "2.15.0-alpha1").
+    .PARAMETER Name
+        The name of the module to query.
+    .EXAMPLE
+        Get-LatestPublishedVersion -Name JiraPS
+        Returns the latest published version of JiraPS as a SemanticVersion object.
+    #>
+    [CmdletBinding()]
+    [OutputType([System.Management.Automation.SemanticVersion])]
+    param(
+        [Parameter(Mandatory)]
+        [String]$Name
+    )
+
+    $publishedPackages = Find-NugetPackage -Name $Name -ErrorAction Stop
+    $latestPublished = $publishedPackages |
+        Select-Object -ExpandProperty Version |
+        ForEach-Object {
+            # Try SemanticVersion first (handles pre-release like "2.15.0-alpha1")
+            $semVer = $_ -as [System.Management.Automation.SemanticVersion]
+            if ($semVer) {
+                # Return the full semantic version string (preserves pre-release label)
+                $_.ToString()
+            }
+            else {
+                # Fall back to Version for 4-part versions (like "2.2.0.154")
+                # Convert to 3-part semantic version
+                $ver = [Version]$_
+                "{0}.{1}.{2}" -f $ver.Major, $ver.Minor, $ver.Build
+            }
+        } |
+        ForEach-Object { $_ -as [System.Management.Automation.SemanticVersion] } |
+        Sort-Object -Unique |
+        Select-Object -Last 1
+
+    $latestPublished
+}
+
 function Set-GitUser {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     param()
