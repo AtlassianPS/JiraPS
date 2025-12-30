@@ -1,6 +1,6 @@
 # Change Log
 
-## [2.15] - 2025-12-30
+## 2.15 - 2025-12-30
 
 ### Added
 
@@ -23,7 +23,7 @@
 - Fixed JSON conversion in `Invoke-JiraIssueTransition` (#417, [@Rufus125])
 - Fixed type in `Invoke-JiraIssueTransition` (#417, [@Rufus125])
 
-## [2.14] - 2020-03-28
+## 2.14 - 2020-03-28
 
 ### Changed
 
@@ -32,7 +32,7 @@
   a proper handling of how users work between cloud and on-premise is
   implemented
 
-## [2.13] - 2020-02-23
+## 2.13 - 2020-02-23
 
 ### Added
 
@@ -42,7 +42,7 @@
 
 - Removed progress bar from `Invoke-WebRequest` for better performance (#380, [@sgtwilko])
 
-## [2.12] - 2019-08-15
+## 2.12 - 2019-08-15
 
 ### Added
 
@@ -54,7 +54,7 @@
 - Changed the way users as interpreted by functions (#369, [@lipkau])
 - Changed how the config of a jira server is stored (#370, [@lipkau])
 
-## [2.11] - 2019-07-02
+## 2.11 - 2019-07-02
 
 ### Added
 
@@ -65,7 +65,7 @@
 - `Invoke-JiraIssueTransition` to find username with exact match (#351, [@mirrorgleam])
 - Fixed `-Add <String>` parameter for `Set-JiraIssueLabel` on issues without labels (#358, [@lipkau])
 
-## [2.10] - 2019-02-21
+## 2.10 - 2019-02-21
 
 ### Added
 
@@ -79,7 +79,7 @@
 - Fixed `Get-JiraIssueAttachmentFile` to use `Accept` header based on Mime time of attachment (#333, [@wisemoth])
 - Fixed incorrect handling of skip notifications when updating an issue (#339, [@lipkau])
 
-## [2.9] - 2018-12-12
+## 2.9 - 2018-12-12
 
 ### Added
 
@@ -100,7 +100,7 @@
 - Fixed missing properties on `Get-JiraUser` (#321, [@lipkau])
 - Fixed `-DateStarted` on `Add-JiraIssueWorklog` (#324, [@lipkau])
 
-## [2.8] - 2018-06-28
+## 2.8 - 2018-06-28
 
 More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.8.html).
 
@@ -124,7 +124,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - Fully support Powershell v3 (#273, [@lipkau[]])
 - Fixed parameter used in documentation but not in code (#263, [@lipkau[]])
 
-## [2.7] - 2018-05-13
+## 2.7 - 2018-05-13
 
 More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.7.html).
 
@@ -143,7 +143,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - Fixed CI icon in README (#245, [@lipkau][])
 - Allow `Get-JiraUser` to return more than 1 result (#246, [@lipkau][])
 
-## [2.6] - 2018-05-02
+## 2.6 - 2018-05-02
 
 More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.6.html).
 
@@ -168,7 +168,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - Fix removing labels with `Set-JiraIssueLabel -Remove` (#244, [@lipkau][])
 - Fix adding of multiple labels at once with `Set-JiraIssueLabel -Add` (#244, [@lipkau][])
 
-## [2.5] - 2018-03-23
+## 2.5 - 2018-03-23
 
 More detailed description about the changes can be found on [Our Website](https://atlassianps.org/article/announcement/JiraPS-v2.5.html).
 
@@ -189,7 +189,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - Fixed _date_ and _timespan_ representation in _Body_ of `Add-JiraIssueWorklog` (#214, [@lipkau][])
 - Improved output of `Get-JiraProject` (#216, [@lipkau][])
 
-## [2.4] (Nov 01, 2017)
+## 2.4 (Nov 01, 2017)
 
 ### Added
 
@@ -201,7 +201,7 @@ More detailed description about the changes can be found on [Our Website](https:
 
 - `JiraPS.Issue` now has a property for Attachments `JiraPS.Attachment` (#137, [@beaudryj][])
 
-## [2.3] (Okt 07, 2017)
+## 2.3 (Okt 07, 2017)
 
 ### Added
 
@@ -213,7 +213,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - Changed the default visibility of comments (#172, [@lipkau][])
 - Added more properties to `JiraPS.User` objects (#152, [@lipkau][])
 
-## [2.2].0 (Aug 05, 2017)
+## 2.2.0 (Aug 05, 2017)
 
 ### Added
 
@@ -223,7 +223,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - `Remove-JiraVersion`: Removes a Version of a project (#158, [@Dejulia489][])
 - New custom object for Versions (#158, [@Dejulia489][])
 
-## [2.1].0 (Jul 25, 2017)
+## 2.1.0 (Jul 25, 2017)
 
 ### Added
 
@@ -254,7 +254,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - `Set-JiraIssueLabel`: Forced label property to be an array (#88, [@kittholland][])
 - `Invoke-JiraMethod`: Send ContentType as Parameter instead of in the Header (#121, [@lukhase][])
 
-## [2.0].0 (Jun 24, 2017)
+## 2.0 (Jun 24, 2017)
 
 ### Changes to the code module
 
@@ -262,7 +262,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - Rename of the module to `JiraPS` **breaking change**
 - Rename of module's custom objects to `JiraPS.*` **breaking change**
 
-## [1.2].5 (Aug 08, 2016)
+## 1.2.5 (Aug 08, 2016)
 
 ### Changed
 
@@ -277,7 +277,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - Set-JiraIssue: fixed issue with JSON depth for custom parameters (#17, @ThePSAdmin)
 - Various: Fixed issues with ConvertFrom-Json max length with a custom ConvertFrom-Json function (#23, @LiamLeane)
 
-## [1.2].4 (Dec 10, 2015)
+## 1.2.4 (Dec 10, 2015)
 
 ### Changed
 
@@ -289,7 +289,7 @@ More detailed description about the changes can be found on [Our Website](https:
 - Get-JiraIssue: fixed issue where Get-JiraIssue would only return one result when using -Filter parameter in some cases (#15)
 - Invoke-JiraIssueTransition: fixed -Credential parameter (#13)
 
-## [1.2].3 (Dec 02, 2015)
+## 1.2.3 (Dec 02, 2015)
 
 ### Added
 
@@ -303,7 +303,7 @@ More detailed description about the changes can be found on [Our Website](https:
 
 - Invoke-JiraMethod: Fixed issue where non-standard characters were not being parsed correctly from JSON (#7)
 
-## [1.2].2 (Nov 16, 2015)
+## 1.2.2 (Nov 16, 2015)
 
 ### Added
 
@@ -319,14 +319,14 @@ More detailed description about the changes can be found on [Our Website](https:
 
 - Get-JiraIssueCreateMetadata: now correctly returns the ID of fields as well (#6)
 
-## [1.2].1 (Oct 26, 2015)
+## 1.2.0 (Oct 26, 2015)
 
 ### Changed
 
 - Get-JiraIssueCreateMetadata: changed output type from a generic PSCustomObject to new type PSJira.CreateMetaField
 - Get-JiraIssueCreateMetadata: now returns additional properties for field metadata, such as AllowedValues
 
-## [1.2].0 (Oct 16, 2015)
+## 1.2.0 (Oct 16, 2015)
 
 ### Added
 
@@ -336,13 +336,13 @@ More detailed description about the changes can be found on [Our Website](https:
 
 - Get-JiraIssue: now supports a -Filter parameter to obtain all issues matching a given filter object or ID
 
-## [1.1].1 (Oct 08, 2015)
+## 1.1.1 (Oct 08, 2015)
 
 ### Changed
 
 - Set-JiraIssue now supports modifying arbitrary fields through the Fields parameter
 
-## [1.1].0 (Sep 17, 2015)
+## 1.1.0 (Sep 17, 2015)
 
 ### Added
 
@@ -356,7 +356,7 @@ More detailed description about the changes can be found on [Our Website](https:
 
 - PSJira.User: ToString() now works as expected
 
-## [1.0].0 (Aug 5, 2015)
+## 1.0.0 (Aug 5, 2015)
 
 - Initial release
 
