@@ -29,8 +29,9 @@ function New-JiraIssue {
         $Reporter,
 
         [Parameter( ValueFromPipelineByPropertyName )]
+        [Alias("Labels")]
         [String[]]
-        $Labels,
+        $Label,
 
         [Parameter( ValueFromPipelineByPropertyName )]
         [String]
@@ -44,6 +45,11 @@ function New-JiraIssue {
         [Parameter( ValueFromPipelineByPropertyName )]
         [PSCustomObject]
         $Fields,
+
+        [Parameter( ValueFromPipelineByPropertyName )]
+        [AllowNull()]
+        [String[]]
+        $Components,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -66,10 +72,9 @@ function New-JiraIssue {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop -Debug:$false
-        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {$_.Id -eq $IssueType -or $_.Name -eq $IssueType}
+        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript { $_.Id -eq $IssueType -or $_.Name -eq $IssueType }
 
-        if ($null -eq $issueTypeObj.Id)
-        {
+        if ($null -eq $issueTypeObj.Id) {
             $errorMessage = @{
                 Category         = "InvalidResult"
                 CategoryActivity = "Validating parameters"
@@ -79,13 +84,13 @@ function New-JiraIssue {
         }
 
         $requestBody = @{
-            "project"   = @{"id" = $ProjectObj.Id}
-            "issuetype" = @{"id" = [String] $IssueTypeObj.Id}
+            "project"   = @{"id" = $ProjectObj.Id }
+            "issuetype" = @{"id" = [String] $IssueTypeObj.Id }
             "summary"   = $Summary
         }
 
         if ($Priority) {
-            $requestBody["priority"] = @{"id" = [String] $Priority}
+            $requestBody["priority"] = @{"id" = [String] $Priority }
         }
 
         if ($Description) {
@@ -93,17 +98,24 @@ function New-JiraIssue {
         }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
-            $requestBody["reporter"] = @{"name" = "$Reporter"}
+            $requestBody["reporter"] = @{"name" = "$Reporter" }
         }
 
         if ($Parent) {
-            $requestBody["parent"] = @{"key" = $Parent}
+            $requestBody["parent"] = @{"key" = $Parent }
         }
 
-        if ($Labels) {
+        if ($Label) {
             $requestBody["labels"] = [System.Collections.ArrayList]@()
-            foreach ($item in $Labels) {
+            foreach ($item in $Label) {
                 $null = $requestBody["labels"].Add($item)
+            }
+        }
+
+        if ($Components) {
+            $requestBody["components"] = [System.Collections.ArrayList]@()
+            foreach ($item in $Components) {
+                $null = $requestBody["components"].Add( @{ id = "$item" } )
             }
         }
 
@@ -114,28 +126,65 @@ function New-JiraIssue {
             }
         }
 
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
-        foreach ($_key in $Fields.Keys) {
-            $name = $_key
-            $value = $Fields.$_key
+        if ($Fields) {
 
-            if ($field = Get-JiraField -Field $name -Credential $Credential -Debug:$false) {
-                # For some reason, this was coming through as a hashtable instead of a String,
-                # which was causing ConvertTo-Json to crash later.
-                # Not sure why, but this forces $id to be a String and not a hashtable.
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Enumerating fields for server"
+
+            # Fetch all available fields ahead-of-time to avoid repeated API calls in the upcoming loop.
+            # Eventually, this may be better to extract from CreateMeta.
+            $AvailableFields = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
+
+            $AvailableFieldsById = $AvailableFields | Group-Object -Property Id -AsHashTable -AsString
+            $AvailableFieldsByName = $AvailableFields | Group-Object -Property Name -AsHashTable -AsString
+
+
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
+
+            foreach ($_key in $Fields.Keys) {
+
+                $name = $_key
+                $value = $Fields.$_key
+                # The Fields hashtable supports both name- and ID-based lookup for custom fields, so we have to search both.
+                if ($AvailableFieldsById.ContainsKey($name)) {
+                    $field = $AvailableFieldsById[$name][0]
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
+                }
+                elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
+                    $field = $AvailableFieldsById["customfield_$name"][0]
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
+                }
+                elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
+                    $field = $AvailableFieldsByName[$name][0]
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
+                }
+                elseif ($AvailableFieldsByName.ContainsKey($name)) {
+                    # Jira does not prevent multiple custom fields with the same name, so we have to ensure
+                    # any name references are unambiguous.
+
+                    # More than one value in $AvailableFieldsByName (i.e. .Count -gt 1) indicates two duplicate custom fields.
+                    $exception = ([System.ArgumentException]"Ambiguously Referenced Parameter")
+                    $errorId = 'ParameterValue.AmbiguousParameter'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $Fields
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                    $errorItem.ErrorDetails = "Field name [$name] in -Fields hashtable ambiguously refers to more than one field. Use Get-JiraField for more information, or specify the custom field by its ID."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                }
+                else {
+                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                    $errorId = 'ParameterValue.InvalidFields'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $Fields
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                    $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                }
+
                 $id = $field.Id
                 $requestBody["$id"] = $value
             }
-            else {
-                $exception = ([System.ArgumentException]"Invalid value for Parameter")
-                $errorId = 'ParameterValue.InvalidFields'
-                $errorCategory = 'InvalidArgument'
-                $errorTarget = $Fields
-                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
-                $PSCmdlet.ThrowTerminatingError($errorItem)
-            }
         }
+
 
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Validating fields with metadata"
         foreach ($c in $createmeta) {

@@ -52,7 +52,7 @@ function Get-JiraIssueAttachmentFile {
             $iwParameters = @{
                 Uri        = $_Attachment.Content
                 Method     = 'Get'
-                Headers    = @{"Accept" = $_Attachment.MimeType}
+                Headers    = @{"Accept" = $_Attachment.MimeType }
                 OutFile    = $filename
                 Credential = $Credential
             }

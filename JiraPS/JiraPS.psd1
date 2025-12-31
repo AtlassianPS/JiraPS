@@ -4,7 +4,7 @@
     RootModule        = 'JiraPS.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '2.14'
+    ModuleVersion     = '2.15'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -112,6 +112,8 @@
 
             # External dependent modules of this module
             # ExternalModuleDependencies = ''
+
+            Prerelease = ''
 
         } # End of PSData hashtable
 

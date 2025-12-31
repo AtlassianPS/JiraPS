@@ -1,26 +1,20 @@
-# Set merge behavior for the changelog
-CHANGELOG.md merge=union
-
 # Set default behaviour, in case users don't have core.autocrlf set.
 * text=auto
 
-# Explicitly declare text files we want to always be normalized.
-*.sh            text  eol=lf
-*.md            text  eol=crlf
-*.gitattributes text  eol=crlf
-*.gitignore     text  eol=crlf
-*.ps1           text  eol=crlf
-*.psm1          text  eol=crlf
-*.psd1          text  eol=crlf
-*.psc1          text  eol=crlf
-*.ps1xml        text  eol=crlf
-*.clixml        text  eol=crlf
-*.cs            text  eol=crlf
-*.xml           text  eol=crlf
-*.yml           text  eol=crlf
-*.txt           text  eol=crlf
-*.json          text  eol=crlf
+# Explicitly declare text files we want to always be normalized and converted
+# to native line endings on checkout.
+*.gitattributes text
 
-# Denote all files that are truly binary and should not be mergeable.
-*.dll binary
-*.exe binary
+# Set merge behavior for the changelog
+CHANGELOG.md merge=union
+
+# Declare files that will always have CRLF line endings on checkout.
+*.md text eol=crlf
+*.ps1 text eol=crlf
+*.psm1 text eol=crlf
+*.psd1 text eol=crlf
+*.psc1 text eol=crlf
+*.ps1xml text eol=crlf
+*.clixml text eol=crlf
+*.xml text eol=crlf
+*.txt text eol=crlf

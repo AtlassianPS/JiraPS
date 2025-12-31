@@ -3,17 +3,14 @@ root = true
 [*]
 indent_style = space
 indent_size = 4
-end_of_line = crlf
+end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[*.sh]
-end_of_line = lf
+[*.{md,ps1,psm1,psd1,psc1,ps1xml,clixml}]
+end_of_line = crlf
 
-
-[*.{md,yml,yaml}]
-trim_trailing_whitespace = false
 
 [*.{yml,yaml}]
 indent_size = 2

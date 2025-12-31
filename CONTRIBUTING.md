@@ -11,7 +11,6 @@ But here is the gist of it once you have forked the repository:
 ```powershell
 git clone https://github.com/<YOUR GITHUB USER>/JiraPS
 cd JiraPS
-git checkout develop
 git checkout -b <NAME FOR YOUR FEATURE>
 code .
 ```

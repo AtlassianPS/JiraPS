@@ -30,7 +30,7 @@ function New-JiraSession {
             Headers      = $Headers
             StoreSession = $true
         }
-        if ($Credential) { $parameter.Add('Credential',$Credential) }
+        if ($Credential) { $parameter.Add('Credential', $Credential) }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod @parameter
 
@@ -44,6 +44,8 @@ function New-JiraSession {
                 'Session' = $result
             }
         }
+
+        $script:serverInformation = Get-JiraServerInformation
 
         Write-Output $result
     }

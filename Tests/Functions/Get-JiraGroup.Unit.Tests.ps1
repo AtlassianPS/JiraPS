@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraGroup" -Tag 'Unit' {
 
@@ -26,21 +26,14 @@ Describe "Get-JiraGroup" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
 
         $testGroupName = 'Test Group'
-        $testGroupNameEscaped = ConvertTo-URLEncoded $testGroupName
+        $testGroupNameEscaped = [System.Web.HttpUtility]::UrlEncode($testGroupName)
         $testGroupSize = 1
 
         $restResult = @"
@@ -73,20 +66,28 @@ Describe "Get-JiraGroup" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        Mock ConvertTo-JiraGroup { $InputObject }
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        #############
-        # Tests
-        #############
+    #############
+    # Tests
+    #############
 
-        It "Gets information about a provided Jira group" {
-            $getResult = Get-JiraGroup -GroupName $testGroupName
-            $getResult | Should Not BeNullOrEmpty
+    It "Gets information about a provided Jira group" {
+        $getResult = Get-JiraGroup -GroupName $testGroupName
+        $getResult | Should -Not -BeNullOrEmpty
+    }
+
+    It "Uses ConvertTo-JiraGroup to beautify output" {
+        Mock ConvertTo-JiraGroup -ModuleName JiraPS {
+            $InputObject
         }
-
-        It "Uses ConvertTo-JiraGroup to beautify output" {
-            Assert-MockCalled 'ConvertTo-JiraGroup'
-        }
+        Get-JiraGroup -GroupName $testGroupName
+        Should -Invoke 'ConvertTo-JiraGroup' -ModuleName JiraPS -Times 1 -Exactly
     }
 }

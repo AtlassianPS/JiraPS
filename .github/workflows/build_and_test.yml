@@ -17,10 +17,10 @@ jobs:
     name: Build Module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -28,13 +28,13 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Build
         shell: pwsh
         run: |
           Invoke-Build -Task Clean, Build
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Release
           path: ./Release/
@@ -44,15 +44,15 @@ jobs:
     needs: build_module
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -60,13 +60,13 @@ jobs:
         shell: powershell
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: powershell
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ runner.os }}v5-Unit-Tests
           path: Test*.xml
@@ -77,15 +77,15 @@ jobs:
     needs: build_module
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -93,13 +93,13 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: pwsh
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ runner.os }}v7-Unit-Tests
           path: Test*.xml
@@ -110,15 +110,15 @@ jobs:
     needs: build_module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -126,13 +126,13 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: pwsh
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ runner.os }}-Unit-Tests
           path: Test*.xml
@@ -143,15 +143,15 @@ jobs:
     needs: build_module
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -159,13 +159,13 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: pwsh
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ runner.os }}-Unit-Tests
           path: Test*.xml
@@ -180,15 +180,15 @@ jobs:
     needs: build_module
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Download
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: Release
           path: ./Release/
       - name: Setup PowerShell module cache
         id: cacher
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: "~/.local/share/powershell/Modules"
           key: ${{ runner.os }}-PSModules
@@ -196,14 +196,14 @@ jobs:
         shell: pwsh
         run: |
           ./Tools/setup.ps1
-          Invoke-Build -Task ShowInfo
+          Invoke-Build -Task ShowDebugInfo
       - name: Test
         shell: pwsh
         run: |
           Invoke-Build -Task Test -Tag "Integration" -ExcludeTag ""
         if: ${{ env.JiraURI != '' }}
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ runner.os }}-Unit-Tests
           path: Test*.xml

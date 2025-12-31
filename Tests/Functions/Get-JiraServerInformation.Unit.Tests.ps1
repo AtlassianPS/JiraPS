@@ -1,5 +1,5 @@
 #requires -modules BuildHelpers
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "4.4.0" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7.1" }
 
 Describe "Get-JiraServerInformation" -Tag 'Unit' {
 
@@ -26,15 +26,8 @@ Describe "Get-JiraServerInformation" -Tag 'Unit' {
 
         Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
         Import-Module $env:BHManifestToTest
-    }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
 
-    InModuleScope JiraPS {
-
+        # helpers used by tests (defParam / ShowMockInfo)
         . "$PSScriptRoot/../Shared.ps1"
 
         $jiraServer = 'http://jiraserver.example.com'
@@ -66,21 +59,27 @@ Describe "Get-JiraServerInformation" -Tag 'Unit' {
             ShowMockInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             throw "Unidentified call to Invoke-JiraMethod"
         }
+    }
 
-        #############
-        # Tests
-        #############
+    AfterAll {
+        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
+        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
+        Remove-Item -Path Env:\BH*
+    }
 
-        It "Returns the server information" {
-            $allResults = Get-JiraServerInformation
-            $allResults | Should Not BeNullOrEmpty
-            @($allResults).Count | Should Be @(ConvertFrom-Json -InputObject $restResult).Count
-        }
+    #############
+    # Tests
+    #############
 
-        It "Answers to the alias 'Get-JiraServerInfo'" {
-            $thisAlias = (Get-Alias -Name "Get-JiraServerInfo")
-            $thisAlias.ResolvedCommandName | Should Be "Get-JiraServerInformation"
-            $thisAlias.ModuleName | Should Be "JiraPS"
-        }
+    It "Returns the server information" {
+        $allResults = Get-JiraServerInformation
+        $allResults | Should -Not -BeNullOrEmpty
+        @($allResults).Count | Should -Be @(ConvertFrom-Json -InputObject $restResult).Count
+    }
+
+    It "Answers to the alias 'Get-JiraServerInfo'" {
+        $thisAlias = (Get-Alias -Name "Get-JiraServerInfo")
+        $thisAlias.ResolvedCommandName | Should -Be "Get-JiraServerInformation"
+        $thisAlias.ModuleName | Should -Be "JiraPS"
     }
 }

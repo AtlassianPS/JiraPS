@@ -96,7 +96,8 @@ function Get-JiraIssue {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $searchURi = "$server/rest/api/2/search"
+        $searchURi_v3 = "$server/rest/api/3/search/jql"
+        $searchURi_v2 = "$server/rest/api/2/search"
         $resourceURi = "$server/rest/api/2/issue/{0}"
 
         [String]$Fields = $Fields -join ","
@@ -141,22 +142,25 @@ function Get-JiraIssue {
             }
             'ByJQL' {
                 $parameter = @{
-                    URI          = $searchURi
                     Method       = "GET"
                     GetParameter = @{
                         jql           = (ConvertTo-URLEncoded $Query)
                         validateQuery = $true
                         expand        = "transitions"
                         maxResults    = $PageSize
-
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
                     Credential   = $Credential
                 }
-                if ($Fields) {
-                    $parameter["GetParameter"]["fields"] = $Fields
+
+                if ($script:serverInformation.DeploymentType -eq "Cloud") {
+                    $parameter["URI"] = $searchURi_v3
                 }
+                else { $parameter["URI"] = $searchURi_v2 }
+
+                if ($Fields) { $parameter["GetParameter"]["fields"] = $Fields }
+
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
                     $parameter[$_] = $PSCmdlet.PagingParameters.$_
@@ -170,7 +174,6 @@ function Get-JiraIssue {
                     Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-MaxResults' has been marked as deprecated. For more information, plase read the help."
                     $parameter["First"] = $MaxResults
                 }
-
 
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod @parameter
