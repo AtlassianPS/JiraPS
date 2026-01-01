@@ -2,18 +2,14 @@
 
 Describe "Validation of build environment" -Tag Unit {
     BeforeAll {
-        . "$PSScriptRoot/Helpers/Resolve-ModuleSource.ps1"
-        . "$PSScriptRoot/Helpers/Resolve-ProjectRoot.ps1"
+        . "$PSScriptRoot/Helpers/TestTools.ps1"
+
+        Initialize-TestEnvironment
         $script:moduleToTest = Resolve-ModuleSource
         $script:moduleRoot = Resolve-ProjectRoot
-
-        Remove-Module PSIni -ErrorAction SilentlyContinue
-    }
-    AfterEach {
-        Remove-Module PSIni -ErrorAction SilentlyContinue
     }
 
-    Describe "CHANGELOG" {
+    Context "CHANGELOG" {
         BeforeAll {
             $changelogFile = "$moduleRoot/CHANGELOG.md"
 
@@ -27,7 +23,7 @@ Describe "Validation of build environment" -Tag Unit {
             # Example: ## [1.0] - 2023-01-01
             # or: <h2>[1.0]</h2>
             foreach ($line in (Get-Content $changelogFile)) {
-                if ($line -match "(?:##|\<h2.*?\>)\s*\[(?<Version>(\d+\.?){1,2})(\-(?<Prerelease>(?:alpha|beta|rc)\d*))?\]") {
+                if ($line -match "(?:##|\<h2.*?\>)\s*(?<Version>(\d+\.?){1,2})(\-(?<Prerelease>(?:alpha|beta|rc)\d*))?") {
                     $changelogVersion = $matches.Version
                     break
                 }

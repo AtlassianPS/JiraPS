@@ -11,7 +11,7 @@ function ConvertTo-JiraIssueLink {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
             $props = @{
-                'ID'   = $i.id
+                'Id'   = [int64]$i.id
                 'Type' = ConvertTo-JiraIssueLinkType $i.type
             }
 

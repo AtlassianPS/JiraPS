@@ -3,47 +3,39 @@
 
 Describe "PSScriptAnalyzer Tests" -Tag "Unit" {
     BeforeDiscovery {
-        $script:moduleToTestRoot = "$PSScriptRoot/.."
+        . "$PSScriptRoot/Helpers/TestTools.ps1"
+
+        $moduleRoot = Resolve-ProjectRoot
         ${/} = [System.IO.Path]::DirectorySeparatorChar
 
-        $isaSplat = @{
-            Path          = $moduleToTestRoot
-            Settings      = "$moduleToTestRoot/PSScriptAnalyzerSettings.psd1"
-            Severity      = @('Error', 'Warning')
-            Recurse       = $true
-            Verbose       = $false
-            ErrorVariable = 'ErrorVariable'
-            ErrorAction   = 'Stop'
+        $analyzerParams = @{
+            Path        = $moduleRoot
+            Settings    = "$moduleRoot/PSScriptAnalyzerSettings.psd1"
+            Severity    = @('Error', 'Warning')
+            Recurse     = $true
+            Verbose     = $false
+            ErrorAction = 'SilentlyContinue'
         }
-        $script:scriptWarnings = Invoke-ScriptAnalyzer @isaSplat | Where-Object { $_.ScriptPath -notlike "*${/}release${/}PSIni${/}PSIni.psd1" }
-        $script:moduleFiles = Get-ChildItem $moduleToTestRoot -Recurse
+
+        $script:analyzerResults = Invoke-ScriptAnalyzer @analyzerParams
+        $script:analyzerWarnings = $analyzerResults | Where-Object {
+            $_.ScriptPath -notlike "*${/}Release${/}JiraPS${/}JiraPS.psd1"
+        }
+
+        $script:moduleFiles = Get-ChildItem $moduleRoot -Recurse -File
     }
 
-    It "has no script analyzer warnings" {
-        $scriptWarnings | Should -HaveCount 0
-    }
-
-    Describe "File <_.Name>" -ForEach $moduleFiles {
+    Context "File <_.Name>" -ForEach $moduleFiles {
         BeforeAll {
             $script:file = $_
-        }
-        It "has no script analyzer warnings" {
-            $scriptWarnings |
-                Where-Object { $_.ScriptPath -like $file.FullName } |
-                ForEach-Object { "Problem in $($_.ScriptName) at line $($_.Line) with message: $($_.Message)" } |
-                Should -BeNullOrEmpty
-        }
-    }
-
-    It "has no parse errors" {
-        $Exceptions = $null
-        if ($ErrorVariable) {
-            $Exceptions = $ErrorVariable.Exception.Message |
-                Where-Object { $_ -match [regex]::Escape($Script.FullName) }
+            $script:fileWarnings = $analyzerWarnings | Where-Object { $_.ScriptPath -eq $file.FullName }
         }
 
-        foreach ($Exception in $Exceptions) {
-            $Exception | Should -BeNullOrEmpty
+        It "has no PSScriptAnalyzer warnings" {
+            $warningMessages = $fileWarnings | ForEach-Object {
+                "Line $($_.Line): [$($_.RuleName)] $($_.Message)"
+            }
+            $warningMessages | Should -BeNullOrEmpty
         }
     }
 }

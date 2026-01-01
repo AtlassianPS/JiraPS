@@ -1,3 +1,6 @@
+# THIS FILE IS DEPRECATED. PLEASE DO NOT MAKE ANY CHANGES HERE.
+# TODO: Migrate any useful functions to ./Tests/Helpers/TestTools.ps1
+
 #Requires -Modules Pester
 
 # Dot source this script in any Pester test script that requires the module to be imported.
@@ -71,14 +74,16 @@ function checkPsType($obj, $typeName) {
     }
 }
 
-function ShowMockInfo {
+function Write-MockDebuaagInfo {
+    # DEPRECATED
     [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', '')]
     param(
         $functionName,
         [String[]] $params
     )
-    if ($script:ShowMockData) { #TODO
+    if ($script:ShowMockData) {
+        #TODO
         Write-Host "       Mocked $functionName" -ForegroundColor Cyan
         foreach ($p in $params) {
             Write-Host "         [$p]  $(Get-Variable -Name $p -ValueOnly -ErrorAction SilentlyContinue)" -ForegroundColor Cyan

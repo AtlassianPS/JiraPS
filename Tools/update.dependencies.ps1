@@ -1,4 +1,6 @@
-﻿Import-Module $PSScriptRoot/BuildTools.psm1 -Force
+﻿#requires -modules Metadata
+
+Import-Module $PSScriptRoot/BuildTools.psm1 -Force
 Import-Module Metadata -Force
 
 $modules = Get-Dependency

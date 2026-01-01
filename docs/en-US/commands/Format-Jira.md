@@ -21,8 +21,8 @@ Format-Jira [-InputObject] <PSObject[]> [[-Property] <Object[]>] [<CommonParamet
 
 ## DESCRIPTION
 
-This function converts a PowerShell object into a table using JIRA's markdown syntax.
-This can then be added to a JIRA issue description or comment.
+Converts an object into a table formatted according to JIRA's markdown syntax.
+This cmdlet formats PowerShell objects as JIRA-compatible markdown tables that can be used in issue comments or descriptions.
 
 ## EXAMPLES
 

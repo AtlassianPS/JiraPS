@@ -2,9 +2,13 @@
 
 Describe "Style rules" -Tag "Unit" {
     BeforeAll {
-        $script:module = Join-Path $PSScriptRoot "..\JiraPS"
-        $script:codeFiles = Get-ChildItem $module -Include *.ps1, *.psm1 -Recurse
-        $script:docFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.md -Recurse
+        . "$PSScriptRoot/Helpers/TestTools.ps1"
+
+        $moduleRoot = Resolve-ProjectRoot
+        $modulePath = Join-Path $moduleRoot "JiraPS"
+
+        $script:codeFiles = Get-ChildItem $modulePath -Include *.ps1, *.psm1 -Recurse
+        $script:docFiles = Get-ChildItem $moduleRoot -Include *.md -Recurse
     }
 
     It "has no trailing whitespace in code files" {
@@ -22,7 +26,7 @@ Describe "Style rules" -Tag "Unit" {
         )
 
         if ($badLines.Count -gt 0) {
-            throw "The following $($badLines.Count) lines contain trailing whitespace: `r`n`r`n$($badLines -join "`r`n")"
+            throw "The following $($badLines.Count) lines contain trailing whitespace:`n  $($badLines -join "`n  ")"
         }
     }
 
@@ -37,7 +41,7 @@ Describe "Style rules" -Tag "Unit" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files do not end with a newline: `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files do not end with a newline:`n  $($badFiles -join "`n  ")"
         }
     }
 
@@ -52,7 +56,7 @@ Describe "Style rules" -Tag "Unit" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files are not encoded with UTF-8 (no BOM): `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files are not encoded with UTF-8 (no BOM):`n  $($badFiles -join "`n  ")"
         }
     }
 
@@ -67,7 +71,7 @@ Describe "Style rules" -Tag "Unit" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files are not encoded with UTF-8 (no BOM): `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files are not encoded with UTF-8 (no BOM):`n  $($badFiles -join "`n  ")"
         }
     }
 
@@ -82,7 +86,7 @@ Describe "Style rules" -Tag "Unit" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files do not use CRLF as line break: `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files do not use CRLF as line break:`n  $($badFiles -join "`n  ")"
         }
     }
 
@@ -97,7 +101,7 @@ Describe "Style rules" -Tag "Unit" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files do not use CRLF as line break: `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files do not use CRLF as line break:`n  $($badFiles -join "`n  ")"
         }
     }
 }

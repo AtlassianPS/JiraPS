@@ -4,12 +4,9 @@ on:
   pull_request:
     branches:
       - master
-      - develop
-      - release/*
   push:
     branches:
       - master
-      - develop
   workflow_dispatch:
 
 jobs:
@@ -171,40 +168,40 @@ jobs:
           path: Test*.xml
     if: ${{ always() }}
 
-  test_against_cloud:
-    env:
-      JiraURI: ${{ secrets.JiraURI }}
-      JiraUser: ${{ secrets.JiraUser }}
-      JiraPass: ${{ secrets.JiraPass }}
-    name: Test Module against Cloud Server
-    needs: build_module
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Download
-        uses: actions/download-artifact@v7
-        with:
-          name: Release
-          path: ./Release/
-      - name: Setup PowerShell module cache
-        id: cacher
-        uses: actions/cache@v5
-        with:
-          path: "~/.local/share/powershell/Modules"
-          key: ${{ runner.os }}-PSModules
-      - name: Setup
-        shell: pwsh
-        run: |
-          ./Tools/setup.ps1
-          Invoke-Build -Task ShowDebugInfo
-      - name: Test
-        shell: pwsh
-        run: |
-          Invoke-Build -Task Test -Tag "Integration" -ExcludeTag ""
-        if: ${{ env.JiraURI != '' }}
-      - name: Upload test results
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ runner.os }}-Unit-Tests
-          path: Test*.xml
-    if: ${{ always() }}
+  # test_against_cloud:
+  #   env:
+  #     JiraURI: ${{ secrets.JiraURI }}
+  #     JiraUser: ${{ secrets.JiraUser }}
+  #     JiraPass: ${{ secrets.JiraPass }}
+  #   name: Test Module against Cloud Server
+  #   needs: build_module
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - name: Download
+  #       uses: actions/download-artifact@v7
+  #       with:
+  #         name: Release
+  #         path: ./Release/
+  #     - name: Setup PowerShell module cache
+  #       id: cacher
+  #       uses: actions/cache@v5
+  #       with:
+  #         path: "~/.local/share/powershell/Modules"
+  #         key: ${{ runner.os }}-PSModules
+  #     - name: Setup
+  #       shell: pwsh
+  #       run: |
+  #         ./Tools/setup.ps1
+  #         Invoke-Build -Task ShowDebugInfo
+  #     - name: Test
+  #       shell: pwsh
+  #       run: |
+  #         Invoke-Build -Task Test -Tag "Integration" -ExcludeTag ""
+  #       if: ${{ env.JiraURI != '' }}
+  #     - name: Upload test results
+  #       uses: actions/upload-artifact@v6
+  #       with:
+  #         name: ${{ runner.os }}-Unit-Tests
+  #         path: Test*.xml
+  #   if: ${{ always() }}

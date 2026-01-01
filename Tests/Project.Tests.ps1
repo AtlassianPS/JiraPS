@@ -1,45 +1,70 @@
 #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
+BeforeDiscovery {
+    . "$PSScriptRoot/Helpers/TestTools.ps1"
+
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+    $script:moduleRoot = Resolve-ProjectRoot
+
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+}
+
 Describe "General project validation" -Tag Unit {
-    BeforeAll {
-        . "$PSScriptRoot/Helpers/Resolve-ModuleSource.ps1"
-        . "$PSScriptRoot/Helpers/Resolve-ProjectRoot.ps1"
-        $script:moduleToTest = Resolve-ModuleSource
+    BeforeDiscovery {
+        $script:module = Get-Module 'JiraPS'
 
-        $dependentModules = Get-Module | Where-Object { $_.RequiredModules.Name -eq 'JiraPS' }
-    $dependentModules, "JiraPS" | Remove-Module -Force -ErrorAction SilentlyContinue
-        Import-Module $moduleToTest -Force -ErrorAction Stop
-
-        $script:module = Get-Module JiraPS
-        $script:moduleRoot = Resolve-ProjectRoot
+        $manifestPath = $script:moduleToTest
         $script:testFiles = Get-ChildItem $PSScriptRoot -Include "*.Tests.ps1" -Recurse
-        $script:publicFunctionFiles = $module.ExportedFunctions.Keys
-        $script:privateFunctionFiles = $module.Invoke({ Get-Command -Module JiraPS | Where-Object { $_.Name -notin $publicFunctionFiles } }).Name
+
+        $script:publicFunctionFiles = (Get-ChildItem "$moduleRoot/JiraPS/Public/*.ps1").BaseName
+        $script:privateFunctionFiles = (Get-ChildItem "$moduleRoot/JiraPS/Private/*.ps1").BaseName
+
+        $manifestData = Import-PowerShellDataFile -Path $manifestPath
+        $script:exportedFunctionNames = $manifestData.FunctionsToExport
     }
 
     Describe "Public functions" {
-        It "has a test file for <BaseName>" -TestCases $publicFunctionFiles {
-            $expectedTestFile = "$BaseName.Unit.Tests.ps1"
-            $testFiles.Name | Should -Contain $expectedTestFile
-        }
+        Context "Function <_>" -ForEach $publicFunctionFiles {
+            BeforeAll {
+                $script:functionName = $_
+            }
+            It "has a test file" {
+                $expectedTestFile = "$functionName.Unit.Tests.ps1"
+                $testFiles.Name | Should -Contain $expectedTestFile
+            }
 
-        It "exports <BaseName>" -TestCases $publicFunctionFiles {
-            $expectedFunctionName = $BaseName
-            $module.ExportedCommands.keys | Should -Contain $expectedFunctionName
+            It "is exported" {
+                $exportedFunctionNames | Should -Contain $functionName
+            }
         }
     }
 
     Describe "Private functions" {
-        # TODO: have one test file for each private function
-        <# It "has a test file for <BaseName>" -TestCases $privateFunctionFiles {
+        It "has private functions" {
+            $privateFunctionFiles.Count | Should -BeGreaterThan 0
+        }
+
+        Context "Function <_>" -ForEach $privateFunctionFiles {
+            BeforeAll {
+                $script:functionName = $_
+            }
+            # TODO: have one test file for each private function
+            <# It "has a test file for <BaseName>" -TestCases $privateFunctionFiles {
                 param($BaseName)
                 $expectedTestFile = "$BaseName.Unit.Tests.ps1"
                 $testFiles.Name | Should -Contain $expectedTestFile
             } #>
 
-        It "does not export <BaseName>" -TestCases $privateFunctionFiles {
-            $expectedFunctionName = $BaseName
-            $module.ExportedCommands.keys | Should -Not -Contain $expectedFunctionName
+            It "is loaded in the module" {
+                $commandInModule = $module.Invoke({ Get-Command -Name $args[0] -ErrorAction SilentlyContinue }, $functionName)
+
+                $commandInModule | Should -Not -BeNullOrEmpty -Because "private function '$functionName' should be loaded"
+            }
+
+            It "is not exported" {
+                $exportedFunctionNames | Should -Not -Contain $functionName
+            }
         }
     }
 
@@ -64,11 +89,9 @@ Describe "General project validation" -Tag Unit {
 #>
 
     Describe "Project stucture" {
-        It "has all the public functions as a file in 'JiraPS/Public'" {
-            $publicFunctions = (Get-Module -Name JiraPS).ExportedFunctions.Keys
-
-            foreach ($function in $publicFunctions) {
-                (Get-ChildItem "$moduleRoot/JiraPS/Public").BaseName | Should -Contain $function
+        It "only exports functions from the Public folder" {
+            foreach ($exportedFunctionName in $exportedFunctionNames) {
+                $publicFunctionFiles | Should -Contain $exportedFunctionName -Because "exported function '$exportedFunctionName' should have a corresponding file in JiraPS/Public/"
             }
         }
     }
