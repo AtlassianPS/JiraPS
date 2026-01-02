@@ -11,7 +11,7 @@ function ConvertTo-JiraPriority {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
             $props = @{
-                'ID'          = $i.id
+                'ID'          = [int64]$i.id
                 'Name'        = $i.name
                 'Description' = $i.description
                 'StatusColor' = $i.statusColor

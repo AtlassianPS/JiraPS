@@ -11,7 +11,7 @@ function ConvertTo-JiraTransition {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
             $props = @{
-                'ID'           = $i.id
+                'ID'           = [int64]$i.id
                 'Name'         = $i.name
                 'ResultStatus' = ConvertTo-JiraStatus -InputObject $i.to
             }

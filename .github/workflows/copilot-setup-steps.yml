@@ -1,0 +1,20 @@
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Poweshell Dependencies
+        shell: pwsh
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowInfo

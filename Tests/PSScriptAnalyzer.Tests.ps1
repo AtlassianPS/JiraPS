@@ -1,68 +1,41 @@
-#requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 #requires -modules PSScriptAnalyzer
-BeforeDiscovery {
-    $scriptAnalyzerPaths = Get-ChildItem $env:BHModulePath -Include *.ps1, *.psm1 -Recurse |
-        ForEach-Object {
-        $relPath = $_.FullName.Replace($env:BHProjectPath, '') -replace '^\\', ''
-        @{
-            Path = $_.FullName
-            RelPath = $relPath
-        }
-    }
-}
 
-Describe "PSScriptAnalyzer Tests" -Tag Unit {
-    BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
+Describe "PSScriptAnalyzer Tests" -Tag "Unit" {
+    BeforeDiscovery {
+        . "$PSScriptRoot/Helpers/TestTools.ps1"
+
+        $moduleRoot = Resolve-ProjectRoot
+        ${/} = [System.IO.Path]::DirectorySeparatorChar
+
+        $analyzerParams = @{
+            Path        = $moduleRoot
+            Settings    = "$moduleRoot/PSScriptAnalyzerSettings.psd1"
+            Severity    = @('Error', 'Warning')
+            Recurse     = $true
+            Verbose     = $false
+            ErrorAction = 'SilentlyContinue'
         }
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
+        $script:analyzerResults = Invoke-ScriptAnalyzer @analyzerParams
+        $script:analyzerWarnings = $analyzerResults | Where-Object {
+            $_.ScriptPath -notlike "*${/}Release${/}JiraPS${/}JiraPS.psd1"
         }
 
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        # Import-Module $env:BHManifestToTest
-        $settingsPath = if ($script:isBuild) {
-            "$env:BHBuildOutput/PSScriptAnalyzerSettings.psd1"
-        }
-        else {
-            "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
-        }
-
-        $Params = @{
-            Settings      = $settingsPath
-            Severity      = @('Error', 'Warning')
-            Verbose       = $false
-            ErrorVariable = 'ErrorVariable'
-            ErrorAction   = 'SilentlyContinue'
-        }
+        $script:moduleFiles = Get-ChildItem $moduleRoot -Recurse -File
     }
 
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
+    Context "File <_.Name>" -ForEach $moduleFiles {
+        BeforeAll {
+            $script:file = $_
+            $script:fileWarnings = $analyzerWarnings | Where-Object { $_.ScriptPath -eq $file.FullName }
+        }
 
-
-    Context "PS Script Analyzer" {
-        It "<RelPath>" -ForEach ($scriptAnalyzerPaths) {
-            $results = Invoke-ScriptAnalyzer @Params -Path $Path
-            $results | Should -BeNullOrEmpty
+        It "has no PSScriptAnalyzer warnings" {
+            $warningMessages = $fileWarnings | ForEach-Object {
+                "Line $($_.Line): [$($_.RuleName)] $($_.Message)"
+            }
+            $warningMessages | Should -BeNullOrEmpty
         }
     }
 }
