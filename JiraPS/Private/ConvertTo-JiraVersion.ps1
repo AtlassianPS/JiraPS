@@ -10,11 +10,18 @@ function ConvertTo-JiraVersion {
         foreach ($i in $InputObject) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
+            # Convert Description from ADF to plain text for API v3 compatibility
+            $descriptionText = if ($i.description) {
+                ConvertFrom-AtlassianDocumentFormat -InputObject $i.description
+            } else {
+                $null
+            }
+
             $props = @{
                 'ID'          = $i.id
                 'Project'     = $i.projectId
                 'Name'        = $i.name
-                'Description' = $i.description
+                'Description' = $descriptionText
                 'Archived'    = $i.archived
                 'Released'    = $i.released
                 'Overdue'     = $i.overdue

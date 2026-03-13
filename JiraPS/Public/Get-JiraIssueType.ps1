@@ -17,7 +17,7 @@ function Get-JiraIssueType {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/issuetype"
+        $resourceURi = "$server/rest/api/3/issuetype"
     }
 
     process {

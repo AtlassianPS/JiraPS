@@ -10,10 +10,17 @@ function ConvertTo-JiraIssueType {
         foreach ($i in $InputObject) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
+            # Convert Description from ADF to plain text for API v3 compatibility
+            $descriptionText = if ($i.description) {
+                ConvertFrom-AtlassianDocumentFormat -InputObject $i.description
+            } else {
+                $null
+            }
+
             $props = @{
                 'ID'          = $i.id
                 'Name'        = $i.name
-                'Description' = $i.description
+                'Description' = $descriptionText
                 'IconUrl'     = $i.iconUrl
                 'RestUrl'     = $i.self
                 'Subtask'     = [System.Convert]::ToBoolean($i.subtask)

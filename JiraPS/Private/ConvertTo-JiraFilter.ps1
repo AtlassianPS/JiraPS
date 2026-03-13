@@ -33,7 +33,8 @@ function ConvertTo-JiraFilter {
             }
 
             if ($i.description) {
-                $props.Description = $i.description
+                # Convert Description from ADF to plain text for API v3 compatibility
+                $props.Description = ConvertFrom-AtlassianDocumentFormat -InputObject $i.description
             }
 
             if ($i.owner) {
