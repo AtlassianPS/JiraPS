@@ -2,7 +2,7 @@ function Add-JiraIssueAttachment {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
-        [Parameter( Mandatory )]
+        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
@@ -27,10 +27,6 @@ function Add-JiraIssueAttachment {
         [Alias('Key')]
         [Object]
         $Issue,
-        <#
-          #ToDo:CustomClass
-          Once we have custom classes, this can also accept ValueFromPipeline
-        #>
 
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateScript(
