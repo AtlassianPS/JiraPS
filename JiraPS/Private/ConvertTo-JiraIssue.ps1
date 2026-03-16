@@ -26,13 +26,20 @@ function ConvertTo-JiraIssue {
 
             $http = "{0}browse/$($i.key)" -f ($InputObject.self -split 'rest')[0]
 
+            # Convert Description from ADF to plain text for API v3 compatibility
+            $descriptionText = if ($i.fields.description) {
+                ConvertFrom-AtlassianDocumentFormat -InputObject $i.fields.description
+            } else {
+                $null
+            }
+
             $props = @{
                 'ID'          = $i.id
                 'Key'         = $i.key
                 'HttpUrl'     = $http
                 'RestUrl'     = $i.self
                 'Summary'     = $i.fields.summary
-                'Description' = $i.fields.description
+                'Description' = $descriptionText
                 'Status'      = $i.fields.status.name
             }
 
@@ -89,7 +96,16 @@ function ConvertTo-JiraIssue {
             $extraFields = $i.fields.PSObject.Properties | Where-Object -FilterScript { $_.Name -notin $props.Keys }
             foreach ($f in $extraFields) {
                 $name = $f.Name
-                $props[$name] = $f.Value
+                # Try to convert from ADF if it's an ADF object (has type='doc')
+                # This handles custom fields that may contain ADF formatted text
+                if ($f.Value -and
+                    $f.Value -is [PSCustomObject] -and
+                    $f.Value.PSObject.Properties['type'] -and
+                    $f.Value.type -eq 'doc') {
+                    $props[$name] = ConvertFrom-AtlassianDocumentFormat -InputObject $f.Value
+                } else {
+                    $props[$name] = $f.Value
+                }
             }
 
             $result = New-Object -TypeName PSObject -Property $props

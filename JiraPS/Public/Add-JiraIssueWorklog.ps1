@@ -78,8 +78,9 @@ function Add-JiraIssueWorklog {
         # which is required by the API
         $DateStarted = [DateTime]::new($DateStarted.Ticks, 'Local')
 
+        # API v3 requires comment in Atlassian Document Format (ADF)
         $requestBody = @{
-            'comment'          = $Comment
+            'comment'          = ConvertTo-AtlassianDocumentFormat -PlainText $Comment
             # We need to fix the date with a RegEx replace because the API does not like:
             # * miliseconds with more than 3 digits
             # * `:` in the TimeZone

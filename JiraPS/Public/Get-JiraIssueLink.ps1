@@ -17,7 +17,7 @@ function Get-JiraIssueLink {
 
         $server = Get-JiraConfigServer -ErrorAction Stop
 
-        $resourceURi = "$server/rest/api/2/issueLink/{0}"
+        $resourceURi = "$server/rest/api/3/issueLink/{0}"
     }
 
     process {

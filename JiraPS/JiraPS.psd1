@@ -22,7 +22,7 @@
     Copyright         = '(c) 2017 AtlassianPS. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description       = 'Windows PowerShell module to interact with Atlassian JIRA'
+    Description       = 'Windows PowerShell module to interact with Atlassian JIRA (API v3)'
 
     # Minimum version of the Windows PowerShell engine required by this module
     PowerShellVersion = '3.0'

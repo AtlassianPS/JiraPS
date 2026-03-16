@@ -56,8 +56,9 @@ function Add-JiraIssueComment {
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
+        # API v3 requires comment body in Atlassian Document Format (ADF)
         $requestBody = @{
-            'body' = $Comment
+            'body' = ConvertTo-AtlassianDocumentFormat -PlainText $Comment
         }
 
         # If the visible role should be all users, the visibility block shouldn't be passed at
