@@ -73,14 +73,14 @@ function Add-JiraIssueComment {
         $parameter = @{
             URI        = $resourceURi -f $issueObj.RestURL
             Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $requestBody
+            Body       = ConvertTo-Json -InputObject $requestBody -Depth 10
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
             $rawResult = Invoke-JiraMethod @parameter
 
-            Write-Output (ConvertTo-JiraComment -InputObject $rawResult)
+            Write-Output (ConvertTo-JiraComponent -InputObject $rawResult)
         }
     }
 
