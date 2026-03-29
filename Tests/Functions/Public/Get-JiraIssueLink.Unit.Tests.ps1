@@ -103,7 +103,7 @@ InModuleScope JiraPS {
             }
 
             It 'Fails if input from the pipeline is of the wrong type' {
-                { [PSCustomObject]@{id = $issueLinkId } | Get-JiraIssueLink } | Should -Throw
+                { [PSCustomObject]@{id = $issueLinkId } | Get-JiraIssueLink } | Should -Throw -ExpectedMessage "*Invalid Parameter*"
             }
         }
 
