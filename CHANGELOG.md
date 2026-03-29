@@ -1,5 +1,26 @@
 # Change Log
 
+## Unreleased
+
+### Added
+
+- Added Jira Cloud vs Data Center compatibility guidance for Copilot code review (#568, [@lipkau])
+
+### Changed
+
+- Modernized test infrastructure and standardized helper utilities (#549, [@copilot])
+- Removed redundant `-Scope It` from all test assertions (#562, [@lipkau])
+- Simplified `Should -Invoke` assertions in attachment tests (#563, [@lipkau])
+- Added `-ExpectedMessage` to all bare `Should -Throw` assertions (#564, [@lipkau])
+- Used `-ErrorVariable` to inspect non-terminating error in `Remove-JiraIssue` test (#565, [@lipkau])
+- Bumped `actions/upload-artifact` from 6 to 7 (#557)
+- Bumped `actions/download-artifact` from 7 to 8 (#559)
+- Bumped `dawidd6/action-download-artifact` from 12 to 19 (#560, #561)
+
+### Fixed
+
+- Fixed typos and casing errors in test assertions and fixtures (#566, [@lipkau])
+
 ## 2.15 - 2025-12-30
 
 ### Added
@@ -383,6 +404,7 @@ which is in turn inspired by the [Vagrant](https://github.com/mitchellh/vagrant/
 [@brianbunke]: https://github.com/brianbunke
 [@clijsters]: https://github.com/Clijsters
 [@colhal]: https://github.com/colhal
+[@copilot]: https://github.com/copilot
 [@ctolan]: https://github.com/ctolan
 [@dejulia489]: https://github.com/Dejulia489
 [@ebekker]: https://github.com/ebekker
