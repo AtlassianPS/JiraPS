@@ -4,10 +4,15 @@ function Add-JiraIssueLink {
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
+        [ValidateScript({
+                if (
+                    ("JiraPS.Issue" -in $_.PSObject.TypeNames) -or
+                    (($_ -is [String]))
+                ) {
+                    return $true
+                }
+                else {
+                    $exception = ([System.ArgumentException]"Invalid Type for Parameter")
                     $errorId = 'ParameterType.NotJiraIssue'
                     $errorCategory = 'InvalidArgument'
                     $errorTarget = $_
@@ -19,24 +24,25 @@ function Add-JiraIssueLink {
                       Once we have custom classes, this check can be done with Type declaration
                     #>
                 }
-                else {
-                    return $true
-                }
-            }
-        )]
+            })]
         [Alias('Key')]
         [Object[]]
         $Issue,
 
         [Parameter( Mandatory )]
-        [ValidateScript(
-            {
+        [ValidateScript({
                 $objectProperties = Get-Member -InputObject $_ -MemberType *Property
-                if (-not(
-                        ($objectProperties.Name -contains "type") -and
-                        (($objectProperties.Name -contains "outwardIssue") -or ($objectProperties.Name -contains "inwardIssue"))
-                    )) {
-                    $exception = ([System.ArgumentException]"Invalid Parameter") #fix code highlighting]
+                if (
+                    ($objectProperties.Name -contains "type") -and
+                    (
+                        ($objectProperties.Name -contains "outwardIssue") -or
+                        ($objectProperties.Name -contains "inwardIssue")
+                    )
+                ) {
+                    return $true
+                }
+                else {
+                    $exception = ([System.ArgumentException]"Invalid Parameter")
                     $errorId = 'ParameterProperties.Incomplete'
                     $errorCategory = 'InvalidArgument'
                     $errorTarget = $_
@@ -48,11 +54,7 @@ function Add-JiraIssueLink {
                       Once we have custom classes, this check can be done with Type declaration
                     #>
                 }
-                else {
-                    return $true
-                }
-            }
-        )]
+            })]
         [Object[]]
         $IssueLink,
 
@@ -79,7 +81,7 @@ function Add-JiraIssueLink {
 
         foreach ($_issue in $Issue) {
             # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential -ErrorAction Stop
 
             foreach ($_issueLink in $IssueLink) {
                 if ($_issueLink.inwardIssue) {

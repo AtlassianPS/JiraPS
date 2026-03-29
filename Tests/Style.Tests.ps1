@@ -1,41 +1,15 @@
-#requires -modules BuildHelpers
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
-Describe "Validation of code styling" {
-
+Describe "Style rules" -Tag "Unit" {
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        . "$PSScriptRoot/Helpers/TestTools.ps1"
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
+        $moduleRoot = Resolve-ProjectRoot
+        $modulePath = Join-Path $moduleRoot "JiraPS"
 
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        # Import-Module $env:BHManifestToTest
-
-        $docFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.md -Recurse
-        $codeFiles = Get-ChildItem "$PSScriptRoot/.." -Include *.ps1, *.psm1 -Recurse
+        $script:codeFiles = Get-ChildItem $modulePath -Include *.ps1, *.psm1 -Recurse
+        $script:docFiles = Get-ChildItem $moduleRoot -Include *.md -Recurse
     }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
 
     It "has no trailing whitespace in code files" {
         $badLines = @(
@@ -52,7 +26,7 @@ Describe "Validation of code styling" {
         )
 
         if ($badLines.Count -gt 0) {
-            throw "The following $($badLines.Count) lines contain trailing whitespace: `r`n`r`n$($badLines -join "`r`n")"
+            throw "The following $($badLines.Count) lines contain trailing whitespace:`n  $($badLines -join "`n  ")"
         }
     }
 
@@ -67,7 +41,7 @@ Describe "Validation of code styling" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files do not end with a newline: `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files do not end with a newline:`n  $($badFiles -join "`n  ")"
         }
     }
 
@@ -82,9 +56,10 @@ Describe "Validation of code styling" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files are not encoded with UTF-8 (no BOM): `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files are not encoded with UTF-8 (no BOM):`n  $($badFiles -join "`n  ")"
         }
     }
+
     It "uses UTF-8 for documentation files" {
         $badFiles = @(
             foreach ($file in $docFiles) {
@@ -96,7 +71,7 @@ Describe "Validation of code styling" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files are not encoded with UTF-8 (no BOM): `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files are not encoded with UTF-8 (no BOM):`n  $($badFiles -join "`n  ")"
         }
     }
 
@@ -111,22 +86,22 @@ Describe "Validation of code styling" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files do not use CRLF as line break: `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files do not use CRLF as line break:`n  $($badFiles -join "`n  ")"
         }
     }
 
-    It "uses CRLF as newline character in documentation files" {
+    It "uses LF as newline character in documentation files" {
         $badFiles = @(
             foreach ($file in $docFiles) {
                 $string = [System.IO.File]::ReadAllText($file.FullName)
-                if ($string.Length -gt 0 -and $string -notmatch "\r\n$") {
+                if ($string.Length -gt 0 -and $string -notmatch "\n$") {
                     $file.FullName
                 }
             }
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files do not use CRLF as line break: `r`n`r`n$($badFiles -join "`r`n")"
+            throw "The following files do not use CRLF as line break:`n  $($badFiles -join "`n  ")"
         }
     }
 }

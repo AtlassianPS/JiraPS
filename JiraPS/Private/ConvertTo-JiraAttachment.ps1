@@ -12,11 +12,11 @@ function ConvertTo-JiraAttachment {
 
             $props = @{
                 'ID'        = $i.id
-                'Self'      = $i.self
+                'Self'      = $i.self # TODO: check if it should be called RestUrl (do not rename to avoid breaking change)
                 'FileName'  = $i.FileName
                 'Author'    = ConvertTo-JiraUser -InputObject $i.Author
                 'Created'   = Get-Date -Date ($i.created)
-                'Size'      = ([Int]$i.size)
+                'Size'      = [int64]$i.size
                 'MimeType'  = $i.mimeType
                 'Content'   = $i.content
                 'Thumbnail' = $i.thumbnail

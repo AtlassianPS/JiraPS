@@ -13,6 +13,9 @@
     "[shellscript]": {
         "files.eol": "\n"
     },
+    "files.associations": {
+        "*.ps1.template": "powershell"
+    },
     "[markdown]": {
         "editor.tabSize": 2,
         "editor.trimAutoWhitespace": false,
@@ -33,9 +36,7 @@
             "path": "./.spelling"
         }
     ],
-    "cSpell.dictionaries": [
-        "customDictionary"
-    ],
+    "cSpell.dictionaries": ["customDictionary"],
     "cSpell.language": "en"
     // Recomendations for "USER SETTINGS":
     // "editor.formatOnType": true,

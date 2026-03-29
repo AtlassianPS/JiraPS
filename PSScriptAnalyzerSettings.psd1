@@ -109,5 +109,10 @@
         PSUseCorrectCasing         = @{
             Enable = $true
         }
+
+        PSAvoidUsingCmdletAliases  = @{
+            Enable    = $true
+            Whitelist = @('Task')
+        }
     }
 }

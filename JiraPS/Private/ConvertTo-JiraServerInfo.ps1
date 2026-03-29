@@ -12,7 +12,6 @@ function ConvertTo-JiraServerInfo {
 
             $props = @{
                 'BaseURL'        = $i.baseUrl
-                # With PoSh v6, the version shall be casted to [SemanticVersion]
                 'Version'        = $i.version
                 'DeploymentType' = $i.deploymentType
                 'BuildNumber'    = $i.buildNumber
