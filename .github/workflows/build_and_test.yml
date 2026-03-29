@@ -31,7 +31,7 @@ jobs:
         run: |
           Invoke-Build -Task Clean, Build
       - name: Upload Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Release
           path: ./Release/
@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Download
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: Release
           path: ./Release/
@@ -63,7 +63,7 @@ jobs:
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ runner.os }}v5-Unit-Tests
           path: Test*.xml
@@ -76,7 +76,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Download
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: Release
           path: ./Release/
@@ -96,7 +96,7 @@ jobs:
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ runner.os }}v7-Unit-Tests
           path: Test*.xml
@@ -109,7 +109,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Download
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: Release
           path: ./Release/
@@ -129,7 +129,7 @@ jobs:
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ runner.os }}-Unit-Tests
           path: Test*.xml
@@ -142,7 +142,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Download
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: Release
           path: ./Release/
@@ -162,7 +162,7 @@ jobs:
         run: |
           Invoke-Build -Task Test
       - name: Upload test results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ runner.os }}-Unit-Tests
           path: Test*.xml
