@@ -148,10 +148,10 @@ InModuleScope JiraPS {
                 $commentResult | Should -Not -BeNullOrEmpty
 
                 # Get-JiraIssue should be used to identify the issue parameter
-                Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
 
                 # Invoke-JiraMethod should be used to add the comment
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "formats DateStarted independetly of the input" {
@@ -161,7 +161,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                     $Body -match '"started":\s*"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[\+\-]\d{4}"'
-                } -Exactly -Times 3 -Scope It
+                } -Exactly -Times 3
             }
         }
 
@@ -172,8 +172,8 @@ InModuleScope JiraPS {
                     $commentResult | Should -Not -BeNullOrEmpty
 
                     # Get-JiraIssue should be called once here to fetch the initial test issue
-                    Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 

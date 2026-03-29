@@ -114,8 +114,8 @@ InModuleScope JiraPS {
                 It "performs a transition when given an issue key and transition ID" {
                     { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 } | Should -Not -Throw
 
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "performs a transition when given an issue object and transition object" {
@@ -124,8 +124,8 @@ InModuleScope JiraPS {
                     { Invoke-JiraIssueTransition -Issue $issue -Transition $transition } | Should -Not -Throw
 
                     # Get-JiraIssue called once in test setup, once in Invoke-JiraIssueTransition
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 
@@ -143,12 +143,12 @@ InModuleScope JiraPS {
                         Invoke-JiraIssueTransition @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
                         $Body -like '*customfield_12345*set*foo*'
                     }
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
                         $Body -like '*customfield_67890*set*bar*'
@@ -165,7 +165,7 @@ InModuleScope JiraPS {
                     }
                     { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'powershell-user' } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
                         $Body -like '*name*powershell-user*'
@@ -175,7 +175,7 @@ InModuleScope JiraPS {
                 It "unassigns an issue if 'Unassigned' is passed to the -Assignee parameter" {
                     { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'Unassigned' } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
                         $Body -like '*name*""*'
@@ -185,7 +185,7 @@ InModuleScope JiraPS {
                 It "adds a comment if provided to the -Comment parameter" {
                     { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Comment 'test comment' } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
                         $Body -like '*body*test comment*'
@@ -199,7 +199,7 @@ InModuleScope JiraPS {
                     $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Passthru
                     $result | Should -Not -BeNullOrEmpty
 
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 4 -Scope It
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 4
                 }
 
                 It "does not return a value when -Passthru is omitted" {
@@ -207,7 +207,7 @@ InModuleScope JiraPS {
                     $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11
                     $result | Should -BeNullOrEmpty
 
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
                 }
             }
         }
@@ -217,8 +217,8 @@ InModuleScope JiraPS {
                 It "handles pipeline input from Get-JiraIssue" {
                     { Get-JiraIssue -Key $issueKey | Invoke-JiraIssueTransition -Transition 11 } | Should -Not -Throw
 
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
         }

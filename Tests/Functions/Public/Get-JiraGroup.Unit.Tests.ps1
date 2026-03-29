@@ -98,7 +98,7 @@ InModuleScope JiraPS {
                     $getResult | Should -Not -BeNullOrEmpty
                     $getResult.Name | Should -Be $testGroupName
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/2/group?groupname=$testGroupNameEscaped"
                     }
@@ -107,7 +107,7 @@ InModuleScope JiraPS {
                 It "uses ConvertTo-JiraGroup to format output" {
                     Get-JiraGroup -GroupName $testGroupName
 
-                    Should -Invoke ConvertTo-JiraGroup -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke ConvertTo-JiraGroup -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 
@@ -115,7 +115,7 @@ InModuleScope JiraPS {
                 It "calls Invoke-JiraMethod with correct parameters" {
                     { Get-JiraGroup -GroupName $testGroupName } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq "$jiraServer/rest/api/2/group?groupname=$testGroupNameEscaped"
                     }
@@ -137,7 +137,7 @@ InModuleScope JiraPS {
                     $result = Get-JiraGroup -GroupName $testGroupName, 'Another Group'
                     $result | Should -HaveCount 2
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
                 }
             }
 
@@ -145,7 +145,7 @@ InModuleScope JiraPS {
                 It "properly encodes group names with special characters" {
                     Get-JiraGroup -GroupName $testGroupName
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $URI -like "*groupname=$testGroupNameEscaped*"
                     }
                 }

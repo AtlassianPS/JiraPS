@@ -189,7 +189,7 @@ InModuleScope JiraPS {
                 $allResults | Should -Not -BeNullOrEmpty
                 @($allResults).Count | Should -Be @((ConvertFrom-Json -InputObject $restResult)).Count
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "gets a specified field if a field ID is provided" {

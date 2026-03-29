@@ -87,17 +87,17 @@ InModuleScope JiraPS {
                     $issue = Get-JiraIssue -Key TEST-01
                     { Remove-JiraIssueLink -IssueLink $issueLink } | Should -Not -Throw
                     { Remove-JiraIssueLink -IssueLink $issue } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 2 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 2
                 }
 
                 It "Accepts a JiraPS.Issue object over the pipeline" {
                     { Get-JiraIssue -Key TEST-01 | Remove-JiraIssueLink } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
                 It "Accepts a JiraPS.IssueType over the pipeline" {
                     { Get-JiraIssueLink -Id 1234 | Remove-JiraIssueLink } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
             }
         }

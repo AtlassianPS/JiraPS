@@ -87,23 +87,23 @@ InModuleScope JiraPS {
             Context "Group Deletion" {
                 It "Accepts a group name as a String to the -Group parameter" {
                     { Remove-JiraGroup -Group $testGroupName -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
                 It "Accepts a JiraPS.Group object to the -Group parameter" {
                     $group = Get-JiraGroup -GroupName $testGroupName
                     { Remove-JiraGroup -Group $group -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
                 It "Accepts pipeline input from Get-JiraGroup" {
                     { Get-JiraGroup -GroupName $testGroupName | Remove-JiraGroup -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
                 It "Removes a group from JIRA" {
                     { Remove-JiraGroup -Group $testGroupName -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
                 It "Provides no output" {

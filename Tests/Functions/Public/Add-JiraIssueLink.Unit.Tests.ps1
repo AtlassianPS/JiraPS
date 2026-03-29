@@ -105,7 +105,7 @@ InModuleScope JiraPS {
             It 'Adds a new IssueLink' {
                 { Add-JiraIssueLink -Issue $issueKey -IssueLink $issueLink } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
         }
 

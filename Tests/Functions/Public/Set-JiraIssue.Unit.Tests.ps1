@@ -161,7 +161,7 @@ InModuleScope JiraPS {
                 It "Invokes the Jira API to update an issue" {
                     { Set-JiraIssue -Issue "IT-3676" -Summary "Test summary" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/issue/41701'
                     }
@@ -170,7 +170,7 @@ InModuleScope JiraPS {
                 It "Invokes the Jira API to update an issue from the pipeline" {
                     { Get-JiraIssue "IT-3676" | Set-JiraIssue -Summary "Test summary" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 
@@ -178,7 +178,7 @@ InModuleScope JiraPS {
                 It "Modifies the summary" {
                     { Set-JiraIssue -Issue "IT-3676" -Summary "new summary" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/issue/41701' -and
                         $Body -match "`"summary`"" -and
@@ -189,7 +189,7 @@ InModuleScope JiraPS {
                 It "Modifies the description" {
                     { Set-JiraIssue -Issue "IT-3676" -Description "new description" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/issue/41701' -and
                         $Body -match "`"description`"" -and
@@ -202,7 +202,7 @@ InModuleScope JiraPS {
                 It "Sets the assignee to a specified user" {
                     { Set-JiraIssue -Issue "IT-3676" -Assignee "testUser" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/issue/41701/assignee' -and
                         $Body -match "`"name`"" -and
@@ -213,7 +213,7 @@ InModuleScope JiraPS {
                 It "Sets the assignee to unassigned when passed `"unassigned`"" {
                     { Set-JiraIssue -Issue "IT-3676" -Assignee "unassigned" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/issue/41701/assignee' -and
                         $Body -match "`"name`":\s*null"
@@ -223,7 +223,7 @@ InModuleScope JiraPS {
                 It "Sets the assignee to default assignee when passed `"default`"" {
                     { Set-JiraIssue -Issue "IT-3676" -Assignee "default" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/issue/41701/assignee' -and
                         $Body -match "`"name`":\s*`"-1`""
@@ -236,14 +236,14 @@ InModuleScope JiraPS {
                     { Set-JiraIssue -Issue "IT-3676" -Summary "new summary" -Assignee "testUser" } | Should -Not -Throw
 
                     # One call for summary (fields update)
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/issue/41701' -and
                         $Body -match "`"summary`""
                     }
 
                     # One call for assignee
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/issue/41701/assignee'
                     }
@@ -252,7 +252,7 @@ InModuleScope JiraPS {
                 It "Calls Invoke-JiraMethod multiple times when assignee is provided with other fields" {
                     { Set-JiraIssue -Issue "IT-3676" -Summary "new summary" -Description "new description" -Assignee "testUser" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
                 }
             }
 
@@ -260,7 +260,7 @@ InModuleScope JiraPS {
                 It "Delegates label updates to Set-JiraIssueLabel" {
                     { Set-JiraIssue -Issue "IT-3676" -Label "label1", "label2" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Set-JiraIssueLabel -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Set-JiraIssueLabel -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Set -contains "label1" -and $Set -contains "label2"
                     }
                 }
@@ -273,8 +273,8 @@ InModuleScope JiraPS {
                         Set-JiraIssue -Issue "IT-3676" -Fields $fields
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraField -ModuleName JiraPS -Exactly -Times 1 -Scope It
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Get-JiraField -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Body -match '"customfield_10001":[\s\n]*\[[\s\n]*\{[\s\n]*"set":[\s\n]*"test value"'
                     }
                 }
@@ -286,7 +286,7 @@ InModuleScope JiraPS {
 
                     $regexString = '"comment\":[\s\n]*\[[\s\n]*\{[\s\n]*\"add\":[\s\n]*\{[\s\n]*\"body\":\s*\"test comment\"'
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Body -match $regexString
                     }
                 }
@@ -298,19 +298,19 @@ InModuleScope JiraPS {
                 It "accepts an issue key string" {
                     { Set-JiraIssue -Issue "IT-3676" -Summary "test" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts an issue object" {
                     { Set-JiraIssue -Issue (Get-JiraIssue "IT-3676") -Summary "test" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts multiple issues from the pipeline" {
                     { Get-JiraIssue "IT-3676", "IT-3676" | Set-JiraIssue -Summary "test" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 

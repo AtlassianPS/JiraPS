@@ -106,7 +106,7 @@ InModuleScope JiraPS {
                 It "Obtains information about a provided issue in JIRA" {
                     { Get-JiraIssue -Key TEST-001 } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/issue/TEST-001*'
                     }
@@ -115,7 +115,7 @@ InModuleScope JiraPS {
                 It "Uses JQL to search for issues if the -Query parameter is used" {
                     { Get-JiraIssue -Query $jql } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/*/search" -and
                         $GetParameter["jql"] -eq $jqlEscaped
@@ -125,7 +125,7 @@ InModuleScope JiraPS {
                 It "Supports the -StartIndex and -MaxResults parameters to page through search results" {
                     { Get-JiraIssue -Query $jql -StartIndex 10 -MaxResults 50 } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/*/search" -and
                         $GetParameter["jql"] -eq $jqlEscaped -and
@@ -137,7 +137,7 @@ InModuleScope JiraPS {
                 It "Returns all issues via looping if -MaxResults is not specified" {
                     { Get-JiraIssue -Query $jql -PageSize 25 } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/*/search" -and
                         $GetParameter["jql"] -eq $jqlEscaped -and
@@ -159,22 +159,22 @@ InModuleScope JiraPS {
                     { Get-JiraIssue -Query $jql -Fields "key", "summary", "status" } | Should -Not -Throw
                     { Get-JiraIssue -Filter "12345" -Fields "key", "summary", "status" } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $GetParameter["fields"] -eq "*all"
                     }
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $GetParameter["fields"] -eq "key"
                     }
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $GetParameter["fields"] -eq "-summary"
                     }
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 4 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 4 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $GetParameter["fields"] -eq "key,summary,status"
                     }
@@ -185,7 +185,7 @@ InModuleScope JiraPS {
                 It "Accepts an issue key for the -Key parameter" {
                     { Get-JiraIssue -Key TEST-001 } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/*/issue/TEST-001*"
                     }
@@ -201,7 +201,7 @@ InModuleScope JiraPS {
                     # Should call Get-JiraIssue using the -Key parameter, so our URL should reflect the key we provided
                     { Get-JiraIssue -InputObject $Issue } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/*/issue/TEST-001*"
                     }

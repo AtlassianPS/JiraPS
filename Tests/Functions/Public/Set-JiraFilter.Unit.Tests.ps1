@@ -140,7 +140,7 @@ InModuleScope JiraPS {
                         Get-JiraFilter -Id 12844 | Set-JiraFilter @newData
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/filter/12844' -and
                         $Body -match "`"name`":\s*`"newName`"" -and
@@ -158,7 +158,7 @@ InModuleScope JiraPS {
                         Get-JiraFilter -Id 12844 | Set-JiraFilter @newData
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/filter/12844' -and
                         $Body -match "`"description`":\s*`"`""
@@ -168,7 +168,7 @@ InModuleScope JiraPS {
                 It "Skips the filter if no value was changed" {
                     { Get-JiraFilter -Id 12844 | Set-JiraFilter } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
                 }
             }
         }
@@ -178,19 +178,19 @@ InModuleScope JiraPS {
                 It "accepts a filter object for the -InputObject parameter" {
                     { Set-JiraFilter -InputObject (Get-JiraFilter "12345") -Name "test" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts a filter object without the -InputObject parameter" {
                     { Set-JiraFilter (Get-JiraFilter "12345") -Name "test" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts a JiraPS.Filter object via pipeline" {
                     { Get-JiraFilter 12345, 12345 | Set-JiraFilter -Name "test" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
                 }
 
                 It "accepts -InputObject" {
@@ -201,7 +201,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
                 }
 
                 It "accepts -InputObject and -Name" {
@@ -213,7 +213,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts -InputObject and -Description" {
@@ -225,7 +225,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts -InputObject and -JQL" {
@@ -237,7 +237,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts -InputObject and -Favorite" {
@@ -249,7 +249,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts -InputObject and -Name and -Description" {
@@ -262,7 +262,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts -InputObject and -Name and -JQL" {
@@ -275,7 +275,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts -InputObject and -Name and -Favorite" {
@@ -288,7 +288,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts -InputObject and -Name and -Description and -JQL" {
@@ -302,7 +302,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts -InputObject and -Name and -Description and -Favorite" {
@@ -316,7 +316,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts -InputObject and -Name and -Description and -JQL and -Favorite" {
@@ -331,7 +331,7 @@ InModuleScope JiraPS {
                         Set-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 
