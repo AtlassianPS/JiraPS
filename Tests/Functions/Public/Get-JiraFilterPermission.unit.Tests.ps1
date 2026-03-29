@@ -75,7 +75,7 @@ InModuleScope JiraPS {
                 It "Retrieves the permissions of a Filter by Object" {
                     { Get-JiraFilter -Id 23456 | Get-JiraFilterPermission } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/23456/permission'
                     }
@@ -84,7 +84,7 @@ InModuleScope JiraPS {
                 It "Retrieves the permissions of a Filter by Id" {
                     { 23456 | Get-JiraFilterPermission } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/23456/permission'
                     }
@@ -95,7 +95,7 @@ InModuleScope JiraPS {
                 It "finds the filter by Id" {
                     { Get-JiraFilterPermission -Id 23456 } | Should -Not -Throw
 
-                    Should -Invoke Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "does not accept negative Ids" {
@@ -105,14 +105,14 @@ InModuleScope JiraPS {
                 It "can process multiple Ids" {
                     { Get-JiraFilterPermission -Id 23456, 23456 } | Should -Not -Throw
 
-                    Should -Invoke Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1 -Scope It
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
                 }
 
                 It "allows for the filter to be passed over the pipeline" {
                     { Get-JiraFilter -Id 23456 | Get-JiraFilterPermission } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "can ony process one Filter objects" {
@@ -122,18 +122,18 @@ InModuleScope JiraPS {
 
                     { Get-JiraFilterPermission -Filter $filter } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
                 }
 
                 It "resolves positional parameters" {
                     { Get-JiraFilterPermission 23456 } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
 
                     $filter = Get-JiraFilter -Id 23456
                     { Get-JiraFilterPermission $filter } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
                 }
             }
         }

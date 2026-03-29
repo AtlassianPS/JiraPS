@@ -95,11 +95,11 @@ InModuleScope JiraPS {
                     $comments.Body | Should -Be 'Test comment'
 
                     # Get-JiraIssue should be called to identify the -Issue parameter
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
 
                     # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueComment, but
                     # since we've mocked Get-JiraIssue out, it will only be called once.
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Obtains all Jira comments from a Jira issue if the Jira object is provided" {
@@ -109,7 +109,7 @@ InModuleScope JiraPS {
                     $comments | Should -Not -BeNullOrEmpty
                     $comments.ID | Should -Be 90730
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Handles pipeline input from Get-JiraIssue" {
@@ -118,7 +118,7 @@ InModuleScope JiraPS {
                     $comments | Should -Not -BeNullOrEmpty
                     $comments.ID | Should -Be 90730
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
         }

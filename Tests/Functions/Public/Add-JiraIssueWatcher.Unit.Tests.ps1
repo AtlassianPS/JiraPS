@@ -97,10 +97,10 @@ InModuleScope JiraPS {
                 $WatcherResult | Should -BeNullOrEmpty
 
                 # Get-JiraIssue should be used to identify the issue parameter
-                Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
 
                 # Invoke-JiraMethod should be used to add the Watcher
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
         }
 
@@ -111,8 +111,8 @@ InModuleScope JiraPS {
                     $WatcherResult | Should -BeNullOrEmpty
 
                     # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
-                    Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 

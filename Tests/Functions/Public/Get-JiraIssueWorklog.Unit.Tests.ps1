@@ -99,11 +99,11 @@ InModuleScope JiraPS {
                     $worklogs.TimeSpentSeconds | Should -Be 180
 
                     # Get-JiraIssue should be called to identify the -Issue parameter
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
 
                     # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueComment, but
                     # since we've mocked Get-JiraIssue out, it will only be called once.
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Obtains all Jira worklogs from a Jira issue if the Jira object is provided" {
@@ -113,7 +113,7 @@ InModuleScope JiraPS {
                     $worklogs | Should -Not -BeNullOrEmpty
                     $worklogs.ID | Should -Be 90730
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Handles pipeline input from Get-JiraIssue" {
@@ -122,7 +122,7 @@ InModuleScope JiraPS {
                     $worklogs | Should -Not -BeNullOrEmpty
                     $worklogs.ID | Should -Be 90730
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
         }

@@ -88,10 +88,10 @@ InModuleScope JiraPS {
                     $WatcherResult | Should -BeNullOrEmpty
 
                     # Get-JiraIssue should be used to identify the issue parameter (called twice total)
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
 
                     # Invoke-JiraMethod should be used to remove the Watcher (called twice total)
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -ParameterFilter {
                         $Method -eq 'DELETE' -and
                         $URI -like "$jiraServer/rest/api/*/issue/$issueID/watchers*"
                     }
@@ -104,8 +104,8 @@ InModuleScope JiraPS {
                     $WatcherResult | Should -BeNullOrEmpty
 
                     # Get-JiraIssue called once in test, once inside Remove-JiraIssueWatcher
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2 -Scope It
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
         }
@@ -114,7 +114,7 @@ InModuleScope JiraPS {
             Context "Multiple Watchers" {
                 It "can remove multiple watchers" {
                     { Remove-JiraIssueWatcher -Watcher 'fred', 'george' -Issue $issueKey } | Should -Not -Throw
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
                 }
             }
         }

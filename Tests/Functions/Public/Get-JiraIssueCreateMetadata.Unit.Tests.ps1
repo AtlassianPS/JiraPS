@@ -244,17 +244,17 @@ InModuleScope JiraPS {
             Context "Behavior testing" {
                 It "Queries Jira for metadata information about creating an issue" {
                     { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should -Not -Throw
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Uses ConvertTo-JiraCreateMetaField to output CreateMetaField objects if JIRA returns data" {
                     { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should -Not -Throw
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
 
                     # There are 2 example fields in our mock above, but they should
                     # be passed to Convert-JiraCreateMetaField as a single object.
                     # The method should only be called once.
-                    Should -Invoke ConvertTo-JiraCreateMetaField -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke ConvertTo-JiraCreateMetaField -ModuleName JiraPS -Exactly -Times 1
                 }
             }
         }

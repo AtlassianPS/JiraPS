@@ -112,13 +112,13 @@ InModuleScope JiraPS {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 -PassThru } | Should -Not -Throw
 
-                Should -Invoke -CommandName Get-JiraGroup -Exactly -Times 2 -Scope It
-                Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 2 -Scope It
-                Should -Invoke -CommandName Get-JiraUser -Exactly -Times 2 -Scope It
+                Should -Invoke -CommandName Get-JiraGroup -Exactly -Times 2
+                Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 2
+                Should -Invoke -CommandName Get-JiraUser -Exactly -Times 2
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
                     $URI -match $testGroupName
-                } -Exactly -Times 2 -Scope It
-                Should -Invoke -CommandName ConvertTo-JiraGroup -Exactly -Times 1 -Scope It
+                } -Exactly -Times 2
+                Should -Invoke -CommandName ConvertTo-JiraGroup -Exactly -Times 1
             }
 
             It "Accepts a JiraPS.Group object to the -Group parameter" {
@@ -127,7 +127,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
                     $URI -match $testGroupName
-                } -Exactly -Times 1 -Scope It
+                } -Exactly -Times 1
             }
 
             It "Accepts pipeline input from Get-JiraGroup" {
@@ -135,7 +135,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
                     $URI -match $testGroupName
-                } -Exactly -Times 1 -Scope It
+                } -Exactly -Times 1
             }
         }
 
@@ -144,7 +144,7 @@ InModuleScope JiraPS {
             It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to add them" {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername1 -ErrorAction Stop } | Should -Throw
 
-                Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 1
             }
 
             It "Adds a user to a JIRA group if the user is not a member" {
@@ -152,7 +152,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
                     $Method -eq 'POST' -and $URI -match $testGroupName -and $Body -match $testUsername2
-                } -Exactly -Times 1 -Scope It
+                } -Exactly -Times 1
             }
 
             It "Adds multiple users to a JIRA group if they are passed to the -User parameter" {
@@ -164,7 +164,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
                     $Method -eq 'Post' -and $URI -match $testGroupName
-                } -Exactly -Times 2 -Scope It
+                } -Exactly -Times 2
             }
         }
 
@@ -174,7 +174,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
                     $Method -eq 'Post' -and $URI -match $testGroupName
-                } -Exactly -Times 1 -Scope It
+                } -Exactly -Times 1
             }
         }
 
