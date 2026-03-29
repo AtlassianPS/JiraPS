@@ -298,9 +298,11 @@ InModuleScope JiraPS {
                 }
 
                 It "Writes an error on issues with subtasks" {
-                    # Pester is not capable of (easily) asserting non-terminating errors,
-                    # so the error is upgraded to a terminating one in this situation.
-                    { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Server responded with Error*"
+                    Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorVariable removeError -ErrorAction SilentlyContinue
+
+                    $removeError | Should -Not -BeNullOrEmpty
+                    $removeError[0].FullyQualifiedErrorId | Should -BeLike "ServerResponse*"
+                    $removeError[0].ErrorDetails.Message | Should -BeLike "*has subtasks*"
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
