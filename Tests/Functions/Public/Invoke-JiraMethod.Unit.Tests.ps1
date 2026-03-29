@@ -173,21 +173,21 @@ InModuleScope JiraPS {
             It "resolves errors" {
                 Invoke-JiraMethod -URI "https://postman-echo.com/status/400" -ErrorAction Stop
 
-                Should -Invoke -CommandName Resolve-ErrorWebResponse -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Resolve-ErrorWebResponse -ModuleName 'JiraPS' -Exactly -Times 1
             }
 
             It "supports TLS1.2 connections" {
                 Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
 
-                Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -Exactly -Times 2 -Scope It
-                Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -ParameterFilter { $Tls12 -eq $true } -Exactly -Times 1 -Scope It
-                Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -ParameterFilter { $Revert -eq $true } -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -Exactly -Times 2
+                Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -ParameterFilter { $Tls12 -eq $true } -Exactly -Times 1
+                Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -ParameterFilter { $Revert -eq $true } -Exactly -Times 1
             }
 
             It "uses global default values for parameters" {
                 Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
 
-                Should -Invoke -CommandName Resolve-DefaultParameterValue -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Resolve-DefaultParameterValue -ModuleName 'JiraPS' -Exactly -Times 1
             }
         }
 
@@ -332,7 +332,7 @@ InModuleScope JiraPS {
                     Scope           = 'It'
                 }
                 Should -Invoke @assertMockCalledSplat
-                Should -Invoke -CommandName ConvertTo-JiraSession -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName ConvertTo-JiraSession -ModuleName 'JiraPS' -Exactly -Times 1
             }
 
             foreach ($type in $supportedTypes) {
@@ -385,7 +385,7 @@ InModuleScope JiraPS {
                     Scope           = 'It'
                 }
                 Should -Invoke @assertMockCalledSplat
-                Should -Invoke -CommandName Get-JiraSession -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
+                Should -Invoke -CommandName Get-JiraSession -ModuleName 'JiraPS' -Exactly -Times 1
             }
 
             It "uses -Credential even if session is present" {
@@ -415,7 +415,7 @@ InModuleScope JiraPS {
                     Scope           = 'It'
                 }
                 Should -Invoke @assertMockCalledSplat
-                Should -Invoke -CommandName Get-JiraSession -ModuleName 'JiraPS' -Exactly -Times 0 -Scope It
+                Should -Invoke -CommandName Get-JiraSession -ModuleName 'JiraPS' -Exactly -Times 0
             }
 
             It "uses -Headers for the call" {

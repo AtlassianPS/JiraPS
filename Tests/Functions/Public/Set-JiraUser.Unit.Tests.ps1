@@ -86,29 +86,29 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             It "Accepts a username as a String to the -User parameter" {
                 { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Get-JiraUser -ModuleName JiraPS -Exactly -Times 1 -Scope It
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke Get-JiraUser -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Accepts a JiraPS.User object to the -User parameter" {
                 $user = Get-JiraUser -UserName $testUsername
                 { Set-JiraUser -User $user -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Accepts pipeline input from Get-JiraUser" {
                 { Get-JiraUser -UserName $testUsername | Set-JiraUser -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Modifies a user's DisplayName if the -DisplayName parameter is passed" {
                 { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Modifies a user's EmailAddress if the -EmailAddress parameter is passed" {
                 { Set-JiraUser -User $testUsername -EmailAddress $testEmailChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Provides no output if the -PassThru parameter is not passed" {

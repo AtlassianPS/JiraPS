@@ -100,7 +100,7 @@ InModuleScope JiraPS {
                 It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to remove them" {
                     { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraGroup -ModuleName "JiraPS" -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Get-JiraGroup -ModuleName "JiraPS" -Exactly -Times 1
                 }
 
                 It "Removes a user from a JIRA group if the user is a member" {
@@ -109,7 +109,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like "$jiraServer/rest/api/*/group/user?groupname=$testGroupName&username=$testUsername1"
-                    } -Exactly -Times 1 -Scope It
+                    } -Exactly -Times 1
                 }
 
                 It "Removes multiple users from a JIRA group if they are passed to the -User parameter" {
@@ -132,7 +132,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like "$jiraServer/rest/api/*/group/user?groupname=$testGroupName&username=*"
-                    } -Exactly -Times 2 -Scope It
+                    } -Exactly -Times 2
                 }
             }
         }
@@ -147,7 +147,7 @@ InModuleScope JiraPS {
                         $URI -like "*/rest/api/*/group/user*" -and
                         $URI -match "groupname=$testGroupName" -and
                         $URI -match "username=$testUsername1"
-                    } -Exactly -Times 1 -Scope It
+                    } -Exactly -Times 1
                 }
 
                 It "Accepts a JiraPS.Group object to the -Group parameter" {
@@ -161,7 +161,7 @@ InModuleScope JiraPS {
                         $URI -like "*/rest/api/*/group/user*" -and
                         $URI -match "groupname=$testGroupName" -and
                         $URI -match "username=$testUsername1"
-                    } -Exactly -Times 1 -Scope It
+                    } -Exactly -Times 1
                 }
 
                 It "Accepts pipeline input from Get-JiraGroup" {
@@ -172,7 +172,7 @@ InModuleScope JiraPS {
                         $URI -like "*/rest/api/*/group/user*" -and
                         $URI -match "groupname=$testGroupName" -and
                         $URI -match "username=$testUsername1"
-                    } -Exactly -Times 1 -Scope It
+                    } -Exactly -Times 1
                 }
 
                 It "Accepts a JiraPS.User as input for -User parameter" {
@@ -186,7 +186,7 @@ InModuleScope JiraPS {
                         $URI -like "*/rest/api/*/group/user*" -and
                         $URI -match "groupname=$testGroupName" -and
                         $URI -match "username=$testUsername1"
-                    } -Exactly -Times 1 -Scope It
+                    } -Exactly -Times 1
                 }
             }
 

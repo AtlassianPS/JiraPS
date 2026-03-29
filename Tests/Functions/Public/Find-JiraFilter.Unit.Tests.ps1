@@ -126,7 +126,7 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*'
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
                 }
 
                 It "uses accountId to find JIRA filters if the -AccountId parameter is used" {
@@ -136,7 +136,7 @@ InModuleScope JiraPS {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
                         $GetParameter['accountId'] -eq $mockOwner.AccountId
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
                 }
 
                 It "uses groupName to find JIRA filters if the -GroupName parameter is used" {
@@ -146,7 +146,7 @@ InModuleScope JiraPS {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
                         $GetParameter['groupName'] -eq $groupEscaped
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
                 }
 
                 It "uses projectId to find JIRA filters if a -Project parameter is used" {
@@ -156,7 +156,7 @@ InModuleScope JiraPS {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
                         $GetParameter['projectId'] -eq '1'
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
                 }
 
                 It "uses orderBy to sort JIRA filters found if the -Sort parameter is used" {
@@ -166,7 +166,7 @@ InModuleScope JiraPS {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
                         $GetParameter['orderBy'] -eq 'name'
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
                 }
 
                 It "expands only the fields required with -Fields" {
@@ -177,13 +177,13 @@ InModuleScope JiraPS {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
                         $GetParameter['expand'] -eq 'description,favourite,favouritedCount,jql,owner,searchUrl,sharePermissions,subscriptions,viewUrl'
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
                         $GetParameter['expand'] -eq 'description'
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
                 }
             }
         }
@@ -197,7 +197,7 @@ InModuleScope JiraPS {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*' -and
                         $GetParameter['projectId'] -eq '1'
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
                 }
 
                 It "accepts AccountId, GroupName, and Project parameter values from pipeline by property name" {
@@ -215,7 +215,7 @@ InModuleScope JiraPS {
                         $GetParameter['accountId'] -eq $mockowner.AccountId -and
                         $GetParameter['groupName'] -eq $groupEscaped -and
                         $GetParameter['projectId'] -eq '1'
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
                 }
 
                 It "accepts a user object for the -Owner parameter" {
@@ -224,11 +224,11 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/search*'
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
 
                     Should -Invoke Get-JiraUser -ModuleName JiraPS -ParameterFilter {
                         $InputObject -eq $mockOwner.Name
-                    } -Exactly 1 -Scope It
+                    } -Exactly 1
                 }
             }
         }

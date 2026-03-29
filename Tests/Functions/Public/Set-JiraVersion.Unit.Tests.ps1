@@ -125,20 +125,20 @@ InModuleScope JiraPS {
                     $results = Set-JiraVersion -Version $version -Name "NewName" -ErrorAction Stop
                     $results | Should -Not -BeNullOrEmpty
                     $results.PSObject.TypeNames[0] | Should -Be 'JiraPS.Version'
-                    Should -Invoke 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Get-JiraProject' -Times 0 -Scope It -ModuleName JiraPS -Exactly
-                    Should -Invoke 'ConvertTo-JiraVersion' -Times 3 -Scope It -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
+                    Should -Invoke 'Get-JiraVersion' -Times 2 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraProject' -Times 0 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'ConvertTo-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
                 }
 
                 It "sets an Issue's Version Name using the pipeline" {
                     $results = Get-JiraVersion -Project $projectKey | Set-JiraVersion -Name "NewName" -ErrorAction Stop
                     $results | Should -Not -BeNullOrEmpty
                     $results.PSObject.TypeNames[0] | Should -Be 'JiraPS.Version'
-                    Should -Invoke 'Get-JiraVersion' -Times 2 -Scope It -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Get-JiraProject' -Times 0 -Scope It -ModuleName JiraPS -Exactly
-                    Should -Invoke 'ConvertTo-JiraVersion' -Times 3 -Scope It -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -Scope It -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
+                    Should -Invoke 'Get-JiraVersion' -Times 2 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraProject' -Times 0 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'ConvertTo-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
                 }
             }
         }

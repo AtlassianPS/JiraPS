@@ -114,9 +114,9 @@ InModuleScope JiraPS {
                 $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
                 $commentResult | Should -Not -BeNullOrEmpty
 
-                Should -Invoke 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1 -Scope It
-                Should -Invoke 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1 -Scope It
-                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "returns a Jira.Comment object" {

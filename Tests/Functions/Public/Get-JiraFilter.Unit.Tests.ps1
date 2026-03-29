@@ -143,7 +143,7 @@ InModuleScope JiraPS {
             Context "Behavior testing" {
                 It "Queries JIRA for a filter with a given ID" {
                     { Get-JiraFilter -Id 12345 } | Should -Not -Throw
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345' }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345' }
                 }
 
                 It "Uses ConvertTo-JiraFilter to output a Filter object if JIRA returns data" {
@@ -156,7 +156,7 @@ InModuleScope JiraPS {
                 It "Finds all favorite filters of the user" {
                     { Get-JiraFilter -Favorite } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/favourite' }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/favourite' }
                 }
             }
 
@@ -168,32 +168,32 @@ InModuleScope JiraPS {
                 It "Accepts a filter ID for the -Filter parameter" {
                     { Get-JiraFilter -Id "12345" } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts a filter ID without the -Filter parameter" {
                     { Get-JiraFilter "12345" } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts multiple filter IDs to the -Filter parameter" {
                     { Get-JiraFilter -Id '12345', '67890' } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345' }
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/67890' }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/12345' }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/67890' }
                 }
 
                 It "Accepts a JiraPS.Filter object to the InputObject parameter" {
                     { Get-JiraFilter -InputObject $sampleFilter } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844' }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844' }
                 }
 
                 It "Accepts a JiraPS.Filter object via pipeline" {
                     { $sampleFilter | Get-JiraFilter } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter { $Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844' }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844' }
                 }
             }
         }

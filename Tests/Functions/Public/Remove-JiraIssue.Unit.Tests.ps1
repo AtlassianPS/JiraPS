@@ -284,29 +284,29 @@ InModuleScope JiraPS {
                         $issue = Get-JiraIssue -Key TEST-1
                         Remove-JiraIssue -Issue $issue -Force
                     } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
                 It "Accepts string-based input as a non-pipelined parameter" {
                     { Remove-JiraIssue -IssueId TEST-1 -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
                 It "Accepts a JiraPS.Issue object over the pipeline" {
                     { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
                 It "Writes an error on issues with subtasks" {
                     # Pester is not capable of (easily) asserting non-terminating errors,
                     # so the error is upgraded to a terminating one in this situation.
                     { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorAction Stop } | Should -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
                 It "Passes on issues with subtasks and -DeleteSubTasks" {
                     { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
             }
         }

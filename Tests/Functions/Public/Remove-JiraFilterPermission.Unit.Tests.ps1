@@ -95,11 +95,11 @@ InModuleScope JiraPS {
                         Get-JiraFilterPermission -Id 1 | Remove-JiraFilterPermission
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like '*/rest/api/*/filter/12345/permission/1111'
                     }
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like '*/rest/api/*/filter/12345/permission/2222'
                     }
@@ -110,11 +110,11 @@ InModuleScope JiraPS {
                         Remove-JiraFilterPermission -FilterId 1 -PermissionId 3333, 4444
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like '*/rest/api/*/filter/23456/permission/3333'
                     }
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like '*/rest/api/*/filter/23456/permission/4444'
                     }
@@ -127,7 +127,7 @@ InModuleScope JiraPS {
                 It "finds the filter by FilterId" {
                     { Remove-JiraFilterPermission -FilterId 1 -PermissionId 1111 } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "can process multiple PermissionIds" {
@@ -141,12 +141,12 @@ InModuleScope JiraPS {
                 It "resolves positional parameters" {
                     { Remove-JiraFilterPermission 12345 1111 } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
 
                     $filter = Get-JiraFilterPermission -Id 1
                     { Remove-JiraFilterPermission $filter } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 3 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 3
                 }
             }
 
