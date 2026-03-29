@@ -184,12 +184,12 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "fails if a negative number is passed as ID" {
-                    { Remove-JiraFilter -Id -1 } | Should -Throw
+                    { Remove-JiraFilter -Id -1 } | Should -Throw -ExpectedMessage "*'Id'*"
                 }
 
                 It "fails if something other than [JiraPS.Filter] is provided" {
-                    { Get-Date | Remove-JiraFilter -ErrorAction Stop } | Should -Throw
-                    { Remove-JiraFilter "12345" -ErrorAction Stop } | Should -Throw
+                    { Get-Date | Remove-JiraFilter -ErrorAction Stop } | Should -Throw -ExpectedMessage "*input object*"
+                    { Remove-JiraFilter "12345" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*'InputObject'*"
                 }
             }
         }

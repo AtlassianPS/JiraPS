@@ -199,7 +199,7 @@ InModuleScope JiraPS {
                 { Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop } | Should -Not -Throw
                 { Invoke-JiraMethod -URI $Uri -ErrorAction Stop } | Should -Not -Throw
 
-                { Invoke-JiraMethod -URI "hello" -ErrorAction Stop } | Should -Throw
+                { Invoke-JiraMethod -URI "hello" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*relative URI*"
             }
 
             It "accepts [<_>] as HTTP method" -ForEach @('GET', 'POST', 'PUT', 'DELETE') {
