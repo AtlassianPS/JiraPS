@@ -99,7 +99,7 @@ InModuleScope JiraPS {
                 }
 
                 It "does not accept negative Ids" {
-                    { Get-JiraFilterPermission -Id -1 } | Should -Throw
+                    { Get-JiraFilterPermission -Id -1 } | Should -Throw -ExpectedMessage "*'Id'*"
                 }
 
                 It "can process multiple Ids" {

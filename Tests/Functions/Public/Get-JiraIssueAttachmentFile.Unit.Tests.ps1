@@ -90,9 +90,9 @@ InModuleScope JiraPS {
 
         Describe "Input Validation" {
             It 'only accepts JiraPS.Attachment as input' {
-                { Get-JiraIssueAttachmentFile -Attachment (Get-Date) } | Should -Throw
-                { Get-JiraIssueAttachmentFile -Attachment (Get-ChildItem) } | Should -Throw
-                { Get-JiraIssueAttachmentFile -Attachment @('foo', 'bar') } | Should -Throw
+                { Get-JiraIssueAttachmentFile -Attachment (Get-Date) } | Should -Throw -ExpectedMessage "*'Attachment'*"
+                { Get-JiraIssueAttachmentFile -Attachment (Get-ChildItem) } | Should -Throw -ExpectedMessage "*'Attachment'*"
+                { Get-JiraIssueAttachmentFile -Attachment @('foo', 'bar') } | Should -Throw -ExpectedMessage "*'Attachment'*"
                 { Get-JiraIssueAttachmentFile -Attachment (Get-JiraIssueAttachment -Issue "Foo") } | Should -Not -Throw
             }
 

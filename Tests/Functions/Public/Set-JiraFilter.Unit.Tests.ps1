@@ -337,12 +337,12 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "fails with multiple filter objects to the -Filter parameter" {
-                    { Set-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) -Name "test" } | Should -Throw
+                    { Set-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) -Name "test" } | Should -Throw -ExpectedMessage "*'URI'*"
                 }
 
                 It "fails if something other than [JiraPS.Filter] is provided to InputObject" {
-                    { "12345" | Set-JiraFilter -ErrorAction Stop } | Should -Throw
-                    { Set-JiraFilter "12345" -ErrorAction Stop } | Should -Throw
+                    { "12345" | Set-JiraFilter -ErrorAction Stop } | Should -Throw -ExpectedMessage "*input object*"
+                    { Set-JiraFilter "12345" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*'InputObject'*"
                 }
             }
         }

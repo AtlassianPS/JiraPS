@@ -216,7 +216,7 @@ InModuleScope JiraPS {
                         )
                     }
 
-                    { New-JiraIssue @newParams } | Should -Throw
+                    { New-JiraIssue @newParams } | Should -Throw -ExpectedMessage "*Invalid or missing value*"
                 }
             }
         }
@@ -256,7 +256,7 @@ InModuleScope JiraPS {
                         )
                     }
 
-                    { New-JiraIssue @newParams } | Should -Throw
+                    { New-JiraIssue @newParams } | Should -Throw -ExpectedMessage "*Invalid or missing value*"
                 }
             }
         }

@@ -177,19 +177,19 @@ InModuleScope JiraPS {
 
             Context "Type Validation - Negative Cases" {
                 It "issue can't be null or empty" {
-                    { Add-JiraIssueAttachment -Issue "" -FilePath $filePath } | Should -Throw
+                    { Add-JiraIssueAttachment -Issue "" -FilePath $filePath } | Should -Throw -ExpectedMessage "*'Issue'*"
                 }
 
                 It "issue must be an Issue or a String" {
-                    { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath -Verbose } | Should -Throw
+                    { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath -Verbose } | Should -Throw -ExpectedMessage "*Invalid Type*"
                 }
 
                 It "issue can't be an array" {
-                    { Add-JiraIssueAttachment -Issue $issueKey, $issueKey -FilePath $filePath } | Should -Throw
+                    { Add-JiraIssueAttachment -Issue $issueKey, $issueKey -FilePath $filePath } | Should -Throw -ExpectedMessage "*invalid Issue*"
                 }
 
                 It "file must exist" {
-                    { Add-JiraIssueAttachment -Issue $issueKey -FilePath "c:\no-file.txt" } | Should -Throw
+                    { Add-JiraIssueAttachment -Issue $issueKey -FilePath "c:\no-file.txt" } | Should -Throw -ExpectedMessage "*File not found*"
                 }
             }
         }

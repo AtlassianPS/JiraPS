@@ -300,7 +300,7 @@ InModuleScope JiraPS {
                 It "Writes an error on issues with subtasks" {
                     # Pester is not capable of (easily) asserting non-terminating errors,
                     # so the error is upgraded to a terminating one in this situation.
-                    { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorAction Stop } | Should -Throw
+                    { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Server responded with Error*"
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
@@ -318,7 +318,7 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "Validates pipeline input" {
-                    { @{id = 1 } | Remove-JiraIssue -ErrorAction Stop } | Should -Throw
+                    { @{id = 1 } | Remove-JiraIssue -ErrorAction Stop } | Should -Throw -ExpectedMessage "*input object*"
                 }
             }
         }

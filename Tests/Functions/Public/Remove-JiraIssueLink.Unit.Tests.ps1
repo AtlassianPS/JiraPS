@@ -109,7 +109,7 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "Validates pipeline input" {
-                    { @{id = 1 } | Remove-JiraIssueLink -ErrorAction SilentlyContinue } | Should -Throw
+                    { @{id = 1 } | Remove-JiraIssueLink -ErrorAction SilentlyContinue } | Should -Throw -ExpectedMessage "*Invalid Type*"
                 }
             }
         }

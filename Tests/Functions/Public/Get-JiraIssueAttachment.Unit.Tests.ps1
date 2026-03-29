@@ -103,8 +103,8 @@ InModuleScope JiraPS {
             }
 
             It 'only accepts String or JiraPS.Issue as input' {
-                { Get-JiraIssueAttachment -Issue (Get-Date) } | Should -Throw
-                { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should -Throw
+                { Get-JiraIssueAttachment -Issue (Get-Date) } | Should -Throw -ExpectedMessage "*Invalid Type*"
+                { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should -Throw -ExpectedMessage "*Invalid Type*"
                 { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should -Not -Throw
                 { Get-JiraIssueAttachment -Issue (Get-JiraIssue -Key "foo") } | Should -Not -Throw
             }

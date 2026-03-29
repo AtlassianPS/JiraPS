@@ -152,20 +152,20 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "validates the -Filter to ensure FilterPermissions" {
-                    { Remove-JiraFilterPermission -Filter (Get-JiraFilter -Id 1) } | Should -Throw
+                    { Remove-JiraFilterPermission -Filter (Get-JiraFilter -Id 1) } | Should -Throw -ExpectedMessage "*PermissionId*"
                     { Remove-JiraFilterPermission -Filter (Get-JiraFilterPermission -Id 1) } | Should -Not -Throw
                 }
 
                 It "does not accept negative FilterIds" {
-                    { Remove-JiraFilterPermission -FilterId -1 -PermissionId 1111 } | Should -Throw
+                    { Remove-JiraFilterPermission -FilterId -1 -PermissionId 1111 } | Should -Throw -ExpectedMessage "*'FilterId'*"
                 }
 
                 It "does not accept negative PermissionIds" {
-                    { Remove-JiraFilterPermission -FilterId 1 -PermissionId -1111 } | Should -Throw
+                    { Remove-JiraFilterPermission -FilterId 1 -PermissionId -1111 } | Should -Throw -ExpectedMessage "*'PermissionId'*"
                 }
 
                 It "can only process one FilterId" {
-                    { Remove-JiraFilterPermission -FilterId 1, 2 -PermissionId 1111 } | Should -Throw
+                    { Remove-JiraFilterPermission -FilterId 1, 2 -PermissionId 1111 } | Should -Throw -ExpectedMessage "*'FilterId'*"
                 }
 
                 It "can only process one Filter objects" {
@@ -173,7 +173,7 @@ InModuleScope JiraPS {
                     $filter += Get-JiraFilterPermission -Id 1
                     $filter += Get-JiraFilterPermission -Id 1
 
-                    { Remove-JiraFilterPermission -Filter $filter } | Should -Throw
+                    { Remove-JiraFilterPermission -Filter $filter } | Should -Throw -ExpectedMessage "*Invalid Parameter*"
                 }
             }
         }

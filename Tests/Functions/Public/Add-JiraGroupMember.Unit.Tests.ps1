@@ -142,7 +142,7 @@ InModuleScope JiraPS {
         Describe "Behavior" {
 
             It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to add them" {
-                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1 -ErrorAction Stop } | Should -Throw
+                { Add-JiraGroupMember -Group $testGroupName -User $testUsername1 -ErrorAction Stop } | Should -Throw -ExpectedMessage "*already a member*"
 
                 Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 1
             }

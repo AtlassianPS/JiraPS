@@ -114,15 +114,15 @@ InModuleScope JiraPS {
             Context "Attachment Deletion" {
                 It 'validates the parameters' {
                     # AttachmentId can't be null or empty
-                    { Remove-JiraIssueAttachment -AttachmentId $null -Force } | Should -Throw
+                    { Remove-JiraIssueAttachment -AttachmentId $null -Force } | Should -Throw -ExpectedMessage "*'AttachmentId'*"
                     # Issue can't be null or empty
-                    { Remove-JiraIssueAttachment -Issue "" -Force } | Should -Throw
+                    { Remove-JiraIssueAttachment -Issue "" -Force } | Should -Throw -ExpectedMessage "*'Issue'*"
                     # AttachmentId must be an Int
-                    { Remove-JiraIssueAttachment -AttachmentId "a" -Force } | Should -Throw
+                    { Remove-JiraIssueAttachment -AttachmentId "a" -Force } | Should -Throw -ExpectedMessage "*'AttachmentId'*"
                     # Issue must be an Issue or a String
-                    { Remove-JiraIssueAttachment -Issue (Get-Date) -Force } | Should -Throw
+                    { Remove-JiraIssueAttachment -Issue (Get-Date) -Force } | Should -Throw -ExpectedMessage "*Invalid Type*"
                     # Issue can't be an array
-                    { Remove-JiraIssueAttachment -Issue $issueKey, $issueKey -Force } | Should -Throw
+                    { Remove-JiraIssueAttachment -Issue $issueKey, $issueKey -Force } | Should -Throw -ExpectedMessage "*invalid Issue*"
 
                     # All Parameters for DefaultParameterSet
                     { Remove-JiraIssueAttachment -AttachmentId $attachmentId1 -Force } | Should -Not -Throw
