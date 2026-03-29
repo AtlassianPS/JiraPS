@@ -115,7 +115,7 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
-                It "can ony process one Filter objects" {
+                It "can only process one Filter objects" {
                     $filter = @()
                     $filter += Get-JiraFilter -Id 23456
                     $filter += Get-JiraFilter -Id 23456

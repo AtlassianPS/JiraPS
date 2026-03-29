@@ -129,7 +129,7 @@ InModuleScope JiraPS {
                 }
 
                 It "defines 'Locale' property with correct value" {
-                    $result.Locale | Should -Be "en_Us"
+                    $result.Locale | Should -Be "en_US"
                 }
 
                 It "defines 'Groups' property with correct count" {

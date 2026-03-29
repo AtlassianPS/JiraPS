@@ -18,7 +18,7 @@ InModuleScope JiraPS {
             $script:jiraServer = 'http://jiraserver.example.com'
             $script:priorityId = 1
             $script:priorityName = 'Critical'
-            $script:priorityDescription = 'Cannot contine normal operations'
+            $script:priorityDescription = 'Cannot continue normal operations'
 
             $script:sampleJson = @"
 {

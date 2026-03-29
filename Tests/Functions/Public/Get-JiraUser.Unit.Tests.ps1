@@ -118,7 +118,7 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
-            It "Gets intormation about the loged in Jira user" {
+            It "Gets information about the logged in Jira user" {
                 $getResult = Get-JiraUser
 
                 $getResult | Should -Not -BeNullOrEmpty
