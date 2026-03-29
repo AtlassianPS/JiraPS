@@ -11,7 +11,7 @@ function ConvertTo-JiraLink {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
             $props = @{
-                'Id'      = $i.id
+                'Id'      = [int64]$i.id
                 'RestUrl' = $i.self
             }
 

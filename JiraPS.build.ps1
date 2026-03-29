@@ -138,11 +138,12 @@ Task GenerateExternalHelp {
 Task UpdateManifest {
     Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
     Import-Module $env:BHPSModuleManifest -Force
-    $moduleAlias = Get-Alias | Where-Object { $_.ModuleName -eq "$env:BHProjectName" }
-    $moduleFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1").BaseName
 
+    $moduleFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1").BaseName
     Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "FunctionsToExport" -Value @($moduleFunctions)
+
     Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "AliasesToExport" -Value ''
+    $moduleAlias = Get-Alias | Where-Object { $_.ModuleName -eq "$env:BHProjectName" }
     if ($moduleAlias) {
         Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "AliasesToExport" -Value @($moduleAlias.Name)
     }

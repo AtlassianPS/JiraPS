@@ -11,7 +11,7 @@ function ConvertTo-JiraWorklogItem {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
             $props = @{
-                'ID'         = $i.id
+                'ID'         = [int64]$i.id
                 'Visibility' = $i.visibility
                 'Comment'    = $i.comment
                 'RestUrl'    = $i.self

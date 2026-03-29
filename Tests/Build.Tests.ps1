@@ -1,49 +1,27 @@
-#requires -modules BuildHelpers
-#requires -modules Metadata
-#requires -modules Pester
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Validation of build environment" -Tag Unit {
-
     BeforeAll {
-        Remove-Item -Path Env:\BH*
-        $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
-        if ($projectRoot -like "*Release") {
-            $projectRoot = (Resolve-Path "$projectRoot/..").Path
-        }
+        . "$PSScriptRoot/Helpers/TestTools.ps1"
 
-        Import-Module BuildHelpers
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -Path $projectRoot -ErrorAction SilentlyContinue
-
-        $env:BHManifestToTest = $env:BHPSModuleManifest
-        $script:isBuild = $PSScriptRoot -like "$env:BHBuildOutput*"
-        if ($script:isBuild) {
-            $Pattern = [regex]::Escape($env:BHProjectPath)
-
-            $env:BHBuildModuleManifest = $env:BHPSModuleManifest -replace $Pattern, $env:BHBuildOutput
-            $env:BHManifestToTest = $env:BHBuildModuleManifest
-        }
-
-        Import-Module "$env:BHProjectPath/Tools/BuildTools.psm1"
-
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        # Import-Module $env:BHManifestToTest
-
+        Initialize-TestEnvironment
+        $script:moduleToTest = Resolve-ModuleSource
+        $script:moduleRoot = Resolve-ProjectRoot
     }
-    AfterAll {
-        Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-        Remove-Module BuildHelpers -ErrorAction SilentlyContinue
-        Remove-Item -Path Env:\BH*
-    }
-
 
     Context "CHANGELOG" {
         BeforeAll {
-            $changelogFile = if ($script:isBuild) {
-                "$env:BHBuildOutput/$env:BHProjectName/CHANGELOG.md"
+            $changelogFile = "$moduleRoot/CHANGELOG.md"
+
+            if (-not (Test-Path $changelogFile)) {
+                throw "CHANGELOG.md file not found in the module root directory."
             }
-            else {
-                "$env:BHProjectPath/CHANGELOG.md"
-            }
+
+            $script:changelogVersion = $null
+            # Read the changelog file and extract the version
+            # The regex pattern matches the version format in the changelog
+            # Example: ## [1.0] - 2023-01-01
+            # or: <h2>[1.0]</h2>
             foreach ($line in (Get-Content $changelogFile)) {
                 if ($line -match "(?:##|\<h2.*?\>)\s*(?<Version>(\d+\.?){1,2})(\-(?<Prerelease>(?:alpha|beta|rc)\d*))?") {
                     $changelogVersion = $matches.Version
@@ -62,7 +40,7 @@ Describe "Validation of build environment" -Tag Unit {
         }
 
         It "has a version changelog that matches the manifest version" {
-            Metadata\Get-Metadata -Path $env:BHManifestToTest -PropertyName ModuleVersion | Should -BeLike "$changelogVersion*"
+            Metadata\Get-Metadata -Path $moduleToTest -PropertyName ModuleVersion | Should -BeLike "$changelogVersion*"
         }
     }
 }

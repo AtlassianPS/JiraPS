@@ -30,7 +30,10 @@ JiraPS/
 │   ├── JiraPS.psm1      # Main module file (loads and exports functions)
 │   └── JiraPS.psd1      # Module manifest
 ├── Tests/               # Pester test suite
-│   └── Functions/       # Unit tests for each public/private function
+│   ├── Functions/
+│   │   ├── Public/      # Tests for public CRUD functions
+│   │   └── Private/     # Tests for private converter functions
+│   └── README.md        # Comprehensive testing guide
 ├── Tools/               # Build automation
 │   ├── BuildTools.psm1
 │   └── build.requirements.psd1
@@ -93,33 +96,18 @@ param(
 
 #### Testing Requirements
 
--   **Test File Location**: `Tests/Functions/<FunctionName>.Unit.Tests.ps1`
+-   **Test File Location**: Tests are organized by function type:
+    -   **Public functions** (CRUD): `Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1`
+    -   **Private functions** (Converters): `Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1`
 -   **Pester Version**: Tests should work with Pester 5.7+ (v5 syntax)
--   **Test Structure**:
-
-    ```powershell
-    #requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
-
-    Describe "FunctionName" -Tag Unit {
-        BeforeAll {
-            # Setup: Load helpers, import module
-            . "$PSScriptRoot/Helpers/Resolve-ModuleSource.ps1"
-            $moduleToTest = Resolve-ModuleSource
-            Import-Module $moduleToTest -Force
-        }
-
-        Context "Parameters" {
-            It "has required parameter <Name>" -TestCases @(...) { }
-        }
-
-        Context "Behavior" {
-            BeforeAll {
-                Mock Invoke-JiraMethod -ModuleName JiraPS { }
-            }
-            It "calls the correct API endpoint" { }
-        }
-    }
-    ```
+-   **Test Templates**: Each directory contains a `.template.ps1` file
+    -   **Public functions**: `Tests/Functions/Public/.template.ps1` - for API-calling CRUD functions
+    -   **Private functions**: `Tests/Functions/Private/.template.ps1` - for data transformation/converter functions
+-   **Detailed Guide**: See [`Tests/README.md`](../Tests/README.md) for comprehensive testing documentation including:
+    -   Complete test structure examples
+    -   Mock debugging techniques
+    -   Best practices and common patterns
+    -   Context organization guidelines
 
 ### Build Process
 
@@ -178,7 +166,7 @@ Invoke-JiraMethod -URI $uri -Paging
 ### Adding a New Cmdlet
 
 1. **Create function file**: `JiraPS/Public/Verb-JiraNoun.ps1`
-2. **Write tests**: `Tests/Functions/Verb-JiraNoun.Unit.Tests.ps1`
+2. **Write tests**: `Tests/Functions/Public/Verb-JiraNoun.Unit.Tests.ps1` (use [`.template.ps1`](../Tests/Functions/Public/.template.ps1))
 3. **Write documentation**: `docs/en-US/commands/Verb-JiraNoun.md`
 4. **Pattern to follow**:
 
@@ -233,30 +221,54 @@ When JIRA API changes affect a cmdlet:
 5. **Update docs** with new parameters/behavior
 6. **Add to CHANGELOG.md** under `## [NEXT VERSION]`
 
-### Modernizing Tests (Pester 4 → 5)
+### Test Template Reference
 
-**Pester 5 Changes**:
+JiraPS uses two primary test templates based on function type. **For comprehensive details, see [`Tests/README.md`](../Tests/README.md)**.
 
--   Use `BeforeAll`/`AfterAll` instead of `BeforeEach`/`AfterEach` for setup
--   `-TestCases` syntax unchanged
--   `Assert-MockCalled` → still works but deprecated (use `Should -Invoke` in future)
--   `Should -Be`/`Should -Not` syntax remains
+#### Public CRUD Functions
 
-**Example Migration**:
+**Location**: `Tests/Functions/Public/`
+**Template**: [`Tests/Functions/Public/.template.ps1`](../Tests/Functions/Public/.template.ps1)
+**Reference**: [`Add-JiraFilterPermission.Unit.Tests.ps1`](../Tests/Functions/Public/Add-JiraFilterPermission.Unit.Tests.ps1)
+**Use For**: Get-_, Set-_, New-_, Remove-_, Add-\* functions that make API calls
+
+**Key Characteristics**: Three Describe blocks (Signature, Behavior, Input Validation), extensive mocking, API interaction focus
+
+#### Private Converter Functions
+
+**Location**: `Tests/Functions/Private/`
+**Template**: [`Tests/Functions/Private/.template.ps1`](../Tests/Functions/Private/.template.ps1)
+**Reference**: [`ConvertTo-JiraAttachment.Unit.Tests.ps1`](../Tests/Functions/Private/ConvertTo-JiraAttachment.Unit.Tests.ps1)
+**Use For**: ConvertTo-_, ConvertFrom-_ functions that transform data
+
+**Key Characteristics**: Single Describe block with four contexts (Object Conversion, Property Mapping, Type Conversion, Pipeline Support), large JSON fixtures, minimal mocking
+
+### Mock Debugging
+
+Enable mock parameter debugging in tests:
 
 ```powershell
-# Pester 4 (OLD)
-Describe "Test" {
-    BeforeEach { $var = "test" }
-    It "does thing" { $var | Should Be "test" }
-}
+BeforeAll {
+    . "$PSScriptRoot/../Helpers/Write-MockDebugInfo.ps1"
+    $VerbosePreference = 'Continue'  # Uncomment to see mock debug output
 
-# Pester 5 (NEW)
-Describe "Test" {
-    BeforeAll { $var = "test" }
-    It "does thing" { $var | Should -Be "test" }
+    Mock Invoke-JiraMethod -ModuleName JiraPS {
+        Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+        # mock implementation
+    }
 }
 ```
+
+Output format:
+
+```
+🔷 Mock: Invoke-JiraMethod
+  [Method] = "GET"
+  [Uri] = "https://jira.example.com/rest/api/2/issue/TEST-123"
+  [Body] = <null>
+```
+
+**Note**: The `-Verbose` parameter on `Invoke-Pester` does NOT enable mock debugging. You must set `$VerbosePreference = 'Continue'` inside the test file's BeforeAll block.
 
 ### Working with Custom Fields
 
