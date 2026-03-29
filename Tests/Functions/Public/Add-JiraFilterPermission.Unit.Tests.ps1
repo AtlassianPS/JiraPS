@@ -267,7 +267,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 5
                 }
 
-                It "can process mutiple FilterIds" {
+                It "can process multiple FilterIds" {
                     { Add-JiraFilterPermission -Id 1, 2, 3, 4, 5 -Type "Global" } | Should -Not -Throw
 
                     Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1

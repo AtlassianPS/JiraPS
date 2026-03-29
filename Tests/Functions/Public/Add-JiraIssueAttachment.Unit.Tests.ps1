@@ -17,7 +17,7 @@ InModuleScope JiraPS {
             . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
             #region Definitions
-            $pass = ConvertTo-SecureString -AsPlainText -Force -String "passowrd"
+            $pass = ConvertTo-SecureString -AsPlainText -Force -String "password"
             $script:Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("user", $pass)
             $jiraServer = 'http://jiraserver.example.com'
             $script:issueKey = "FOO-1234"
@@ -44,7 +44,7 @@ InModuleScope JiraPS {
     },
     "created": "2017-10-16T09:06:48.070+0200",
     "size": 438098,
-    "mimeType": "'applation/pdf'",
+    "mimeType": "'application/pdf'",
     "content": "$jiraServer/secure/attachment/$attachmentId/$fileName"
 }
 "@
