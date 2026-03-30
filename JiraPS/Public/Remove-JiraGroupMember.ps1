@@ -70,8 +70,14 @@ function Remove-JiraGroupMember {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop
+        $isCloud = Test-JiraCloudServer -Credential $Credential
 
-        $resourceURi = "$server/rest/api/2/group/user?groupname={0}&username={1}"
+        if ($isCloud) {
+            $resourceURi = "$server/rest/api/2/group/user?groupname={0}&accountId={1}"
+        }
+        else {
+            $resourceURi = "$server/rest/api/2/group/user?groupname={0}&username={1}"
+        }
 
         if ($Force) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -97,15 +103,14 @@ function Remove-JiraGroupMember {
 
                 $userObj = Resolve-JiraUser -InputObject $_user -Exact -Credential $Credential -ErrorAction Stop
 
-                # if ($groupMembers -contains $userObj.Name) {
-                # TODO: test what jira says
+                $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
                 $parameter = @{
-                    URI        = $resourceURi -f $groupObj.Name, $userObj.Name
+                    URI        = $resourceURi -f $groupObj.Name, $userIdentifier
                     Method     = "DELETE"
                     Credential = $Credential
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove $($userObj.Name) from group")) {
+                if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove $($userObj.DisplayName) from group")) {
                     Invoke-JiraMethod @parameter
                 }
                 # }

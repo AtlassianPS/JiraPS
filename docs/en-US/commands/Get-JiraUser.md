@@ -27,6 +27,12 @@ Get-JiraUser [-Credential <PSCredential>] [<CommonParameters>]
 Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
 ```
 
+### ByAccountId
+
+```powershell
+Get-JiraUser [-AccountId] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
+```
+
 ### ByInputObject
 
 ```powershell
@@ -97,6 +103,22 @@ Accept pipeline input: True (ByPropertyName)
 Accept wildcard characters: False
 ```
 
+### -AccountId
+
+Atlassian account ID of the user (used on Jira Cloud).
+
+```yaml
+Type: String[]
+Parameter Sets: ByAccountId
+Aliases:
+
+Required: True
+Position: 1
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
 ### -InputObject
 
 User Object of the user.
@@ -115,11 +137,11 @@ Accept wildcard characters: False
 
 ### -Exact
 
-Limits the search to users where the username is exactly the term searched for.
+Limits the search to users where the username or account ID is exactly the term searched for.
 
 ```yaml
 Type: Switch
-Parameter Sets: ByUserName, ByInputObject
+Parameter Sets: ByUserName, ByAccountId, ByInputObject
 Aliases:
 
 Required: False
@@ -153,7 +175,7 @@ Maximum number of user to be returned.
 
 ```yaml
 Type: UInt32
-Parameter Sets: ByUserName
+Parameter Sets: ByUserName, ByAccountId
 Aliases:
 
 Required: False
@@ -171,7 +193,7 @@ Defaults to 0.
 
 ```yaml
 Type: UInt64
-Parameter Sets: ByUserName
+Parameter Sets: ByUserName, ByAccountId
 Aliases:
 
 Required: False

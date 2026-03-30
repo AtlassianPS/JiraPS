@@ -95,8 +95,10 @@ function Get-JiraIssue {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop
+        $isCloud = Test-JiraCloudServer -Credential $Credential
 
         $searchURi = "$server/rest/api/2/search"
+        $searchURi_v3 = "$server/rest/api/3/search/jql"
         $resourceURi = "$server/rest/api/2/issue/{0}"
 
         [String]$Fields = $Fields -join ","
@@ -141,14 +143,13 @@ function Get-JiraIssue {
             }
             'ByJQL' {
                 $parameter = @{
-                    URI          = $searchURi
+                    URI          = if ($isCloud) { $searchURi_v3 } else { $searchURi }
                     Method       = "GET"
                     GetParameter = @{
                         jql           = (ConvertTo-URLEncoded $Query)
                         validateQuery = $true
                         expand        = "transitions"
                         maxResults    = $PageSize
-
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true

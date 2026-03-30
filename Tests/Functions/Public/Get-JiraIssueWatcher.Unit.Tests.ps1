@@ -40,6 +40,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 Write-Output $jiraServer
@@ -92,7 +94,7 @@ InModuleScope JiraPS {
                 @($watchers) | Should -HaveCount 1
                 $watchers.Name | Should -Be "fred"
                 $watchers.DisplayName | Should -Be "Fred F. User"
-                $watchers.self | Should -Be "$jiraServer/jira/rest/api/2/user?username=fred"
+                $watchers.RestUrl | Should -Be "$jiraServer/jira/rest/api/2/user?username=fred"
 
                 # Get-JiraIssue should be called to identify the -Issue parameter
                 Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly 1

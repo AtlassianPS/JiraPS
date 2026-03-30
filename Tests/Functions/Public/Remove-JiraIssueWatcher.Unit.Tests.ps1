@@ -23,6 +23,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 $jiraServer
@@ -115,6 +117,32 @@ InModuleScope JiraPS {
                 It "can remove multiple watchers" {
                     { Remove-JiraIssueWatcher -Watcher 'fred', 'george' -Issue $issueKey } | Should -Not -Throw
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                }
+            }
+        }
+
+        Describe "Cloud Deployment" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $Method -eq 'Delete' -and $URI -match 'accountId='
+                } {
+                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                }
+
+                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    throw "Unidentified call to Invoke-JiraMethod"
+                }
+            }
+
+            It "uses accountId in the DELETE URI on Cloud" {
+                $testAccountId = '5b10ac8d82e05b22cc7d4ef5'
+                { Remove-JiraIssueWatcher -Issue 'TEST-001' -Watcher $testAccountId } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Delete' -and $URI -match "accountId=$testAccountId"
                 }
             }
         }

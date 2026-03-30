@@ -66,6 +66,8 @@ function Set-JiraIssue {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $isCloud = Test-JiraCloudServer -Credential $Credential
+
         $fieldNames = $Fields.Keys
         if (-not ($Summary -or $Description -or $Assignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
             $errorMessage = @{
@@ -99,7 +101,6 @@ function Set-JiraIssue {
             else {
                 if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Exact -Credential $Credential) {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
-                    $assigneeString = $assigneeObj.Name
                     $validAssignee = $true
                 }
                 else {
@@ -217,8 +218,25 @@ function Set-JiraIssue {
             }
 
             if ($validAssignee) {
-                $assigneeProps = @{
-                    'name' = $assigneeString
+                if (($assigneeObj) -and ($assigneeObj.AccountId) -and ($isCloud)) {
+                    $assigneeProps = @{
+                        'accountId' = $assigneeObj.AccountId
+                    }
+                }
+                elseif ($isCloud -and -not $assigneeObj) {
+                    $assigneeProps = @{
+                        'accountId' = $null
+                    }
+                }
+                elseif ($assigneeString) {
+                    $assigneeProps = @{
+                        'name' = $assigneeString
+                    }
+                }
+                else {
+                    $assigneeProps = @{
+                        'name' = if ($assigneeObj) { $assigneeObj.Name } else { $null }
+                    }
                 }
             }
 

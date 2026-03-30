@@ -45,6 +45,8 @@ function Add-JiraIssueWatcher {
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $isCloud = Test-JiraCloudServer -Credential $Credential
+
         $resourceURi = "{0}/watchers"
     }
 
@@ -59,10 +61,16 @@ function Add-JiraIssueWatcher {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_watcher]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_watcher [$_watcher]"
 
+            if ($isCloud) {
+                $watcherBody = ConvertTo-Json -InputObject $_watcher
+            }
+            else {
+                $watcherBody = '"{0}"' -f $_watcher
+            }
             $parameter = @{
                 URI        = $resourceURi -f $issueObj.RestURL
                 Method     = "POST"
-                Body       = '"{0}"' -f $_watcher
+                Body       = $watcherBody
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

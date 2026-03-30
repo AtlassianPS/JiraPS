@@ -36,6 +36,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 $jiraServer
@@ -118,6 +120,38 @@ InModuleScope JiraPS {
             Context "Type Validation - Positive Cases" {}
 
             Context "Type Validation - Negative Cases" {}
+        }
+
+        Describe "Cloud Deployment" {
+            BeforeAll {
+                $script:testAccountId = '5b10a2844c20165700ede21a'
+
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                Mock Get-JiraUser -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraUser' 'UserName'
+                    $object = ConvertFrom-Json $testJsonGet
+                    $object | Add-Member -MemberType NoteProperty -Name 'AccountId' -Value $testAccountId
+                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    return $object
+                }
+
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $Method -eq 'DELETE' -and
+                    $URI -like "$jiraServer/rest/api/*/user?accountId=*"
+                } {
+                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                }
+            }
+
+            It "Uses accountId in the URI instead of username" {
+                { Remove-JiraUser -User $testUsername -Force } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'DELETE' -and
+                    $URI -like "*accountId=$testAccountId*"
+                }
+            }
         }
     }
 }

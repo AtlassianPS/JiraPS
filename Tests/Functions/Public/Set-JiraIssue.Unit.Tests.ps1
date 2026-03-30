@@ -43,6 +43,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 $jiraServer
@@ -316,6 +318,36 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 # TODO: Add negative test cases
+            }
+        }
+
+        Describe "Cloud Deployment" {
+            BeforeAll {
+                $script:testAccountId = '5b10a2844c20165700ede21a'
+
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                Mock Resolve-JiraUser -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Resolve-JiraUser' 'InputObject', 'Exact', 'Credential'
+                    $object = [PSCustomObject] @{
+                        'Name'      = $InputObject
+                        'AccountId' = $testAccountId
+                        'RestUrl'   = "$jiraServer/rest/api/2/user?username=$InputObject"
+                    }
+                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object
+                }
+            }
+
+            It "Uses accountId for assignee when on Cloud deployment" {
+                { Set-JiraIssue -Issue "IT-3676" -Assignee "testUser" } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'Put' -and
+                    $URI -like '*/rest/api/*/issue/41701/assignee' -and
+                    $Body -match "`"accountId`"" -and
+                    $Body -match "`"$testAccountId`""
+                }
             }
         }
     }

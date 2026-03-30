@@ -22,6 +22,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 $jiraServer
@@ -219,6 +221,35 @@ InModuleScope JiraPS {
 
                     Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                }
+            }
+        }
+
+        Describe "Cloud Deployment" {
+            BeforeAll {
+                $script:testAccountId = '5b10a2844c20165700ede21a'
+
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                Mock Resolve-JiraUser -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Resolve-JiraUser' 'InputObject', 'Credential'
+                    $object = [PSCustomObject] @{
+                        'Name'      = $InputObject
+                        'AccountId' = $testAccountId
+                        'RestUrl'   = "$jiraServer/rest/api/2/user?username=$InputObject"
+                    }
+                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object
+                }
+            }
+
+            It "Uses accountId for assignee in transition body" {
+                { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'powershell-user' } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
+                    $Body -like "*accountId*$testAccountId*"
                 }
             }
         }

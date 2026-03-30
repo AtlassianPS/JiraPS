@@ -36,6 +36,10 @@ function Resolve-JiraUser {
         $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
+    begin {
+        $isCloud = Test-JiraCloudServer -Credential $Credential
+    }
+
     process {
         # As we are not able to use proper type casting in the parameters, this is a workaround
         # to extract the data from a JiraPS.Issue object
@@ -46,7 +50,13 @@ function Resolve-JiraUser {
         }
         else {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve User to object"
-            return (Get-JiraUser -UserName $InputObject -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+
+            if (($isCloud) -and ($InputObject -match '^[0-9a-f]{24}$')) {
+                return (Get-JiraUser -AccountId $InputObject -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+            }
+            else {
+                return (Get-JiraUser -UserName $InputObject -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+            }
         }
     }
 }
