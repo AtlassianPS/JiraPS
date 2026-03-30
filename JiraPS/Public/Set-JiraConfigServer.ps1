@@ -16,6 +16,7 @@ function Set-JiraConfigServer {
 
     process {
         $script:JiraServerUrl = $Server
+        $script:JiraServerInfo = $null
 
         Set-Content -Value $Server -Path "$script:serverConfig"
     }

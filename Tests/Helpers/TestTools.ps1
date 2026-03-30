@@ -1,8 +1,5 @@
-﻿# function Get-TestNameFromCaller {
-#     $callerPath = (Get-PSCallStack)[1].ScriptName
-#     $fileName = [System.IO.Path]::GetFileNameWithoutExtension($callerPath)
-#     return $fileName -replace '\.Unit\.Tests$', ''
-# }
+# Captured at dot-source time when $PSScriptRoot is this file's directory (Tests/Helpers/)
+$script:_TestToolsDir = $PSScriptRoot
 
 function Initialize-TestEnvironment {
     <#
@@ -136,9 +133,9 @@ function Resolve-ProjectRoot {
         Resolves the root directory of the JiraPS project.
 
     .DESCRIPTION
-        This helper function locates the JiraPS project root directory by navigating
-        up from the Tests/Helpers directory and validating the location by checking
-        for the LICENSE file.
+        This helper function locates the JiraPS project root directory by walking
+        up the directory tree from the caller's location until it finds a directory
+        containing the CODEOWNERS file (the project root marker).
 
         This is used internally by other TestTools functions to find the module
         source and other project files.
@@ -156,7 +153,7 @@ function Resolve-ProjectRoot {
 
     .NOTES
         This function is primarily used internally by Resolve-ModuleSource.
-        The LICENSE file is used as a marker to confirm the project root.
+        The CODEOWNERS file is used as a marker to confirm the project root.
 
     .LINK
         Resolve-ModuleSource
@@ -165,13 +162,15 @@ function Resolve-ProjectRoot {
     [OutputType([string])]
     param()
 
-    $projectRoot = Join-Path -Path $PSScriptRoot -ChildPath "../.."
-
-    if (-not (Test-Path "$projectRoot/LICENSE")) {
-        $projectRoot = Join-Path -Path $projectRoot -ChildPath ".."
+    $candidate = (Resolve-Path $script:_TestToolsDir).Path
+    while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
+        if (Test-Path (Join-Path $candidate "CODEOWNERS")) {
+            return $candidate
+        }
+        $candidate = Split-Path $candidate -Parent
     }
 
-    return (Resolve-Path $projectRoot)
+    throw "Could not find project root (no CODEOWNERS file found in any parent of $($script:_TestToolsDir))"
 }
 
 function Write-MockDebugInfo {

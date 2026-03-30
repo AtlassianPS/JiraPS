@@ -51,7 +51,11 @@ function Invoke-JiraMethod {
         # [Parameter( DontShow )]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
-        $Cmdlet = $PSCmdlet
+        $Cmdlet = $PSCmdlet,
+
+        # [Parameter( DontShow )]
+        [int]
+        $_RetryCount = 0
     )
 
     begin {
@@ -89,11 +93,9 @@ function Invoke-JiraMethod {
         }
 
         # Append GET parameters to URi
-        $offset = 0
         if ($PSCmdlet.PagingParameters) {
             if ($PSCmdlet.PagingParameters.Skip) {
                 $internalGetParameter["startAt"] = $PSCmdlet.PagingParameters.Skip
-                $offset = $PSCmdlet.PagingParameters.Skip
             }
             if ($PSCmdlet.PagingParameters.First -lt $internalGetParameter["maxResults"]) {
                 $internalGetParameter["maxResults"] = $PSCmdlet.PagingParameters.First
@@ -158,6 +160,7 @@ function Invoke-JiraMethod {
         # See https://stackoverflow.com/a/43477248/2641196
         $oldProgressPreference = $progressPreference
         $progressPreference = 'silentlyContinue'
+
         try {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($splatParameters.Method) $($splatParameters.Uri)"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoke-WebRequest with `$splatParameters: $($splatParameters | Out-String)"
@@ -170,11 +173,16 @@ function Invoke-JiraMethod {
             $exception = $_
             $webResponse = $exception.Exception.Response
         }
-        # Reset the progressPreference to the value it was before the Invoke-WebRequest
+
         $progressPreference = $oldProgressPreference
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
-        Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet
+        $shouldRetry = Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet -RetryCount $_RetryCount
+        if ($shouldRetry) {
+            $PSBoundParameters['_RetryCount'] = $_RetryCount + 1
+            Invoke-JiraMethod @PSBoundParameters
+            return
+        }
         #endregion Execute the actual query
     }
 
@@ -202,59 +210,7 @@ function Invoke-JiraMethod {
                     $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))
 
                     if ($Paging) {
-                        # Remove Parameters that don't need propagation
-                        $script:PSDefaultParameterValues.Remove("$($MyInvocation.MyCommand.Name):IncludeTotalCount")
-                        $null = $PSBoundParameters.Remove("Paging")
-                        $null = $PSBoundParameters.Remove("Skip")
-                        if (-not $PSBoundParameters["GetParameter"]) {
-                            $PSBoundParameters["GetParameter"] = $internalGetParameter
-                        }
-
-                        $total = 0
-                        do {
-                            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
-
-                            $result = Expand-Result -InputObject $response
-
-                            $total += @($result).Count
-                            $pageSize = $response.maxResults
-
-                            if ($total -gt $PSCmdlet.PagingParameters.First) {
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $($PSCmdlet.PagingParameters.First % $pageSize) of page"
-                                $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
-                            }
-
-                            Convert-Result -InputObject $result -OutputType $OutputType
-                            Write-DebugMessage ($result | Out-String)
-
-                            if (@($result).Count -lt $response.maxResults) {
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $($response.maxResults)"
-                                break
-                            }
-
-                            if ($total -ge $PSCmdlet.PagingParameters.First) {
-                                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as $total reached $($PSCmdlet.PagingParameters.First)"
-                                break
-                            }
-
-                            # calculate the size of the next page
-                            $PSBoundParameters["GetParameter"]["startAt"] = $total + $offset
-                            $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
-                            if ($expectedTotal -gt $PSCmdlet.PagingParameters.First) {
-                                $reduceBy = $expectedTotal - $PSCmdlet.PagingParameters.First
-                                $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
-                            }
-
-                            # Inquire the next page
-                            $response = Invoke-JiraMethod @PSBoundParameters
-
-                            $result = Expand-Result -InputObject $response
-                        } while (@($result).Count -gt 0)
-
-                        if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
-                            [double]$Accuracy = 1.0
-                            $PSCmdlet.PagingParameters.NewTotalCount($total, $Accuracy)
-                        }
+                        Invoke-PaginatedRequest -Response $response @PSBoundParameters
                     }
                     else {
                         $response
