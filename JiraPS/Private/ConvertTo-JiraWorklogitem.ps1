@@ -18,7 +18,7 @@ function ConvertTo-JiraWorklogItem {
             }
 
             $props = @{
-                'ID'         = $i.id
+                'ID'         = [int64]$i.id
                 'Visibility' = $i.visibility
                 'Comment'    = $commentText
                 'RestUrl'    = $i.self

@@ -1,18 +1,5 @@
 #requires -Modules @{ModuleName='PowerShellGet';ModuleVersion='1.6.0'}
 
-[CmdletBinding()]
-param()
-
-function Invoke-Init {
-    [Alias("Init")]
-    [CmdletBinding()]
-    param()
-    begin {
-        Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
-        Add-ToModulePath -Path $env:BHBuildOutput
-    }
-}
-
 function Assert-True {
     [CmdletBinding( DefaultParameterSetName = 'ByBool' )]
     param(
@@ -33,18 +20,58 @@ function Assert-True {
     }
 }
 
-function LogCall {
-    Assert-True { Test-Path TestDrive:\ } "This function only work inside pester"
+function Test-ContainsAll {
+    [CmdletBinding()]
+    [OutputType([Boolean])]
+    param(
+        [Parameter(Mandatory)]
+        [String[]]$Haystack,
+        [Parameter(Mandatory)]
+        [String[]]$Needle
+    )
 
-    Set-Content -Value "$($MyInvocation.Invocationname) $($MyInvocation.UnBoundArguments -join " ")" -Path "TestDrive:\FunctionCalled.$($MyInvocation.Invocationname).txt" -Force
+    begin {
+        $result = $Needle | ForEach-Object {
+            if ($Haystack -notcontains $_) {
+                return "missing"
+            }
+        }
+        return -not ($result -eq "missing")
+    }
 }
 
-function Add-ToModulePath ([String]$Path) {
-    $PSModulePath = $env:PSModulePath -split ([IO.Path]::PathSeparator)
-    if ($Path -notin $PSModulePath) {
-        $PSModulePath += $Path
-        $env:PSModulePath = $PSModulePath -join ([IO.Path]::PathSeparator)
+function Get-HostInformation {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingEmptyCatchBlock', '')]
+    [OutputType([String], [String])]
+    [CmdletBinding()]
+    param()
+    try {
+        $script:IsWindows = (-not (Get-Variable -Name IsWindows -ErrorAction Ignore)) -or $IsWindows
+        $script:IsLinux = (Get-Variable -Name IsLinux -ErrorAction Ignore) -and $IsLinux
+        $script:IsMacOS = (Get-Variable -Name IsMacOS -ErrorAction Ignore) -and $IsMacOS
+        $script:IsCoreCLR = $PSVersionTable.ContainsKey('PSEdition') -and $PSVersionTable.PSEdition -eq 'Core'
     }
+    catch {}
+
+    switch ($true) {
+        { $IsWindows } {
+            $OS = "Windows"
+            if (-not ($IsCoreCLR)) {
+                $OSVersion = $PSVersionTable.BuildVersion.ToString()
+            }
+        }
+        { $IsLinux } {
+            $OS = "Linux"
+        }
+        { $IsMacOs } {
+            $OS = "OSX"
+        }
+        { $IsCoreCLR } {
+            $OSVersion = $PSVersionTable.OS
+        }
+    }
+
+    return $OS, $OSVersion
 }
 
 function Get-Dependency {
@@ -62,8 +89,15 @@ function Install-Dependency {
         $Scope = "CurrentUser"
     )
 
-    [Microsoft.PowerShell.Commands.ModuleSpecification[]]$RequiredModules = Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName "build.requirements.psd1"
-    $Policy = (Get-PSRepository PSGallery).InstallationPolicy
+    $RequiredModules = Get-Dependency
+
+    # Ensure PSGallery exists
+    $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
+    if (-not $psGallery) {
+        throw "PSGallery repository is not available. Run setup.ps1 first to initialize the PowerShell Gallery."
+    }
+
+    $Policy = $psGallery.InstallationPolicy
     try {
         Set-PSRepository PSGallery -InstallationPolicy Trusted
         $RequiredModules | Install-Module -Scope $Scope -Repository PSGallery -SkipPublisherCheck -AllowClobber
@@ -254,61 +288,6 @@ function Remove-Utf8Bom {
             Write-Error -ErrorRecord $_
         }
     }
-}
-
-function Get-LatestPublishedVersion {
-    <#
-    .SYNOPSIS
-        Gets the latest published version of a module from PowerShell Gallery.
-    .DESCRIPTION
-        Queries the PowerShell Gallery for all published versions of a module and returns the latest version as a SemanticVersion.
-        Handles both 4-part versions (e.g., "2.2.0.154") and semantic versions with pre-release labels (e.g., "2.15.0-alpha1").
-    .PARAMETER Name
-        The name of the module to query.
-    .EXAMPLE
-        Get-LatestPublishedVersion -Name JiraPS
-        Returns the latest published version of JiraPS as a SemanticVersion object.
-    #>
-    [CmdletBinding()]
-    [OutputType([System.Management.Automation.SemanticVersion])]
-    param(
-        [Parameter(Mandatory)]
-        [String]$Name
-    )
-
-    $publishedPackages = Find-NugetPackage -Name $Name -ErrorAction Stop
-    $latestPublished = $publishedPackages |
-        Select-Object -ExpandProperty Version |
-        ForEach-Object {
-            # Try SemanticVersion first (handles pre-release like "2.15.0-alpha1")
-            $semVer = $_ -as [System.Management.Automation.SemanticVersion]
-            if ($semVer) {
-                # Return the full semantic version string (preserves pre-release label)
-                $_.ToString()
-            }
-            else {
-                # Fall back to Version for 4-part versions (like "2.2.0.154")
-                # Convert to 3-part semantic version
-                $ver = [Version]$_
-                "{0}.{1}.{2}" -f $ver.Major, $ver.Minor, $ver.Build
-            }
-        } |
-        ForEach-Object { $_ -as [System.Management.Automation.SemanticVersion] } |
-        Sort-Object -Unique |
-        Select-Object -Last 1
-
-    $latestPublished
-}
-
-function Set-GitUser {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
-    param()
-    # github's PAT is stored to ~\.git-credentials within the Release Pipeline
-    # to avoid it being passed as parameter
-
-    if (-not (git config user.email)) { git config user.email "support@atlassianps.net" }
-    if (-not (git config user.name)) { git config user.name "AtlassianPS Automated User" }
-    if (-not (git config credential.helper)) { git config credential.helper "store --file ~/.git-credentials" }
 }
 
 Export-ModuleMember -Function * -Alias *

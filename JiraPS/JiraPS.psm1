@@ -67,5 +67,4 @@ foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
         throw $errorItem
     }
 }
-Export-ModuleMember -Function $PublicFunctions.BaseName -Alias *
 #endregion LoadFunctions

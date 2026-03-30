@@ -18,7 +18,7 @@ function ConvertTo-JiraIssueType {
             }
 
             $props = @{
-                'ID'          = $i.id
+                'Id'          = [int64]$i.id
                 'Name'        = $i.name
                 'Description' = $descriptionText
                 'IconUrl'     = $i.iconUrl

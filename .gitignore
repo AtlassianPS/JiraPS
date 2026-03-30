@@ -5,6 +5,9 @@ Release/
 JiraPS/en-US/
 Test*.xml
 
+# Ignore backup files from Pester migration
+*.bak
+
 #######
 # Excerpts from https://www.gitignore.io
 #######
