@@ -1,4 +1,4 @@
-# Captured at dot-source time when $PSScriptRoot is this file's directory (Tests/Helpers/)
+﻿# Captured at dot-source time when $PSScriptRoot is this file's directory (Tests/Helpers/)
 $script:_TestToolsDir = $PSScriptRoot
 
 function Initialize-TestEnvironment {
