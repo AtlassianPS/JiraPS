@@ -12,6 +12,10 @@ function Set-JiraConfigServer {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        if (-not($Server.IsAbsoluteUri)) {
+            throw "Server must be an absolute URI (e.g., https://jira.domain.com/)"
+        }
     }
 
     process {
