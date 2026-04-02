@@ -5,7 +5,10 @@ function Get-JiraServerInformation {
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential = [System.Management.Automation.PSCredential]::Empty,
+
+        [Switch]
+        $Force
     )
 
     begin {
@@ -20,15 +23,31 @@ function Get-JiraServerInformation {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
+        if ($script:JiraServerInfo -and (-not $Force)) {
+            Write-Output $script:JiraServerInfo
+            return
+        }
+
         $parameter = @{
             URI        = $resourceURi
             Method     = "GET"
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
 
-        Write-Output (ConvertTo-JiraServerInfo -InputObject $result)
+        try {
+            $result = Invoke-JiraMethod @parameter
+            $script:JiraServerInfo = ConvertTo-JiraServerInfo -InputObject $result
+        }
+        catch {
+            Write-Warning "[$($MyInvocation.MyCommand.Name)] Could not retrieve server information: $_"
+            $script:JiraServerInfo = [PSCustomObject]@{
+                PSTypeName     = 'JiraPS.ServerInfo'
+                DeploymentType = 'Server'
+            }
+        }
+
+        Write-Output $script:JiraServerInfo
     }
 
     end {

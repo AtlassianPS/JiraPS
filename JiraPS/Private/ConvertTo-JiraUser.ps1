@@ -31,7 +31,18 @@ function ConvertTo-JiraUser {
             $result = New-Object -TypeName PSObject -Property $props
             $result.PSObject.TypeNames.Insert(0, 'JiraPS.User')
             $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
+                if ($this.Name) {
+                    Write-Output "$($this.Name)"
+                }
+                elseif ($this.DisplayName) {
+                    Write-Output "$($this.DisplayName)"
+                }
+                elseif ($this.AccountId) {
+                    Write-Output "$($this.AccountId)"
+                }
+                else {
+                    Write-Output ""
+                }
             }
 
             Write-Output $result

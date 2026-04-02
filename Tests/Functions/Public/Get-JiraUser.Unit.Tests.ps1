@@ -61,6 +61,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 Write-Output $jiraServer
@@ -211,6 +213,69 @@ InModuleScope JiraPS {
             Context "Type Validation - Positive Cases" {}
 
             Context "Type Validation - Negative Cases" {}
+        }
+
+        Describe "Cloud Deployment" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                $script:testAccountId = '5b10ac8d82e05b22cc7d4ef5'
+
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user/search?*query=*"
+                } {
+                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    ConvertFrom-Json -InputObject $restResult
+                }
+
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/user?accountId=*"
+                } {
+                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    ConvertFrom-Json -InputObject $restResult2
+                }
+
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/myself"
+                } {
+                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    $obj = ConvertFrom-Json -InputObject $restResult
+                    $obj | Add-Member -NotePropertyName 'accountId' -NotePropertyValue $testAccountId -Force
+                    $obj
+                }
+
+                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    throw "Unidentified call to Invoke-JiraMethod"
+                }
+            }
+
+            It "uses query parameter instead of username for search on Cloud" {
+                Get-JiraUser -UserName $testUsername
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $URI -like "$jiraServer/rest/api/*/user/search?*query=*"
+                }
+            }
+
+            It "uses accountId for exact lookup on Cloud" {
+                Get-JiraUser -AccountId $testAccountId -Exact
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $URI -like "$jiraServer/rest/api/*/user?accountId=$testAccountId*"
+                }
+            }
+
+            It "re-fetches by accountId when using -Self on Cloud" {
+                Get-JiraUser
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $URI -like "$jiraServer/rest/api/*/myself"
+                }
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $URI -like "$jiraServer/rest/api/*/user?accountId=$testAccountId*"
+                }
+            }
         }
     }
 }

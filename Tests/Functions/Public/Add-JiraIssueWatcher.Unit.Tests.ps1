@@ -21,6 +21,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 Write-Output $jiraServer
@@ -117,6 +119,22 @@ InModuleScope JiraPS {
             }
 
             Context "Type Validation - Negative Cases" {}
+        }
+
+        Describe "Cloud Deployment" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+            }
+
+            It "uses ConvertTo-Json for watcher body on Cloud" {
+                # Use an accountId-like string as the watcher
+                $testAccountId = '5b10ac8d82e05b22cc7d4ef5'
+                { Add-JiraIssueWatcher -Issue 'TEST-001' -Watcher $testAccountId } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Post' -and $Body -eq (ConvertTo-Json -InputObject $testAccountId)
+                }
+            }
         }
     }
 }

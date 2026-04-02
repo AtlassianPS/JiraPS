@@ -51,6 +51,8 @@ function Invoke-JiraIssueTransition {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $isCloud = Test-JiraCloudServer -Credential $Credential
     }
 
     process {
@@ -110,7 +112,6 @@ function Invoke-JiraIssueTransition {
             else {
                 if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Credential $Credential -Exact) {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
-                    $assigneeString = $assigneeObj.Name
                     $validAssignee = $true
                 }
                 else {
@@ -127,11 +128,18 @@ function Invoke-JiraIssueTransition {
 
         if ($validAssignee) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating Assignee"
+            if (($assigneeObj) -and ($assigneeObj.AccountId) -and ($isCloud)) {
+                $assigneeBody = @{ 'accountId' = $assigneeObj.AccountId }
+            }
+            elseif ($assigneeObj) {
+                $assigneeBody = @{ 'name' = $assigneeObj.Name }
+            }
+            else {
+                $assigneeBody = @{ 'name' = $assigneeString }
+            }
             $requestBody += @{
                 'fields' = @{
-                    'assignee' = @{
-                        'name' = $assigneeString
-                    }
+                    'assignee' = $assigneeBody
                 }
             }
         }

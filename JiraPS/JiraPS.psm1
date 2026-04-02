@@ -46,6 +46,7 @@ $script:PagingContainers = @(
     "worklogs"
 )
 $script:SessionTransformationMethod = "ConvertTo-JiraSession"
+$script:JiraServerInfo = $null
 #endregion Configuration
 
 #region LoadFunctions

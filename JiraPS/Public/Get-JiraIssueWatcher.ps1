@@ -53,8 +53,7 @@ function Get-JiraIssueWatcher {
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($result = Invoke-JiraMethod @parameter) {
-                Write-Output $result.watchers
-                # TODO: are these users?
+                $result.watchers | ConvertTo-JiraUser
             }
         }
     }
