@@ -9,6 +9,10 @@
 - Added `Test-JiraCloudServer` private function — thin boolean wrapper around `Get-JiraServerInformation` for clean deployment type checks
 - Added `Invoke-PaginatedRequest` private function — extracts pagination from `Invoke-JiraMethod` and adds token-based pagination support for API v3
 - Added HTTP 429 rate limit handling in `Test-ServerResponse` with automatic retry via recursion in `Invoke-JiraMethod` (respects `Retry-After` header, exponential backoff)
+- Added Jira Cloud compatibility — the module now auto-detects Cloud vs Data Center/Server via `Get-JiraServerInformation` and adapts API calls accordingly
+- Added `-AccountId` parameter to `Get-JiraUser` for Cloud's account-based user lookup
+- Added Cloud deployment test contexts across test files to cover both Server and Cloud code paths
+- Added "Jira Cloud vs Data Center" section to the authentication documentation
 
 ### Changed
 
@@ -24,6 +28,18 @@
 - `ConvertTo-JiraServerInfo` defaults `DeploymentType` to `Server` when the field is absent (old Jira Server versions)
 - `Invoke-JiraMethod` delegates pagination to `Invoke-PaginatedRequest`
 - `Test-ServerResponse` now handles HTTP 429 rate limit detection with backoff and sleep
+- `Get-JiraUser` uses `?query=` for search and `?accountId=` for exact lookup on Cloud; `?username=` on Data Center
+- `Set-JiraUser` and `Remove-JiraUser` use `?accountId=` on Cloud
+- `New-JiraIssue` reporter field uses `@{ accountId = ... }` on Cloud
+- `Set-JiraIssue` and `Invoke-JiraIssueTransition` assignee fields use `@{ accountId = ... }` on Cloud
+- `Add-JiraGroupMember` POST body uses `@{ accountId = ... }` on Cloud
+- `Remove-JiraGroupMember` uses `&accountId=` query parameter on Cloud
+- `Add-JiraIssueWatcher` and `Remove-JiraIssueWatcher` use `accountId` on Cloud
+- `Get-JiraIssue` JQL search uses `/rest/api/3/search/jql` with token-based pagination on Cloud
+- `Get-JiraIssueWatcher` now pipes watchers through `ConvertTo-JiraUser` for consistent typed output
+- `ConvertTo-JiraUser.ToString()` falls back to `DisplayName` or `AccountId` when `Name` is empty (GDPR compliance)
+- `Resolve-JiraUser` routes by `accountId` pattern on Cloud
+- All deployment type checks use `Test-JiraCloudServer` instead of inline `(Get-JiraServerInformation).DeploymentType` calls
 
 ### Fixed
 
