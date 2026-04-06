@@ -57,6 +57,11 @@ InModuleScope JiraPS {
         }
 
         Describe "Input Validation" {
+
+            It "throws an error when a relative url is used" {
+                { Set-JiraConfigServer -Server 'jira.domain.com' } | Should -Throw 'Server must be an absolute URI (e.g., https://jira.domain.com/)'
+            }
+
             Context "Type Validation - Positive Cases" {}
 
             Context "Type Validation - Negative Cases" {}
