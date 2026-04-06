@@ -8,22 +8,30 @@ function Get-JiraUser {
         [String[]]
         $UserName,
 
+        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByAccountId' )]
+        [ValidateNotNullOrEmpty()]
+        [String[]]
+        $AccountId,
+
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
         [Object[]] $InputObject,
 
         [Parameter( ParameterSetName = 'ByInputObject' )]
         [Parameter( ParameterSetName = 'ByUserName' )]
+        [Parameter( ParameterSetName = 'ByAccountId' )]
         [Switch]$Exact,
 
         [Switch]
         $IncludeInactive,
 
         [Parameter( ParameterSetName = 'ByUserName' )]
+        [Parameter( ParameterSetName = 'ByAccountId' )]
         [ValidateRange(1, 1000)]
         [UInt32]
         $MaxResults = 50,
 
         [Parameter( ParameterSetName = 'ByUserName' )]
+        [Parameter( ParameterSetName = 'ByAccountId' )]
         [ValidateNotNullOrEmpty()]
         [UInt64]
         $Skip = 0,
@@ -38,10 +46,18 @@ function Get-JiraUser {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop
+        $isCloud = Test-JiraCloudServer -Credential $Credential
 
         $selfResourceUri = "$server/rest/api/2/myself"
-        $searchResourceUri = "$server/rest/api/2/user/search?username={0}"
-        $exactResourceUri = "$server/rest/api/2/user?username={0}"
+
+        if ($isCloud) {
+            $searchResourceUri = "$server/rest/api/2/user/search?query={0}"
+            $exactResourceUri = "$server/rest/api/2/user?accountId={0}"
+        }
+        else {
+            $searchResourceUri = "$server/rest/api/2/user/search?username={0}"
+            $exactResourceUri = "$server/rest/api/2/user?username={0}"
+        }
 
         if ($IncludeInactive) {
             $searchResourceUri += "&includeInactive=true"
@@ -60,8 +76,26 @@ function Get-JiraUser {
 
         $ParameterSetName = ''
         switch ($PsCmdlet.ParameterSetName) {
-            'ByInputObject' { $UserName = $InputObject.Name; $ParameterSetName = 'ByUserName'; $Exact = $true }
-            'ByUserName' { $ParameterSetName = 'ByUserName' }
+            'ByInputObject' {
+                if ($isCloud) {
+                    $lookupValue = $InputObject.AccountId
+                    if (-not $lookupValue) { $lookupValue = $InputObject.Name }
+                }
+                else {
+                    $lookupValue = $InputObject.Name
+                }
+                $ParameterSetName = 'ByLookupValue'
+                $Exact = $true
+            }
+            'ByAccountId' {
+                $lookupValue = $AccountId
+                $ParameterSetName = 'ByLookupValue'
+                $Exact = $true
+            }
+            'ByUserName' {
+                $lookupValue = $UserName
+                $ParameterSetName = 'ByLookupValue'
+            }
             'Self' { $ParameterSetName = 'Self' }
         }
 
@@ -77,17 +111,20 @@ function Get-JiraUser {
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
 
-                Get-JiraUser -UserName $result.Name -Exact
+                if ($isCloud -and $result.accountId) {
+                    Get-JiraUser -AccountId $result.accountId -Exact -Credential $Credential
+                }
+                elseif ($result.Name) {
+                    Get-JiraUser -UserName $result.Name -Exact -Credential $Credential
+                }
+                else {
+                    Write-Output (ConvertTo-JiraUser -InputObject $result)
+                }
             }
-            "ByInputObject" {
-                $UserName = $InputObject.Name
-
-                $PsCmdlet.ParameterSetName = "ByUserName"
-            }
-            "ByUserName" {
+            "ByLookupValue" {
                 $resourceURi = if ($Exact) { $exactResourceUri } else { $searchResourceUri }
 
-                foreach ($user in $UserName) {
+                foreach ($user in $lookupValue) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$user [$user]"
 

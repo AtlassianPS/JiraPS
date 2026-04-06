@@ -76,8 +76,14 @@ function Set-JiraUser {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop
+        $isCloud = Test-JiraCloudServer -Credential $Credential
 
-        $resourceURi = "$server/rest/api/2/user?username={0}"
+        if ($isCloud) {
+            $resourceURi = "$server/rest/api/2/user?accountId={0}"
+        }
+        else {
+            $resourceURi = "$server/rest/api/2/user?username={0}"
+        }
     }
 
     process {
@@ -121,8 +127,9 @@ function Set-JiraUser {
                 }
             }
 
+            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
             $parameter = @{
-                URI        = $resourceURi -f $userObj.Name
+                URI        = $resourceURi -f $userIdentifier
                 Method     = "PUT"
                 Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
                 Credential = $Credential

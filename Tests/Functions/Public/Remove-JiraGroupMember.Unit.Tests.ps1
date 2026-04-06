@@ -24,6 +24,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 $jiraServer
@@ -192,6 +194,30 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 # TODO: Add negative input validation tests
+            }
+        }
+
+        Describe "Cloud Deployment" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                Mock Resolve-JiraUser -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Resolve-JiraUser'
+                    $object = [PSCustomObject] @{
+                        'Name'      = 'testUser'
+                        'AccountId' = 'abc123def456'
+                    }
+                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object
+                }
+            }
+
+            It "uses accountId in the URI when removing a user on Cloud" {
+                { Remove-JiraGroupMember -Group $testGroupName -User 'testUser' -Force } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Delete' -and $URI -match 'accountId='
+                }
             }
         }
     }

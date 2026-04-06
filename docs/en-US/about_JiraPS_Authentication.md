@@ -61,6 +61,25 @@ Some implementations of Jira Server (on-premise) might not be able to use HTTP B
 _More information on the API tokens and how to create one can be found at:_
 _<https://confluence.atlassian.com/cloud/api-tokens-938839638.html>_
 
+## Jira Cloud vs. Data Center
+
+JiraPS automatically detects whether your Jira instance is Cloud or
+Data Center/Server by calling the `/serverInfo` endpoint (see
+`Get-JiraServerInformation`). This detection is cached for the session.
+
+On **Jira Cloud**, JiraPS adapts its behavior:
+
+* Uses `accountId` instead of `username` for user identification
+  (required since Atlassian's GDPR changes removed usernames from Cloud)
+* Uses API v3 endpoints for JQL search (`/rest/api/3/search/jql`)
+  with token-based pagination
+* Warns when `New-JiraSession` is used, since cookie-based sessions
+  are deprecated on Cloud — use `-Credential` with individual commands instead
+* Handles HTTP 429 (rate limiting) with automatic retry and exponential backoff
+
+No changes are required in your scripts. JiraPS selects the correct
+API behavior based on the detected deployment type.
+
 ## Sessions
 
 Jira sessions still require [HTTP Basic](#http-basic) or [API Token](#api-token)

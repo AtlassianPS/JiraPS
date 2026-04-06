@@ -40,6 +40,8 @@ function Remove-JiraIssueWatcher {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $isCloud = Test-JiraCloudServer -Credential $Credential
     }
 
     process {
@@ -49,17 +51,23 @@ function Remove-JiraIssueWatcher {
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        foreach ($username in $Watcher) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$username]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$username [$username]"
+        foreach ($watcherValue in $Watcher) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$watcherValue]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$watcherValue [$watcherValue]"
 
+            if ($isCloud) {
+                $watcherUri = "{0}/watchers?accountId={1}" -f $issueObj.RestURL, $watcherValue
+            }
+            else {
+                $watcherUri = "{0}/watchers?username={1}" -f $issueObj.RestURL, $watcherValue
+            }
             $parameter = @{
-                URI        = "{0}/watchers?username={1}" -f $issueObj.RestURL, $username
+                URI        = $watcherUri
                 Method     = "DELETE"
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($username)'")) {
+            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) {
                 Invoke-JiraMethod @parameter
             }
         }

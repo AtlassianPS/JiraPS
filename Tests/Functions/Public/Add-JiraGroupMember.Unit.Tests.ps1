@@ -24,6 +24,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 Write-Output $jiraServer
@@ -182,6 +184,37 @@ InModuleScope JiraPS {
             Context "Type Validation - Positive Cases" {}
 
             Context "Type Validation - Negative Cases" {}
+        }
+
+        Describe "Cloud Deployment" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                Mock Get-JiraGroupMember -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraGroupMember'
+                    @()
+                }
+
+                Mock Get-JiraUser -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraUser' 'UserName'
+                    foreach ($user in $UserName) {
+                        $object = [PSCustomObject] @{
+                            'Name'      = "$user"
+                            'AccountId' = "abc123def456"
+                        }
+                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        Write-Output $object
+                    }
+                }
+            }
+
+            It "uses accountId in POST body when adding a user on Cloud" {
+                { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Post' -and $Body -match 'accountId'
+                }
+            }
         }
     }
 }

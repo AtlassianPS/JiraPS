@@ -32,6 +32,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 $jiraServer
@@ -257,6 +259,30 @@ InModuleScope JiraPS {
                     }
 
                     { New-JiraIssue @newParams } | Should -Throw -ExpectedMessage "*Invalid or missing value*"
+                }
+            }
+        }
+
+        Describe "Cloud Deployment" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                Mock Resolve-JiraUser -ModuleName JiraPS {
+                    $object = [PSCustomObject]@{
+                        'Name'      = 'testUsername'
+                        'AccountId' = '5b10ac8d82e05b22cc7d4ef5'
+                    }
+                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    return $object
+                }
+            }
+
+            It "uses accountId for reporter on Cloud" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $Body -match 'accountId'
                 }
             }
         }

@@ -41,8 +41,14 @@ function Remove-JiraUser {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $server = Get-JiraConfigServer -ErrorAction Stop
+        $isCloud = Test-JiraCloudServer -Credential $Credential
 
-        $resourceURi = "$server/rest/api/2/user?username={0}"
+        if ($isCloud) {
+            $resourceURi = "$server/rest/api/2/user?accountId={0}"
+        }
+        else {
+            $resourceURi = "$server/rest/api/2/user?username={0}"
+        }
 
         if ($Force) {
             Write-DebugMessage "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -61,13 +67,14 @@ function Remove-JiraUser {
 
             $userObj = Resolve-JiraUser -InputObject $_user -Credential $Credential -ErrorAction Stop
 
+            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
             $parameter = @{
-                URI        = $resourceURi -f $userObj.Name
+                URI        = $resourceURi -f $userIdentifier
                 Method     = "DELETE"
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($userObj.Name, 'Remove user')) {
+            if ($PSCmdlet.ShouldProcess($userObj.DisplayName, 'Remove user')) {
                 Invoke-JiraMethod @parameter
             }
         }

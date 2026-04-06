@@ -59,6 +59,8 @@ function New-JiraIssue {
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $isCloud = Test-JiraCloudServer -Credential $Credential
     }
 
     process {
@@ -98,7 +100,13 @@ function New-JiraIssue {
         }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
-            $requestBody["reporter"] = @{"name" = "$Reporter" }
+            if ($isCloud) {
+                $reporterUser = Resolve-JiraUser -InputObject $Reporter -Exact -Credential $Credential -ErrorAction Stop
+                $requestBody["reporter"] = @{"accountId" = $reporterUser.AccountId }
+            }
+            else {
+                $requestBody["reporter"] = @{"name" = "$Reporter" }
+            }
         }
 
         if ($Parent) {
