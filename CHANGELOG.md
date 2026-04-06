@@ -5,6 +5,10 @@
 ### Added
 
 - Added Jira Cloud vs Data Center compatibility guidance for Copilot code review (#568, [@lipkau])
+- Added `-Force` parameter to `Get-JiraServerInformation` to bypass the server info cache
+- Added `Test-JiraCloudServer` private function — thin boolean wrapper around `Get-JiraServerInformation` for clean deployment type checks
+- Added `Invoke-PaginatedRequest` private function — extracts pagination from `Invoke-JiraMethod` and adds token-based pagination support for API v3
+- Added HTTP 429 rate limit handling in `Test-ServerResponse` with automatic retry via recursion in `Invoke-JiraMethod` (respects `Retry-After` header, exponential backoff)
 
 ### Changed
 
@@ -16,6 +20,10 @@
 - Bumped `actions/upload-artifact` from 6 to 7 (#557)
 - Bumped `actions/download-artifact` from 7 to 8 (#559)
 - Bumped `dawidd6/action-download-artifact` from 12 to 19 (#560, #561)
+- `Get-JiraServerInformation` now caches its result in module scope; subsequent calls return cached data (cleared on `Set-JiraConfigServer` or with `-Force`)
+- `ConvertTo-JiraServerInfo` defaults `DeploymentType` to `Server` when the field is absent (old Jira Server versions)
+- `Invoke-JiraMethod` delegates pagination to `Invoke-PaginatedRequest`
+- `Test-ServerResponse` now handles HTTP 429 rate limit detection with backoff and sleep
 
 ### Fixed
 

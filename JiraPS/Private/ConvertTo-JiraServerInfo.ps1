@@ -13,7 +13,7 @@ function ConvertTo-JiraServerInfo {
             $props = @{
                 'BaseURL'        = $i.baseUrl
                 'Version'        = $i.version
-                'DeploymentType' = $i.deploymentType
+                'DeploymentType' = if ($i.deploymentType) { $i.deploymentType } else { 'Server' }
                 'BuildNumber'    = $i.buildNumber
                 'BuildDate'      = Get-Date $i.buildDate
                 'ServerTime'     = Get-Date $i.serverTime

@@ -380,6 +380,22 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -_RetryCount
+
+Internal parameter used for recursive retry tracking on HTTP 429 (rate limit) responses. Do not set manually.
+
+```yaml
+Type: Int32
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 11
+Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -IncludeTotalCount
 
 Causes an extra output of the total count at the beginning.

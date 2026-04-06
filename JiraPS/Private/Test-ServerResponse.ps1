@@ -13,7 +13,11 @@ function Test-ServerResponse {
 
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
-        $Cmdlet = $PSCmdlet
+        $Cmdlet = $PSCmdlet,
+
+        [int]$RetryCount = 0,
+
+        [int]$MaxRetries = 3
     )
 
     begin {
@@ -21,10 +25,12 @@ function Test-ServerResponse {
     }
 
     process {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Checking response headers for authentication errors"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Investigating `$InputObject.Headers['$loginReasonKey']"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Checking HTTP Response"
 
         if ($InputObject.Headers -and $InputObject.Headers[$loginReasonKey]) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Checking response headers for authentication errors"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Investigating `$InputObject.Headers['$loginReasonKey']"
+
             $loginReason = $InputObject.Headers[$loginReasonKey] -split ","
 
             switch ($true) {
@@ -60,6 +66,24 @@ function Test-ServerResponse {
                 }
                 { $loginReason -contains "OK" } { } # The login was OK
                 { $loginReason -contains "OUT" } { } # This indicates that person has in fact logged "out"
+            }
+        }
+
+        if ($InputObject.StatusCode -and ([int]$InputObject.StatusCode -eq 429)) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Got `"429 - Too Many Requests`". Checking retry"
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] #Retry: $RetryCount / $MaxRetries"
+
+            if ($RetryCount -lt $MaxRetries) {
+                $_retryAfter = 0
+                if ($InputObject.Headers -and $InputObject.Headers['Retry-After']) {
+                    $_retryAfter = [int]$InputObject.Headers['Retry-After']
+                }
+                if ($_retryAfter -lt 1) {
+                    $_retryAfter = [math]::Pow(2, $RetryCount + 1)
+                }
+                Write-Warning "[$($MyInvocation.MyCommand.Name)] Rate limited (HTTP 429). Retrying in $_retryAfter seconds (attempt $($RetryCount + 1) of $MaxRetries)."
+                Start-Sleep -Seconds $_retryAfter
+                return $true
             }
         }
     }
