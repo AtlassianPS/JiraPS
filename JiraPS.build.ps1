@@ -152,10 +152,15 @@ Task UpdateManifest {
 Task SetVersion {
     [System.Management.Automation.SemanticVersion]$versionToPublish = $VersionToPublish
 
-    $latestPublished = Get-LatestPublishedVersion -Name $env:BHProjectName
-
-    Write-Build Gray "Latest published version: $latestPublished"
-    Assert-True { $versionToPublish -gt $latestPublished } "Version must be greater than latest published version: $latestPublished"
+    $published = Find-Module -Name $env:BHProjectName -ErrorAction SilentlyContinue
+    if ($published) {
+        [System.Management.Automation.SemanticVersion]$latestPublished = $published.Version
+        Write-Build Gray "Latest published version: $latestPublished"
+        Assert-True { $versionToPublish -gt $latestPublished } "Version must be greater than latest published version: $latestPublished"
+    }
+    else {
+        Write-Build Gray "No published version found in PSGallery; skipping version guard"
+    }
 
     $versionString = "{0}.{1}.{2}" -f $versionToPublish.Major, $versionToPublish.Minor, $versionToPublish.Patch
     Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "ModuleVersion" -Value $versionString
