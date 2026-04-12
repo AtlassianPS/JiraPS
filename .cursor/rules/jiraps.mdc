@@ -1,0 +1,33 @@
+---
+description: JiraPS PowerShell module development rules
+globs: ["**/*.ps1", "**/*.psm1", "**/*.psd1"]
+---
+
+# PowerShell File Rules (Cursor)
+
+This file applies to PowerShell files. It references shared rules.
+
+**Canonical sources**:
+- Project rules: `AGENTS.md`
+- PowerShell rules: `.github/ai-context/powershell-rules.md`
+
+## Quick Reference
+
+1. **One Functionality Per Commit** — code + tests + docs + green tests
+2. **Cloud AND Data Center** — all API changes must work on both
+3. **User Identity** — `accountId` for Cloud, `username`/`name` for DC
+4. **REST calls** — always go through `Invoke-JiraMethod`
+5. **Tests required** — every function needs `.Unit.Tests.ps1`
+6. **Run tests** — `Invoke-Build -Task Build, Test` (must build first!)
+
+## File Locations
+
+| Type | Location |
+|------|----------|
+| Public functions | `JiraPS/Public/` |
+| Private functions | `JiraPS/Private/` |
+| Public tests | `Tests/Functions/Public/` |
+| Private tests | `Tests/Functions/Private/` |
+| Docs | `docs/en-US/commands/` |
+
+For full rules, read `AGENTS.md` and `.github/ai-context/powershell-rules.md`.
