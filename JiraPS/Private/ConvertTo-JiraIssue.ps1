@@ -32,7 +32,7 @@
                 'HttpUrl'     = $http
                 'RestUrl'     = $i.self
                 'Summary'     = $i.fields.summary
-                'Description' = $i.fields.description
+                'Description' = ConvertFrom-AtlassianDocumentFormat -InputObject $i.fields.description
                 'Status'      = $i.fields.status.name
             }
 

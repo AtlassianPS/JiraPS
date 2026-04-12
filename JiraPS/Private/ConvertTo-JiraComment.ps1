@@ -12,7 +12,7 @@
 
             $props = @{
                 'ID'         = $i.id
-                'Body'       = $i.body
+                'Body'       = ConvertFrom-AtlassianDocumentFormat -InputObject $i.body
                 'Visibility' = $i.visibility
                 'RestUrl'    = $i.self
             }

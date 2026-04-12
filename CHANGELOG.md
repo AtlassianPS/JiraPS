@@ -1,5 +1,22 @@
 # Change Log
 
+## v2.16.0-beta2 - unreleased
+
+### Added
+
+- Added `ConvertFrom-AtlassianDocumentFormat` public function (alias `ConvertFrom-ADF`) — converts ADF objects (Jira Cloud v3) to Markdown; plain strings (Data Center) are passed through unchanged. Supports headings, bold/italic/strikethrough/code/links, bullet/ordered/task lists, tables, code fences, blockquotes, panels, mentions, emoji, and date nodes
+- Added `ConvertTo-AtlassianDocumentFormat` public function (alias `ConvertTo-ADF`) — converts Markdown to ADF for writing descriptions and comments on Jira Cloud v3. Supports all symmetric constructs: headings, inline marks, fenced code blocks, blockquotes, tables, task/bullet/ordered lists, block images
+- Added `Tests/Fixtures/adf.sample.json` + `Tests/Fixtures/adf.sample.md` — reference fixtures covering every ADF node type, used by unit tests
+- Added nested list support (2 levels) for both `ConvertTo-ADF` and `ConvertFrom-ADF` — indented bullet/ordered lists are now parsed and rendered correctly
+- Added combined inline mark support (`***bold italic***`, `**_nested_**`, `_**reverse**_`) — produces ADF text nodes with multiple marks
+- Added hard break support — trailing double-spaces in Markdown are converted to `hardBreak` ADF nodes and back
+
+### Fixed
+
+- Fixed `ConvertTo-JiraComment` and `ConvertTo-JiraIssue` to pass `Body` and `Description` through `ConvertFrom-AtlassianDocumentFormat` — Jira Cloud API v3 returns ADF objects instead of plain strings; without conversion, fields contained raw `PSCustomObject` data instead of readable text
+- Fixed table separator regex in `ConvertTo-ADF` to handle compact separators without spaces (`|---|---|`)
+- Fixed `inlineCard` rendering in `ConvertFrom-ADF` to produce `<url>` instead of redundant `[url](url)`
+
 ## v2.16.0-beta - 2026-04-06
 
 ### Added
