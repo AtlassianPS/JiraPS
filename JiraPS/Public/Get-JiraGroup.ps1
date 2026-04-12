@@ -1,4 +1,4 @@
-function Get-JiraGroup {
+﻿function Get-JiraGroup {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(

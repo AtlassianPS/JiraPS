@@ -1,4 +1,4 @@
-function ConvertTo-JiraEditMetaField {
+﻿function ConvertTo-JiraEditMetaField {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

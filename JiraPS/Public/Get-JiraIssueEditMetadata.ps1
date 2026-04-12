@@ -1,4 +1,4 @@
-function Get-JiraIssueEditMetadata {
+﻿function Get-JiraIssueEditMetadata {
     # .ExternalHelp ..\JiraPS-help.xml
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '')]
     [CmdletBinding()]

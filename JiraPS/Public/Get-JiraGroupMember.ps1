@@ -1,4 +1,4 @@
-function Get-JiraGroupMember {
+﻿function Get-JiraGroupMember {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging )]
     param(

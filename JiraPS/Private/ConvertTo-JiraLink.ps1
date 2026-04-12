@@ -1,4 +1,4 @@
-function ConvertTo-JiraLink {
+﻿function ConvertTo-JiraLink {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

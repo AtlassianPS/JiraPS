@@ -1,4 +1,4 @@
-function Find-JiraFilter {
+﻿function Find-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = 'ByAccountId', SupportsPaging )]
     param(

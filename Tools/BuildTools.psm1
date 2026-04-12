@@ -1,4 +1,4 @@
-#requires -Modules @{ModuleName='PowerShellGet';ModuleVersion='1.6.0'}
+﻿#requires -Modules @{ModuleName='PowerShellGet';ModuleVersion='1.6.0'}
 
 function Assert-True {
     [CmdletBinding( DefaultParameterSetName = 'ByBool' )]

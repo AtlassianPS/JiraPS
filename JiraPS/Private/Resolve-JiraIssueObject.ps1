@@ -1,4 +1,4 @@
-function Resolve-JiraIssueObject {
+﻿function Resolve-JiraIssueObject {
     <#
       #ToDo:CustomClass
       Once we have custom classes, this will no longer be necessary

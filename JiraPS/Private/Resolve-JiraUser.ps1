@@ -1,4 +1,4 @@
-function Resolve-JiraUser {
+﻿function Resolve-JiraUser {
     <#
       #ToDo:CustomClass
       Once we have custom classes, this will no longer be necessary

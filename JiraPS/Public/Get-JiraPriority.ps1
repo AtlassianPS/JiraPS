@@ -1,4 +1,4 @@
-function Get-JiraPriority {
+﻿function Get-JiraPriority {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(

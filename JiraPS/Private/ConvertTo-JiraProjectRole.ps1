@@ -1,4 +1,4 @@
-function ConvertTo-JiraProjectRole {
+﻿function ConvertTo-JiraProjectRole {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

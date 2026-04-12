@@ -1,4 +1,4 @@
-function Get-JiraIssueLink {
+﻿function Get-JiraIssueLink {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(

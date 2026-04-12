@@ -1,4 +1,4 @@
-function Get-JiraComponent {
+﻿function Get-JiraComponent {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(

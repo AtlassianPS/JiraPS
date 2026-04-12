@@ -10,6 +10,7 @@ insert_final_newline = true
 
 [*.{md,ps1,psm1,psd1,psc1,ps1xml,clixml}]
 end_of_line = crlf
+charset = utf-8-bom
 
 
 [*.{yml,yaml}]

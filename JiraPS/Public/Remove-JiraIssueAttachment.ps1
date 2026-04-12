@@ -1,4 +1,4 @@
-function Remove-JiraIssueAttachment {
+﻿function Remove-JiraIssueAttachment {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess, DefaultParameterSetName = 'byId' )]
     param(

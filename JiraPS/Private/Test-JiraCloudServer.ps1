@@ -1,4 +1,4 @@
-function Test-JiraCloudServer {
+﻿function Test-JiraCloudServer {
     [CmdletBinding()]
     [OutputType([System.Boolean])]
     param(

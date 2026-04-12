@@ -1,4 +1,4 @@
-function Get-JiraIssueWatcher {
+﻿function Get-JiraIssueWatcher {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(

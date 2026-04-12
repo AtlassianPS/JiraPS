@@ -1,4 +1,4 @@
-function ThrowError {
+﻿function ThrowError {
     <#
     .SYNOPSIS
         Utility to throw a terminating errorrecord

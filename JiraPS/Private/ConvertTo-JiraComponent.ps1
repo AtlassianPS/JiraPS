@@ -1,4 +1,4 @@
-function ConvertTo-JiraComponent {
+﻿function ConvertTo-JiraComponent {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

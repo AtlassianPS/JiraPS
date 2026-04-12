@@ -1,4 +1,4 @@
-function Invoke-PaginatedRequest {
+﻿function Invoke-PaginatedRequest {
     [CmdletBinding(SupportsPaging)]
     param(
         [Parameter( Mandatory )]

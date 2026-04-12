@@ -1,4 +1,4 @@
-function Set-JiraUser {
+﻿function Set-JiraUser {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ByNamedParameters' )]
     param(

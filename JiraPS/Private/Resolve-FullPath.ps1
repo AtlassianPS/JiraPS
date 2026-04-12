@@ -1,4 +1,4 @@
-function Resolve-FullPath {
+﻿function Resolve-FullPath {
     [CmdletBinding()]
     param (
         # Path to be resolved.

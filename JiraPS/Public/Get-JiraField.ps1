@@ -1,4 +1,4 @@
-function Get-JiraField {
+﻿function Get-JiraField {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(

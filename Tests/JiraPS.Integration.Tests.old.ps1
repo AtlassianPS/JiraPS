@@ -1,4 +1,4 @@
-# Describe 'Load Module' -Tag 'Integration' {
+﻿# Describe 'Load Module' -Tag 'Integration' {
 #     # ARRANGE
 #     Remove-Module JiraPS -Force -ErrorAction SilentlyContinue
 

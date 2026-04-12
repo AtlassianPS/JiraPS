@@ -1,4 +1,4 @@
-function ConvertTo-JiraWorklogItem {
+﻿function ConvertTo-JiraWorklogItem {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

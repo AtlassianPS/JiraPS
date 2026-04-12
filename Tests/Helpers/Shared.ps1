@@ -1,4 +1,4 @@
-# THIS FILE IS DEPRECATED. PLEASE DO NOT MAKE ANY CHANGES HERE.
+﻿# THIS FILE IS DEPRECATED. PLEASE DO NOT MAKE ANY CHANGES HERE.
 # TODO: Migrate any useful functions to ./Tests/Helpers/TestTools.ps1
 
 #Requires -Modules Pester

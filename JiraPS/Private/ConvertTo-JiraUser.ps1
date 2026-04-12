@@ -1,4 +1,4 @@
-function ConvertTo-JiraUser {
+﻿function ConvertTo-JiraUser {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

@@ -1,4 +1,4 @@
-function ConvertTo-ParameterHash {
+﻿function ConvertTo-ParameterHash {
     [CmdletBinding( DefaultParameterSetName = 'ByString' )]
     param (
         # URI from which to use the query

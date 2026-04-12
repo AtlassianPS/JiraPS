@@ -1,4 +1,4 @@
-function New-JiraFilter {
+﻿function New-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(

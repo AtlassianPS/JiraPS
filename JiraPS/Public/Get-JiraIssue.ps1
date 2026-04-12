@@ -1,4 +1,4 @@
-function Get-JiraIssue {
+﻿function Get-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'ByIssueKey' )]
     param(

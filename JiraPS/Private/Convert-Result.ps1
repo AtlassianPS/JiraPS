@@ -1,4 +1,4 @@
-function Convert-Result {
+﻿function Convert-Result {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

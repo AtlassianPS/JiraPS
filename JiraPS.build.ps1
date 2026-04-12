@@ -118,8 +118,8 @@ Task CompileModule {
         $compiled += "`r`n"
     }
 
-    Set-Content -LiteralPath $targetFile -Value $compiled -Encoding UTF8 -Force
-    Remove-Utf8Bom -Path $targetFile
+    $utf8Bom = [System.Text.UTF8Encoding]::new($true)
+    [System.IO.File]::WriteAllText($targetFile, $compiled, $utf8Bom)
 
     "Private", "Public" | ForEach-Object { Remove-Item -Path "$env:BHBuildOutput/$env:BHProjectName/$_" -Recurse -Force }
 }

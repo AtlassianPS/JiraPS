@@ -1,4 +1,4 @@
-function ConvertTo-JiraPriority {
+﻿function ConvertTo-JiraPriority {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

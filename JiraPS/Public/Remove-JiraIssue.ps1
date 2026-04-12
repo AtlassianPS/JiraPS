@@ -1,4 +1,4 @@
-function Remove-JiraIssue {
+﻿function Remove-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding(
         ConfirmImpact = 'High',

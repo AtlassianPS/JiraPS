@@ -1,4 +1,4 @@
-function Add-JiraFilterPermission {
+﻿function Add-JiraFilterPermission {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ByInputObject' )]
     # [OutputType( [JiraPS.FilterPermission] )]

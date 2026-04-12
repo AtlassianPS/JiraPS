@@ -1,4 +1,4 @@
-function Add-JiraIssueComment {
+﻿function Add-JiraIssueComment {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(

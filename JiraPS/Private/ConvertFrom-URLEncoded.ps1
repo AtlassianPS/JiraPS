@@ -1,4 +1,4 @@
-function ConvertFrom-URLEncoded {
+﻿function ConvertFrom-URLEncoded {
     <#
     .SYNOPSIS
         Decode a URL encoded string

@@ -1,4 +1,4 @@
-function Get-JiraRemoteLink {
+﻿function Get-JiraRemoteLink {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(

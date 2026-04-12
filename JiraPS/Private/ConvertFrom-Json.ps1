@@ -1,4 +1,4 @@
-if ($PSVersionTable.PSVersion.Major -lt 6) {
+﻿if ($PSVersionTable.PSVersion.Major -lt 6) {
     function ConvertFrom-Json {
         <#
     .SYNOPSIS

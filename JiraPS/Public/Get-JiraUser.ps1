@@ -1,4 +1,4 @@
-function Get-JiraUser {
+﻿function Get-JiraUser {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = 'Self' )]
     param(

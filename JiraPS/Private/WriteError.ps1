@@ -1,4 +1,4 @@
-function WriteError {
+﻿function WriteError {
     <#
     .SYNOPSIS
         Utility to write an errorrecord to the errstd
