@@ -1,4 +1,4 @@
-function ConvertTo-JiraSession {
+﻿function ConvertTo-JiraSession {
     [CmdletBinding()]
     param(
         [Parameter( Mandatory )]

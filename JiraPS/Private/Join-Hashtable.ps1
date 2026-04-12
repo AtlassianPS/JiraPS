@@ -1,4 +1,4 @@
-function Join-Hashtable {
+﻿function Join-Hashtable {
     <#
 	.SYNOPSIS
 		Combines multiple hashtables into a single table.

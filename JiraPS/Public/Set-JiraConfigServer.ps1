@@ -1,4 +1,4 @@
-function Set-JiraConfigServer {
+﻿function Set-JiraConfigServer {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]

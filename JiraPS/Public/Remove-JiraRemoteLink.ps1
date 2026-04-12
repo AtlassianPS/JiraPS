@@ -1,4 +1,4 @@
-function Remove-JiraRemoteLink {
+﻿function Remove-JiraRemoteLink {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(

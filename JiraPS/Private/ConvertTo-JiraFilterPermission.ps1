@@ -1,4 +1,4 @@
-function ConvertTo-JiraFilterPermission {
+﻿function ConvertTo-JiraFilterPermission {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

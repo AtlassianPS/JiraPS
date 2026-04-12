@@ -1,4 +1,4 @@
-function Resolve-DefaultParameterValue {
+﻿function Resolve-DefaultParameterValue {
     <#
 	.SYNOPSIS
 		Used to filter and process default parameter values.

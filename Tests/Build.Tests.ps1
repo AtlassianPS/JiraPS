@@ -1,4 +1,4 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Validation of build environment" -Tag Unit {
     BeforeAll {
@@ -7,6 +7,18 @@ Describe "Validation of build environment" -Tag Unit {
         Initialize-TestEnvironment
         $script:moduleToTest = Resolve-ModuleSource
         $script:moduleRoot = Resolve-ProjectRoot
+    }
+
+    Context "Compiled module" {
+        It "has a UTF-8 BOM on the compiled .psm1" {
+            $modulePath = Split-Path $moduleToTest -Parent
+            $psm1Path = Join-Path $modulePath "$((Get-Item $modulePath).Name).psm1"
+            $bytes = [System.IO.File]::ReadAllBytes($psm1Path)
+            $bytes.Count | Should -BeGreaterThan 3
+            $bytes[0] | Should -Be 0xEF
+            $bytes[1] | Should -Be 0xBB
+            $bytes[2] | Should -Be 0xBF
+        }
     }
 
     Context "CHANGELOG" {

@@ -1,4 +1,4 @@
-function Get-JiraIssueAttachmentFile {
+﻿function Get-JiraIssueAttachmentFile {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     [OutputType([Bool])]

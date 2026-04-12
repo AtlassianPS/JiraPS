@@ -1,4 +1,4 @@
-function ConvertTo-JiraGroup {
+﻿function ConvertTo-JiraGroup {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

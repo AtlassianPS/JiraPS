@@ -1,4 +1,4 @@
-function Remove-JiraFilter {
+﻿function Remove-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( ConfirmImpact = "Medium", SupportsShouldProcess, DefaultParameterSetName = 'ByInputObject' )]
     param(

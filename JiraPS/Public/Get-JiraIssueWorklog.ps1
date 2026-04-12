@@ -1,4 +1,4 @@
-function Get-JiraIssueWorklog {
+﻿function Get-JiraIssueWorklog {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(

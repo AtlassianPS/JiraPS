@@ -1,4 +1,4 @@
-function Resolve-FilePath {
+﻿function Resolve-FilePath {
     <#
     .SYNOPSIS
         Resolve a path to it's full path

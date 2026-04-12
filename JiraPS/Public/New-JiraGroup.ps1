@@ -1,4 +1,4 @@
-function New-JiraGroup {
+﻿function New-JiraGroup {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(

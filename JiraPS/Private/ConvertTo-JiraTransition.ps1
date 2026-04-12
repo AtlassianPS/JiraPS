@@ -1,4 +1,4 @@
-function ConvertTo-JiraTransition {
+﻿function ConvertTo-JiraTransition {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

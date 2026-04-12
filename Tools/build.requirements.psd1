@@ -1,4 +1,4 @@
-@(
+﻿@(
     @{ ModuleName = "InvokeBuild"; RequiredVersion = "5.14.22" }
     @{ ModuleName = "BuildHelpers"; RequiredVersion = "2.0.16" }
     @{ ModuleName = "Metadata"; RequiredVersion = "1.5.7" }

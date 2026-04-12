@@ -1,4 +1,4 @@
-function Resolve-ErrorWebResponse {
+﻿function Resolve-ErrorWebResponse {
     [CmdletBinding()]
     param (
         $Exception,

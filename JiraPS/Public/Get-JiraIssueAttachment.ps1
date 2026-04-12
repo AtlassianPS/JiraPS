@@ -1,4 +1,4 @@
-function Get-JiraIssueAttachment {
+﻿function Get-JiraIssueAttachment {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(

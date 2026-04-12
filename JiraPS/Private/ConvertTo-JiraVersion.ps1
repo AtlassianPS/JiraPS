@@ -1,4 +1,4 @@
-function ConvertTo-JiraVersion {
+﻿function ConvertTo-JiraVersion {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

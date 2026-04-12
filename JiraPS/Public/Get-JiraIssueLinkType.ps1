@@ -1,4 +1,4 @@
-function Get-JiraIssueLinkType {
+﻿function Get-JiraIssueLinkType {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding(DefaultParameterSetName = '_All')]
     param(

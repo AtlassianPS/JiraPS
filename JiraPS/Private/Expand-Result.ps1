@@ -1,4 +1,4 @@
-function Expand-Result {
+﻿function Expand-Result {
     [CmdletBinding()]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]

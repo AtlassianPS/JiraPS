@@ -1,4 +1,4 @@
-function Get-JiraConfigServer {
+﻿function Get-JiraConfigServer {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     [OutputType([System.String])]

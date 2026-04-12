@@ -1,4 +1,4 @@
-function Remove-JiraUser {
+﻿function Remove-JiraUser {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(

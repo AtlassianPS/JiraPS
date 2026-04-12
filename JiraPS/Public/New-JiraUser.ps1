@@ -1,4 +1,4 @@
-function New-JiraUser {
+﻿function New-JiraUser {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(

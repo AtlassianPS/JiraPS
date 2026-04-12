@@ -1,4 +1,4 @@
-function Invoke-JiraMethod {
+﻿function Invoke-JiraMethod {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging )]
     param(
