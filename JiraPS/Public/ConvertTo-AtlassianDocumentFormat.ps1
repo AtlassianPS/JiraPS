@@ -1,4 +1,4 @@
-function ConvertTo-AtlassianDocumentFormat {
+﻿function ConvertTo-AtlassianDocumentFormat {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
