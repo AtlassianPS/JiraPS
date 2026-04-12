@@ -172,6 +172,7 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = "Field"; type = "String[]" }
+                    @{ parameter = "Force"; type = "System.Management.Automation.SwitchParameter" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
                     $command | Should -HaveParameter $parameter
@@ -214,6 +215,7 @@ InModuleScope JiraPS {
             }
 
             It "uses ConvertTo-JiraField to beautify output" {
+                $script:JiraCache = @{}
                 Get-JiraField | Out-Null
                 Should -Invoke ConvertTo-JiraField
             }
@@ -223,6 +225,39 @@ InModuleScope JiraPS {
             Context "Type Validation - Positive Cases" {}
 
             Context "Type Validation - Negative Cases" {}
+        }
+
+        Describe "Caching Behavior" {
+            BeforeEach {
+                $script:JiraCache = @{}
+            }
+
+            It "caches results on first call" {
+                $null = Get-JiraField
+
+                $script:JiraCache.Keys | Should -Contain "Fields:$jiraServer"
+            }
+
+            It "returns cached results on subsequent calls" {
+                $null = Get-JiraField
+                $null = Get-JiraField
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+            }
+
+            It "bypasses cache when -Force is specified" {
+                $null = Get-JiraField
+                $null = Get-JiraField -Force
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+            }
+
+            It "passes -Force to nested Get-JiraField call when searching" {
+                $null = Get-JiraField -Field 'issuetype'
+                $null = Get-JiraField -Field 'issuetype' -Force
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+            }
         }
     }
 }

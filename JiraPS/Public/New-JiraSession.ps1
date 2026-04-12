@@ -1,12 +1,24 @@
 ﻿function New-JiraSession {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Credential')]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
-        [Parameter( )]
+        [Parameter(ParameterSetName = 'Credential')]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
         $Credential,
+
+        [Parameter(Mandatory, ParameterSetName = 'BearerToken')]
+        [SecureString]
+        $BearerToken,
+
+        [Parameter(Mandatory, ParameterSetName = 'ApiToken')]
+        [SecureString]
+        $ApiToken,
+
+        [Parameter(Mandatory, ParameterSetName = 'ApiToken')]
+        [string]
+        $EmailAddress,
 
         [Hashtable]
         $Headers = @{ }
@@ -23,6 +35,21 @@
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        switch ($PSCmdlet.ParameterSetName) {
+            'BearerToken' {
+                $tokenPlain = [System.Net.NetworkCredential]::new('', $BearerToken).Password
+                $Headers['Authorization'] = "Bearer $tokenPlain"
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using Bearer token authentication (PAT)"
+            }
+            'ApiToken' {
+                $tokenPlain = [System.Net.NetworkCredential]::new('', $ApiToken).Password
+                $authString = "${EmailAddress}:${tokenPlain}"
+                $base64Auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($authString))
+                $Headers['Authorization'] = "Basic $base64Auth"
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using API token authentication (Cloud)"
+            }
+        }
 
         $parameter = @{
             URI          = $resourceURi

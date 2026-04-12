@@ -1,5 +1,8 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+param()
+
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
@@ -71,6 +74,9 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'Credential'; type = 'PSCredential' }
+                    @{ parameter = 'BearerToken'; type = 'SecureString' }
+                    @{ parameter = 'ApiToken'; type = 'SecureString' }
+                    @{ parameter = 'EmailAddress'; type = 'String' }
                     @{ parameter = 'Headers'; type = 'Hashtable' }
                 ) {
                     param($parameter, $type)
@@ -79,7 +85,38 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Mandatory Parameters" {}
+            Context "Parameter Sets" {
+                It "has parameter set '<parameterSet>'" -TestCases @(
+                    @{ parameterSet = 'Credential' }
+                    @{ parameterSet = 'BearerToken' }
+                    @{ parameterSet = 'ApiToken' }
+                ) {
+                    $command.ParameterSets.Name | Should -Contain $parameterSet
+                }
+            }
+
+            Context "Mandatory Parameters" {
+                It "BearerToken is mandatory in BearerToken parameter set" {
+                    $command.Parameters['BearerToken'].Attributes |
+                        Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] -and $_.ParameterSetName -eq 'BearerToken' } |
+                        Select-Object -ExpandProperty Mandatory |
+                        Should -BeTrue
+                }
+
+                It "ApiToken is mandatory in ApiToken parameter set" {
+                    $command.Parameters['ApiToken'].Attributes |
+                        Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] -and $_.ParameterSetName -eq 'ApiToken' } |
+                        Select-Object -ExpandProperty Mandatory |
+                        Should -BeTrue
+                }
+
+                It "EmailAddress is mandatory in ApiToken parameter set" {
+                    $command.Parameters['EmailAddress'].Attributes |
+                        Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] -and $_.ParameterSetName -eq 'ApiToken' } |
+                        Select-Object -ExpandProperty Mandatory |
+                        Should -BeTrue
+                }
+            }
 
             Context "Default Values" {}
         }
@@ -112,6 +149,47 @@ InModuleScope JiraPS {
 
             #     $module.PrivateData.Session | Should -Not -BeNullOrEmpty
             # }
+        }
+
+        Describe "Token Authentication" {
+            BeforeAll {
+                $script:testToken = ConvertTo-SecureString -String "test-token-12345" -AsPlainText -Force
+                $script:testEmail = "user@example.com"
+            }
+
+            It "uses Bearer token authentication with -BearerToken" {
+                { New-JiraSession -BearerToken $testToken } | Should -Not -Throw
+
+                Should -Invoke -CommandName 'Invoke-JiraMethod' -ModuleName 'JiraPS' -ParameterFilter {
+                    $Headers.ContainsKey("Authorization") -and $Headers["Authorization"] -like "Bearer *"
+                } -Exactly -Times 1
+            }
+
+            It "uses API token authentication with -ApiToken and -EmailAddress" {
+                { New-JiraSession -ApiToken $testToken -EmailAddress $testEmail } | Should -Not -Throw
+
+                Should -Invoke -CommandName 'Invoke-JiraMethod' -ModuleName 'JiraPS' -ParameterFilter {
+                    $Headers.ContainsKey("Authorization") -and $Headers["Authorization"] -like "Basic *"
+                } -Exactly -Times 1
+            }
+
+            It "encodes email:token in Base64 for API token auth" {
+                { New-JiraSession -ApiToken $testToken -EmailAddress $testEmail } | Should -Not -Throw
+
+                $expectedAuth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${testEmail}:test-token-12345"))
+
+                Should -Invoke -CommandName 'Invoke-JiraMethod' -ModuleName 'JiraPS' -ParameterFilter {
+                    $Headers["Authorization"] -eq "Basic $expectedAuth"
+                } -Exactly -Times 1
+            }
+
+            It "can combine token auth with custom headers" {
+                { New-JiraSession -BearerToken $testToken -Headers @{ "X-Custom" = "value" } } | Should -Not -Throw
+
+                Should -Invoke -CommandName 'Invoke-JiraMethod' -ModuleName 'JiraPS' -ParameterFilter {
+                    $Headers.ContainsKey("Authorization") -and $Headers.ContainsKey("X-Custom")
+                } -Exactly -Times 1
+            }
         }
 
         Describe "Input Validation" {
