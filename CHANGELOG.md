@@ -1,6 +1,6 @@
 # Change Log
 
-## v2.16.0-beta2 - unreleased
+## v2.16.0-beta2 - 2026-04-12
 
 ### Added
 
@@ -16,6 +16,7 @@
 - Fixed `ConvertTo-JiraComment` and `ConvertTo-JiraIssue` to pass `Body` and `Description` through `ConvertFrom-AtlassianDocumentFormat` — Jira Cloud API v3 returns ADF objects instead of plain strings; without conversion, fields contained raw `PSCustomObject` data instead of readable text
 - Fixed table separator regex in `ConvertTo-ADF` to handle compact separators without spaces (`|---|---|`)
 - Fixed `inlineCard` rendering in `ConvertFrom-ADF` to produce `<url>` instead of redundant `[url](url)`
+- Enforced UTF-8 with BOM across all PowerShell files for PS v5 compatibility (#574)
 
 ## v2.16.0-beta - 2026-04-06
 
