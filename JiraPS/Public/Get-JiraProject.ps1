@@ -1,4 +1,4 @@
-function Get-JiraProject {
+﻿function Get-JiraProject {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(

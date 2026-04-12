@@ -1,4 +1,4 @@
-function Add-JiraIssueWatcher {
+﻿function Add-JiraIssueWatcher {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(

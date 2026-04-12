@@ -1,4 +1,4 @@
-function Remove-JiraFilterPermission {
+﻿function Remove-JiraFilterPermission {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ByFilterId' )]
     param(

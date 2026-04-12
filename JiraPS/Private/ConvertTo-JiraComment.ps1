@@ -1,4 +1,4 @@
-function ConvertTo-JiraComment {
+﻿function ConvertTo-JiraComment {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

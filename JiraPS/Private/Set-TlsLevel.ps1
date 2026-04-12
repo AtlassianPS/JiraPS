@@ -1,4 +1,4 @@
-function Set-TlsLevel {
+﻿function Set-TlsLevel {
     [CmdletBinding( SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param (

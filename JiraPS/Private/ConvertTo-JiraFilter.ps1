@@ -1,4 +1,4 @@
-function ConvertTo-JiraFilter {
+﻿function ConvertTo-JiraFilter {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

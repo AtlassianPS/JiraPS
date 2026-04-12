@@ -1,4 +1,4 @@
-function ConvertTo-JiraIssueLink {
+﻿function ConvertTo-JiraIssueLink {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

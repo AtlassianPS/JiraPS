@@ -1,4 +1,4 @@
-function Remove-JiraSession {
+﻿function Remove-JiraSession {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]

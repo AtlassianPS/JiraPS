@@ -1,4 +1,4 @@
-function ConvertTo-JiraAttachment {
+﻿function ConvertTo-JiraAttachment {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

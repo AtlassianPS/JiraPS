@@ -1,4 +1,4 @@
-function Test-ServerResponse {
+﻿function Test-ServerResponse {
     [CmdletBinding()]
     <#
         .SYNOPSIS

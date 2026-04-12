@@ -1,4 +1,4 @@
-function Get-JiraIssueComment {
+﻿function Get-JiraIssueComment {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(

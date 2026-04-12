@@ -1,4 +1,4 @@
-function New-JiraIssue {
+﻿function New-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(

@@ -1,4 +1,4 @@
-function Get-JiraFilterPermission {
+﻿function Get-JiraFilterPermission {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = 'ById' )]
     # [OutputType( [JiraPS.FilterPermission] )]

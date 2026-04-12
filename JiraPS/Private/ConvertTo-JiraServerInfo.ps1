@@ -1,4 +1,4 @@
-function ConvertTo-JiraServerInfo {
+﻿function ConvertTo-JiraServerInfo {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

@@ -1,4 +1,4 @@
-function Invoke-JiraIssueTransition {
+﻿function Invoke-JiraIssueTransition {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(

@@ -1,4 +1,4 @@
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe "Style rules" -Tag "Unit" {
     BeforeAll {
@@ -45,18 +45,18 @@ Describe "Style rules" -Tag "Unit" {
         }
     }
 
-    It "uses UTF-8 for code files" {
+    It "uses UTF-8 with BOM for code files" {
         $badFiles = @(
             foreach ($file in $codeFiles) {
                 $encoding = Get-FileEncoding -Path $file.FullName
-                if ($encoding -and $encoding.encoding -ne "UTF8") {
+                if ($encoding -and $encoding.encoding -ne "UTF8-BOM") {
                     $file.FullName
                 }
             }
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files are not encoded with UTF-8 (no BOM):`n  $($badFiles -join "`n  ")"
+            throw "The following files are not encoded with UTF-8 BOM (required for PS v5 compatibility):`n  $($badFiles -join "`n  ")"
         }
     }
 

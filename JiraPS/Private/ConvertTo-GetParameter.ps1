@@ -1,4 +1,4 @@
-function ConvertTo-GetParameter {
+﻿function ConvertTo-GetParameter {
     <#
     .SYNOPSIS
     Generate the GET parameter string for an URL from a hashtable

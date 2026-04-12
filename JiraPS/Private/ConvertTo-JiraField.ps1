@@ -1,4 +1,4 @@
-function ConvertTo-JiraField {
+﻿function ConvertTo-JiraField {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

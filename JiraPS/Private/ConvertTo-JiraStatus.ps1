@@ -1,4 +1,4 @@
-function ConvertTo-JiraStatus {
+﻿function ConvertTo-JiraStatus {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

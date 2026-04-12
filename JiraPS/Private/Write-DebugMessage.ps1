@@ -1,4 +1,4 @@
-function Write-DebugMessage {
+﻿function Write-DebugMessage {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]
