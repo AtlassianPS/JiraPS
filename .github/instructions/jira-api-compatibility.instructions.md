@@ -28,9 +28,12 @@ Affected: `Get-JiraUser`, `Set-JiraUser`, `Remove-JiraUser`, `New-JiraIssue`
 - Data Center: these fields are plain strings or wiki markup
 - Sending ADF to DC produces garbled content or API errors
 - Reading DC plain strings through ADF conversion is wasteful
-- `ConvertTo-AtlassianDocumentFormat` must only be used for Cloud
-- `ConvertFrom-AtlassianDocumentFormat` must only be used for Cloud
+- `ConvertTo-AtlassianDocumentFormat` (alias `ConvertTo-ADF`) must only be used for Cloud
+- `ConvertFrom-AtlassianDocumentFormat` (alias `ConvertFrom-ADF`) must only be used for Cloud
   (though the function gracefully handles strings as a fallback)
+- Both functions are public so users can convert ADF manually when using
+  `Invoke-JiraMethod` against Cloud v3 endpoints — JiraPS's built-in
+  read/write commands don't cover every API surface
 
 ## Search Endpoint
 

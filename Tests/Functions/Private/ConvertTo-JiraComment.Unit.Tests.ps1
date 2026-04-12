@@ -110,5 +110,56 @@ InModuleScope JiraPS {
                 }
             }
         }
+
+        Context "Jira Cloud — ADF body" {
+            BeforeAll {
+                # On Jira Cloud (API v3), comment body is returned as ADF JSON
+                $adfCommentJson = @"
+{
+    "self": "$jiraServer/rest/api/3/issue/41701/comment/90731",
+    "id": "90731",
+    "author": {
+        "self": "$jiraServer/rest/api/3/user?accountId=abc123",
+        "accountId": "abc123",
+        "displayName": "$jiraUserDisplayName",
+        "active": true,
+        "avatarUrls": {}
+    },
+    "body": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [
+                    { "type": "text", "text": "ADF comment body" }
+                ]
+            }
+        ]
+    },
+    "updateAuthor": {
+        "self": "$jiraServer/rest/api/3/user?accountId=abc123",
+        "accountId": "abc123",
+        "displayName": "$jiraUserDisplayName",
+        "active": true,
+        "avatarUrls": {}
+    },
+    "created": "2015-05-01T16:24:38.000-0500",
+    "updated": "2015-05-01T16:24:38.000-0500"
+}
+"@
+                $script:adfCommentObject = ConvertFrom-Json -InputObject $adfCommentJson
+                $script:adfResult = ConvertTo-JiraComment -InputObject $adfCommentObject
+            }
+
+            It "extracts plain text from an ADF body" {
+                $adfResult.Body | Should -Be "ADF comment body"
+            }
+
+            It "Body is a plain string, not a PSCustomObject" {
+                $adfResult.Body | Should -BeOfType [string]
+            }
+        }
     }
 }
+
