@@ -67,10 +67,10 @@ Every commit must include **all** of the following:
 
 ## Project Overview
 
-**JiraPS** is a mature PowerShell module (v2.15) that provides a comprehensive interface to interact with Atlassian JIRA via REST API. This is a **legacy codebase** that requires modernization while maintaining backward compatibility for its substantial user base.
+**JiraPS** is a mature PowerShell module that provides a comprehensive interface to interact with Atlassian JIRA via REST API. This is a **legacy codebase** that requires modernization while maintaining backward compatibility for its substantial user base.
 
 -   **Repository**: AtlassianPS/JiraPS
--   **Current Version**: 2.15 (alpha)
+-   **Current Version**: 2.16
 -   **PowerShell Compatibility**: PS v3-v5.1, PowerShell Core (6+) on Windows/Ubuntu/macOS
 -   **Primary Branch**: `master`
 -   **Release Strategy**: Tag-based releases from master branch (push tag `vX.Y.Z` to trigger release)
@@ -380,6 +380,67 @@ function Get-JiraExample {
 ```powershell
 Invoke-Build -Task Build, Test
 ```
+
+### Releasing a New Version
+
+When releasing a new version of JiraPS:
+
+**1. Files to Update:**
+
+| File | What to Change |
+|------|----------------|
+| `CHANGELOG.md` | Add release entry (no `v` prefix: `## 2.16 - YYYY-MM-DD`) |
+| `JiraPS/JiraPS.psd1` | Update `ModuleVersion` (e.g., `'2.16'`) |
+
+**2. Changelog Format:**
+
+- **Header format**: `## 2.16 - 2026-04-13` (no `v` prefix, matches historical entries)
+- **Sections**: `### Added`, `### Changed`, `### Fixed`
+- **Content**: User-facing summary — consolidate beta entries, omit internal details (test cleanup, private functions)
+- **Beta consolidation**: When releasing after betas, squash beta changelogs into one release entry; beta details remain in GitHub Releases
+
+**3. Pre-Release Verification:**
+
+```powershell
+# ALWAYS run before pushing release commits
+Invoke-Build -Task Build, Test
+```
+
+**4. Release Workflow:**
+
+```powershell
+# On master branch
+git checkout master && git pull origin master
+
+# Update files
+# - Edit CHANGELOG.md (add release section)
+# - Edit JiraPS/JiraPS.psd1 (update ModuleVersion)
+
+# Verify tests pass
+Invoke-Build -Task Build, Test
+
+# Commit
+git add CHANGELOG.md JiraPS/JiraPS.psd1
+git commit -m "Release v2.16"
+
+# Tag and push (tag uses v prefix, triggers release.yml)
+git tag -a v2.16 -m "Release v2.16"
+git push origin master --tags
+```
+
+**5. Tag Format:**
+
+- **Tags use `v` prefix**: `v2.16`, `v2.16.1`, `v2.17.0-beta`
+- **Changelog headers omit `v`**: `## 2.16 - 2026-04-13`
+- **Release workflow triggers on**: `v*` tags
+
+**Common Mistakes:**
+
+- ❌ Releasing from a feature branch — always release from `master`
+- ❌ Forgetting to run tests before pushing
+- ❌ Using `v` prefix in changelog headers (historical convention is no prefix)
+- ❌ Creating tag without `-a -m` (requires annotated tag message)
+- ❌ Pushing tag before pushing commit
 
 ### Updating for API Changes
 

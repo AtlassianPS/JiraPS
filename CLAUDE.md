@@ -24,4 +24,11 @@ This file exists for Claude Code compatibility.
 | Tests | `Tests/Functions/Public/` or `Tests/Functions/Private/` |
 | Docs | `docs/en-US/commands/` |
 
+## Releasing
+
+1. **Update**: `CHANGELOG.md` (header: `## 2.17 - YYYY-MM-DD`, no `v`), `JiraPS/JiraPS.psd1` (`ModuleVersion`)
+2. **Test**: `Invoke-Build -Task Build, Test`
+3. **Commit**: `git commit -m "Release v2.17"`
+4. **Tag & push**: `git tag -a v2.17 -m "Release v2.17" && git push origin master --tags`
+
 For full instructions, read `AGENTS.md` and `.github/ai-context/powershell-rules.md`.
