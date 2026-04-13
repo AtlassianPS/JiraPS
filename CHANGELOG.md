@@ -1,67 +1,34 @@
 # Change Log
 
-## v2.16.0-beta2 - 2026-04-12
+## 2.16 - 2026-04-13
 
 ### Added
 
-- Added `ConvertFrom-AtlassianDocumentFormat` public function (alias `ConvertFrom-ADF`) — converts ADF objects (Jira Cloud v3) to Markdown; plain strings (Data Center) are passed through unchanged. Supports headings, bold/italic/strikethrough/code/links, bullet/ordered/task lists, tables, code fences, blockquotes, panels, mentions, emoji, and date nodes
-- Added `ConvertTo-AtlassianDocumentFormat` public function (alias `ConvertTo-ADF`) — converts Markdown to ADF for writing descriptions and comments on Jira Cloud v3. Supports all symmetric constructs: headings, inline marks, fenced code blocks, blockquotes, tables, task/bullet/ordered lists, block images
-- Added `Tests/Fixtures/adf.sample.json` + `Tests/Fixtures/adf.sample.md` — reference fixtures covering every ADF node type, used by unit tests
-- Added nested list support (2 levels) for both `ConvertTo-ADF` and `ConvertFrom-ADF` — indented bullet/ordered lists are now parsed and rendered correctly
-- Added combined inline mark support (`***bold italic***`, `**_nested_**`, `_**reverse**_`) — produces ADF text nodes with multiple marks
-- Added hard break support — trailing double-spaces in Markdown are converted to `hardBreak` ADF nodes and back
-
-### Fixed
-
-- Fixed `ConvertTo-JiraComment` and `ConvertTo-JiraIssue` to pass `Body` and `Description` through `ConvertFrom-AtlassianDocumentFormat` — Jira Cloud API v3 returns ADF objects instead of plain strings; without conversion, fields contained raw `PSCustomObject` data instead of readable text
-- Fixed table separator regex in `ConvertTo-ADF` to handle compact separators without spaces (`|---|---|`)
-- Fixed `inlineCard` rendering in `ConvertFrom-ADF` to produce `<url>` instead of redundant `[url](url)`
-- Enforced UTF-8 with BOM across all PowerShell files for PS v5 compatibility (#574)
-
-## v2.16.0-beta - 2026-04-06
-
-### Added
-
-- Added Jira Cloud vs Data Center compatibility guidance for Copilot code review (#568, [@lipkau])
-- Added `-Force` parameter to `Get-JiraServerInformation` to bypass the server info cache
-- Added `Test-JiraCloudServer` private function — thin boolean wrapper around `Get-JiraServerInformation` for clean deployment type checks
-- Added `Invoke-PaginatedRequest` private function — extracts pagination from `Invoke-JiraMethod` and adds token-based pagination support for API v3
-- Added HTTP 429 rate limit handling in `Test-ServerResponse` with automatic retry via recursion in `Invoke-JiraMethod` (respects `Retry-After` header, exponential backoff)
 - Added Jira Cloud compatibility — the module now auto-detects Cloud vs Data Center/Server via `Get-JiraServerInformation` and adapts API calls accordingly
+- Added `ConvertFrom-AtlassianDocumentFormat` public function (alias `ConvertFrom-ADF`) — converts ADF objects (Jira Cloud v3) to Markdown; plain strings (Data Center) are passed through unchanged
+- Added `ConvertTo-AtlassianDocumentFormat` public function (alias `ConvertTo-ADF`) — converts Markdown to ADF for writing descriptions and comments on Jira Cloud v3
 - Added `-AccountId` parameter to `Get-JiraUser` for Cloud's account-based user lookup
-- Added Cloud deployment test contexts across test files to cover both Server and Cloud code paths
-- Added "Jira Cloud vs Data Center" section to the authentication documentation
+- Added `-Force` parameter to `Get-JiraServerInformation` to bypass the server info cache
+- Added HTTP 429 rate limit handling with automatic retry (respects `Retry-After` header, exponential backoff)
+- Added Jira Cloud vs Data Center compatibility guidance in documentation
 
 ### Changed
 
-- Modernized test infrastructure and standardized helper utilities (#549, [@copilot])
-- Removed redundant `-Scope It` from all test assertions (#562, [@lipkau])
-- Simplified `Should -Invoke` assertions in attachment tests (#563, [@lipkau])
-- Added `-ExpectedMessage` to all bare `Should -Throw` assertions (#564, [@lipkau])
-- Used `-ErrorVariable` to inspect non-terminating error in `Remove-JiraIssue` test (#565, [@lipkau])
-- Bumped `actions/upload-artifact` from 6 to 7 (#557)
-- Bumped `actions/download-artifact` from 7 to 8 (#559)
-- Bumped `dawidd6/action-download-artifact` from 12 to 19 (#560, #561)
-- `Get-JiraServerInformation` now caches its result in module scope; subsequent calls return cached data (cleared on `Set-JiraConfigServer` or with `-Force`)
-- `ConvertTo-JiraServerInfo` defaults `DeploymentType` to `Server` when the field is absent (old Jira Server versions)
-- `Invoke-JiraMethod` delegates pagination to `Invoke-PaginatedRequest`
-- `Test-ServerResponse` now handles HTTP 429 rate limit detection with backoff and sleep
-- `Get-JiraUser` uses `?query=` for search and `?accountId=` for exact lookup on Cloud; `?username=` on Data Center
-- `Set-JiraUser` and `Remove-JiraUser` use `?accountId=` on Cloud
-- `New-JiraIssue` reporter field uses `@{ accountId = ... }` on Cloud
-- `Set-JiraIssue` and `Invoke-JiraIssueTransition` assignee fields use `@{ accountId = ... }` on Cloud
-- `Add-JiraGroupMember` POST body uses `@{ accountId = ... }` on Cloud
-- `Remove-JiraGroupMember` uses `&accountId=` query parameter on Cloud
-- `Add-JiraIssueWatcher` and `Remove-JiraIssueWatcher` use `accountId` on Cloud
+- User operations now use `accountId` on Cloud, `username`/`name` on Data Center (`Get-JiraUser`, `Set-JiraUser`, `Remove-JiraUser`, `New-JiraIssue`, `Set-JiraIssue`, `Invoke-JiraIssueTransition`, `Add-JiraGroupMember`, `Remove-JiraGroupMember`, `Add-JiraIssueWatcher`, `Remove-JiraIssueWatcher`, `Resolve-JiraUser`)
 - `Get-JiraIssue` JQL search uses `/rest/api/3/search/jql` with token-based pagination on Cloud
-- `Get-JiraIssueWatcher` now pipes watchers through `ConvertTo-JiraUser` for consistent typed output
+- `Get-JiraServerInformation` now caches its result in module scope; subsequent calls return cached data (cleared on `Set-JiraConfigServer` or with `-Force`)
+- `ConvertTo-JiraComment` and `ConvertTo-JiraIssue` now convert ADF responses to readable Markdown text
 - `ConvertTo-JiraUser.ToString()` falls back to `DisplayName` or `AccountId` when `Name` is empty (GDPR compliance)
-- `Resolve-JiraUser` routes by `accountId` pattern on Cloud
-- All deployment type checks use `Test-JiraCloudServer` instead of inline `(Get-JiraServerInformation).DeploymentType` calls
+- `Get-JiraIssueWatcher` now pipes watchers through `ConvertTo-JiraUser` for consistent typed output
+- Modernized test infrastructure and standardized helper utilities (#549)
+- Bumped GitHub Actions: `actions/upload-artifact` v7, `actions/download-artifact` v8, `dawidd6/action-download-artifact` v19
 
 ### Fixed
 
-- Fixed typos and casing errors in test assertions and fixtures (#566, [@lipkau])
+- Enforced UTF-8 with BOM across all PowerShell files for PS v5 compatibility (#574)
+- Fixed `inlineCard` rendering in `ConvertFrom-ADF` to produce `<url>` instead of redundant `[url](url)`
+- Fixed table separator regex in `ConvertTo-ADF` to handle compact separators without spaces
+- Fixed typos and casing errors in test assertions and fixtures (#566)
 
 ## 2.15 - 2025-12-30
 
