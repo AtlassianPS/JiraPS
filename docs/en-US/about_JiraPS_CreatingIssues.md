@@ -41,8 +41,14 @@ Get-JiraIssueCreateMetadata -Project TEST -IssueType Task | ? {$_.Required -eq $
 Now that we know what fields we need to provide our Jira instance, let's create an issue!
 
 ```powershell
+# Jira Data Center - use username
 New-JiraIssue -Project TEST -IssueType Task -Reporter 'powershell' -Summary 'Test issue from PowerShell' -Credential $myJiraCreds
+
+# Jira Cloud - use accountId
+New-JiraIssue -Project TEST -IssueType Task -Reporter '5b10a2844c20165700ede21g' -Summary 'Test issue from PowerShell' -Credential $myJiraCreds
 ```
+
+> **Note**: On Jira Cloud, user fields like `-Reporter` require an `accountId` instead of a username. Use `Get-JiraUser` to find account IDs.
 
 This might be all the information we would need to pass `New-JiraIssue` to create a new Jira issue. We can do much more, though:
 

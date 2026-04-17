@@ -196,24 +196,41 @@ $fields = @{
 #### User Picker
 
 A custom field that allows a single user to be selected.
-The user is identifies by the username.
+
+> **Jira Cloud vs Data Center**: On Jira Cloud, users are identified by `accountId` (GDPR compliance). On Data Center, use `name` (username).
 
 ```powershell
+# Jira Data Center
 $fields = @{
     customfield_11453 = @{ name = "tommytomtomahawk" }
+}
+
+# Jira Cloud
+$fields = @{
+    customfield_11453 = @{ accountId = "5b10a2844c20165700ede21g" }
 }
 ```
 
 #### Multi-User Picker
 
 A custom field that allows multiple users to be selected.
-The user is identifies by the username.
+
+> **Jira Cloud vs Data Center**: On Jira Cloud, users are identified by `accountId`. On Data Center, use `name`.
 
 ```powershell
+# Jira Data Center
 $fields = @{
     customfield_11458 = @(
         @{ name = "inigomontoya" }
         @{ name = "tommytomtomahawk" }
+    )
+}
+
+# Jira Cloud
+$fields = @{
+    customfield_11458 = @(
+        @{ accountId = "5b10a2844c20165700ede21g" }
+        @{ accountId = "5b10ac8d82e05b22cc7d4ef5" }
     )
 }
 ```
