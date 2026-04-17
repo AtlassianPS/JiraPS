@@ -1,7 +1,7 @@
 ﻿function Get-JiraIssueCreateMetadata {
     # .ExternalHelp ..\JiraPS-help.xml
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '')]
-    [CmdletBinding()]
+    [CmdletBinding( SupportsPaging )]
     param(
         [Parameter( Mandatory )]
         [String]
@@ -42,35 +42,20 @@
         }
 
         $parameter = @{
-            URI        = $resourceURi -f $projectObj.Id, $issueTypeObj.Id
-            Method     = "GET"
-            Credential = $Credential
+            URI          = $resourceURi -f $projectObj.Id, $issueTypeObj.Id
+            Method       = "GET"
+            GetParameter = @{ maxResults = $script:DefaultPageSize }
+            Paging       = $true
+            Credential   = $Credential
+        }
+
+        # Forward PowerShell's SupportsPaging common parameters (First/Skip/IncludeTotalCount)
+        ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
+            $parameter[$_] = $PSCmdlet.PagingParameters.$_
         }
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
-
-        if ($result) {
-            if (@($result.values).Count -eq 0) {
-                $errorMessage = @{
-                    Category         = "InvalidResult"
-                    CategoryActivity = "Validating response"
-                    Message          = "No values were found for the given project [$Project]. Use Get-JiraProject for more details."
-                }
-                Write-Error @errorMessage
-            }
-
-            Write-Output (ConvertTo-JiraCreateMetaField -InputObject $result)
-        }
-        else {
-            $exception = ([System.ArgumentException]"No results")
-            $errorId = 'IssueMetadata.ObjectNotFound'
-            $errorCategory = 'ObjectNotFound'
-            $errorTarget = $Project
-            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-            $errorItem.ErrorDetails = "No metadata found for project $Project and issueType $IssueType."
-            throw $errorItem
-        }
+        Invoke-JiraMethod @parameter | ConvertTo-JiraCreateMetaField
     }
 
     end {

@@ -37,6 +37,11 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 - **BREAKING**: Minimum PowerShell version raised from 3.0 to 5.1. Windows PowerShell 3.x and 4.x are no longer supported.
 - Removed custom `ConvertFrom-Json` override (PS 5.1 native cmdlet has sufficient 2GB JSON limit)
 - Removed legacy PSv3 workaround for Accept header in module initialization
+## Unreleased
+
+### Fixed
+
+- `Get-JiraIssueCreateMetadata` now walks all pages of the Jira Cloud createmeta response instead of truncating at the default page size. The cmdlet opts into `SupportsPaging`, so `-First`, `-Skip`, and `-IncludeTotalCount` are also supported.
 
 ## 2.16 - 2026-04-13
 

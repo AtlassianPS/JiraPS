@@ -15,69 +15,71 @@ InModuleScope JiraPS {
             . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
             #region Definitions
+            # After the pagination refactor, ConvertTo-JiraCreateMetaField
+            # consumes one field item per input instead of the full envelope.
+            # The fixture mirrors what Invoke-PaginatedRequest streams to the
+            # converter: individual entries from the "values" collection.
             $sampleJson = @'
-{
-    "values": [
-        {
-            "required": true,
-            "schema": {
-                "type": "string",
-                "system": "summary"
-            },
-            "name": "Summary",
-            "fieldId": "summary",
-            "hasDefaultValue": false,
-            "operations": [
-                "set"
-            ]
+[
+    {
+        "required": true,
+        "schema": {
+            "type": "string",
+            "system": "summary"
         },
-        {
-            "required": false,
-            "schema": {
-                "type": "priority",
-                "system": "priority"
+        "name": "Summary",
+        "fieldId": "summary",
+        "hasDefaultValue": false,
+        "operations": [
+            "set"
+        ]
+    },
+    {
+        "required": false,
+        "schema": {
+            "type": "priority",
+            "system": "priority"
+        },
+        "name": "Priority",
+        "fieldId": "priority",
+        "hasDefaultValue": true,
+        "operations": [
+            "set"
+        ],
+        "allowedValues": [
+            {
+                "self": "http://jiraserver.example.com/rest/api/2/priority/1",
+                "iconUrl": "http://jiraserver.example.com/images/icons/priorities/blocker.png",
+                "name": "Block",
+                "id": "1"
             },
-            "name": "Priority",
-            "fieldId": "priority",
-            "hasDefaultValue": true,
-            "operations": [
-                "set"
-            ],
-            "allowedValues": [
-                {
-                    "self": "http://jiraserver.example.com/rest/api/2/priority/1",
-                    "iconUrl": "http://jiraserver.example.com/images/icons/priorities/blocker.png",
-                    "name": "Block",
-                    "id": "1"
-                },
-                {
-                    "self": "http://jiraserver.example.com/rest/api/2/priority/2",
-                    "iconUrl": "http://jiraserver.example.com/images/icons/priorities/critical.png",
-                    "name": "Critical",
-                    "id": "2"
-                },
-                {
-                    "self": "http://jiraserver.example.com/rest/api/2/priority/3",
-                    "iconUrl": "http://jiraserver.example.com/images/icons/priorities/major.png",
-                    "name": "Major",
-                    "id": "3"
-                },
-                {
-                    "self": "http://jiraserver.example.com/rest/api/2/priority/4",
-                    "iconUrl": "http://jiraserver.example.com/images/icons/priorities/minor.png",
-                    "name": "Minor",
-                    "id": "4"
-                },
-                {
-                    "self": "http://jiraserver.example.com/rest/api/2/priority/5",
-                    "iconUrl": "http://jiraserver.example.com/images/icons/priorities/trivial.png",
-                    "name": "Trivial",
-                    "id": "5"
-                }
-            ]
-        }
-    ]
-}
+            {
+                "self": "http://jiraserver.example.com/rest/api/2/priority/2",
+                "iconUrl": "http://jiraserver.example.com/images/icons/priorities/critical.png",
+                "name": "Critical",
+                "id": "2"
+            },
+            {
+                "self": "http://jiraserver.example.com/rest/api/2/priority/3",
+                "iconUrl": "http://jiraserver.example.com/images/icons/priorities/major.png",
+                "name": "Major",
+                "id": "3"
+            },
+            {
+                "self": "http://jiraserver.example.com/rest/api/2/priority/4",
+                "iconUrl": "http://jiraserver.example.com/images/icons/priorities/minor.png",
+                "name": "Minor",
+                "id": "4"
+            },
+            {
+                "self": "http://jiraserver.example.com/rest/api/2/priority/5",
+                "iconUrl": "http://jiraserver.example.com/images/icons/priorities/trivial.png",
+                "name": "Trivial",
+                "id": "5"
+            }
+        ]
+    }
+]
 '@
             $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
             #endregion Definitions
@@ -102,17 +104,16 @@ InModuleScope JiraPS {
             }
 
             Context "Inputs" {
-                It "converts multiple attachments from array input" {
-                    ConvertTo-JiraCreateMetaField -InputObject $sampleObject, $sampleObject | Should -HaveCount 4
+                It "converts multiple items from array input" {
+                    ConvertTo-JiraCreateMetaField -InputObject ($sampleObject + $sampleObject) | Should -HaveCount 4
                 }
 
                 It "accepts input from pipeline" {
-                    $sampleObject, $sampleObject | ConvertTo-JiraCreateMetaField | Should -HaveCount 4
+                    ($sampleObject + $sampleObject) | ConvertTo-JiraCreateMetaField | Should -HaveCount 4
                 }
             }
 
             Context "Property Mapping" {
-                # Our sample JSON includes two fields: summary and priority.
                 Context "Example: Summary" {
                     BeforeAll {
                         $script:summary = (ConvertTo-JiraCreateMetaField -InputObject $sampleObject) | Where-Object -FilterScript { $_.Name -eq 'Summary' }
