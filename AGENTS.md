@@ -1,11 +1,76 @@
-# GitHub Copilot Instructions for JiraPS
+# AI Instructions for JiraPS
+
+> **This file is the single source of truth for AI coding assistants.**
+> It is read by GitHub Copilot, Cursor, Claude Code, and other AI tools.
+> Tool-specific files (e.g., `CLAUDE.md`, `.cursor/rules/`) reference this file.
+
+## AI Tool Compatibility
+
+This repository supports multiple AI coding tools without vendor lock-in:
+
+| Tool | Entry Point | References |
+|------|-------------|------------|
+| **GitHub Copilot** | `.github/copilot-instructions.md` | → `AGENTS.md`, `ai-context/` |
+| **Cursor** | `.cursor/rules/*.mdc` | → `AGENTS.md`, `ai-context/` |
+| **Claude Code** | `CLAUDE.md` | → `AGENTS.md`, `ai-context/` |
+| **Any tool** | `AGENTS.md` (this file) | Canonical project rules |
+
+### Directory Structure
+
+```
+AGENTS.md                           # Project-level rules (this file)
+CLAUDE.md                           # Claude Code entry point
+.cursor/rules/jiraps.mdc            # Cursor entry point
+.github/
+├── copilot-instructions.md         # Copilot entry point
+├── ai-context/                     # Shared context (tool-agnostic)
+│   └── powershell-rules.md         # PowerShell-specific rules
+└── instructions/                   # Copilot file-pattern rules
+    └── *.instructions.md           # Applied by file glob
+```
+
+### Editing Guidelines
+
+| To change... | Edit this file |
+|--------------|----------------|
+| Project-wide rules | `AGENTS.md` |
+| PowerShell-specific rules | `.github/ai-context/powershell-rules.md` |
+| Tool entry points | Only if adding quick-reference summaries |
+
+---
+
+## One Functionality Per Commit
+
+> **RULE**: A commit is a complete, shippable unit of work. It includes the code,
+> the tests, and the documentation — all passing. Incomplete work is not committable.
+
+### What "Complete" Means
+
+Every commit must include **all** of the following:
+
+| Component | Required | Location |
+|-----------|----------|----------|
+| **Code** | The implementation | `JiraPS/Public/` or `JiraPS/Private/` |
+| **Unit Tests** | Tests that verify the code works | `Tests/Functions/Public/` or `Tests/Functions/Private/` |
+| **Green Tests** | All tests passing | Run `Invoke-Build -Task Build, Test` |
+| **Documentation** | Updated docs for user-facing changes | `docs/en-US/commands/*.md`, `CHANGELOG.md` |
+| **Linter Clean** | No new PSScriptAnalyzer errors | Run PSScriptAnalyzer |
+
+### Enforcement
+
+- **Do not ask** if the user wants to skip tests or docs — they are part of the functionality
+- **Do not commit** until tests are green
+- **Do not treat code as "done"** if any component is missing
+- If implementing multiple functionalities, make multiple commits — one per functionality
+
+---
 
 ## Project Overview
 
-**JiraPS** is a mature PowerShell module (v2.15) that provides a comprehensive interface to interact with Atlassian JIRA via REST API. This is a **legacy codebase** that requires modernization while maintaining backward compatibility for its substantial user base.
+**JiraPS** is a mature PowerShell module that provides a comprehensive interface to interact with Atlassian JIRA via REST API. This is a **legacy codebase** that requires modernization while maintaining backward compatibility for its substantial user base.
 
 -   **Repository**: AtlassianPS/JiraPS
--   **Current Version**: 2.15 (alpha)
+-   **Current Version**: 2.16
 -   **PowerShell Compatibility**: PS v3-v5.1, PowerShell Core (6+) on Windows/Ubuntu/macOS
 -   **Primary Branch**: `master`
 -   **Release Strategy**: Tag-based releases from master branch (push tag `vX.Y.Z` to trigger release)
@@ -16,7 +81,7 @@
 > **JiraPS targets both Jira Cloud AND Data Center.** These have different
 > APIs (accountId vs username, ADF vs plain text, different search and
 > pagination). Changes must work on both. See
-> `.github/instructions/jira-api-compatibility.instructions.md` for rules.
+> `.github/ai-context/powershell-rules.md` for detailed rules.
 
 ### Known Technical Debt
 
@@ -116,24 +181,32 @@ param(
 
 ### Build Process
 
-**Build Tasks** (via `Invoke-Build`):
+> **IMPORTANT**: Tests run against the *built* module in `Release/`, not the source files.
+> You MUST build before testing. Running `Invoke-Pester` directly will not work.
 
-1. `Clean`: Removes Release/ and test artifacts
-2. `Build`: Compiles module into Release/
-    - Copies module files
-    - Compiles all Private/Public functions into single .psm1
-    - Generates external help with PlatyPS
-    - Updates manifest with exported functions
-3. `Test`: Runs Pester tests on built module
-4. `Publish`: Publishes to PowerShell Gallery (on release tags)
-
-**Run Locally**:
+**Standard Workflow**:
 
 ```powershell
-./Tools/setup.ps1              # Install dependencies
-Invoke-Build -Task Build       # Build module
-Invoke-Build -Task Test        # Run tests
+./Tools/setup.ps1              # First time: install dependencies
+Invoke-Build -Task Build, Test # Build and test in one command
 ```
+
+**Build Tasks** (via `Invoke-Build`):
+
+| Task | What it does |
+|------|--------------|
+| `Clean` | Removes `Release/` and test artifacts |
+| `Build` | Compiles module into `Release/` (runs Clean first) |
+| `Test` | Runs Pester tests against built module |
+| `GenerateExternalHelp` | Generates help XML from `docs/` markdown |
+| `Publish` | Publishes to PowerShell Gallery (release tags only) |
+
+**Common Mistakes**:
+
+- ❌ `Invoke-Pester` directly — Tests expect the compiled module in `Release/`
+- ❌ `Invoke-Build -Task Test` without building — Uses stale or missing code
+- ❌ Forgetting `./Tools/setup.ps1` — Missing Pester, InvokeBuild, etc.
+- ✅ `Invoke-Build -Task Build, Test` — Correct: build then test
 
 ## API & REST Patterns
 
@@ -305,9 +378,104 @@ function Get-JiraExample {
 5. **Build and test**:
 
 ```powershell
-Invoke-Build -Task Build
-Invoke-Build -Task Test
+Invoke-Build -Task Build, Test
 ```
+
+### Releasing a New Version
+
+When releasing a new version of JiraPS:
+
+**1. Files to Update:**
+
+| File | What to Change |
+|------|----------------|
+| `CHANGELOG.md` | Add release entry (no `v` prefix: `## 2.16 - YYYY-MM-DD`) |
+| `JiraPS/JiraPS.psd1` | Update `ModuleVersion` (e.g., `'2.16'`) |
+
+**2. Changelog Format:**
+
+- **Header format**: `## 2.16 - 2026-04-13` (no `v` prefix, matches historical entries)
+- **Sections**: `### Added`, `### Changed`, `### Fixed`
+- **Content**: User-facing summary — consolidate beta entries, omit internal details (test cleanup, private functions)
+- **Beta consolidation**: When releasing after betas, squash beta changelogs into one release entry; beta details remain in GitHub Releases
+
+**3. Pre-Release Verification:**
+
+```powershell
+# ALWAYS run before pushing release commits
+Invoke-Build -Task Build, Test
+```
+
+**4. Release Workflow:**
+
+```powershell
+# On master branch
+git checkout master && git pull origin master
+
+# Update files
+# - Edit CHANGELOG.md (add release section)
+# - Edit JiraPS/JiraPS.psd1 (update ModuleVersion)
+
+# Verify tests pass
+Invoke-Build -Task Build, Test
+
+# Commit
+git add CHANGELOG.md JiraPS/JiraPS.psd1
+git commit -m "Release v2.16"
+
+# Tag and push (tag uses v prefix, triggers release.yml)
+git tag -a v2.16 -m "Release v2.16"
+git push origin master --tags
+```
+
+**5. Versioning Pattern:**
+
+| Release Type | Tag | Changelog | Manifest |
+|--------------|-----|-----------|----------|
+| Minor release | `v2.17` | `## 2.17 - YYYY-MM-DD` | `'2.17'` |
+| Patch release | `v2.17.1` | `## 2.17.1 - YYYY-MM-DD` | `'2.17.1'` |
+| Pre-release | `v2.18.0-beta` | `## 2.18.0-beta - YYYY-MM-DD` | `'2.18'` + `Prerelease = 'beta'` |
+
+- **Tags use `v` prefix**, changelog headers omit it
+- **Minor releases**: 2-part version (`v2.17`) — PSGallery normalizes to `2.17.0`
+- **Patch releases**: 3-part version (`v2.17.1`) — use when fixing bugs in a released version
+- **Release workflow triggers on**: `v*` tags
+
+**Common Mistakes:**
+
+- ❌ Releasing from a feature branch — always release from `master`
+- ❌ Forgetting to run tests before pushing
+- ❌ Using `v` prefix in changelog headers (historical convention is no prefix)
+- ❌ Creating tag without `-a -m` (requires annotated tag message)
+- ❌ Pushing tag before pushing commit
+- ❌ Creating duplicate tags (e.g., both `v2.16` and `v2.16.0`) — causes duplicate workflow runs
+
+**6. What Happens After Tag Push:**
+
+- `release.yml` workflow triggers automatically
+- Publishes module to PowerShell Gallery
+- Creates GitHub Release with changelog excerpt
+- If workflow fails but PSGallery publish succeeded, the version is taken
+
+**7. Recovery Procedures:**
+
+```powershell
+# Check existing tags before creating
+git tag -l 'v2.*'
+
+# Delete accidental tag (local + remote) BEFORE it publishes
+git tag -d v2.16.0
+git push origin --delete v2.16.0
+
+# Create GitHub Release manually if workflow failed
+gh release create v2.16 --title "v2.16" --notes "$(cat <<'EOF'
+## 2.16 - YYYY-MM-DD
+... changelog content ...
+EOF
+)"
+```
+
+**Note**: Once published to PSGallery, that version number is permanently taken. You cannot re-publish the same version.
 
 ### Updating for API Changes
 
@@ -439,9 +607,9 @@ New-JiraIssue -Fields $fields ...
 
 ### DO:
 
+-   ✅ **Follow "One Functionality Per Commit"** — code + tests + docs + green tests = one commit
 -   ✅ Maintain backward compatibility (large user base on **both Cloud and Data Center**)
 -   ✅ Follow existing patterns (especially `Invoke-JiraMethod` → `ConvertTo-*`)
--   ✅ Write/update unit tests with Pester 5 syntax
 -   ✅ Update CHANGELOG.md for user-facing changes
 -   ✅ Generate help after adding/modifying cmdlets
 -   ✅ Test on both Windows PowerShell 5.1 and PowerShell Core 7+
@@ -452,11 +620,13 @@ New-JiraIssue -Fields $fields ...
 
 ### DON'T:
 
+-   ❌ **Commit incomplete functionality** — code without tests/docs is not committable
+-   ❌ **Commit with red tests** — all tests must pass before commit
+-   ❌ **Ask to skip any part of "One Functionality Per Commit"** — just complete it
 -   ❌ Break existing cmdlet interfaces without major version bump
 -   ❌ Add runtime dependencies (keep module pure)
 -   ❌ Bypass `Invoke-JiraMethod` for REST calls
 -   ❌ Hardcode server URLs (use `$script:JiraServerUrl`)
--   ❌ Forget to update documentation in `docs/`
 -   ❌ Mix Pester 4 and 5 syntax in same file
 -   ❌ Commit Release/ directory (build artifact)
 -   ❌ Assume Cloud-only or DC-only usage — always handle both deployment types
@@ -546,34 +716,28 @@ $result.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
 ## Example Contribution Workflow
 
 ```powershell
-# 1. Checkout and branch
-git checkout master
-git pull origin master
+# 1. Setup
+git checkout master && git pull origin master
 git checkout -b feature/my-enhancement
-
-# 2. Install dependencies
 ./Tools/setup.ps1
 
-# 3. Make changes to JiraPS/Public/*.ps1 or Private/*.ps1
+# 2. Implement ONE functionality (code + tests + docs together)
+#    - Write/modify code in JiraPS/Public/ or JiraPS/Private/
+#    - Write/update tests in Tests/Functions/
+#    - Update docs in docs/en-US/commands/ and CHANGELOG.md
 
-# 4. Update tests in Tests/Functions/*.Unit.Tests.ps1
-
-# 5. Build and test
-Invoke-Build -Task Build
-Invoke-Build -Task Test
-
-# 6. Update documentation if needed
-# Edit docs/en-US/commands/*.md
+# 3. Verify before commit (all must pass)
+Invoke-Build -Task Build, Test   # ⛔ Red tests = not committable
 Invoke-Build -Task GenerateExternalHelp
 
-# 7. Update CHANGELOG.md under [NEXT VERSION]
-
-# 8. Commit and push
+# 4. Commit the complete functionality
 git add .
 git commit -m "Add: Description of change"
-git push origin feature/my-enhancement
 
-# 9. Create PR to master branch
+# 5. Repeat steps 2-4 for each additional functionality
+
+# 6. Push and create PR
+git push origin feature/my-enhancement
 ```
 
 ---
