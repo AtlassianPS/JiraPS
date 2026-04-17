@@ -428,10 +428,17 @@ git tag -a v2.16 -m "Release v2.16"
 git push origin master --tags
 ```
 
-**5. Tag Format:**
+**5. Versioning Pattern:**
 
-- **Tags use `v` prefix**: `v2.16`, `v2.16.1`, `v2.17.0-beta`
-- **Changelog headers omit `v`**: `## 2.16 - 2026-04-13`
+| Release Type | Tag | Changelog | Manifest |
+|--------------|-----|-----------|----------|
+| Minor release | `v2.17` | `## 2.17 - YYYY-MM-DD` | `'2.17'` |
+| Patch release | `v2.17.1` | `## 2.17.1 - YYYY-MM-DD` | `'2.17.1'` |
+| Pre-release | `v2.18.0-beta` | `## 2.18.0-beta - YYYY-MM-DD` | `'2.18'` + `Prerelease = 'beta'` |
+
+- **Tags use `v` prefix**, changelog headers omit it
+- **Minor releases**: 2-part version (`v2.17`) — PSGallery normalizes to `2.17.0`
+- **Patch releases**: 3-part version (`v2.17.1`) — use when fixing bugs in a released version
 - **Release workflow triggers on**: `v*` tags
 
 **Common Mistakes:**
@@ -441,6 +448,34 @@ git push origin master --tags
 - ❌ Using `v` prefix in changelog headers (historical convention is no prefix)
 - ❌ Creating tag without `-a -m` (requires annotated tag message)
 - ❌ Pushing tag before pushing commit
+- ❌ Creating duplicate tags (e.g., both `v2.16` and `v2.16.0`) — causes duplicate workflow runs
+
+**6. What Happens After Tag Push:**
+
+- `release.yml` workflow triggers automatically
+- Publishes module to PowerShell Gallery
+- Creates GitHub Release with changelog excerpt
+- If workflow fails but PSGallery publish succeeded, the version is taken
+
+**7. Recovery Procedures:**
+
+```powershell
+# Check existing tags before creating
+git tag -l 'v2.*'
+
+# Delete accidental tag (local + remote) BEFORE it publishes
+git tag -d v2.16.0
+git push origin --delete v2.16.0
+
+# Create GitHub Release manually if workflow failed
+gh release create v2.16 --title "v2.16" --notes "$(cat <<'EOF'
+## 2.16 - YYYY-MM-DD
+... changelog content ...
+EOF
+)"
+```
+
+**Note**: Once published to PSGallery, that version number is permanently taken. You cannot re-publish the same version.
 
 ### Updating for API Changes
 
