@@ -1,12 +1,4 @@
 ﻿#region Dependencies
-# Load the ConfluencePS namespace from C#
-# if (!("" -as [Type])) {
-#     Add-Type -Path (Join-Path $PSScriptRoot JiraPS.Types.cs) -ReferencedAssemblies Microsoft.CSharp, Microsoft.PowerShell.Commands.Utility, System.Management.Automation
-# }
-# if ($PSVersionTable.PSVersion.Major -lt 5) {
-#     Add-Type -Path (Join-Path $PSScriptRoot JiraPS.Attributes.cs) -ReferencedAssemblies Microsoft.CSharp, Microsoft.PowerShell.Commands.Utility, System.Management.Automation
-# }
-
 # Load Web assembly when needed
 # PowerShell Core has the assembly preloaded
 if (!("System.Web.HttpUtility" -as [Type])) {
@@ -32,10 +24,9 @@ $script:JiraServerUrl = [Uri](Get-Content $script:serverConfig)
 
 $script:DefaultContentType = "application/json; charset=utf-8"
 $script:DefaultPageSize = 25
-$script:DefaultHeaders = @{ "Accept-Charset" = "utf-8" }
-# Bug in PSv3's .Net API
-if ($PSVersionTable.PSVersion.Major -gt 3) {
-    $script:DefaultHeaders["Accept"] = "application/json"
+$script:DefaultHeaders = @{
+    "Accept-Charset" = "utf-8"
+    "Accept"         = "application/json"
 }
 $script:PagingContainers = @(
     "comments"

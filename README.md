@@ -81,8 +81,6 @@ And once installed, you will be prompted to "Reopen in Container".
 
 ## Tested on
 
-* Windows Powershell v3
-* Windows Powershell v4
 * Windows Powershell v5.1
 * Powershell Core (latest) on Windows
 * Powershell Core (latest) on Ubuntu
