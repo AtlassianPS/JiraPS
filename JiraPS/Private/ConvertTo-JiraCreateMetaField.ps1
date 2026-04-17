@@ -7,10 +7,8 @@
     )
 
     process {
-        foreach ($i in $InputObject.values) {
+        foreach ($item in $InputObject) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
-
-            $item = $i
 
             $props = @{
                 'Id'              = $item.fieldId
