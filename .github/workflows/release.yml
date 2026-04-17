@@ -51,3 +51,12 @@ jobs:
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify homepage to update submodule
+        if: ${{ !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'rc') }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.HOMEPAGE_PAT }}
+          repository: AtlassianPS/AtlassianPS.github.io
+          event-type: module-release
+          client-payload: '{"module": "JiraPS", "version": "${{ github.ref_name }}"}'
