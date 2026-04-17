@@ -126,12 +126,79 @@ Task CompileModule {
 
 # Synopsis: Use PlatyPS to generate External-Help
 Task GenerateExternalHelp {
-    Import-Module platyPS -Force
+    Import-Module Microsoft.PowerShell.PlatyPS -Force
+
     foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
-        New-ExternalHelp -Path "$($locale.FullName)" -OutputPath "$env:BHModulePath/$($locale.Basename)" -Force
-        New-ExternalHelp -Path "$($locale.FullName)/commands" -OutputPath "$env:BHModulePath/$($locale.Basename)" -Force
+        $outputPath = "$env:BHModulePath/$($locale.Basename)"
+        $null = New-Item -ItemType Directory -Path $outputPath -Force
+
+        # Import command help markdown and export to MAML
+        $commandHelpFiles = Get-ChildItem "$($locale.FullName)/commands/*.md" -File |
+            Where-Object { $_.Name -ne 'index.md' }
+
+        if ($commandHelpFiles) {
+            $commandHelp = $commandHelpFiles | Import-MarkdownCommandHelp -ErrorAction SilentlyContinue
+            if ($commandHelp) {
+                $commandHelp | Export-MamlCommandHelp -OutputFolder $outputPath -Force
+                # Move from nested module folder to output path
+                $nestedPath = Join-Path $outputPath $env:BHProjectName
+                if (Test-Path $nestedPath) {
+                    Get-ChildItem $nestedPath -Filter '*.xml' | Move-Item -Destination $outputPath -Force
+                    Remove-Item $nestedPath -Recurse -Force
+                }
+
+                # Post-process MAML to fix example structure (PlatyPS 1.0 compatibility)
+                $mamlFile = Join-Path $outputPath "$env:BHProjectName-help.xml"
+                if (Test-Path $mamlFile) {
+                    $xml = [xml](Get-Content $mamlFile -Raw)
+                    $nsmgr = [System.Xml.XmlNamespaceManager]::new($xml.NameTable)
+                    $nsmgr.AddNamespace("command", "http://schemas.microsoft.com/maml/dev/command/2004/10")
+                    $nsmgr.AddNamespace("maml", "http://schemas.microsoft.com/maml/2004/10")
+                    $nsmgr.AddNamespace("dev", "http://schemas.microsoft.com/maml/dev/2004/10")
+
+                    foreach ($example in $xml.SelectNodes("//command:example", $nsmgr)) {
+                        $intro = $example.SelectSingleNode("maml:introduction", $nsmgr)
+                        $code = $example.SelectSingleNode("dev:code", $nsmgr)
+                        $remarks = $example.SelectSingleNode("dev:remarks", $nsmgr)
+
+                        if ($intro -and $code -and $remarks) {
+                            $introText = ($intro.ChildNodes | ForEach-Object { $_.InnerText }) -join "`n"
+                            # Extract code from markdown fences
+                            if ($introText -match '```(?:powershell)?\r?\n([\s\S]*?)```') {
+                                $codeContent = $Matches[1].Trim()
+                                $code.InnerText = $codeContent
+
+                                # Extract remarks (everything after the code block)
+                                $remarksContent = ($introText -replace '```(?:powershell)?\r?\n[\s\S]*?```\r?\n?', '').Trim()
+                                $remarksContent = $remarksContent -replace '_([^_]+)_', '$1'  # Remove markdown italic
+                                if ($remarksContent) {
+                                    $para = $xml.CreateElement("maml", "para", "http://schemas.microsoft.com/maml/2004/10")
+                                    $para.InnerText = $remarksContent
+                                    $remarks.AppendChild($para) | Out-Null
+                                }
+
+                                # Clear introduction
+                                $intro.RemoveAll()
+                            }
+                        }
+                    }
+
+                    $xml.Save($mamlFile)
+                }
+            }
+        }
+
+        # Copy about topics as help text files
+        Get-ChildItem "$($locale.FullName)/about_*.md" -File | ForEach-Object {
+            $helpTxtName = $_.BaseName + '.help.txt'
+            $content = Get-Content $_.FullName -Raw
+            # Remove YAML frontmatter if present
+            $content = $content -replace '^---[\s\S]*?---\r?\n', ''
+            Set-Content -Path (Join-Path $outputPath $helpTxtName) -Value $content -Encoding UTF8
+        }
     }
-    Remove-Module platyPS
+
+    Remove-Module Microsoft.PowerShell.PlatyPS
 }
 
 # Synopsis: Update the manifest of the module

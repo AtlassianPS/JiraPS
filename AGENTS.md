@@ -582,11 +582,11 @@ New-JiraIssue -Fields $fields ...
 
 **Build-time** (in `Tools/build.requirements.psd1`):
 
--   InvokeBuild 5.13.1 - Build automation
+-   InvokeBuild 5.14.22 - Build automation
 -   BuildHelpers 2.0.16 - Environment detection
 -   Metadata 1.5.7 - Manifest manipulation
 -   Pester 5.7.1 - Testing framework
--   platyPS 0.14.2 - Help generation
+-   Microsoft.PowerShell.PlatyPS 1.0.1 - Help generation
 -   PSScriptAnalyzer 1.24.0 - Code analysis
 
 ## Documentation
