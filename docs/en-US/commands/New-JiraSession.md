@@ -21,10 +21,10 @@ Creates a persistent JIRA authenticated session which can be used by other JiraP
 New-JiraSession [-Credential <PSCredential>] [-Headers <Hashtable>] [<CommonParameters>]
 ```
 
-### BearerToken
+### PersonalAccessToken
 
 ```powershell
-New-JiraSession -BearerToken <SecureString> [-Headers <Hashtable>] [<CommonParameters>]
+New-JiraSession -PersonalAccessToken <SecureString> [-Headers <Hashtable>] [<CommonParameters>]
 ```
 
 ### ApiToken
@@ -44,7 +44,7 @@ This removes the need to use the `-Credential` parameter constantly for each fun
 JiraPS supports multiple authentication methods:
 
 - **Credential**: Traditional username/password authentication (Jira Data Center)
-- **BearerToken**: Personal Access Token (PAT) authentication (Jira Data Center 8.14+)
+- **PersonalAccessToken**: Personal Access Token (PAT) authentication (Jira Data Center 8.14+)
 - **ApiToken**: API Token authentication with email address (Jira Cloud)
 
 You can find more information in [about_JiraPS_Authentication](../../about/authentication.html)
@@ -65,7 +65,7 @@ The following `Get-JiraIssue` is run using the saved session for jiraUsername.
 
 ```powershell
 $pat = Read-Host -AsSecureString "Enter your PAT"
-New-JiraSession -BearerToken $pat
+New-JiraSession -PersonalAccessToken $pat
 Get-JiraIssue TEST-01
 ```
 
@@ -87,10 +87,19 @@ This is the recommended method for Jira Cloud.
 
 ```powershell
 $headers = @{ "X-Custom-Header" = "value" }
-New-JiraSession -BearerToken $pat -Headers $headers
+New-JiraSession -PersonalAccessToken $pat -Headers $headers
 ```
 
 Creates a Jira session with a PAT and additional custom headers.
+
+### EXAMPLE 5
+
+```powershell
+$pat = ConvertTo-SecureString $env:JIRA_PAT -AsPlainText -Force
+New-JiraSession -PAT $pat
+```
+
+Uses the `-PAT` alias for brevity. The `-BearerToken` alias is also supported for backward compatibility.
 
 ## PARAMETERS
 
@@ -110,17 +119,19 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -BearerToken
+### -PersonalAccessToken
 
 A Personal Access Token (PAT) for Bearer token authentication.
 Use this for Jira Data Center 8.14 and later.
 
 Create a PAT in Jira: Profile > Personal Access Tokens > Create token
 
+Aliases: `BearerToken`, `PAT`
+
 ```yaml
 Type: SecureString
-Parameter Sets: BearerToken
-Aliases:
+Parameter Sets: PersonalAccessToken
+Aliases: BearerToken, PAT
 
 Required: True
 Position: Named

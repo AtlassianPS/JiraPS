@@ -7,9 +7,11 @@ This release focuses on **authentication improvements** and **performance optimi
 **Authentication**: We've heard the feedback — authenticating with Jira has been painful, especially for CI/CD pipelines and automation scripts. `New-JiraSession` now has first-class support for modern authentication methods:
 
 - **Jira Cloud**: Use `-ApiToken` with `-EmailAddress` — no more manually constructing Basic auth headers
-- **Jira Data Center**: Use `-BearerToken` for Personal Access Tokens (PATs) — the recommended method since DC 8.14
+- **Jira Data Center**: Use `-PersonalAccessToken` (aliases: `-PAT`, `-BearerToken`) for Personal Access Tokens — the recommended method since DC 8.14
 
 Both accept `SecureString` and work seamlessly in automation. See the updated [authentication documentation](https://atlassianps.org/docs/JiraPS/about/authentication.html) for examples including environment variables and CI/CD patterns.
+
+> **Note**: OAuth 2.0 (3LO) helpers for Jira Cloud are tracked in [#101](https://github.com/AtlassianPS/JiraPS/issues/101) and will be addressed in a future release.
 
 **Performance**: Frequently-used metadata (fields, issue types, priorities, server info) is now cached automatically. This significantly reduces API calls in scripts that process many issues. Use `-Force` to bypass the cache when needed, or `Clear-JiraCache` to reset it.
 
@@ -17,7 +19,7 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 
 ### Added
 
-- Added `-BearerToken` parameter to `New-JiraSession` for Personal Access Token (PAT) authentication on Jira Data Center (#576)
+- Added `-PersonalAccessToken` parameter to `New-JiraSession` for Personal Access Token (PAT) authentication on Jira Data Center, with `-PAT` and `-BearerToken` aliases (#576)
 - Added `-ApiToken` and `-EmailAddress` parameters to `New-JiraSession` for API token authentication on Jira Cloud (#576)
 - Added `-CacheKey`, `-CacheExpiryMinutes`, and `-BypassCache` parameters to `Invoke-JiraMethod` for built-in response caching (#576)
 - Added caching to `Get-JiraIssueType` (60 min) with `-Force` parameter to bypass cache (#576)

@@ -8,9 +8,10 @@
         [System.Management.Automation.Credential()]
         $Credential,
 
-        [Parameter(Mandatory, ParameterSetName = 'BearerToken')]
+        [Parameter(Mandatory, ParameterSetName = 'PersonalAccessToken')]
+        [Alias('BearerToken', 'PAT')]
         [SecureString]
-        $BearerToken,
+        $PersonalAccessToken,
 
         [Parameter(Mandatory, ParameterSetName = 'ApiToken')]
         [SecureString]
@@ -37,10 +38,10 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         switch ($PSCmdlet.ParameterSetName) {
-            'BearerToken' {
-                $tokenPlain = [System.Net.NetworkCredential]::new('', $BearerToken).Password
+            'PersonalAccessToken' {
+                $tokenPlain = [System.Net.NetworkCredential]::new('', $PersonalAccessToken).Password
                 $Headers['Authorization'] = "Bearer $tokenPlain"
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using Bearer token authentication (PAT)"
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using Personal Access Token (PAT) authentication"
             }
             'ApiToken' {
                 $tokenPlain = [System.Net.NetworkCredential]::new('', $ApiToken).Password

@@ -37,7 +37,7 @@ New-JiraSession -ApiToken $token -EmailAddress "you@example.com"
 
 # Option 2: Jira Data Center (Personal Access Token)
 $pat = ConvertTo-SecureString $env:JIRA_PAT -AsPlainText -Force
-New-JiraSession -BearerToken $pat
+New-JiraSession -PersonalAccessToken $pat
 
 # Option 3: Username/Password
 $cred = Get-Credential

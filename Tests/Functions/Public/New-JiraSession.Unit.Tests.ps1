@@ -74,7 +74,7 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'Credential'; type = 'PSCredential' }
-                    @{ parameter = 'BearerToken'; type = 'SecureString' }
+                    @{ parameter = 'PersonalAccessToken'; type = 'SecureString' }
                     @{ parameter = 'ApiToken'; type = 'SecureString' }
                     @{ parameter = 'EmailAddress'; type = 'String' }
                     @{ parameter = 'Headers'; type = 'Hashtable' }
@@ -83,12 +83,20 @@ InModuleScope JiraPS {
                     $command | Should -HaveParameter $parameter
                     $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
                 }
+
+                It "supports '<alias>' as an alias for '-PersonalAccessToken'" -TestCases @(
+                    @{ alias = 'BearerToken' }
+                    @{ alias = 'PAT' }
+                ) {
+                    param($alias)
+                    $command.Parameters['PersonalAccessToken'].Aliases | Should -Contain $alias
+                }
             }
 
             Context "Parameter Sets" {
                 It "has parameter set '<parameterSet>'" -TestCases @(
                     @{ parameterSet = 'Credential' }
-                    @{ parameterSet = 'BearerToken' }
+                    @{ parameterSet = 'PersonalAccessToken' }
                     @{ parameterSet = 'ApiToken' }
                 ) {
                     $command.ParameterSets.Name | Should -Contain $parameterSet
@@ -96,9 +104,9 @@ InModuleScope JiraPS {
             }
 
             Context "Mandatory Parameters" {
-                It "BearerToken is mandatory in BearerToken parameter set" {
-                    $command.Parameters['BearerToken'].Attributes |
-                        Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] -and $_.ParameterSetName -eq 'BearerToken' } |
+                It "PersonalAccessToken is mandatory in PersonalAccessToken parameter set" {
+                    $command.Parameters['PersonalAccessToken'].Attributes |
+                        Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] -and $_.ParameterSetName -eq 'PersonalAccessToken' } |
                         Select-Object -ExpandProperty Mandatory |
                         Should -BeTrue
                 }
@@ -157,8 +165,24 @@ InModuleScope JiraPS {
                 $script:testEmail = "user@example.com"
             }
 
-            It "uses Bearer token authentication with -BearerToken" {
+            It "uses Bearer token authentication with -PersonalAccessToken" {
+                { New-JiraSession -PersonalAccessToken $testToken } | Should -Not -Throw
+
+                Should -Invoke -CommandName 'Invoke-JiraMethod' -ModuleName 'JiraPS' -ParameterFilter {
+                    $Headers.ContainsKey("Authorization") -and $Headers["Authorization"] -like "Bearer *"
+                } -Exactly -Times 1
+            }
+
+            It "supports -BearerToken alias for -PersonalAccessToken" {
                 { New-JiraSession -BearerToken $testToken } | Should -Not -Throw
+
+                Should -Invoke -CommandName 'Invoke-JiraMethod' -ModuleName 'JiraPS' -ParameterFilter {
+                    $Headers.ContainsKey("Authorization") -and $Headers["Authorization"] -like "Bearer *"
+                } -Exactly -Times 1
+            }
+
+            It "supports -PAT alias for -PersonalAccessToken" {
+                { New-JiraSession -PAT $testToken } | Should -Not -Throw
 
                 Should -Invoke -CommandName 'Invoke-JiraMethod' -ModuleName 'JiraPS' -ParameterFilter {
                     $Headers.ContainsKey("Authorization") -and $Headers["Authorization"] -like "Bearer *"
@@ -184,7 +208,7 @@ InModuleScope JiraPS {
             }
 
             It "can combine token auth with custom headers" {
-                { New-JiraSession -BearerToken $testToken -Headers @{ "X-Custom" = "value" } } | Should -Not -Throw
+                { New-JiraSession -PersonalAccessToken $testToken -Headers @{ "X-Custom" = "value" } } | Should -Not -Throw
 
                 Should -Invoke -CommandName 'Invoke-JiraMethod' -ModuleName 'JiraPS' -ParameterFilter {
                     $Headers.ContainsKey("Authorization") -and $Headers.ContainsKey("X-Custom")
