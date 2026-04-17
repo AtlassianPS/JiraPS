@@ -703,6 +703,97 @@ InModuleScope JiraPS {
 
             Context "Type Validation - Negative Cases" {}
         }
+
+        Describe "Caching Behavior" {
+            BeforeAll {
+                $jiraServer = 'http://jiraserver.example.com'
+
+                Mock Get-JiraConfigServer -ModuleName JiraPS { $jiraServer }
+
+                Mock Invoke-WebRequest -ModuleName JiraPS {
+                    $result = [PSCustomObject]@{
+                        StatusCode       = 200
+                        Content          = '{"id": "test-data", "name": "Test"}'
+                        RawContentStream = [System.IO.MemoryStream]::new([System.Text.Encoding]::UTF8.GetBytes('{"id": "test-data", "name": "Test"}'))
+                    }
+                    $result
+                }
+            }
+
+            BeforeEach {
+                $script:JiraCache = @{}
+            }
+
+            It "caches GET responses when CacheKey is provided" {
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
+
+                $script:JiraCache.Keys | Should -Contain "TestCache:$jiraServer"
+                $script:JiraCache["TestCache:$jiraServer"].Data | Should -Not -BeNullOrEmpty
+            }
+
+            It "returns cached data on subsequent calls" {
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
+
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 1 -Exactly
+            }
+
+            It "bypasses cache when -BypassCache is specified" {
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache' -BypassCache
+
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 2 -Exactly
+            }
+
+            It "does not cache non-GET requests" {
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/issue" -Method POST -CacheKey 'TestCache' -Body '{}'
+
+                $script:JiraCache.Keys | Should -Not -Contain "TestCache:$jiraServer"
+            }
+
+            It "sets correct expiry time based on CacheExpiry TimeSpan" {
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache' -CacheExpiry ([TimeSpan]::FromMinutes(30))
+
+                $entry = $script:JiraCache["TestCache:$jiraServer"]
+                $entry.Expiry | Should -BeGreaterThan (Get-Date)
+                $entry.Expiry | Should -BeLessThan (Get-Date).AddMinutes(31)
+            }
+
+            It "accepts CacheExpiry in various TimeSpan units" {
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestHours' -CacheExpiry ([TimeSpan]::FromHours(2))
+
+                $entry = $script:JiraCache["TestHours:$jiraServer"]
+                $entry.Expiry | Should -BeGreaterThan (Get-Date).AddMinutes(119)
+                $entry.Expiry | Should -BeLessThan (Get-Date).AddMinutes(121)
+            }
+
+            It "fetches fresh data when cache is expired" {
+                $script:JiraCache["TestCache:$jiraServer"] = @{
+                    Data   = @{ id = "old-data" }
+                    Expiry = (Get-Date).AddMinutes(-1)
+                }
+
+                $result = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
+
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 1 -Exactly
+                $result.id | Should -Be "test-data"
+            }
+
+            It "creates separate cache entries for different servers" {
+                $server1 = 'http://server1.example.com'
+                $server2 = 'http://server2.example.com'
+
+                Mock Get-JiraConfigServer -ModuleName JiraPS { $server1 }
+                $null = Invoke-JiraMethod -Uri "$server1/rest/api/2/field" -CacheKey 'Fields'
+
+                Mock Get-JiraConfigServer -ModuleName JiraPS { $server2 }
+                $null = Invoke-JiraMethod -Uri "$server2/rest/api/2/field" -CacheKey 'Fields'
+
+                $script:JiraCache.Keys | Should -HaveCount 2
+                $script:JiraCache.Keys | Should -Contain "Fields:$server1"
+                $script:JiraCache.Keys | Should -Contain "Fields:$server2"
+            }
+        }
     }
 }
 
