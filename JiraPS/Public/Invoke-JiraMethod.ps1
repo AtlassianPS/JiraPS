@@ -62,8 +62,8 @@
         $CacheKey,
 
         [Parameter()]
-        [int]
-        $CacheExpiryMinutes = 60,
+        [TimeSpan]
+        $CacheExpiry = [TimeSpan]::FromHours(1),
 
         [Parameter()]
         [Switch]
@@ -246,9 +246,9 @@
                         $fullCacheKey = "${CacheKey}:${cacheServer}"
                         $script:JiraCache[$fullCacheKey] = @{
                             Data   = $response
-                            Expiry = (Get-Date).AddMinutes($CacheExpiryMinutes)
+                            Expiry = (Get-Date).Add($CacheExpiry)
                         }
-                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Cached response for $CacheKey (expires in $CacheExpiryMinutes minutes)"
+                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Cached response for $CacheKey (expires in $CacheExpiry)"
                     }
                     #endregion Cache Store
 

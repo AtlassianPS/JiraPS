@@ -751,12 +751,20 @@ InModuleScope JiraPS {
                 $script:JiraCache.Keys | Should -Not -Contain "TestCache:$jiraServer"
             }
 
-            It "sets correct expiry time based on CacheExpiryMinutes" {
-                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache' -CacheExpiryMinutes 30
+            It "sets correct expiry time based on CacheExpiry TimeSpan" {
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache' -CacheExpiry ([TimeSpan]::FromMinutes(30))
 
                 $entry = $script:JiraCache["TestCache:$jiraServer"]
                 $entry.Expiry | Should -BeGreaterThan (Get-Date)
                 $entry.Expiry | Should -BeLessThan (Get-Date).AddMinutes(31)
+            }
+
+            It "accepts CacheExpiry in various TimeSpan units" {
+                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestHours' -CacheExpiry ([TimeSpan]::FromHours(2))
+
+                $entry = $script:JiraCache["TestHours:$jiraServer"]
+                $entry.Expiry | Should -BeGreaterThan (Get-Date).AddMinutes(119)
+                $entry.Expiry | Should -BeLessThan (Get-Date).AddMinutes(121)
             }
 
             It "fetches fresh data when cache is expired" {

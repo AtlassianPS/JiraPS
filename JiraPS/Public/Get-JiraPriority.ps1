@@ -31,12 +31,12 @@
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
                 $parameter = @{
-                    URI                = $resourceURi -f ""
-                    Method             = "GET"
-                    Credential         = $Credential
-                    CacheKey           = 'Priorities'
-                    CacheExpiryMinutes = 60
-                    BypassCache        = $Force
+                    URI         = $resourceURi -f ""
+                    Method      = "GET"
+                    Credential  = $Credential
+                    CacheKey    = 'Priorities'
+                    CacheExpiry = [TimeSpan]::FromHours(1)
+                    BypassCache = $Force
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter

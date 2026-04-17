@@ -158,12 +158,12 @@ $parameter = @{
     URI = "$(Get-JiraConfigServer)/rest/api/latest/field"
     Method = "GET"
     CacheKey = "Fields"
-    CacheExpiryMinutes = 60
+    CacheExpiry = [TimeSpan]::FromHours(1)
 }
 Invoke-JiraMethod @parameter
 ```
 
-Fetches all fields from Jira and caches the response for 60 minutes.
+Fetches all fields from Jira and caches the response for 1 hour.
 Subsequent calls with the same CacheKey will return the cached data without making an API call.
 
 ### Example 10
@@ -442,18 +442,20 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -CacheExpiryMinutes
+### -CacheExpiry
 
-Specifies how long cached responses should be valid, in minutes. Only applies when `-CacheKey` is specified.
+Specifies how long cached responses should be valid, as a `[TimeSpan]`. Only applies when `-CacheKey` is specified.
+
+Use `[TimeSpan]::FromHours(1)`, `[TimeSpan]::FromMinutes(30)`, `New-TimeSpan -Hours 1`, or any other TimeSpan construction to specify the expiry duration.
 
 ```yaml
-Type: Int32
+Type: TimeSpan
 Parameter Sets: (All)
 Aliases:
 
 Required: False
 Position: Named
-Default value: 60
+Default value: [TimeSpan]::FromHours(1)
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

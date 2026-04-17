@@ -21,7 +21,7 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 
 - Added `-PersonalAccessToken` parameter to `New-JiraSession` for Personal Access Token (PAT) authentication on Jira Data Center, with `-PAT` and `-BearerToken` aliases (#576)
 - Added `-ApiToken` and `-EmailAddress` parameters to `New-JiraSession` for API token authentication on Jira Cloud (#576)
-- Added `-CacheKey`, `-CacheExpiryMinutes`, and `-BypassCache` parameters to `Invoke-JiraMethod` for built-in response caching (#576)
+- Added `-CacheKey`, `-CacheExpiry` (as `[TimeSpan]`), and `-BypassCache` parameters to `Invoke-JiraMethod` for built-in response caching (#576)
 - Added caching to `Get-JiraIssueType` (60 min) with `-Force` parameter to bypass cache (#576)
 - Added caching to `Get-JiraPriority` (60 min) with `-Force` parameter to bypass cache (#576)
 - Added `Clear-JiraCache` public function to clear cached API responses by type (#576)

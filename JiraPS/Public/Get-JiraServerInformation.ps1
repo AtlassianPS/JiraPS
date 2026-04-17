@@ -24,12 +24,12 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $parameter = @{
-            URI                = $resourceURi
-            Method             = "GET"
-            Credential         = $Credential
-            CacheKey           = 'ServerInfo'
-            CacheExpiryMinutes = 5
-            BypassCache        = $Force
+            URI         = $resourceURi
+            Method      = "GET"
+            Credential  = $Credential
+            CacheKey    = 'ServerInfo'
+            CacheExpiry = [TimeSpan]::FromMinutes(5)
+            BypassCache = $Force
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
 
