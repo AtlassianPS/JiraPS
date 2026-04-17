@@ -17,7 +17,7 @@ Returns metadata required to create an issue in JIRA
 
 ```powershell
 Get-JiraIssueCreateMetadata [-Project] <String> [-IssueType] <String> [[-Credential] <PSCredential>]
- [<CommonParameters>]
+ [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -27,6 +27,11 @@ This can be used to identify custom fields in order to pass them to `New-JiraIss
 
 This function is particularly useful when your JIRA instance includes custom fields that are marked as mandatory.
 
+The cmdlet walks every page of the Jira Cloud createmeta response, so the full set
+of fields is returned by default even when the issue type has more fields than a
+single page holds. Use the `-First` / `-Skip` / `-IncludeTotalCount` common
+pagination parameters to limit or offset the results.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -35,7 +40,8 @@ This function is particularly useful when your JIRA instance includes custom fie
 Get-JiraIssueCreateMetadata -Project 'TEST' -IssueType 'Bug'
 ```
 
-This example returns the fields available when creating an issue of type Bug under project TEST.
+This example returns all fields available when creating an issue of type Bug under
+project TEST, walking pagination as needed.
 
 ### EXAMPLE 2
 
@@ -46,6 +52,15 @@ Get-JiraIssueCreateMetadata -Project 'JIRA' -IssueType 'Bug' | ? {$_.Required -e
 This example returns fields available when creating an issue of type Bug under the project Jira.
 
 It then uses `Where-Object` (aliased by the question mark) to filter only the fields that are required.
+
+### EXAMPLE 3
+
+```powershell
+Get-JiraIssueCreateMetadata -Project 'TEST' -IssueType 'Bug' -First 10
+```
+
+This example returns only the first 10 fields, regardless of how many pages the
+Jira API would normally return.
 
 ## PARAMETERS
 
@@ -94,6 +109,58 @@ Aliases:
 Required: False
 Position: 3
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -IncludeTotalCount
+
+Causes an extra output of the total count at the beginning.
+
+Note this is actually a uInt64, but with a custom string representation.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Skip
+
+Controls how many things will be skipped before starting output.
+
+Defaults to 0.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -First
+
+Indicates how many items to return.
+
+```yaml
+Type: UInt64
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 18446744073709551615
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
