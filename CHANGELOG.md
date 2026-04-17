@@ -1,5 +1,41 @@
 # Change Log
 
+## [Unreleased]
+
+This release focuses on **authentication improvements** and **performance optimizations**.
+
+**Authentication**: We've heard the feedback — authenticating with Jira has been painful, especially for CI/CD pipelines and automation scripts. `New-JiraSession` now has first-class support for modern authentication methods:
+
+- **Jira Cloud**: Use `-ApiToken` with `-EmailAddress` — no more manually constructing Basic auth headers
+- **Jira Data Center**: Use `-BearerToken` for Personal Access Tokens (PATs) — the recommended method since DC 8.14
+
+Both accept `SecureString` and work seamlessly in automation. See the updated [authentication documentation](https://atlassianps.org/docs/JiraPS/about/authentication.html) for examples including environment variables and CI/CD patterns.
+
+**Performance**: Frequently-used metadata (fields, issue types, priorities, server info) is now cached automatically. This significantly reduces API calls in scripts that process many issues. Use `-Force` to bypass the cache when needed, or `Clear-JiraCache` to reset it.
+
+**Resilience**: HTTP retry logic now handles 503 errors (common during Jira maintenance), adds jitter to prevent thundering herd, and caps retry delays at 60 seconds.
+
+### Added
+
+- Added `-BearerToken` parameter to `New-JiraSession` for Personal Access Token (PAT) authentication on Jira Data Center (#576)
+- Added `-ApiToken` and `-EmailAddress` parameters to `New-JiraSession` for API token authentication on Jira Cloud (#576)
+- Added `-CacheKey`, `-CacheExpiryMinutes`, and `-BypassCache` parameters to `Invoke-JiraMethod` for built-in response caching (#576)
+- Added caching to `Get-JiraIssueType` (60 min) with `-Force` parameter to bypass cache (#576)
+- Added caching to `Get-JiraPriority` (60 min) with `-Force` parameter to bypass cache (#576)
+- Added `Clear-JiraCache` public function to clear cached API responses by type (#576)
+- Added "Automation and CI/CD" section to authentication documentation with programmatic SecureString examples (#576)
+
+### Changed
+
+- Refactored `Get-JiraField` caching to use `Invoke-JiraMethod` built-in caching instead of separate `Get-CachedData` function (#576)
+- Changed `Get-JiraServerInformation` to use `Invoke-JiraMethod` caching (5 min expiry) instead of module-level variable (#576)
+- Enhanced `Test-ServerResponse` to handle HTTP 503 (Service Unavailable) with retry, jitter on backoff delays, and 60-second max delay cap (#576)
+- Enhanced `Resolve-JiraError` to parse all Jira error response formats: `message`, `errorMessage`, `errorMessages` array, and `errors` dictionary (#576)
+
+### Removed
+
+- Removed `Get-CachedData` private function (replaced by `Invoke-JiraMethod` caching) (#576)
+
 ## v2.16.0-beta2 - 2026-04-12
 
 ### Added
