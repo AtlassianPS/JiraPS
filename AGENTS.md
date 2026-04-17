@@ -70,8 +70,8 @@ Every commit must include **all** of the following:
 **JiraPS** is a mature PowerShell module that provides a comprehensive interface to interact with Atlassian JIRA via REST API. This is a **legacy codebase** that requires modernization while maintaining backward compatibility for its substantial user base.
 
 -   **Repository**: AtlassianPS/JiraPS
--   **Current Version**: 2.16
--   **PowerShell Compatibility**: PS v3-v5.1, PowerShell Core (6+) on Windows/Ubuntu/macOS
+-   **Current Version**: 3.0
+-   **PowerShell Compatibility**: PS v5.1, PowerShell Core (6+) on Windows/Ubuntu/macOS
 -   **Primary Branch**: `master`
 -   **Release Strategy**: Tag-based releases from master branch (push tag `vX.Y.Z` to trigger release)
 -   **License**: MIT
@@ -649,7 +649,7 @@ New-JiraIssue -Fields $fields ...
 4. **User Identity**: "Am I using accountId for Cloud and username for Data Center?"
 5. **Text Format**: "Am I handling both ADF (Cloud) and plain text (DC) for this field?"
 6. **Test Coverage**: "Do my tests cover both Cloud and DC response shapes?"
-7. **Compatibility**: "Does this work on PowerShell 3.0?"
+7. **Compatibility**: "Does this work on PowerShell 5.1?"
 8. **Authentication**: "Should this cmdlet support both session and credential auth?"
 
 ## Module-Specific Patterns to Follow
