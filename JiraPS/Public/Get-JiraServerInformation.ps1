@@ -23,31 +23,28 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($script:JiraServerInfo -and (-not $Force)) {
-            Write-Output $script:JiraServerInfo
-            return
-        }
-
         $parameter = @{
-            URI        = $resourceURi
-            Method     = "GET"
-            Credential = $Credential
+            URI                = $resourceURi
+            Method             = "GET"
+            Credential         = $Credential
+            CacheKey           = 'ServerInfo'
+            CacheExpiryMinutes = 5
+            BypassCache        = $Force
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
 
         try {
             $result = Invoke-JiraMethod @parameter
-            $script:JiraServerInfo = ConvertTo-JiraServerInfo -InputObject $result
+            Write-Output (ConvertTo-JiraServerInfo -InputObject $result)
         }
         catch {
             Write-Warning "[$($MyInvocation.MyCommand.Name)] Could not retrieve server information: $_"
-            $script:JiraServerInfo = [PSCustomObject]@{
+            $fallback = [PSCustomObject]@{
                 PSTypeName     = 'JiraPS.ServerInfo'
                 DeploymentType = 'Server'
             }
+            Write-Output $fallback
         }
-
-        Write-Output $script:JiraServerInfo
     }
 
     end {

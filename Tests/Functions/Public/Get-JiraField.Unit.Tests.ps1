@@ -228,35 +228,42 @@ InModuleScope JiraPS {
         }
 
         Describe "Caching Behavior" {
+            BeforeAll {
+                Mock Invoke-WebRequest -ModuleName JiraPS {
+                    [PSCustomObject]@{
+                        StatusCode       = 200
+                        Content          = $restResult
+                        RawContentStream = [System.IO.MemoryStream]::new([System.Text.Encoding]::UTF8.GetBytes($restResult))
+                    }
+                }
+            }
+
             BeforeEach {
                 $script:JiraCache = @{}
             }
 
-            It "caches results on first call" {
+            It "passes CacheKey to Invoke-JiraMethod" {
                 $null = Get-JiraField
 
-                $script:JiraCache.Keys | Should -Contain "Fields:$jiraServer"
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $CacheKey -eq 'Fields'
+                }
             }
 
-            It "returns cached results on subsequent calls" {
-                $null = Get-JiraField
-                $null = Get-JiraField
-
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
-            }
-
-            It "bypasses cache when -Force is specified" {
-                $null = Get-JiraField
+            It "passes BypassCache to Invoke-JiraMethod when -Force is specified" {
                 $null = Get-JiraField -Force
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $BypassCache -eq $true
+                }
             }
 
             It "passes -Force to nested Get-JiraField call when searching" {
-                $null = Get-JiraField -Field 'issuetype'
                 $null = Get-JiraField -Field 'issuetype' -Force
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $BypassCache -eq $true
+                }
             }
         }
     }

@@ -151,6 +151,34 @@ Invoke-JiraMethod @parameter
 Executes a GET request on the defined URI and stores the output on the File System.
 It also uses the Headers to define what mimeTypes are expected in the response.
 
+### Example 9
+
+```powershell
+$parameter = @{
+    URI = "$(Get-JiraConfigServer)/rest/api/latest/field"
+    Method = "GET"
+    CacheKey = "Fields"
+    CacheExpiryMinutes = 60
+}
+Invoke-JiraMethod @parameter
+```
+
+Fetches all fields from Jira and caches the response for 60 minutes.
+Subsequent calls with the same CacheKey will return the cached data without making an API call.
+
+### Example 10
+
+```powershell
+$parameter = @{
+    URI = "$(Get-JiraConfigServer)/rest/api/latest/field"
+    CacheKey = "Fields"
+    BypassCache = $true
+}
+Invoke-JiraMethod @parameter
+```
+
+Forces a fresh API call, ignoring any cached data. The fresh response will be stored in the cache.
+
 ## PARAMETERS
 
 ### -URI
@@ -392,6 +420,56 @@ Aliases:
 Required: False
 Position: 11
 Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -CacheKey
+
+When specified, enables caching for this GET request. The response will be stored in a module-level cache and returned on subsequent calls with the same CacheKey until the cache expires or is cleared.
+
+Only applies to GET requests. POST, PUT, DELETE requests are never cached.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -CacheExpiryMinutes
+
+Specifies how long cached responses should be valid, in minutes. Only applies when `-CacheKey` is specified.
+
+```yaml
+Type: Int32
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: 60
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -BypassCache
+
+When specified, ignores any cached response and makes a fresh API call. The fresh response will still be stored in the cache. Only applies when `-CacheKey` is specified.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

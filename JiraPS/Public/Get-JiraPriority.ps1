@@ -7,6 +7,10 @@
         $Id,
 
         [Parameter()]
+        [Switch]
+        $Force,
+
+        [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
         $Credential = [System.Management.Automation.PSCredential]::Empty
@@ -27,9 +31,12 @@
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
                 $parameter = @{
-                    URI        = $resourceURi -f ""
-                    Method     = "GET"
-                    Credential = $Credential
+                    URI                = $resourceURi -f ""
+                    Method             = "GET"
+                    Credential         = $Credential
+                    CacheKey           = 'Priorities'
+                    CacheExpiryMinutes = 60
+                    BypassCache        = $Force
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter

@@ -55,7 +55,19 @@
 
         # [Parameter( DontShow )]
         [int]
-        $_RetryCount = 0
+        $_RetryCount = 0,
+
+        [Parameter()]
+        [String]
+        $CacheKey,
+
+        [Parameter()]
+        [int]
+        $CacheExpiryMinutes = 60,
+
+        [Parameter()]
+        [Switch]
+        $BypassCache
     )
 
     begin {
@@ -65,6 +77,22 @@
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        #region Cache Check
+        if ($CacheKey -and $Method -eq 'GET' -and -not $BypassCache) {
+            if (-not $script:JiraCache) {
+                $script:JiraCache = @{}
+            }
+            $cacheServer = Get-JiraConfigServer -ErrorAction SilentlyContinue
+            $fullCacheKey = "${CacheKey}:${cacheServer}"
+            $cached = $script:JiraCache[$fullCacheKey]
+            if ($cached -and (Get-Date) -lt $cached.Expiry) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Cache hit for $CacheKey"
+                Set-TlsLevel -Revert
+                return $cached.Data
+            }
+        }
+        #endregion Cache Check
 
         # load DefaultParameters for Invoke-WebRequest
         # as the global PSDefaultParameterValues is not used
@@ -208,6 +236,21 @@
 
                 if ($webResponse.Content) {
                     $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($webResponse.RawContentStream.ToArray()))
+
+                    #region Cache Store
+                    if ($CacheKey -and $Method -eq 'GET') {
+                        if (-not $script:JiraCache) {
+                            $script:JiraCache = @{}
+                        }
+                        $cacheServer = Get-JiraConfigServer -ErrorAction SilentlyContinue
+                        $fullCacheKey = "${CacheKey}:${cacheServer}"
+                        $script:JiraCache[$fullCacheKey] = @{
+                            Data   = $response
+                            Expiry = (Get-Date).AddMinutes($CacheExpiryMinutes)
+                        }
+                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Cached response for $CacheKey (expires in $CacheExpiryMinutes minutes)"
+                    }
+                    #endregion Cache Store
 
                     if ($Paging) {
                         Invoke-PaginatedRequest -Response $response @PSBoundParameters

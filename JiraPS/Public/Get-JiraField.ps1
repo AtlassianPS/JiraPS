@@ -29,16 +29,17 @@
 
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
-                $allFields = Get-CachedData -Key 'Fields' -Force:$Force -ExpiryMinutes 60 -FetchScript {
-                    $parameter = @{
-                        URI        = $resourceURi
-                        Method     = "GET"
-                        Credential = $Credential
-                    }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
-                    ConvertTo-JiraField -InputObject $result
+                $parameter = @{
+                    URI                = $resourceURi
+                    Method             = "GET"
+                    Credential         = $Credential
+                    CacheKey           = 'Fields'
+                    CacheExpiryMinutes = 60
+                    BypassCache        = $Force
                 }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod @parameter
+                $allFields = ConvertTo-JiraField -InputObject $result
 
                 Write-Output $allFields
             }

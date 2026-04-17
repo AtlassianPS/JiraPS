@@ -23,7 +23,7 @@ Get-JiraServerInformation [[-Credential] <PSCredential>] [<CommonParameters>]
 
 This functions shows all the information about the JIRA server, such as version, time, etc.
 
-The result is cached for the lifetime of the PowerShell session (or until `Set-JiraConfigServer` is called with a new URL). Use the `-Force` parameter to bypass the cache and re-fetch from the server.
+The result is cached for 5 minutes to improve performance. Use the `-Force` parameter to bypass the cache and re-fetch from the server. You can also use `Clear-JiraCache -Type ServerInfo` to manually clear the cache.
 
 The returned object includes a `DeploymentType` property (`Cloud` or `Server`) that JiraPS uses internally to adapt API calls for Jira Cloud vs. Data Center/Server. If the API call fails or the response lacks a `deploymentType` field (older Jira Server versions), `DeploymentType` defaults to `Server`.
 
@@ -105,13 +105,11 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-The result is cached in module scope after the first successful call.
+The result is cached for 5 minutes after the first successful call.
 Subsequent calls return the cached value without making an API request.
-The cache is automatically cleared when `Set-JiraConfigServer` is called.
-Use `-Force` to manually refresh the cache.
+Use `-Force` to manually refresh the cache, or `Clear-JiraCache -Type ServerInfo` to clear it.
 If the API call fails (e.g., network error, server not configured),
-a stub object with `DeploymentType = 'Server'` is cached to avoid
-repeated failing requests on every operation.
+a stub object with `DeploymentType = 'Server'` is returned to allow operations to continue.
 
 JiraPS uses `DeploymentType` to determine whether to use Cloud-specific
 API behavior (e.g., `accountId` instead of `username`, API v3 endpoints).
