@@ -27,20 +27,30 @@ This allows JiraPS to be used by system administrators (eg: to create new Users)
 
 ```powershell
 # Tell the module what is the server's address
-Set-JiraConfigServer -Server "https://jira.server.com"
+Set-JiraConfigServer -Server "https://jira.example.com"
 
-# Get the user credentials with which to authenticate
+# Authenticate (choose one method):
+
+# Option 1: Jira Cloud (API Token)
+$token = ConvertTo-SecureString $env:JIRA_API_TOKEN -AsPlainText -Force
+New-JiraSession -ApiToken $token -EmailAddress "you@example.com"
+
+# Option 2: Jira Data Center (Personal Access Token)
+$pat = ConvertTo-SecureString $env:JIRA_PAT -AsPlainText -Force
+New-JiraSession -PersonalAccessToken $pat
+
+# Option 3: Username/Password
 $cred = Get-Credential
+New-JiraSession -Credential $cred
 
-# Get the date from the issue "PR-123"
-Get-JiraIssue -Issue "PR-123" -Credential $cred
+# Now use JiraPS commands without passing credentials each time
+Get-JiraIssue -Issue "PR-123"
 ```
 
 JiraPS uses the information provided by `Set-JiraConfigServer` to resolve what server to connect to.
 (`Get-JiraConfigServer` can be used to inspect what server is currently being used).
 
-Every command which needs to authenticate with the server has a parameter `-Credential`.
-JiraPS also allows for creating a session with the server with `New-JiraSession`.
+JiraPS automatically detects whether you're connecting to Jira Cloud or Data Center and adapts its API calls accordingly. See [about_JiraPS_Authentication](about/authentication.html) for details.
 
 ## DISCOVERING YOUR ENVIRONMENT
 

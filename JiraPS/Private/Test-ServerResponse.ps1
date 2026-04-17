@@ -69,8 +69,16 @@
             }
         }
 
-        if ($InputObject.StatusCode -and ([int]$InputObject.StatusCode -eq 429)) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Got `"429 - Too Many Requests`". Checking retry"
+        $recoverableStatusCodes = @(429, 503)
+        $statusCode = [int]$InputObject.StatusCode
+
+        if ($InputObject.StatusCode -and ($statusCode -in $recoverableStatusCodes)) {
+            $statusName = switch ($statusCode) {
+                429 { "Too Many Requests" }
+                503 { "Service Unavailable" }
+                default { "Recoverable Error" }
+            }
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Got `"$statusCode - $statusName`". Checking retry"
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] #Retry: $RetryCount / $MaxRetries"
 
             if ($RetryCount -lt $MaxRetries) {
@@ -79,9 +87,27 @@
                     $_retryAfter = [int]$InputObject.Headers['Retry-After']
                 }
                 if ($_retryAfter -lt 1) {
-                    $_retryAfter = [math]::Pow(2, $RetryCount + 1)
+                    $_retryAfter = [math]::Pow(2, $RetryCount + 1) * 10
                 }
-                Write-Warning "[$($MyInvocation.MyCommand.Name)] Rate limited (HTTP 429). Retrying in $_retryAfter seconds (attempt $($RetryCount + 1) of $MaxRetries)."
+
+                $maxRetryDelay = 60
+                $jitter = Get-Random -Minimum 0.5 -Maximum 1.0
+                $_retryAfter = [math]::Min($maxRetryDelay, $_retryAfter) * $jitter
+
+                if ($statusCode -eq 429 -and $InputObject.Headers) {
+                    $rateLimitInfo = @()
+                    if ($InputObject.Headers['X-RateLimit-Limit']) {
+                        $rateLimitInfo += "Max tokens: $($InputObject.Headers['X-RateLimit-Limit'])"
+                    }
+                    if ($InputObject.Headers['X-RateLimit-FillRate'] -and $InputObject.Headers['X-RateLimit-Interval-Seconds']) {
+                        $rateLimitInfo += "$($InputObject.Headers['X-RateLimit-FillRate']) tokens per $($InputObject.Headers['X-RateLimit-Interval-Seconds'])s"
+                    }
+                    if ($rateLimitInfo.Count -gt 0) {
+                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Rate limit details: $($rateLimitInfo -join ', ')"
+                    }
+                }
+
+                Write-Warning "[$($MyInvocation.MyCommand.Name)] $statusName (HTTP $statusCode). Retrying in $([math]::Round($_retryAfter, 1)) seconds (attempt $($RetryCount + 1) of $MaxRetries)."
                 Start-Sleep -Seconds $_retryAfter
                 return $true
             }

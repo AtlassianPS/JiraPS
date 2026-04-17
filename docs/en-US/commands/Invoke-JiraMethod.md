@@ -151,6 +151,59 @@ Invoke-JiraMethod @parameter
 Executes a GET request on the defined URI and stores the output on the File System.
 It also uses the Headers to define what mimeTypes are expected in the response.
 
+### Example 9
+
+```powershell
+$parameter = @{
+    URI = "$(Get-JiraConfigServer)/rest/api/latest/field"
+    Method = "GET"
+    CacheKey = "Fields"
+    CacheExpiry = [TimeSpan]::FromHours(1)
+}
+Invoke-JiraMethod @parameter
+```
+
+Fetches all fields from Jira and caches the response for 1 hour.
+Subsequent calls with the same CacheKey will return the cached data without making an API call.
+
+### Example 10
+
+```powershell
+# 30 seconds — short-lived data
+Invoke-JiraMethod -URI $uri -CacheKey "Status" -CacheExpiry ([TimeSpan]::FromSeconds(30))
+
+# 15 minutes — moderately static data
+Invoke-JiraMethod -URI $uri -CacheKey "Priorities" -CacheExpiry ([TimeSpan]::FromMinutes(15))
+
+# 2 hours — rarely changing reference data
+Invoke-JiraMethod -URI $uri -CacheKey "IssueTypes" -CacheExpiry ([TimeSpan]::FromHours(2))
+
+# 1 day — essentially static configuration
+Invoke-JiraMethod -URI $uri -CacheKey "ServerInfo" -CacheExpiry ([TimeSpan]::FromDays(1))
+
+# Using New-TimeSpan cmdlet — combines multiple units
+Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry (New-TimeSpan -Hours 1 -Minutes 30)
+
+# Using string literal — PowerShell auto-converts "hh:mm:ss" to TimeSpan
+Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry "00:45:00"
+```
+
+Demonstrates various ways to construct a `[TimeSpan]` value for `-CacheExpiry`.
+Use the form that best communicates the intended duration.
+
+### Example 11
+
+```powershell
+$parameter = @{
+    URI = "$(Get-JiraConfigServer)/rest/api/latest/field"
+    CacheKey = "Fields"
+    BypassCache = $true
+}
+Invoke-JiraMethod @parameter
+```
+
+Forces a fresh API call, ignoring any cached data. The fresh response will be stored in the cache.
+
 ## PARAMETERS
 
 ### -URI
@@ -392,6 +445,66 @@ Aliases:
 Required: False
 Position: 11
 Default value: 0
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -CacheKey
+
+When specified, enables caching for this GET request. The response will be stored in a module-level cache and returned on subsequent calls with the same CacheKey until the cache expires or is cleared.
+
+Only applies to GET requests. POST, PUT, DELETE requests are never cached.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -CacheExpiry
+
+Specifies how long cached responses should be valid, as a `[TimeSpan]`. Only applies when `-CacheKey` is specified.
+
+Common ways to construct a TimeSpan:
+
+| Duration    | Using static methods                | Using New-TimeSpan              | String literal |
+| ----------- | ----------------------------------- | ------------------------------- | -------------- |
+| 30 seconds  | `[TimeSpan]::FromSeconds(30)`       | `New-TimeSpan -Seconds 30`      | `"00:00:30"`   |
+| 5 minutes   | `[TimeSpan]::FromMinutes(5)`        | `New-TimeSpan -Minutes 5`       | `"00:05:00"`   |
+| 1 hour      | `[TimeSpan]::FromHours(1)`          | `New-TimeSpan -Hours 1`         | `"01:00:00"`   |
+| 1.5 hours   | `[TimeSpan]::FromMinutes(90)`       | `New-TimeSpan -Hours 1 -Minutes 30` | `"01:30:00"` |
+| 1 day       | `[TimeSpan]::FromDays(1)`           | `New-TimeSpan -Days 1`          | `"1.00:00:00"` |
+
+```yaml
+Type: TimeSpan
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: [TimeSpan]::FromHours(1)
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -BypassCache
+
+When specified, ignores any cached response and makes a fresh API call. The fresh response will still be stored in the cache. Only applies when `-CacheKey` is specified.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

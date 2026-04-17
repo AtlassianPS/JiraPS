@@ -18,13 +18,13 @@ Returns information about the available priorities in JIRA.
 ### _All (Default)
 
 ```powershell
-Get-JiraPriority [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraPriority [-Force] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraPriority [-Id] <Int32[]> [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraPriority [-Id] <Int32[]> [-Force] [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -32,6 +32,8 @@ Get-JiraPriority [-Id] <Int32[]> [-Credential <PSCredential>] [<CommonParameters
 This function retrieves all the available Priorities on the JIRA server an returns them as `JiraPS.Priority`.
 
 This function can restrict the output to a subset of the available IssueTypes if told so.
+
+Results are cached for 60 minutes to improve performance. Use `-Force` to bypass the cache and fetch fresh data.
 
 ## EXAMPLES
 
@@ -66,6 +68,22 @@ Required: True
 Position: 1
 Default value: None
 Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -Force
+
+Bypass the cache and fetch fresh data from the server.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
 Accept wildcard characters: False
 ```
 

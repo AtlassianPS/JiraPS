@@ -7,6 +7,10 @@
         $IssueType,
 
         [Parameter()]
+        [Switch]
+        $Force,
+
+        [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
         $Credential = [System.Management.Automation.PSCredential]::Empty
@@ -27,9 +31,12 @@
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
                 $parameter = @{
-                    URI        = $resourceURi
-                    Method     = "GET"
-                    Credential = $Credential
+                    URI         = $resourceURi
+                    Method      = "GET"
+                    Credential  = $Credential
+                    CacheKey    = 'IssueTypes'
+                    CacheExpiry = [TimeSpan]::FromHours(1)
+                    BypassCache = $Force
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod @parameter
@@ -41,7 +48,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issueType]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issueType [$_issueType]"
 
-                    $allIssueTypes = Get-JiraIssueType -Credential $Credential
+                    $allIssueTypes = Get-JiraIssueType -Force:$Force -Credential $Credential
 
                     Write-Output ($allIssueTypes | Where-Object -FilterScript { $_.Id -eq $_issueType })
                     Write-Output ($allIssueTypes | Where-Object -FilterScript { $_.Name -like $_issueType })

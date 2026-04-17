@@ -85,6 +85,27 @@ Get-JiraUser -UserName ""
 
 Returns information about all users. The empty string "" matches all users.
 
+### EXAMPLE 6
+
+```powershell
+Get-JiraUser -AccountId "5b10a2844c20165700ede21g"
+```
+
+Returns user information for the specified account ID. Use this on Jira Cloud where
+usernames are not available due to GDPR requirements. The `AccountId` property
+can then be used in other commands like `Set-JiraIssue -Assignee`.
+
+### EXAMPLE 7
+
+```powershell
+# Find a user by display name and get their accountId for Cloud
+$user = Get-JiraUser -UserName "John Smith" | Select-Object -First 1
+Set-JiraIssue TEST-1 -Assignee $user.AccountId
+```
+
+Searches for a user by name, then uses their account ID to assign an issue.
+This pattern is useful when migrating scripts from Data Center to Cloud.
+
 ## PARAMETERS
 
 ### -UserName
@@ -240,6 +261,11 @@ Username, name, or e-mail address
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
+
+**Jira Cloud vs Data Center**: On Jira Cloud, users are identified by `accountId` instead of
+`username` due to GDPR requirements. The returned user object includes both `Name` (username,
+may be empty on Cloud) and `AccountId` (always present on Cloud). When working with Cloud,
+use the `AccountId` property for user-related operations like assigning issues.
 
 ## RELATED LINKS
 

@@ -26,8 +26,11 @@ Jira issues can be updated in 3 different ways:
 Editing issues is done with the `Set-JiraIssue` function.
 
 ```powershell
-# Assign an issue
+# Assign an issue (Data Center - use username)
 Set-JiraIssue TEST-1 -Assignee 'bob'
+
+# Assign an issue (Cloud - use accountId)
+Set-JiraIssue TEST-1 -Assignee '5b10a2844c20165700ede21g'
 
 # Get the issue's existing summary and add a tag
 $issue = Get-JiraIssue TEST-1
@@ -36,6 +39,8 @@ $issue | Set-JiraIssue -Summary "$($issue.Summary) (Modified by PowerShell)"
 # Change the issue's summary and add a comment for that change
 $issue | Set-JiraIssue -Summary "New Summary" -AddComment "Changed summary for testing"
 ```
+
+> **Note**: On Jira Cloud, user fields like `-Assignee` require an `accountId` instead of a username due to GDPR requirements. Use `Get-JiraUser` to find account IDs.
 
 If the field you want to change does not have a named parameter, `Set-JiraIssue` also supports changing arbitrary fields using the `-Fields` parameter.
 For more information on this parameter, see the [custom_fields](https://atlassianps.org/docs/JiraPS/About/custom-fields.html) page.
