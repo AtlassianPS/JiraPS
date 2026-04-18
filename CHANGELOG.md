@@ -84,6 +84,10 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Fixed config file parsing to handle both CRLF and LF line endings correctly
 - `Get-JiraIssueCreateMetadata` now walks all pages of the Jira Cloud createmeta response instead of truncating at the default page size. The cmdlet opts into `SupportsPaging`, so `-First`, `-Skip`, and `-IncludeTotalCount` are also supported.
 - Fixed stale documentation for `New-JiraIssue -Reporter`: the reference page reported `Accept pipeline input: False`, but the parameter has accepted `ValueFromPipelineByPropertyName` since v2. The Markdown source and regenerated `JiraPS-help.xml` now reflect the actual binding.
+- Fixed `Get-JiraIssueEditMetadata` emitting `"No metadata found for project  and issueType ."` (with empty interpolated values) when an issue lookup failed.
+  The null-result `ErrorRecord` interpolated `$Project` and `$IssueType`, neither of which is a parameter of this cmdlet, so the message was always garbled.
+  It now references the actual `-Issue` parameter and uses `$PSCmdlet.ThrowTerminatingError` to match other JiraPS cmdlets.
+  The same `if ($result)` block also carried four `Write-Error` branches that validated the createmeta envelope shape (`$result.fields.projects` / `.issuetypes`) — fields the editmeta endpoint never returns, so those branches were unreachable dead code copy-pasted from `Get-JiraIssueCreateMetadata` and have been removed.
 
 ## 3.0 - 2026-04-17
 
