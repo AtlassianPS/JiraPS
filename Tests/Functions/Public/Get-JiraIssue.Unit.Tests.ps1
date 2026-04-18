@@ -124,15 +124,15 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "Supports the -StartIndex and -MaxResults parameters to page through search results" {
-                    { Get-JiraIssue -Query $jql -StartIndex 10 -MaxResults 50 } | Should -Not -Throw
+                It "Supports the -Skip and -First paging parameters to page through search results" {
+                    { Get-JiraIssue -Query $jql -Skip 10 -First 50 } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/*/search" -and
                         $GetParameter["jql"] -eq $jqlEscaped -and
-                        $PSCmdlet.PagingParameters.Skip -eq 10
-                        $PSCmdlet.PagingParameters.First -eq 50
+                        $Skip -eq 10 -and
+                        $First -eq 50
                     }
                 }
 
