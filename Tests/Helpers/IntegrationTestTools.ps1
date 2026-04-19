@@ -114,11 +114,18 @@ function Initialize-IntegrationEnvironment {
         Returns $null if required environment variables are missing, allowing tests
         to be skipped gracefully when not configured.
 
+        Uses a global variable (`$global:_JiraPSIntegrationEnvWarned`) to ensure
+        the "missing env vars" warning fires at most once per PowerShell process.
+        A script-scoped flag would not work because Pester dot-sources this file
+        in every integration test's BeforeDiscovery block, resetting any
+        script-scoped state.
+
         .env format: KEY=value (no quotes needed around values)
         - Lines starting with # are comments
         - Inline comments (KEY=value # comment) are stripped
         - Surrounding quotes on values are stripped
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidGlobalVars', '', Justification = 'Process-wide warn-once flag; a script-scoped flag resets every time Pester dot-sources this file from BeforeDiscovery.')]
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param()
@@ -151,8 +158,16 @@ function Initialize-IntegrationEnvironment {
     }
 
     if ($missing.Count -gt 0) {
-        Write-Warning "Integration tests require the following environment variables: $($missing -join ', ')"
-        Write-Warning "Copy .env.example to .env and configure your Jira Cloud connection."
+        # Warn once per PowerShell process. The `$script:` cache resets every
+        # time this file is dot-sourced (Pester does so in each integration
+        # test's BeforeDiscovery), so a script-scoped guard would still spam
+        # the warning N times. A process-wide global flag stays set across
+        # every dot-source within the same runspace.
+        if (-not $global:_JiraPSIntegrationEnvWarned) {
+            Write-Warning "Integration tests require the following environment variables: $($missing -join ', ')"
+            Write-Warning "Copy .env.example to .env and configure your Jira Cloud connection."
+            $global:_JiraPSIntegrationEnvWarned = $true
+        }
         $script:_EnvLoaded = $true
         $script:_CachedIntegrationEnv = $null
         return $null
