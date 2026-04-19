@@ -208,6 +208,86 @@ InModuleScope JiraPS {
                         $URI -like "*/rest/api/*/issue/TEST-001*"
                     }
                 }
+
+                It "Accepts an issue object via pipeline using ValueFromPipelineByPropertyName" {
+                    $issue = [PSCustomObject] @{
+                        'Key' = 'TEST-001'
+                        'ID'  = '12345'
+                    }
+                    $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+
+                    # Pipeline input binds Key property to -Key parameter via ValueFromPipelineByPropertyName
+                    { $issue | Get-JiraIssue } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'Get' -and
+                        $URI -like "*/rest/api/*/issue/TEST-001*"
+                    }
+                }
+            }
+
+            Context "Pipeline binding regression tests" {
+                # These tests verify the parameter set resolution behavior after adding
+                # ValueFromPipelineByPropertyName to -Key. This is a soft breaking change:
+                # objects with a Key property now bind to ByIssueKey instead of failing.
+
+                It "Binds JiraPS.Issue via pipeline to ByIssueKey parameter set" {
+                    $issue = [PSCustomObject] @{
+                        'Key' = 'TEST-001'
+                        'ID'  = '12345'
+                    }
+                    $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+
+                    # The Key property should bind to -Key via ValueFromPipelineByPropertyName
+                    $issue | Get-JiraIssue
+
+                    # Verify API was called with the key
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                        $URI -like "*/rest/api/*/issue/TEST-001*"
+                    }
+                }
+
+                It "Binds generic PSCustomObject with Key property to ByIssueKey parameter set" {
+                    # BEHAVIOR CHANGE: Previously this would fail because no parameter
+                    # accepted pipeline input. Now the Key property binds to -Key.
+                    $obj = [PSCustomObject]@{ Key = 'TEST-001' }
+
+                    { $obj | Get-JiraIssue } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                        $URI -like "*/rest/api/*/issue/TEST-001*"
+                    }
+                }
+
+                It "Processes multiple issues via pipeline" {
+                    $issues = @(
+                        [PSCustomObject]@{ Key = 'TEST-001' }
+                        [PSCustomObject]@{ Key = 'TEST-001' }  # Same key, should call twice
+                    )
+                    $issues | ForEach-Object { $_.PSObject.TypeNames.Insert(0, 'JiraPS.Issue') }
+
+                    { $issues | Get-JiraIssue } | Should -Not -Throw
+
+                    # Should be called once per piped object
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -ParameterFilter {
+                        $URI -like "*/rest/api/*/issue/TEST-001*"
+                    }
+                }
+
+                It "Explicit -InputObject still works with JiraPS.Issue objects" {
+                    # Verify the ByInputObject parameter set still functions when used explicitly
+                    $issue = [PSCustomObject] @{
+                        'Key' = 'TEST-001'
+                        'ID'  = '12345'
+                    }
+                    $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+
+                    { Get-JiraIssue -InputObject $issue } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                        $URI -like "*/rest/api/*/issue/TEST-001*"
+                    }
+                }
             }
         }
 

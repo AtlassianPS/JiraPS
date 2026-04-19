@@ -28,8 +28,14 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 
 ### Changed
 
+- `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
 - Enhanced `Test-ServerResponse` to handle HTTP 503 (Service Unavailable) with retry, jitter on backoff delays, and 60-second max delay cap (#576)
 - Enhanced `Resolve-JiraError` to parse all Jira error response formats: `message`, `errorMessage`, `errorMessages` array, and `errors` dictionary (#576)
+
+### Fixed
+
+- Fixed `Get-JiraIssue` prompting for input when piping JiraPS.Issue objects (added `ValueFromPipelineByPropertyName` to `-Key` parameter)
+
 ## 3.0 - 2026-04-17
 
 ### Changed
