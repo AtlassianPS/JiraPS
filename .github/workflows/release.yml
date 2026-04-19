@@ -24,13 +24,10 @@ jobs:
           path: ./Release/
           if_no_artifact_found: fail
 
-      - run: ./Tools/setup.ps1
-        shell: pwsh
+      - uses: ./.github/actions/setup-powershell
 
-      - run: Invoke-Build -Task ShowDebugInfo -VersionToPublish ${{ github.ref_name }}
-        shell: pwsh
-
-      - run: Invoke-Build -Task Publish -VersionToPublish ${{ github.ref_name }} -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
+      - run: Invoke-Build -Task Publish -VersionToPublish ${{ github.ref_name }}
+          -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
         shell: pwsh
 
       - name: Cherry pick CHANGELOG.md
@@ -48,15 +45,17 @@ jobs:
           files: ./Release/JiraPS.zip
           fail_on_unmatched_files: true
           draft: false
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name,
+            'beta') || contains(github.ref_name, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify homepage to update submodule
-        if: ${{ !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'rc') }}
+        if: ${{ !contains(github.ref_name, 'alpha') && !contains(github.ref_name,
+          'beta') && !contains(github.ref_name, 'rc') }}
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.HOMEPAGE_PAT }}
           repository: AtlassianPS/AtlassianPS.github.io
           event-type: module-release
-          client-payload: '{"module": "JiraPS", "version": "${{ github.ref_name }}"}'
+          client-payload: "{\"module\": \"JiraPS\", \"version\": \"${{ github.ref_name }}\"}"
