@@ -8,9 +8,13 @@ Describe "Style rules" -Tag "Unit" {
 
         ${/} = [System.IO.Path]::DirectorySeparatorChar
 
-        $script:codeFiles = Get-ChildItem $moduleRoot -Include *.ps1, *.psm1 -Recurse |
+        # -Force is required so dot-prefixed files (e.g. Tests/.../.template.ps1)
+        # are discovered on Unix-like systems too. Without it, PowerShell hides
+        # them on macOS/Linux but not on Windows, leading to violations that
+        # silently pass locally and only fail on Windows CI.
+        $script:codeFiles = Get-ChildItem $moduleRoot -Include *.ps1, *.psm1 -Recurse -Force |
             Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
-        $script:docFiles = Get-ChildItem $moduleRoot -Include *.md -Recurse |
+        $script:docFiles = Get-ChildItem $moduleRoot -Include *.md -Recurse -Force |
             Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
     }
 
