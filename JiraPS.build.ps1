@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [ValidateSet('None', 'Normal' , 'Detailed', 'Diagnostic')]
     [String] $PesterVerbosity = 'Normal',
