@@ -1,0 +1,33 @@
+name: Setup PowerShell Environment
+description: Cache modules and run setup.ps1 (requires checkout first)
+
+inputs:
+  ps-version:
+    description: "PowerShell version indicator for cache key (5 or 7)"
+    required: false
+    default: "7"
+  skip-setup:
+    description: "Skip running setup.ps1 (use when shell must be powershell, not pwsh)"
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v5
+      with:
+        path: |
+          ~/.local/share/powershell/Modules
+          ~/Documents/PowerShell/Modules
+          ~/Documents/WindowsPowerShell/Modules
+        key: ${{ runner.os }}-ps${{ inputs.ps-version }}-PSModules-${{
+          hashFiles('Tools/build.requirements.psd1') }}
+        restore-keys: |
+          ${{ runner.os }}-ps${{ inputs.ps-version }}-PSModules-
+
+    - name: Setup dependencies
+      if: inputs.skip-setup != 'true'
+      shell: pwsh
+      run: |
+        ./Tools/setup.ps1
+        Invoke-Build -Task ShowDebugInfo

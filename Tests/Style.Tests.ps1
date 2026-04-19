@@ -5,10 +5,13 @@ Describe "Style rules" -Tag "Unit" {
         . "$PSScriptRoot/Helpers/TestTools.ps1"
 
         $moduleRoot = Resolve-ProjectRoot
-        $modulePath = Join-Path $moduleRoot "JiraPS"
 
-        $script:codeFiles = Get-ChildItem $modulePath -Include *.ps1, *.psm1 -Recurse
-        $script:docFiles = Get-ChildItem $moduleRoot -Include *.md -Recurse
+        ${/} = [System.IO.Path]::DirectorySeparatorChar
+
+        $script:codeFiles = Get-ChildItem $moduleRoot -Include *.ps1, *.psm1 -Recurse |
+            Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
+        $script:docFiles = Get-ChildItem $moduleRoot -Include *.md -Recurse |
+            Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
     }
 
     It "has no trailing whitespace in code files" {
