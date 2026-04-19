@@ -17,7 +17,7 @@ jobs:
       - name: Download artifact from commit that got tagged
         uses: dawidd6/action-download-artifact@v20
         with:
-          workflow: build_and_test.yml
+          workflow: ci.yml
           workflow_conclusion: success
           commit: ${{ github.sha }}
           name: Release

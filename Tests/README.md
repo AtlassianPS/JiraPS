@@ -615,7 +615,7 @@ Required GitHub Secrets:
 - `JIRA_TEST_PROJECT`
 - `JIRA_TEST_ISSUE`
 
-When the workflow is expected to run (i.e. not a fork PR), the `Verify Secrets` step **fails the job** if any required secret is missing — so a misconfigured secret surfaces as a red CI run rather than a green run with all tests skipped.
+When the workflow runs, the `TestIntegration` task in `JiraPS.build.ps1` validates that all required environment variables are set and **fails early** with a clear error if any are missing — so a misconfigured secret surfaces as a red CI run rather than a green run with all tests skipped.
 
 ## Resources
 
