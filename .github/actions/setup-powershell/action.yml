@@ -1,5 +1,6 @@
 name: Setup PowerShell Environment
-description: Cache modules and run setup.ps1 (requires checkout first)
+description: Cache PowerShell modules and run setup.ps1. The repository must
+  already be checked out (call actions/checkout before this action).
 
 inputs:
   ps-version:
@@ -14,7 +15,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/cache@v5
+    # NOTE: actions/checkout MUST be called by the caller before this action.
+    # Local actions referenced via `uses: ./...` cannot be located until the
+    # repository is on disk. Doing the checkout here is too late: the runner
+    # has to read action.yml before any of the composite steps execute.
+    - name: Cache PowerShell modules
+      uses: actions/cache@v5
       with:
         path: |
           ~/.local/share/powershell/Modules

@@ -1,15 +1,16 @@
 name: CI
 
+# Cancel only PR runs in flight; on master, every commit must produce its own
+# build artifact because release.yml downloads it by SHA when a tag is pushed.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 on:
   pull_request:
     branches: [master]
     paths-ignore: &paths-ignore
       # Documentation (NOT docs/** - that's PlatyPS source!)
-      - "README.md"
       - "CHANGELOG.md"
       - "LICENSE"
       # AI assistant instruction files
@@ -26,8 +27,9 @@ on:
       - ".github/PULL_REQUEST_TEMPLATE/**"
       - ".vscode/**"
       - ".editorconfig"
-      - ".gitignore"
       - ".spelling"
+      # Untracked regenerated docs (kept in case they ever land)
+      - "docs-regenerated/**"
   push:
     branches: [master]
     paths-ignore: *paths-ignore
@@ -55,7 +57,7 @@ jobs:
       - run: Invoke-Build -Task Clean, Build
         shell: pwsh
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: Release
           path: ./Release/
@@ -69,9 +71,11 @@ jobs:
       - uses: ./.github/actions/setup-powershell
         with:
           ps-version: "5"
+          # Setup is run below in the powershell (PS 5.1) shell instead of pwsh,
+          # so the Windows PowerShell module path is populated.
           skip-setup: "true"
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: Release
           path: ./Release/
@@ -85,7 +89,7 @@ jobs:
       - run: Invoke-Build -Task Test
         shell: powershell
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: Windows-PS5-Unit-Tests
@@ -106,7 +110,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-powershell
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: Release
           path: ./Release/
@@ -114,8 +118,31 @@ jobs:
       - run: Invoke-Build -Task Test
         shell: pwsh
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ${{ matrix.name }}-Unit-Tests
           path: Test*.xml
+
+  # Sentinel job that always runs and aggregates the result of the pipeline.
+  # Branch protection should require ONLY this check (`CI / CI Result`),
+  # not the individual jobs. That way a docs-only PR (where lint/build/test
+  # are skipped via paths-ignore) still produces a green required check
+  # and can be merged.
+  ci-required:
+    name: CI Result
+    if: always()
+    needs: [lint, build, test_windows_ps5, test_pwsh]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate job results
+        shell: bash
+        run: |
+          results='${{ toJSON(needs) }}'
+          echo "Job results:"
+          echo "$results"
+          if echo "$results" | grep -E '"result":[[:space:]]*"(failure|cancelled)"' > /dev/null; then
+            echo "::error::One or more required jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All required jobs passed or were skipped."

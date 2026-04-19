@@ -74,31 +74,14 @@ Task ShowDebugInfo {
     Write-Build Gray
 }
 
-# Synopsis: Run PSScriptAnalyzer and style checks (no build required)
+# Synopsis: Run style checks and PSScriptAnalyzer. Collects both result sets
+# before throwing so a single run surfaces every issue. Emits GitHub Actions
+# workflow commands when running under CI so violations appear as inline
+# annotations on the PR diff.
 Task Lint {
-    Write-Build Gray "Running PSScriptAnalyzer..."
-
+    $isGitHubActions = [bool]$env:GITHUB_ACTIONS
     ${/} = [System.IO.Path]::DirectorySeparatorChar
-
-    $analyzerParams = @{
-        Path     = $env:BHProjectPath
-        Settings = "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
-        Severity = @('Error', 'Warning')
-        Recurse  = $true
-    }
-
-    $results = Invoke-ScriptAnalyzer @analyzerParams |
-        Where-Object { $_.ScriptPath -notlike "*${/}Release${/}*" }
-
-    if ($results) {
-        $results | ForEach-Object {
-            Write-Build Yellow "[$($_.Severity)] $($_.ScriptName):$($_.Line) - $($_.RuleName): $($_.Message)"
-        }
-        Assert-True ($results.Count -eq 0) "$($results.Count) PSScriptAnalyzer issue(s) found."
-    }
-    else {
-        Write-Build Green "PSScriptAnalyzer: No issues found."
-    }
+    $failures = [System.Collections.Generic.List[String]]::new()
 
     Write-Build Gray "Running style tests..."
 
@@ -114,7 +97,54 @@ Task Lint {
 
     $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
     $testResults = Invoke-Pester -Configuration $pesterConfig
-    Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) style test(s) failed."
+    if ($testResults.FailedCount -gt 0) {
+        $failures.Add("$($testResults.FailedCount) style test(s) failed.")
+    }
+    else {
+        Write-Build Green "Style tests: passed."
+    }
+
+    Write-Build Gray "Running PSScriptAnalyzer..."
+
+    # Filter Release/* client-side rather than via -ExcludePath: the latter
+    # requires wildcard syntax that's easy to get subtly wrong, and Release/
+    # only matters for local devs (CI runs Lint before Build).
+    $analyzerParams = @{
+        Path     = $env:BHProjectPath
+        Settings = "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
+        Severity = @('Error', 'Warning')
+        Recurse  = $true
+    }
+
+    $results = @(
+        Invoke-ScriptAnalyzer @analyzerParams |
+            Where-Object { $_.ScriptPath -notlike "*${/}Release${/}*" }
+    )
+
+    if ($results.Count -gt 0) {
+        foreach ($result in $results) {
+            $color = if ($result.Severity -eq 'Error') { 'Red' } else { 'Yellow' }
+            $location = if ($result.ScriptName) { $result.ScriptName } else { '<unknown>' }
+            Write-Build $color "[$($result.Severity)] ${location}:$($result.Line) - $($result.RuleName): $($result.Message)"
+
+            if ($isGitHubActions -and $result.ScriptPath) {
+                $level = if ($result.Severity -eq 'Error') { 'error' } else { 'warning' }
+                $relPath = [System.IO.Path]::GetRelativePath($env:BHProjectPath, $result.ScriptPath)
+                # Workflow command escaping per
+                # https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions
+                $msg = ($result.Message -replace '%', '%25' -replace "`r", '%0D' -replace "`n", '%0A')
+                Write-WorkflowCommand "::${level} file=$relPath,line=$($result.Line),col=$($result.Column),title=$($result.RuleName)::$msg"
+            }
+        }
+        $failures.Add("$($results.Count) PSScriptAnalyzer issue(s) found.")
+    }
+    else {
+        Write-Build Green "PSScriptAnalyzer: no issues found."
+    }
+
+    if ($failures.Count -gt 0) {
+        throw ("Lint failed:`n  - " + ($failures -join "`n  - "))
+    }
 }
 
 Task Clean {

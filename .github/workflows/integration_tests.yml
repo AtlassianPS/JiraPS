@@ -4,16 +4,32 @@ on:
   pull_request:
     branches:
       - master
-    types: [ opened, synchronize, reopened, labeled ]
+    types: [opened, synchronize, reopened, labeled]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "LICENSE"
+      - "AGENTS.md"
+      - "CLAUDE.md"
+      - "GEMINI.md"
+      - ".cursor/**"
+      - ".github/copilot-instructions.md"
+      - ".github/ai-context/**"
+      - ".github/instructions/**"
+      - ".github/*.md"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/PULL_REQUEST_TEMPLATE/**"
+      - ".vscode/**"
+      - ".editorconfig"
+      - ".spelling"
+      - "docs-regenerated/**"
   schedule:
     # Run full integration tests nightly at 6 AM UTC
     - cron: "0 6 * * *"
-  # Manual trigger for ad-hoc runs (no inputs needed - uses defaults)
   workflow_dispatch:
 
 concurrency:
   group: integration-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   JIRA_CLOUD_URL: ${{ secrets.JIRA_CLOUD_URL }}
@@ -31,17 +47,17 @@ jobs:
     name: Smoke Tests
     runs-on: ubuntu-latest
     # Skip on fork PRs - secrets are not available and tests would fail.
-    # The TestIntegration task validates required env vars and fails early
-    # with a clear error if any are missing.
+    # The TestIntegration build task validates required env vars and fails
+    # early with a clear error if any are missing.
     if: github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-powershell
 
-      - name: Run Smoke Tests
+      - run: |
+          Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed
         shell: pwsh
-        run: Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed
 
       - uses: actions/upload-artifact@v6
         with:
@@ -65,9 +81,9 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-powershell
 
-      - name: Run Integration Tests (Parallel)
+      - run: |
+          Invoke-Build -Task TestIntegration -ThrottleLimit 6 -PesterVerbosity Detailed
         shell: pwsh
-        run: Invoke-Build -Task TestIntegration -ThrottleLimit 6 -PesterVerbosity Detailed
 
       - name: Upload test results
         uses: actions/upload-artifact@v6

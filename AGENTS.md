@@ -403,10 +403,10 @@ Follow the [`powershell-rules.md` Review Checklist](.github/ai-context/powershel
 
 ## CI/CD & Workflows
 
-- `build_and_test.yml` — runs on PR/push to `master`; builds on Ubuntu, runs unit tests on Windows PS 5.1/7 + Ubuntu + macOS
-- `integration_tests.yml` — `Smoke`-tagged tests on every PR; full suite on schedule, `workflow_dispatch`, or PRs labeled `run-integration-tests` (requires Jira Cloud secrets)
-- `release.yml` — runs on `v*` tags, publishes to PSGallery, creates GitHub Release
-- Workflow source: [`.github/workflows/`](.github/workflows/)
+- `ci.yml` — runs on PR/push to `master`; pipeline is **Lint → Build → Test** (fail-fast). Lint = PSScriptAnalyzer + style checks (Ubuntu). Build compiles to `Release/` (Ubuntu). Test runs against the artifact on Windows PS 5.1, Windows PS 7, Ubuntu, and macOS. A `CI Result` sentinel job aggregates the pipeline result — branch protection should require **only that** check (so docs-only PRs that skip the pipeline can still merge).
+- `integration_tests.yml` — `Smoke`-tagged tests on every PR; full suite on schedule, `workflow_dispatch`, or PRs labeled `run-integration-tests` (requires Jira Cloud secrets). The `TestIntegration` build task validates required env vars and fails early if any are missing.
+- `release.yml` — runs on `v*` tags, downloads the `Release` artifact produced by `ci.yml` for the tagged commit, publishes to PSGallery, and creates a GitHub Release.
+- Workflow source: [`.github/workflows/`](.github/workflows/); shared setup: [`.github/actions/setup-powershell/`](.github/actions/setup-powershell/) (caller must run `actions/checkout` first).
 
 ## Dependencies
 
