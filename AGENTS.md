@@ -169,26 +169,41 @@ param(
 -   **Test File Location**: Tests are organized by function type:
     -   **Public functions** (CRUD): `Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1`
     -   **Private functions** (Converters): `Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1`
+    -   **Integration tests**: `Tests/Integration/<Feature>.Integration.Tests.ps1`
 -   **Pester Version**: Tests should work with Pester 5.7+ (v5 syntax)
 -   **Test Templates**: Each directory contains a `.template.ps1` file
     -   **Public functions**: `Tests/Functions/Public/.template.ps1` - for API-calling CRUD functions
     -   **Private functions**: `Tests/Functions/Private/.template.ps1` - for data transformation/converter functions
+    -   **Integration tests**: `Tests/Integration/.template.ps1` - for live API tests against Jira Cloud
 -   **Detailed Guide**: See [`Tests/README.md`](../Tests/README.md) for comprehensive testing documentation including:
     -   Complete test structure examples
     -   Mock debugging techniques
     -   Best practices and common patterns
     -   Context organization guidelines
+-   **Integration Tests**: See [`Tests/Integration/README.md`](../Tests/Integration/README.md) for:
+    -   Setting up Jira Cloud credentials
+    -   Running integration tests locally and in CI
+    -   Test fixture requirements
+    -   Cleanup strategies for test resources
 
 ### Build Process
 
-> **IMPORTANT**: Tests run against the *built* module in `Release/`, not the source files.
-> You MUST build before testing. Running `Invoke-Pester` directly will not work.
+> **IMPORTANT**: Unit tests run against the *built* module in `Release/`, not the source files.
+> You MUST build before running unit tests. Running `Invoke-Pester` directly on unit tests will not work.
+
+> **NOTE**: Integration tests run directly against source files (no build required).
+> They load the module from `JiraPS/JiraPS.psd1`.
 
 **Standard Workflow**:
 
 ```powershell
 ./Tools/setup.ps1              # First time: install dependencies
-Invoke-Build -Task Build, Test # Build and test in one command
+Invoke-Build -Task Build, Test # Build and run unit tests
+
+# Integration tests (no build needed)
+Invoke-Build -Task TestIntegration
+Invoke-Build -Task TestIntegration -Tag 'Smoke'           # Smoke tests only
+Invoke-Build -Task TestIntegration -ThrottleLimit 8       # More parallelism
 ```
 
 **Build Tasks** (via `Invoke-Build`):
@@ -197,7 +212,8 @@ Invoke-Build -Task Build, Test # Build and test in one command
 |------|--------------|
 | `Clean` | Removes `Release/` and test artifacts |
 | `Build` | Compiles module into `Release/` (runs Clean first) |
-| `Test` | Runs Pester tests against built module |
+| `Test` | Runs unit tests against built module (excludes Integration) |
+| `TestIntegration` | Runs integration tests in parallel (no build needed) |
 | `GenerateExternalHelp` | Generates help XML from `docs/` markdown |
 | `Publish` | Publishes to PowerShell Gallery (release tags only) |
 
@@ -561,10 +577,18 @@ New-JiraIssue -Fields $fields ...
 1. **build_and_test.yml**: Runs on PR/push to master
 
     - Builds on Ubuntu
-    - Tests on Windows (PS5.1 + PS7) and Ubuntu
+    - Unit tests on Windows (PS5.1 + PS7), Ubuntu, and macOS
     - Uses artifact upload/download pattern
+    - Integration tests are excluded (run separately)
 
-2. **release.yml**: Runs on version tags (`v*`)
+2. **integration_tests.yml**: Dedicated workflow for integration tests
+
+    - **Smoke tests**: Run on every PR (fast, critical tests tagged `Smoke`)
+    - **Full integration tests**: Run on schedule (nightly), `workflow_dispatch`, or PRs with `run-integration-tests` label
+    - Requires Jira Cloud secrets configured in repository settings; the workflow fails fast if any required secret is missing
+    - Uses parallel execution for faster runs (`Invoke-ParallelPester.ps1`)
+
+3. **release.yml**: Runs on version tags (`v*`)
     - Downloads build artifact from tagged commit
     - Runs `Invoke-Build -Task Publish`
     - Creates GitHub release with CHANGELOG excerpt
@@ -572,7 +596,6 @@ New-JiraIssue -Fields $fields ...
 ### Improvement Opportunities
 
 -   Modernize to newer action versions (v4 → v5)
--   Add PSScriptAnalyzer to PR checks
 -   Add test coverage reporting
 -   Consider matrix testing for multiple PowerShell versions
 

@@ -243,7 +243,7 @@ All test resources use a discoverable prefix (`JiraPS-IntTest-`):
 
 ```powershell
 $summary = New-TestResourceName -Type "Issue"
-# Returns: "JiraPS-IntTest-Issue-20260412233045"
+# Returns: "JiraPS-IntTest-Issue-20260412233045-a1b2c3"
 ```
 
 ### 2. Track Created Resources
@@ -336,7 +336,6 @@ Integration tests have a dedicated workflow (`.github/workflows/integration_test
 
 | Trigger | Smoke Tests | Full Integration Tests |
 |---------|-------------|------------------------|
-| Push to default branch | ✅ | ✅ |
 | Pull Request | ✅ | ❌ (add `run-integration-tests` label) |
 | Nightly (6 AM UTC) | ✅ | ✅ |
 | Manual (`workflow_dispatch`) | ✅ | ✅ |
@@ -372,7 +371,7 @@ To run full integration tests on a pull request:
 - **No build required**: Tests run directly against source for speed
 - **Parallel execution**: Uses `Invoke-Build -Task TestIntegration` with `ThrottleLimit=4`
 - **Concurrency control**: Cancels in-progress runs for the same branch
-- **Test summary**: Generates a summary in the GitHub Actions UI
+- **NUnit results artifact**: Uploads `IntegrationTestResults.xml` as a workflow artifact for downstream inspection
 
 ## Troubleshooting
 
