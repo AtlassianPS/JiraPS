@@ -60,7 +60,10 @@
         $PassThru,
 
         [Switch]
-        $SkipNotification
+        $SkipNotification,
+
+        [Switch]
+        $UseDefaultAssignee
     )
 
     begin {
@@ -69,7 +72,7 @@
         $isCloud = Test-JiraCloudServer -Credential $Credential
 
         $fieldNames = $Fields.Keys
-        if (-not ($Summary -or $Description -or $Assignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
+        if (-not ($Summary -or $Description -or $Assignee -or $UseDefaultAssignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
             $errorMessage = @{
                 Category         = "InvalidArgument"
                 CategoryActivity = "Validating Arguments"
@@ -79,19 +82,15 @@
             return
         }
 
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
+        if ($UseDefaultAssignee) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -UseDefaultAssignee passed. Issue will be assigned to the default assignee."
+            $assigneeString = "-1"
+            $validAssignee = $true
+        }
+        elseif ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
             if ($null -eq $Assignee) {
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] `$null passed. Issue will be unassigned."
                 $assigneeString = $null
-                $validAssignee = $true
-            }
-            elseif ($Assignee -eq "Default") {
-                <#
-                  #ToDo:Deprecated
-                  This behavior should be deprecated
-                #>
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] 'Default' String passed. Issue will be assigned to the default assignee."
-                $assigneeString = "-1"
                 $validAssignee = $true
             }
             else {

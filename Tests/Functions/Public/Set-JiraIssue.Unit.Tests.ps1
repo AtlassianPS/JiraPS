@@ -212,8 +212,8 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "Sets the assignee to unassigned when passed `"unassigned`"" {
-                    { Set-JiraIssue -Issue "IT-3676" -Assignee "unassigned" } | Should -Not -Throw
+                It "Unassigns the issue when -Assignee is `$null" {
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee $null } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
@@ -222,8 +222,8 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "Sets the assignee to default assignee when passed `"default`"" {
-                    { Set-JiraIssue -Issue "IT-3676" -Assignee "default" } | Should -Not -Throw
+                It "Sets the assignee to default when -UseDefaultAssignee is specified" {
+                    { Set-JiraIssue -Issue "IT-3676" -UseDefaultAssignee } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and

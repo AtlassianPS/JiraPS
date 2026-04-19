@@ -18,7 +18,8 @@ Modifies an existing issue in JIRA
 ```powershell
 Set-JiraIssue [-Issue] <Object[]> [[-Summary] <String>] [[-Description] <String>] [[-FixVersion] <String[]>]
  [[-Assignee] <Object>] [[-Label] <String[]>] [[-Fields] <PSCustomObject>] [[-AddComment] <String>]
- [[-Credential] <PSCredential>] [-SkipNotification] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-Credential] <PSCredential>] [-SkipNotification] [-PassThru] [-UseDefaultAssignee]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -57,10 +58,10 @@ This example removes the assignee from JIRA issue TEST-01.
 ### EXAMPLE 4
 
 ```powershell
-Set-JiraIssue -Issue TEST-01 -Assignee 'Default'
+Set-JiraIssue -Issue TEST-01 -UseDefaultAssignee
 ```
 
-This example will set the assgignee of JIRA issue TEST-01 to the value the project or type of the issue determine as default.
+This example sets the assignee of JIRA issue TEST-01 to the project's default assignee.
 
 ### EXAMPLE 5
 
@@ -267,6 +268,25 @@ Accept wildcard characters: False
 ### -PassThru
 
 Whether output should be provided after invoking this function.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -UseDefaultAssignee
+
+Set the issue's assignee to the project's default assignee.
+
+This is useful when you want Jira to automatically determine the assignee
+based on the project's configuration.
 
 ```yaml
 Type: SwitchParameter
