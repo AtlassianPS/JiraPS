@@ -19,12 +19,9 @@
                 $props.Size = $i.users.size
 
                 if ($i.users.items) {
-                    $allUsers = New-Object -TypeName System.Collections.ArrayList
-                    foreach ($user in $i.users.items) {
-                        [void] $allUsers.Add( (ConvertTo-JiraUser -InputObject $user) )
-                    }
-
-                    $props.Member = ($allUsers.ToArray())
+                    $allUsers = [System.Collections.Generic.List[PSObject]]::new()
+                    $i.users.items.ForEach({ $allUsers.Add((ConvertTo-JiraUser -InputObject $_)) })
+                    $props.Member = $allUsers.ToArray()
                 }
             }
 

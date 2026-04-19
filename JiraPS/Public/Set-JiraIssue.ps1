@@ -136,10 +136,8 @@
             }
 
             if ($FixVersion) {
-                $fixVersionSet = [System.Collections.ArrayList]@()
-                foreach ($item in $FixVersion) {
-                    $null = $fixVersionSet.Add( @{ 'name' = $item } )
-                }
+                $fixVersionSet = [System.Collections.Generic.List[hashtable]]::new()
+                $FixVersion.ForEach({ $null = $fixVersionSet.Add(@{ 'name' = $_ }) })
                 $issueProps.update["fixVersions"] = @( @{ set = $fixVersionSet } )
             }
 

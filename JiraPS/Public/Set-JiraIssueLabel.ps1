@@ -69,7 +69,8 @@
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
-            $labels = [System.Collections.ArrayList]@($issueObj.labels | Where-Object { $_ })
+            $labels = [System.Collections.Generic.List[string]]::new()
+            ($issueObj.labels | Where-Object { $_ }).ForEach({ $labels.Add($_) })
 
             # As of JIRA 6.4, the Add and Remove verbs in the REST API for
             # updating issues do not support arrays of parameters - you
@@ -81,22 +82,26 @@
             switch ($PSCmdlet.ParameterSetName) {
                 'ClearLabels' {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Clearing all labels"
-                    $labels = [System.Collections.ArrayList]@()
+                    $labels.Clear()
                 }
                 'ReplaceLabels' {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Replacing existing labels"
-                    $labels = [System.Collections.ArrayList]$Set
+                    $labels = [System.Collections.Generic.List[string]]::new([string[]]$Set)
                 }
                 'ModifyLabels' {
                     if ($Add) {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding labels"
-                        $null = foreach ($_add in $Add) { $labels.Add($_add) }
+                        # [List[T]].Add() returns void; the $null = assignment is
+                        # defensive (matches the pattern used in New-JiraIssue and
+                        # Set-JiraIssue, and protects against future API drift).
+                        $Add.ForEach({ $null = $labels.Add($_) })
                     }
                     if ($Remove) {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Removing labels"
-                        foreach ($item in $Remove) {
-                            $labels.Remove($item)
-                        }
+                        # [List[T]].Remove() returns bool; without $null = the
+                        # boolean is propagated by .ForEach() and pollutes the
+                        # cmdlet's output stream.
+                        $Remove.ForEach({ $null = $labels.Remove($_) })
                     }
                 }
             }

@@ -114,24 +114,18 @@
         }
 
         if ($Label) {
-            $requestBody["labels"] = [System.Collections.ArrayList]@()
-            foreach ($item in $Label) {
-                $null = $requestBody["labels"].Add($item)
-            }
+            $requestBody["labels"] = [System.Collections.Generic.List[string]]::new()
+            $Label.ForEach({ $null = $requestBody["labels"].Add($_) })
         }
 
         if ($Components) {
-            $requestBody["components"] = [System.Collections.ArrayList]@()
-            foreach ($item in $Components) {
-                $null = $requestBody["components"].Add( @{ id = "$item" } )
-            }
+            $requestBody["components"] = [System.Collections.Generic.List[hashtable]]::new()
+            $Components.ForEach({ $null = $requestBody["components"].Add(@{ id = "$_" }) })
         }
 
         if ($FixVersion) {
-            $requestBody['fixVersions'] = [System.Collections.ArrayList]@()
-            foreach ($item in $FixVersion) {
-                $null = $requestBody["fixVersions"].Add( @{ name = "$item" } )
-            }
+            $requestBody['fixVersions'] = [System.Collections.Generic.List[hashtable]]::new()
+            $FixVersion.ForEach({ $null = $requestBody["fixVersions"].Add(@{ name = "$_" }) })
         }
 
         if ($Fields) {

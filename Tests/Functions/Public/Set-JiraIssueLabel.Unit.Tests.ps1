@@ -115,6 +115,14 @@ InModuleScope JiraPS {
             It "Allows use of both Add and Remove parameters at the same time" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Add 'testLabel1' -Remove 'testLabel2' } | Should -Not -Throw
             }
+
+            It "Does not emit pipeline output when -Add or -Remove are used without -PassThru" {
+                # Regression guard: [List[T]].Remove() returns a bool, and an
+                # un-discarded .ForEach({ ... }) collects those bools and bubbles
+                # them into the cmdlet's output stream as $True / $False values.
+                $output = Set-JiraIssueLabel -Issue TEST-001 -Add 'newLabel' -Remove 'existingLabel1'
+                $output | Should -BeNullOrEmpty
+            }
         }
 
         Describe "Input Validation" {
