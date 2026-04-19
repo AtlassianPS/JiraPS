@@ -16,10 +16,12 @@ bodies, or response handling MUST work on both deployment types.
 - If a function uses `?accountId=` or `@{accountId=...}`, it only works on Cloud
 - Correct approach: branch based on deployment type
 
-Affected functions: `Get-JiraUser`, `Set-JiraUser`, `Remove-JiraUser`,
-`New-JiraIssue` (reporter), `Set-JiraIssue` (assignee),
-`Invoke-JiraIssueTransition`, `Add-JiraGroupMember`, `Remove-JiraGroupMember`,
-`Add-JiraIssueWatcher`, `Remove-JiraIssueWatcher`, `Resolve-JiraUser`
+To find functions that need this branching, search `JiraPS/Public/` for cmdlets that:
+- Take a `User`/`Assignee`/`Reporter` parameter, **or**
+- Build a request body containing `username`, `name`, `accountId`, or `assignee`/`reporter` keys, **or**
+- Call `/rest/api/2/user`, `/rest/api/3/user`, or `/group/member` endpoints
+
+Group/watcher membership cmdlets and `Resolve-JiraUser` are also affected.
 
 ### Text Fields (ADF vs Plain Text)
 
@@ -101,22 +103,28 @@ try {
 - Private functions: `Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1`
 - Use `.template.ps1` files as starting points
 - Tests must cover both Cloud and DC response shapes
+- Integration tests (live Jira Cloud) live in `Tests/Integration/<Feature>.Integration.Tests.ps1` — see [`Tests/Integration/README.md`](../../Tests/Integration/README.md)
 
 ## Running Tests
 
-**IMPORTANT**: Tests run against the *built* module in `Release/`, not the source files.
-You MUST build before testing.
+**IMPORTANT**: Unit tests run against the *built* module in `Release/`, not source files.
+You MUST build before running unit tests. Integration tests load the source manifest directly (no build required) but need live Jira Cloud credentials in `.env`.
 
 ```powershell
 # First time setup (install dependencies)
 ./Tools/setup.ps1
 
-# Build AND test (standard workflow)
+# Unit tests (standard workflow)
 Invoke-Build -Task Build, Test
 
 # Or separately:
 Invoke-Build -Task Build    # Compiles module into Release/
-Invoke-Build -Task Test     # Runs Pester tests against Release/
+Invoke-Build -Task Test     # Runs unit tests against Release/ (excludes Integration)
+
+# Integration tests (no build needed, requires .env)
+Invoke-Build -Task TestIntegration
+Invoke-Build -Task TestIntegration -Tag 'Smoke'         # Smoke subset only
+Invoke-Build -Task TestIntegration -ThrottleLimit 8     # More parallelism
 ```
 
 ### Available Build Tasks
@@ -125,14 +133,17 @@ Invoke-Build -Task Test     # Runs Pester tests against Release/
 |------|--------------|
 | `Clean` | Removes `Release/` and test artifacts |
 | `Build` | Compiles module into `Release/` (includes Clean) |
-| `Test` | Runs Pester tests against built module |
+| `Test` | Runs unit tests against built module (excludes Integration) |
+| `TestIntegration` | Runs integration tests in parallel (no build needed) |
 | `GenerateExternalHelp` | Generates help XML from `docs/` markdown |
+| `Publish` | Publishes to PowerShell Gallery (release tags only) |
 
 ### Common Mistakes
 
-- **Running `Invoke-Pester` directly** — Won't work; tests expect the compiled module
+- **Running `Invoke-Pester` directly** — Won't work for unit tests; they expect the compiled module
 - **Running `Invoke-Build -Task Test` without building** — Tests will fail or use stale code
 - **Forgetting `./Tools/setup.ps1`** — Missing dependencies (Pester, InvokeBuild, etc.)
+- **Running `TestIntegration` without `.env`** — Will fail fast on missing credentials
 
 ## Review Checklist
 
