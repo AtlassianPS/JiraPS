@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - master
-    types: [opened, synchronize, reopened, labeled]
+    types: [ opened, synchronize, reopened, labeled ]
     paths-ignore:
       - "CHANGELOG.md"
       - "LICENSE"
@@ -23,7 +23,6 @@ on:
       - ".spelling"
       - "docs-regenerated/**"
   schedule:
-    # Run full integration tests nightly at 6 AM UTC
     - cron: "0 6 * * *"
   workflow_dispatch:
 
@@ -68,8 +67,6 @@ jobs:
   integration_tests:
     name: Full Integration Tests
     needs: smoke_tests
-    # Run full suite on: schedule, manual dispatch, or internal PRs with 'run-integration-tests' label
-    # Skip on fork PRs - secrets are not available (same as smoke_tests)
     if: |
       github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
