@@ -20,6 +20,29 @@ function Assert-True {
     }
 }
 
+function Write-WorkflowCommand {
+    <#
+    .SYNOPSIS
+        Emit a GitHub Actions workflow command on stdout.
+    .DESCRIPTION
+        GitHub Actions workflow commands (e.g. "::error file=...,line=...::msg")
+        must reach the runner's stdout to be intercepted. Write-Output is captured
+        by Invoke-Build's pipeline plumbing, and Write-Host is forbidden by
+        PSScriptAnalyzer's PSAvoidUsingWriteHost rule. This wrapper exists so the
+        suppression can be local and justified.
+    #>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        'PSAvoidUsingWriteHost', '',
+        Justification = 'GitHub Actions workflow commands must reach stdout; Write-Output is captured by Invoke-Build pipelines.'
+    )]
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [String]$Command
+    )
+    Write-Host $Command
+}
+
 function Test-ContainsAll {
     [CmdletBinding()]
     [OutputType([Boolean])]
