@@ -80,12 +80,8 @@
         }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
-            if ($Assignee -eq 'Unassigned') {
-                <#
-                  #ToDo:Deprecated
-                  This behavior should be deprecated
-                #>
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] 'Unassigned' String passed. Issue will be assigned to no one."
+            if ($null -eq $Assignee) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] `$null passed. Issue will be unassigned."
                 $assigneeString = $null
                 $validAssignee = $true
             }

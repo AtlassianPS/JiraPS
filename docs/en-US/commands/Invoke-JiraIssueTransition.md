@@ -143,7 +143,7 @@ Accept wildcard characters: False
 
 New assignee of the issue.
 
-Enter `Unassigned` to remove the assignee of the issue.
+Pass `$null` to remove the assignee of the issue.
 Assignee field must be configured to appear on the transition screen to use this parameter.
 
 ```yaml

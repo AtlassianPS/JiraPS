@@ -174,8 +174,8 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "unassigns an issue if 'Unassigned' is passed to the -Assignee parameter" {
-                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'Unassigned' } | Should -Not -Throw
+                It "unassigns an issue if `$null is passed to the -Assignee parameter" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee $null } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and

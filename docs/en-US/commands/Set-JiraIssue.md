@@ -49,7 +49,7 @@ This example appends text to the end of an existing issue description by using
 ### EXAMPLE 3
 
 ```powershell
-Set-JiraIssue -Issue TEST-01 -Assignee 'Unassigned'
+Set-JiraIssue -Issue TEST-01 -Assignee $null
 ```
 
 This example removes the assignee from JIRA issue TEST-01.
@@ -163,7 +163,7 @@ Accept wildcard characters: False
 
 New assignee of the issue.
 
-Use the value `Unassigned` to remove the current assignee of the issue.
+Pass `$null` to remove the current assignee of the issue.
 
 ```yaml
 Type: Object
