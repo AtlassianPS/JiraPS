@@ -1,0 +1,122 @@
+name: Integration Tests
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, synchronize, reopened, labeled]
+  schedule:
+    # Run full integration tests nightly at 6 AM UTC
+    - cron: "0 6 * * *"
+  # Manual trigger for ad-hoc runs (no inputs needed - uses defaults)
+  workflow_dispatch:
+
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JIRA_CLOUD_URL: ${{ secrets.JIRA_CLOUD_URL }}
+  JIRA_CLOUD_USERNAME: ${{ secrets.JIRA_CLOUD_USERNAME }}
+  JIRA_CLOUD_PASSWORD: ${{ secrets.JIRA_CLOUD_PASSWORD }}
+  JIRA_TEST_PROJECT: ${{ secrets.JIRA_TEST_PROJECT }}
+  JIRA_TEST_ISSUE: ${{ secrets.JIRA_TEST_ISSUE }}
+  JIRA_TEST_USER: ${{ secrets.JIRA_TEST_USER }}
+  JIRA_TEST_GROUP: ${{ secrets.JIRA_TEST_GROUP }}
+  JIRA_TEST_FILTER: ${{ secrets.JIRA_TEST_FILTER }}
+  JIRA_TEST_VERSION: ${{ secrets.JIRA_TEST_VERSION }}
+
+jobs:
+  smoke_tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    # Skip on fork PRs - secrets are not available and tests would fail.
+    # When this job DOES run we expect secrets to be configured; the
+    # "Verify Secrets" step below fails the job (instead of letting tests
+    # silently skip) if any required secret is missing.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify Secrets
+        shell: pwsh
+        run: |
+          $required = @(
+              'JIRA_CLOUD_URL'
+              'JIRA_CLOUD_USERNAME'
+              'JIRA_CLOUD_PASSWORD'
+              'JIRA_TEST_PROJECT'
+              'JIRA_TEST_ISSUE'
+          )
+          $missing = $required | Where-Object {
+              [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($_))
+          }
+          if ($missing) {
+              throw "Required secrets are not configured for this workflow run: $($missing -join ', '). Configure them under repo Settings -> Secrets and variables -> Actions."
+          }
+
+      - name: Setup
+        shell: pwsh
+        run: ./Tools/setup.ps1
+
+      - name: Run Smoke Tests
+        shell: pwsh
+        # PesterVerbosity is wired to $PesterVerbosity param in JiraPS.build.ps1 via BuildHelpers
+        run: |
+          Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v6
+        with:
+          name: Smoke-Tests
+          path: IntegrationTests.xml
+        if: always()
+
+  integration_tests:
+    name: Full Integration Tests
+    needs: smoke_tests
+    # Run full suite on: schedule, manual dispatch, or internal PRs with 'run-integration-tests' label
+    # Skip on fork PRs - secrets are not available (same as smoke_tests)
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       contains(github.event.pull_request.labels.*.name, 'run-integration-tests'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify Secrets
+        shell: pwsh
+        run: |
+          $required = @(
+              'JIRA_CLOUD_URL'
+              'JIRA_CLOUD_USERNAME'
+              'JIRA_CLOUD_PASSWORD'
+              'JIRA_TEST_PROJECT'
+              'JIRA_TEST_ISSUE'
+          )
+          $missing = $required | Where-Object {
+              [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($_))
+          }
+          if ($missing) {
+              throw "Required secrets are not configured for this workflow run: $($missing -join ', '). Configure them under repo Settings -> Secrets and variables -> Actions."
+          }
+
+      - name: Setup
+        shell: pwsh
+        run: ./Tools/setup.ps1
+
+      - name: Run Integration Tests (Parallel)
+        shell: pwsh
+        run: |
+          Invoke-Build -Task TestIntegration -ThrottleLimit 6 -PesterVerbosity Detailed
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v6
+        with:
+          name: Integration-Tests
+          path: IntegrationTests.xml
+        if: always()

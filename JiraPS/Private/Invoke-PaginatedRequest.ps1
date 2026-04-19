@@ -128,6 +128,11 @@
 
             $Response = Invoke-JiraMethod @PSBoundParameters
 
+            if ($null -eq $Response) {
+                Write-Warning "[$($MyInvocation.MyCommand.Name)] Received null response during pagination (possible auth failure or server error); stopping pagination with $total results collected"
+                break
+            }
+
             $result = Expand-Result -InputObject $Response
         } while (@($result).Count -gt 0)
 

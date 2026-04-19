@@ -7,7 +7,19 @@ param(
     [String] $VersionToPublish,
 
     [Parameter()]
-    [String] $PSGalleryAPIKey
+    [String] $PSGalleryAPIKey,
+
+    # Test filtering parameters
+    [Parameter()]
+    [String[]] $Tag,
+
+    [Parameter()]
+    [String[]] $ExcludeTag,
+
+    # Integration test parameters
+    [Parameter()]
+    [ValidateRange(1, 16)]
+    [Int] $ThrottleLimit = 4
 )
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force
@@ -176,7 +188,7 @@ Task SetVersion {
 }
 
 Task Test {
-    $pesterConfig = New-PesterConfiguration -Hashtable @{
+    $pesterConfigHash = @{
         Run        = @{
             PassThru = $true
             Path     = "$env:BHBuildOutput/Tests"
@@ -189,13 +201,84 @@ Task Test {
         Output     = @{
             Verbosity = $PesterVerbosity
         }
+        Filter     = @{
+            # Exclude integration tests by default - they require external configuration
+            # and have their own CI workflow. Use TestIntegration task to run them.
+            #
+            # In Pester 5, ExcludeTag takes precedence over Tag. To make
+            # `Invoke-Build -Task Test -Tag 'Integration'` actually do something
+            # useful, the -Tag handling below removes any explicitly requested
+            # tags from this default exclusion list.
+            ExcludeTag = @('Integration')
+        }
         <# CodeCoverage = @{
             Path = $codeCoverageFiles
         } #>
     }
 
+    if ($Tag) {
+        $pesterConfigHash.Filter.Tag = $Tag
+        # Drop user-requested tags from the default exclusion list so that
+        # ExcludeTag's higher precedence in Pester 5 does not silently zero
+        # out the user's selection.
+        $pesterConfigHash.Filter.ExcludeTag = @($pesterConfigHash.Filter.ExcludeTag | Where-Object { $_ -notin $Tag })
+        Write-Build Gray "Filtering tests by tag(s): $($Tag -join ', ')"
+    }
+
+    if ($ExcludeTag) {
+        # Merge with default exclusions, then re-apply the Tag intersection
+        # so an explicit -Tag still wins over the default ExcludeTag entry.
+        $merged = @($pesterConfigHash.Filter.ExcludeTag) + @($ExcludeTag) | Select-Object -Unique
+        if ($Tag) {
+            $merged = @($merged | Where-Object { $_ -notin $Tag })
+        }
+        $pesterConfigHash.Filter.ExcludeTag = $merged
+        Write-Build Gray "Excluding tests by tag(s): $($pesterConfigHash.Filter.ExcludeTag -join ', ')"
+    }
+
+    $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
     $testResults = Invoke-Pester -Configuration $pesterConfig
     Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
+}
+
+# Synopsis: Run integration tests against live Jira Cloud (no build required)
+Task TestIntegration {
+    # Validate runner exists early
+    $runnerPath = "$env:BHProjectPath/Tests/Invoke-ParallelPester.ps1"
+    if (-not (Test-Path $runnerPath)) {
+        throw "Integration test runner not found: $runnerPath"
+    }
+
+    # NOTE: High ThrottleLimit values (e.g., 6+) may trigger Jira Cloud rate limiting
+    # (HTTP 429 + Retry-After). The runner does not currently handle 429 retries.
+    # If you experience rate limiting, reduce ThrottleLimit or add delays between tests.
+    $runnerParams = @{
+        ThrottleLimit = $ThrottleLimit
+        Output        = $PesterVerbosity
+        OutputPath    = "IntegrationTests.xml"
+    }
+
+    # Default to Integration tag if no tag specified
+    if ($Tag) {
+        $runnerParams.Tag = $Tag
+        Write-Build Gray "Running integration tests with tag(s): $($Tag -join ', ')"
+    }
+    else {
+        $runnerParams.Tag = @('Integration')
+        Write-Build Gray "Running integration tests (tag: Integration)"
+    }
+
+    if ($ExcludeTag) {
+        $runnerParams.ExcludeTag = $ExcludeTag
+        Write-Build Gray "Excluding tag(s): $($ExcludeTag -join ', ')"
+    }
+
+    Write-Build Gray "ThrottleLimit: $ThrottleLimit"
+    Write-Build Gray "Output: $($runnerParams.OutputPath)"
+
+    & $runnerPath @runnerParams
+
+    Assert-True ($LASTEXITCODE -eq 0) "Integration tests failed with exit code $LASTEXITCODE"
 }
 
 Task Publish SetVersion, SignCode, Package, {

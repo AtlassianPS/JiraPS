@@ -2,7 +2,7 @@
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'ByIssueKey' )]
     param(
-        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByIssueKey' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByIssueKey' )]
         [ValidateNotNullOrEmpty()]
         [Alias('Issue')]
         [String[]]

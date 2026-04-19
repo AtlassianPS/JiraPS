@@ -19,6 +19,10 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 
 ### Added
 
+- Added `Invoke-Build -Task TestIntegration` for running integration tests with parallel execution support
+- Added `-Tag`, `-ExcludeTag`, and `-ThrottleLimit` parameters to `Invoke-Build` for test filtering
+- Added `Tests/Invoke-ParallelPester.ps1` script for parallel test execution (requires PowerShell 7+)
+- Added comprehensive integration test suite for Jira Cloud (18 test files covering authentication, issues, search, comments, attachments, and more)
 - Added `-PersonalAccessToken` parameter to `New-JiraSession` for Personal Access Token (PAT) authentication on Jira Data Center, with `-PAT` and `-BearerToken` aliases (#576)
 - Added `-ApiToken` and `-EmailAddress` parameters to `New-JiraSession` for API token authentication on Jira Cloud (#576)
 - Added `-CacheKey`, `-CacheExpiry` (as `[TimeSpan]`), and `-BypassCache` parameters to `Invoke-JiraMethod` for built-in response caching (#576)
@@ -28,8 +32,20 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 
 ### Changed
 
+- `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
+- `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
 - Enhanced `Test-ServerResponse` to handle HTTP 503 (Service Unavailable) with retry, jitter on backoff delays, and 60-second max delay cap (#576)
 - Enhanced `Resolve-JiraError` to parse all Jira error response formats: `message`, `errorMessage`, `errorMessages` array, and `errors` dictionary (#576)
+
+### Fixed
+
+- Fixed `Get-JiraIssue` prompting for input when piping JiraPS.Issue objects (added `ValueFromPipelineByPropertyName` to `-Key` parameter)
+- Fixed `ConvertTo-JiraServerInfo` throwing when `BuildDate` or `ServerTime` are null in API response (now returns `$null` for these fields). **Soft breaking change**: Scripts accessing `.BuildDate.Year` or similar will throw `NullReferenceException` on Cloud instances that omit these fields.
+- Fixed `Invoke-PaginatedRequest` crashing with "Cannot bind argument to parameter 'InputObject'" when API returns null during pagination (now writes warning and returns partial results)
+- Fixed module load race condition when multiple processes import JiraPS simultaneously (gracefully handles concurrent config file creation)
+- Fixed config file parsing to handle both CRLF and LF line endings correctly
+- `Get-JiraIssueCreateMetadata` now walks all pages of the Jira Cloud createmeta response instead of truncating at the default page size. The cmdlet opts into `SupportsPaging`, so `-First`, `-Skip`, and `-IncludeTotalCount` are also supported.
+
 ## 3.0 - 2026-04-17
 
 ### Changed
@@ -37,11 +53,6 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 - **BREAKING**: Minimum PowerShell version raised from 3.0 to 5.1. Windows PowerShell 3.x and 4.x are no longer supported.
 - Removed custom `ConvertFrom-Json` override (PS 5.1 native cmdlet has sufficient 2GB JSON limit)
 - Removed legacy PSv3 workaround for Accept header in module initialization
-## Unreleased
-
-### Fixed
-
-- `Get-JiraIssueCreateMetadata` now walks all pages of the Jira Cloud createmeta response instead of truncating at the default page size. The cmdlet opts into `SupportsPaging`, so `-First`, `-Skip`, and `-IncludeTotalCount` are also supported.
 
 ## 2.16 - 2026-04-13
 

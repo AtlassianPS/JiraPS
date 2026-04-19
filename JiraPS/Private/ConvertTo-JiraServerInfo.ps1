@@ -15,8 +15,8 @@
                 'Version'        = $i.version
                 'DeploymentType' = if ($i.deploymentType) { $i.deploymentType } else { 'Server' }
                 'BuildNumber'    = $i.buildNumber
-                'BuildDate'      = Get-Date $i.buildDate
-                'ServerTime'     = Get-Date $i.serverTime
+                'BuildDate'      = if ($i.buildDate) { Get-Date $i.buildDate } else { $null }
+                'ServerTime'     = if ($i.serverTime) { Get-Date $i.serverTime } else { $null }
                 'ScmInfo'        = $i.scmInfo
                 'ServerTitle'    = $i.serverTitle
             }
