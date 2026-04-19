@@ -1,11 +1,7 @@
 ﻿#region Dependencies
-# Load Web assembly when needed
-# PowerShell Core has the assembly preloaded
 if (!("System.Web.HttpUtility" -as [Type])) {
     Add-Type -AssemblyName "System.Web"
 }
-# Load System.Net.Http when needed
-# PowerShell Core has the assembly preloaded
 if (!("System.Net.Http.HttpRequestException" -as [Type])) {
     Add-Type -AssemblyName "System.Net.Http"
 }
@@ -18,9 +14,31 @@ if (!("System.Net.Http" -as [Type])) {
 $script:serverConfig = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData', 'Create'))
 
 if (-not (Test-Path $script:serverConfig)) {
-    $null = New-Item -Path $script:serverConfig -ItemType File -Force
+    try {
+        $null = New-Item -Path $script:serverConfig -ItemType File -Force -ErrorAction Stop
+    }
+    catch {
+        if (-not (Test-Path $script:serverConfig)) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to create config file: $_"
+        }
+    }
 }
-$script:JiraServerUrl = [Uri](Get-Content $script:serverConfig)
+
+$script:JiraServerUrl = $null
+if (Test-Path $script:serverConfig) {
+    try {
+        $serverConfigContent = Get-Content $script:serverConfig -Raw -ErrorAction Stop
+        if ($serverConfigContent) {
+            $firstLine = ($serverConfigContent -split '\r?\n')[0].Trim()
+            if ($firstLine) {
+                $script:JiraServerUrl = [Uri]$firstLine
+            }
+        }
+    }
+    catch {
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to read config file: $_"
+    }
+}
 
 $script:DefaultContentType = "application/json; charset=utf-8"
 $script:DefaultPageSize = 25

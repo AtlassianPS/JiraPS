@@ -37,6 +37,8 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 - Fixed `Get-JiraIssue` prompting for input when piping JiraPS.Issue objects (added `ValueFromPipelineByPropertyName` to `-Key` parameter)
 - Fixed `ConvertTo-JiraServerInfo` throwing when `BuildDate` or `ServerTime` are null in API response (now returns `$null` for these fields). **Soft breaking change**: Scripts accessing `.BuildDate.Year` or similar will throw `NullReferenceException` on Cloud instances that omit these fields.
 - Fixed `Invoke-PaginatedRequest` crashing with "Cannot bind argument to parameter 'InputObject'" when API returns null during pagination (now writes warning and returns partial results)
+- Fixed module load race condition when multiple processes import JiraPS simultaneously (gracefully handles concurrent config file creation)
+- Fixed config file parsing to handle both CRLF and LF line endings correctly
 
 ## 3.0 - 2026-04-17
 
