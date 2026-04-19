@@ -113,6 +113,49 @@ InModuleScope JiraPS {
                 }
             }
 
+            Context "Null Date Handling (Cloud compatibility)" {
+                # Some Jira Cloud endpoints omit buildDate and serverTime fields.
+                # The converter should return $null instead of throwing.
+                # This is a SOFT BREAKING CHANGE: scripts doing
+                # (Get-JiraServerInformation).BuildDate.Year will throw
+                # NullReferenceException on Cloud.
+
+                BeforeAll {
+                    $script:cloudJson = @"
+{
+    "baseUrl":"https://example.atlassian.net",
+    "version":"1001.0.0",
+    "versionNumbers":[1001,0,0],
+    "deploymentType":"Cloud",
+    "buildNumber":100100,
+    "scmInfo":"abc123",
+    "serverTitle":"JIRA"
+}
+"@
+                    $script:cloudObject = ConvertFrom-Json -InputObject $cloudJson
+                    $script:result = ConvertTo-JiraServerInfo -InputObject $cloudObject
+                }
+
+                It "returns null for missing BuildDate" {
+                    $result.BuildDate | Should -BeNullOrEmpty
+                }
+
+                It "returns null for missing ServerTime" {
+                    $result.ServerTime | Should -BeNullOrEmpty
+                }
+
+                It "still converts other properties correctly" {
+                    $result.BaseURL | Should -Be "https://example.atlassian.net"
+                    $result.Version | Should -Be "1001.0.0"
+                    $result.DeploymentType | Should -Be "Cloud"
+                    $result.BuildNumber | Should -Be 100100
+                }
+
+                It "does not throw when BuildDate is null" {
+                    { ConvertTo-JiraServerInfo -InputObject $cloudObject } | Should -Not -Throw
+                }
+            }
+
             Context "Pipeline Support" {
                 It "accepts pipeline input" {
                     $result = $sampleObject | ConvertTo-JiraServerInfo
