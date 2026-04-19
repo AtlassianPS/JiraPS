@@ -1,0 +1,196 @@
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+
+BeforeDiscovery {
+    . "$PSScriptRoot/../Helpers/TestTools.ps1"
+    . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
+
+    Initialize-TestEnvironment
+    $script:moduleToTest = Resolve-ModuleSource
+
+    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+
+    $script:Skip = Skip-IntegrationTest
+}
+
+InModuleScope JiraPS {
+    Describe "Metadata" -Tag 'Integration' -Skip:$Skip {
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
+
+            $script:env = Initialize-IntegrationEnvironment
+            $script:session = Connect-JiraTestServer -Environment $env
+            $script:fixtures = Get-TestFixture -Environment $env
+        }
+
+        AfterAll {
+            Remove-JiraSession -ErrorAction SilentlyContinue
+        }
+
+        Describe "Get-JiraField" {
+            Context "Field Retrieval" {
+                It "retrieves all fields" {
+                    $fields = Get-JiraField
+
+                    $fields | Should -Not -BeNullOrEmpty
+                    @($fields).Count | Should -BeGreaterThan 10
+                }
+
+                It "returns field objects with correct type" {
+                    $fields = Get-JiraField
+
+                    @($fields)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Field'
+                }
+
+                It "includes standard fields" {
+                    $fields = Get-JiraField
+
+                    $summaryField = $fields | Where-Object { $_.Id -eq 'summary' }
+                    $summaryField | Should -Not -BeNullOrEmpty
+                }
+
+                It "includes custom fields" {
+                    $fields = Get-JiraField
+
+                    $customFields = $fields | Where-Object { $_.Id -like 'customfield_*' }
+                    $customFields | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
+
+        Describe "Get-JiraIssueType" {
+            Context "Issue Type Retrieval" {
+                It "retrieves all issue types" {
+                    $types = Get-JiraIssueType
+
+                    $types | Should -Not -BeNullOrEmpty
+                }
+
+                It "returns issue type objects with correct type" {
+                    $types = Get-JiraIssueType
+
+                    @($types)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueType'
+                }
+
+                It "includes standard issue types" {
+                    $types = Get-JiraIssueType
+
+                    $task = $types | Where-Object { $_.Name -eq 'Task' }
+                    $task | Should -Not -BeNullOrEmpty
+                }
+
+                It "includes issue type ID" {
+                    $types = Get-JiraIssueType
+
+                    @($types)[0].Id | Should -Not -BeNullOrEmpty
+                }
+
+                It "includes issue type name" {
+                    $types = Get-JiraIssueType
+
+                    @($types)[0].Name | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
+
+        Describe "Get-JiraPriority" {
+            Context "Priority Retrieval" {
+                It "retrieves all priorities" {
+                    $priorities = Get-JiraPriority
+
+                    $priorities | Should -Not -BeNullOrEmpty
+                }
+
+                It "returns priority objects with correct type" {
+                    $priorities = Get-JiraPriority
+
+                    @($priorities)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Priority'
+                }
+
+                It "includes priority ID" {
+                    $priorities = Get-JiraPriority
+
+                    @($priorities)[0].Id | Should -Not -BeNullOrEmpty
+                }
+
+                It "includes priority name" {
+                    $priorities = Get-JiraPriority
+
+                    @($priorities)[0].Name | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
+
+        Describe "Get-JiraIssueLinkType" {
+            Context "Link Type Retrieval" {
+                It "retrieves all issue link types" {
+                    $linkTypes = Get-JiraIssueLinkType
+
+                    $linkTypes | Should -Not -BeNullOrEmpty
+                }
+
+                It "returns link type objects with correct type" {
+                    $linkTypes = Get-JiraIssueLinkType
+
+                    @($linkTypes)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueLinkType'
+                }
+
+                It "includes inward and outward text" {
+                    $linkTypes = Get-JiraIssueLinkType
+
+                    @($linkTypes)[0].InwardText | Should -Not -BeNullOrEmpty
+                    @($linkTypes)[0].OutwardText | Should -Not -BeNullOrEmpty
+                }
+            }
+        }
+
+        Describe "Get-JiraIssueCreateMetadata" {
+            Context "Create Metadata" {
+                It "retrieves create metadata for a project and issue type" {
+                    if (-not $fixtures -or [string]::IsNullOrEmpty($fixtures.TestProject)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+                    { Get-JiraIssueCreateMetadata -Project $fixtures.TestProject -IssueType 'Task' -ErrorAction Stop } | Should -Not -Throw
+                }
+
+                It "returns field metadata" {
+                    if (-not $fixtures -or [string]::IsNullOrEmpty($fixtures.TestProject)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+                    $metadata = Get-JiraIssueCreateMetadata -Project $fixtures.TestProject -IssueType 'Task'
+
+                    if (@($metadata).Count -eq 0) {
+                        Set-ItResult -Skipped -Because "Project returns empty create metadata (simplified project)"
+                        return
+                    }
+                    @($metadata).Count | Should -BeGreaterThan 0 -Because "metadata should contain field definitions"
+                }
+            }
+        }
+
+        Describe "Get-JiraIssueEditMetadata" {
+            Context "Edit Metadata" {
+                It "retrieves edit metadata for an issue" {
+                    if (-not $fixtures -or [string]::IsNullOrEmpty($fixtures.TestIssue)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
+                        return
+                    }
+                    $metadata = Get-JiraIssueEditMetadata -Issue $fixtures.TestIssue
+
+                    $metadata | Should -Not -BeNullOrEmpty
+                }
+
+                It "returns field metadata objects" {
+                    if (-not $fixtures -or [string]::IsNullOrEmpty($fixtures.TestIssue)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
+                        return
+                    }
+                    $metadata = Get-JiraIssueEditMetadata -Issue $fixtures.TestIssue
+
+                    @($metadata)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.EditMetaField'
+                }
+            }
+        }
+    }
+}

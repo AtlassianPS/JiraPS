@@ -556,6 +556,67 @@ See [`Tests/Functions/Add-JiraFilterPermission.Unit.Tests.ps1`](Functions/Add-Ji
 - Use plain variable names in Describe blocks
 - Reference `$script:variableName` in It blocks if needed
 
+## Integration Tests
+
+In addition to unit tests, JiraPS includes integration tests that run against a live Jira Cloud instance.
+
+### Overview
+
+- **Location**: `Tests/Integration/`
+- **Tags**: `Integration`, `Smoke`
+- **Documentation**: See [`Integration/README.md`](Integration/README.md) for full setup instructions
+
+### Quick Start
+
+1. Copy `.env.example` to `.env` in the project root
+2. Configure your Jira Cloud credentials and test fixtures
+3. Run integration tests (no build required):
+
+```powershell
+# Run all integration tests in parallel (recommended)
+Invoke-Build -Task TestIntegration
+
+# Run smoke tests only (fast, critical tests)
+Invoke-Build -Task TestIntegration -Tag 'Smoke'
+
+# With custom parallelism
+Invoke-Build -Task TestIntegration -ThrottleLimit 8
+
+# Or use the script directly for more control
+./Tests/Invoke-ParallelPester.ps1 -Tag 'Integration' -Output Detailed
+```
+
+### Test Filtering
+
+Integration tests are **excluded by default** from `Invoke-Build -Task Test` to prevent failures when credentials aren't configured.
+
+```powershell
+# Run only unit tests (default, excludes Integration)
+Invoke-Build -Task Build, Test
+
+# Run integration tests (no build needed)
+Invoke-Build -Task TestIntegration
+```
+
+### CI/CD
+
+Integration tests have their own CI workflow (`integration_tests.yml`):
+
+- **Smoke tests**: Run on every internal PR to `master` (fast, critical tests). Skipped automatically on fork PRs since secrets are unavailable.
+- **Full integration tests**: Run on:
+  - Nightly schedule (6 AM UTC)
+  - PRs with the `run-integration-tests` label
+  - Manual trigger (`workflow_dispatch`)
+
+Required GitHub Secrets:
+- `JIRA_CLOUD_URL`
+- `JIRA_CLOUD_USERNAME`
+- `JIRA_CLOUD_PASSWORD`
+- `JIRA_TEST_PROJECT`
+- `JIRA_TEST_ISSUE`
+
+When the workflow is expected to run (i.e. not a fork PR), the `Verify Secrets` step **fails the job** if any required secret is missing — so a misconfigured secret surfaces as a red CI run rather than a green run with all tests skipped.
+
 ## Resources
 
 - [Pester Documentation](https://pester.dev/docs/quick-start)

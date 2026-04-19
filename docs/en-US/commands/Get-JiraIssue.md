@@ -96,12 +96,21 @@ This example illustrates how to get an update of an issue from an old result of 
 ### EXAMPLE 5
 
 ```powershell
+Get-JiraIssue TEST-001 | Get-JiraIssue
+```
+
+This example shows how to refresh issue data by piping an existing issue object back to `Get-JiraIssue`.
+The `-Key` parameter accepts pipeline input by property name, so the `Key` property from the piped issue is used.
+
+### EXAMPLE 6
+
+```powershell
 Get-JiraFilter -Id 12345 | Get-JiraIssue
 ```
 
 This example retrieves all issues that match the criteria in the saved filter with id 12345.
 
-### EXAMPLE 6
+### EXAMPLE 7
 
 ```powershell
 Get-JiraFilter 12345 | Get-JiraIssue | Select-Object *
@@ -109,7 +118,7 @@ Get-JiraFilter 12345 | Get-JiraIssue | Select-Object *
 
 This prints all fields of the issue to the console.
 
-### Example 7
+### EXAMPLE 8
 
 ```powershell
 Get-JiraIssue -Query "project = TEST" -Fields "key", "summary", "assignee"
@@ -130,12 +139,12 @@ Key of the issue to search for.
 ```yaml
 Type: String[]
 Parameter Sets: ByIssueKey
-Aliases:
+Aliases: Issue
 
 Required: True
 Position: 1
 Default value: None
-Accept pipeline input: False
+Accept pipeline input: True (ByPropertyName)
 Accept wildcard characters: False
 ```
 
@@ -354,9 +363,13 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 
 ### [JiraPS.Issue] / [String]
 
-- If a JiraPS.Issue object is passed, this function returns a new reference to the same issue.
+The `-Key` parameter accepts pipeline input by property name. This means:
+
+- If a JiraPS.Issue object is piped, its `Key` property is bound to the `-Key` parameter.
 - If a String is passed, this function searches for an issue with that issue key or internal ID.
-- If an Object is passed, this function invokes its ToString() method and treats it as a String.
+- If an Object with a `Key` property is piped, that property value is used.
+
+This enables patterns like `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data.
 
 ## OUTPUTS
 
