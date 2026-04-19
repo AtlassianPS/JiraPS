@@ -433,22 +433,6 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -_RetryCount
-
-Internal parameter used for recursive retry tracking on HTTP 429 (rate limit) responses. Do not set manually.
-
-```yaml
-Type: Int32
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 11
-Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### -CacheKey
 
 When specified, enables caching for this GET request. The response will be stored in a module-level cache and returned on subsequent calls with the same CacheKey until the cache expires or is cleared.
@@ -508,7 +492,6 @@ Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
-
 ### -IncludeTotalCount
 
 Causes an extra output of the total count at the beginning.

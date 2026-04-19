@@ -55,7 +55,8 @@ Describe "Help tests" -Tag "Documentation", "Build" {
     Describe "Public Functions" {
         Context "Command <_.CommandName>" -ForEach $commands {
             BeforeDiscovery {
-                $script:parameters = $_.Command.Parameters.Keys | Where-Object { $_ -notin $DefaultParams }
+                # Exclude default params and internal params (starting with underscore)
+                $script:parameters = $_.Command.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and $_ -notmatch '^_' }
             }
             BeforeAll {
                 $script:command = $_.Command
@@ -130,7 +131,8 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
 
                 It "has a link to the 'Online Version'" {
-                    [Uri]$onlineLink = ($help.relatedLinks.navigationLink | Where-Object linkText -EQ "Online Version:").Uri
+                    # PlatyPS 1.0 uses "Online Version" without colon, older versions used "Online Version:"
+                    [Uri]$onlineLink = ($help.relatedLinks.navigationLink | Where-Object { $_.linkText -match "^Online Version:?$" }).Uri
 
                     $onlineLink.Authority | Should -Be "atlassianps.org"
                     $onlineLink.Scheme | Should -Be "https"
@@ -182,6 +184,8 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         # To avoid calling Trim method on a null object.
                         $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
                         if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
+                        # PlatyPS 1.0 uses "Switch" instead of "SwitchParameter"
+                        if ($helpType -eq "Switch") { $helpType = "SwitchParameter" }
 
                         $helpType | Should -Be $codeType
                     }
