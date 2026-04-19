@@ -1,0 +1,121 @@
+name: CI
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches: [master]
+    paths-ignore: &paths-ignore
+      # Documentation (NOT docs/** - that's PlatyPS source!)
+      - "README.md"
+      - "CHANGELOG.md"
+      - "LICENSE"
+      # AI assistant instruction files
+      - "AGENTS.md"
+      - "CLAUDE.md"
+      - "GEMINI.md"
+      - ".cursor/**"
+      - ".github/copilot-instructions.md"
+      - ".github/ai-context/**"
+      - ".github/instructions/**"
+      # GitHub/editor meta files
+      - ".github/*.md"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/PULL_REQUEST_TEMPLATE/**"
+      - ".vscode/**"
+      - ".editorconfig"
+      - ".gitignore"
+      - ".spelling"
+  push:
+    branches: [master]
+    paths-ignore: *paths-ignore
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-powershell
+
+      - run: Invoke-Build -Task Lint
+        shell: pwsh
+
+  build:
+    name: Build Module
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-powershell
+
+      - run: Invoke-Build -Task Clean, Build
+        shell: pwsh
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Release
+          path: ./Release/
+
+  test_windows_ps5:
+    name: Test (Windows PS5)
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-powershell
+        with:
+          ps-version: "5"
+          skip-setup: "true"
+
+      - uses: actions/download-artifact@v6
+        with:
+          name: Release
+          path: ./Release/
+
+      - name: Setup
+        shell: powershell
+        run: |
+          ./Tools/setup.ps1
+          Invoke-Build -Task ShowDebugInfo
+
+      - run: Invoke-Build -Task Test
+        shell: powershell
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: Windows-PS5-Unit-Tests
+          path: Test*.xml
+
+  test_pwsh:
+    name: Test (${{ matrix.name }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, name: "Windows PS7" }
+          - { os: ubuntu-latest, name: "Ubuntu" }
+          - { os: macos-latest, name: "macOS" }
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-powershell
+
+      - uses: actions/download-artifact@v6
+        with:
+          name: Release
+          path: ./Release/
+
+      - run: Invoke-Build -Task Test
+        shell: pwsh
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: ${{ matrix.name }}-Unit-Tests
+          path: Test*.xml

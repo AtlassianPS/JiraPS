@@ -74,6 +74,49 @@ Task ShowDebugInfo {
     Write-Build Gray
 }
 
+# Synopsis: Run PSScriptAnalyzer and style checks (no build required)
+Task Lint {
+    Write-Build Gray "Running PSScriptAnalyzer..."
+
+    ${/} = [System.IO.Path]::DirectorySeparatorChar
+
+    $analyzerParams = @{
+        Path     = $env:BHProjectPath
+        Settings = "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
+        Severity = @('Error', 'Warning')
+        Recurse  = $true
+    }
+
+    $results = Invoke-ScriptAnalyzer @analyzerParams |
+        Where-Object { $_.ScriptPath -notlike "*${/}Release${/}*" }
+
+    if ($results) {
+        $results | ForEach-Object {
+            Write-Build Yellow "[$($_.Severity)] $($_.ScriptName):$($_.Line) - $($_.RuleName): $($_.Message)"
+        }
+        Assert-True ($results.Count -eq 0) "$($results.Count) PSScriptAnalyzer issue(s) found."
+    }
+    else {
+        Write-Build Green "PSScriptAnalyzer: No issues found."
+    }
+
+    Write-Build Gray "Running style tests..."
+
+    $pesterConfigHash = @{
+        Run    = @{
+            PassThru = $true
+            Path     = "$env:BHProjectPath/Tests/Style.Tests.ps1"
+        }
+        Output = @{
+            Verbosity = $PesterVerbosity
+        }
+    }
+
+    $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
+    $testResults = Invoke-Pester -Configuration $pesterConfig
+    Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) style test(s) failed."
+}
+
 Task Clean {
     Remove-Item $env:BHBuildOutput -Force -Recurse -ErrorAction SilentlyContinue
     Remove-Item "Test*.xml" -Force -ErrorAction SilentlyContinue
@@ -310,7 +353,28 @@ Task Test {
 
 # Synopsis: Run integration tests against live Jira Cloud (no build required)
 Task TestIntegration {
-    # Validate runner exists early
+    # Validate required environment variables (secrets in CI, env vars locally)
+    $requiredEnvVars = @(
+        'JIRA_CLOUD_URL'
+        'JIRA_CLOUD_USERNAME'
+        'JIRA_CLOUD_PASSWORD'
+        'JIRA_TEST_PROJECT'
+        'JIRA_TEST_ISSUE'
+    )
+    $missing = $requiredEnvVars | Where-Object {
+        [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($_))
+    }
+    if ($missing) {
+        throw @"
+Required environment variables are not set: $($missing -join ', ')
+
+For CI: Configure these as repository secrets under Settings -> Secrets and variables -> Actions.
+For local development: Set these environment variables before running integration tests.
+See Tests/README.md for integration test configuration details.
+"@
+    }
+
+    # Validate runner exists
     $runnerPath = "$env:BHProjectPath/Tests/Invoke-ParallelPester.ps1"
     if (-not (Test-Path $runnerPath)) {
         throw "Integration test runner not found: $runnerPath"

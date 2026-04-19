@@ -279,6 +279,55 @@ The `Publish` task (PowerShell Gallery upload) is reserved for release tags.
 
 See [`powershell-rules.md` → Running Tests](.github/ai-context/powershell-rules.md#running-tests) for the full task list and common mistakes.
 
+### Testing During Development
+
+> **RULE**: Run the appropriate tests after every change. Do not wait until the end.
+
+| What you changed | Test command |
+|------------------|--------------|
+| **Any code file** (`.ps1`, `.psm1`) | `Invoke-Build -Task Lint` |
+| **Function** in `JiraPS/Public/` | `Invoke-Pester Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1` |
+| **Function** in `JiraPS/Private/` | `Invoke-Pester Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1` |
+| **Test file** in `Tests/` | `Invoke-Pester <path-to-that-test-file>` |
+| **Documentation** in `docs/**` | `Invoke-Pester Tests/Help.Tests.ps1` |
+
+**Examples:**
+
+```powershell
+# After editing JiraPS/Public/Get-JiraIssue.ps1
+Invoke-Build -Task Lint
+Invoke-Pester Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
+
+# After editing docs/en-US/commands/Get-JiraIssue.md
+Invoke-Build -Task Lint
+Invoke-Pester Tests/Help.Tests.ps1
+
+# After editing a test file
+Invoke-Build -Task Lint
+Invoke-Pester Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
+```
+
+**Why localized tests?**
+- Faster feedback loop — no need to build the entire module for linting or docs
+- `Invoke-Build -Task Lint` runs PSScriptAnalyzer to catch code issues early
+- `Style.Tests.ps1` (encoding, whitespace, line endings) runs with the full test suite
+
+**Before committing**: Run full `Invoke-Build -Task Build, Test`.
+
+**VSCode Integration:**
+
+- The `pspester.pester-test` extension provides Code Lens "Run Test" above `It` blocks
+- PSScriptAnalyzer warnings appear in real-time via `powershell.scriptAnalysis.settingsPath`
+- Format on save uses Stroustrup style (`powershell.codeFormatting.preset`)
+
+**CI Pipeline (runs on PR):**
+
+1. **Lint** — PSScriptAnalyzer + style checks (fail-fast gate)
+2. **Build** — Compiles module to `Release/`
+3. **Test** — Unit tests on Windows PS5, Windows PS7, Ubuntu, macOS
+
+CI skips for docs-only changes (`README.md`, `CHANGELOG.md`, `AGENTS.md`, `.cursor/**`, etc.).
+
 ## API & REST Patterns
 
 - **All HTTP calls** go through `Invoke-JiraMethod` — never call `Invoke-RestMethod` / `Invoke-WebRequest` directly
