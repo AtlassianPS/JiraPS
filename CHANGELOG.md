@@ -19,6 +19,9 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 
 ### Added
 
+- Added `Invoke-Build -Task TestIntegration` for running integration tests with parallel execution support
+- Added `-Tag`, `-ExcludeTag`, and `-ThrottleLimit` parameters to `Invoke-Build` for test filtering
+- Added `Tests/Invoke-ParallelPester.ps1` script for parallel test execution (requires PowerShell 7+)
 - Added `-PersonalAccessToken` parameter to `New-JiraSession` for Personal Access Token (PAT) authentication on Jira Data Center, with `-PAT` and `-BearerToken` aliases (#576)
 - Added `-ApiToken` and `-EmailAddress` parameters to `New-JiraSession` for API token authentication on Jira Cloud (#576)
 - Added `-CacheKey`, `-CacheExpiry` (as `[TimeSpan]`), and `-BypassCache` parameters to `Invoke-JiraMethod` for built-in response caching (#576)
@@ -29,6 +32,7 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 ### Changed
 
 - `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
+- `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
 - Enhanced `Test-ServerResponse` to handle HTTP 503 (Service Unavailable) with retry, jitter on backoff delays, and 60-second max delay cap (#576)
 - Enhanced `Resolve-JiraError` to parse all Jira error response formats: `message`, `errorMessage`, `errorMessages` array, and `errors` dictionary (#576)
 
