@@ -1,4 +1,4 @@
-. "$PSScriptRoot/TestTools.ps1"
+﻿. "$PSScriptRoot/TestTools.ps1"
 
 $script:TestResourcePrefix = 'JiraPS-IntTest-'
 $script:_CachedIntegrationEnv = $null
