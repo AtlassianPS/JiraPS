@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [ValidateSet('None', 'Normal' , 'Detailed', 'Diagnostic')]
     [String] $PesterVerbosity = 'Normal',
@@ -72,6 +72,79 @@ Task ShowDebugInfo {
     Write-Build Gray ('OS:                         {0}' -f $OS)
     Write-Build Gray ('OS Version:                 {0}' -f $OSVersion)
     Write-Build Gray
+}
+
+# Synopsis: Run style checks and PSScriptAnalyzer. Collects both result sets
+# before throwing so a single run surfaces every issue. Emits GitHub Actions
+# workflow commands when running under CI so violations appear as inline
+# annotations on the PR diff.
+Task Lint {
+    $isGitHubActions = [bool]$env:GITHUB_ACTIONS
+    ${/} = [System.IO.Path]::DirectorySeparatorChar
+    $failures = [System.Collections.Generic.List[String]]::new()
+
+    Write-Build Gray "Running style tests..."
+
+    $pesterConfigHash = @{
+        Run    = @{
+            PassThru = $true
+            Path     = "$env:BHProjectPath/Tests/Style.Tests.ps1"
+        }
+        Output = @{
+            Verbosity = $PesterVerbosity
+        }
+    }
+
+    $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
+    $testResults = Invoke-Pester -Configuration $pesterConfig
+    if ($testResults.FailedCount -gt 0) {
+        $failures.Add("$($testResults.FailedCount) style test(s) failed.")
+    }
+    else {
+        Write-Build Green "Style tests: passed."
+    }
+
+    Write-Build Gray "Running PSScriptAnalyzer..."
+
+    # Filter Release/* client-side rather than via -ExcludePath: the latter
+    # requires wildcard syntax that's easy to get subtly wrong, and Release/
+    # only matters for local devs (CI runs Lint before Build).
+    $analyzerParams = @{
+        Path     = $env:BHProjectPath
+        Settings = "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
+        Severity = @('Error', 'Warning')
+        Recurse  = $true
+    }
+
+    $results = @(
+        Invoke-ScriptAnalyzer @analyzerParams |
+            Where-Object { $_.ScriptPath -notlike "*${/}Release${/}*" }
+    )
+
+    if ($results.Count -gt 0) {
+        foreach ($result in $results) {
+            $color = if ($result.Severity -eq 'Error') { 'Red' } else { 'Yellow' }
+            $location = if ($result.ScriptName) { $result.ScriptName } else { '<unknown>' }
+            Write-Build $color "[$($result.Severity)] ${location}:$($result.Line) - $($result.RuleName): $($result.Message)"
+
+            if ($isGitHubActions -and $result.ScriptPath) {
+                $level = if ($result.Severity -eq 'Error') { 'error' } else { 'warning' }
+                $relPath = [System.IO.Path]::GetRelativePath($env:BHProjectPath, $result.ScriptPath)
+                # Workflow command escaping per
+                # https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions
+                $msg = ($result.Message -replace '%', '%25' -replace "`r", '%0D' -replace "`n", '%0A')
+                Write-WorkflowCommand "::${level} file=$relPath,line=$($result.Line),col=$($result.Column),title=$($result.RuleName)::$msg"
+            }
+        }
+        $failures.Add("$($results.Count) PSScriptAnalyzer issue(s) found.")
+    }
+    else {
+        Write-Build Green "PSScriptAnalyzer: no issues found."
+    }
+
+    if ($failures.Count -gt 0) {
+        throw ("Lint failed:`n  - " + ($failures -join "`n  - "))
+    }
 }
 
 Task Clean {
@@ -310,7 +383,28 @@ Task Test {
 
 # Synopsis: Run integration tests against live Jira Cloud (no build required)
 Task TestIntegration {
-    # Validate runner exists early
+    # Validate required environment variables (secrets in CI, env vars locally)
+    $requiredEnvVars = @(
+        'JIRA_CLOUD_URL'
+        'JIRA_CLOUD_USERNAME'
+        'JIRA_CLOUD_PASSWORD'
+        'JIRA_TEST_PROJECT'
+        'JIRA_TEST_ISSUE'
+    )
+    $missing = $requiredEnvVars | Where-Object {
+        [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($_))
+    }
+    if ($missing) {
+        throw @"
+Required environment variables are not set: $($missing -join ', ')
+
+For CI: Configure these as repository secrets under Settings -> Secrets and variables -> Actions.
+For local development: Set these environment variables before running integration tests.
+See Tests/README.md for integration test configuration details.
+"@
+    }
+
+    # Validate runner exists
     $runnerPath = "$env:BHProjectPath/Tests/Invoke-ParallelPester.ps1"
     if (-not (Test-Path $runnerPath)) {
         throw "Integration test runner not found: $runnerPath"
