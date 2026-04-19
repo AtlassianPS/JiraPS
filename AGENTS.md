@@ -164,6 +164,77 @@ param(
 )
 ```
 
+#### Code Comments
+
+Follow the "code is documentation" principle. Comments are the **last resort** when naming, structure, and context cannot convey intent.
+
+**DO comment:**
+
+-   Non-obvious constraints or edge cases (API quirks, workarounds)
+-   Design decisions that would otherwise be unclear
+-   TODO items with specific context (`#ToDo:Category` format)
+-   Suppression attributes with justification
+
+**DO NOT comment:**
+
+-   What the code does (the code shows that)
+-   Obvious operations ("increment counter", "loop through items", "call the API")
+-   Function purpose if the name is already clear
+-   Changes being made (that's what commit messages are for)
+
+**Examples:**
+
+```powershell
+# GOOD - Explains a non-obvious API constraint
+# JIRA returns 500 if visibility block is passed with "All Users"
+if ($VisibleRole -ne 'All Users') {
+    $body.visibility = @{ type = $VisibleRole }
+}
+
+# GOOD - Specific TODO with context and category
+#ToDo:Deprecate
+# This parameter check is redundant once $Key uses ValueFromPipelineByPropertyName
+if (-not $Key -and $InputObject) {
+    $Key = $InputObject.Key
+}
+
+# BAD - Narrates what code does (the code already shows this)
+$result = Invoke-JiraMethod @params  # Call the API
+foreach ($item in $items) {          # Loop through items
+    $count++                         # Increment counter
+}
+
+# BAD - Vague TODO without actionable context
+#ToDo: fix this later
+```
+
+**Runtime documentation:** Use `Write-Verbose` and `Write-Debug` for operational insight instead of inline comments.
+
+**Help documentation:** Use external help (`.ExternalHelp`) and `docs/en-US/commands/*.md` for user-facing documentation, not inline comment-based help.
+
+**TODO format:** Use `#ToDo:Category` with a descriptive comment on the next line:
+
+| Category | When to use |
+|----------|-------------|
+| `#ToDo:CustomClass` | Placeholder for future type system improvements |
+| `#ToDo:Deprecate` | Code to be removed in a future version |
+| `#ToDo:Implement` | Feature not yet implemented |
+| `#ToDo:Refactor` | Code that works but needs cleanup |
+
+**Region markers:** Use `#region`/`#endregion` sparingly — only in complex functions with multiple logical sections (like `Invoke-JiraMethod`). Do not use regions to hide code that should be refactored into separate functions.
+
+**Rule suppression:** When suppressing PSScriptAnalyzer rules, always include a justification:
+
+```powershell
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    "PSAvoidUsingConvertToSecureStringWithPlainText",
+    "",
+    Justification = "Converting received plaintext token to SecureString"
+)]
+```
+
+**Commented-out code:** Remove dead code instead of commenting it out. Version control preserves history. Commented-out code creates confusion about whether it's intentional, temporary, or forgotten.
+
 #### Testing Requirements
 
 -   **Test File Location**: Tests are organized by function type:
