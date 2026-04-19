@@ -1,6 +1,6 @@
-# Claude Code Entry Point
+# Antigravity Entry Point
 
-Claude Code reads this file as its preferred entry point.
+Antigravity reads this file (named `GEMINI.md` by convention) as its preferred entry point.
 
 **Canonical sources**:
 - Project rules: [AGENTS.md](AGENTS.md)
