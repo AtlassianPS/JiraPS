@@ -1,7 +1,5 @@
 name: CI
 
-# Cancel only PR runs in flight; on master, every commit must produce its own
-# build artifact because release.yml downloads it by SHA when a tag is pushed.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}

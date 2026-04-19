@@ -13,8 +13,4 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup PowerShell Dependencies
-        shell: pwsh
-        run: |
-          ./Tools/setup.ps1
-          Invoke-Build -Task ShowDebugInfo
+      - uses: ./.github/actions/setup-powershell
