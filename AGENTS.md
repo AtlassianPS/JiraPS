@@ -1,8 +1,45 @@
 # AI Instructions for JiraPS
 
-> **This file is the single source of truth for AI coding assistants.**
-> It is read by GitHub Copilot, Cursor, Claude Code, and other AI tools.
-> Tool-specific files (e.g., `CLAUDE.md`, `.cursor/rules/`) reference this file.
+> **Single source of truth for AI coding assistants.** Tool-specific files reference this.
+
+## Quick Reference (Critical Rules)
+
+<!-- NOTE: Copilot PR Review reads only first 4,000 chars. Keep critical rules here. -->
+
+### Commit Rules
+- **One Functionality Per Commit** — code + tests + docs + green tests = one commit
+- **Do not commit** until `Invoke-Build -Task Build, Test` passes
+- **Do not skip** tests or docs — they are part of the functionality
+
+### Cloud vs Data Center
+- **All changes must work on BOTH** Jira Cloud and Data Center
+- **User identity**: `accountId` for Cloud, `username`/`name` for DC
+- **Text fields**: ADF JSON for Cloud v3, plain strings for DC
+- See [powershell-rules.md](.github/ai-context/powershell-rules.md) for details
+
+### Code Comments
+- Comments are the **last resort** — code is the primary documentation
+- **DO comment**: Non-obvious constraints, API quirks, design decisions
+- **DO NOT comment**: What code does, obvious operations, changes being made
+- Use `#ToDo:Category` format for TODOs (e.g., `#ToDo:Deprecate`, `#ToDo:CustomClass`)
+- Remove dead code — don't comment it out
+
+### File Locations
+| Type | Location |
+|------|----------|
+| Public functions | `JiraPS/Public/` |
+| Private functions | `JiraPS/Private/` |
+| Tests | `Tests/Functions/Public/` or `Tests/Functions/Private/` |
+| Docs | `docs/en-US/commands/` |
+
+### Build & Test
+```powershell
+./Tools/setup.ps1
+Invoke-Build -Task Build, Test
+```
+Tests run against the built module in `Release/` — you must build before testing.
+
+---
 
 ## AI Tool Compatibility
 
@@ -12,7 +49,8 @@ This repository supports multiple AI coding tools without vendor lock-in:
 |------|-------------|------------|
 | **GitHub Copilot** | `.github/copilot-instructions.md` | → `AGENTS.md`, `ai-context/` |
 | **Cursor** | `.cursor/rules/*.mdc` | → `AGENTS.md`, `ai-context/` |
-| **Claude Code** | `CLAUDE.md` | → `AGENTS.md`, `ai-context/` |
+| **Claude Code/CLI** | `CLAUDE.md` | → `AGENTS.md`, `ai-context/` |
+| **Antigravity** | `GEMINI.md` | → `AGENTS.md`, `ai-context/` |
 | **Any tool** | `AGENTS.md` (this file) | Canonical project rules |
 
 ### Directory Structure
@@ -20,22 +58,26 @@ This repository supports multiple AI coding tools without vendor lock-in:
 ```
 AGENTS.md                           # Project-level rules (this file)
 CLAUDE.md                           # Claude Code entry point
+GEMINI.md                           # Antigravity entry point
 .cursor/rules/jiraps.mdc            # Cursor entry point
 .github/
-├── copilot-instructions.md         # Copilot entry point
+├── copilot-instructions.md         # Copilot Chat entry point
 ├── ai-context/                     # Shared context (tool-agnostic)
-│   └── powershell-rules.md         # PowerShell-specific rules
+│   ├── powershell-rules.md         # PowerShell + Cloud/DC rules
+│   ├── releasing.md                # Release procedure
+│   └── jira-api-implementation-gap.md  # Historical Cloud/DC audit
 └── instructions/                   # Copilot file-pattern rules
-    └── *.instructions.md           # Applied by file glob
+    └── *.instructions.md
 ```
 
 ### Editing Guidelines
 
-| To change... | Edit this file |
-|--------------|----------------|
-| Project-wide rules | `AGENTS.md` |
+| To change... | Edit |
+|--------------|------|
+| Project-wide rules | `AGENTS.md` (this file) |
 | PowerShell-specific rules | `.github/ai-context/powershell-rules.md` |
-| Tool entry points | Only if adding quick-reference summaries |
+| Release procedure | `.github/ai-context/releasing.md` |
+| Quick Reference (Critical Rules) | `AGENTS.md` **and** all four entry-point files (`CLAUDE.md`, `GEMINI.md`, `.cursor/rules/jiraps.mdc`, `.github/copilot-instructions.md`) — keep them in sync |
 
 ---
 
@@ -70,45 +112,28 @@ Every commit must include **all** of the following:
 **JiraPS** is a mature PowerShell module that provides a comprehensive interface to interact with Atlassian JIRA via REST API. This is a **legacy codebase** that requires modernization while maintaining backward compatibility for its substantial user base.
 
 -   **Repository**: AtlassianPS/JiraPS
--   **Current Version**: 3.0
+-   **Current Version**: see [`JiraPS/JiraPS.psd1`](JiraPS/JiraPS.psd1) (`ModuleVersion`)
 -   **PowerShell Compatibility**: PS v5.1, PowerShell Core (6+) on Windows/Ubuntu/macOS
 -   **Primary Branch**: `master`
 -   **Release Strategy**: Tag-based releases from master branch (push tag `vX.Y.Z` to trigger release)
 -   **License**: MIT
 
-## Critical Context
+## Known Technical Debt
 
-> **JiraPS targets both Jira Cloud AND Data Center.** These have different
-> APIs (accountId vs username, ADF vs plain text, different search and
-> pagination). Changes must work on both. See
-> `.github/ai-context/powershell-rules.md` for detailed rules.
+1. **Pester syntax mix**: Tests target Pester 5, but many files retain Pester 4 patterns
+2. **API version drift**: Some Cloud endpoints have been deprecated in favor of v3
+3. **Build system**: Uses InvokeBuild with custom BuildTools module — non-standard layout
 
-### Known Technical Debt
-
-1. **CI/CD Pipeline**: Currently using older GitHub Actions patterns, needs modernization
-2. **Pester Version**: Using Pester 5.7.1, but many tests written for Pester 4.x patterns
-3. **JIRA API Changes**: Several APIs have changed over the years; some endpoints may be deprecated or modified
-4. **Build System**: Uses InvokeBuild with custom BuildTools module
-
-### Architecture
+## Architecture
 
 ```
-JiraPS/
-├── JiraPS/               # Module source
-│   ├── Public/           # 58 exported cmdlets (Get-JiraIssue, New-JiraSession, etc.)
-│   ├── Private/          # Internal functions (ConvertTo-*, Resolve-*, Invoke-WebRequest wrapper)
-│   ├── JiraPS.psm1      # Main module file (loads and exports functions)
-│   └── JiraPS.psd1      # Module manifest
-├── Tests/               # Pester test suite
-│   ├── Functions/
-│   │   ├── Public/      # Tests for public CRUD functions
-│   │   └── Private/     # Tests for private converter functions
-│   └── README.md        # Comprehensive testing guide
-├── Tools/               # Build automation
-│   ├── BuildTools.psm1
-│   └── build.requirements.psd1
-├── docs/                # Documentation (Markdown for PlatyPS)
-└── JiraPS.build.ps1    # Build script (InvokeBuild)
+JiraPS/                  # Module source (Public/ exports cmdlets, Private/ holds ConvertTo-*/Resolve-*)
+Tests/                   # Pester suite — Functions/Public, Functions/Private (unit), Integration/ (live API)
+Tools/                   # InvokeBuild scripts + build.requirements.psd1
+docs/                    # PlatyPS markdown sources for external help
+JiraPS.build.ps1         # InvokeBuild entry point
+.env.example             # Template for integration-test credentials (real .env is gitignored)
+Release/                 # Build output (gitignored)
 ```
 
 ## Module Structure & Patterns
@@ -144,6 +169,7 @@ JiraPS/
 
 -   **Verb-Noun naming**: Follow approved PowerShell verbs (`Get-`, `Set-`, `New-`, `Remove-`, etc.)
 -   **PascalCase**: For function names, parameters
+-   **Naming as documentation**: Variables are nouns (`$issue`, `$filter`), functions are verbs (`Get-JiraIssue`). Names should be self-explanatory — avoid abbreviations unless universally understood.
 -   **Comment-Based Help**: Use `.SYNOPSIS`, `.DESCRIPTION`, `.EXAMPLE`, `.LINK` or external help XML
 -   **External Help**: Generated with PlatyPS from Markdown in `docs/en-US/commands/`
 -   **Advanced Functions**: Use `[CmdletBinding()]` and parameter validation attributes
@@ -151,221 +177,136 @@ JiraPS/
 
 #### Parameter Patterns
 
-```powershell
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory, ValueFromPipeline)]
-    [ValidateNotNullOrEmpty()]
-    [String]$IssueKey,
+See [`powershell-rules.md` → Parameter Patterns](.github/ai-context/powershell-rules.md#parameter-patterns) for the canonical `[CmdletBinding()]` + `[Parameter]` + `[PSCredential]` template.
 
-    [PSCredential]
-    [System.Management.Automation.Credential()]
-    $Credential = [System.Management.Automation.PSCredential]::Empty
-)
+#### Code Comments
+
+Follow the "code is documentation" principle. Comments are the **last resort** when naming, structure, and context cannot convey intent.
+
+**DO comment:**
+
+-   Non-obvious constraints or edge cases (API quirks, workarounds)
+-   Design decisions that would otherwise be unclear
+-   TODO items with specific context (`#ToDo:Category` format)
+-   Suppression attributes with justification
+
+**DO NOT comment:**
+
+-   What the code does (the code shows that)
+-   Obvious operations ("increment counter", "loop through items", "call the API")
+-   Function purpose if the name is already clear
+-   Changes being made (that's what commit messages are for)
+
+**Examples:**
+
+```powershell
+# GOOD - Explains a non-obvious API constraint
+# JIRA returns 500 if visibility block is passed with "All Users"
+if ($VisibleRole -ne 'All Users') {
+    $body.visibility = @{ type = $VisibleRole }
+}
+
+# GOOD - Specific TODO with context and category
+#ToDo:Deprecate
+# This parameter check is redundant once $Key uses ValueFromPipelineByPropertyName
+if (-not $Key -and $InputObject) {
+    $Key = $InputObject.Key
+}
+
+# BAD - Narrates what code does (the code already shows this)
+$result = Invoke-JiraMethod @params  # Call the API
+foreach ($item in $items) {          # Loop through items
+    $count++                         # Increment counter
+}
+
+# BAD - Vague TODO without actionable context
+#ToDo: fix this later
 ```
+
+**Runtime documentation:** Use `Write-Verbose` and `Write-Debug` for operational insight instead of inline comments.
+
+**Help documentation:** Use external help (`.ExternalHelp`) and `docs/en-US/commands/*.md` for user-facing documentation, not inline comment-based help.
+
+**TODO format:** Use `#ToDo:Category` with a descriptive comment on the next line:
+
+| Category | When to use |
+|----------|-------------|
+| `#ToDo:CustomClass` | Placeholder for future type system improvements |
+| `#ToDo:Deprecate` | Code to be removed in a future version |
+| `#ToDo:Implement` | Feature not yet implemented |
+| `#ToDo:Refactor` | Code that works but needs cleanup |
+
+**Region markers:** Use `#region`/`#endregion` sparingly — only in complex functions with multiple logical sections (like `Invoke-JiraMethod`). Do not use regions to hide code that should be refactored into separate functions.
+
+**Rule suppression:** When suppressing PSScriptAnalyzer rules, always include a justification:
+
+```powershell
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    "PSAvoidUsingConvertToSecureStringWithPlainText",
+    "",
+    Justification = "Converting received plaintext token to SecureString"
+)]
+```
+
+**Commented-out code:** Remove dead code instead of commenting it out. Version control preserves history. Commented-out code creates confusion about whether it's intentional, temporary, or forgotten.
 
 #### Testing Requirements
 
--   **Test File Location**: Tests are organized by function type:
+-   **Test File Location**: Tests are organized by type:
     -   **Public functions** (CRUD): `Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1`
     -   **Private functions** (Converters): `Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1`
-    -   **Integration tests**: `Tests/Integration/<Feature>.Integration.Tests.ps1`
--   **Pester Version**: Tests should work with Pester 5.7+ (v5 syntax)
--   **Test Templates**: Each directory contains a `.template.ps1` file
-    -   **Public functions**: `Tests/Functions/Public/.template.ps1` - for API-calling CRUD functions
-    -   **Private functions**: `Tests/Functions/Private/.template.ps1` - for data transformation/converter functions
-    -   **Integration tests**: `Tests/Integration/.template.ps1` - for live API tests against Jira Cloud
--   **Detailed Guide**: See [`Tests/README.md`](../Tests/README.md) for comprehensive testing documentation including:
-    -   Complete test structure examples
-    -   Mock debugging techniques
-    -   Best practices and common patterns
-    -   Context organization guidelines
--   **Integration Tests**: See [`Tests/Integration/README.md`](../Tests/Integration/README.md) for:
-    -   Setting up Jira Cloud credentials
-    -   Running integration tests locally and in CI
-    -   Test fixture requirements
-    -   Cleanup strategies for test resources
+    -   **Integration** (live Jira Cloud): `Tests/Integration/<Feature>.Integration.Tests.ps1`
+-   **Pester Version**: Use Pester 5 syntax (v5 is required; v4 patterns must be migrated)
+-   **Test Templates**: Each directory has a `.template.ps1` to copy from
+-   **Unit test guide**: [`Tests/README.md`](Tests/README.md) — structure, mocks, debugging, conventions
+-   **Integration test guide**: [`Tests/Integration/README.md`](Tests/Integration/README.md) — credentials setup, fixtures, parallel execution, CI behavior
 
 ### Build Process
 
 > **IMPORTANT**: Unit tests run against the *built* module in `Release/`, not the source files.
-> You MUST build before running unit tests. Running `Invoke-Pester` directly on unit tests will not work.
-
-> **NOTE**: Integration tests run directly against source files (no build required).
-> They load the module from `JiraPS/JiraPS.psd1`.
-
-**Standard Workflow**:
+> You MUST build before running unit tests.
+>
+> Integration tests run directly against `JiraPS/JiraPS.psd1` (no build step) and require live Jira Cloud credentials.
 
 ```powershell
-./Tools/setup.ps1              # First time: install dependencies
-Invoke-Build -Task Build, Test # Build and run unit tests
-
-# Integration tests (no build needed)
-Invoke-Build -Task TestIntegration
-Invoke-Build -Task TestIntegration -Tag 'Smoke'           # Smoke tests only
-Invoke-Build -Task TestIntegration -ThrottleLimit 8       # More parallelism
+./Tools/setup.ps1
+Invoke-Build -Task Build, Test                       # Unit tests (excludes Integration)
+Invoke-Build -Task TestIntegration                   # Integration tests (needs .env)
+Invoke-Build -Task TestIntegration -Tag 'Smoke'      # Smoke subset only
 ```
 
-**Build Tasks** (via `Invoke-Build`):
+The `Publish` task (PowerShell Gallery upload) is reserved for release tags.
 
-| Task | What it does |
-|------|--------------|
-| `Clean` | Removes `Release/` and test artifacts |
-| `Build` | Compiles module into `Release/` (runs Clean first) |
-| `Test` | Runs unit tests against built module (excludes Integration) |
-| `TestIntegration` | Runs integration tests in parallel (no build needed) |
-| `GenerateExternalHelp` | Generates help XML from `docs/` markdown |
-| `Publish` | Publishes to PowerShell Gallery (release tags only) |
-
-**Common Mistakes**:
-
-- ❌ `Invoke-Pester` directly — Tests expect the compiled module in `Release/`
-- ❌ `Invoke-Build -Task Test` without building — Uses stale or missing code
-- ❌ Forgetting `./Tools/setup.ps1` — Missing Pester, InvokeBuild, etc.
-- ✅ `Invoke-Build -Task Build, Test` — Correct: build then test
+See [`powershell-rules.md` → Running Tests](.github/ai-context/powershell-rules.md#running-tests) for the full task list and common mistakes.
 
 ## API & REST Patterns
 
-### JIRA REST API Version
-
--   Currently hardcoded to API v2: `/rest/api/2/...`
--   **Known Issue**: Should support dynamic version resolution for Cloud vs. Data Center
--   Atlassian is deprecating some v2 endpoints in favor of v3 **on Cloud only**
--   Data Center retains full v2 support; v3 availability varies by DC release
-
-### Common API Endpoints Used
-
--   `/rest/api/2/issue/{issueIdOrKey}` - Get/Update issue
--   `/rest/api/2/search` - JQL search (GET with query params, or POST with JSON body)
--   `/rest/api/2/project` - Project operations
--   `/rest/api/2/user` - User management
--   `/rest/api/2/issue/{issueIdOrKey}/comment` - Comments
--   `/rest/api/2/issue/{issueIdOrKey}/worklog` - Work logs
-
-### Authentication
-
--   **Basic Auth**: Username + API token (cloud) or password (server)
--   **Session-Based**: Via `New-JiraSession` (creates WebSession)
--   **Anonymous**: Supported for public JIRA instances
-
-### Pagination Pattern
-
-```powershell
-# JIRA uses startAt/maxResults pattern (Data Center and Cloud v2)
-Invoke-JiraMethod -URI $uri -Paging
-# Automatically handles multiple pages
-```
-
-## Jira Cloud vs Data Center Compatibility
-
-> **CRITICAL CONTEXT**: JiraPS targets **both Jira Cloud and Jira Data Center**. These are
-> different products with different API behaviors. Any change to API endpoints, request
-> bodies, or response handling **must** consider both deployment types. Never assume
-> Cloud-only or DC-only usage.
-
-### Two Deployment Types
-
-| Aspect | Jira Cloud | Jira Data Center |
-|--------|-----------|------------------|
-| API versions | v2 (deprecated) → v3 (current) | v2 (stable), v3 (partial, version-dependent) |
-| User identity | `accountId` (GDPR, `username`/`name` removed) | `username` / `name` (traditional) |
-| Text fields | Atlassian Document Format (ADF) JSON in v3 | Plain strings or wiki markup |
-| Search | `POST /rest/api/3/search/jql` (Cloud migration) | `GET /rest/api/2/search` (stable) |
-| Pagination | `nextPageToken` (Cloud search v3) | `startAt` / `maxResults` (offset-based) |
-| Rate limiting | Enforced (HTTP 429 + `Retry-After`) | Typically not enforced |
-| Session auth | Deprecated | Supported |
-
-### User Identity — The Critical Difference
-
-On **Cloud**, Atlassian removed `username`/`name` fields under GDPR. User operations
-require `accountId`:
-
-```powershell
-# Cloud v3: use accountId
-$resourceUri = "$server/rest/api/3/user?accountId={0}"
-$body = @{ assignee = @{ accountId = $user.AccountId } }
-
-# Data Center: use username/name
-$resourceUri = "$server/rest/api/2/user?username={0}"
-$body = @{ assignee = @{ name = $user.Name } }
-```
-
-**Currently affected functions** (still DC-centric, need Cloud paths):
-`Get-JiraUser`, `Set-JiraUser`, `Remove-JiraUser`, `New-JiraIssue` (reporter),
-`Set-JiraIssue` (assignee), `Invoke-JiraIssueTransition`, `Add-JiraGroupMember`,
-`Remove-JiraGroupMember`, `Add-JiraIssueWatcher`, `Remove-JiraIssueWatcher`,
-`Resolve-JiraUser`, `ConvertTo-JiraUser.ToString()`
-
-### Atlassian Document Format (ADF)
-
-Cloud v3 returns and expects rich-text fields (`description`, `comment.body`, etc.)
-as ADF JSON objects. Data Center returns these as plain strings.
-
-```powershell
-# Cloud v3 response for description:
-# { "type": "doc", "version": 1, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Hello" }] }] }
-
-# Data Center response for description:
-# "Hello"
-```
-
-**Rule**: ADF conversion (`ConvertTo-AtlassianDocumentFormat` / `ConvertFrom-AtlassianDocumentFormat`)
-must only be applied when targeting Cloud v3. Sending ADF to Data Center will produce
-garbled content or API errors. Reading plain strings through ADF conversion is wasteful
-(though the current `ConvertFrom-` function handles strings gracefully as a fallback).
-
-### Search Endpoint
-
-| Deployment | Endpoint | Method | Pagination |
-|-----------|----------|--------|------------|
-| Cloud v3 | `/rest/api/3/search/jql` | POST (JSON body) | `nextPageToken` |
-| Data Center | `/rest/api/2/search` | GET (query params) | `startAt` / `maxResults` |
-
-These are **not interchangeable**. The Cloud endpoint may not exist on DC, and the
-paging models are fundamentally different.
-
-### Deployment Type Detection
-
-`Get-JiraServerInformation` returns `deploymentType` from the API (`Cloud` or `Server`).
-This is available via `ConvertTo-JiraServerInfo` but **not currently used for branching**.
-
-**Planned approach**: After `Set-JiraConfigServer`, detect and cache the deployment type,
-then use it to select the correct API version, user identity model, text format, search
-endpoint, and pagination strategy.
-
-### Review Rules for API Changes
-
-When reviewing PRs that modify API endpoints or request/response handling, **always check**:
-
-1. **Deployment awareness**: Does the change work on both Cloud and Data Center?
-   If it introduces a Cloud-specific feature (ADF, token paging, `/search/jql`,
-   `accountId`), is there a DC fallback?
-2. **User identity consistency**: If a URL is changed to v3, are the query params
-   and body fields also updated? (`username` → `accountId` for Cloud, keep `username` for DC)
-3. **Text field format**: Are description/comment fields being read or written?
-   If so, is ADF conversion conditional on deployment type?
-4. **Backward compatibility**: Will existing scripts break? The module has users on
-   both Cloud and DC — a change that fixes Cloud but breaks DC is not backward compatible.
-5. **Test coverage**: Do tests cover both Cloud and DC response shapes?
-   Mock data should include both ADF and plain-string variants for text fields.
+- **All HTTP calls** go through `Invoke-JiraMethod` — never call `Invoke-RestMethod` / `Invoke-WebRequest` directly
+- **Endpoint selection** (v2 vs v3, Cloud vs DC): see [`powershell-rules.md`](.github/ai-context/powershell-rules.md)
+- **Pagination**: pass `-Paging` to `Invoke-JiraMethod` for `startAt`/`maxResults` flows; Cloud v3 search uses `nextPageToken` internally
+- **Authentication**: Basic auth (token on Cloud, password on DC), session-based via `New-JiraSession`, or anonymous
 
 ## Common Tasks & Solutions
 
 ### Adding a New Cmdlet
 
 1. **Create function file**: `JiraPS/Public/Verb-JiraNoun.ps1`
-2. **Write tests**: `Tests/Functions/Public/Verb-JiraNoun.Unit.Tests.ps1` (use [`.template.ps1`](../Tests/Functions/Public/.template.ps1))
+2. **Write tests**: `Tests/Functions/Public/Verb-JiraNoun.Unit.Tests.ps1` (use [`.template.ps1`](Tests/Functions/Public/.template.ps1))
 3. **Write documentation**: `docs/en-US/commands/Verb-JiraNoun.md`
-4. **Pattern to follow**:
+4. **Update `CHANGELOG.md`** under the next-version section
+5. **Pattern to follow** (parameter declarations follow [`powershell-rules.md` → Parameter Patterns](.github/ai-context/powershell-rules.md#parameter-patterns)):
 
 ```powershell
 function Get-JiraExample {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
         [String]$Id,
 
-        [PSCredential]$Credential
+        [PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     begin {
@@ -374,11 +315,9 @@ function Get-JiraExample {
 
     process {
         $parameter = @{
-            URI    = "$($script:JiraServerUrl)/rest/api/2/example/$Id"
-            Method = "GET"
-        }
-        if ($Credential) {
-            $parameter["Credential"] = $Credential
+            URI        = "$($script:JiraServerUrl)/rest/api/2/example/$Id"
+            Method     = "GET"
+            Credential = $Credential
         }
 
         $result = Invoke-JiraMethod @parameter
@@ -391,255 +330,62 @@ function Get-JiraExample {
 }
 ```
 
-5. **Build and test**:
-
-```powershell
-Invoke-Build -Task Build, Test
-```
+6. **Build and test**: `Invoke-Build -Task Build, Test`
 
 ### Releasing a New Version
 
-When releasing a new version of JiraPS:
+See [`.github/ai-context/releasing.md`](.github/ai-context/releasing.md) for the full release process.
 
-**1. Files to Update:**
+**Quick reference** (substitute `X.Y` with the next version):
 
-| File | What to Change |
-|------|----------------|
-| `CHANGELOG.md` | Add release entry (no `v` prefix: `## 2.16 - YYYY-MM-DD`) |
-| `JiraPS/JiraPS.psd1` | Update `ModuleVersion` (e.g., `'2.16'`) |
-
-**2. Changelog Format:**
-
-- **Header format**: `## 2.16 - 2026-04-13` (no `v` prefix, matches historical entries)
-- **Sections**: `### Added`, `### Changed`, `### Fixed`
-- **Content**: User-facing summary — consolidate beta entries, omit internal details (test cleanup, private functions)
-- **Beta consolidation**: When releasing after betas, squash beta changelogs into one release entry; beta details remain in GitHub Releases
-
-**3. Pre-Release Verification:**
-
-```powershell
-# ALWAYS run before pushing release commits
-Invoke-Build -Task Build, Test
-```
-
-**4. Release Workflow:**
-
-```powershell
-# On master branch
-git checkout master && git pull origin master
-
-# Update files
-# - Edit CHANGELOG.md (add release section)
-# - Edit JiraPS/JiraPS.psd1 (update ModuleVersion)
-
-# Verify tests pass
-Invoke-Build -Task Build, Test
-
-# Commit
-git add CHANGELOG.md JiraPS/JiraPS.psd1
-git commit -m "Release v2.16"
-
-# Tag and push (tag uses v prefix, triggers release.yml)
-git tag -a v2.16 -m "Release v2.16"
-git push origin master --tags
-```
-
-**5. Versioning Pattern:**
-
-| Release Type | Tag | Changelog | Manifest |
-|--------------|-----|-----------|----------|
-| Minor release | `v2.17` | `## 2.17 - YYYY-MM-DD` | `'2.17'` |
-| Patch release | `v2.17.1` | `## 2.17.1 - YYYY-MM-DD` | `'2.17.1'` |
-| Pre-release | `v2.18.0-beta` | `## 2.18.0-beta - YYYY-MM-DD` | `'2.18'` + `Prerelease = 'beta'` |
-
-- **Tags use `v` prefix**, changelog headers omit it
-- **Minor releases**: 2-part version (`v2.17`) — PSGallery normalizes to `2.17.0`
-- **Patch releases**: 3-part version (`v2.17.1`) — use when fixing bugs in a released version
-- **Release workflow triggers on**: `v*` tags
-
-**Common Mistakes:**
-
-- ❌ Releasing from a feature branch — always release from `master`
-- ❌ Forgetting to run tests before pushing
-- ❌ Using `v` prefix in changelog headers (historical convention is no prefix)
-- ❌ Creating tag without `-a -m` (requires annotated tag message)
-- ❌ Pushing tag before pushing commit
-- ❌ Creating duplicate tags (e.g., both `v2.16` and `v2.16.0`) — causes duplicate workflow runs
-
-**6. What Happens After Tag Push:**
-
-- `release.yml` workflow triggers automatically
-- Publishes module to PowerShell Gallery
-- Creates GitHub Release with changelog excerpt
-- If workflow fails but PSGallery publish succeeded, the version is taken
-
-**7. Recovery Procedures:**
-
-```powershell
-# Check existing tags before creating
-git tag -l 'v2.*'
-
-# Delete accidental tag (local + remote) BEFORE it publishes
-git tag -d v2.16.0
-git push origin --delete v2.16.0
-
-# Create GitHub Release manually if workflow failed
-gh release create v2.16 --title "v2.16" --notes "$(cat <<'EOF'
-## 2.16 - YYYY-MM-DD
-... changelog content ...
-EOF
-)"
-```
-
-**Note**: Once published to PSGallery, that version number is permanently taken. You cannot re-publish the same version.
+1. Update `CHANGELOG.md` (header: `## X.Y - YYYY-MM-DD`, no `v` prefix)
+2. Update `JiraPS/JiraPS.psd1` (`ModuleVersion`)
+3. Run `Invoke-Build -Task Build, Test`
+4. Commit: `git commit -m "Release vX.Y"`
+5. Tag and push: `git tag -a vX.Y -m "Release vX.Y" && git push origin master --tags`
 
 ### Updating for API Changes
 
-When JIRA API changes affect a cmdlet:
+Follow the [`powershell-rules.md` Review Checklist](.github/ai-context/powershell-rules.md#review-checklist). The full set of side effects (converter updates, response-shape tests, docs, CHANGELOG) is governed by the [One Functionality Per Commit](#one-functionality-per-commit) rule.
 
-1. **Determine scope**: Does this affect Cloud only, DC only, or both?
-    - Cloud API docs: https://developer.atlassian.com/cloud/jira/platform/rest/v3/
-    - DC API docs: https://developer.atlassian.com/server/jira/platform/rest-apis/
-2. **Add deployment-type branching** if Cloud and DC behaviors differ
-3. **Update endpoint** in the cmdlet's `Invoke-JiraMethod` call
-4. **Update user identity** handling if the endpoint involves users (`accountId` for Cloud, `username` for DC)
-5. **Update text field handling** if the endpoint reads/writes description, comment, or similar fields (ADF for Cloud v3, plain text for DC)
-6. **Update converter** (`ConvertTo-*`) if response schema changed
-7. **Update tests** to cover both Cloud and DC response shapes
-8. **Update docs** with new parameters/behavior
-9. **Add to CHANGELOG.md** under `## [NEXT VERSION]`
-
-### Test Template Reference
-
-JiraPS uses two primary test templates based on function type. **For comprehensive details, see [`Tests/README.md`](../Tests/README.md)**.
-
-#### Public CRUD Functions
-
-**Location**: `Tests/Functions/Public/`
-**Template**: [`Tests/Functions/Public/.template.ps1`](../Tests/Functions/Public/.template.ps1)
-**Reference**: [`Add-JiraFilterPermission.Unit.Tests.ps1`](../Tests/Functions/Public/Add-JiraFilterPermission.Unit.Tests.ps1)
-**Use For**: Get-_, Set-_, New-_, Remove-_, Add-\* functions that make API calls
-
-**Key Characteristics**: Three Describe blocks (Signature, Behavior, Input Validation), extensive mocking, API interaction focus
-
-#### Private Converter Functions
-
-**Location**: `Tests/Functions/Private/`
-**Template**: [`Tests/Functions/Private/.template.ps1`](../Tests/Functions/Private/.template.ps1)
-**Reference**: [`ConvertTo-JiraAttachment.Unit.Tests.ps1`](../Tests/Functions/Private/ConvertTo-JiraAttachment.Unit.Tests.ps1)
-**Use For**: ConvertTo-_, ConvertFrom-_ functions that transform data
-
-**Key Characteristics**: Single Describe block with four contexts (Object Conversion, Property Mapping, Type Conversion, Pipeline Support), large JSON fixtures, minimal mocking
-
-### Mock Debugging
-
-Enable mock parameter debugging in tests:
-
-```powershell
-BeforeAll {
-    . "$PSScriptRoot/../Helpers/Write-MockDebugInfo.ps1"
-    $VerbosePreference = 'Continue'  # Uncomment to see mock debug output
-
-    Mock Invoke-JiraMethod -ModuleName JiraPS {
-        Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
-        # mock implementation
-    }
-}
-```
-
-Output format:
-
-```
-🔷 Mock: Invoke-JiraMethod
-  [Method] = "GET"
-  [Uri] = "https://jira.example.com/rest/api/2/issue/TEST-123"
-  [Body] = <null>
-```
-
-**Note**: The `-Verbose` parameter on `Invoke-Pester` does NOT enable mock debugging. You must set `$VerbosePreference = 'Continue'` inside the test file's BeforeAll block.
-
-### Working with Custom Fields
-
-JIRA custom fields have IDs like `customfield_10001`:
-
-```powershell
-# Set custom field in New-JiraIssue or Set-JiraIssue
-$fields = @{
-    customfield_10001 = "Value"
-}
-New-JiraIssue -Fields $fields ...
-```
+**API references**:
+- Cloud: https://developer.atlassian.com/cloud/jira/platform/rest/v3/
+- Data Center: https://developer.atlassian.com/server/jira/platform/rest-apis/
 
 ## CI/CD & Workflows
 
-### Current Workflows
-
-1. **build_and_test.yml**: Runs on PR/push to master
-
-    - Builds on Ubuntu
-    - Unit tests on Windows (PS5.1 + PS7), Ubuntu, and macOS
-    - Uses artifact upload/download pattern
-    - Integration tests are excluded (run separately)
-
-2. **integration_tests.yml**: Dedicated workflow for integration tests
-
-    - **Smoke tests**: Run on every PR (fast, critical tests tagged `Smoke`)
-    - **Full integration tests**: Run on schedule (nightly), `workflow_dispatch`, or PRs with `run-integration-tests` label
-    - Requires Jira Cloud secrets configured in repository settings; the workflow fails fast if any required secret is missing
-    - Uses parallel execution for faster runs (`Invoke-ParallelPester.ps1`)
-
-3. **release.yml**: Runs on version tags (`v*`)
-    - Downloads build artifact from tagged commit
-    - Runs `Invoke-Build -Task Publish`
-    - Creates GitHub release with CHANGELOG excerpt
-
-### Improvement Opportunities
-
--   Modernize to newer action versions (v4 → v5)
--   Add test coverage reporting
--   Consider matrix testing for multiple PowerShell versions
+- `build_and_test.yml` — runs on PR/push to `master`; builds on Ubuntu, runs unit tests on Windows PS 5.1/7 + Ubuntu + macOS
+- `integration_tests.yml` — `Smoke`-tagged tests on every PR; full suite on schedule, `workflow_dispatch`, or PRs labeled `run-integration-tests` (requires Jira Cloud secrets)
+- `release.yml` — runs on `v*` tags, publishes to PSGallery, creates GitHub Release
+- Workflow source: [`.github/workflows/`](.github/workflows/)
 
 ## Dependencies
 
 **Runtime**: None (pure PowerShell)
 
-**Build-time** (in `Tools/build.requirements.psd1`):
-
--   InvokeBuild 5.13.1 - Build automation
--   BuildHelpers 2.0.16 - Environment detection
--   Metadata 1.5.7 - Manifest manipulation
--   Pester 5.7.1 - Testing framework
--   platyPS 0.14.2 - Help generation
--   PSScriptAnalyzer 1.24.0 - Code analysis
+**Build-time**: Pinned in [`Tools/build.requirements.psd1`](Tools/build.requirements.psd1) — InvokeBuild, BuildHelpers, Metadata, Pester, platyPS, PSScriptAnalyzer.
 
 ## Documentation
 
-### Help System
-
--   **Markdown source**: `docs/en-US/commands/*.md`
--   **Generated XML**: `JiraPS/en-US/JiraPS-help.xml` (via PlatyPS)
--   **About topics**: `docs/en-US/about_*.md` → compiled to `JiraPS/en-US/*.help.txt`
-
-### External Links
-
--   **Project Site**: https://atlassianps.org/docs/JiraPS/
--   **PowerShell Gallery**: https://www.powershellgallery.com/packages/JiraPS
--   **Slack**: atlassianps.slack.com
+- **Per-cmdlet help**: edit `docs/en-US/commands/*.md` (PlatyPS source); XML help is generated by `Invoke-Build -Task GenerateExternalHelp`
+- **About topics**: `docs/en-US/about_*.md` → compiled to `JiraPS/en-US/*.help.txt`
+- **Project site**: https://atlassianps.org/docs/JiraPS/ · **Gallery**: https://www.powershellgallery.com/packages/JiraPS
 
 ## When Working on This Project
+
+> Cloud/DC rules live in the [Quick Reference](#quick-reference-critical-rules) and
+> [`powershell-rules.md`](.github/ai-context/powershell-rules.md) — they are not repeated here.
 
 ### DO:
 
 -   ✅ **Follow "One Functionality Per Commit"** — code + tests + docs + green tests = one commit
--   ✅ Maintain backward compatibility (large user base on **both Cloud and Data Center**)
+-   ✅ Maintain backward compatibility (large user base across both deployment types)
 -   ✅ Follow existing patterns (especially `Invoke-JiraMethod` → `ConvertTo-*`)
 -   ✅ Update CHANGELOG.md for user-facing changes
 -   ✅ Generate help after adding/modifying cmdlets
 -   ✅ Test on both Windows PowerShell 5.1 and PowerShell Core 7+
 -   ✅ Use `Write-Verbose` for debugging output
 -   ✅ Handle both session-based and credential-based auth
--   ✅ Consider Cloud vs Data Center implications for any API endpoint change
--   ✅ Use `accountId` for Cloud and `username`/`name` for Data Center user operations
 
 ### DON'T:
 
@@ -651,127 +397,13 @@ New-JiraIssue -Fields $fields ...
 -   ❌ Bypass `Invoke-JiraMethod` for REST calls
 -   ❌ Hardcode server URLs (use `$script:JiraServerUrl`)
 -   ❌ Mix Pester 4 and 5 syntax in same file
--   ❌ Commit Release/ directory (build artifact)
--   ❌ Assume Cloud-only or DC-only usage — always handle both deployment types
--   ❌ Send ADF (Atlassian Document Format) to Data Center instances
--   ❌ Use `username` query params against Cloud v3 endpoints (use `accountId`)
+-   ❌ Commit `Release/` directory (build artifact)
 
 ### Common Gotchas
 
 1. **URL Encoding**: Use `ConvertTo-URLEncoded` for query parameters
-2. **Custom Fields**: Always use field IDs, not names
+2. **Custom Fields**: Always use field IDs (e.g. `customfield_10001`), not display names
 3. **Paging**: JIRA API paging is `startAt`/`maxResults`, not skip/take
 4. **Session State**: Module stores server config in AppData, may persist between sessions
 5. **TLS**: Module explicitly enables TLS 1.2 for older PowerShell versions
 
-## Questions to Ask When Uncertain
-
-1. **Cloud vs DC**: "Does this change work on both Jira Cloud and Data Center?"
-2. **API Changes**: "Has this JIRA REST API endpoint changed in recent versions?"
-3. **Breaking Changes**: "Will this change break existing user scripts on either deployment type?"
-4. **User Identity**: "Am I using accountId for Cloud and username for Data Center?"
-5. **Text Format**: "Am I handling both ADF (Cloud) and plain text (DC) for this field?"
-6. **Test Coverage**: "Do my tests cover both Cloud and DC response shapes?"
-7. **Compatibility**: "Does this work on PowerShell 5.1?"
-8. **Authentication**: "Should this cmdlet support both session and credential auth?"
-
-## Module-Specific Patterns to Follow
-
-### Error Handling
-
-```powershell
-try {
-    $result = Invoke-JiraMethod @params
-} catch {
-    $PSCmdlet.ThrowTerminatingError($_)
-}
-```
-
-### Parameter Validation
-
-```powershell
-# Use validation attributes
-[ValidateNotNullOrEmpty()]
-[ValidatePattern('^\w+-\d+$')]  # For issue keys like "PROJ-123"
-[ValidateScript({ Test-Path $_ })]
-```
-
-### Pipeline Support
-
-```powershell
-[Parameter(ValueFromPipeline)]
-[Object[]]$InputObject
-
-process {
-    foreach ($item in $InputObject) {
-        # Process each item
-    }
-}
-```
-
-### Type Names for Formatting
-
-```powershell
-$result.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
-# Enables custom formatting via JiraPS.format.ps1xml
-```
-
-## Priorities for Modernization
-
-1. **High Priority**:
-
-    - Migrate remaining Pester 4 tests to Pester 5 syntax
-    - Update deprecated JIRA API endpoints (check createMeta, search, etc.)
-
-2. **Medium Priority**:
-
-    - Upgrade GitHub Actions to latest versions
-    - Add PSScriptAnalyzer enforcement to CI
-    - Support JIRA API v3 where applicable
-    - Improve error messages with API response details
-
-3. **Low Priority**:
-    - Consider async/parallel operations for bulk actions
-    - Refactor session management for better multi-server support
-    - Add integration tests (currently only unit tests)
-    - Performance optimization for large result sets
-
-## Example Contribution Workflow
-
-```powershell
-# 1. Setup
-git checkout master && git pull origin master
-git checkout -b feature/my-enhancement
-./Tools/setup.ps1
-
-# 2. Implement ONE functionality (code + tests + docs together)
-#    - Write/modify code in JiraPS/Public/ or JiraPS/Private/
-#    - Write/update tests in Tests/Functions/
-#    - Update docs in docs/en-US/commands/ and CHANGELOG.md
-
-# 3. Verify before commit (all must pass)
-Invoke-Build -Task Build, Test   # ⛔ Red tests = not committable
-Invoke-Build -Task GenerateExternalHelp
-
-# 4. Commit the complete functionality
-git add .
-git commit -m "Add: Description of change"
-
-# 5. Repeat steps 2-4 for each additional functionality
-
-# 6. Push and create PR
-git push origin feature/my-enhancement
-```
-
----
-
-## Summary
-
-JiraPS is a well-established PowerShell module with a large user base. When contributing:
-
--   Respect existing patterns and backward compatibility
--   Focus on modernizing tests, CI/CD, and deprecated API endpoints
--   Write comprehensive tests and documentation
--   Consider cross-platform and multi-version PowerShell compatibility
-
-This is a legacy codebase requiring careful, incremental improvements rather than aggressive refactoring.

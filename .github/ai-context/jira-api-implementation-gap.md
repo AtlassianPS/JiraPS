@@ -9,7 +9,7 @@ This document captures the results of auditing JiraPS source code against the
 documented API differences in [cloud-vs-datacenter.md](cloud-vs-datacenter.md).
 
 > **Status (March 2026)**: All critical and moderate gaps have been resolved
-> in the `cloud-compat` branch. See the [CHANGELOG](../../../../CHANGELOG.md)
+> in the `cloud-compat` branch. See the [CHANGELOG](../../CHANGELOG.md)
 > `Unreleased` section for a summary of all changes.
 
 ---
