@@ -118,190 +118,95 @@ Write-Host ""
 
 $startTime = Get-Date
 
-$runTestFile = {
-    param($testFile, $projectRoot, $tagFilter, $excludeTagFilter, $outputVerbosity, $tempResultsDir, $generateXml)
-
-    try {
-        $envPath = Join-Path $projectRoot '.env'
-        if (Test-Path $envPath) {
-            Get-Content $envPath | ForEach-Object {
-                if ($_ -match '^\s*#' -or $_ -match '^\s*$') { return }
-                if ($_ -match '^([^=]+)=(.*)$') {
-                    $name = $matches[1].Trim()
-                    $value = $matches[2]
-                    if ($value -match '^([^#]*?)\s*#') { $value = $matches[1] }
-                    $value = $value.Trim()
-                    if (($value.StartsWith('"') -and $value.EndsWith('"')) -or
-                        ($value.StartsWith("'") -and $value.EndsWith("'"))) {
-                        $value = $value.Substring(1, $value.Length - 2)
-                    }
-                    if (-not [string]::IsNullOrEmpty($name)) {
-                        [System.Environment]::SetEnvironmentVariable($name, $value)
-                    }
-                }
-            }
-        }
-
-        Import-Module Pester -MinimumVersion 5.0 -Force
-        Set-Location $projectRoot
-
-        $config = New-PesterConfiguration
-        $config.Run.Path = $testFile.FullName
-        $config.Run.PassThru = $true
-        $config.Output.Verbosity = $outputVerbosity
-
-        if ($generateXml -and $tempResultsDir) {
-            $config.TestResult.Enabled = $true
-            $config.TestResult.OutputFormat = 'NUnitXml'
-            $config.TestResult.OutputPath = Join-Path $tempResultsDir "$($testFile.BaseName).xml"
-        }
-
-        if ($tagFilter) { $config.Filter.Tag = $tagFilter }
-        if ($excludeTagFilter) { $config.Filter.ExcludeTag = $excludeTagFilter }
-
-        $result = Invoke-Pester -Configuration $config
-
-        $failedTests = @()
-        if ($result.FailedCount -gt 0) {
-            foreach ($container in $result.Containers) {
-                foreach ($block in $container.Blocks) {
-                    foreach ($test in $block.Tests) {
-                        if ($test.Result -eq 'Failed') {
-                            $failedTests += [PSCustomObject]@{
-                                Name         = $test.Name
-                                ErrorMessage = if ($test.ErrorRecord) { $test.ErrorRecord[0].Exception.Message } else { 'Unknown error' }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        [PSCustomObject]@{
-            File        = $testFile.Name
-            Passed      = $result.PassedCount
-            Failed      = $result.FailedCount
-            Skipped     = $result.SkippedCount
-            Duration    = $result.Duration
-            Success     = $result.FailedCount -eq 0
-            FailedTests = $failedTests
-            XmlPath     = if ($generateXml) { Join-Path $tempResultsDir "$($testFile.BaseName).xml" } else { $null }
-        }
-    }
-    catch {
-        [PSCustomObject]@{
-            File        = $testFile.Name
-            Passed      = 0
-            Failed      = 1
-            Skipped     = 0
-            Duration    = [TimeSpan]::Zero
-            Success     = $false
-            Error       = $_.Exception.Message
-            FailedTests = @([PSCustomObject]@{ Name = 'Script execution'; ErrorMessage = $_.Exception.Message })
-            XmlPath     = $null
-        }
-    }
-}
-
 $results = @()
 $generateXml = [bool]$OutputPath
 
+# Define the test execution body once as text. Both branches (parallel via
+# ForEach-Object -Parallel, and sequential via direct invocation) materialize
+# it into a script block and run it. Keeping it as text means we have a single
+# source of truth for how a test file is executed.
+$helpersPath = Join-Path $PSScriptRoot 'Helpers/IntegrationTestTools.ps1'
+
+$runTestBodyText = @'
+param($testFile, $projectRoot, $tagFilter, $excludeTagFilter, $outputVerbosity, $tempResultsDir, $generateXml, $helpersPath)
+
+try {
+    if (Test-Path $helpersPath) {
+        . $helpersPath
+        Read-DotEnvFile -Path (Join-Path $projectRoot '.env')
+    }
+
+    Import-Module Pester -MinimumVersion 5.0 -Force
+    Set-Location $projectRoot
+
+    $config = New-PesterConfiguration
+    $config.Run.Path = $testFile.FullName
+    $config.Run.PassThru = $true
+    $config.Output.Verbosity = $outputVerbosity
+
+    if ($generateXml -and $tempResultsDir) {
+        $config.TestResult.Enabled = $true
+        $config.TestResult.OutputFormat = 'NUnitXml'
+        $config.TestResult.OutputPath = Join-Path $tempResultsDir "$($testFile.BaseName).xml"
+    }
+
+    if ($tagFilter) { $config.Filter.Tag = $tagFilter }
+    if ($excludeTagFilter) { $config.Filter.ExcludeTag = $excludeTagFilter }
+
+    $result = Invoke-Pester -Configuration $config
+
+    $failedTests = @()
+    if ($result.FailedCount -gt 0) {
+        foreach ($container in $result.Containers) {
+            foreach ($block in $container.Blocks) {
+                foreach ($test in $block.Tests) {
+                    if ($test.Result -eq 'Failed') {
+                        $failedTests += [PSCustomObject]@{
+                            Name         = $test.Name
+                            ErrorMessage = if ($test.ErrorRecord) { $test.ErrorRecord[0].Exception.Message } else { 'Unknown error' }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    [PSCustomObject]@{
+        File        = $testFile.Name
+        Passed      = $result.PassedCount
+        Failed      = $result.FailedCount
+        Skipped     = $result.SkippedCount
+        Duration    = $result.Duration
+        Success     = $result.FailedCount -eq 0
+        FailedTests = $failedTests
+        XmlPath     = if ($generateXml) { Join-Path $tempResultsDir "$($testFile.BaseName).xml" } else { $null }
+    }
+}
+catch {
+    [PSCustomObject]@{
+        File        = $testFile.Name
+        Passed      = 0
+        Failed      = 1
+        Skipped     = 0
+        Duration    = [TimeSpan]::Zero
+        Success     = $false
+        Error       = $_.Exception.Message
+        FailedTests = @([PSCustomObject]@{ Name = 'Script execution'; ErrorMessage = $_.Exception.Message })
+        XmlPath     = $null
+    }
+}
+'@
+
 if ($canParallel) {
-    # Script blocks cannot be passed via $using:, so test execution is inlined
     $results = $testFiles | ForEach-Object -Parallel {
-        $testFile = $_
-        $projectRoot = $using:projectRoot
-        $tagFilter = $using:Tag
-        $excludeTagFilter = $using:ExcludeTag
-        $outputVerbosity = $using:Output
-        $tempResultsDir = $using:tempResultsDir
-        $generateXml = $using:generateXml
-
-        try {
-            $envPath = Join-Path $projectRoot '.env'
-            if (Test-Path $envPath) {
-                Get-Content $envPath | ForEach-Object {
-                    if ($_ -match '^\s*#' -or $_ -match '^\s*$') { return }
-                    if ($_ -match '^([^=]+)=(.*)$') {
-                        $name = $matches[1].Trim()
-                        $value = $matches[2]
-                        if ($value -match '^([^#]*?)\s*#') { $value = $matches[1] }
-                        $value = $value.Trim()
-                        if (($value.StartsWith('"') -and $value.EndsWith('"')) -or
-                            ($value.StartsWith("'") -and $value.EndsWith("'"))) {
-                            $value = $value.Substring(1, $value.Length - 2)
-                        }
-                        if (-not [string]::IsNullOrEmpty($name)) {
-                            [System.Environment]::SetEnvironmentVariable($name, $value)
-                        }
-                    }
-                }
-            }
-
-            Import-Module Pester -MinimumVersion 5.0 -Force
-            Set-Location $projectRoot
-
-            $config = New-PesterConfiguration
-            $config.Run.Path = $testFile.FullName
-            $config.Run.PassThru = $true
-            $config.Output.Verbosity = $outputVerbosity
-
-            if ($generateXml -and $tempResultsDir) {
-                $config.TestResult.Enabled = $true
-                $config.TestResult.OutputFormat = 'NUnitXml'
-                $config.TestResult.OutputPath = Join-Path $tempResultsDir "$($testFile.BaseName).xml"
-            }
-
-            if ($tagFilter) { $config.Filter.Tag = $tagFilter }
-            if ($excludeTagFilter) { $config.Filter.ExcludeTag = $excludeTagFilter }
-
-            $result = Invoke-Pester -Configuration $config
-
-            $failedTests = @()
-            if ($result.FailedCount -gt 0) {
-                foreach ($container in $result.Containers) {
-                    foreach ($block in $container.Blocks) {
-                        foreach ($test in $block.Tests) {
-                            if ($test.Result -eq 'Failed') {
-                                $failedTests += [PSCustomObject]@{
-                                    Name         = $test.Name
-                                    ErrorMessage = if ($test.ErrorRecord) { $test.ErrorRecord[0].Exception.Message } else { 'Unknown error' }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            [PSCustomObject]@{
-                File        = $testFile.Name
-                Passed      = $result.PassedCount
-                Failed      = $result.FailedCount
-                Skipped     = $result.SkippedCount
-                Duration    = $result.Duration
-                Success     = $result.FailedCount -eq 0
-                FailedTests = $failedTests
-                XmlPath     = if ($generateXml) { Join-Path $tempResultsDir "$($testFile.BaseName).xml" } else { $null }
-            }
-        }
-        catch {
-            [PSCustomObject]@{
-                File        = $testFile.Name
-                Passed      = 0
-                Failed      = 1
-                Skipped     = 0
-                Duration    = [TimeSpan]::Zero
-                Success     = $false
-                Error       = $_.Exception.Message
-                FailedTests = @([PSCustomObject]@{ Name = 'Script execution'; ErrorMessage = $_.Exception.Message })
-                XmlPath     = $null
-            }
-        }
+        $sb = [scriptblock]::Create($using:runTestBodyText)
+        & $sb $_ $using:projectRoot $using:Tag $using:ExcludeTag $using:Output $using:tempResultsDir $using:generateXml $using:helpersPath
     } -ThrottleLimit $ThrottleLimit
 }
 else {
+    $runTestFile = [scriptblock]::Create($runTestBodyText)
     foreach ($testFile in $testFiles) {
-        $results += & $runTestFile $testFile $projectRoot $Tag $ExcludeTag $Output $tempResultsDir $generateXml
+        $results += & $runTestFile $testFile $projectRoot $Tag $ExcludeTag $Output $tempResultsDir $generateXml $helpersPath
     }
 }
 
@@ -385,8 +290,8 @@ if ($OutputPath -and (Test-Path $tempResultsDir)) {
             $envElement.SetAttribute('os-version', $osName)
             $envElement.SetAttribute('platform', "PowerShell $($PSVersionTable.PSVersion)")
             $envElement.SetAttribute('cwd', $projectRoot)
-            $envElement.SetAttribute('machine-name', $env:COMPUTERNAME)
-            $envElement.SetAttribute('user', $env:USERNAME)
+            $envElement.SetAttribute('machine-name', [Environment]::MachineName)
+            $envElement.SetAttribute('user', [Environment]::UserName)
             $root.AppendChild($envElement) | Out-Null
 
             $mainSuite = $mergedDoc.CreateElement('test-suite')
