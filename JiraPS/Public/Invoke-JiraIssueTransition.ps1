@@ -67,6 +67,32 @@
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $isCloud = Test-JiraCloudServer -Credential $Credential
+
+        # Resolve the assignee once; -Assignee / -Unassign do not vary across piped issues.
+        if ($Unassign) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Unassign passed. Issue will be unassigned."
+            $assigneeString = $null
+            $validAssignee = $true
+        }
+        elseif ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
+            if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Credential $Credential -Exact) {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
+                $validAssignee = $true
+            }
+            else {
+                $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                $errorId = 'ParameterValue.InvalidAssignee'
+                $errorCategory = 'InvalidArgument'
+                $errorTarget = $Assignee
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
+            }
+        }
+
+        if ($validAssignee) {
+            $assigneeBody = Resolve-JiraAssigneePayload -AssigneeObject $assigneeObj -AssigneeString $assigneeString -IsCloud $isCloud
+        }
     }
 
     process {
@@ -90,7 +116,7 @@
                 $errorId = 'ParameterType.NotJiraTransition'
                 $errorCategory = 'InvalidArgument'
                 $errorTarget = $Transition
-                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTargetError
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                 $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
                 $PSCmdlet.ThrowTerminatingError($errorItem)
             }
@@ -113,30 +139,8 @@
             }
         }
 
-        if ($Unassign) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Unassign passed. Issue will be unassigned."
-            $assigneeString = ""
-            $validAssignee = $true
-        }
-        elseif ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
-            if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Credential $Credential -Exact) {
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
-                $validAssignee = $true
-            }
-            else {
-                $exception = ([System.ArgumentException]"Invalid value for Parameter")
-                $errorId = 'ParameterValue.InvalidAssignee'
-                $errorCategory = 'InvalidArgument'
-                $errorTarget = $Assignee
-                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
-                $PSCmdlet.ThrowTerminatingError($errorItem)
-            }
-        }
-
         if ($validAssignee) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating Assignee"
-            $assigneeBody = Resolve-JiraAssigneePayload -AssigneeObject $assigneeObj -AssigneeString $assigneeString -IsCloud $isCloud
             $requestBody += @{
                 'fields' = @{
                     'assignee' = $assigneeBody

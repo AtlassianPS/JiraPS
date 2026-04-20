@@ -21,7 +21,7 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 
 - **BREAKING**: Removed deprecated `-StartIndex` and `-MaxResults` parameters from `Get-JiraIssue`. Use the standard `-Skip` and `-First` paging parameters instead.
 - **BREAKING**: Removed deprecated `-StartIndex` and `-MaxResults` parameters from `Get-JiraGroupMember`. Use the standard `-Skip` and `-First` paging parameters instead.
-- **BREAKING**: `Set-JiraIssue -Assignee` no longer accepts the magic strings `'Unassigned'` or `'Default'`. Use the new `-Unassign` switch and existing `-UseDefaultAssignee` switch instead.
+- **BREAKING**: `Set-JiraIssue -Assignee` no longer accepts the magic strings `'Unassigned'` or `'Default'`. Use the new `-Unassign` and `-UseDefaultAssignee` switches instead.
 - **BREAKING**: `Set-JiraIssue -Assignee` no longer accepts `$null` or empty/whitespace strings. Use the new `-Unassign` switch instead.
 - **BREAKING**: `Invoke-JiraIssueTransition -Assignee` no longer accepts the magic string `'Unassigned'`, `$null`, or empty/whitespace strings. Use the new `-Unassign` switch instead.
 - **BREAKING**: `Set-JiraIssue` and `Invoke-JiraIssueTransition` now use parameter sets to make `-Assignee`, `-Unassign`, and `-UseDefaultAssignee` mutually exclusive at parameter binding time.
@@ -31,6 +31,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 ### Added
 
 - Added `-Unassign` switch to `Set-JiraIssue` and `Invoke-JiraIssueTransition` as the explicit way to remove the assignee from an issue.
+- Added `-UseDefaultAssignee` switch to `Set-JiraIssue` as the explicit way to assign an issue to the project's default assignee, replacing the removed `-Assignee 'Default'` magic string.
 - Added `Invoke-Build -Task TestIntegration` for running integration tests with parallel execution support
 - Added `-Tag`, `-ExcludeTag`, and `-ThrottleLimit` parameters to `Invoke-Build` for test filtering
 - Added `Tests/Invoke-ParallelPester.ps1` script for parallel test execution (requires PowerShell 7+)
@@ -49,9 +50,20 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Enhanced `Test-ServerResponse` to handle HTTP 503 (Service Unavailable) with retry, jitter on backoff delays, and 60-second max delay cap (#576)
 - Enhanced `Resolve-JiraError` to parse all Jira error response formats: `message`, `errorMessage`, `errorMessages` array, and `errors` dictionary (#576)
 
+### Internal
+
+- Modernized hot-path code now that PowerShell 5.1 is the floor:
+  - Replaced `System.Collections.ArrayList` with `[System.Collections.Generic.List[T]]` in `New-JiraIssue`, `ConvertTo-JiraGroup`, and `Set-JiraIssueLabel` (the latter now initializes via constructor from existing labels).
+  - Pre-compiled the regex patterns used by `ConvertTo-AtlassianDocumentFormat` once at module load.
+  - Replaced in-loop string concatenation in `ConvertTo-GetParameter` with array-collect + `-join`.
+  - Replaced `Get-Member -MemberType *Property` lookups with direct `PSObject.Properties` access in `Format-Jira`, `Add-JiraIssueLink`, `Remove-JiraIssueLink`, `Resolve-JiraError`, `Expand-Result`, `ConvertTo-JiraCreateMetaField`, and `ConvertTo-JiraEditMetaField`.
+- Extracted assignee-payload construction into a private `Resolve-JiraAssigneePayload` helper shared by `Set-JiraIssue` and `Invoke-JiraIssueTransition`. As a side-effect, `Invoke-JiraIssueTransition -Unassign` on Jira Cloud now correctly emits `{accountId: null}` instead of `{name: ""}`. The helper also throws explicitly when handed a Cloud user object that has no `AccountId`, instead of silently emitting an unassign payload.
+
 ### Fixed
 
 - Fixed `Get-JiraIssue` prompting for input when piping JiraPS.Issue objects (added `ValueFromPipelineByPropertyName` to `-Key` parameter)
+- Fixed long-standing typo in `Invoke-JiraIssueTransition` where the transition-cast error path constructed its `ErrorRecord` against an undefined `$errorTargetError` variable instead of `$errorTarget`.
+- Fixed `ConvertTo-GetParameter` returning `'?'` for an empty hashtable; it now returns `''` again, matching its prior contract and preventing accidental trailing `?` in URLs.
 - Fixed `ConvertTo-JiraServerInfo` throwing when `BuildDate` or `ServerTime` are null in API response (now returns `$null` for these fields). **Soft breaking change**: Scripts accessing `.BuildDate.Year` or similar will throw `NullReferenceException` on Cloud instances that omit these fields.
 - Fixed `Invoke-PaginatedRequest` crashing with "Cannot bind argument to parameter 'InputObject'" when API returns null during pagination (now writes warning and returns partial results)
 - Fixed module load race condition when multiple processes import JiraPS simultaneously (gracefully handles concurrent config file creation)

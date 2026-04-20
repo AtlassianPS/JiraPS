@@ -205,7 +205,7 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
-                        $Body -like '*name*""*'
+                        $Body -match '"name":\s*null'
                     }
                 }
 

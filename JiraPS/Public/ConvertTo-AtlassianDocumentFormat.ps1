@@ -223,7 +223,6 @@ function script:ConvertTo-AdfInline {
 
     $nodes = [System.Collections.Generic.List[hashtable]]::new()
 
-    # Uses pre-compiled InlineMarks regex for performance
     # Priority order: combined marks → link → bold → italic → strikethrough → code
     # biText = ***bold italic*** (3 asterisks)
     # beText = **_bold italic_** (bold wrapping italic)

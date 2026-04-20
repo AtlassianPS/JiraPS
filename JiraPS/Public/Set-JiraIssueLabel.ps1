@@ -92,16 +92,12 @@
                 'ModifyLabels' {
                     if ($Add) {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding labels"
-                        # [List[T]].Add() returns void; the $null = assignment is
-                        # defensive (matches the pattern used in New-JiraIssue and
-                        # Set-JiraIssue, and protects against future API drift).
                         $Add.ForEach({ $null = $labels.Add($_) })
                     }
                     if ($Remove) {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Removing labels"
-                        # [List[T]].Remove() returns bool; without $null = the
-                        # boolean is propagated by .ForEach() and pollutes the
-                        # cmdlet's output stream.
+                        # [List[T]].Remove() returns a bool that .ForEach() would
+                        # otherwise propagate to the cmdlet's output stream.
                         $Remove.ForEach({ $null = $labels.Remove($_) })
                     }
                 }

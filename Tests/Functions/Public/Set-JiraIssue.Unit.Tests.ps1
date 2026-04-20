@@ -329,13 +329,11 @@ InModuleScope JiraPS {
                         Set-JiraIssue -Issue "IT-3676" -Fields @{ customfield_10001 = 'test' } -Unassign
                     } | Should -Not -Throw
 
-                    # Assignee call
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $URI -like '*/rest/api/*/issue/41701/assignee' -and
                         $Body -match "`"name`":\s*null"
                     }
 
-                    # Fields call
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $URI -like '*/rest/api/*/issue/41701' -and
                         $URI -notlike '*/assignee' -and

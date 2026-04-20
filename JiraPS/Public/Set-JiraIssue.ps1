@@ -123,6 +123,11 @@
                 $PSCmdlet.ThrowTerminatingError($errorItem)
             }
         }
+
+        # Build the assignee payload once; inputs do not vary across piped issues.
+        if ($validAssignee) {
+            $assigneeProps = Resolve-JiraAssigneePayload -AssigneeObject $assigneeObj -AssigneeString $assigneeString -IsCloud $isCloud
+        }
     }
 
     process {
@@ -222,10 +227,6 @@
                     $id = [string]$field.Id
                     $issueProps.update[$id] = @(@{ 'set' = $value })
                 }
-            }
-
-            if ($validAssignee) {
-                $assigneeProps = Resolve-JiraAssigneePayload -AssigneeObject $assigneeObj -AssigneeString $assigneeString -IsCloud $isCloud
             }
 
             $SkipNotificationParams = @{}

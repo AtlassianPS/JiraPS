@@ -17,29 +17,27 @@
             @{ accountId = <string> }        # Cloud, assign to user
             @{ accountId = $null }           # Cloud, unassign
             @{ name      = <string> }        # Server/DC, assign to user or '-1' for default
-            @{ name      = $null }           # Server/DC, unassign (Set-JiraIssue)
-            @{ name      = ''   }            # Server/DC, unassign (Invoke-JiraIssueTransition)
+            @{ name      = $null }           # Server/DC, unassign
+
+        Empty-string AssigneeString is preserved verbatim ('name = "")
+        for callers that need that exact JSON shape.
     #>
     [CmdletBinding()]
     [OutputType([hashtable])]
     param(
-        # The resolved JiraPS.User object, or $null to unassign.
         [Parameter()]
         [PSObject]
         $AssigneeObject,
 
-        # Server/DC string representation for special cases:
-        #   - '-1' = project default assignee
-        #   - ''   = unassign during transition (Server/DC legacy)
-        #   - $null = unassign (Set-JiraIssue on Server/DC)
-        # Untyped so that $null and '' remain distinct (PowerShell would
-        # otherwise coerce $null -> '' when bound to a [string] parameter).
+        # Server/DC magic values: '-1' = project default, '' = legacy
+        # transition unassign, $null = Set-JiraIssue unassign.
+        # Untyped so $null and '' remain distinct (PowerShell coerces
+        # $null -> '' when bound to a [string] parameter).
         [Parameter()]
         [AllowNull()]
         [AllowEmptyString()]
         $AssigneeString = $null,
 
-        # $true for Jira Cloud, $false for Jira Server / Data Center.
         [Parameter(Mandatory)]
         [bool]
         $IsCloud
@@ -47,10 +45,9 @@
 
     if ($IsCloud) {
         if ($AssigneeObject) {
-            # Reject a non-null user object that has no resolvable AccountId
-            # rather than silently fall through to "unassign". This protects
-            # against partial / mis-resolved user objects on Cloud where the
-            # caller's intent was to assign, not to clear the assignee.
+            # Reject a non-null user object with no resolvable AccountId
+            # rather than silently fall through to "unassign" — the caller's
+            # intent here is to assign, not clear.
             if (-not $AssigneeObject.AccountId) {
                 throw [System.InvalidOperationException]::new(
                     "Cannot build a Cloud assignee payload from a user object with no AccountId. Use -Unassign explicitly to clear the assignee."
@@ -60,12 +57,10 @@
             return @{ accountId = $AssigneeObject.AccountId }
         }
 
-        # Cloud unassign: accountId must be $null
-        # (Cloud does not accept the 'name' field for assignee operations).
+        # Cloud does not accept the 'name' field for assignee operations.
         return @{ accountId = $null }
     }
 
-    # Jira Server / Data Center: the 'name' field is used.
     if ($AssigneeObject) {
         return @{ name = $AssigneeObject.Name }
     }

@@ -67,13 +67,14 @@ InModuleScope JiraPS {
                 $result.name | Should -Be 'alice'
             }
 
-            It "returns name:`$null when unassigning with `$null AssigneeString (Set-JiraIssue convention)" {
+            It "returns name:`$null when unassigning with `$null AssigneeString" {
                 $result = Resolve-JiraAssigneePayload -AssigneeObject $null -AssigneeString $null -IsCloud $false
                 $result.ContainsKey('name') | Should -BeTrue
                 $result.name | Should -BeNullOrEmpty
             }
 
-            It "returns name:'' when unassigning with empty AssigneeString (Invoke-JiraIssueTransition convention)" {
+            It "returns name:'' when unassigning with empty AssigneeString" {
+                # Distinct from $null so callers can opt into either JSON shape.
                 $result = Resolve-JiraAssigneePayload -AssigneeObject $null -AssigneeString '' -IsCloud $false
                 $result.ContainsKey('name') | Should -BeTrue
                 $result.name | Should -Be ''
