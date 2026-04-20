@@ -17,8 +17,20 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 
 **Resilience**: HTTP retry logic now handles 503 errors (common during Jira maintenance), adds jitter to prevent thundering herd, and caps retry delays at 60 seconds.
 
+### Removed (Breaking)
+
+- **BREAKING**: Removed deprecated `-StartIndex` and `-MaxResults` parameters from `Get-JiraIssue`. Use the standard `-Skip` and `-First` paging parameters instead.
+- **BREAKING**: Removed deprecated `-StartIndex` and `-MaxResults` parameters from `Get-JiraGroupMember`. Use the standard `-Skip` and `-First` paging parameters instead.
+- **BREAKING**: `Set-JiraIssue -Assignee` no longer accepts the magic strings `'Unassigned'` or `'Default'`. Use the new `-Unassign` switch and existing `-UseDefaultAssignee` switch instead.
+- **BREAKING**: `Set-JiraIssue -Assignee` no longer accepts `$null` or empty/whitespace strings. Use the new `-Unassign` switch instead.
+- **BREAKING**: `Invoke-JiraIssueTransition -Assignee` no longer accepts the magic string `'Unassigned'`, `$null`, or empty/whitespace strings. Use the new `-Unassign` switch instead.
+- **BREAKING**: `Set-JiraIssue` and `Invoke-JiraIssueTransition` now use parameter sets to make `-Assignee`, `-Unassign`, and `-UseDefaultAssignee` mutually exclusive at parameter binding time.
+
+See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migration-v3.html) for migration examples.
+
 ### Added
 
+- Added `-Unassign` switch to `Set-JiraIssue` and `Invoke-JiraIssueTransition` as the explicit way to remove the assignee from an issue.
 - Added `Invoke-Build -Task TestIntegration` for running integration tests with parallel execution support
 - Added `-Tag`, `-ExcludeTag`, and `-ThrottleLimit` parameters to `Invoke-Build` for test filtering
 - Added `Tests/Invoke-ParallelPester.ps1` script for parallel test execution (requires PowerShell 7+)
