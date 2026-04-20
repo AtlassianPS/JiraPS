@@ -1,10 +1,9 @@
 ---
-Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/about/migration-v3.html
 locale: en-US
 layout: documentation
+online version: https://atlassianps.org/docs/JiraPS/about/migration-v3.html
+Module Name: JiraPS
 permalink: /docs/JiraPS/about/migration-v3.html
-hide: true
 ---
 # JiraPS
 
@@ -36,6 +35,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `Invoke-JiraIssueTransition` | `-Assignee` no longer accepts `'Unassigned'` magic string.              |
 | `Invoke-JiraIssueTransition` | `-Assignee` no longer accepts `$null` or empty string. Use `-Unassign`. |
 | `Invoke-JiraIssueTransition` | New `-Unassign` switch (parameter set).                                 |
+| `Set-JiraIssue -Assignee`    | No longer positional; must be supplied by name.                         |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DETAILED MIGRATION GUIDE
@@ -62,9 +62,10 @@ Get-JiraGroupMember -Group 'jira-users' -First 100
 
 ### Unassigning an Issue — `Set-JiraIssue`
 
-The string value `'Unassigned'` is no longer recognised by `-Assignee`.
-The previously informal convention of passing `$null` is also no longer accepted.
-Use the new `-Unassign` switch instead.
+Previously, `'Unassigned'` was a magic string and `$null` was the documented way
+to unassign. Both are removed in favor of the explicit `-Unassign` switch, which
+is more discoverable, symmetric with `-UseDefaultAssignee`, and prevents easy
+mistakes such as passing a variable that is unexpectedly `$null`.
 
 #### v2
 
@@ -130,9 +131,29 @@ Set-JiraIssue -Issue TEST-01 -Unassign -UseDefaultAssignee          # error
 
 ### Empty / Null Assignee Strings
 
-Previously `Set-JiraIssue -Assignee ""` or `Set-JiraIssue -Assignee $null`
-would silently produce different (and often unintended) effects.
-In v3 both are rejected with a clear error message pointing you to `-Unassign` or `-UseDefaultAssignee`.
+`-Assignee ""` and `-Assignee $null` are now rejected at parameter binding
+time. Use `-Unassign` to remove the assignee, or `-UseDefaultAssignee` to
+fall back to the project default.
+
+### `-Assignee` is no longer positional
+
+`-Assignee` used to be available positionally (after `-Issue`, `-Summary`,
+`-Description`, and `-FixVersion`). Because it now belongs to a parameter
+set and the new `-Unassign` / `-UseDefaultAssignee` switches are all named,
+`-Assignee` must also be supplied by name in v3. Scripts that used named
+arguments are unaffected.
+
+#### v2
+
+```powershell
+Set-JiraIssue TEST-01 'new summary' 'new description' @() 'alice'
+```
+
+#### v3
+
+```powershell
+Set-JiraIssue TEST-01 -Summary 'new summary' -Description 'new description' -Assignee 'alice'
+```
 
 ### Minimum PowerShell Version
 
@@ -141,17 +162,21 @@ Windows PowerShell 3.0 and 4.0 are no longer supported. PowerShell 7+ continues 
 
 ## FINDING DEPRECATED USAGE IN YOUR SCRIPTS
 
-The following regular expressions can help locate v2-style usage that needs updating:
+The following commands recursively search your scripts for v2-style usage
+that needs updating:
 
 ```powershell
 # Find magic-string assignee usage
-Select-String -Path *.ps1 -Pattern "-Assignee\s+['""](Unassigned|Default)['""]"
+Get-ChildItem -Recurse -Filter *.ps1 |
+    Select-String -Pattern "-Assignee\s+['""](Unassigned|Default)['""]"
 
 # Find $null assignee usage
-Select-String -Path *.ps1 -Pattern "-Assignee\s+\`$null"
+Get-ChildItem -Recurse -Filter *.ps1 |
+    Select-String -Pattern "-Assignee\s+\`$null"
 
 # Find legacy paging parameters
-Select-String -Path *.ps1 -Pattern "-(StartIndex|MaxResults)\b"
+Get-ChildItem -Recurse -Filter *.ps1 |
+    Select-String -Pattern "-(StartIndex|MaxResults)\b"
 ```
 
 # SEE ALSO

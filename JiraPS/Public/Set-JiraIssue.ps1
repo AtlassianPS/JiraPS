@@ -39,11 +39,11 @@
         $FixVersion,
 
         [Parameter( ParameterSetName = 'AssignToUser' )]
-        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
                 if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
-                    throw "The -Assignee value cannot be an empty or whitespace string. Use -Unassign to remove the assignee, or -UseDefaultAssignee for the project default."
+                    throw "The -Assignee value cannot be a whitespace-only string. Use -Unassign to remove the assignee, or -UseDefaultAssignee for the project default."
                 }
                 $true
             }
@@ -225,26 +225,7 @@
             }
 
             if ($validAssignee) {
-                if (($assigneeObj) -and ($assigneeObj.AccountId) -and ($isCloud)) {
-                    $assigneeProps = @{
-                        'accountId' = $assigneeObj.AccountId
-                    }
-                }
-                elseif ($isCloud -and -not $assigneeObj) {
-                    $assigneeProps = @{
-                        'accountId' = $null
-                    }
-                }
-                elseif ($assigneeString) {
-                    $assigneeProps = @{
-                        'name' = $assigneeString
-                    }
-                }
-                else {
-                    $assigneeProps = @{
-                        'name' = if ($assigneeObj) { $assigneeObj.Name } else { $null }
-                    }
-                }
+                $assigneeProps = Resolve-JiraAssigneePayload -AssigneeObject $assigneeObj -AssigneeString $assigneeString -IsCloud $isCloud
             }
 
             $SkipNotificationParams = @{}

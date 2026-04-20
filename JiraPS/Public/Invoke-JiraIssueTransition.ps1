@@ -35,11 +35,11 @@
         $Fields,
 
         [Parameter( ParameterSetName = 'AssignToUser' )]
-        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
                 if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
-                    throw "The -Assignee value cannot be an empty or whitespace string. Use -Unassign to remove the assignee."
+                    throw "The -Assignee value cannot be a whitespace-only string. Use -Unassign to remove the assignee."
                 }
                 $true
             }
@@ -136,15 +136,7 @@
 
         if ($validAssignee) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating Assignee"
-            if (($assigneeObj) -and ($assigneeObj.AccountId) -and ($isCloud)) {
-                $assigneeBody = @{ 'accountId' = $assigneeObj.AccountId }
-            }
-            elseif ($assigneeObj) {
-                $assigneeBody = @{ 'name' = $assigneeObj.Name }
-            }
-            else {
-                $assigneeBody = @{ 'name' = $assigneeString }
-            }
+            $assigneeBody = Resolve-JiraAssigneePayload -AssigneeObject $assigneeObj -AssigneeString $assigneeString -IsCloud $isCloud
             $requestBody += @{
                 'fields' = @{
                     'assignee' = $assigneeBody

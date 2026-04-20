@@ -274,11 +274,11 @@ InModuleScope JiraPS {
                 }
 
                 It "Throws when -Assignee is given an empty string" {
-                    { Set-JiraIssue -Issue "IT-3676" -Assignee "" } | Should -Throw -ExpectedMessage "*empty or whitespace string*"
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee "" } | Should -Throw
                 }
 
                 It "Throws when -Assignee is given a whitespace-only string" {
-                    { Set-JiraIssue -Issue "IT-3676" -Assignee "   " } | Should -Throw -ExpectedMessage "*empty or whitespace string*"
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee "   " } | Should -Throw -ExpectedMessage "*whitespace-only*"
                 }
 
                 It "Throws when -Assignee is given `$null" {
@@ -321,6 +321,25 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $URI -like '*/rest/api/*/issue/41701/assignee' -and
                         $Body -match "`"name`":\s*`"-1`""
+                    }
+                }
+
+                It "Allows -Unassign together with -Fields" {
+                    {
+                        Set-JiraIssue -Issue "IT-3676" -Fields @{ customfield_10001 = 'test' } -Unassign
+                    } | Should -Not -Throw
+
+                    # Assignee call
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $URI -like '*/rest/api/*/issue/41701/assignee' -and
+                        $Body -match "`"name`":\s*null"
+                    }
+
+                    # Fields call
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $URI -like '*/rest/api/*/issue/41701' -and
+                        $URI -notlike '*/assignee' -and
+                        $Body -match '"customfield_10001"'
                     }
                 }
             }

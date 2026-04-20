@@ -210,11 +210,11 @@ InModuleScope JiraPS {
                 }
 
                 It "throws when -Assignee is given an empty string" {
-                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "" } | Should -Throw -ExpectedMessage "*empty or whitespace string*"
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "" } | Should -Throw
                 }
 
                 It "throws when -Assignee is given a whitespace-only string" {
-                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "   " } | Should -Throw -ExpectedMessage "*empty or whitespace string*"
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "   " } | Should -Throw -ExpectedMessage "*whitespace-only*"
                 }
 
                 It "throws when -Assignee is given `$null" {
@@ -294,13 +294,13 @@ InModuleScope JiraPS {
                 }
             }
 
-            It "Sends an empty assignee name when -Unassign on Cloud deployment" {
+            It "Sends accountId:null when -Unassign on Cloud deployment" {
                 { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Unassign } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Post' -and
                     $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
-                    $Body -like '*name*""*'
+                    $Body -match '"accountId":\s*null'
                 }
             }
         }
