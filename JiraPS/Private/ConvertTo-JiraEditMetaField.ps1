@@ -11,7 +11,7 @@
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
             $fields = $i.fields
-            $fieldNames = (Get-Member -InputObject $fields -MemberType '*Property').Name
+            $fieldNames = $fields.PSObject.Properties.Name
             foreach ($f in $fieldNames) {
                 $item = $fields.$f
 
@@ -32,7 +32,10 @@
                     $props.AutoCompleteUrl = $item.autoCompleteUrl
                 }
 
-                foreach ($extraProperty in (Get-Member -InputObject $item -MemberType NoteProperty).Name) {
+                # NoteProperty only: $item is a JSON-deserialized field spec
+                # and its data keys are NoteProperties. Synthetic Script/
+                # AliasProperty would otherwise leak into the output object.
+                foreach ($extraProperty in $item.PSObject.Properties.Where({ $_.MemberType -eq 'NoteProperty' }).Name) {
                     if ($null -eq $props.$extraProperty) {
                         $props.$extraProperty = $item.$extraProperty
                     }
