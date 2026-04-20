@@ -60,7 +60,7 @@ jobs:
           Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed
         shell: pwsh
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: Smoke-Tests
           path: IntegrationTests.xml
@@ -88,7 +88,7 @@ jobs:
         shell: pwsh
 
       - name: Upload test results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Integration-Tests
           path: IntegrationTests.xml
