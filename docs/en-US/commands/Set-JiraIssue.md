@@ -15,10 +15,30 @@ Modifies an existing issue in JIRA
 
 ## SYNTAX
 
+### AssignToUser (Default)
+
 ```powershell
-Set-JiraIssue [-Issue] <Object[]> [[-Summary] <String>] [[-Description] <String>] [[-FixVersion] <String[]>]
- [[-Assignee] <Object>] [[-Label] <String[]>] [[-Fields] <PSCustomObject>] [[-AddComment] <String>]
- [[-Credential] <PSCredential>] [-SkipNotification] [-PassThru] [-UseDefaultAssignee]
+Set-JiraIssue [-Issue] <Object[]> [-Summary <String>] [-Description <String>] [-FixVersion <String[]>]
+ [-Assignee <Object>] [-Label <String[]>] [-Fields <PSCustomObject>] [-AddComment <String>]
+ [-Credential <PSCredential>] [-SkipNotification] [-PassThru]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+### Unassign
+
+```powershell
+Set-JiraIssue [-Issue] <Object[]> [-Summary <String>] [-Description <String>] [-FixVersion <String[]>]
+ [-Unassign] [-Label <String[]>] [-Fields <PSCustomObject>] [-AddComment <String>]
+ [-Credential <PSCredential>] [-SkipNotification] [-PassThru]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+### UseDefaultAssignee
+
+```powershell
+Set-JiraIssue [-Issue] <Object[]> [-Summary <String>] [-Description <String>] [-FixVersion <String[]>]
+ [-UseDefaultAssignee] [-Label <String[]>] [-Fields <PSCustomObject>] [-AddComment <String>]
+ [-Credential <PSCredential>] [-SkipNotification] [-PassThru]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -50,7 +70,7 @@ This example appends text to the end of an existing issue description by using
 ### EXAMPLE 3
 
 ```powershell
-Set-JiraIssue -Issue TEST-01 -Assignee $null
+Set-JiraIssue -Issue TEST-01 -Unassign
 ```
 
 This example removes the assignee from JIRA issue TEST-01.
@@ -164,16 +184,35 @@ Accept wildcard characters: False
 
 New assignee of the issue.
 
-Pass `$null` to remove the current assignee of the issue.
+Use `-Unassign` to remove the assignee.
+Use `-UseDefaultAssignee` to set the project's default assignee.
+
+Empty strings and `$null` values are not accepted.
 
 ```yaml
 Type: Object
-Parameter Sets: (All)
+Parameter Sets: AssignToUser
 Aliases:
 
 Required: False
-Position: 5
+Position: Named
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Unassign
+
+Remove the current assignee of the issue.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: Unassign
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -290,7 +329,7 @@ based on the project's configuration.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
+Parameter Sets: UseDefaultAssignee
 Aliases:
 
 Required: False

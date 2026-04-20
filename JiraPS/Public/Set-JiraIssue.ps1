@@ -1,6 +1,6 @@
 ﻿function Set-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsShouldProcess )]
+    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'AssignToUser' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
@@ -38,8 +38,26 @@
         [String[]]
         $FixVersion,
 
+        [Parameter( ParameterSetName = 'AssignToUser' )]
+        [ValidateNotNull()]
+        [ValidateScript(
+            {
+                if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
+                    throw "The -Assignee value cannot be an empty or whitespace string. Use -Unassign to remove the assignee, or -UseDefaultAssignee for the project default."
+                }
+                $true
+            }
+        )]
         [Object]
         $Assignee,
+
+        [Parameter( ParameterSetName = 'Unassign' )]
+        [Switch]
+        $Unassign,
+
+        [Parameter( ParameterSetName = 'UseDefaultAssignee' )]
+        [Switch]
+        $UseDefaultAssignee,
 
         [Alias("Labels")]
         [String[]]
@@ -60,10 +78,7 @@
         $PassThru,
 
         [Switch]
-        $SkipNotification,
-
-        [Switch]
-        $UseDefaultAssignee
+        $SkipNotification
     )
 
     begin {
@@ -73,7 +88,7 @@
 
         $fieldNames = $Fields.Keys
         $assigneeProvided = $PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")
-        if (-not ($Summary -or $Description -or $assigneeProvided -or $UseDefaultAssignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
+        if (-not ($Summary -or $Description -or $assigneeProvided -or $Unassign -or $UseDefaultAssignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
             $errorMessage = @{
                 Category         = "InvalidArgument"
                 CategoryActivity = "Validating Arguments"
@@ -88,26 +103,24 @@
             $assigneeString = "-1"
             $validAssignee = $true
         }
-        elseif ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
-            if ($null -eq $Assignee) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] `$null passed. Issue will be unassigned."
-                $assigneeString = $null
+        elseif ($Unassign) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Unassign passed. Issue will be unassigned."
+            $assigneeString = $null
+            $validAssignee = $true
+        }
+        elseif ($assigneeProvided) {
+            if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Exact -Credential $Credential) {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                 $validAssignee = $true
             }
             else {
-                if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Exact -Credential $Credential) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
-                    $validAssignee = $true
-                }
-                else {
-                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
-                    $errorId = 'ParameterValue.InvalidAssignee'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Assignee
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
+                $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                $errorId = 'ParameterValue.InvalidAssignee'
+                $errorCategory = 'InvalidArgument'
+                $errorTarget = $Assignee
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
             }
         }
     }

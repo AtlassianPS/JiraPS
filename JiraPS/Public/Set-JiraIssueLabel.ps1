@@ -69,8 +69,9 @@
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
 
-            $labels = [System.Collections.Generic.List[string]]::new()
-            ($issueObj.labels | Where-Object { $_ }).ForEach({ $labels.Add($_) })
+            $labels = [System.Collections.Generic.List[string]]::new(
+                [string[]]@($issueObj.labels | Where-Object { $_ })
+            )
 
             # As of JIRA 6.4, the Add and Remove verbs in the REST API for
             # updating issues do not support arrays of parameters - you

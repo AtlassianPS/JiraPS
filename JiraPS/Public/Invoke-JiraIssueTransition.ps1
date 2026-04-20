@@ -1,6 +1,6 @@
 ﻿function Invoke-JiraIssueTransition {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding()]
+    [CmdletBinding( DefaultParameterSetName = 'AssignToUser' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
@@ -34,8 +34,22 @@
         [PSCustomObject]
         $Fields,
 
+        [Parameter( ParameterSetName = 'AssignToUser' )]
+        [ValidateNotNull()]
+        [ValidateScript(
+            {
+                if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
+                    throw "The -Assignee value cannot be an empty or whitespace string. Use -Unassign to remove the assignee."
+                }
+                $true
+            }
+        )]
         [Object]
         $Assignee,
+
+        [Parameter( ParameterSetName = 'Unassign' )]
+        [Switch]
+        $Unassign,
 
         [String]
         $Comment,
@@ -99,26 +113,24 @@
             }
         }
 
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
-            if ($null -eq $Assignee) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] `$null passed. Issue will be unassigned."
-                $assigneeString = ""
+        if ($Unassign) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Unassign passed. Issue will be unassigned."
+            $assigneeString = ""
+            $validAssignee = $true
+        }
+        elseif ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
+            if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Credential $Credential -Exact) {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                 $validAssignee = $true
             }
             else {
-                if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Credential $Credential -Exact) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
-                    $validAssignee = $true
-                }
-                else {
-                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
-                    $errorId = 'ParameterValue.InvalidAssignee'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Assignee
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
+                $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                $errorId = 'ParameterValue.InvalidAssignee'
+                $errorCategory = 'InvalidArgument'
+                $errorTarget = $Assignee
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
             }
         }
 

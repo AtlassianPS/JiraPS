@@ -212,8 +212,8 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "Unassigns the issue when -Assignee is `$null" {
-                    { Set-JiraIssue -Issue "IT-3676" -Assignee $null } | Should -Not -Throw
+                It "Unassigns the issue when -Unassign switch is specified" {
+                    { Set-JiraIssue -Issue "IT-3676" -Unassign } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
@@ -230,6 +230,26 @@ InModuleScope JiraPS {
                         $URI -like '*/rest/api/*/issue/41701/assignee' -and
                         $Body -match "`"name`":\s*`"-1`""
                     }
+                }
+
+                It "Throws when -Assignee is given an empty string" {
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee "" } | Should -Throw -ExpectedMessage "*empty or whitespace string*"
+                }
+
+                It "Throws when -Assignee is given `$null" {
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee $null } | Should -Throw
+                }
+
+                It "Throws when both -Unassign and -Assignee are given" {
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee "testUser" -Unassign } | Should -Throw
+                }
+
+                It "Throws when both -UseDefaultAssignee and -Assignee are given" {
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee "testUser" -UseDefaultAssignee } | Should -Throw
+                }
+
+                It "Throws when both -Unassign and -UseDefaultAssignee are given" {
+                    { Set-JiraIssue -Issue "IT-3676" -Unassign -UseDefaultAssignee } | Should -Throw
                 }
             }
 

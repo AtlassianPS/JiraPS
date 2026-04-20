@@ -174,14 +174,22 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "unassigns an issue if `$null is passed to the -Assignee parameter" {
-                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee $null } | Should -Not -Throw
+                It "unassigns an issue when -Unassign switch is used" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Unassign } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
                         $Body -like '*name*""*'
                     }
+                }
+
+                It "throws when -Assignee is given an empty string" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "" } | Should -Throw -ExpectedMessage "*empty or whitespace string*"
+                }
+
+                It "throws when both -Unassign and -Assignee are given" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "powershell-user" -Unassign } | Should -Throw
                 }
 
                 It "adds a comment if provided to the -Comment parameter" {
