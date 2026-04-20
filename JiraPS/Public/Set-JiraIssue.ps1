@@ -72,7 +72,8 @@
         $isCloud = Test-JiraCloudServer -Credential $Credential
 
         $fieldNames = $Fields.Keys
-        if (-not ($Summary -or $Description -or $Assignee -or $UseDefaultAssignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
+        $assigneeProvided = $PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")
+        if (-not ($Summary -or $Description -or $assigneeProvided -or $UseDefaultAssignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
             $errorMessage = @{
                 Category         = "InvalidArgument"
                 CategoryActivity = "Validating Arguments"
