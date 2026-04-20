@@ -137,6 +137,8 @@ InModuleScope JiraPS {
                     @{ parameter = 'Summary'; type = 'String' }
                     @{ parameter = 'Description'; type = 'String' }
                     @{ parameter = 'Assignee'; type = 'Object' }
+                    @{ parameter = 'Unassign'; type = 'Switch' }
+                    @{ parameter = 'UseDefaultAssignee'; type = 'Switch' }
                     @{ parameter = 'Label'; type = 'String[]' }
                     @{ parameter = 'AddComment'; type = 'String' }
                     @{ parameter = 'Fields'; type = 'PSCustomObject' }
@@ -150,6 +152,45 @@ InModuleScope JiraPS {
 
                 It "has an alias 'Key' for parameter 'Issue'" {
                     $command.Parameters.Item('Issue').Aliases | Should -Contain 'Key'
+                }
+            }
+
+            Context "Parameter Sets" {
+                It "defines parameter set '<setName>'" -TestCases @(
+                    @{ setName = 'AssignToUser' }
+                    @{ setName = 'Unassign' }
+                    @{ setName = 'UseDefaultAssignee' }
+                ) {
+                    param($setName)
+                    $command.ParameterSets.Name | Should -Contain $setName
+                }
+
+                It "uses 'AssignToUser' as the default parameter set" {
+                    $command.DefaultParameterSet | Should -Be 'AssignToUser'
+                }
+
+                It "binds '<parameter>' only to parameter set '<setName>'" -TestCases @(
+                    @{ parameter = 'Assignee'; setName = 'AssignToUser' }
+                    @{ parameter = 'Unassign'; setName = 'Unassign' }
+                    @{ parameter = 'UseDefaultAssignee'; setName = 'UseDefaultAssignee' }
+                ) {
+                    param($parameter, $setName)
+                    $sets = $command.Parameters.Item($parameter).ParameterSets.Keys
+                    $sets | Should -HaveCount 1
+                    $sets | Should -Contain $setName
+                }
+
+                It "makes shared parameter '<parameter>' available in all sets" -TestCases @(
+                    @{ parameter = 'Issue' }
+                    @{ parameter = 'Summary' }
+                    @{ parameter = 'Description' }
+                    @{ parameter = 'FixVersion' }
+                    @{ parameter = 'Label' }
+                    @{ parameter = 'Fields' }
+                    @{ parameter = 'AddComment' }
+                ) {
+                    param($parameter)
+                    $command.Parameters.Item($parameter).ParameterSets.Keys | Should -Contain '__AllParameterSets'
                 }
             }
 
@@ -236,6 +277,10 @@ InModuleScope JiraPS {
                     { Set-JiraIssue -Issue "IT-3676" -Assignee "" } | Should -Throw -ExpectedMessage "*empty or whitespace string*"
                 }
 
+                It "Throws when -Assignee is given a whitespace-only string" {
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee "   " } | Should -Throw -ExpectedMessage "*empty or whitespace string*"
+                }
+
                 It "Throws when -Assignee is given `$null" {
                     { Set-JiraIssue -Issue "IT-3676" -Assignee $null } | Should -Throw
                 }
@@ -250,6 +295,33 @@ InModuleScope JiraPS {
 
                 It "Throws when both -Unassign and -UseDefaultAssignee are given" {
                     { Set-JiraIssue -Issue "IT-3676" -Unassign -UseDefaultAssignee } | Should -Throw
+                }
+
+                It "Errors when no modifying parameters are passed" {
+                    { Set-JiraIssue -Issue "IT-3676" -ErrorAction Stop } |
+                        Should -Throw -ExpectedMessage "*do not change the Issue*"
+                }
+
+                It "Allows -Unassign together with other modifying parameters (Summary)" {
+                    { Set-JiraIssue -Issue "IT-3676" -Summary "new summary" -Unassign } | Should -Not -Throw
+
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $URI -like '*/rest/api/*/issue/41701/assignee' -and
+                        $Body -match "`"name`":\s*null"
+                    }
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $URI -like '*/rest/api/*/issue/41701' -and
+                        $Body -match "`"summary`""
+                    }
+                }
+
+                It "Allows -UseDefaultAssignee together with other modifying parameters (Summary)" {
+                    { Set-JiraIssue -Issue "IT-3676" -Summary "new summary" -UseDefaultAssignee } | Should -Not -Throw
+
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $URI -like '*/rest/api/*/issue/41701/assignee' -and
+                        $Body -match "`"name`":\s*`"-1`""
+                    }
                 }
             }
 
@@ -367,6 +439,16 @@ InModuleScope JiraPS {
                     $URI -like '*/rest/api/*/issue/41701/assignee' -and
                     $Body -match "`"accountId`"" -and
                     $Body -match "`"$testAccountId`""
+                }
+            }
+
+            It "Sends accountId:null when -Unassign on Cloud deployment" {
+                { Set-JiraIssue -Issue "IT-3676" -Unassign } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'Put' -and
+                    $URI -like '*/rest/api/*/issue/41701/assignee' -and
+                    $Body -match "`"accountId`":\s*null"
                 }
             }
         }
