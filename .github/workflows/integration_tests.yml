@@ -45,11 +45,13 @@ jobs:
   smoke_tests:
     name: Smoke Tests
     runs-on: ubuntu-latest
-    # Skip on fork PRs - secrets are not available and tests would fail.
-    # The TestIntegration build task validates required env vars and fails
-    # early with a clear error if any are missing.
+    # Skip on fork PRs and Dependabot PRs - secrets are not available in
+    # those contexts and tests would fail. The TestIntegration build task
+    # validates required env vars and fails early with a clear error if any
+    # are missing.
     if: github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'dependabot[bot]')
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-powershell
@@ -67,11 +69,14 @@ jobs:
   integration_tests:
     name: Full Integration Tests
     needs: smoke_tests
+    # Dependabot PRs are excluded because GitHub does not expose repo
+    # secrets to them, even when manually labeled.
     if: |
       github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' &&
        github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'dependabot[bot]' &&
        contains(github.event.pull_request.labels.*.name, 'run-integration-tests'))
     runs-on: ubuntu-latest
     steps:
