@@ -53,7 +53,7 @@ jobs:
       - name: Notify homepage to update submodule
         if: ${{ !contains(github.ref_name, 'alpha') && !contains(github.ref_name,
           'beta') && !contains(github.ref_name, 'rc') }}
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.HOMEPAGE_PAT }}
           repository: AtlassianPS/AtlassianPS.github.io
