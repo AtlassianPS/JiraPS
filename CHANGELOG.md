@@ -57,7 +57,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   - Pre-compiled the regex patterns used by `ConvertTo-AtlassianDocumentFormat` once at module load.
   - Replaced in-loop string concatenation in `ConvertTo-GetParameter` with array-collect + `-join`.
   - Replaced `Get-Member -MemberType *Property` lookups with direct `PSObject.Properties` access in `Format-Jira`, `Add-JiraIssueLink`, `Remove-JiraIssueLink`, `Resolve-JiraError`, `Expand-Result`, `ConvertTo-JiraCreateMetaField`, and `ConvertTo-JiraEditMetaField`.
-- Extracted assignee-payload construction into a private `Resolve-JiraAssigneePayload` helper shared by `Set-JiraIssue` and `Invoke-JiraIssueTransition`. As a side-effect, `Invoke-JiraIssueTransition -Unassign` on Jira Cloud now correctly emits `{accountId: null}` instead of `{name: ""}`. The helper also throws explicitly when handed a Cloud user object that has no `AccountId`, instead of silently emitting an unassign payload.
+- Extracted user-reference payload construction into a private `Resolve-JiraUserPayload` helper shared by `Set-JiraIssue` and `Invoke-JiraIssueTransition` (and reusable for any future cmdlet that needs to point at a Jira user — assignee, reporter, etc.). As a side-effect, `Invoke-JiraIssueTransition -Unassign` on Jira Cloud now correctly emits `{accountId: null}` instead of `{name: ""}`. The helper also throws explicitly when handed a Cloud user object that has no `AccountId`, instead of silently emitting an unassign payload.
 
 ### Fixed
 
