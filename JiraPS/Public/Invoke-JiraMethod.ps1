@@ -48,12 +48,12 @@
         [System.Management.Automation.Credential()]
         $Credential = [System.Management.Automation.PSCredential]::Empty,
 
-        # [Parameter( DontShow )]
+        [Parameter( DontShow )]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
         $Cmdlet = $PSCmdlet,
 
-        # [Parameter( DontShow )]
+        [Parameter( DontShow )]
         [int]
         $_RetryCount = 0,
 

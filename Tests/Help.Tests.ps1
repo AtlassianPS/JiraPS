@@ -55,8 +55,15 @@ Describe "Help tests" -Tag "Documentation", "Build" {
     Describe "Public Functions" {
         Context "Command <_.CommandName>" -ForEach $commands {
             BeforeDiscovery {
-                # Exclude default params and internal params (starting with underscore)
-                $script:parameters = $_.Command.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and $_ -notmatch '^_' }
+                # Exclude default params and any parameter marked [Parameter(DontShow)],
+                # which is the principled signal for "internal, not part of the public surface".
+                $cmd = $_.Command
+                $isDontShow = {
+                    param($name)
+                    $paramAttr = $cmd.Parameters[$name].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
+                    return ($paramAttr.DontShow -contains $true)
+                }
+                $script:parameters = $cmd.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and -not (& $isDontShow $_) }
             }
             BeforeAll {
                 $script:command = $_.Command
@@ -146,6 +153,24 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                     $command.HelpUri | Should -Match $pattern
                 }
 
+                It "does not emit mangled input/output type names" {
+                    # Regression guard for the PlatyPS 1.0 input/output heading parser bug:
+                    # bracketed headings like '### [JiraPS.Issue[]]' would yield single-character
+                    # type names such as '[', ']', or 'e'. Anything <= 1 char or starting with a
+                    # bracket character is almost certainly a regression.
+                    $typeNames = @(
+                        @($help.inputTypes.inputType) +
+                        @($help.returnValues.returnValue)
+                    ) | Where-Object { $_ } | ForEach-Object {
+                        if ($_.type -and $_.type.name) { ($_.type.name -as [String]).Trim() }
+                    }
+                    foreach ($typeName in $typeNames) {
+                        if ([string]::IsNullOrEmpty($typeName)) { continue }
+                        $typeName | Should -Not -Match '^[\[\]]$' -Because "type names should never be a stray bracket character"
+                        $typeName.Length | Should -BeGreaterThan 1 -Because "single-character type names indicate a parser regression in INPUTS/OUTPUTS"
+                    }
+                }
+
                 # It "does not define parameter position for functions with only one ParameterSet" {
                 #     if ($command.ParameterSets.Count -eq 1) {
                 #         $command.Parameters.Keys | Foreach-Object {
@@ -188,6 +213,34 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         if ($helpType -eq "Switch") { $helpType = "SwitchParameter" }
 
                         $helpType | Should -Be $codeType
+                    }
+
+                    It "preserves alias metadata in help" {
+                        # Regression guard for the PlatyPS 1.0 MAML round-trip dropping every
+                        # parameter's alias attribute. Compare reflected aliases against help.
+                        $codeAliases = @($parameterCode.Aliases | Sort-Object)
+                        if ($codeAliases.Count -eq 0) { return }
+
+                        $helpAliasField = ($parameterHelp.aliases -as [String]).Trim()
+                        $helpAliases = @()
+                        if ($helpAliasField -and $helpAliasField -ne 'None' -and $helpAliasField -ne 'none') {
+                            $helpAliases = @($helpAliasField -split '[,\s]+' | Where-Object { $_ } | Sort-Object)
+                        }
+
+                        $helpAliases | Should -Be $codeAliases -Because "every alias declared on the parameter must be reachable through Get-Help"
+                    }
+
+                    It "preserves pipeline input flag in help" {
+                        # Regression guard for the PlatyPS 1.0 round-trip dropping the
+                        # pipelineInput attribute (every parameter ended up with "false").
+                        $byValue = $parameterCode.ParameterSets.Values.ValueFromPipeline -contains $true
+                        $byProperty = $parameterCode.ParameterSets.Values.ValueFromPipelineByPropertyName -contains $true
+                        $codeAcceptsPipeline = $byValue -or $byProperty
+
+                        $helpField = ($parameterHelp.pipelineInput -as [String]).Trim()
+                        $helpAcceptsPipeline = $helpField -match '^[Tt]rue'
+
+                        $helpAcceptsPipeline | Should -Be $codeAcceptsPipeline -Because "Get-Help must reflect the actual pipeline-input behaviour declared by [Parameter()]"
                     }
                 }
 
