@@ -49,6 +49,8 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
 - Enhanced `Test-ServerResponse` to handle HTTP 503 (Service Unavailable) with retry, jitter on backoff delays, and 60-second max delay cap (#576)
 - Enhanced `Resolve-JiraError` to parse all Jira error response formats: `message`, `errorMessage`, `errorMessages` array, and `errors` dictionary (#576)
+- Hid internal `-Cmdlet` and `-_RetryCount` parameters on `Invoke-JiraMethod` from tab-completion via `[Parameter(DontShow)]` (follow-up to #582)
+- Hardened the `GenerateExternalHelp` build task with explicit command-count and file-existence assertions, warnings on multi-fence examples, and UTF-8-with-BOM encoding for about-topic files (follow-up to #582/#587)
 
 ### Internal
 
@@ -64,6 +66,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Fixed `Get-JiraIssue` prompting for input when piping JiraPS.Issue objects (added `ValueFromPipelineByPropertyName` to `-Key` parameter)
 - Fixed long-standing typo in `Invoke-JiraIssueTransition` where the transition-cast error path constructed its `ErrorRecord` against an undefined `$errorTargetError` variable instead of `$errorTarget`.
 - Fixed `ConvertTo-GetParameter` returning `'?'` for an empty hashtable; it now returns `''` again, matching its prior contract and preventing accidental trailing `?` in URLs.
+- Fixed PlatyPS 1.0 MAML regressions introduced in #582: every `<command:parameter>` was emitted with `aliases="none"` and `pipelineInput="false"`, `<dev:defaultValue>` was never written, `### [Type]` INPUTS/OUTPUTS headings collapsed to a literal `[` typename, and fenced example code was buried inside `maml:introduction` instead of `dev:code`/`dev:remarks`. `Get-Help` now correctly reports aliases, pipeline binding, default values, typed INPUTS/OUTPUTS, and split code/remarks for every example. Parameter aliases and pipeline flags are read back from the live module via reflection, so the source code is the single source of truth (no markdown drift).
 - Fixed `ConvertTo-JiraServerInfo` throwing when `BuildDate` or `ServerTime` are null in API response (now returns `$null` for these fields). **Soft breaking change**: Scripts accessing `.BuildDate.Year` or similar will throw `NullReferenceException` on Cloud instances that omit these fields.
 - Fixed `Invoke-PaginatedRequest` crashing with "Cannot bind argument to parameter 'InputObject'" when API returns null during pagination (now writes warning and returns partial results)
 - Fixed module load race condition when multiple processes import JiraPS simultaneously (gracefully handles concurrent config file creation)
