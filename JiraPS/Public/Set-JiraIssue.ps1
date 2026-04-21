@@ -1,6 +1,6 @@
 ﻿function Set-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsShouldProcess )]
+    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'AssignToUser' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNullOrEmpty()]
@@ -38,8 +38,26 @@
         [String[]]
         $FixVersion,
 
+        [Parameter( ParameterSetName = 'AssignToUser' )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
+                    throw "The -Assignee value cannot be a whitespace-only string. Use -Unassign to remove the assignee, or -UseDefaultAssignee for the project default."
+                }
+                $true
+            }
+        )]
         [Object]
         $Assignee,
+
+        [Parameter( ParameterSetName = 'Unassign' )]
+        [Switch]
+        $Unassign,
+
+        [Parameter( ParameterSetName = 'UseDefaultAssignee' )]
+        [Switch]
+        $UseDefaultAssignee,
 
         [Alias("Labels")]
         [String[]]
@@ -69,7 +87,8 @@
         $isCloud = Test-JiraCloudServer -Credential $Credential
 
         $fieldNames = $Fields.Keys
-        if (-not ($Summary -or $Description -or $Assignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
+        $assigneeProvided = $PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")
+        if (-not ($Summary -or $Description -or $assigneeProvided -or $Unassign -or $UseDefaultAssignee -or $Label -or $FixVersion -or $fieldNames -or $AddComment)) {
             $errorMessage = @{
                 Category         = "InvalidArgument"
                 CategoryActivity = "Validating Arguments"
@@ -79,40 +98,35 @@
             return
         }
 
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
-            if ($Assignee -eq 'Unassigned') {
-                <#
-                  #ToDo:Deprecated
-                  This behavior should be deprecated
-                #>
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] 'Unassigned' String passed. Issue will be assigned to no one."
-                $assigneeString = $null
-                $validAssignee = $true
-            }
-            elseif ($Assignee -eq "Default") {
-                <#
-                  #ToDo:Deprecated
-                  This behavior should be deprecated
-                #>
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] 'Default' String passed. Issue will be assigned to the default assignee."
-                $assigneeString = "-1"
+        if ($UseDefaultAssignee) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -UseDefaultAssignee passed. Issue will be assigned to the default assignee."
+            $assigneeString = "-1"
+            $validAssignee = $true
+        }
+        elseif ($Unassign) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Unassign passed. Issue will be unassigned."
+            $assigneeString = $null
+            $validAssignee = $true
+        }
+        elseif ($assigneeProvided) {
+            if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Exact -Credential $Credential) {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                 $validAssignee = $true
             }
             else {
-                if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Exact -Credential $Credential) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
-                    $validAssignee = $true
-                }
-                else {
-                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
-                    $errorId = 'ParameterValue.InvalidAssignee'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Assignee
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
+                $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                $errorId = 'ParameterValue.InvalidAssignee'
+                $errorCategory = 'InvalidArgument'
+                $errorTarget = $Assignee
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
             }
+        }
+
+        # Build the assignee payload once; inputs do not vary across piped issues.
+        if ($validAssignee) {
+            $assigneeProps = Resolve-JiraAssigneePayload -AssigneeObject $assigneeObj -AssigneeString $assigneeString -IsCloud $isCloud
         }
     }
 
@@ -141,10 +155,8 @@
             }
 
             if ($FixVersion) {
-                $fixVersionSet = [System.Collections.ArrayList]@()
-                foreach ($item in $FixVersion) {
-                    $null = $fixVersionSet.Add( @{ 'name' = $item } )
-                }
+                $fixVersionSet = [System.Collections.Generic.List[hashtable]]::new()
+                $FixVersion.ForEach({ $null = $fixVersionSet.Add(@{ 'name' = $_ }) })
                 $issueProps.update["fixVersions"] = @( @{ set = $fixVersionSet } )
             }
 
@@ -214,29 +226,6 @@
 
                     $id = [string]$field.Id
                     $issueProps.update[$id] = @(@{ 'set' = $value })
-                }
-            }
-
-            if ($validAssignee) {
-                if (($assigneeObj) -and ($assigneeObj.AccountId) -and ($isCloud)) {
-                    $assigneeProps = @{
-                        'accountId' = $assigneeObj.AccountId
-                    }
-                }
-                elseif ($isCloud -and -not $assigneeObj) {
-                    $assigneeProps = @{
-                        'accountId' = $null
-                    }
-                }
-                elseif ($assigneeString) {
-                    $assigneeProps = @{
-                        'name' = $assigneeString
-                    }
-                }
-                else {
-                    $assigneeProps = @{
-                        'name' = if ($assigneeObj) { $assigneeObj.Name } else { $null }
-                    }
                 }
             }
 

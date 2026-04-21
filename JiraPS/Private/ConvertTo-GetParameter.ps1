@@ -12,11 +12,8 @@
     process {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Making HTTP get parameter string out of a hashtable"
         Write-Verbose ($InputObject | Out-String)
-        [string]$parameters = "?"
-        foreach ($key in $InputObject.Keys) {
-            $value = $InputObject[$key]
-            $parameters += "$key=$($value)&"
-        }
-        $parameters -replace ".$"
+        if ($InputObject.Count -eq 0) { return '' }
+        $pairs = $InputObject.Keys.ForEach({ "$_=$($InputObject[$_])" })
+        "?" + ($pairs -join "&")
     }
 }

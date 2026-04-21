@@ -93,6 +93,7 @@ InModuleScope JiraPS {
                     @{ parameter = "Transition"; type = "Object" }
                     @{ parameter = "Comment"; type = "String" }
                     @{ parameter = "Assignee"; type = "String" }
+                    @{ parameter = "Unassign"; type = "Switch" }
                     @{ parameter = "Fields"; type = "Hashtable" }
                     @{ parameter = "Passthru"; type = "Switch" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
@@ -107,6 +108,30 @@ InModuleScope JiraPS {
                     @{ parameter = "Transition" }
                 ) {
                     $command | Should -HaveParameter $parameter -Mandatory
+                }
+            }
+
+            Context "Parameter Sets" {
+                It "defines parameter set '<setName>'" -TestCases @(
+                    @{ setName = 'AssignToUser' }
+                    @{ setName = 'Unassign' }
+                ) {
+                    param($setName)
+                    $command.ParameterSets.Name | Should -Contain $setName
+                }
+
+                It "uses 'AssignToUser' as the default parameter set" {
+                    $command.DefaultParameterSet | Should -Be 'AssignToUser'
+                }
+
+                It "binds '<parameter>' only to parameter set '<setName>'" -TestCases @(
+                    @{ parameter = 'Assignee'; setName = 'AssignToUser' }
+                    @{ parameter = 'Unassign'; setName = 'Unassign' }
+                ) {
+                    param($parameter, $setName)
+                    $sets = $command.Parameters.Item($parameter).ParameterSets.Keys
+                    $sets | Should -HaveCount 1
+                    $sets | Should -Contain $setName
                 }
             }
         }
@@ -174,14 +199,30 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "unassigns an issue if 'Unassigned' is passed to the -Assignee parameter" {
-                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee 'Unassigned' } | Should -Not -Throw
+                It "unassigns an issue when -Unassign switch is used" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Unassign } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
-                        $Body -like '*name*""*'
+                        $Body -match '"name":\s*null'
                     }
+                }
+
+                It "throws when -Assignee is given an empty string" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "" } | Should -Throw
+                }
+
+                It "throws when -Assignee is given a whitespace-only string" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "   " } | Should -Throw -ExpectedMessage "*whitespace-only*"
+                }
+
+                It "throws when -Assignee is given `$null" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee $null } | Should -Throw
+                }
+
+                It "throws when both -Unassign and -Assignee are given" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "powershell-user" -Unassign } | Should -Throw
                 }
 
                 It "adds a comment if provided to the -Comment parameter" {
@@ -250,6 +291,16 @@ InModuleScope JiraPS {
                     $Method -eq 'Post' -and
                     $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
                     $Body -like "*accountId*$testAccountId*"
+                }
+            }
+
+            It "Sends accountId:null when -Unassign on Cloud deployment" {
+                { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Unassign } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
+                    $Body -match '"accountId":\s*null'
                 }
             }
         }

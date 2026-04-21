@@ -31,12 +31,6 @@
         $IncludeInactive,
 
         [UInt32]
-        $StartIndex = 0,
-
-        [UInt32]
-        $MaxResults,
-
-        [UInt32]
         $PageSize = $script:DefaultPageSize,
 
         [Parameter()]
@@ -85,15 +79,6 @@
             # Paging
             ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
                 $parameter[$_] = $PSCmdlet.PagingParameters.$_
-            }
-            # Make `SupportsPaging` be backwards compatible
-            if ($StartIndex) {
-                Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-StartIndex' has been marked as deprecated. For more information, plase read the help."
-                $parameter["Skip"] = $StartIndex
-            }
-            if ($MaxResults) {
-                Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-MaxResults' has been marked as deprecated. For more information, plase read the help."
-                $parameter["First"] = $MaxResults
             }
 
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

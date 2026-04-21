@@ -72,7 +72,11 @@
             }
 
             if ($i.errors) {
-                $keys = (Get-Member -InputObject $i.errors | Where-Object -FilterScript { $_.MemberType -eq 'NoteProperty' }).Name
+                # Restrict to NoteProperty: $i.errors comes from JSON and its
+                # real error keys are NoteProperties. Any synthetic Script/
+                # AliasProperty attached upstream would otherwise be reported
+                # as a bogus server error.
+                $keys = $i.errors.PSObject.Properties.Where({ $_.MemberType -eq 'NoteProperty' }).Name
                 if ($keys.Count -gt 0) {
                     $hasErrors = $true
                     foreach ($k in $keys) {

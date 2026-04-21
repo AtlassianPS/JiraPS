@@ -82,7 +82,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$object]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$object [$object]"
 
-                    if ((Get-Member -InputObject $object).TypeName -eq 'JiraPS.Filter') {
+                    if ('JiraPS.Filter' -in $object.PSObject.TypeNames) {
                         $thisId = $object.ID
                     }
                     else {
