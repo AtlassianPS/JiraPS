@@ -1,6 +1,6 @@
 ﻿function New-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsShouldProcess )]
+    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'AssignToUser' )]
     param(
         [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
         [String]
@@ -34,6 +34,23 @@
         )]
         [String]
         $Reporter,
+
+        [Parameter( ParameterSetName = 'AssignToUser', ValueFromPipelineByPropertyName )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
+                    throw "The -Assignee value cannot be a whitespace-only string. Use -Unassign to create the issue with no assignee, or omit -Assignee to let Jira apply the project default."
+                }
+                $true
+            }
+        )]
+        [Object]
+        $Assignee,
+
+        [Parameter( ParameterSetName = 'Unassign' )]
+        [Switch]
+        $Unassign,
 
         [Parameter( ValueFromPipelineByPropertyName )]
         [Alias("Labels")]
@@ -121,6 +138,31 @@
             }
 
             $requestBody["reporter"] = Resolve-JiraUserPayload -UserObject $reporterUser -IsCloud $isCloud
+        }
+
+        if ($Unassign) {
+            # When `assignee` is required by the project's createmeta, Jira
+            # will reject the unassign payload server-side. We deliberately
+            # do not short-circuit here: the required-field check above
+            # already runs first, and the resulting Jira error is the
+            # source of truth for "is unassign permitted on this project".
+            $requestBody["assignee"] = Resolve-JiraUserPayload -UserObject $null -IsCloud $isCloud
+        }
+        elseif ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
+            if ($assigneeUser = Resolve-JiraUser -InputObject $Assignee -Exact -Credential $Credential) {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Assignee resolved (name=[$($assigneeUser.Name)])"
+            }
+            else {
+                $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                $errorId = 'ParameterValue.InvalidAssignee'
+                $errorCategory = 'InvalidArgument'
+                $errorTarget = $Assignee
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
+            }
+
+            $requestBody["assignee"] = Resolve-JiraUserPayload -UserObject $assigneeUser -IsCloud $isCloud
         }
 
         if ($Parent) {

@@ -356,5 +356,167 @@ InModuleScope JiraPS {
                 }
             }
         }
+
+        Describe "Assignee handling" {
+            BeforeAll {
+                # Createmeta without Assignee; tests assert assignee shape
+                # without forcing the required-field check to fire.
+                Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
+                    @(
+                        @{Name = 'Project'; ID = 'Project'; Required = $true }
+                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
+                        @{Name = 'Priority'; ID = 'Priority'; Required = $true }
+                        @{Name = 'Summary'; ID = 'Summary'; Required = $true }
+                        @{Name = 'Description'; ID = 'Description'; Required = $true }
+                        @{Name = 'Reporter'; ID = 'Reporter'; Required = $true }
+                    )
+                }
+            }
+
+            Context "Server / Data Center" {
+                BeforeAll {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
+                    Mock Resolve-JiraUser -ModuleName JiraPS {
+                        $object = [PSCustomObject]@{ 'Name' = $InputObject }
+                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        return $object
+                    }
+                }
+
+                It "sends the assignee 'name' field on Server when -Assignee is used" {
+                    { New-JiraIssue @newParams -Assignee 'alice' } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                        $Method -eq 'Post' -and
+                        $Body -match '"assignee"\s*:\s*\{\s*"name"\s*:\s*"alice"\s*\}'
+                    }
+                }
+
+                It "sends 'name: null' on Server when -Unassign is used" {
+                    # Server/DC unassign payload differs from Cloud (accountId:null);
+                    # the helper takes care of the dispatch, this asserts the wire shape.
+                    { New-JiraIssue @newParams -Unassign } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                        $Method -eq 'Post' -and
+                        $Body -match '"assignee"\s*:\s*\{\s*"name"\s*:\s*null\s*\}'
+                    }
+                }
+            }
+
+            Context "Cloud" {
+                BeforeAll {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                    Mock Resolve-JiraUser -ModuleName JiraPS {
+                        $object = [PSCustomObject]@{
+                            'Name'      = $InputObject
+                            'AccountId' = '5b10ac8d82e05b22cc7d4ef5'
+                        }
+                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        return $object
+                    }
+                }
+
+                It "sends the 'accountId' field on Cloud when -Assignee is used" {
+                    { New-JiraIssue @newParams -Assignee 'alice' } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                        # Anchor the assignee object to its braces so we can
+                        # prove the payload is exactly {accountId: "..."}
+                        # with no other properties (e.g. a stray "name").
+                        $Method -eq 'Post' -and
+                        $Body -match '"assignee"\s*:\s*\{\s*"accountId"\s*:\s*"5b10ac8d82e05b22cc7d4ef5"\s*\}' -and
+                        $Body -notmatch '"assignee"\s*:\s*\{[^}]*"name"'
+                    }
+                }
+
+                It "sends 'accountId: null' on Cloud when -Unassign is used" {
+                    { New-JiraIssue @newParams -Unassign } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                        $Method -eq 'Post' -and
+                        $Body -match '"assignee"\s*:\s*\{\s*"accountId"\s*:\s*null\s*\}' -and
+                        $Body -notmatch '"assignee"\s*:\s*\{[^}]*"name"'
+                    }
+                }
+            }
+
+            Context "Default behavior (no assignee parameters)" {
+                BeforeAll {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+                }
+
+                It "omits the assignee field entirely when neither -Assignee nor -Unassign is provided" {
+                    # Jira applies the project's default assignee when 'assignee'
+                    # is missing from the create payload — this is why we don't
+                    # expose a -UseDefaultAssignee switch on New-JiraIssue.
+                    { New-JiraIssue @newParams } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                        $Method -eq 'Post' -and
+                        $Body -notmatch '"assignee"'
+                    }
+                }
+            }
+
+            Context "Validation" {
+                BeforeAll {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+                }
+
+                It "rejects -Assignee + -Unassign at parameter binding (mutually exclusive)" {
+                    { New-JiraIssue @newParams -Assignee 'alice' -Unassign } | Should -Throw
+                }
+
+                It "rejects -Assignee '' at parameter binding" {
+                    { New-JiraIssue @newParams -Assignee '' } | Should -Throw
+                }
+
+                It "throws a friendly error when -Assignee is whitespace-only" {
+                    { New-JiraIssue @newParams -Assignee '   ' } |
+                        Should -Throw -ExpectedMessage "*whitespace-only string*"
+                }
+
+                It "throws when Resolve-JiraUser returns nothing for -Assignee" {
+                    Mock Resolve-JiraUser -ModuleName JiraPS { $null }
+
+                    { New-JiraIssue @newParams -Assignee 'ghost' } | Should -Throw
+                }
+            }
+
+            Context "Accepts JiraPS.User objects via -Assignee" {
+                BeforeAll {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                    # Resolve-JiraUser will pass a JiraPS.User-typed input through
+                    # unchanged; this mock returns a known object so the helper
+                    # has a stable AccountId to dispatch on.
+                    Mock Resolve-JiraUser -ModuleName JiraPS {
+                        $object = [PSCustomObject]@{
+                            'Name'      = 'alice'
+                            'AccountId' = 'aaaa-bbbb-cccc'
+                        }
+                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        return $object
+                    }
+                }
+
+                It "accepts a JiraPS.User object via -Assignee and extracts its AccountId" {
+                    $user = [PSCustomObject]@{
+                        'Name'      = 'alice'
+                        'AccountId' = 'aaaa-bbbb-cccc'
+                    }
+                    $user.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+
+                    { New-JiraIssue @newParams -Assignee $user } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                        $Body -match '"accountId"\s*:\s*"aaaa-bbbb-cccc"'
+                    }
+                }
+            }
+        }
     }
 }

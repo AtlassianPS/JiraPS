@@ -15,11 +15,22 @@ Creates a new issue in JIRA
 
 ## SYNTAX
 
+### AssignToUser (Default)
+
 ```powershell
 New-JiraIssue [-Project] <String> [-IssueType] <String> [-Summary] <String> [[-Priority] <Int32>]
- [[-Description] <String>] [[-Reporter] <String>] [[-Label] <String[]>] [[-Components] <String[]>] [[-Parent] <String>]
- [[-FixVersion] <String[]>] [[-Fields] <PSCustomObject>] [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+ [[-Description] <String>] [[-Reporter] <String>] [-Assignee <Object>] [[-Label] <String[]>]
+ [[-Components] <String[]>] [[-Parent] <String>] [[-FixVersion] <String[]>] [[-Fields] <PSCustomObject>]
+ [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+### Unassign
+
+```powershell
+New-JiraIssue [-Project] <String> [-IssueType] <String> [-Summary] <String> [[-Priority] <Int32>]
+ [[-Description] <String>] [[-Reporter] <String>] [-Unassign] [[-Label] <String[]>]
+ [[-Components] <String[]>] [[-Parent] <String>] [[-FixVersion] <String[]>] [[-Fields] <PSCustomObject>]
+ [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -91,6 +102,18 @@ Read more about splatting: about_Splatting
 import-csv "./data.csv" | New-JiraIssue
 ```
 This example illuetrates how to prepare multiple new stories and pipe them to be created all at once.
+
+### EXAMPLE 5
+
+```powershell
+New-JiraIssue -Project TEST -IssueType Bug -Summary 'Triage me' -Assignee 'alice'
+New-JiraIssue -Project TEST -IssueType Bug -Summary 'Backlog item' -Unassign
+New-JiraIssue -Project TEST -IssueType Bug -Summary 'Default flow'
+```
+
+The first call assigns the new issue to `alice`.
+The second call creates the issue with no assignee (the project's default is bypassed).
+The third call omits both parameters; Jira applies the project's default assignee, if any.
 
 ## PARAMETERS
 
@@ -178,7 +201,8 @@ Accept wildcard characters: False
 
 User that shall be registered as the reporter.
 
-If left empty, the currently authenticated user will be used.
+If omitted, Jira will apply the default reporter (typically the currently authenticated user).
+Empty, `$null`, and whitespace-only values are rejected at parameter binding.
 
 ```yaml
 Type: String
@@ -188,6 +212,45 @@ Aliases:
 Required: False
 Position: 6
 Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -Assignee
+
+User to assign the new issue to.
+Accepts a username (Jira Server / Data Center), an `accountId` (Jira Cloud), or a `JiraPS.User` object.
+
+If omitted, Jira will apply the project's default assignee — there is no separate `-UseDefaultAssignee` switch
+on this cmdlet because the create endpoint already does the right thing when the field is missing.
+
+To create an issue with no assignee, use `-Unassign` instead.
+
+```yaml
+Type: Object
+Parameter Sets: AssignToUser
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -Unassign
+
+Create the issue with no assignee, even if the project defines a default assignee.
+Mutually exclusive with `-Assignee`.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: Unassign
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
