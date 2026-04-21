@@ -1,4 +1,22 @@
-﻿function ConvertTo-AtlassianDocumentFormat {
+﻿# Pre-compiled regex patterns for performance (compiled once at module load)
+$script:AdfRegex = @{
+    Heading        = [regex]::new('^(#{1,6})\s+(.+)$', 'Compiled')
+    CodeBlockStart = [regex]::new('^```(\w*)$', 'Compiled')
+    CodeBlockEnd   = [regex]::new('^```+$', 'Compiled')
+    BlockImage     = [regex]::new('^!\[(?<alt>[^\]]*)\]\((?<url>[^\)]+)\)\s*$', 'Compiled')
+    Blockquote     = [regex]::new('^>\s*(.*)$', 'Compiled')
+    TableLine      = [regex]::new('^\|', 'Compiled')
+    TableSeparator = [regex]::new('^\|[-:\s|]+\|$', 'Compiled')
+    TaskListStart  = [regex]::new('^\*\s+\[[ x]\]\s', 'Compiled')
+    TaskListItem   = [regex]::new('^\*\s+\[([ x])\]\s+(.+)$', 'Compiled')
+    BulletList     = [regex]::new('^\*\s+(?!\[[ x]\])(.+)$', 'Compiled')
+    OrderedList    = [regex]::new('^\d+\.\s+(.+)$', 'Compiled')
+    BlockElement   = [regex]::new('^(#{1,6}\s|```|!\[|>\s*|\||\*\s|\d+\.\s)', 'Compiled')
+    HardBreak      = [regex]::new('  $', 'Compiled')
+    InlineMarks    = [regex]::new('\*\*\*(?<biText>[^\*\n]+)\*\*\*|\*\*_(?<beText>[^_\n]+)_\*\*|_\*\*(?<ebText>[^\*\n]+)\*\*_|\[(?<lText>[^\]]+)\]\((?<lUrl>[^\)]+)\)|\*\*(?<bText>[^\*\n]+)\*\*|_(?<eText>[^_\n]+)_|~~(?<sText>[^~\n]+)~~|`(?<cText>[^`\n]+)`', 'Compiled')
+}
+
+function ConvertTo-AtlassianDocumentFormat {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
@@ -48,22 +66,22 @@ function script:ConvertTo-AdfContent {
         $line = $Lines[$i]
 
         # ── Heading ──────────────────────────────────────────────────────────
-        if ($line -match '^(#{1,6})\s+(.+)$') {
+        if (($m = $script:AdfRegex.Heading.Match($line)).Success) {
             $nodes.Add(@{
                     type    = 'heading'
-                    attrs   = @{ level = $matches[1].Length }
-                    content = @(ConvertTo-AdfInline $matches[2])
+                    attrs   = @{ level = $m.Groups[1].Value.Length }
+                    content = @(ConvertTo-AdfInline $m.Groups[2].Value)
                 })
             $i++
             continue
         }
 
         # ── Fenced code block ────────────────────────────────────────────────
-        if ($line -match '^```(\w*)$') {
-            $lang = $matches[1]
+        if (($m = $script:AdfRegex.CodeBlockStart.Match($line)).Success) {
+            $lang = $m.Groups[1].Value
             $codeLines = [System.Collections.Generic.List[string]]::new()
             $i++
-            while ($i -lt $Lines.Count -and $Lines[$i] -notmatch '^```+$') {
+            while ($i -lt $Lines.Count -and -not $script:AdfRegex.CodeBlockEnd.IsMatch($Lines[$i])) {
                 $codeLines.Add($Lines[$i])
                 $i++
             }
@@ -77,13 +95,13 @@ function script:ConvertTo-AdfContent {
         }
 
         # ── Block image ───────────────────────────────────────────────────────
-        if ($line -match '^!\[(?<alt>[^\]]*)\]\((?<url>[^\)]+)\)\s*$') {
+        if (($m = $script:AdfRegex.BlockImage.Match($line)).Success) {
             $nodes.Add(@{
                     type    = 'mediaSingle'
                     attrs   = @{ layout = 'align-start' }
                     content = @(@{
                             type  = 'media'
-                            attrs = @{ type = 'external'; url = $matches['url']; alt = $matches['alt'] }
+                            attrs = @{ type = 'external'; url = $m.Groups['url'].Value; alt = $m.Groups['alt'].Value }
                         })
                 })
             $i++
@@ -91,12 +109,12 @@ function script:ConvertTo-AdfContent {
         }
 
         # ── Blockquote ────────────────────────────────────────────────────────
-        if ($line -match '^>\s*(.*)$') {
+        if (($m = $script:AdfRegex.Blockquote.Match($line)).Success) {
             $quoteParas = [System.Collections.Generic.List[hashtable]]::new()
-            while ($i -lt $Lines.Count -and $Lines[$i] -match '^>\s*(.*)$') {
+            while ($i -lt $Lines.Count -and ($m = $script:AdfRegex.Blockquote.Match($Lines[$i])).Success) {
                 $quoteParas.Add(@{
                         type    = 'paragraph'
-                        content = @(ConvertTo-AdfInline $matches[1])
+                        content = @(ConvertTo-AdfInline $m.Groups[1].Value)
                     })
                 $i++
             }
@@ -105,9 +123,9 @@ function script:ConvertTo-AdfContent {
         }
 
         # ── Table ─────────────────────────────────────────────────────────────
-        if ($line -match '^\|') {
+        if ($script:AdfRegex.TableLine.IsMatch($line)) {
             $tableLines = [System.Collections.Generic.List[string]]::new()
-            while ($i -lt $Lines.Count -and $Lines[$i] -match '^\|') {
+            while ($i -lt $Lines.Count -and $script:AdfRegex.TableLine.IsMatch($Lines[$i])) {
                 $tableLines.Add($Lines[$i])
                 $i++
             }
@@ -117,13 +135,13 @@ function script:ConvertTo-AdfContent {
         }
 
         # ── Task list (must be tested before bullet list) ────────────────────
-        if ($line -match '^\*\s+\[[ x]\]\s') {
+        if ($script:AdfRegex.TaskListStart.IsMatch($line)) {
             $taskItems = [System.Collections.Generic.List[hashtable]]::new()
-            while ($i -lt $Lines.Count -and $Lines[$i] -match '^\*\s+\[([ x])\]\s+(.+)$') {
-                $state = if ($matches[1] -eq 'x') { 'DONE' } else { 'TODO' }
+            while ($i -lt $Lines.Count -and ($m = $script:AdfRegex.TaskListItem.Match($Lines[$i])).Success) {
+                $state = if ($m.Groups[1].Value -eq 'x') { 'DONE' } else { 'TODO' }
                 $taskItems.Add(@{
                         type    = 'taskItem'
-                        content = @(ConvertTo-AdfInline $matches[2])
+                        content = @(ConvertTo-AdfInline $m.Groups[2].Value)
                         attrs   = @{ localId = [guid]::NewGuid().ToString(); state = $state }
                     })
                 $i++
@@ -137,7 +155,7 @@ function script:ConvertTo-AdfContent {
         }
 
         # ── Bullet list (with 2-level nesting support) ─────────────────────────
-        if ($line -match '^\*\s+(?!\[[ x]\])(.+)$') {
+        if ($script:AdfRegex.BulletList.IsMatch($line)) {
             $listResult = ConvertTo-AdfList -Lines $Lines -StartIndex $i -ListType 'bullet' -IndentLevel 0
             $nodes.Add($listResult.Node)
             $i = $listResult.NextIndex
@@ -145,7 +163,7 @@ function script:ConvertTo-AdfContent {
         }
 
         # ── Ordered list (with 2-level nesting support) ────────────────────────
-        if ($line -match '^\d+\.\s+(.+)$') {
+        if ($script:AdfRegex.OrderedList.IsMatch($line)) {
             $listResult = ConvertTo-AdfList -Lines $Lines -StartIndex $i -ListType 'ordered' -IndentLevel 0
             $nodes.Add($listResult.Node)
             $i = $listResult.NextIndex
@@ -166,10 +184,10 @@ function script:ConvertTo-AdfContent {
             # Skip if we hit a blank line (end of paragraph)
             if ([string]::IsNullOrWhiteSpace($currentLine)) { break }
             # Skip if we hit a block-level element
-            if ($currentLine -match '^(#{1,6}\s|```|!\[|>\s*|\||\*\s|\d+\.\s)') { break }
+            if ($script:AdfRegex.BlockElement.IsMatch($currentLine)) { break }
 
-            $endsWithHardBreak = $currentLine -match '  $'
-            $trimmedLine = $currentLine -replace '  $', ''
+            $endsWithHardBreak = $script:AdfRegex.HardBreak.IsMatch($currentLine)
+            $trimmedLine = $script:AdfRegex.HardBreak.Replace($currentLine, '')
 
             foreach ($inlineNode in (ConvertTo-AdfInline $trimmedLine)) {
                 $paraContent.Add($inlineNode)
@@ -205,15 +223,13 @@ function script:ConvertTo-AdfInline {
 
     $nodes = [System.Collections.Generic.List[hashtable]]::new()
 
-    # Combined regex (single-quoted — no PS escape processing on backticks)
     # Priority order: combined marks → link → bold → italic → strikethrough → code
     # biText = ***bold italic*** (3 asterisks)
     # beText = **_bold italic_** (bold wrapping italic)
     # ebText = _**bold italic**_ (italic wrapping bold)
-    $pattern = '\*\*\*(?<biText>[^\*\n]+)\*\*\*|\*\*_(?<beText>[^_\n]+)_\*\*|_\*\*(?<ebText>[^\*\n]+)\*\*_|\[(?<lText>[^\]]+)\]\((?<lUrl>[^\)]+)\)|\*\*(?<bText>[^\*\n]+)\*\*|_(?<eText>[^_\n]+)_|~~(?<sText>[^~\n]+)~~|`(?<cText>[^`\n]+)`'
 
     $lastEnd = 0
-    foreach ($m in [regex]::Matches($Text, $pattern)) {
+    foreach ($m in $script:AdfRegex.InlineMarks.Matches($Text)) {
         # Plain text before this match
         if ($m.Index -gt $lastEnd) {
             $nodes.Add(@{ type = 'text'; text = $Text.Substring($lastEnd, $m.Index - $lastEnd) })
@@ -276,7 +292,7 @@ function script:ConvertTo-AdfTable {
 
     foreach ($tLine in $TableLines) {
         # Skip separator rows: | --- | :---: | ---: | (with or without spaces)
-        if ($tLine -match '^\|[-:\s|]+\|$') { continue }
+        if ($script:AdfRegex.TableSeparator.IsMatch($tLine)) { continue }
 
         # Split on | and trim — the leading/trailing | produce empty strings, filter those out
         $cells = @($tLine -split '\|' |

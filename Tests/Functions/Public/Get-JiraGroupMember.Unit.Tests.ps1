@@ -83,8 +83,8 @@ InModuleScope JiraPS {
                 } -Exactly 1
             }
 
-            It "Supports the -StartIndex parameters to page through search results" {
-                { Get-JiraGroupMember -Group testgroup -StartIndex 10 } | Should -Not -Throw
+            It "Supports the -Skip parameter to page through search results" {
+                { Get-JiraGroupMember -Group testgroup -Skip 10 } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and
@@ -93,8 +93,8 @@ InModuleScope JiraPS {
                 } -Exactly 1
             }
 
-            It "Supports the -MaxResults parameters to page through search results" {
-                { Get-JiraGroupMember -Group testgroup -MaxResults 50 } | Should -Not -Throw
+            It "Supports the -First parameter to limit search results" {
+                { Get-JiraGroupMember -Group testgroup -First 50 } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and

@@ -54,8 +54,7 @@
                 # This should only be called if Property was not supplied and this is the first object in the InputObject array.
                 if ($Property -and $Property -eq '*') {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding all properties from object [$i]"
-                    $allProperties = Get-Member -InputObject $i -MemberType '*Property'
-                    foreach ($a in $allProperties) {
+                    foreach ($a in $i.PSObject.Properties) {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding header [$($a.Name)]"
                         [void] $headers.Add($a.Name)
                     }
@@ -75,8 +74,7 @@
                     }
                     else {
                         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] No default format data exists for object [$i] (type=[$($i.GetType())]). All properties will be used."
-                        $allProperties = Get-Member -InputObject $i -MemberType '*Property'
-                        foreach ($a in $allProperties) {
+                        foreach ($a in $i.PSObject.Properties) {
                             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding header [$($a.Name)]"
                             [void] $headers.Add($a.Name)
                         }

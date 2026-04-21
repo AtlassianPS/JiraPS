@@ -16,8 +16,9 @@ Returns members of a given group in JIRA
 ## SYNTAX
 
 ```powershell
-Get-JiraGroupMember [-Group] <Object[]> [[-IncludeInactive] <Switch>] [[-StartIndex] <UInt32>] [[-MaxResults] <UInt32>]
- [[PageSize] <UInt32>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [[-Credential] <PSCredential>] [<CommonParameters>]
+Get-JiraGroupMember [-Group] <Object[]> [-IncludeInactive] [-PageSize <UInt32>]
+ [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -95,48 +96,6 @@ Aliases:
 Required: False
 Position: Named
 Default value: 25
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -StartIndex
-
-> NOTE: This parameter has been marked as deprecated and will be removed with the next major release.
-> Use `-Skip` instead.
-
-Index of the first user to return.
-
-This can be used to "page" through users in a large group or a slow connection.
-
-```yaml
-Type: UInt32
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 2
-Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -MaxResults
-
-> NOTE: This parameter has been marked as deprecated and will be removed with the next major release.
-> Use `-First` instead.
-
-Maximum number of results to return.
-
-By default, all users will be returned.
-
-```yaml
-Type: UInt32
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 3
-Default value: 0
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -229,8 +188,8 @@ The group to query for members
 By default, this will return all active users who are members of the given group.
 For large groups, this can take quite some time.
 
-To limit the number of group members returned, use the MaxResults parameter.
-You can also combine this with the `-StartIndex` parameter to "page" through results.
+To limit the number of group members returned, use the `-First` parameter.
+You can also combine this with the `-Skip` parameter to "page" through results.
 
 This function does not return inactive users.
 This appears to be a limitation of JIRA's REST API.

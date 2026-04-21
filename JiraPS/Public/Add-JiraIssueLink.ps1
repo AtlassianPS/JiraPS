@@ -31,12 +31,12 @@
 
         [Parameter( Mandatory )]
         [ValidateScript({
-                $objectProperties = Get-Member -InputObject $_ -MemberType *Property
+                $propertyNames = $_.PSObject.Properties.Name
                 if (
-                    ($objectProperties.Name -contains "type") -and
+                    ($propertyNames -contains "type") -and
                     (
-                        ($objectProperties.Name -contains "outwardIssue") -or
-                        ($objectProperties.Name -contains "inwardIssue")
+                        ($propertyNames -contains "outwardIssue") -or
+                        ($propertyNames -contains "inwardIssue")
                     )
                 ) {
                     return $true

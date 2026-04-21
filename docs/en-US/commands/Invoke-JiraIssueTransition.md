@@ -15,9 +15,18 @@ Performs an issue transition on a JIRA issue changing it's status
 
 ## SYNTAX
 
+### AssignToUser (Default)
+
 ```powershell
-Invoke-JiraIssueTransition [-Issue] <Object> [-Transition] <Object> [[-Fields] <PSCustomObject>]
- [[-Assignee] <Object>] [[-Comment] <String>] [[-Credential] <PSCredential>] [-Passthru] [<CommonParameters>]
+Invoke-JiraIssueTransition [-Issue] <Object> [-Transition] <Object> [-Fields <PSCustomObject>]
+ [-Assignee <Object>] [-Comment <String>] [-Credential <PSCredential>] [-Passthru] [<CommonParameters>]
+```
+
+### Unassign
+
+```powershell
+Invoke-JiraIssueTransition [-Issue] <Object> [-Transition] <Object> [-Fields <PSCustomObject>]
+ [-Unassign] [-Comment <String>] [-Credential <PSCredential>] [-Passthru] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -143,17 +152,37 @@ Accept wildcard characters: False
 
 New assignee of the issue.
 
-Enter `Unassigned` to remove the assignee of the issue.
+Use `-Unassign` to remove the assignee.
+Empty strings and `$null` values are not accepted.
+
 Assignee field must be configured to appear on the transition screen to use this parameter.
 
 ```yaml
 Type: Object
-Parameter Sets: (All)
+Parameter Sets: AssignToUser
 Aliases:
 
 Required: False
-Position: 4
+Position: Named
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Unassign
+
+Remove the current assignee of the issue as part of the transition.
+
+Assignee field must be configured to appear on the transition screen to use this parameter.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: Unassign
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

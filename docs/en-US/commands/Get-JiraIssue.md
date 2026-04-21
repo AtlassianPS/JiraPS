@@ -32,17 +32,17 @@ Get-JiraIssue [-InputObject] <Object[]> [-Fields <String[]>] [-IncludeTotalCount
 ### ByJQL
 
 ```powershell
-Get-JiraIssue -Query <String> [-Fields <String[]>] [-StartIndex <UInt32>]
-[-MaxResults <UInt32>] [[PageSize] <UInt32>] [-IncludeTotalCount] [-Skip <UInt64>]
- [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue -Query <String> [-Fields <String[]>] [-PageSize <UInt32>]
+ [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
+ [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ### ByFilter
 
 ```powershell
-Get-JiraIssue -Filter <Object> [-Fields <String[]>][-StartIndex <UInt32>]
- [-MaxResults <UInt32>] [[PageSize] <UInt32>] [-IncludeTotalCount] [-Skip <UInt64>]
- [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssue -Filter <Object> [-Fields <String[]>] [-PageSize <UInt32>]
+ [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
+ [-Credential <PSCredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -221,53 +221,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -StartIndex
-
-> NOTE: This parameter has been marked as deprecated and will be removed with the next major release.
-> Use `-Skip` instead.
-
-Index of the first issue to return.
-
-This can be used to "page" through issues in a large collection or a slow connection.
-
-```yaml
-Type: UInt32
-Parameter Sets: ByJQL, ByFilter
-Aliases:
-
-Required: False
-Position: Named
-Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -MaxResults
-
-> NOTE: This parameter has been marked as deprecated and will be removed with the next major release.
-> Use `-First` instead.
-
-Maximum number of results to return.
-
-By default, all issues will be returned.
-
-```yaml
-Type: UInt32
-Parameter Sets: ByJQL, ByFilter
-Aliases:
-
-Required: False
-Position: Named
-Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### -PageSize
 
 How many issues should be returned per call to JIRA.
-
-This parameter only has effect if `-MaxResults` is not provided or set to 0.
 
 Normally, you should not need to adjust this parameter,
 but if the REST calls take a long time,
