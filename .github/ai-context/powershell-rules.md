@@ -85,6 +85,17 @@ param(
 )
 ```
 
+### Help & Comments in Public Function Files
+
+Files in `JiraPS/Public/` rely **exclusively** on PlatyPS-generated external help (`docs/en-US/commands/*.md` → `JiraPS-help.xml`). Therefore:
+
+- **No comment-based help.** Do not add `<# .SYNOPSIS ... #>`, `.DESCRIPTION`, `.EXAMPLE`, `.PARAMETER`, `.LINK`, `.NOTES`, `.INPUTS`, or `.OUTPUTS` blocks to public function files.
+- **No parameter comments.** Do not add descriptive comments above or beside parameter declarations. Parameter docs belong in the corresponding `docs/en-US/commands/<FunctionName>.md` file.
+- **Single help directive only.** The first line inside the function body is `# .ExternalHelp ..\JiraPS-help.xml` — nothing else above or below `param()` describes the cmdlet.
+- **`#ToDo:Category` is the exception.** Tracked technical-debt markers (with their context block) may appear next to parameters; nothing else.
+
+When updating a public function's signature, also update `docs/en-US/commands/<FunctionName>.md` (or regenerate it with PlatyPS) so the external help stays in sync.
+
 ### Error Handling
 
 ```powershell

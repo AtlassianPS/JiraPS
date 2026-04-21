@@ -170,8 +170,8 @@ Release/                 # Build output (gitignored)
 -   **Verb-Noun naming**: Follow approved PowerShell verbs (`Get-`, `Set-`, `New-`, `Remove-`, etc.)
 -   **PascalCase**: For function names, parameters
 -   **Naming as documentation**: Variables are nouns (`$issue`, `$filter`), functions are verbs (`Get-JiraIssue`). Names should be self-explanatory — avoid abbreviations unless universally understood.
--   **Comment-Based Help**: Use `.SYNOPSIS`, `.DESCRIPTION`, `.EXAMPLE`, `.LINK` or external help XML
--   **External Help**: Generated with PlatyPS from Markdown in `docs/en-US/commands/`
+-   **External Help Only**: Public functions use PlatyPS-generated external help (Markdown sources in `docs/en-US/commands/`). Do **not** add comment-based help (`.SYNOPSIS`, `.DESCRIPTION`, `.EXAMPLE`, `.PARAMETER`, `.LINK`, etc.) to files in `JiraPS/Public/`. Public function files contain a single `# .ExternalHelp ..\JiraPS-help.xml` directive at the top of the function body — nothing more.
+-   **No Parameter Comments**: Do **not** add descriptive comments above or beside parameters in public functions. Parameter documentation lives in `docs/en-US/commands/*.md` and is rendered by PlatyPS. The only allowed inline comments on parameters are `#ToDo:Category` markers (with their context block) for tracked technical debt.
 -   **Advanced Functions**: Use `[CmdletBinding()]` and parameter validation attributes
 -   **Error Handling**: Prefer `-ErrorAction` parameter support and meaningful error messages
 
@@ -225,7 +225,15 @@ foreach ($item in $items) {          # Loop through items
 
 **Runtime documentation:** Use `Write-Verbose` and `Write-Debug` for operational insight instead of inline comments.
 
-**Help documentation:** Use external help (`.ExternalHelp`) and `docs/en-US/commands/*.md` for user-facing documentation, not inline comment-based help.
+**Help documentation (public functions):** All cmdlet help — synopsis, description, examples, parameter descriptions, links — lives in `docs/en-US/commands/*.md` and is compiled by PlatyPS into the external help XML. Files in `JiraPS/Public/` MUST NOT contain:
+
+-   Comment-based help blocks (`<# .SYNOPSIS ... #>`, `.DESCRIPTION`, `.EXAMPLE`, `.PARAMETER`, `.LINK`, `.NOTES`, `.INPUTS`, `.OUTPUTS`)
+-   Descriptive comments above or beside parameter declarations
+-   Doc-style banners or summaries above the `function` keyword
+
+The only header line in a public function is the `# .ExternalHelp ..\JiraPS-help.xml` directive that wires the function to the generated XML help. If a parameter needs better documentation, update its entry in `docs/en-US/commands/<FunctionName>.md`, not the source file.
+
+Private functions in `JiraPS/Private/` may use minimal comment-based help (`.SYNOPSIS` only) when truly helpful, but prefer self-describing names.
 
 **TODO format:** Use `#ToDo:Category` with a descriptive comment on the next line:
 
