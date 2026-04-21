@@ -286,5 +286,75 @@ InModuleScope JiraPS {
                 }
             }
         }
+
+        Describe "Reporter resolution" {
+            Context "Server / Data Center" {
+                BeforeAll {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
+                    Mock Resolve-JiraUser -ModuleName JiraPS {
+                        $object = [PSCustomObject]@{ 'Name' = 'testUsername' }
+                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        return $object
+                    }
+                }
+
+                It "resolves the -Reporter via Resolve-JiraUser before sending it" {
+                    # Server used to skip resolution and forward the raw string,
+                    # which silently accepted typos until the API rejected them.
+                    { New-JiraIssue @newParams } | Should -Not -Throw
+
+                    Should -Invoke Resolve-JiraUser -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                        $InputObject -eq 'testUsername'
+                    }
+                }
+
+                It "uses the 'name' field (not 'accountId') for the reporter on Server" {
+                    { New-JiraIssue @newParams } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                        $Method -eq 'Post' -and
+                        $Body -match '"name"\s*:\s*"testUsername"' -and
+                        $Body -notmatch 'accountId'
+                    }
+                }
+            }
+
+            Context "Validation" {
+                BeforeAll {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
+                    # $newParams already contains Reporter='testUsername', so
+                    # splatting it AND passing -Reporter explicitly trips the
+                    # "specified more than once" parameter binder on Windows
+                    # PowerShell before the validators get a chance to run.
+                    # These tests need a Reporter-free splat.
+                    $script:noReporterParams = $newParams.Clone()
+                    $noReporterParams.Remove('Reporter')
+                }
+
+                It "rejects -Reporter '' at parameter binding" {
+                    { New-JiraIssue @noReporterParams -Reporter '' } | Should -Throw
+                }
+
+                It "rejects -Reporter `$null at parameter binding" {
+                    { New-JiraIssue @noReporterParams -Reporter $null } | Should -Throw
+                }
+
+                It "throws a friendly error when -Reporter is whitespace-only" {
+                    # Sending {name: ""} to Jira's create endpoint produces an
+                    # opaque server error; rejecting at the cmdlet boundary is
+                    # both clearer and consistent with Set-JiraIssue's contract.
+                    { New-JiraIssue @noReporterParams -Reporter '   ' } |
+                        Should -Throw -ExpectedMessage "*whitespace-only string*"
+                }
+
+                It "throws a friendly error when Resolve-JiraUser returns nothing" {
+                    Mock Resolve-JiraUser -ModuleName JiraPS { $null }
+
+                    { New-JiraIssue @newParams } | Should -Throw
+                }
+            }
+        }
     }
 }

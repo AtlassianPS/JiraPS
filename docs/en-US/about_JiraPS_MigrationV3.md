@@ -36,6 +36,8 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `Invoke-JiraIssueTransition` | `-Assignee` no longer accepts `$null` or empty string. Use `-Unassign`. |
 | `Invoke-JiraIssueTransition` | New `-Unassign` switch (parameter set).                                 |
 | `Set-JiraIssue -Assignee`    | No longer positional; must be supplied by name.                         |
+| `New-JiraIssue -Reporter`    | No longer accepts `$null`, empty, or whitespace-only strings.           |
+| `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DETAILED MIGRATION GUIDE
@@ -155,6 +157,41 @@ Set-JiraIssue TEST-01 'new summary' 'new description' @() 'alice'
 Set-JiraIssue TEST-01 -Summary 'new summary' -Description 'new description' -Assignee 'alice'
 ```
 
+### Reporter Resolution and Validation — `New-JiraIssue`
+
+In v2, `New-JiraIssue -Reporter` accepted `$null`, `''`, and whitespace-only
+strings, silently forwarded them to Jira's create endpoint, and let the
+server reject the request with an opaque error. On Jira Server / Data Center
+it also bypassed `Resolve-JiraUser` entirely — so a typo'd username only
+surfaced once Jira returned an error.
+
+In v3:
+
+- `-Reporter` rejects `$null`, `''`, and whitespace-only strings at parameter
+  binding time with an actionable message. **Omit `-Reporter` entirely** to
+  let Jira apply the project's default reporter — this matches the API's
+  behaviour and is the supported way to "reset" the reporter on creation.
+- `-Reporter` is now resolved through `Resolve-JiraUser` on Server / DC as
+  well, so typos are caught client-side and Cloud / DC use the same code
+  path. `Resolve-JiraUser` performs an exact match (`-Exact`).
+
+#### v2
+
+```powershell
+New-JiraIssue -Project TEST -IssueType Task -Summary 'x' -Reporter ''
+New-JiraIssue -Project TEST -IssueType Task -Summary 'x' -Reporter $null
+```
+
+#### v3
+
+```powershell
+# Use the project's default reporter
+New-JiraIssue -Project TEST -IssueType Task -Summary 'x'
+
+# Or set an explicit reporter (resolved exactly via Resolve-JiraUser)
+New-JiraIssue -Project TEST -IssueType Task -Summary 'x' -Reporter 'powershell'
+```
+
 ### Minimum PowerShell Version
 
 JiraPS v3 requires PowerShell 5.1 or later.
@@ -170,9 +207,9 @@ that needs updating:
 Get-ChildItem -Recurse -Filter *.ps1 |
     Select-String -Pattern "-Assignee\s+['""](Unassigned|Default)['""]"
 
-# Find $null assignee usage
+# Find $null or empty assignee/reporter usage
 Get-ChildItem -Recurse -Filter *.ps1 |
-    Select-String -Pattern "-Assignee\s+\`$null"
+    Select-String -Pattern "-(Assignee|Reporter)\s+(\`$null|''|""""|'\s+'|""\s+"")"
 
 # Find legacy paging parameters
 Get-ChildItem -Recurse -Filter *.ps1 |
@@ -183,6 +220,7 @@ Get-ChildItem -Recurse -Filter *.ps1 |
 
 - [Set-JiraIssue](../commands/Set-JiraIssue/)
 - [Invoke-JiraIssueTransition](../commands/Invoke-JiraIssueTransition/)
+- [New-JiraIssue](../commands/New-JiraIssue/)
 - [Get-JiraIssue](../commands/Get-JiraIssue/)
 - [Get-JiraGroupMember](../commands/Get-JiraGroupMember/)
 - [CHANGELOG](https://github.com/AtlassianPS/JiraPS/blob/master/CHANGELOG.md)

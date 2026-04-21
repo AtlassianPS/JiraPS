@@ -25,6 +25,7 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 - **BREAKING**: `Set-JiraIssue -Assignee` no longer accepts `$null` or empty/whitespace strings. Use the new `-Unassign` switch instead.
 - **BREAKING**: `Invoke-JiraIssueTransition -Assignee` no longer accepts the magic string `'Unassigned'`, `$null`, or empty/whitespace strings. Use the new `-Unassign` switch instead.
 - **BREAKING**: `Set-JiraIssue` and `Invoke-JiraIssueTransition` now use parameter sets to make `-Assignee`, `-Unassign`, and `-UseDefaultAssignee` mutually exclusive at parameter binding time.
+- **BREAKING (soft)**: `New-JiraIssue -Reporter` no longer accepts `$null`, empty, or whitespace-only strings. Previously these were silently forwarded to Jira (which rejected them with an opaque server error); they are now rejected at parameter binding with an actionable message. Omit `-Reporter` to let Jira apply the project's default reporter.
 
 See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migration-v3.html) for migration examples.
 
@@ -57,7 +58,8 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   - Pre-compiled the regex patterns used by `ConvertTo-AtlassianDocumentFormat` once at module load.
   - Replaced in-loop string concatenation in `ConvertTo-GetParameter` with array-collect + `-join`.
   - Replaced `Get-Member -MemberType *Property` lookups with direct `PSObject.Properties` access in `Format-Jira`, `Add-JiraIssueLink`, `Remove-JiraIssueLink`, `Resolve-JiraError`, `Expand-Result`, `ConvertTo-JiraCreateMetaField`, and `ConvertTo-JiraEditMetaField`.
-- Extracted user-reference payload construction into a private `Resolve-JiraUserPayload` helper shared by `Set-JiraIssue` and `Invoke-JiraIssueTransition` (and reusable for any future cmdlet that needs to point at a Jira user — assignee, reporter, etc.). As a side-effect, `Invoke-JiraIssueTransition -Unassign` on Jira Cloud now correctly emits `{accountId: null}` instead of `{name: ""}`. The helper also throws explicitly when handed a Cloud user object that has no `AccountId`, instead of silently emitting an unassign payload.
+- Extracted user-reference payload construction into a private `Resolve-JiraUserPayload` helper shared by `Set-JiraIssue`, `Invoke-JiraIssueTransition`, and `New-JiraIssue` (and reusable for any future cmdlet that needs to point at a Jira user — assignee, reporter, etc.). As a side-effect, `Invoke-JiraIssueTransition -Unassign` on Jira Cloud now correctly emits `{accountId: null}` instead of `{name: ""}`. The helper also throws explicitly when handed a Cloud user object that has no `AccountId`, instead of silently emitting an unassign payload.
+- `New-JiraIssue -Reporter` now resolves the user via `Resolve-JiraUser` on Jira Server / Data Center too (previously only resolved on Jira Cloud). Typo'd usernames are now caught client-side instead of producing an opaque server error from the create endpoint.
 
 ### Fixed
 
@@ -69,6 +71,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Fixed module load race condition when multiple processes import JiraPS simultaneously (gracefully handles concurrent config file creation)
 - Fixed config file parsing to handle both CRLF and LF line endings correctly
 - `Get-JiraIssueCreateMetadata` now walks all pages of the Jira Cloud createmeta response instead of truncating at the default page size. The cmdlet opts into `SupportsPaging`, so `-First`, `-Skip`, and `-IncludeTotalCount` are also supported.
+- Fixed stale documentation for `New-JiraIssue -Reporter`: the reference page reported `Accept pipeline input: False`, but the parameter has accepted `ValueFromPipelineByPropertyName` since v2. The Markdown source and regenerated `JiraPS-help.xml` now reflect the actual binding.
 
 ## 3.0 - 2026-04-17
 

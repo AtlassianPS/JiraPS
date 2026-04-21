@@ -23,8 +23,15 @@
         $Description,
 
         [Parameter( ValueFromPipelineByPropertyName )]
-        [AllowNull()]
-        [AllowEmptyString()]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript(
+            {
+                if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
+                    throw "The -Reporter value cannot be a whitespace-only string. Omit the parameter to let Jira apply the default reporter."
+                }
+                $true
+            }
+        )]
         [String]
         $Reporter,
 
@@ -100,13 +107,20 @@
         }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
-            if ($isCloud) {
-                $reporterUser = Resolve-JiraUser -InputObject $Reporter -Exact -Credential $Credential -ErrorAction Stop
-                $requestBody["reporter"] = @{"accountId" = $reporterUser.AccountId }
+            if ($reporterUser = Resolve-JiraUser -InputObject $Reporter -Exact -Credential $Credential) {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Reporter resolved (name=[$($reporterUser.Name)])"
             }
             else {
-                $requestBody["reporter"] = @{"name" = "$Reporter" }
+                $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                $errorId = 'ParameterValue.InvalidReporter'
+                $errorCategory = 'InvalidArgument'
+                $errorTarget = $Reporter
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                $errorItem.ErrorDetails = "Unable to validate Jira user [$Reporter]. Use Get-JiraUser for more details."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
             }
+
+            $requestBody["reporter"] = Resolve-JiraUserPayload -UserObject $reporterUser -IsCloud $isCloud
         }
 
         if ($Parent) {
