@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/New-JiraUser/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/New-JiraUser/
 ---
@@ -16,8 +15,8 @@ Creates a new user in JIRA
 ## SYNTAX
 
 ```powershell
-New-JiraUser [-UserName] <String> [-EmailAddress] <String> [[-DisplayName] <String>] [[-Notify] <Boolean>]
- [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraUser [-UserName] <string> [-EmailAddress] <string> [[-DisplayName] <string>]
+ [[-Notify] <bool>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -50,36 +49,48 @@ This example illustrates setting a user's display name during user creation.
 
 ## PARAMETERS
 
-### -UserName
+### -Confirm
 
-Name of user.
+Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: String
-Parameter Sets: (All)
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -EmailAddress
+### -Credential
 
-E-mail address of the user.
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
 
 ```yaml
-Type: String
-Parameter Sets: (All)
-Aliases: Email
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 4
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -DisplayName
@@ -88,14 +99,41 @@ Display name of the user.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases:
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 2
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -EmailAddress
+
+E-mail address of the user.
+
+```yaml
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Email
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Notify
@@ -104,31 +142,40 @@ Notify the user by e-mail
 
 ```yaml
 Type: Boolean
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 4
-Default value: True
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: True
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 3
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Credential
+### -UserName
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Name of user.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 5
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -138,42 +185,34 @@ The cmdlet is not run.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ## OUTPUTS
 
-### [JiraPS.User]
+### JiraPS.User
 
 ## NOTES
 

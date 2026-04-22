@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/New-JiraVersion/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/New-JiraVersion/
 ---
@@ -18,15 +17,16 @@ Creates a new FixVersion in JIRA
 ### byObject (Default)
 
 ```powershell
-New-JiraVersion [-InputObject] <Object> [-Credential <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraVersion [-InputObject] <Object> [-Credential <pscredential>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ### byParameters
 
 ```powershell
-New-JiraVersion [-Name] <String> [-Project] <Object> [-Description <String>] [-Archived <Boolean>]
- [-Released <Boolean>] [-ReleaseDate <DateTime>] [-StartDate <DateTime>] [-Credential <PSCredential>] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+New-JiraVersion [-Name] <string> [-Project] <Object> [-Description <string>] [-Archived <bool>]
+ [-Released <bool>] [-ReleaseDate <datetime>] [-StartDate <datetime>] [-Credential <pscredential>]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -60,56 +60,73 @@ $version = $version.Project.Key "TEST"
 $version | New-JiraVersion
 ```
 
-
 This example duplicates the Version named "1.0.0.0" in Project "RD" to Project "TEST".
 
 ## PARAMETERS
 
-### -InputObject
-Version object that should be created on the server.
+### -Archived
+
+Create the version as archived.
 
 ```yaml
-Type: Object
-Parameter Sets: byObject
-Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+Type: Boolean
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byParameters
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Name
+### -Confirm
 
-Name of the version to create.
+Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: String
-Parameter Sets: byParameters
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Project
+### -Credential
 
-The Project ID
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
 
 ```yaml
-Type: Object
-Parameter Sets: byParameters
-Aliases:
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Description
@@ -118,30 +135,82 @@ Description of the version.
 
 ```yaml
 Type: String
-Parameter Sets: byParameters
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byParameters
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Archived
+### -InputObject
 
-Create the version as archived.
+Version object that should be created on the server.
 
 ```yaml
-Type: Boolean
-Parameter Sets: byParameters
-Aliases:
+Type: Object
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byObject
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+### -Name
+
+Name of the version to create.
+
+```yaml
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byParameters
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Project
+
+The Project ID
+
+```yaml
+Type: Object
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byParameters
+  Position: 1
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Released
@@ -150,14 +219,19 @@ Create the version as released.
 
 ```yaml
 Type: Boolean
-Parameter Sets: byParameters
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byParameters
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -ReleaseDate
@@ -166,14 +240,19 @@ Date of the release.
 
 ```yaml
 Type: DateTime
-Parameter Sets: byParameters
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byParameters
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -StartDate
@@ -182,31 +261,19 @@ Date of the release.
 
 ```yaml
 Type: DateTime
-Parameter Sets: byParameters
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byParameters
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -216,42 +283,36 @@ The cmdlet is not run.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
+### System.Object
+
 ## OUTPUTS
 
-### [JiraPS.Version]
+### JiraPS.Version
 
 ## NOTES
 

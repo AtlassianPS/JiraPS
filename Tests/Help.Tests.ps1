@@ -154,10 +154,10 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
 
                 It "does not emit mangled input/output type names" {
-                    # Regression guard for the PlatyPS 1.0 input/output heading parser bug:
-                    # bracketed headings like '### [JiraPS.Issue[]]' would yield single-character
-                    # type names such as '[', ']', or 'e'. Anything <= 1 char or starting with a
-                    # bracket character is almost certainly a regression.
+                    # Regression guard for PlatyPS 1.0's Markdig-based heading parser:
+                    # malformed `### [...]` headings have produced single-character names
+                    # ('[', ']'), Markdig internal class names (Markdig.Syntax.Inlines.*),
+                    # and stray legacy `<TODO>` placeholders that leak into Get-Help.
                     $typeNames = @(
                         @($help.inputTypes.inputType) +
                         @($help.returnValues.returnValue)
@@ -168,6 +168,8 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         if ([string]::IsNullOrEmpty($typeName)) { continue }
                         $typeName | Should -Not -Match '^[\[\]]$' -Because "type names should never be a stray bracket character"
                         $typeName.Length | Should -BeGreaterThan 1 -Because "single-character type names indicate a parser regression in INPUTS/OUTPUTS"
+                        $typeName | Should -Not -Match '^Markdig\.' -Because "Markdig parser internals must never appear as type names; check the markdown heading for malformed brackets"
+                        $typeName | Should -Not -Match '^<' -Because "legacy '<TODO>' placeholder headings must be replaced with real type names"
                     }
                 }
 
@@ -201,9 +203,22 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                     It "matches the type of the parameter in code and help" {
                         $codeType = $parameterCode.ParameterType.Name
-                        if ($codeType -eq "Object") {
-                            if (($parameterCode.Attributes) -and ($parameterCode.Attributes | Get-Member -Name PSTypeName)) {
-                                $codeType = $parameterCode.Attributes[0].PSTypeName
+                        # Parameters decorated with [PSTypeName(...)] surface as
+                        # Object / Object[] at the binder level. Prefer the
+                        # PSTypeName for the user-facing type (which is what the
+                        # markdown / Get-Help advertises). Match both the scalar
+                        # and array forms.
+                        if ($codeType -eq "Object" -or $codeType -eq "Object[]") {
+                            $psTypeAttr = $parameterCode.Attributes | Where-Object { $_ -is [System.Management.Automation.PSTypeNameAttribute] } | Select-Object -First 1
+                            if ($psTypeAttr) {
+                                # PSTypeName always carries the scalar form;
+                                # preserve the [] suffix when the binder reports
+                                # an array parameter so we line up with the
+                                # array form advertised in the markdown.
+                                $codeType = $psTypeAttr.PSTypeName
+                                if ($parameterCode.ParameterType.IsArray -and $codeType -notmatch '\[\]$') {
+                                    $codeType += '[]'
+                                }
                             }
                         }
                         # To avoid calling Trim method on a null object.

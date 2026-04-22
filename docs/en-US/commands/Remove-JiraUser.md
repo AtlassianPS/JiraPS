@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraUser/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Remove-JiraUser/
 ---
@@ -16,7 +15,7 @@ Removes an existing user from JIRA
 ## SYNTAX
 
 ```powershell
-Remove-JiraUser [-User] <Object[]> [[-Credential] <PSCredential>] [-Force] [-WhatIf] [-Confirm]
+Remove-JiraUser [-User] <Object[]> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
@@ -25,8 +24,7 @@ Remove-JiraUser [-User] <Object[]> [[-Credential] <PSCredential>] [-Force] [-Wha
 This function removes an existing user from JIRA.
 
 WARNING: Deleting a JIRA user may cause database integrity problems.
-See this article for details:
-[https://confluence.atlassian.com/jira/how-do-i-delete-a-user-account-192519.html](https://confluence.atlassian.com/jira/how-do-i-delete-a-user-account-192519.html)
+See this article for details: [https://confluence.atlassian.com/jira/how-do-i-delete-a-user-account-192519.html](https://confluence.atlassian.com/jira/how-do-i-delete-a-user-account-192519.html)
 
 ## EXAMPLES
 
@@ -40,37 +38,48 @@ Removes the JIRA user TestUser
 
 ## PARAMETERS
 
-### -User
+### -Confirm
 
-User Object or ID to delete.
+Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: Object[]
-Parameter Sets: (All)
-Aliases: UserName
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Credential
 
-Credentials to use to connect to JIRA.  
+Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
 Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Force
@@ -79,14 +88,41 @@ Suppress user confirmation.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+### -User
+
+User Object or ID to delete.
+
+```yaml
+Type: Object[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- UserName
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -96,40 +132,35 @@ The cmdlet is not run.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.User] / [String]
+### JiraPS.User / String
+
+
+### System.Object[]
 
 ## OUTPUTS
 

@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Add-JiraFilterPermission/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Add-JiraFilterPermission/
 ---
@@ -18,22 +17,20 @@ Share a Filter with other users.
 ### ByInputObject (Default)
 
 ```powershell
-Add-JiraFilterPermission [-Filter] <JiraPS.Filter> [-Type] <String>
- [[-Value] <String>] [[-Credential] <PSCredential>] [-WhatIf] [-Confirm]
-  [<CommonParameters>]
+Add-JiraFilterPermission [-Filter] <Filter> -Type <string> [-Value <string>]
+ [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ById
 
 ```powershell
-Add-JiraFilterPermission [-Id] <UInt32> [-Type] <String> [[-Value] <String>]
- [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Add-JiraFilterPermission [-Id] <uint[]> -Type <string> [-Value <string>]
+ [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Share a Filter with other users, such as "Group", "Project", "ProjectRole",
-"Authenticated" or "Global".
+Share a Filter with other users, such as "Group", "Project", "ProjectRole", "Authenticated" or "Global".
 
 ## EXAMPLES
 
@@ -55,7 +52,7 @@ Two methods of sharing Filter 12345 with everyone.
 
 Share Filter 12345 with authenticated users.
 
-_The Id could be read from a file._
+The Id could be read from a file.
 
 ### Example 3
 
@@ -67,20 +64,69 @@ Share Filter 12345 only with users in the administrators groups.
 
 ## PARAMETERS
 
+### -Confirm
+
+Prompts you for confirmation before running the cmdlet.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -Filter
 
 Filter object to which the permission should be applied
 
 ```yaml
 Type: JiraPS.Filter
-Parameter Sets: ByInputObject
-Aliases:
-
-Required: True
-Position: 0
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByInputObject
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Id
@@ -91,14 +137,19 @@ _Id can be passed over the pipeline when reading from a file._
 
 ```yaml
 Type: UInt32[]
-Parameter Sets: ById
-Aliases:
-
-Required: True
-Position: 0
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ById
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Type
@@ -107,15 +158,24 @@ Type of the permission to add
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases:
-Accepted values: Group, Project, ProjectRole, Authenticated, Global
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues:
+- Group
+- Project
+- ProjectRole
+- Authenticated
+- Global
+HelpMessage: ''
 ```
 
 ### -Value
@@ -135,31 +195,19 @@ Here is a table to know what Value to provide:
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -169,47 +217,39 @@ The cmdlet is not run.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction,
--ErrorVariable, -InformationAction, -InformationVariable, -OutVariable,
--OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters
-(<http://go.microsoft.com/fwlink/?LinkID=113216>).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Filter]
+### JiraPS.Filter
+
+
+### System.UInt32[]
 
 ## OUTPUTS
 
-### [JiraPS.Filter]
+### JiraPS.Filter
 
 ## NOTES
 

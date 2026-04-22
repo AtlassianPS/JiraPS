@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/New-JiraSession/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/New-JiraSession/
 ---
@@ -18,26 +17,25 @@ Creates a persistent JIRA authenticated session which can be used by other JiraP
 ### Credential (Default)
 
 ```powershell
-New-JiraSession [-Credential <PSCredential>] [-Headers <Hashtable>] [<CommonParameters>]
+New-JiraSession [-Credential <pscredential>] [-Headers <hashtable>] [<CommonParameters>]
 ```
 
 ### PersonalAccessToken
 
 ```powershell
-New-JiraSession -PersonalAccessToken <SecureString> [-Headers <Hashtable>] [<CommonParameters>]
+New-JiraSession -PersonalAccessToken <securestring> [-Headers <hashtable>] [<CommonParameters>]
 ```
 
 ### ApiToken
 
 ```powershell
-New-JiraSession -ApiToken <SecureString> -EmailAddress <String> [-Headers <Hashtable>] [<CommonParameters>]
+New-JiraSession -ApiToken <securestring> -EmailAddress <string> [-Headers <hashtable>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function creates a persistent,
-authenticated session in to JIRA which can be used by all other
-JiraPS functions instead of explicitly passing parameters.
+This function creates a persistent, authenticated session in to JIRA which can be used by all other JiraPS functions instead of explicitly passing parameters.
 
 This removes the need to use the `-Credential` parameter constantly for each function call.
 
@@ -99,9 +97,34 @@ $pat = ConvertTo-SecureString $env:JIRA_PAT -AsPlainText -Force
 New-JiraSession -PAT $pat
 ```
 
-Uses the `-PAT` alias for brevity. The `-BearerToken` alias is also supported for backward compatibility.
+Uses the `-PAT` alias for brevity.
+The `-BearerToken` alias is also supported for backward compatibility.
 
 ## PARAMETERS
+
+### -ApiToken
+
+An API token for Jira Cloud authentication.
+Must be used together with `-EmailAddress`.
+
+Create an API token at: https://id.atlassian.com/manage-profile/security/api-tokens
+
+```yaml
+Type: SecureString
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ApiToken
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
 ### -Credential
 
@@ -109,14 +132,62 @@ Credentials to use to connect to JIRA using basic authentication.
 
 ```yaml
 Type: PSCredential
-Parameter Sets: Credential
-Aliases:
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Credential
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -EmailAddress
+
+The email address associated with your Atlassian account.
+Required when using `-ApiToken` for Jira Cloud authentication.
+
+```yaml
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ApiToken
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Headers
+
+Additional headers to include in requests.
+
+```yaml
+Type: Hashtable
+DefaultValue: '@{}'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -PersonalAccessToken
@@ -130,80 +201,37 @@ Aliases: `BearerToken`, `PAT`
 
 ```yaml
 Type: SecureString
-Parameter Sets: PersonalAccessToken
-Aliases: BearerToken, PAT
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ApiToken
-
-An API token for Jira Cloud authentication.
-Must be used together with `-EmailAddress`.
-
-Create an API token at: https://id.atlassian.com/manage-profile/security/api-tokens
-
-```yaml
-Type: SecureString
-Parameter Sets: ApiToken
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -EmailAddress
-
-The email address associated with your Atlassian account.
-Required when using `-ApiToken` for Jira Cloud authentication.
-
-```yaml
-Type: String
-Parameter Sets: ApiToken
-Aliases:
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Headers
-
-Additional headers to include in requests.
-
-```yaml
-Type: Hashtable
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: @{}
-Accept pipeline input: False
-Accept wildcard characters: False
+- BearerToken
+- PAT
+ParameterSets:
+- Name: PersonalAccessToken
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [PSCredential]
+### PSCredential
 
 ## OUTPUTS
 
-### [JiraPS.Session]
+### JiraPS.Session
 
 ## NOTES
 

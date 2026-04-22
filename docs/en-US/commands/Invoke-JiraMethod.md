@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Invoke-JiraMethod/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Invoke-JiraMethod/
 ---
@@ -16,10 +15,12 @@ Invoke a specific call to a Jira REST Api endpoint
 ## SYNTAX
 
 ```powershell
-Invoke-JiraMethod [-URI] <Uri> [[-Method] <WebRequestMethod>] [[-Body] <String>] [-RawBody]
- [[-Headers] <Hashtable>] [[-GetParameter] <Hashtable>] [[-Paging] <Switch>] [[-InFile] <String>]
- [[-OutFile] <String>] [-StoreSession] [[-OutputType] <String>] [[-Credential] <PSCredential>]
- [[-Cmdlet] <System.Management.Automation.PSCmdlet>] [<CommonParameters>]
+Invoke-JiraMethod [-URI] <uri> [[-Method] <WebRequestMethod>] [[-Body] <string>]
+ [[-Headers] <hashtable>] [[-GetParameter] <hashtable>] [[-InFile] <string>] [[-OutFile] <string>]
+ [[-OutputType] <string>] [[-Credential] <pscredential>] [[-Cmdlet] <PSCmdlet>]
+ [[-CacheKey] <string>] [[-CacheExpiry] <timespan>] [-RawBody] [-Paging]
+ [-StoreSession] [-BypassCache] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -27,16 +28,12 @@ Invoke-JiraMethod [-URI] <Uri> [[-Method] <WebRequestMethod>] [[-Body] <String>]
 Make a call to a REST Api endpoint with all the benefits of JiraPS.
 
 This cmdlet is what the other cmdlets call under the hood.
-It handles the authentication, parses the
-response, handles exceptions from Jira, returns specific objects and handles the differences between
-versions of Powershell and Operating Systems.
+It handles the authentication, parses the response, handles exceptions from Jira, returns specific objects and handles the differences between versions of Powershell and Operating Systems.
 
 JiraPS does not support any third-party plugins on Jira.
 This cmdlet can be used to interact with REST Api enpoints which are not already coverted in JiraPS.
-It allows for anyone to use the same technics as JiraPS uses internally for creating their own functions
-or modules.
-When used by a module, the Manifest (.psd1) can define the dependency to JiraPS with the 'RequiredModules'
-property.
+It allows for anyone to use the same technics as JiraPS uses internally for creating their own functions or modules.
+When used by a module, the Manifest (.psd1) can define the dependency to JiraPS with the 'RequiredModules' property.
 This will import the module if not already loaded or even download it from the PSGallery.
 
 ## EXAMPLES
@@ -186,6 +183,7 @@ Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry (New-TimeSpan -Hours
 
 # Using string literal — PowerShell auto-converts "hh:mm:ss" to TimeSpan
 Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry "00:45:00"
+
 ```
 
 Demonstrates various ways to construct a `[TimeSpan]` value for `-CacheExpiry`.
@@ -202,42 +200,10 @@ $parameter = @{
 Invoke-JiraMethod @parameter
 ```
 
-Forces a fresh API call, ignoring any cached data. The fresh response will be stored in the cache.
+Forces a fresh API call, ignoring any cached data.
+The fresh response will be stored in the cache.
 
 ## PARAMETERS
-
-### -URI
-
-URI address of the REST API endpoint.
-
-```yaml
-Type: Uri
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 0
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Method
-
-Method of the HTTP request.
-
-```yaml
-Type: WebRequestMethod
-Parameter Sets: (All)
-Aliases:
-Accepted values: Default, Get, Head, Post, Put, Delete, Trace, Options, Merge, Patch
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
 
 ### -Body
 
@@ -252,208 +218,48 @@ This behavior can be changed with -RawBody.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 2
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -RawBody
+### -BypassCache
 
-Keep the Body from being encoded.
+When specified, ignores any cached response and makes a fresh API call.
+The fresh response will still be stored in the cache.
+Only applies when `-CacheKey` is specified.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Headers
-
-Define a key-value set of HTTP headers that should be used in the call.
-
-```yaml
-Type: Hashtable
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -GetParameter
-
-Key-Value pair of the Headers to be used.
-
-```yaml
-Type: Hashtable
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 4
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Paging
-
-Use paging on the results.
-
-More about paging: <https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/#pagination>
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 4
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -InFile
-
-Path to a file that will be uploaded with a multipart/form-data request.
-
-This parameter does not validate the input in any way.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 5
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -OutFile
-
-Path to the file where the response should be stored to.
-
-This parameter does not validate the input in any way
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 6
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -StoreSession
-
-Instead of returning the response, it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 7
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -OutputType
-
-Name of the data type that is expected to be returned.
-
-Currently only used in combination with `-Paging`
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 8
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use for the authentication with the REST Api.
-
-If none are provided, `Get-JiraSession` will be used for authentication.
-If no sessions is available, the request will be executed anonymously.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 9
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Cmdlet
-
-Context which will be used for throwing errors.
-
-```yaml
-Type: PSCmdlet
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 10
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -CacheKey
-
-When specified, enables caching for this GET request. The response will be stored in a module-level cache and returned on subsequent calls with the same CacheKey until the cache expires or is cleared.
-
-Only applies to GET requests. POST, PUT, DELETE requests are never cached.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -CacheExpiry
 
-Specifies how long cached responses should be valid, as a `[TimeSpan]`. Only applies when `-CacheKey` is specified.
+Specifies how long cached responses should be valid, as a `[TimeSpan]`.
+Only applies when `-CacheKey` is specified.
 
 Common ways to construct a TimeSpan:
 
@@ -467,31 +273,154 @@ Common ways to construct a TimeSpan:
 
 ```yaml
 Type: TimeSpan
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: [TimeSpan]::FromHours(1)
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: '[TimeSpan]::FromHours(1)'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 12
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -BypassCache
+### -CacheKey
 
-When specified, ignores any cached response and makes a fresh API call. The fresh response will still be stored in the cache. Only applies when `-CacheKey` is specified.
+When specified, enables caching for this GET request.
+The response will be stored in a module-level cache and returned on subsequent calls with the same CacheKey until the cache expires or is cleared.
+
+Only applies to GET requests.
+POST, PUT, DELETE requests are never cached.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 11
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
+
+### -Cmdlet
+
+Context which will be used for throwing errors.
+
+```yaml
+Type: PSCmdlet
+DefaultValue: 'PSCmdlet'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 9
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Credential
+
+Credentials to use for the authentication with the REST Api.
+
+If none are provided, `Get-JiraSession` will be used for authentication.
+If no sessions is available, the request will be executed anonymously.
+
+```yaml
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 8
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -First
+
+Indicates how many items to return.
+
+```yaml
+Type: UInt64
+DefaultValue: 18446744073709551615
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -GetParameter
+
+Key-Value pair of the Headers to be used.
+
+```yaml
+Type: Hashtable
+DefaultValue: '@{}'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 4
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Headers
+
+Define a key-value set of HTTP headers that should be used in the call.
+
+```yaml
+Type: Hashtable
+DefaultValue: '@{}'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 3
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -IncludeTotalCount
 
 Causes an extra output of the total count at the beginning.
@@ -500,14 +429,158 @@ Note this is actually a uInt64, but with a custom string representation.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -InFile
+
+Path to a file that will be uploaded with a multipart/form-data request.
+
+This parameter does not validate the input in any way.
+
+```yaml
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 5
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Method
+
+Method of the HTTP request.
+
+```yaml
+Type: WebRequestMethod
+DefaultValue: '"GET"'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -OutFile
+
+Path to the file where the response should be stored to.
+
+This parameter does not validate the input in any way
+
+```yaml
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 6
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -OutputType
+
+Name of the data type that is expected to be returned.
+
+Currently only used in combination with `-Paging`
+
+```yaml
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 7
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues:
+- JiraComment
+- JiraIssue
+- JiraUser
+- JiraVersion
+- JiraWorklogItem
+HelpMessage: ''
+```
+
+### -Paging
+
+Use paging on the results.
+
+More about paging: <https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/#pagination>
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -RawBody
+
+Keep the Body from being encoded.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Skip
@@ -518,42 +591,75 @@ Defaults to 0.
 
 ```yaml
 Type: UInt64
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: 0
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -First
+### -StoreSession
 
-Indicates how many items to return.
+Instead of returning the response, it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
 
 ```yaml
-Type: UInt64
-Parameter Sets: (All)
-Aliases:
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: 18446744073709551615
-Accept pipeline input: False
-Accept wildcard characters: False
+### -URI
+
+URI address of the REST API endpoint.
+
+```yaml
+Type: Uri
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ## OUTPUTS
 
-### [System.Management.Automation.PSCustomObject]
+### System.Management.Automation.PSCustomObject
 
 This command is designed to handle JSON responses only.
 The response is convert to PSCustomObject with `ConvertFrom-Json`

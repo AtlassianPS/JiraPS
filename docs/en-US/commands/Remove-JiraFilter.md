@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilter/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Remove-JiraFilter/
 ---
@@ -15,17 +14,18 @@ Removes an existing filter.
 
 ## SYNTAX
 
-### byInputObject (Default)
+### ByInputObject (Default)
 
 ```powershell
-Remove-JiraFilter [-InputObject] <JiraPS.Filter> [-WhatIf] [-Confirm]
+Remove-JiraFilter [-InputObject] <Filter> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
-### byId (Default)
+### ById
 
 ```powershell
-Remove-JiraFilter [-Id] <UInt32[]> [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraFilter [-Id] <uint[]> [-Credential <pscredential>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -78,26 +78,53 @@ $listOfFilters | Remove-JiraFilter
 Remove filters with id "1", "2", "3" and "4".
 
 This input allows for the ID of the filters to be stored in an array and passed
-to the command. (eg: `Get-Content` from a file with the ids)
+to the command.
+(eg: `Get-Content` from a file with the ids)
 
 ## PARAMETERS
 
-### -InputObject
+### -Confirm
 
-Filter object to be deleted.
-
-Object can be retrieved with `Get-JiraFilter`
+Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: JiraPS.Filter
-Parameter Sets: ByInputObject
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: True
-Position: 0
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Id
@@ -108,31 +135,42 @@ Accepts integers over the pipeline.
 
 ```yaml
 Type: UInt32[]
-Parameter Sets: ById
-Aliases:
-
-Required: True
-Position: 0
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ById
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Credential
+### -InputObject
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Filter object to be deleted.
+
+Object can be retrieved with `Get-JiraFilter`
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: JiraPS.Filter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByInputObject
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -142,43 +180,35 @@ The cmdlet is not run.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction,
--ErrorVariable, -InformationAction, -InformationVariable, -OutVariable,
--OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters
-(<http://go.microsoft.com/fwlink/?LinkID=113216>).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Filter]
+### JiraPS.Filter
+
+
+### System.UInt32[]
 
 ## OUTPUTS
 

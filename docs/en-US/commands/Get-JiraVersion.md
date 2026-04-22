@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraVersion/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Get-JiraVersion/
 ---
@@ -18,31 +17,31 @@ This function returns information about a JIRA Project's Version
 ### byId (Default)
 
 ```powershell
-Get-JiraVersion -Id <Int32[]> [-PageSize <Int32>] [-IncludeTotalCount] [-Skip <UInt64>]
- [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount]
+ [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### byInputVersion
 
 ```powershell
-Get-JiraVersion [-InputVersion] <Object> [-PageSize <Int32>] [-IncludeTotalCount]
- [-Skip <UInt64>] [-First <UInt64>] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraVersion [-InputVersion] <Version> [-PageSize <uint>] [-Credential <pscredential>]
+ [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### byProject
 
 ```powershell
-Get-JiraVersion [-Project] <String[]> [-Name <String[]>] [[-Sort] <String>]
- [-PageSize <Int32>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
- [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
+ [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+ [<CommonParameters>]
 ```
 
 ### byInputProject
 
 ```powershell
-Get-JiraVersion [-InputProject] <Object> [-Name <String[]>] [[-Sort] <String>]
- [-PageSize <Int32>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>]
- [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraVersion [-InputProject] <Project> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
+ [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -86,52 +85,91 @@ This example returns information about all JIRA Version visible to the current u
 
 ## PARAMETERS
 
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -First
+
+Indicates how many items to return.
+
+```yaml
+Type: UInt64
+DefaultValue: 18446744073709551615
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -Id
 
 The Version ID
 
 ```yaml
 Type: Int32[]
-Parameter Sets: byId
-Aliases:
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byId
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -InputVersion
+### -IncludeTotalCount
 
-A Version object to search for
+Causes an extra output of the total count at the beginning.
 
-```yaml
-Type: JiraPS.Version
-Parameter Sets: byInputVersion
-Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
-```
-
-### -Project
-
-Project key of a project to search
+Note this is actually a uInt64, but with a custom string representation.
 
 ```yaml
-Type: String[]
-Parameter Sets: byProject
-Aliases: Key
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -InputProject
@@ -140,14 +178,40 @@ A Project Object to search
 
 ```yaml
 Type: JiraPS.Project
-Parameter Sets: byInputProject
-Aliases:
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byInputProject
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+### -InputVersion
+
+A Version object to search for
+
+```yaml
+Type: JiraPS.Version
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byInputVersion
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Name
@@ -156,37 +220,26 @@ Jira Version Name
 
 ```yaml
 Type: String[]
-Parameter Sets: byProject, byInputProject
-Aliases: Versions
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### Sort
-
-Define the order in which the versions should be sorted before returning.
-
-Possible values are:
-
-* sequence
-* name
-* startDate
-* releaseDate
-
-```yaml
-Type: String
-Parameter Sets: byProject, byInputProject
-Aliases: Versions
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: '"*"'
+SupportsWildcards: false
+Aliases:
+- Versions
+ParameterSets:
+- Name: byInputProject
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: byProject
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -PageSize
@@ -199,32 +252,41 @@ This setting can be tuned to get better performance according to the load on the
 
 ```yaml
 Type: UInt32
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: 25
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: 25
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -IncludeTotalCount
+### -Project
 
-Causes an extra output of the total count at the beginning.
-
-Note this is actually a uInt64, but with a custom string representation.
+Project key of a project to search
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
+Type: String[]
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+- Key
+ParameterSets:
+- Name: byProject
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Skip
@@ -235,63 +297,76 @@ Defaults to 0.
 
 ```yaml
 Type: UInt64
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: 0
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -First
+### -Sort
 
-Indicates how many items to return.
+Define the order in which the versions should be sorted before returning.
 
-```yaml
-Type: UInt64
-Parameter Sets: (All)
-Aliases:
+Possible values are:
 
-Required: False
-Position: Named
-Default value: 18446744073709551615
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+* sequence
+* name
+* startDate
+* releaseDate
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: String
+DefaultValue: '"name"'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byInputProject
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: byProject
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues:
+- sequence
+- name
+- startDate
+- releaseDate
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Version]
+### JiraPS.Version
 
-### [JiraPS.Project]
+
+### JiraPS.Project
 
 ## OUTPUTS
 
-### [JiraPS.Version]
+### JiraPS.Version
 
 ## NOTES
 

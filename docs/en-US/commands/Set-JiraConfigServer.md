@@ -3,11 +3,9 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Set-JiraConfigServer/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Set-JiraConfigServer/
 ---
-
 # Set-JiraConfigServer
 
 ## SYNOPSIS
@@ -17,7 +15,7 @@ Defines the configured URL for the JIRA server
 ## SYNTAX
 
 ```powershell
-Set-JiraConfigServer [-Server] <Uri> [<CommonParameters>]
+Set-JiraConfigServer [-Server] <uri> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -42,28 +40,36 @@ The base URL of the Jira instance.
 
 ```yaml
 Type: Uri
-Parameter Sets: (All)
-Aliases: Uri
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Uri
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [String]
+### String
 
 ## OUTPUTS
 
-### [System.String]
+### System.String
 
 ## NOTES
 

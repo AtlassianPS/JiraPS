@@ -209,150 +209,6 @@ Task CompileModule {
     "Private", "Public" | ForEach-Object { Remove-Item -Path "$env:BHBuildOutput/$env:BHProjectName/$_" -Recurse -Force }
 }
 
-# Helper: patch the MAML XmlDocument in place to restore the metadata that
-# Microsoft.PowerShell.PlatyPS 1.0's Export-MamlCommandHelp drops or mangles:
-#
-#   * Every <command:parameter> ends up with aliases="none" and
-#     pipelineInput="false", regardless of source.
-#   * <dev:defaultValue> is never emitted.
-#   * INPUTS/OUTPUTS headings of the form '### [A] / [B]' collapse to a
-#     single <dev:name>[</dev:name>` because PlatyPS' heading parser chokes
-#     on the '/' separator.
-#
-# Aliases and pipeline behaviour are read back from the live module via
-# reflection so the code is the single source of truth (no markdown drift).
-# INPUTS/OUTPUTS and default values come from the parsed CommandHelp objects,
-# whose Markdig-based parser strips the brackets correctly.
-function Repair-MamlMetadata {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = '"Metadata" is grammatically singular (mass noun); the analyzer''s pluralization service incorrectly treats it as plural.')]
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [System.Xml.XmlDocument] $Xml,
-
-        [Parameter(Mandatory)]
-        [System.Management.Automation.PSModuleInfo] $Module,
-
-        [Hashtable] $CommandHelpMap = @{}
-    )
-
-    $devNs = 'http://schemas.microsoft.com/maml/dev/2004/10'
-    $mamlNs = 'http://schemas.microsoft.com/maml/2004/10'
-    $cmdNs = 'http://schemas.microsoft.com/maml/dev/command/2004/10'
-
-    $nsmgr = [System.Xml.XmlNamespaceManager]::new($Xml.NameTable)
-    $nsmgr.AddNamespace('command', $cmdNs)
-    $nsmgr.AddNamespace('maml', $mamlNs)
-    $nsmgr.AddNamespace('dev', $devNs)
-
-    # Build a maml:description element from a (possibly multi-paragraph) string.
-    $buildDescription = {
-        param($descriptionText)
-        $descElem = $Xml.CreateElement('maml', 'description', $mamlNs)
-        $trimmed = ($descriptionText -as [String]).Trim()
-        if ($trimmed) {
-            foreach ($paragraph in ($trimmed -split '(?:\r?\n){2,}')) {
-                $paraText = $paragraph.Trim()
-                if ($paraText) {
-                    $paraElem = $Xml.CreateElement('maml', 'para', $mamlNs)
-                    $paraElem.InnerText = $paraText
-                    $null = $descElem.AppendChild($paraElem)
-                }
-            }
-        }
-        else {
-            $null = $descElem.AppendChild($Xml.CreateElement('maml', 'para', $mamlNs))
-        }
-        $descElem
-    }
-
-    foreach ($commandNode in $Xml.SelectNodes('//command:command', $nsmgr)) {
-        $nameNode = $commandNode.SelectSingleNode('command:details/command:name', $nsmgr)
-        if (-not $nameNode) { continue }
-        $commandName = $nameNode.InnerText.Trim()
-
-        $cmdInfo = $Module.ExportedCommands[$commandName]
-        if (-not $cmdInfo) {
-            Write-Warning "Repair-MamlMetadata: command '$commandName' is in the MAML but not exported by module '$($Module.Name)'; skipping."
-            continue
-        }
-        $cmdHelp = $CommandHelpMap[$commandName]
-
-        foreach ($paramNode in $commandNode.SelectNodes('.//command:parameter', $nsmgr)) {
-            $paramNameNode = $paramNode.SelectSingleNode('maml:name', $nsmgr)
-            if (-not $paramNameNode) { continue }
-            $paramName = $paramNameNode.InnerText.Trim()
-            $paramInfo = $cmdInfo.Parameters[$paramName]
-            if (-not $paramInfo) { continue }
-
-            $aliasList = @($paramInfo.Aliases | Where-Object { $_ })
-            $paramNode.SetAttribute('aliases', $(if ($aliasList) { $aliasList -join ', ' } else { 'none' }))
-
-            $byValue = $false
-            $byProperty = $false
-            foreach ($set in $paramInfo.ParameterSets.Values) {
-                if ($set.ValueFromPipeline) { $byValue = $true }
-                if ($set.ValueFromPipelineByPropertyName) { $byProperty = $true }
-            }
-            $pipelineInput = if (-not ($byValue -or $byProperty)) { 'False' }
-            elseif ($byValue -and $byProperty) { 'True (ByValue, ByPropertyName)' }
-            elseif ($byValue) { 'True (ByValue)' }
-            else { 'True (ByPropertyName)' }
-            $paramNode.SetAttribute('pipelineInput', $pipelineInput)
-
-            # <dev:defaultValue> only belongs on the full parameter block
-            # (parent: command:parameters), not on command:syntaxItem variants.
-            if ($paramNode.ParentNode.LocalName -eq 'parameters' -and $cmdHelp) {
-                $helpParam = $cmdHelp.Parameters | Where-Object { $_.Name -eq $paramName } | Select-Object -First 1
-                $defaultText = ($helpParam.DefaultValue -as [String]).Trim()
-                if ($defaultText -and $defaultText -notin @('None', 'none')) {
-                    $existing = $paramNode.SelectSingleNode('dev:defaultValue', $nsmgr)
-                    if (-not $existing) {
-                        $defaultElem = $Xml.CreateElement('dev', 'defaultValue', $devNs)
-                        $defaultElem.InnerText = $defaultText
-                        $null = $paramNode.AppendChild($defaultElem)
-                    }
-                }
-            }
-        }
-
-        if (-not $cmdHelp) { continue }
-
-        # Replace INPUTS / OUTPUTS containers from the parsed CommandHelp object,
-        # which captures the typenames correctly even when Export-MamlCommandHelp's
-        # heading parser collapses '### [A] / [B]' to a literal '['.
-        $inputsContainer = $commandNode.SelectSingleNode('command:inputTypes', $nsmgr)
-        if ($inputsContainer -and $cmdHelp.Inputs -and $cmdHelp.Inputs.Count -gt 0) {
-            $inputsContainer.RemoveAll()
-            foreach ($t in $cmdHelp.Inputs) {
-                $inputTypeElem = $Xml.CreateElement('command', 'inputType', $cmdNs)
-                $typeElem = $Xml.CreateElement('dev', 'type', $devNs)
-                $nameElem = $Xml.CreateElement('dev', 'name', $devNs)
-                $nameElem.InnerText = ($t.Typename -as [String]).Trim()
-                $null = $typeElem.AppendChild($nameElem)
-                $null = $inputTypeElem.AppendChild($typeElem)
-                $null = $inputTypeElem.AppendChild((& $buildDescription $t.Description))
-                $null = $inputsContainer.AppendChild($inputTypeElem)
-            }
-        }
-
-        $outputsContainer = $commandNode.SelectSingleNode('command:returnValues', $nsmgr)
-        if ($outputsContainer -and $cmdHelp.Outputs -and $cmdHelp.Outputs.Count -gt 0) {
-            $outputsContainer.RemoveAll()
-            foreach ($t in $cmdHelp.Outputs) {
-                $returnValueElem = $Xml.CreateElement('command', 'returnValue', $cmdNs)
-                $typeElem = $Xml.CreateElement('dev', 'type', $devNs)
-                $nameElem = $Xml.CreateElement('dev', 'name', $devNs)
-                $nameElem.InnerText = ($t.Typename -as [String]).Trim()
-                $null = $typeElem.AppendChild($nameElem)
-                $null = $returnValueElem.AppendChild($typeElem)
-                $null = $returnValueElem.AppendChild((& $buildDescription $t.Description))
-                $null = $outputsContainer.AppendChild($returnValueElem)
-            }
-        }
-    }
-}
-
 # Synopsis: Use PlatyPS to generate External-Help
 Task GenerateExternalHelp {
     Import-Module Microsoft.PowerShell.PlatyPS -Force
@@ -366,44 +222,11 @@ Task GenerateExternalHelp {
                 Where-Object { $_.Name -ne 'index.md' }
 
             if ($commandHelpFiles) {
-                # PlatyPS 1.0's Markdig-based import parser collapses bracketed
-                # INPUTS/OUTPUTS headings of the form `### [Type]` to a literal
-                # '[' typename, so write each markdown into a temp directory
-                # with that heading style normalized to `### Type`. The source
-                # files are never modified.
-                $tempDocsDir = Join-Path ([System.IO.Path]::GetTempPath()) "JiraPS_help_$([Guid]::NewGuid())"
-                $null = New-Item -ItemType Directory -Path $tempDocsDir -Force
-                $patchedFiles = foreach ($mdFile in $commandHelpFiles) {
-                    $content = [System.IO.File]::ReadAllText($mdFile.FullName)
-                    # Iteratively strip a [bracket] occurrence from each `### ` heading
-                    # until none are left, so both single (`### [A]`) and compound
-                    # (`### [A] / [B]`) forms collapse to bare typenames.
-                    $bracketPattern = '(?m)^(###[ \t]+[^\r\n]*?)\[\s*([^\]\r\n]+?)\s*\]'
-                    while ([regex]::IsMatch($content, $bracketPattern)) {
-                        $content = [regex]::Replace($content, $bracketPattern, '$1$2')
-                    }
-                    $tmp = Join-Path $tempDocsDir $mdFile.Name
-                    [System.IO.File]::WriteAllText($tmp, $content)
-                    Get-Item $tmp
-                }
-
-                try {
-                    $commandHelp = @($patchedFiles | Import-MarkdownCommandHelp)
-                    Assert-True ($commandHelp.Count -eq $commandHelpFiles.Count) "Imported $($commandHelp.Count) command help objects but expected $($commandHelpFiles.Count) (one per markdown file)."
-                }
-                finally {
-                    Remove-Item $tempDocsDir -Recurse -Force -ErrorAction SilentlyContinue
-                }
-
-                # Index the parsed CommandHelp objects by command name so the
-                # MAML repair pass can look up INPUTS/OUTPUTS typenames and
-                # documentary default values without re-parsing the markdown.
-                $commandHelpMap = @{}
-                foreach ($help in $commandHelp) { $commandHelpMap[$help.Title] = $help }
-
+                $commandHelp = @($commandHelpFiles | Import-MarkdownCommandHelp)
                 $commandHelp | Export-MamlCommandHelp -OutputFolder $outputPath -Force
 
-                # Move from nested module folder to output path
+                # PlatyPS 1.0 still drops the per-command MAML into a nested
+                # <ModuleName>/ subdirectory; flatten so the help loader finds it.
                 $nestedPath = Join-Path $outputPath $env:BHProjectName
                 if (Test-Path $nestedPath) {
                     Get-ChildItem $nestedPath -Filter '*.xml' | Move-Item -Destination $outputPath -Force
@@ -413,60 +236,92 @@ Task GenerateExternalHelp {
                 $mamlFile = Join-Path $outputPath "$env:BHProjectName-help.xml"
                 Assert-True (Test-Path $mamlFile) "Expected MAML help file was not created: $mamlFile"
 
+                # Export-MamlCommandHelp drops `aliases` / `pipelineInput` /
+                # `<dev:defaultValue>` even though the markdown YAML and the
+                # parsed CommandHelp object both carry them. Splice them back
+                # in from the in-memory CommandHelp objects so Get-Help -Full
+                # surfaces the same data Import-MarkdownCommandHelp captured.
                 $xml = [xml](Get-Content $mamlFile -Raw)
-                $nsmgr = [System.Xml.XmlNamespaceManager]::new($xml.NameTable)
-                $nsmgr.AddNamespace('command', 'http://schemas.microsoft.com/maml/dev/command/2004/10')
-                $nsmgr.AddNamespace('maml', 'http://schemas.microsoft.com/maml/2004/10')
-                $nsmgr.AddNamespace('dev', 'http://schemas.microsoft.com/maml/dev/2004/10')
+                $ns = [System.Xml.XmlNamespaceManager]::new($xml.NameTable)
+                $ns.AddNamespace('command', 'http://schemas.microsoft.com/maml/dev/command/2004/10')
+                $ns.AddNamespace('dev', 'http://schemas.microsoft.com/maml/dev/2004/10')
+                $ns.AddNamespace('maml', 'http://schemas.microsoft.com/maml/2004/10')
+                foreach ($help in $commandHelp) {
+                    $cmdNode = $xml.SelectSingleNode("//command:command[command:details/command:name='$($help.Title)']", $ns)
+                    if (-not $cmdNode) { continue }
 
-                # Re-inject parameter metadata that PlatyPS 1.0 drops on every
-                # Export-MamlCommandHelp call (aliases, pipelineInput, defaults).
-                # Reflection against the live source module is the source of truth.
-                $sourceModule = Import-Module "$env:BHProjectPath/$env:BHProjectName/$env:BHProjectName.psd1" -Force -PassThru -DisableNameChecking
-                try {
-                    Repair-MamlMetadata -Xml $xml -Module $sourceModule -CommandHelpMap $commandHelpMap
-                }
-                finally {
-                    Remove-Module $sourceModule -Force -ErrorAction SilentlyContinue
-                }
-
-                # Restructure examples: PlatyPS 1.0 emits the original markdown source
-                # (fenced code block + prose) inside maml:introduction; split it into
-                # dev:code + dev:remarks/maml:para so Get-Help renders correctly.
-                $fencePattern = '```([\w-]*)\r?\n([\s\S]*?)```'
-                # Strip markdown italics, but only at word boundaries so paths and
-                # identifiers like `non_unique_id` or `$_var_` are not mangled.
-                $italicPattern = '(?<![\w/\\])_([^_\n]{1,200}?)_(?![\w/\\])'
-
-                foreach ($example in $xml.SelectNodes('//command:example', $nsmgr)) {
-                    $intro = $example.SelectSingleNode('maml:introduction', $nsmgr)
-                    $code = $example.SelectSingleNode('dev:code', $nsmgr)
-                    $remarks = $example.SelectSingleNode('dev:remarks', $nsmgr)
-                    if (-not ($intro -and $code -and $remarks)) { continue }
-
-                    $introText = ($intro.ChildNodes | ForEach-Object { $_.InnerText }) -join "`n"
-                    $fenceMatches = [regex]::Matches($introText, $fencePattern)
-                    if ($fenceMatches.Count -lt 1) { continue }
-
-                    if ($fenceMatches.Count -gt 1) {
-                        $owningCommand = $example.SelectSingleNode('ancestor::command:command/command:details/command:name', $nsmgr)
-                        $owningName = if ($owningCommand) { $owningCommand.InnerText.Trim() } else { '<unknown>' }
-                        Write-Warning "Example for $owningName contains $($fenceMatches.Count) fenced code blocks; only the first is captured as code."
+                    # Export-MamlCommandHelp dumps every example's full markdown
+                    # (fence + prose) into <maml:introduction> and leaves
+                    # <dev:code> / <dev:remarks> empty. Get-Help only reads
+                    # those two elements, so split the markdown on the first
+                    # fenced code block and re-populate them.
+                    $exNodes = @($cmdNode.SelectNodes('command:examples/command:example', $ns))
+                    for ($i = 0; $i -lt $exNodes.Count -and $i -lt $help.Examples.Count; $i++) {
+                        $ex = $exNodes[$i]
+                        $remarksMd = $help.Examples[$i].Remarks
+                        if (-not $remarksMd) { continue }
+                        $codeText = ''
+                        $proseText = $remarksMd
+                        $fence = [regex]::Match($remarksMd, '(?s)```[a-zA-Z0-9_+\-]*\r?\n(.*?)\r?\n```')
+                        if ($fence.Success) {
+                            $codeText = $fence.Groups[1].Value.TrimEnd()
+                            $proseText = ($remarksMd.Substring(0, $fence.Index) + $remarksMd.Substring($fence.Index + $fence.Length)).Trim()
+                        }
+                        $intro = $ex.SelectSingleNode('maml:introduction', $ns)
+                        if ($intro) { [void]$ex.RemoveChild($intro) }
+                        $codeNode = $ex.SelectSingleNode('dev:code', $ns)
+                        if (-not $codeNode) {
+                            $codeNode = $xml.CreateElement('dev', 'code', 'http://schemas.microsoft.com/maml/dev/2004/10')
+                            [void]$ex.AppendChild($codeNode)
+                        }
+                        $codeNode.InnerText = $codeText
+                        $remarksNode = $ex.SelectSingleNode('dev:remarks', $ns)
+                        if (-not $remarksNode) {
+                            $remarksNode = $xml.CreateElement('dev', 'remarks', 'http://schemas.microsoft.com/maml/dev/2004/10')
+                            [void]$ex.AppendChild($remarksNode)
+                        }
+                        # One <maml:para> per paragraph; Get-Help inserts a
+                        # blank line between sibling para elements.
+                        while ($remarksNode.HasChildNodes) { [void]$remarksNode.RemoveChild($remarksNode.FirstChild) }
+                        foreach ($para in ($proseText -split "\r?\n\r?\n")) {
+                            if (-not $para.Trim()) { continue }
+                            $pn = $xml.CreateElement('maml', 'para', 'http://schemas.microsoft.com/maml/2004/10')
+                            $pn.InnerText = $para
+                            [void]$remarksNode.AppendChild($pn)
+                        }
                     }
 
-                    $code.InnerText = $fenceMatches[0].Groups[2].Value.Trim()
-
-                    $remarksContent = ($introText -replace $fencePattern, '').Trim()
-                    $remarksContent = $remarksContent -replace $italicPattern, '$1'
-                    if ($remarksContent) {
-                        $para = $xml.CreateElement('maml', 'para', 'http://schemas.microsoft.com/maml/2004/10')
-                        $para.InnerText = $remarksContent
-                        $null = $remarks.AppendChild($para)
+                    $paramMap = @{}
+                    foreach ($p in $help.Parameters) { $paramMap[$p.Name] = $p }
+                    foreach ($pNode in $cmdNode.SelectNodes('.//command:parameter', $ns)) {
+                        $pName = $pNode.SelectSingleNode('maml:name', $ns).InnerText
+                        if (-not $paramMap.ContainsKey($pName)) { continue }
+                        $p = $paramMap[$pName]
+                        $aliasText = if ($p.Aliases) { $p.Aliases -join ', ' } else { 'none' }
+                        $pNode.SetAttribute('aliases', $aliasText)
+                        $byVal = $false; $byName = $false
+                        foreach ($set in $p.ParameterSets) {
+                            if ($set.ValueFromPipeline) { $byVal = $true }
+                            if ($set.ValueFromPipelineByPropertyName) { $byName = $true }
+                        }
+                        $pipelineText = if ($byVal -and $byName) {
+                            'True (ByValue, ByPropertyName)'
+                        }
+                        elseif ($byVal) { 'True (ByValue)' }
+                        elseif ($byName) { 'True (ByPropertyName)' }
+                        else { 'False' }
+                        $pNode.SetAttribute('pipelineInput', $pipelineText)
+                        # MAML schema places <dev:defaultValue> only on the flat
+                        # <command:parameters> entries, not on syntax-item copies.
+                        if ($pNode.ParentNode.LocalName -eq 'parameters' -and $p.DefaultValue) {
+                            $existing = $pNode.SelectSingleNode('dev:defaultValue', $ns)
+                            if ($existing) { $pNode.RemoveChild($existing) | Out-Null }
+                            $dv = $xml.CreateElement('dev', 'defaultValue', 'http://schemas.microsoft.com/maml/dev/2004/10')
+                            $dv.InnerText = $p.DefaultValue
+                            $null = $pNode.AppendChild($dv)
+                        }
                     }
-
-                    $intro.RemoveAll()
                 }
-
                 $xml.Save($mamlFile)
             }
 

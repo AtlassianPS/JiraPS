@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraGroup/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Get-JiraGroup/
 ---
@@ -16,7 +15,7 @@ Returns a group from Jira
 ## SYNTAX
 
 ```powershell
-Get-JiraGroup [-GroupName] <String[]> [[-Credential] <PSCredential>] [<CommonParameters>]
+Get-JiraGroup [-GroupName] <string[]> [[-Credential] <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -46,49 +45,64 @@ This example retrieves the members of "testGroup".
 
 ## PARAMETERS
 
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -GroupName
 
 Name of the group to search for.
 
 ```yaml
 Type: String[]
-Parameter Sets: (All)
-Aliases: Name
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+- Name
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
+### System.String[]
+
 ## OUTPUTS
 
-### [JiraPS.Group]
+### JiraPS.Group
 
 ## NOTES
 
