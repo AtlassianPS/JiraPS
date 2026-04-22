@@ -114,9 +114,6 @@ InModuleScope JiraPS {
             }
 
             Context "Pagination" {
-                # Get-JiraIssue uses [CmdletBinding(SupportsPaging)], which exposes the
-                # standard PowerShell paging parameters -First / -Skip / -IncludeTotalCount.
-                # There is no -MaxResults or -StartIndex parameter.
                 It "supports -First parameter" {
                     if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
