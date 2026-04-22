@@ -428,13 +428,15 @@ Follow the [`powershell-rules.md` Review Checklist](.github/ai-context/powershel
 - **About topics**: `docs/en-US/about_*.md` → compiled to `JiraPS/en-US/*.help.txt`
 - **Project site**: https://atlassianps.org/docs/JiraPS/ · **Gallery**: https://www.powershellgallery.com/packages/JiraPS
 
-### Markdown Style (hand-authored files)
+### Markdown Style
 
-- **One sentence per line** in hand-authored markdown (`CHANGELOG.md`, `README.md`, `AGENTS.md`, `.github/**/*.md`, etc.).
+- **One sentence per line** in every markdown file in this repository.
+  This includes `CHANGELOG.md`, `README.md`, `AGENTS.md`, `.github/**/*.md`, **and** `docs/en-US/commands/*.md` and `docs/en-US/about_*.md`.
+  The PlatyPS sources were bootstrapped once and are now hand-maintained — the build only reads them, it never rewrites them.
   Long single-line paragraphs make code review and `git blame` painful.
   Inside a list item, indent continuation lines two spaces so they stay part of the same bullet.
-- **Do not reformat generated markdown** (`docs/en-US/commands/*.md`).
-  PlatyPS rewrites those files on every `Invoke-Build -Task GenerateExternalHelp`, so manual reflows are lost at the next regen.
+- **Soft line breaks render as a single space** in both kramdown (the Jekyll site) and Markdig (PlatyPS' parser), so reflowing a prose paragraph to one sentence per line does not change `Get-Help` or website output.
+- **Do not break fenced code blocks or YAML frontmatter** — line breaks are significant inside ```` ``` ```` fences and YAML, so leave example code, parameter metadata blocks, and frontmatter as-is.
 
 ## When Working on This Project
 
