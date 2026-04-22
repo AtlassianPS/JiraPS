@@ -529,10 +529,16 @@ Task SetVersion {
 }
 
 Task Test {
+    # Skip the Integration folder at discovery time so Pester does not run
+    # its BeforeDiscovery blocks (which read .env and warn when integration
+    # secrets are missing). Use TestIntegration task to run them.
+    $integrationPath = Join-Path $env:BHBuildOutput 'Tests/Integration'
+
     $pesterConfigHash = @{
         Run        = @{
-            PassThru = $true
-            Path     = "$env:BHBuildOutput/Tests"
+            PassThru    = $true
+            Path        = "$env:BHBuildOutput/Tests"
+            ExcludePath = @($integrationPath)
         }
         TestResult = @{
             Enabled      = $true
@@ -543,13 +549,11 @@ Task Test {
             Verbosity = $PesterVerbosity
         }
         Filter     = @{
-            # Exclude integration tests by default - they require external configuration
-            # and have their own CI workflow. Use TestIntegration task to run them.
-            #
-            # In Pester 5, ExcludeTag takes precedence over Tag. To make
-            # `Invoke-Build -Task Test -Tag 'Integration'` actually do something
-            # useful, the -Tag handling below removes any explicitly requested
-            # tags from this default exclusion list.
+            # Also exclude by tag, in case any integration-tagged tests live
+            # outside Tests/Integration. In Pester 5, ExcludeTag takes
+            # precedence over Tag, so the -Tag handling below has to remove
+            # user-requested tags from this list (and clear ExcludePath) for
+            # `Invoke-Build -Task Test -Tag 'Integration'` to do anything.
             ExcludeTag = @('Integration')
         }
         <# CodeCoverage = @{
@@ -559,10 +563,10 @@ Task Test {
 
     if ($Tag) {
         $pesterConfigHash.Filter.Tag = $Tag
-        # Drop user-requested tags from the default exclusion list so that
-        # ExcludeTag's higher precedence in Pester 5 does not silently zero
-        # out the user's selection.
         $pesterConfigHash.Filter.ExcludeTag = @($pesterConfigHash.Filter.ExcludeTag | Where-Object { $_ -notin $Tag })
+        if ('Integration' -in $Tag) {
+            $pesterConfigHash.Run.ExcludePath = @()
+        }
         Write-Build Gray "Filtering tests by tag(s): $($Tag -join ', ')"
     }
 
