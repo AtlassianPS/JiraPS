@@ -280,8 +280,8 @@ Task GenerateExternalHelp {
                             $remarksNode = $xml.CreateElement('dev', 'remarks', 'http://schemas.microsoft.com/maml/dev/2004/10')
                             [void]$ex.AppendChild($remarksNode)
                         }
-                        # Strip any existing children, then add a maml:para per
-                        # paragraph so Get-Help renders blank lines between them.
+                        # One <maml:para> per paragraph; Get-Help inserts a
+                        # blank line between sibling para elements.
                         while ($remarksNode.HasChildNodes) { [void]$remarksNode.RemoveChild($remarksNode.FirstChild) }
                         foreach ($para in ($proseText -split "\r?\n\r?\n")) {
                             if (-not $para.Trim()) { continue }
@@ -311,8 +311,8 @@ Task GenerateExternalHelp {
                         elseif ($byName) { 'True (ByPropertyName)' }
                         else { 'False' }
                         $pNode.SetAttribute('pipelineInput', $pipelineText)
-                        # <dev:defaultValue> only lives in the flat <command:parameters>
-                        # block, not in syntax items. Identify by parent element.
+                        # MAML schema places <dev:defaultValue> only on the flat
+                        # <command:parameters> entries, not on syntax-item copies.
                         if ($pNode.ParentNode.LocalName -eq 'parameters' -and $p.DefaultValue) {
                             $existing = $pNode.SelectSingleNode('dev:defaultValue', $ns)
                             if ($existing) { $pNode.RemoveChild($existing) | Out-Null }

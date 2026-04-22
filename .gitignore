@@ -9,8 +9,7 @@ Test*.xml
 # Ignore backup files from Pester migration
 *.bak
 
-# Migration scratch space (Phase 0/1/6/7 baselines, helpers, site renders).
-# This whole tree is ephemeral and never shipped.
+# Local scratch space — never shipped.
 experiment/
 
 #######
