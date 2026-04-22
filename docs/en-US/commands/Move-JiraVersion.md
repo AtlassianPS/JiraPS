@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Move-JiraVersion/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Move-JiraVersion/
 ---
@@ -18,13 +17,14 @@ Moves an existing Version in JIRA
 ### ByAfter (Default)
 
 ```powershell
-Move-JiraVersion [-Version] <JiraPS.Version> [-After] <JiraPS.Version> [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Move-JiraVersion -Version <Object> -After <Object> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByPosition
 
 ```powershell
-Move-JiraVersion [-Version] <JiraPS.Version> [-Position] <String> [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Move-JiraVersion -Version <Object> -Position <string> [-Credential <pscredential>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -60,20 +60,47 @@ This example moves the Version object to the earliest position.
 
 ## PARAMETERS
 
-### -Version
+### -After
 
-Version Object or ID to move.
+Version Object or ID to move Version after.
 
 ```yaml
 Type: Object
-Parameter Sets: (All)
-Aliases:
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByAfter
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True
-Accept wildcard characters: False
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Position
@@ -82,58 +109,58 @@ The new Position for the Version
 
 ```yaml
 Type: String
-Parameter Sets: ByPosition
-Aliases:
-Accepted values: First, Last, Earlier, Later
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByPosition
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues:
+- First
+- Last
+- Earlier
+- Later
+HelpMessage: ''
 ```
 
-### -After
+### -Version
 
-Version Object or ID to move Version after.
+Version Object or ID to move.
 
 ```yaml
 Type: Object
-Parameter Sets: ByAfter
-Aliases:
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Version]
+### JiraPS.Version
+
+## OUTPUTS
 
 ## NOTES
 

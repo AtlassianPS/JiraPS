@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueType/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Get-JiraIssueType/
 ---
@@ -18,13 +17,13 @@ Returns information about the available issue type in JIRA.
 ### _All (Default)
 
 ```powershell
-Get-JiraIssueType [-Force] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssueType [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraIssueType [-IssueType] <String[]> [-Force] [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraIssueType [-IssueType] <string[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -33,7 +32,8 @@ This function retrieves all the available IssueType on the JIRA server an return
 
 This function can restrict the output to a subset of the available IssueTypes if told so.
 
-Results are cached for 60 minutes to improve performance. Use `-Force` to bypass the cache and fetch fresh data.
+Results are cached for 60 minutes to improve performance.
+Use `-Force` to bypass the cache and fetch fresh data.
 
 ## EXAMPLES
 
@@ -63,20 +63,26 @@ This example return the information about the IssueType named "Bug" and "Task" a
 
 ## PARAMETERS
 
-### -IssueType
+### -Credential
 
-The Issue Type name or ID to search.
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
 
 ```yaml
-Type: String[]
-Parameter Sets: _Search
-Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Force
@@ -85,45 +91,59 @@ Bypass the cache and fetch fresh data from the server.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Credential
+### -IssueType
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+The Issue Type name or ID to search.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: _Search
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [Int[]]
+### Int[]
+
+
+### System.String[]
 
 ## OUTPUTS
 
-### [JiraPS.IssueType]
+### JiraPS.IssueType
 
 ## NOTES
 

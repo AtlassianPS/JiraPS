@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/ConvertFrom-AtlassianDocumentFormat/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/ConvertFrom-AtlassianDocumentFormat/
 ---
@@ -22,9 +21,7 @@ ConvertFrom-AtlassianDocumentFormat [[-InputObject] <Object>] [<CommonParameters
 ## DESCRIPTION
 
 Jira Cloud API v3 returns description, comments, and many custom fields as ADF JSON objects.
-This function converts ADF to Markdown, preserving headings, bold, italic, strikethrough,
-inline code, links, bullet/ordered/task lists, tables, code blocks, blockquotes, mentions,
-emoji, and dates.
+This function converts ADF to Markdown, preserving headings, bold, italic, strikethrough, inline code, links, bullet/ordered/task lists, tables, code blocks, blockquotes, mentions, emoji, and dates.
 
 Plain strings (Data Center / API v2) are returned unchanged.
 
@@ -68,37 +65,45 @@ to use regardless of whether the server returns ADF or wiki markup.
 
 ```yaml
 Type: Object
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: false
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [System.Object]
+### System.Object
 
 An ADF document object (PSCustomObject or hashtable) or a plain string.
 
 ## OUTPUTS
 
-### [System.String]
+### System.String
 
 A Markdown representation of the ADF input, or the original string if the input was not ADF.
 
 ## NOTES
 
 This function is public because JiraPS's read commands (`Get-JiraIssue`, `Get-JiraIssueComment`)
-only convert ADF automatically when they use API v3 internally. Users who call `Invoke-JiraMethod`
+only convert ADF automatically when they use API v3 internally.
+Users who call `Invoke-JiraMethod`
 directly against Jira Cloud v3 endpoints receive raw ADF objects that need manual conversion.
 Making this function public lets users convert those responses to Markdown without reimplementing
 the logic.

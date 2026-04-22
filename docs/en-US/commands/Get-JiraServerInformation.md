@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraServerInformation/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Get-JiraServerInformation/
 ---
@@ -16,16 +15,20 @@ This function returns the information about the JIRA Server
 ## SYNTAX
 
 ```powershell
-Get-JiraServerInformation [[-Credential] <PSCredential>] [<CommonParameters>]
+Get-JiraServerInformation [[-Credential] <pscredential>] [-Force] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 This functions shows all the information about the JIRA server, such as version, time, etc.
 
-The result is cached for 5 minutes to improve performance. Use the `-Force` parameter to bypass the cache and re-fetch from the server. You can also use `Clear-JiraCache -Type ServerInfo` to manually clear the cache.
+The result is cached for 5 minutes to improve performance.
+Use the `-Force` parameter to bypass the cache and re-fetch from the server.
+You can also use `Clear-JiraCache -Type ServerInfo` to manually clear the cache.
 
-The returned object includes a `DeploymentType` property (`Cloud` or `Server`) that JiraPS uses internally to adapt API calls for Jira Cloud vs. Data Center/Server. If the API call fails or the response lacks a `deploymentType` field (older Jira Server versions), `DeploymentType` defaults to `Server`.
+The returned object includes a `DeploymentType` property (`Cloud` or `Server`) that JiraPS uses internally to adapt API calls for Jira Cloud vs.
+Data Center/Server.
+If the API call fails or the response lacks a `deploymentType` field (older Jira Server versions), `DeploymentType` defaults to `Server`.
 
 ## EXAMPLES
 
@@ -35,7 +38,8 @@ The returned object includes a `DeploymentType` property (`Cloud` or `Server`) t
 Get-JiraServerInformation
 ```
 
-This example returns information about the JIRA server. Subsequent calls return the cached result.
+This example returns information about the JIRA server.
+Subsequent calls return the cached result.
 
 ### EXAMPLE 2
 
@@ -43,7 +47,8 @@ This example returns information about the JIRA server. Subsequent calls return 
 Get-JiraServerInformation -Force
 ```
 
-Bypasses the cache and re-fetches server information from the API. Use this after a Jira upgrade or configuration change.
+Bypasses the cache and re-fetches server information from the API.
+Use this after a Jira upgrade or configuration change.
 
 ### EXAMPLE 3
 
@@ -57,19 +62,24 @@ Returns `Cloud` or `Server`, indicating which Jira platform is in use.
 
 ### -Credential
 
-Credentials to use to connect to JIRA.  
+Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
 Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Force
@@ -78,26 +88,33 @@ Bypasses the cached server information and re-fetches from the API.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ## OUTPUTS
 
-### [JiraPS.ServerInfo]
+### JiraPS.ServerInfo
 
 ## NOTES
 

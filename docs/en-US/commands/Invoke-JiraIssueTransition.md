@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Invoke-JiraIssueTransition/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Invoke-JiraIssueTransition/
 ---
@@ -18,31 +17,28 @@ Performs an issue transition on a JIRA issue changing it's status
 ### AssignToUser (Default)
 
 ```powershell
-Invoke-JiraIssueTransition [-Issue] <Object> [-Transition] <Object> [-Fields <PSCustomObject>]
- [-Assignee <Object>] [-Comment <String>] [-Credential <PSCredential>] [-Passthru] [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <Object> -Transition <Object> [-Fields <psobject>]
+ [-Assignee <Object>] [-Comment <string>] [-Credential <pscredential>] [-Passthru]
+ [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-Invoke-JiraIssueTransition [-Issue] <Object> [-Transition] <Object> [-Fields <PSCustomObject>]
- [-Unassign] [-Comment <String>] [-Credential <PSCredential>] [-Passthru] [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <Object> -Transition <Object> [-Fields <psobject>] [-Unassign]
+ [-Comment <string>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 This function performs an issue transition on a JIRA issue.
 
-Transitions are defined in JIRA through workflows,
-and allow the issue to move from one status to the next.
+Transitions are defined in JIRA through workflows, and allow the issue to move from one status to the next.
 
-For example, the "Start Progress" transition typically moves
-an issue from an Open status to an "In Progress" status.
+For example, the "Start Progress" transition typically moves an issue from an Open status to an "In Progress" status.
 
-To identify the transitions that an issue can perform,
-use `Get-JiraIssue` and check the Transition property of the issue obj ect returned.
-Attempting to perform a transition that does not apply to the issue
-(for example, trying to "start progress" on an issue in progress) will result in an exception.
+To identify the transitions that an issue can perform, use `Get-JiraIssue` and check the Transition property of the issue obj ect returned.
+Attempting to perform a transition that does not apply to the issue (for example, trying to "start progress" on an issue in progress) will result in an exception.
 
 ## EXAMPLES
 
@@ -96,58 +92,6 @@ This example identifies the correct transition based on the result status of
 
 ## PARAMETERS
 
-### -Issue
-
-The Issue Object or ID to transition.
-
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
-
-```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases: Key
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
-Accept wildcard characters: False
-```
-
-### -Transition
-
-The Transition Object or it's ID.
-
-```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Fields
-
-Any additional fields that should be updated.
-
-Fields must be configured to appear on the transition screen to use this parameter.
-
-```yaml
-Type: PSCustomObject
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### -Assignee
 
 New assignee of the issue.
@@ -159,32 +103,19 @@ Assignee field must be configured to appear on the transition screen to use this
 
 ```yaml
 Type: Object
-Parameter Sets: AssignToUser
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Unassign
-
-Remove the current assignee of the issue as part of the transition.
-
-Assignee field must be configured to appear on the transition screen to use this parameter.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: Unassign
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: AssignToUser
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Comment
@@ -195,14 +126,19 @@ Comment field must be configured to appear on the transition screen to use this 
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 5
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Credential
@@ -212,44 +148,147 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 6
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -PassThru
+### -Fields
+
+Any additional fields that should be updated.
+
+Fields must be configured to appear on the transition screen to use this parameter.
+
+```yaml
+Type: PSObject
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Issue
+
+The Issue Object or ID to transition.
+
+Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+
+```yaml
+Type: Object
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Key
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Passthru
 
 Whether output should be provided after invoking this function.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+### -Transition
+
+The Transition Object or it's ID.
+
+```yaml
+Type: Object
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Unassign
+
+Remove the current assignee of the issue as part of the transition.
+
+Assignee field must be configured to appear on the transition screen to use this parameter.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Unassign
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Issue] / [String] / [JiraPS.Transition]
+### JiraPS.Issue / String / JiraPS.Transition
 
 ## OUTPUTS
 
-### [JiraPS.Issue]
+### JiraPS.Issue
 
 When `-Passthru` is provided, the issue will be returned.
 

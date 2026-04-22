@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssueLabel/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Set-JiraIssueLabel/
 ---
@@ -18,22 +17,22 @@ Modifies labels on an existing JIRA issue
 ### ReplaceLabels (Default)
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <Object[]> -Set <String[]> [-Credential <PSCredential>] [-PassThru] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+Set-JiraIssueLabel [-Issue] <Object[]> -Set <string[]> [-Credential <pscredential>] [-PassThru]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ModifyLabels
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <Object[]> [-Add <String[]>] [-Remove <String[]>] [-Credential <PSCredential>]
- [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
+Set-JiraIssueLabel [-Issue] <Object[]> [-Add <string[]>] [-Remove <string[]>]
+ [-Credential <pscredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ClearLabels
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <Object[]> [-Clear] [-Credential <PSCredential>] [-PassThru] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Set-JiraIssueLabel [-Issue] <Object[]> -Clear [-Credential <pscredential>] [-PassThru] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -75,6 +74,92 @@ This example removes all labels from the issue TEST-01.
 
 ## PARAMETERS
 
+### -Add
+
+Labels to be added in addition to the existing ones.
+
+```yaml
+Type: String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ModifyLabels
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Clear
+
+Remove all labels of the issue.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ClearLabels
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Confirm
+
+Prompts you for confirmation before running the cmdlet.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### -Issue
 
 Issue of which the labels should be manipulated.
@@ -83,14 +168,62 @@ Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: Object[]
-Parameter Sets: (All)
-Aliases: Key
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Key
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
-Accept wildcard characters: False
+### -PassThru
+
+Whether output should be provided after invoking this function.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Remove
+
+Labels of the issue to be removed.
+
+```yaml
+Type: String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ModifyLabels
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Set
@@ -101,95 +234,21 @@ Any label that was already assigned to the issue will be removed.
 
 ```yaml
 Type: String[]
-Parameter Sets: ReplaceLabels
-Aliases: Label, Replace
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Add
-
-Labels to be added in addition to the existing ones.
-
-```yaml
-Type: String[]
-Parameter Sets: ModifyLabels
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Remove
-
-Labels of the issue to be removed.
-
-```yaml
-Type: String[]
-Parameter Sets: ModifyLabels
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Clear
-
-Remove all labels of the issue.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: ClearLabels
-Aliases:
-
-Required: True
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -PassThru
-
-Whether output should be provided after invoking this function.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+- Label
+- Replace
+ParameterSets:
+- Name: ReplaceLabels
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -199,47 +258,43 @@ The cmdlet is not run.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Issue]
+### JiraPS.Issue
+
+
+### System.Object[]
 
 ## OUTPUTS
 
-### [JiraPS.Issue]
+### JiraPS.Issue
 
 If the `-PassThru` parameter is provided, this function will provide a reference
-to the JIRA issue modified.  Otherwise, this function does not provide output.
+to the JIRA issue modified.
+ Otherwise, this function does not provide output.
 
 ## NOTES
 

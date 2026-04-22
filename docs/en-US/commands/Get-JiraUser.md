@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraUser/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Get-JiraUser/
 ---
@@ -18,25 +17,28 @@ Returns a user from Jira
 ### Self (Default)
 
 ```powershell
-Get-JiraUser [-Credential <PSCredential>] [<CommonParameters>]
+Get-JiraUser [-IncludeInactive] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByUserName
 
 ```powershell
-Get-JiraUser [-UserName] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
+Get-JiraUser [-UserName] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <uint>] [-Skip <ulong>]
+ [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByAccountId
 
 ```powershell
-Get-JiraUser [-AccountId] <String[]> [-IncludeInactive] [[-MaxResults] <UInt32>] [[-Skip] <UInt64>] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
+Get-JiraUser [-AccountId] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <uint>]
+ [-Skip <ulong>] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
-Get-JiraUser [-InputObject] <Object[]> [-IncludeInactive] [-Credential <PSCredential>] [-Exact] [<CommonParameters>]
+Get-JiraUser [-InputObject] <Object[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -71,7 +73,7 @@ This example returns the JIRA user that is executing the command.
 
 ### EXAMPLE 4
 
-```powershell 
+```powershell
 Get-JiraUser -UserName user1 -Exact
 ```
 
@@ -83,7 +85,8 @@ Returns information about user user1
 Get-JiraUser -UserName ""
 ```
 
-Returns information about all users. The empty string "" matches all users.
+Returns information about all users.
+The empty string "" matches all users.
 
 ### EXAMPLE 6
 
@@ -91,8 +94,10 @@ Returns information about all users. The empty string "" matches all users.
 Get-JiraUser -AccountId "5b10a2844c20165700ede21g"
 ```
 
-Returns user information for the specified account ID. Use this on Jira Cloud where
-usernames are not available due to GDPR requirements. The `AccountId` property
+Returns user information for the specified account ID.
+Use this on Jira Cloud where
+usernames are not available due to GDPR requirements.
+The `AccountId` property
 can then be used in other commands like `Set-JiraIssue -Assignee`.
 
 ### EXAMPLE 7
@@ -108,52 +113,47 @@ This pattern is useful when migrating scripts from Data Center to Cloud.
 
 ## PARAMETERS
 
-### -UserName
-
-Name of the user to search for.
-
-```yaml
-Type: String[]
-Parameter Sets: ByUserName
-Aliases: User, Name
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
-```
-
 ### -AccountId
 
 Atlassian account ID of the user (used on Jira Cloud).
 
 ```yaml
 Type: String[]
-Parameter Sets: ByAccountId
-Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByAccountId
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -InputObject
+### -Credential
 
-User Object of the user.
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
 
 ```yaml
-Type: Object[]
-Parameter Sets: ByInputObject
-Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: PSCredential
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Exact
@@ -161,15 +161,32 @@ Accept wildcard characters: False
 Limits the search to users where the username or account ID is exactly the term searched for.
 
 ```yaml
-Type: Switch
-Parameter Sets: ByUserName, ByAccountId, ByInputObject
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByAccountId
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: ByUserName
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: ByInputObject
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -IncludeInactive
@@ -178,14 +195,40 @@ Include inactive users in the search
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+### -InputObject
+
+User Object of the user.
+
+```yaml
+Type: Object[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByInputObject
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -MaxResults
@@ -196,14 +239,25 @@ Maximum number of user to be returned.
 
 ```yaml
 Type: UInt32
-Parameter Sets: ByUserName, ByAccountId
-Aliases:
-
-Required: False
-Position: Named
-Default value: 50
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: 50
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByAccountId
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: ByUserName
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Skip
@@ -214,47 +268,68 @@ Defaults to 0.
 
 ```yaml
 Type: UInt64
-Parameter Sets: ByUserName, ByAccountId
-Aliases:
-
-Required: False
-Position: Named
-Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: 0
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByAccountId
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: ByUserName
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Credential
+### -UserName
 
-Credentials to use to connect to JIRA.
-If not specified, this function will use anonymous access.
+Name of the user to search for.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
+Type: String[]
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+- User
+- Name
+ParameterSets:
+- Name: ByUserName
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [String[]]
+### String
 
 Username, name, or e-mail address
 
+### System.String[]
+
 ## OUTPUTS
 
-### [JiraPS.User]
+### JiraPS.User
 
 ## NOTES
 
@@ -263,8 +338,10 @@ See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
 **Jira Cloud vs Data Center**: On Jira Cloud, users are identified by `accountId` instead of
-`username` due to GDPR requirements. The returned user object includes both `Name` (username,
-may be empty on Cloud) and `AccountId` (always present on Cloud). When working with Cloud,
+`username` due to GDPR requirements.
+The returned user object includes both `Name` (username,
+may be empty on Cloud) and `AccountId` (always present on Cloud).
+When working with Cloud,
 use the `AccountId` property for user-related operations like assigning issues.
 
 ## RELATED LINKS

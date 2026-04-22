@@ -3,11 +3,9 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraConfigServer/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/Get-JiraConfigServer/
 ---
-
 # Get-JiraConfigServer
 
 ## SYNOPSIS
@@ -17,7 +15,7 @@ Obtains the configured URL for the JIRA server
 ## SYNTAX
 
 ```powershell
-Get-JiraConfigServer [[-ConfigFile] <String>] [<CommonParameters>]
+Get-JiraConfigServer [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -38,14 +36,16 @@ Returns the server URL of the JIRA server configured for the JiraPS module.
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ## OUTPUTS
 
-### [System.String]
+### System.String
 
 ## NOTES
 

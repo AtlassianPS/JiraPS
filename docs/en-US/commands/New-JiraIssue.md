@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/New-JiraIssue/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/New-JiraIssue/
 ---
@@ -18,34 +17,31 @@ Creates a new issue in JIRA
 ### AssignToUser (Default)
 
 ```powershell
-New-JiraIssue [-Project] <String> [-IssueType] <String> [-Summary] <String> [[-Priority] <Int32>]
- [[-Description] <String>] [[-Reporter] <String>] [-Assignee <Object>] [[-Label] <String[]>]
- [[-Components] <String[]>] [[-Parent] <String>] [[-FixVersion] <String[]>] [[-Fields] <PSCustomObject>]
- [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraIssue -Project <string> -IssueType <string> -Summary <string> [-Priority <int>]
+ [-Description <string>] [-Reporter <string>] [-Assignee <Object>] [-Label <string[]>]
+ [-Parent <string>] [-FixVersion <string[]>] [-Fields <psobject>] [-Components <string[]>]
+ [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-New-JiraIssue [-Project] <String> [-IssueType] <String> [-Summary] <String> [[-Priority] <Int32>]
- [[-Description] <String>] [[-Reporter] <String>] [-Unassign] [[-Label] <String[]>]
- [[-Components] <String[]>] [[-Parent] <String>] [[-FixVersion] <String[]>] [[-Fields] <PSCustomObject>]
- [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraIssue -Project <string> -IssueType <string> -Summary <string> [-Priority <int>]
+ [-Description <string>] [-Reporter <string>] [-Unassign] [-Label <string[]>] [-Parent <string>]
+ [-FixVersion <string[]>] [-Fields <psobject>] [-Components <string[]>] [-Credential <pscredential>]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 This function creates a new issue in JIRA.
 
-Creating an issue requires a lot of data, and the exact data may be
-different from one instance of JIRA to the next.
+Creating an issue requires a lot of data, and the exact data may be different from one instance of JIRA to the next.
 
-To identify what data is required for a given issue type and project,
-use the `Get-JiraIssueCreateMetadata` function provided in this module.
+To identify what data is required for a given issue type and project, use the `Get-JiraIssueCreateMetadata` function provided in this module.
 
 Some JIRA instances may require additional custom fields specific to that instance of JIRA.
-In addition to the parameterized fields provided in this function,
-the Fields parameter accepts a hashtable of field names/IDs and values.
+In addition to the parameterized fields provided in this function, the Fields parameter accepts a hashtable of field names/IDs and values.
 This allows users to provide custom field data when creating an issue.
 Read more about it in [about_JiraPS_CustomFields](../../about/custom-fields.html)
 
@@ -101,6 +97,7 @@ Read more about splatting: about_Splatting
 "CS,Some Title 2,admin,Minor,1,Some Description 2" >> "./data.csv"
 import-csv "./data.csv" | New-JiraIssue
 ```
+
 This example illuetrates how to prepare multiple new stories and pipe them to be created all at once.
 
 ### EXAMPLE 5
@@ -117,105 +114,6 @@ The third call omits both parameters; Jira applies the project's default assigne
 
 ## PARAMETERS
 
-### -Project
-
-Project in which to create the issue.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -IssueType
-
-Type of the issue.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Summary
-
-Summary of the issue.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Priority
-
-ID of the Priority the issue shall have.
-
-```yaml
-Type: Int32
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 4
-Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Description
-
-Long description of the issue.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 5
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Reporter
-
-User that shall be registered as the reporter.
-
-If omitted, Jira will apply the default reporter (typically the currently authenticated user).
-Empty, `$null`, and whitespace-only values are rejected at parameter binding.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 6
-Default value: None
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
-```
-
 ### -Assignee
 
 User to assign the new issue to.
@@ -228,79 +126,105 @@ To create an issue with no assignee, use `-Unassign` instead.
 
 ```yaml
 Type: Object
-Parameter Sets: AssignToUser
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: AssignToUser
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Unassign
+### -Components
 
-Create the issue with no assignee, even if the project defines a default assignee.
-Mutually exclusive with `-Assignee`.
+List of component ids which will be added to the issue.
+
+```yaml
+Type: String[]
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Confirm
+
+Prompts you for confirmation before running the cmdlet.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: Unassign
+DefaultValue: None
+SupportsWildcards: false
 Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Label
+### -Credential
 
-List of labels which will be added to the issue.
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
 
 ```yaml
-Type: String[]
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 7
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: PSCredential
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Parent
+### -Description
 
-Parent issue - in case of issues of type "Sub-Tasks".
+Long description of the issue.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 8
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -FixVersion
-
-Set the FixVersion of the issue.
-
-```yaml
-Type: String[]
-Parameter Sets: (All)
-Aliases: FixVersions
-
-Required: False
-Position: 9
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Fields
@@ -310,47 +234,215 @@ Any additional fields.
 See: about_JiraPS_CustomFields
 
 ```yaml
-Type: PSCustomObject
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 10
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: PSObject
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Credential
+### -FixVersion
 
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 11
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-### -Components
-
-List of component ids which will be added to the issue.
+Set the FixVersion of the issue.
 
 ```yaml
 Type: String[]
-Parameter Sets: (All)
+DefaultValue: None
+SupportsWildcards: false
 Aliases:
+- FixVersions
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: 12
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -IssueType
+
+Type of the issue.
+
+```yaml
+Type: String
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Label
+
+List of labels which will be added to the issue.
+
+```yaml
+Type: String[]
+DefaultValue: None
+SupportsWildcards: false
+Aliases:
+- Labels
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Parent
+
+Parent issue - in case of issues of type "Sub-Tasks".
+
+```yaml
+Type: String
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Priority
+
+ID of the Priority the issue shall have.
+
+```yaml
+Type: Int32
+DefaultValue: 0
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Project
+
+Project in which to create the issue.
+
+```yaml
+Type: String
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Reporter
+
+User that shall be registered as the reporter.
+
+If omitted, Jira will apply the default reporter (typically the currently authenticated user).
+Empty, `$null`, and whitespace-only values are rejected at parameter binding.
+
+```yaml
+Type: String
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Summary
+
+Summary of the issue.
+
+```yaml
+Type: String
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Unassign
+
+Create the issue with no assignee, even if the project defines a default assignee.
+Mutually exclusive with `-Assignee`.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Unassign
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -360,42 +452,34 @@ The cmdlet is not run.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: None
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ## OUTPUTS
 
-### [JiraPS.Issue]
+### JiraPS.Issue
 
 ## NOTES
 

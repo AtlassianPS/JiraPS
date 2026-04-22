@@ -3,7 +3,6 @@ external help file: JiraPS-help.xml
 Module Name: JiraPS
 online version: https://atlassianps.org/docs/JiraPS/commands/ConvertTo-AtlassianDocumentFormat/
 locale: en-US
-schema: 2.0.0
 layout: documentation
 permalink: /docs/JiraPS/commands/ConvertTo-AtlassianDocumentFormat/
 ---
@@ -16,14 +15,13 @@ Converts Markdown to Atlassian Document Format (ADF).
 ## SYNTAX
 
 ```powershell
-ConvertTo-AtlassianDocumentFormat [-Markdown] <String> [<CommonParameters>]
+ConvertTo-AtlassianDocumentFormat [-Markdown] <string> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Jira Cloud API v3 requires description, comments, and similar text fields to be
-submitted as ADF JSON objects. This function parses a Markdown string and produces
-the corresponding ADF structure.
+Jira Cloud API v3 requires description, comments, and similar text fields to be submitted as ADF JSON objects.
+This function parses a Markdown string and produces the corresponding ADF structure.
 
 Supported Markdown constructs:
 
@@ -75,30 +73,37 @@ The Markdown string to convert to ADF.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [System.String]
+### System.String
 
 A Markdown-formatted string.
 
 ## OUTPUTS
 
-### [System.Collections.Hashtable]
+### System.Collections.Hashtable
 
 An ADF document as a hashtable with `version`, `type`, and `content` keys,
 ready to be serialized to JSON with `ConvertTo-Json -Depth 20`.
