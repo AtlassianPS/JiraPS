@@ -175,7 +175,14 @@ Task Lint {
 Task Clean {
     Remove-Item $env:BHBuildOutput -Force -Recurse -ErrorAction SilentlyContinue
     Remove-Item "Test*.xml" -Force -ErrorAction SilentlyContinue
-    Remove-Item "$env:BHModulePath/en-US" -Recurse -Force -ErrorAction SilentlyContinue
+    # NOTE: We intentionally do NOT wipe `JiraPS/<locale>/` here.
+    # GenerateExternalHelp uses Invoke-Build's `-Inputs/-Outputs` incremental
+    # mode and relies on those artifacts surviving across builds so it can
+    # skip itself when nothing in `docs/` has changed. Release/ is recreated
+    # from scratch every build anyway via CopyModuleFiles, so the source-tree
+    # en-US/ folder is purely a build cache. To force a full help rebuild,
+    # delete `JiraPS/<locale>/` manually or run `Invoke-Build -Task GenerateExternalHelp`
+    # after `git clean -fdx JiraPS/`.
 }
 
 Task Build Clean, {
@@ -235,7 +242,31 @@ Task CompileModule {
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
-Task GenerateExternalHelp {
+#
+# Incremental: declared `-Inputs` (every `docs/*/*.md` file) and `-Outputs`
+# (the per-locale `<ProjectName>-help.xml` plus one `about_*.help.txt` per
+# `about_*.md`). Invoke-Build skips this task when every output exists and
+# is newer than every input — so an inner-loop `Build, Test` cycle that
+# hasn't touched `docs/` no longer pays the ~1.5 s PlatyPS reparse +
+# MAML splice. To force a regeneration, touch any markdown file under
+# `docs/` or delete the corresponding artifact under `JiraPS/<locale>/`.
+Task GenerateExternalHelp -Inputs {
+    Get-ChildItem "$env:BHProjectPath/docs" -Recurse -File -Filter '*.md'
+} -Outputs {
+    foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
+        $localeOut = Join-Path $env:BHModulePath $locale.BaseName
+
+        $hasCommandHelp = Get-ChildItem "$($locale.FullName)/commands/*.md" -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -ne 'index.md' } |
+            Select-Object -First 1
+        if ($hasCommandHelp) {
+            Join-Path $localeOut "$env:BHProjectName-help.xml"
+        }
+
+        Get-ChildItem "$($locale.FullName)/about_*.md" -File -ErrorAction SilentlyContinue |
+            ForEach-Object { Join-Path $localeOut "$($_.BaseName).help.txt" }
+    }
+} {
     Import-Module Microsoft.PowerShell.PlatyPS -Force
 
     try {
