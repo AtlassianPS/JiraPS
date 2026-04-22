@@ -271,6 +271,40 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         $command.Parameters.Keys | Should -Contain $helpParm
                     }
                 }
+
+                It "documents every public parameter exposed by the code" {
+                    # Reverse-direction drift guard: catches new parameters added
+                    # to a function whose markdown was never updated. The
+                    # existing "...not in the code" test only catches the other
+                    # direction (orphan doc entries). Re-derive the public
+                    # surface here so the It block does not depend on
+                    # discovery-phase script state ($parameters, $DefaultParams).
+                    $help = $_.Help
+
+                    $documented = @()
+                    if ($help.Parameters | Get-Member -Name Parameter) {
+                        $documented = @($help.Parameters.Parameter.Name)
+                    }
+
+                    $commonParams = @(
+                        'Verbose', 'Debug', 'ErrorAction', 'WarningAction', 'InformationAction'
+                        'ErrorVariable', 'WarningVariable', 'InformationVariable'
+                        'OutVariable', 'OutBuffer', 'PipelineVariable', 'ProgressAction'
+                        'WhatIf', 'Confirm'
+                    )
+
+                    $publicCodeParams = $command.Parameters.Keys | Where-Object {
+                        $_ -notin $commonParams -and
+                        -not (
+                            $command.Parameters[$_].Attributes |
+                                Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] -and $_.DontShow }
+                        )
+                    }
+
+                    foreach ($codeParm in $publicCodeParams) {
+                        $documented | Should -Contain $codeParm -Because "every public parameter must be documented in docs/en-US/commands/$($command.Name).md (or marked [Parameter(DontShow)] if it is internal)"
+                    }
+                }
             }
         }
     }
