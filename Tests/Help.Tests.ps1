@@ -273,9 +273,6 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
 
                 It "documents every public parameter exposed by the code" {
-                    # Re-derive the public surface from $command instead of
-                    # reusing $parameters / $DefaultParams: those are set in
-                    # BeforeDiscovery and not reliably visible from It blocks.
                     $help = $_.Help
 
                     $documented = @()
@@ -283,15 +280,8 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         $documented = @($help.Parameters.Parameter.Name)
                     }
 
-                    $commonParams = @(
-                        'Verbose', 'Debug', 'ErrorAction', 'WarningAction', 'InformationAction'
-                        'ErrorVariable', 'WarningVariable', 'InformationVariable'
-                        'OutVariable', 'OutBuffer', 'PipelineVariable', 'ProgressAction'
-                        'WhatIf', 'Confirm'
-                    )
-
                     foreach ($paramName in $command.Parameters.Keys) {
-                        if ($paramName -in $commonParams) { continue }
+                        if ($paramName -in $DefaultParams) { continue }
                         $paramAttr = $command.Parameters[$paramName].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
                         if ($paramAttr.DontShow -contains $true) { continue }
 
