@@ -6,10 +6,7 @@ Describe "Remove-JiraSession" -Tag 'Unit' {
         . "$PSScriptRoot/../../Helpers/TestTools.ps1"
         # $VerbosePreference = 'Continue'
 
-        Initialize-TestEnvironment
-        $script:moduleToTest = Resolve-ModuleSource
-
-        Import-Module $script:moduleToTest -Force -ErrorAction Stop
+        $script:moduleToTest = Initialize-TestEnvironment
 
         #region Definitions
         #endregion Definitions

@@ -18,10 +18,7 @@ BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
     . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
-    Initialize-TestEnvironment
-    $script:moduleToTest = Resolve-ModuleSource
-
-    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 Describe "Integration Test Configuration" -Tag 'Integration', 'Smoke' {
