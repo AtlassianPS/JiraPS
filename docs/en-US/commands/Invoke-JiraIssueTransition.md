@@ -66,7 +66,7 @@ Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Assignee 'joe.bloggs'
 ```
 
 Invokes transition ID 11 on issue TEST-01 and assigns to user 'Joe Blogs'.
-
+
 Requires the assignee field to be configured as visible for transition.
 
 ### EXAMPLE 4
@@ -77,7 +77,7 @@ Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Fields $transitionFiel
 ```
 
 Invokes transition ID 11 on issue TEST-01 and configures a custom field value.
-
+
 Requires fields to be configured as visible for transition.
 
 ### EXAMPLE 5

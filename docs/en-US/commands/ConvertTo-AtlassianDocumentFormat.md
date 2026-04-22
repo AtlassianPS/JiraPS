@@ -45,11 +45,11 @@ Converts a Markdown string to ADF and posts it as a comment via the Jira Cloud v
 ```powershell
 $description = @"
 # Release Notes
-
+
 * Bug fix for login
 * New dashboard widget
 "@ | ConvertTo-AtlassianDocumentFormat
-
+
 $body = @{ fields = @{ description = $description } } | ConvertTo-Json -Depth 20
 Invoke-JiraMethod -Uri "$server/rest/api/3/issue/TEST-1" -Method Put -Body $body
 ```

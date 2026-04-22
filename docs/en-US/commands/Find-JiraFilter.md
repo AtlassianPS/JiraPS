@@ -102,7 +102,7 @@ Find-JiraFilter -Name """George Jetsons Filter""" -Fields 'description','jql'
 ```
 
 This example finds the JIRA filter named "George Jetsons Filter" but only expands the fields listed.
-
+
 By retrieving only the data really needed, the payload the server sends is
 reduced, which speeds up the search.
 

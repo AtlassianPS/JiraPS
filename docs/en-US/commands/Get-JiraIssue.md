@@ -62,7 +62,7 @@ Get-JiraIssue -Key TEST-001
 ```
 
 This example fetches the issue "TEST-001".
-
+
 The default `Format-Table` view of a Jira issue only shows the value of "Key", "Summary", "Status" and "Created".
 > This can be manipulated with `Format-Table`, `Format-List` and `Select-Object`
 
@@ -123,7 +123,7 @@ Get-JiraIssue -Query "project = TEST" -Fields "key", "summary", "assignee"
 
 This example retrieves all issues in project "TEST" - but only the 3 properties
 listed above: key, summary and assignee
-
+
 By retrieving only the data really needed, the payload the server sends is
 reduced, which speeds up the query.
 

@@ -51,7 +51,7 @@ Get-JiraFilter 12345 | Add-JiraFilterPermission
 ```
 
 Two methods for retrieve the permissions set for Filter 12345 by using the pipeline.
-
+
 The Id could be read from a file.
 
 ## PARAMETERS

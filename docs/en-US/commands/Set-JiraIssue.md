@@ -108,7 +108,7 @@ Set-JiraIssue @parameters -Issue TEST-001, TEST-002
 ```
 
 This example uses splatting to update "TEST-001" and "TEST-002".
-
+
 You can read more about splatting in: about_Splatting
 
 ## PARAMETERS

@@ -51,7 +51,7 @@ Two methods of sharing Filter 12345 with everyone.
 ```
 
 Share Filter 12345 with authenticated users.
-
+
 The Id could be read from a file.
 
 ### Example 3

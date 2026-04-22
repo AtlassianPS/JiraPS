@@ -68,9 +68,9 @@ Invoke-JiraMethod @parameter
 ```
 
 Sends a POST request to the server.
-
+
 > This will example doesn't really do anything on the server, as the content API needs requires a value for the BODY.
-
+
 See next example
 
 ### Example 4
@@ -171,16 +171,16 @@ Invoke-JiraMethod -URI $uri -CacheKey "Status" -CacheExpiry ([TimeSpan]::FromSec
 
 # 15 minutes — moderately static data
 Invoke-JiraMethod -URI $uri -CacheKey "Priorities" -CacheExpiry ([TimeSpan]::FromMinutes(15))
-
+
 # 2 hours — rarely changing reference data
 Invoke-JiraMethod -URI $uri -CacheKey "IssueTypes" -CacheExpiry ([TimeSpan]::FromHours(2))
-
+
 # 1 day — essentially static configuration
 Invoke-JiraMethod -URI $uri -CacheKey "ServerInfo" -CacheExpiry ([TimeSpan]::FromDays(1))
-
+
 # Using New-TimeSpan cmdlet — combines multiple units
 Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry (New-TimeSpan -Hours 1 -Minutes 30)
-
+
 # Using string literal — PowerShell auto-converts "hh:mm:ss" to TimeSpan
 Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry "00:45:00"
 

@@ -47,7 +47,7 @@ Get-JiraIssueCreateMetadata -Project 'JIRA' -IssueType 'Bug' | ? {$_.Required -e
 ```
 
 This example returns fields available when creating an issue of type Bug under the project Jira.
-
+
 It then uses `Where-Object` (aliased by the question mark) to filter only the fields that are required.
 
 ### EXAMPLE 3

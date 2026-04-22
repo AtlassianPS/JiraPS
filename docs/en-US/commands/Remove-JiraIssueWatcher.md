@@ -48,7 +48,7 @@ Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' | Remove-JiraIssueWat
 ```
 
 This example illustrates removing watcher on all projects which match a given JQL query.
-
+
 It would be best to validate the query first to make sure the query returns the expected issues!
 
 ## PARAMETERS

@@ -76,7 +76,7 @@ $listOfFilters | Remove-JiraFilter
 ```
 
 Remove filters with id "1", "2", "3" and "4".
-
+
 This input allows for the ID of the filters to be stored in an array and passed
 to the command.
 (eg: `Get-Content` from a file with the ids)

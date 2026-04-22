@@ -61,7 +61,7 @@ Add-JiraIssueWorklog $comment -Issue TEST-003 -TimeSpent 60 -DateStarted (Get-Da
 ```
 
 This example illustrates adding a comment based on other logic to a JIRA issue.
-
+
 Note the use of `Format-Jira` to convert the output of `Get-Process` into a format that is easily read by users.
 
 ## PARAMETERS
