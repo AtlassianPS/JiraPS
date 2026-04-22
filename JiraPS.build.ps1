@@ -105,7 +105,6 @@ Task ShowDebugInfo {
 # annotations on the PR diff.
 Task Lint {
     $isGitHubActions = [bool]$env:GITHUB_ACTIONS
-    ${/} = [System.IO.Path]::DirectorySeparatorChar
     $failures = [System.Collections.Generic.List[String]]::new()
 
     Write-Build Gray "Running style tests..."
@@ -131,19 +130,32 @@ Task Lint {
 
     Write-Build Gray "Running PSScriptAnalyzer..."
 
-    # Filter Release/* client-side rather than via -ExcludePath: the latter
-    # requires wildcard syntax that's easy to get subtly wrong, and Release/
-    # only matters for local devs (CI runs Lint before Build).
+    # Scope -Path to the actual code roots instead of the project root. The
+    # previous design pointed -Path at $env:BHProjectPath and filtered
+    # Release/* findings client-side, which forced PSSA to parse every
+    # `.ps1`/`.psm1`/`.psd1` file under Release/ (~130 files duplicated
+    # from JiraPS/ and Tests/) just so the results could be discarded.
+    # Listing the source roots explicitly skips that work entirely while
+    # remaining safe: every PowerShell file we author lives under one of
+    # these paths.
+    $analyzerPaths = @(
+        "$env:BHProjectPath/JiraPS"
+        "$env:BHProjectPath/Tests"
+        "$env:BHProjectPath/Tools"
+        "$env:BHProjectPath/JiraPS.build.ps1"
+    )
+
     $analyzerParams = @{
-        Path     = $env:BHProjectPath
         Settings = "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
         Severity = @('Error', 'Warning')
         Recurse  = $true
     }
 
+    # PSSA's -Path is single-valued, so invoke it per root and concatenate.
     $results = @(
-        Invoke-ScriptAnalyzer @analyzerParams |
-            Where-Object { $_.ScriptPath -notlike "*${/}Release${/}*" }
+        foreach ($path in $analyzerPaths) {
+            Invoke-ScriptAnalyzer -Path $path @analyzerParams
+        }
     )
 
     if ($results.Count -gt 0) {
