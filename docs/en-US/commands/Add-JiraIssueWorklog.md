@@ -1,12 +1,14 @@
 ---
+document type: cmdlet
 external help file: JiraPS-help.xml
+HelpUri: https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueWorklog/
+Locale: en-DE
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueWorklog/
-locale: en-US
-schema: 2.0.0
-layout: documentation
-permalink: /docs/JiraPS/commands/Add-JiraIssueWorklog/
+ms.date: 04.22.2026
+PlatyPS schema version: 2024-05-01
+title: Add-JiraIssueWorklog
 ---
+
 # Add-JiraIssueWorklog
 
 ## SYNOPSIS
@@ -15,10 +17,18 @@ Adds a worklog item to an existing JIRA issue
 
 ## SYNTAX
 
-```powershell
-Add-JiraIssueWorklog [-Comment] <String> [-Issue] <Object> [-TimeSpent] <TimeSpan> [-DateStarted] <DateTime>
- [[-VisibleRole] <String>] [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+### __AllParameterSets
+
 ```
+Add-JiraIssueWorklog [-Comment] <string> [-Issue] <Object> [-TimeSpent] <timespan>
+ [-DateStarted] <datetime> [[-VisibleRole] <string>] [[-Credential] <pscredential>] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
+```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -29,39 +39,35 @@ You can optionally set the visibility of the item (All Users, Developers, or Adm
 
 ### EXAMPLE 1
 
-```powershell
 Add-JiraIssueWorklog -Comment "Test comment" -Issue "TEST-001" -TimeSpent 60 -DateStarted (Get-Date)
-```
 
+
 This example adds a simple worklog item to the issue TEST-001.
 
 ### EXAMPLE 2
 
-```powershell
 Get-JiraIssue "TEST-002" | Add-JiraIssueWorklog "Test worklog item from PowerShell" -TimeSpent 60 -DateStarted (Get-Date)
-```
 
+
 This example illustrates pipeline use from `Get-JiraIssue` to `Add-JiraIssueWorklog`.
 
 ### EXAMPLE 3
 
-```powershell
 Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' |
     Add-JiraIssueWorklog "This issue has been cancelled per Vice President's orders." -TimeSpent 60 -DateStarted (Get-Date)
-```
 
+
 This example illustrates logging work on all projects which match a given JQL query.
 It would be best to validate the query first to make sure the query returns the expected issues!
 
 ### EXAMPLE 4
 
-```powershell
 $comment = Get-Process | Format-Jira
 Add-JiraIssueWorklog $comment -Issue TEST-003 -TimeSpent 60 -DateStarted (Get-Date)
-```
 
+
 This example illustrates adding a comment based on other logic to a JIRA issue.
-
+
 Note the use of `Format-Jira` to convert the output of `Get-Process` into a format that is easily read by users.
 
 ## PARAMETERS
@@ -71,15 +77,85 @@ Note the use of `Format-Jira` to convert the output of `Get-Process` into a form
 Worklog item that should be added to JIRA
 
 ```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -Confirm
+
+Prompts you for confirmation before running the cmdlet.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: System.Management.Automation.PSCredential
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 5
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -DateStarted
+
+Date/time started to be logged
+
+```yaml
+Type: System.DateTime
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 3
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Issue
@@ -89,15 +165,21 @@ Issue to receive the new worklog item.
 Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases: Key
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
-Accept wildcard characters: False
+Type: System.Object
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Key
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -TimeSpent
@@ -105,36 +187,25 @@ Accept wildcard characters: False
 Time spent to be logged
 
 ```yaml
-Type: TimeSpan
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 3
-Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
-Accept wildcard characters: False
-```
-
-### -DateStarted
-
-Date/time started to be logged
-
-```yaml
-Type: DateTime
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 4
-Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
-Accept wildcard characters: False
+Type: System.TimeSpan
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 2
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -VisibleRole
 
-Visibility of the comment.  
+Visibility of the comment.
 Defines if the comment should be publicly visible, viewable to only developers, or only administrators.
 
 Allowed values are:
@@ -144,32 +215,20 @@ Allowed values are:
 - `Administrators`
 
 ```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 5
-Default value: All Users
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 6
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.String
+DefaultValue: All Users
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 4
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -178,45 +237,53 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ### This function can accept JiraPS.Issue objects via pipeline.
 
+{{ Fill in the Description }}
+
+### System.Object
+
+{{ Fill in the Description }}
+
+### System.TimeSpan
+
+{{ Fill in the Description }}
+
+### System.DateTime
+
+{{ Fill in the Description }}
+
 ## OUTPUTS
 
-### [JiraPS.Worklogitem]
+### JiraPS.Worklogitem
+
+{{ Fill in the Description }}
 
 ## NOTES
 
@@ -224,10 +291,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
+
 ## RELATED LINKS
 
-[Get-JiraIssueWorklog](../Get-JiraIssueWorklog)
-
-[Get-JiraIssue](../Get-JiraIssue/)
-
-[Format-Jira](../Format-Jira/)
+- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueWorklog/)
+- [Get-JiraIssueWorklog](../Get-JiraIssueWorklog)
+- [Get-JiraIssue](../Get-JiraIssue/)
+- [Format-Jira](../Format-Jira/)

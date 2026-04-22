@@ -1,12 +1,14 @@
 ---
+document type: cmdlet
 external help file: JiraPS-help.xml
+HelpUri: https://atlassianps.org/docs/JiraPS/commands/New-JiraFilter/
+Locale: en-DE
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/New-JiraFilter/
-locale: en-US
-schema: 2.0.0
-layout: documentation
-permalink: /docs/JiraPS/commands/New-JiraFilter/
+ms.date: 04.22.2026
+PlatyPS schema version: 2024-05-01
+title: New-JiraFilter
 ---
+
 # New-JiraFilter
 
 ## SYNOPSIS
@@ -15,10 +17,17 @@ Create a new Jira filter.
 
 ## SYNTAX
 
-```powershell
-New-JiraFilter -Name <String> [-Description <String>] -JQL <String> [-Favorite] [-Credential <PSCredential>]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+### __AllParameterSets
+
 ```
+New-JiraFilter [-Name] <string> [[-Description] <string>] [-JQL] <string>
+ [[-Credential] <pscredential>] [-Favorite] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -28,23 +37,20 @@ Create a new Jira filter.
 
 ### Example 1
 
-```powershell
 New-JiraFilter -Name "My Bugs" -JQL "type = Bug and assignee = currentuser()"
-```
 
+
 Creates a new filter named "My Bugs"
 
 ### Example 2
 
-```powershell
 New-JiraFilter -Name "My Bugs" -JQL "type = Bug and assignee = currentuser()" -Favorite
-```
 
+
 Creates a new filter named "My Bugs" and stores it as favorite
 
 ### Example 3
 
-```powershell
 $splatNewFilter = @{
     Name = "My Bugs"
     Description = "collections of bugs assigned to me"
@@ -52,26 +58,54 @@ $splatNewFilter = @{
     Favorite = $true
 }
 New-JiraFilter @splatNewFilter
-```
 
+
 Creates a new filter named "My Bugs" using splatting
 
 ## PARAMETERS
 
-### -Name
+### -Confirm
 
-Name of the filter.
+Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: String
-Parameter Sets: (All)
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: System.Management.Automation.PSCredential
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 3
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Description
@@ -79,15 +113,42 @@ Accept wildcard characters: False
 Description for the filter.
 
 ```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
+### -Favorite
+
+Make this new filter a favorite of the user.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Favourite
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -JQL
@@ -97,48 +158,41 @@ JQL string which the filter uses for matching issues.
 More about JQL at <https://confluence.atlassian.com/display/JIRA/Advanced+Searching>
 
 ```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 2
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Favorite
+### -Name
 
-Make this new filter a favorite of the user.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: Favourite
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Name of the filter.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -147,45 +201,45 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [System.String]
+### System.String
+
+{{ Fill in the Description }}
+
+### System.Management.Automation.SwitchParameter
+
+{{ Fill in the Description }}
 
 ## OUTPUTS
 
-### [JiraPS.Filter]
+### JiraPS.Filter
+
+{{ Fill in the Description }}
 
 ## NOTES
 
@@ -193,10 +247,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
+
 ## RELATED LINKS
 
-[Get-JiraFilter](../Get-JiraFilter/)
-
-[Set-JiraFilter](../Set-JiraFilter/)
-
-[Remove-JiraFilter](../Remove-JiraFilter/)
+- [Online Version](https://atlassianps.org/docs/JiraPS/commands/New-JiraFilter/)
+- [Get-JiraFilter](../Get-JiraFilter/)
+- [Set-JiraFilter](../Set-JiraFilter/)
+- [Remove-JiraFilter](../Remove-JiraFilter/)

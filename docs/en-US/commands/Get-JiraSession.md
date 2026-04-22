@@ -1,12 +1,14 @@
 ---
+document type: cmdlet
 external help file: JiraPS-help.xml
+HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraSession/
+Locale: en-DE
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraSession/
-locale: en-US
-schema: 2.0.0
-layout: documentation
-permalink: /docs/JiraPS/commands/Get-JiraSession/
+ms.date: 04.22.2026
+PlatyPS schema version: 2024-05-01
+title: Get-JiraSession
 ---
+
 # Get-JiraSession
 
 ## SYNOPSIS
@@ -15,9 +17,16 @@ Obtains a reference to the currently saved JIRA session
 
 ## SYNTAX
 
-```powershell
+### __AllParameterSets
+
+```
 Get-JiraSession [<CommonParameters>]
 ```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -29,30 +38,36 @@ This can provide a JIRA session ID, as well as the username used to connect to J
 
 ### EXAMPLE 1
 
-```powershell
 New-JiraSession -Credential (Get-Credential jiraUsername)
 Get-JiraSession
-```
 
+
 Creates a Jira session for jiraUsername, then obtains a reference to it.
 
 ## PARAMETERS
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ## OUTPUTS
 
-### [JiraPS.Session]
+### JiraPS.Session
+
+{{ Fill in the Description }}
 
 ## NOTES
 
+
+
+
 ## RELATED LINKS
 
-[about_JiraPS_Authentication](../../about/authentication.html)
-
-[New-JiraSession](../New-JiraSession/)
+- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraSession/)
+- [about_JiraPS_Authentication](../../about/authentication.html)
+- [New-JiraSession](../New-JiraSession/)

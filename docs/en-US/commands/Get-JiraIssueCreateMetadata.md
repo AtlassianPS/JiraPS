@@ -1,12 +1,14 @@
 ---
+document type: cmdlet
 external help file: JiraPS-help.xml
+HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueCreateMetadata/
+Locale: en-DE
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueCreateMetadata/
-locale: en-US
-schema: 2.0.0
-layout: documentation
-permalink: /docs/JiraPS/commands/Get-JiraIssueCreateMetadata/
+ms.date: 04.22.2026
+PlatyPS schema version: 2024-05-01
+title: Get-JiraIssueCreateMetadata
 ---
+
 # Get-JiraIssueCreateMetadata
 
 ## SYNOPSIS
@@ -15,10 +17,17 @@ Returns metadata required to create an issue in JIRA
 
 ## SYNTAX
 
-```powershell
-Get-JiraIssueCreateMetadata [-Project] <String> [-IssueType] <String> [[-Credential] <PSCredential>]
- [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+### __AllParameterSets
+
 ```
+Get-JiraIssueCreateMetadata [-Project] <string> [-IssueType] <string> [[-Credential] <pscredential>]
+ [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -27,90 +36,79 @@ This can be used to identify custom fields in order to pass them to `New-JiraIss
 
 This function is particularly useful when your JIRA instance includes custom fields that are marked as mandatory.
 
-The cmdlet walks every page of the Jira Cloud createmeta response, so the full set
-of fields is returned by default even when the issue type has more fields than a
-single page holds. Use the `-First` / `-Skip` / `-IncludeTotalCount` common
-pagination parameters to limit or offset the results.
+The cmdlet walks every page of the Jira Cloud createmeta response, so the full set of fields is returned by default even when the issue type has more fields than a single page holds.
+Use the `-First` / `-Skip` / `-IncludeTotalCount` common pagination parameters to limit or offset the results.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 
-```powershell
 Get-JiraIssueCreateMetadata -Project 'TEST' -IssueType 'Bug'
-```
 
+
 This example returns all fields available when creating an issue of type Bug under
 project TEST, walking pagination as needed.
 
 ### EXAMPLE 2
 
-```powershell
 Get-JiraIssueCreateMetadata -Project 'JIRA' -IssueType 'Bug' | ? {$_.Required -eq $true}
-```
 
+
 This example returns fields available when creating an issue of type Bug under the project Jira.
-
+
 It then uses `Where-Object` (aliased by the question mark) to filter only the fields that are required.
 
 ### EXAMPLE 3
 
-```powershell
 Get-JiraIssueCreateMetadata -Project 'TEST' -IssueType 'Bug' -First 10
-```
 
+
 This example returns only the first 10 fields, regardless of how many pages the
 Jira API would normally return.
 
 ## PARAMETERS
 
-### -Project
-
-Project ID or key of the reference issue.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -IssueType
-
-Issue type ID or name.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### -Credential
 
-Credentials to use to connect to JIRA.  
+Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
+Type: System.Management.Automation.PSCredential
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 2
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -First
+
+Indicates how many items to return.
+
+```yaml
+Type: System.UInt64
+DefaultValue: 18446744073709551615
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -IncludeTotalCount
@@ -120,15 +118,62 @@ Causes an extra output of the total count at the beginning.
 Note this is actually a uInt64, but with a custom string representation.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -IssueType
+
+Issue type ID or name.
+
+```yaml
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Project
+
+Project ID or key of the reference issue.
+
+```yaml
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Skip
@@ -138,43 +183,36 @@ Controls how many things will be skipped before starting output.
 Defaults to 0.
 
 ```yaml
-Type: UInt64
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: 0
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -First
-
-Indicates how many items to return.
-
-```yaml
-Type: UInt64
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: 18446744073709551615
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.UInt64
+DefaultValue: 0
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ## OUTPUTS
 
-### [JiraPS.Field]
+### JiraPS.Field
+
+{{ Fill in the Description }}
 
 ## NOTES
 
@@ -182,10 +220,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
+
 ## RELATED LINKS
 
-[about_JiraPS_CreatingIssues](../../about/creating-issues.html)
-
-[Get-JiraField](../Get-JiraField/)
-
-[New-JiraIssue](../New-JiraIssue/)
+- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueCreateMetadata/)
+- [about_JiraPS_CreatingIssues](../../about/creating-issues.html)
+- [Get-JiraField](../Get-JiraField/)
+- [New-JiraIssue](../New-JiraIssue/)

@@ -1,12 +1,14 @@
 ---
+document type: cmdlet
 external help file: JiraPS-help.xml
+HelpUri: https://atlassianps.org/docs/JiraPS/commands/Move-JiraVersion/
+Locale: en-DE
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Move-JiraVersion/
-locale: en-US
-schema: 2.0.0
-layout: documentation
-permalink: /docs/JiraPS/commands/Move-JiraVersion/
+ms.date: 04.22.2026
+PlatyPS schema version: 2024-05-01
+title: Move-JiraVersion
 ---
+
 # Move-JiraVersion
 
 ## SYNOPSIS
@@ -17,15 +19,21 @@ Moves an existing Version in JIRA
 
 ### ByAfter (Default)
 
-```powershell
-Move-JiraVersion [-Version] <JiraPS.Version> [-After] <JiraPS.Version> [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+Move-JiraVersion -Version <Object> -After <Object> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByPosition
 
-```powershell
-Move-JiraVersion [-Version] <JiraPS.Version> [-Position] <String> [[-Credential] <PSCredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+Move-JiraVersion -Version <Object> -Position <string> [-Credential <pscredential>]
+ [<CommonParameters>]
+```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -36,44 +44,68 @@ Moving the Version modifies the order/sequence of the Version in relation to oth
 
 ### EXAMPLE 1
 
-```powershell
 Move-JiraVersion -Version 10 -After 9
-```
 
+
 This example moves the Version with ID 10 after the Version with ID 9.
 
 ### EXAMPLE 2
 
-```powershell
 Move-JiraVersion -Version $myVersionObject -After $otherVersionObject
-```
 
+
 This example moves the Version object after the other Version object.
 
 ### EXAMPLE 3
 
-```powershell
 Move-JiraVersion -Version $myVersionObject -Position Earliest
-```
 
+
 This example moves the Version object to the earliest position.
 
 ## PARAMETERS
 
-### -Version
+### -After
 
-Version Object or ID to move.
+Version Object or ID to move Version after.
 
 ```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases:
+Type: System.Object
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByAfter
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True
-Accept wildcard characters: False
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: System.Management.Automation.PSCredential
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Position
@@ -81,59 +113,61 @@ Accept wildcard characters: False
 The new Position for the Version
 
 ```yaml
-Type: String
-Parameter Sets: ByPosition
-Aliases:
-Accepted values: First, Last, Earlier, Later
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByPosition
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -After
+### -Version
 
-Version Object or ID to move Version after.
-
-```yaml
-Type: Object
-Parameter Sets: ByAfter
-Aliases:
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
+Version Object or ID to move.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Object
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Version]
+### JiraPS.Version
+
+{{ Fill in the Description }}
+
+### System.Object
+
+{{ Fill in the Description }}
+
+## OUTPUTS
 
 ## NOTES
 
@@ -141,12 +175,11 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
+
 ## RELATED LINKS
 
-[Get-JiraVersion](../Get-JiraVersion/)
-
-[New-JiraVersion](../New-JiraVersion/)
-
-[Remove-JiraVersion](../Remove-JiraVersion/)
-
-[Set-JiraVersion](../Set-JiraVersion/)
+- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Move-JiraVersion/)
+- [Get-JiraVersion](../Get-JiraVersion/)
+- [New-JiraVersion](../New-JiraVersion/)
+- [Remove-JiraVersion](../Remove-JiraVersion/)
+- [Set-JiraVersion](../Set-JiraVersion/)

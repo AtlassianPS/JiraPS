@@ -1,12 +1,14 @@
 ---
+document type: cmdlet
 external help file: JiraPS-help.xml
+HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraServerInformation/
+Locale: en-DE
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraServerInformation/
-locale: en-US
-schema: 2.0.0
-layout: documentation
-permalink: /docs/JiraPS/commands/Get-JiraServerInformation/
+ms.date: 04.22.2026
+PlatyPS schema version: 2024-05-01
+title: Get-JiraServerInformation
 ---
+
 # Get-JiraServerInformation
 
 ## SYNOPSIS
@@ -15,61 +17,76 @@ This function returns the information about the JIRA Server
 
 ## SYNTAX
 
-```powershell
-Get-JiraServerInformation [[-Credential] <PSCredential>] [<CommonParameters>]
+### __AllParameterSets
+
 ```
+Get-JiraServerInformation [[-Credential] <pscredential>] [-Force] [<CommonParameters>]
+```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
 This functions shows all the information about the JIRA server, such as version, time, etc.
 
-The result is cached for 5 minutes to improve performance. Use the `-Force` parameter to bypass the cache and re-fetch from the server. You can also use `Clear-JiraCache -Type ServerInfo` to manually clear the cache.
+The result is cached for 5 minutes to improve performance.
+Use the `-Force` parameter to bypass the cache and re-fetch from the server.
+You can also use `Clear-JiraCache -Type ServerInfo` to manually clear the cache.
 
-The returned object includes a `DeploymentType` property (`Cloud` or `Server`) that JiraPS uses internally to adapt API calls for Jira Cloud vs. Data Center/Server. If the API call fails or the response lacks a `deploymentType` field (older Jira Server versions), `DeploymentType` defaults to `Server`.
+The returned object includes a `DeploymentType` property (`Cloud` or `Server`) that JiraPS uses internally to adapt API calls for Jira Cloud vs.
+Data Center/Server.
+If the API call fails or the response lacks a `deploymentType` field (older Jira Server versions), `DeploymentType` defaults to `Server`.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 
-```powershell
 Get-JiraServerInformation
-```
 
-This example returns information about the JIRA server. Subsequent calls return the cached result.
+
+This example returns information about the JIRA server.
+Subsequent calls return the cached result.
 
 ### EXAMPLE 2
 
-```powershell
 Get-JiraServerInformation -Force
-```
 
-Bypasses the cache and re-fetches server information from the API. Use this after a Jira upgrade or configuration change.
+
+Bypasses the cache and re-fetches server information from the API.
+Use this after a Jira upgrade or configuration change.
 
 ### EXAMPLE 3
 
-```powershell
 (Get-JiraServerInformation).DeploymentType
-```
 
+
 Returns `Cloud` or `Server`, indicating which Jira platform is in use.
 
 ## PARAMETERS
 
 ### -Credential
 
-Credentials to use to connect to JIRA.  
+Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.PSCredential
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Force
@@ -77,27 +94,36 @@ Accept wildcard characters: False
 Bypasses the cached server information and re-fetches from the API.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ## OUTPUTS
 
-### [JiraPS.ServerInfo]
+### JiraPS.ServerInfo
+
+{{ Fill in the Description }}
 
 ## NOTES
 
@@ -116,4 +142,7 @@ API behavior (e.g., `accountId` instead of `username`, API v3 endpoints).
 Jira Cloud returns `"Cloud"`, while Data Center and older Server instances
 return `"Server"` or omit the field entirely (defaulting to `"Server"`).
 
+
 ## RELATED LINKS
+
+- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraServerInformation/)

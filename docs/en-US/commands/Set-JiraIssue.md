@@ -1,12 +1,14 @@
 ---
+document type: cmdlet
 external help file: JiraPS-help.xml
+HelpUri: https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssue/
+Locale: en-DE
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssue/
-locale: en-US
-schema: 2.0.0
-layout: documentation
-permalink: /docs/JiraPS/commands/Set-JiraIssue/
+ms.date: 04.22.2026
+PlatyPS schema version: 2024-05-01
+title: Set-JiraIssue
 ---
+
 # Set-JiraIssue
 
 ## SYNOPSIS
@@ -17,30 +19,35 @@ Modifies an existing issue in JIRA
 
 ### AssignToUser (Default)
 
-```powershell
-Set-JiraIssue [-Issue] <Object[]> [-Summary <String>] [-Description <String>] [-FixVersion <String[]>]
- [-Assignee <Object>] [-Label <String[]>] [-Fields <PSCustomObject>] [-AddComment <String>]
- [-Credential <PSCredential>] [-SkipNotification] [-PassThru]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+ [-Assignee <Object>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
+ [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ### Unassign
 
-```powershell
-Set-JiraIssue [-Issue] <Object[]> [-Summary <String>] [-Description <String>] [-FixVersion <String[]>]
- [-Unassign] [-Label <String[]>] [-Fields <PSCustomObject>] [-AddComment <String>]
- [-Credential <PSCredential>] [-SkipNotification] [-PassThru]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+ [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
+ [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ### UseDefaultAssignee
 
-```powershell
-Set-JiraIssue [-Issue] <Object[]> [-Summary <String>] [-Description <String>] [-FixVersion <String[]>]
- [-UseDefaultAssignee] [-Label <String[]>] [-Fields <PSCustomObject>] [-AddComment <String>]
- [-Credential <PSCredential>] [-SkipNotification] [-PassThru]
- [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+ [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
+ [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
+```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -51,49 +58,43 @@ This can include changing the issue's summary or description, or assigning the i
 
 ### EXAMPLE 1
 
-```powershell
 Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell' -SkipNotification
-```
 
+
 This example changes the summary and description of the JIRA issue TEST-01 without updating users by email about the change.
 
 ### EXAMPLE 2
 
-```powershell
 $issue = Get-JiraIssue TEST-01
 $issue | Set-JiraIssue -Description "$($issue.Description)\`n\`nEdit: Also foo."
-```
 
+
 This example appends text to the end of an existing issue description by using
 `Get-JiraIssue` to obtain a reference to the current issue and description.
 
 ### EXAMPLE 3
 
-```powershell
 Set-JiraIssue -Issue TEST-01 -Unassign
-```
 
+
 This example removes the assignee from JIRA issue TEST-01.
 
 ### EXAMPLE 4
 
-```powershell
 Set-JiraIssue -Issue TEST-01 -UseDefaultAssignee
-```
 
+
 This example sets the assignee of JIRA issue TEST-01 to the project's default assignee.
 
 ### EXAMPLE 5
 
-```powershell
 Set-JiraIssue -Issue TEST-01 -Assignee 'joe' -AddComment 'Dear [~joe], please review.'
-```
 
+
 This example assigns the JIRA Issue TEST-01 to 'joe' and adds a comment at one.
 
 ### EXAMPLE 6
 
-```powershell
 $parameters = @{
     labels = @("DEPRECATED")
     AddComment = "Updated with a script"
@@ -106,78 +107,33 @@ $parameters = @{
     }
 }
 Set-JiraIssue @parameters -Issue TEST-001, TEST-002
-```
 
+
 This example uses splatting to update "TEST-001" and "TEST-002".
-
+
 You can read more about splatting in: about_Splatting
 
 ## PARAMETERS
 
-### -Issue
+### -AddComment
 
-Issue to be changed.
-
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Add a comment to the issue along with other changes.
 
 ```yaml
-Type: Object[]
-Parameter Sets: (All)
-Aliases: Key
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByPropertyName, ByValue)
-Accept wildcard characters: False
-```
-
-### -Summary
-
-New summary of the issue.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Description
-
-New description of the issue.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -FixVersion
-
-Set the FixVersion of the issue, this will overwrite any present FixVersions
-
-```yaml
-Type: String[]
-Parameter Sets: (All)
-Aliases: FixVersions
-
-Required: False
-Position: 4
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Assignee
@@ -190,31 +146,154 @@ Use `-UseDefaultAssignee` to set the project's default assignee.
 Empty strings and `$null` values are not accepted.
 
 ```yaml
-Type: Object
-Parameter Sets: AssignToUser
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Object
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: AssignToUser
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Unassign
+### -Confirm
 
-Remove the current assignee of the issue.
+Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: Unassign
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: System.Management.Automation.PSCredential
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Description
+
+New description of the issue.
+
+```yaml
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Fields
+
+Any additional fields that should be updated.
+
+Inspect [about_JiraPS_CustomFields](../../about/custom-fields.html) for more information.
+
+```yaml
+Type: System.Management.Automation.PSObject
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -FixVersion
+
+Set the FixVersion of the issue, this will overwrite any present FixVersions
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- FixVersions
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Issue
+
+Issue to be changed.
+
+Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+
+```yaml
+Type: System.Object[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Key
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Label
@@ -226,82 +305,21 @@ These will overwrite any existing labels on the issue.
 For more granular control over issue labels, use `Set-JiraIssueLabel`.
 
 ```yaml
-Type: String[]
-Parameter Sets: (All)
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
-
-Required: False
-Position: 6
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Fields
-
-Any additional fields that should be updated.
-
-Inspect [about_JiraPS_CustomFields](../../about/custom-fields.html) for more information.
-
-```yaml
-Type: PSCustomObject
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 7
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -AddComment
-
-Add a comment to the issue along with other changes.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 8
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 9
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -SkipNotification
-
-Whether send notification to users about issue change or not
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+- Labels
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -PassThru
@@ -309,15 +327,83 @@ Accept wildcard characters: False
 Whether output should be provided after invoking this function.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+### -SkipNotification
+
+Whether send notification to users about issue change or not
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Summary
+
+New summary of the issue.
+
+```yaml
+Type: System.String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Unassign
+
+Remove the current assignee of the issue.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Unassign
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -UseDefaultAssignee
@@ -328,15 +414,20 @@ This is useful when you want Jira to automatically determine the assignee
 based on the project's configuration.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: UseDefaultAssignee
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: UseDefaultAssignee
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -345,45 +436,43 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Issue] / [String] / [Int]
+### JiraPS.Issue / String / Int
+
+{{ Fill in the Description }}
+
+### System.Object[]
+
+{{ Fill in the Description }}
 
 ## OUTPUTS
 
-### [JiraPS.Issue]
+### JiraPS.Issue
 
 If the `-PassThru` parameter is provided,
 this function will provide a reference to the JIRA issue modified.
@@ -395,22 +484,16 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
+
 ## RELATED LINKS
 
-[about_JiraPS_UpdatingIssues](../../about/updating-issues.html)
-
-[about_JiraPS_CustomFields](../../about/custom-fields.html)
-
-[Get-JiraIssueEditMetadata](../Get-JiraIssueEditMetadata/)
-
-[Get-JiraComponent](../Get-JiraComponent/)
-
-[Get-JiraField](../Get-JiraField/)
-
-[Get-JiraPriority](../Get-JiraPriority/)
-
-[Get-JiraProject](../Get-JiraProject/)
-
-[Get-JiraVersion](../Get-JiraVersion/)
-
-[Set-JiraIssueLabel](../Set-JiraIssueLabel/)
+- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssue/)
+- [about_JiraPS_UpdatingIssues](../../about/updating-issues.html)
+- [about_JiraPS_CustomFields](../../about/custom-fields.html)
+- [Get-JiraIssueEditMetadata](../Get-JiraIssueEditMetadata/)
+- [Get-JiraComponent](../Get-JiraComponent/)
+- [Get-JiraField](../Get-JiraField/)
+- [Get-JiraPriority](../Get-JiraPriority/)
+- [Get-JiraProject](../Get-JiraProject/)
+- [Get-JiraVersion](../Get-JiraVersion/)
+- [Set-JiraIssueLabel](../Set-JiraIssueLabel/)

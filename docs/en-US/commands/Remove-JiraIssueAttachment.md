@@ -1,12 +1,14 @@
 ---
+document type: cmdlet
 external help file: JiraPS-help.xml
+HelpUri: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraIssueAttachment/
+Locale: en-DE
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraIssueAttachment/
-locale: en-US
-schema: 2.0.0
-layout: documentation
-permalink: /docs/JiraPS/commands/Remove-JiraIssueAttachment/
+ms.date: 04.22.2026
+PlatyPS schema version: 2024-05-01
+title: Remove-JiraIssueAttachment
 ---
+
 # Remove-JiraIssueAttachment
 
 ## SYNOPSIS
@@ -17,17 +19,22 @@ Removes an attachment from a JIRA issue
 
 ### byId (Default)
 
-```powershell
-Remove-JiraIssueAttachment [-AttachmentId] <Int32[]> [-Credential <PSCredential>] [-Force] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+```
+Remove-JiraIssueAttachment [-AttachmentId] <int[]> [-Credential <pscredential>] [-Force] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ### byIssue
 
-```powershell
-Remove-JiraIssueAttachment [-Issue] <Object> [-FileName <String[]>] [-Credential <PSCredential>] [-Force]
- [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+Remove-JiraIssueAttachment [-Issue] <Object> [-FileName <string[]>] [-Credential <pscredential>]
+ [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -37,26 +44,23 @@ This function removes an attachment from a JIRA issue.
 
 ### EXAMPLE 1
 
-```powershell
 Remove-JiraIssueAttachment -AttachmentId 10039
-```
 
+
 Removes attachment with id of 10039
 
 ### EXAMPLE 2
 
-```powershell
 Get-JiraIssueAttachment -Issue FOO-1234 | Remove-JiraIssueAttachment
-```
 
+
 Removes all attachments from issue FOO-1234
 
 ### EXAMPLE 3
 
-```powershell
 Remove-JiraIssueAttachment -Issue FOO-1234 -FileName '*.png' -force
-```
 
+
 Removes all *.png attachments from Issue FOO-1234 without prompting for confirmation
 
 ## PARAMETERS
@@ -66,15 +70,107 @@ Removes all *.png attachments from Issue FOO-1234 without prompting for confirma
 Id of the Attachment to delete
 
 ```yaml
-Type: Int32[]
-Parameter Sets: byId
-Aliases: Id
+Type: System.Int32[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Id
+ParameterSets:
+- Name: byId
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
+### -Confirm
+
+Prompts you for confirmation before running the cmdlet.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Credential
+
+Credentials to use to connect to JIRA.
+If not specified, this function will use anonymous access.
+
+```yaml
+Type: System.Management.Automation.PSCredential
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -FileName
+
+Name of the File to delete
+
+```yaml
+Type: System.String[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byIssue
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Force
+
+Suppress user confirmation.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Issue
@@ -84,64 +180,21 @@ Issue from which to delete on or more attachments.
 Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
-Parameter Sets: byIssue
-Aliases: Key
-
-Required: True
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -FileName
-
-Name of the File to delete
-
-```yaml
-Type: String[]
-Parameter Sets: byIssue
+Type: System.Object
+DefaultValue: ''
+SupportsWildcards: false
 Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Credential
-
-Credentials to use to connect to JIRA.  
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Force
-
-Suppress user confirmation.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
+- Key
+ParameterSets:
+- Name: byIssue
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -150,41 +203,39 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: wi
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Confirm
-
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: System.Management.Automation.SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Issue] / [String] / [Int]
+### JiraPS.Issue / String / Int
+
+{{ Fill in the Description }}
+
+### System.Int32[]
+
+{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -194,10 +245,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
+
 ## RELATED LINKS
 
-[Add-JiraIssueAttachment](../Add-JiraIssueAttachment/)
-
-[Get-JiraIssue](../Get-JiraIssue/)
-
-[Get-JiraIssueAttachment](../Get-JiraIssueAttachment/)
+- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Remove-JiraIssueAttachment/)
+- [Add-JiraIssueAttachment](../Add-JiraIssueAttachment/)
+- [Get-JiraIssue](../Get-JiraIssue/)
+- [Get-JiraIssueAttachment](../Get-JiraIssueAttachment/)

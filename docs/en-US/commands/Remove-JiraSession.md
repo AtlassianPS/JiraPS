@@ -1,12 +1,14 @@
 ---
+document type: cmdlet
 external help file: JiraPS-help.xml
+HelpUri: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraSession/
+Locale: en-DE
 Module Name: JiraPS
-online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraSession/
-locale: en-US
-schema: 2.0.0
-layout: documentation
-permalink: /docs/JiraPS/commands/Remove-JiraSession/
+ms.date: 04.22.2026
+PlatyPS schema version: 2024-05-01
+title: Remove-JiraSession
 ---
+
 # Remove-JiraSession
 
 ## SYNOPSIS
@@ -15,9 +17,16 @@ permalink: /docs/JiraPS/commands/Remove-JiraSession/
 
 ## SYNTAX
 
-```powershell
+### __AllParameterSets
+
+```
 Remove-JiraSession [[-Session] <Object>] [<CommonParameters>]
 ```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -34,21 +43,19 @@ If called with no parameters, this function will close the saved JIRA session in
 
 ### EXAMPLE 1
 
-```powershell
 New-JiraSession -Credential (Get-Credential jiraUsername)
 Get-JiraIssue TEST-01
 Remove-JiraSession
-```
 
+
 This example creates a JIRA session for jiraUsername, runs Get-JiraIssue, and closes the JIRA session.
 
 ### EXAMPLE 2
 
-```powershell
 $s = New-JiraSession -Credential (Get-Credential jiraUsername)
 Remove-JiraSession $s
-```
 
+
 This example creates a JIRA session and saves it to a variable, then uses the variable reference to
 close the session.
 
@@ -61,25 +68,38 @@ A Jira session to be closed.
 If not specified, this function will use a saved session.
 
 ```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+Type: System.Object
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: false
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### [JiraPS.Session]
+### JiraPS.Session
+
+{{ Fill in the Description }}
+
+### System.Object
+
+{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -89,8 +109,9 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
+
 ## RELATED LINKS
 
-[Get-JiraSession](../Get-JiraSession/)
-
-[New-JiraSession](../New-JiraSession/)
+- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Remove-JiraSession/)
+- [Get-JiraSession](../Get-JiraSession/)
+- [New-JiraSession](../New-JiraSession/)
