@@ -160,8 +160,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### JiraPS.User / String
 
 
-### System.Object[]
-
 ## OUTPUTS
 
 ## NOTES

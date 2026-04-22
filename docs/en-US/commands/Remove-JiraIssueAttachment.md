@@ -227,8 +227,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### JiraPS.Issue / String / Int
 
 
-### System.Int32[]
-
 ## OUTPUTS
 
 ## NOTES

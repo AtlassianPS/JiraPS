@@ -174,7 +174,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### This function can accept JiraPS.Issue objects via pipeline.
+### JiraPS.Issue
+
+Pipe a JiraPS.Issue object to add a watcher to it.
 
 ## OUTPUTS
 

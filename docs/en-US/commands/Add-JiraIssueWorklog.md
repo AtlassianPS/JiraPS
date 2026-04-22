@@ -260,13 +260,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### This function can accept JiraPS.Issue objects via pipeline.
+### JiraPS.Issue
 
-
-### System.TimeSpan
-
-
-### System.DateTime
+Pipe a JiraPS.Issue object to record work against it.
 
 ## OUTPUTS
 

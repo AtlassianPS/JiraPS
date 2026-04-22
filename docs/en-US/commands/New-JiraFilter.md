@@ -223,8 +223,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### System.String
 
 
-### System.Management.Automation.SwitchParameter
-
 ## OUTPUTS
 
 ### JiraPS.Filter

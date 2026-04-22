@@ -186,8 +186,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 The JIRA issue that should be linked
 The JIRA issue link that should be used
 
-### System.Object[]
-
 ## OUTPUTS
 
 ## NOTES

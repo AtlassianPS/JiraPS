@@ -188,8 +188,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 Group(s) to which users should be added
 
-### System.Object[]
-
 ## OUTPUTS
 
 ### JiraPS.Group

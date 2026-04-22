@@ -386,8 +386,6 @@ This means:
 
 This enables patterns like `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data.
 
-### System.String[]
-
 ## OUTPUTS
 
 ### JiraPS.Issue

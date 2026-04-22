@@ -213,8 +213,6 @@ Group(s) from which users should be removed
 
 User(s) which to remove
 
-### System.Object[]
-
 ## OUTPUTS
 
 ### JiraPS.Group

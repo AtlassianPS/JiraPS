@@ -215,8 +215,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 The group to query for members
 
-### System.Object[]
-
 ## OUTPUTS
 
 ### JiraPS.User

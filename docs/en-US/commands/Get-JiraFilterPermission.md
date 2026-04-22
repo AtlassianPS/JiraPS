@@ -132,8 +132,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### JiraPS.Filter
 
 
-### System.UInt32[]
-
 ## OUTPUTS
 
 ### JiraPS.Filter

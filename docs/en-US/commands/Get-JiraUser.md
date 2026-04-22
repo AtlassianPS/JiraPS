@@ -321,11 +321,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### String
+### String[]
 
 Username, name, or e-mail address
-
-### System.String[]
 
 ## OUTPUTS
 

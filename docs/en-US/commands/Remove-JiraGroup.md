@@ -159,8 +159,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### JiraPS.Group
 
 
-### System.Object[]
-
 ## OUTPUTS
 
 ## NOTES

@@ -128,8 +128,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### System.Int32[]
-
 ## OUTPUTS
 
 ### JiraPS.Priority
