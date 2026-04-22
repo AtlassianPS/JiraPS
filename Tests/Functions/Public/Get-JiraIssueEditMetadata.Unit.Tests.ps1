@@ -230,10 +230,45 @@ InModuleScope JiraPS {
                     { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
 
-                    # There are 2 example fields in our mock above, but they should
-                    # be passed to Convert-JiraCreateMetaField as a single object.
-                    # The method should only be called once.
+                    # The editmeta endpoint returns a single envelope { fields: { fieldId: ... } }
+                    # which is forwarded to ConvertTo-JiraEditMetaField as one object,
+                    # so the converter is invoked exactly once per call.
                     Should -Invoke ConvertTo-JiraEditMetaField -ModuleName JiraPS -Exactly -Times 1
+                }
+
+                It "Does not write to the error stream on a successful call" {
+                    $errorsBefore = $global:Error.Count
+                    $null = Get-JiraIssueEditMetadata -Issue $issueID
+                    ($global:Error.Count - $errorsBefore) | Should -Be 0
+                }
+            }
+        }
+
+        Describe "Error handling" {
+            Context "When the API returns no body" {
+                BeforeAll {
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "*$issueID/editmeta" } { $null }
+                }
+
+                It "Throws a terminating ObjectNotFound error when no metadata is returned" {
+                    { Get-JiraIssueEditMetadata -Issue $issueID -ErrorAction Stop } |
+                        Should -Throw -ErrorId 'IssueMetadata.ObjectNotFound,Get-JiraIssueEditMetadata'
+                }
+
+                It "References the -Issue parameter in the error message instead of the legacy 'project ... issueType ...' template" {
+                    $caught = $null
+                    try {
+                        Get-JiraIssueEditMetadata -Issue $issueID -ErrorAction Stop
+                    }
+                    catch {
+                        $caught = $_
+                    }
+
+                    $caught | Should -Not -BeNullOrEmpty
+                    $message = "$($caught.ErrorDetails)"
+                    $message | Should -Match ([regex]::Escape("$issueID"))
+                    $message | Should -Not -Match 'No metadata found for project'
+                    $message | Should -Not -Match 'and issueType'
                 }
             }
         }
