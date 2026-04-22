@@ -114,19 +114,19 @@ InModuleScope JiraPS {
             }
 
             Context "Pagination" {
-                It "supports -MaxResults parameter" {
+                It "supports -First parameter" {
                     if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
                     $jql = "project = $($fixtures.TestProject)"
 
-                    $results = Get-JiraIssue -Query $jql -MaxResults 1
+                    $results = Get-JiraIssue -Query $jql -First 1
 
                     @($results).Count | Should -BeLessOrEqual 1
                 }
 
-                It "supports -StartIndex parameter" {
+                It "supports -Skip parameter" {
                     if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
@@ -135,14 +135,14 @@ InModuleScope JiraPS {
                     # Skip on Jira Cloud - the startAt parameter doesn't work reliably
                     # with small result sets on Cloud instances
                     if ($fixtures.CloudUrl -match 'atlassian\.net') {
-                        Set-ItResult -Skipped -Because "StartIndex pagination is unreliable on Jira Cloud"
+                        Set-ItResult -Skipped -Because "Skip-based pagination is unreliable on Jira Cloud"
                         return
                     }
 
                     $jql = "project = $($fixtures.TestProject) ORDER BY key ASC"
 
-                    $firstPage = Get-JiraIssue -Query $jql -MaxResults 1 -StartIndex 0
-                    $secondPage = Get-JiraIssue -Query $jql -MaxResults 1 -StartIndex 1
+                    $firstPage = Get-JiraIssue -Query $jql -First 1 -Skip 0
+                    $secondPage = Get-JiraIssue -Query $jql -First 1 -Skip 1
 
                     # If there's a second page with results, verify it's different from first
                     if ($secondPage -and @($secondPage).Count -gt 0) {
@@ -223,7 +223,7 @@ InModuleScope JiraPS {
                         return
                     }
                     # Limit to 1 result to avoid long pagination on filters with many matches
-                    $results = Get-JiraIssue -Filter $fixtures.TestFilter -MaxResults 1
+                    $results = Get-JiraIssue -Filter $fixtures.TestFilter -First 1
 
                     $results | Should -BeOfType [PSCustomObject]
                 }
