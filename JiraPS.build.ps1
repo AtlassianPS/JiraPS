@@ -201,7 +201,57 @@ Task Build Clean, {
     if (-not (Test-Path "$env:BHBuildOutput/$env:BHProjectName")) {
         $null = New-Item -Path "$env:BHBuildOutput", "$env:BHBuildOutput/$env:BHProjectName" -ItemType Directory
     }
-}, GenerateExternalHelp, CopyModuleFiles, CompileModule, UpdateManifest
+}, GenerateExternalHelp, RemoveOrphanedExternalHelp, CopyModuleFiles, CompileModule, UpdateManifest
+
+# Synopsis: Remove generated help artifacts whose source markdown no longer exists.
+#
+# `Clean` no longer wipes `JiraPS/<locale>/` (so `GenerateExternalHelp` can use
+# it as an incremental-build cache). That means a deleted `docs/<locale>/about_X.md`
+# would leave a stale `about_X.help.txt` on disk, which `CopyModuleFiles` would
+# then ship into Release. This sweep runs every Build (cost: a few directory
+# enumerations) so deletions in `docs/` always reach the artifact.
+Task RemoveOrphanedExternalHelp {
+    if (-not (Test-Path $env:BHModulePath)) { return }
+    $docsRoot = Join-Path $env:BHProjectPath 'docs'
+
+    # Only sweep directories under $env:BHModulePath that look like
+    # GenerateExternalHelp output (i.e., contain only `*.help.txt` and
+    # `*-help.xml` files). This rules out the source layout (`Public/`,
+    # `Private/`) and any future siblings that aren't generated artifacts.
+    $isHelpOutputDir = {
+        param($dir)
+        $files = @(Get-ChildItem $dir.FullName -File -ErrorAction SilentlyContinue)
+        if ($files.Count -eq 0) { return $false }
+        @($files | Where-Object { $_.Name -notlike '*.help.txt' -and $_.Name -notlike '*-help.xml' }).Count -eq 0
+    }
+    $helpDirs = Get-ChildItem $env:BHModulePath -Directory -ErrorAction SilentlyContinue |
+        Where-Object { & $isHelpOutputDir $_ }
+
+    foreach ($localeDir in $helpDirs) {
+        $localeDocs = Join-Path $docsRoot $localeDir.Name
+        if (-not (Test-Path $localeDocs)) {
+            Remove-Item $localeDir.FullName -Recurse -Force
+            continue
+        }
+
+        $expected = [System.Collections.Generic.HashSet[string]]::new(
+            [System.StringComparer]::OrdinalIgnoreCase)
+
+        $hasCommandHelp = Get-ChildItem (Join-Path $localeDocs 'commands/*.md') -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -ne 'index.md' } |
+            Select-Object -First 1
+        if ($hasCommandHelp) {
+            $null = $expected.Add("$env:BHProjectName-help.xml")
+        }
+
+        Get-ChildItem (Join-Path $localeDocs 'about_*.md') -File -ErrorAction SilentlyContinue |
+            ForEach-Object { $null = $expected.Add("$($_.BaseName).help.txt") }
+
+        Get-ChildItem $localeDir.FullName -File -ErrorAction SilentlyContinue |
+            Where-Object { -not $expected.Contains($_.Name) } |
+            Remove-Item -Force
+    }
+}
 
 # Synopsis: Generate ./Release structure
 Task CopyModuleFiles {
