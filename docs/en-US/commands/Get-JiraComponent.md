@@ -74,7 +74,7 @@ Return information about all components within projects 'ABC' and 'DEF'
 The ID of the component.
 
 ```yaml
-Type: System.Int32[]
+Type: Int32[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -97,7 +97,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -118,7 +118,7 @@ HelpMessage: ''
 The ID or Key of the Project to search.
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

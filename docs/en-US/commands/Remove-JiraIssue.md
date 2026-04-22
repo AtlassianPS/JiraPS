@@ -70,7 +70,7 @@ Removes all issues from project ABC (including their subtasks) that have the lab
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -92,7 +92,7 @@ HelpMessage: ''
 Credentials to use to connect to JIRA.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -113,7 +113,7 @@ HelpMessage: ''
 Suppress user confirmation.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -137,7 +137,7 @@ If the issue has no subtasks, this parameter is ignored.
 If the issue has subtasks and this parameter is missing, then the issue will not be deleted and an error will be returned.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases:
@@ -186,7 +186,7 @@ One or more issues to delete, either:
 * Numerical issue IDs
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -211,7 +211,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

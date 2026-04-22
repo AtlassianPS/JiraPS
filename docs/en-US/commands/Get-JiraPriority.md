@@ -61,7 +61,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -82,7 +82,7 @@ HelpMessage: ''
 Bypass the cache and fetch fresh data from the server.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -103,7 +103,7 @@ HelpMessage: ''
 ID of the priority to get.
 
 ```yaml
-Type: System.Int32[]
+Type: Int32[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

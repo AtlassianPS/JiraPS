@@ -44,7 +44,7 @@ Creates a link "is part of" between TEST-01 and TEST-10
 Write a comment to the issue
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -65,7 +65,7 @@ HelpMessage: ''
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -88,7 +88,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -111,7 +111,7 @@ Issue which should be linked.
 Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -133,7 +133,7 @@ HelpMessage: ''
 Issue Link to be created.
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -155,7 +155,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

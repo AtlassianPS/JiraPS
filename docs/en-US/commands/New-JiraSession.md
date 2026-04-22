@@ -110,7 +110,7 @@ Must be used together with `-EmailAddress`.
 Create an API token at: https://id.atlassian.com/manage-profile/security/api-tokens
 
 ```yaml
-Type: System.Security.SecureString
+Type: SecureString
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -131,7 +131,7 @@ HelpMessage: ''
 Credentials to use to connect to JIRA using basic authentication.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -153,7 +153,7 @@ The email address associated with your Atlassian account.
 Required when using `-ApiToken` for Jira Cloud authentication.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -174,7 +174,7 @@ HelpMessage: ''
 Additional headers to include in requests.
 
 ```yaml
-Type: System.Collections.Hashtable
+Type: Hashtable
 DefaultValue: '@{}'
 SupportsWildcards: false
 Aliases: []
@@ -200,7 +200,7 @@ Create a PAT in Jira: Profile > Personal Access Tokens > Create token
 Aliases: `BearerToken`, `PAT`
 
 ```yaml
-Type: System.Security.SecureString
+Type: SecureString
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

@@ -79,7 +79,7 @@ This example removes all labels from the issue TEST-01.
 Labels to be added in addition to the existing ones.
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -100,7 +100,7 @@ HelpMessage: ''
 Remove all labels of the issue.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -121,7 +121,7 @@ HelpMessage: ''
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -144,7 +144,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -167,7 +167,7 @@ Issue of which the labels should be manipulated.
 Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -189,7 +189,7 @@ HelpMessage: ''
 Whether output should be provided after invoking this function.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -210,7 +210,7 @@ HelpMessage: ''
 Labels of the issue to be removed.
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -233,7 +233,7 @@ List of labels that will be set to the issue.
 Any label that was already assigned to the issue will be removed.
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -257,7 +257,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

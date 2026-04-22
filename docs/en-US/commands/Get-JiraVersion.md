@@ -91,7 +91,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -112,7 +112,7 @@ HelpMessage: ''
 Indicates how many items to return.
 
 ```yaml
-Type: System.UInt64
+Type: UInt64
 DefaultValue: 18446744073709551615
 SupportsWildcards: false
 Aliases: []
@@ -133,7 +133,7 @@ HelpMessage: ''
 The Version ID
 
 ```yaml
-Type: System.Int32[]
+Type: Int32[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -156,7 +156,7 @@ Causes an extra output of the total count at the beginning.
 Note this is actually a uInt64, but with a custom string representation.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -219,7 +219,7 @@ HelpMessage: ''
 Jira Version Name
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: '"*"'
 SupportsWildcards: false
 Aliases:
@@ -251,7 +251,7 @@ This setting can be tuned to get better performance according to the load on the
 > Warning: too high of a PageSize can cause a timeout on the request.
 
 ```yaml
-Type: System.UInt32
+Type: UInt32
 DefaultValue: 25
 SupportsWildcards: false
 Aliases: []
@@ -272,7 +272,7 @@ HelpMessage: ''
 Project key of a project to search
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -296,7 +296,7 @@ Controls how many things will be skipped before starting output.
 Defaults to 0.
 
 ```yaml
-Type: System.UInt64
+Type: UInt64
 DefaultValue: 0
 SupportsWildcards: false
 Aliases: []
@@ -324,7 +324,7 @@ Possible values are:
 * releaseDate
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: '"name"'
 SupportsWildcards: false
 Aliases: []

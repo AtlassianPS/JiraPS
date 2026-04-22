@@ -48,7 +48,7 @@ This example illustrates the use of the pipeline to remove jsmith from the "Proj
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -71,7 +71,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -92,7 +92,7 @@ HelpMessage: ''
 Suppress user confirmation.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -113,7 +113,7 @@ HelpMessage: ''
 Group Object or ID from which to remove the user(s).
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -135,7 +135,7 @@ HelpMessage: ''
 Whether output should be provided after invoking this function
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -156,7 +156,7 @@ HelpMessage: ''
 Username or user object obtained from Get-JiraUser
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -179,7 +179,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

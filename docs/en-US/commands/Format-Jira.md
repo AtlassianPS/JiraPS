@@ -48,7 +48,7 @@ This example obtains all Google Chrome processes, then creates a JIRA table with
 Object to format.
 
 ```yaml
-Type: System.Management.Automation.PSObject[]
+Type: PSObject[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -72,7 +72,7 @@ If omitted, only the default properties will be shown.
 To display all properties, use `-Property *`.
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

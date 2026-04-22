@@ -72,7 +72,7 @@ Inspects the ADF structure generated from a simple Markdown string.
 The Markdown string to convert to ADF.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

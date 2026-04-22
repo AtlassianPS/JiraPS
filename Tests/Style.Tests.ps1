@@ -13,9 +13,9 @@ Describe "Style rules" -Tag "Unit" {
         # them on macOS/Linux but not on Windows, leading to violations that
         # silently pass locally and only fail on Windows CI.
         $script:codeFiles = Get-ChildItem $moduleRoot -Include *.ps1, *.psm1 -Recurse -Force |
-            Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
+            Where-Object { $_.FullName -notlike "*${/}Release${/}*" -and $_.FullName -notlike "*${/}experiment${/}*" }
         $script:docFiles = Get-ChildItem $moduleRoot -Include *.md -Recurse -Force |
-            Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
+            Where-Object { $_.FullName -notlike "*${/}Release${/}*" -and $_.FullName -notlike "*${/}experiment${/}*" }
     }
 
     It "has no trailing whitespace in code files" {

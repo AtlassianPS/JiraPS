@@ -201,9 +201,22 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                     It "matches the type of the parameter in code and help" {
                         $codeType = $parameterCode.ParameterType.Name
-                        if ($codeType -eq "Object") {
-                            if (($parameterCode.Attributes) -and ($parameterCode.Attributes | Get-Member -Name PSTypeName)) {
-                                $codeType = $parameterCode.Attributes[0].PSTypeName
+                        # Parameters decorated with [PSTypeName(...)] surface as
+                        # Object / Object[] at the binder level. Prefer the
+                        # PSTypeName for the user-facing type (which is what the
+                        # markdown / Get-Help advertises). Match both the scalar
+                        # and array forms.
+                        if ($codeType -eq "Object" -or $codeType -eq "Object[]") {
+                            $psTypeAttr = $parameterCode.Attributes | Where-Object { $_ -is [System.Management.Automation.PSTypeNameAttribute] } | Select-Object -First 1
+                            if ($psTypeAttr) {
+                                # PSTypeName always carries the scalar form;
+                                # preserve the [] suffix when the binder reports
+                                # an array parameter so we line up with the
+                                # array form advertised in the markdown.
+                                $codeType = $psTypeAttr.PSTypeName
+                                if ($parameterCode.ParameterType.IsArray -and $codeType -notmatch '\[\]$') {
+                                    $codeType += '[]'
+                                }
                             }
                         }
                         # To avoid calling Trim method on a null object.

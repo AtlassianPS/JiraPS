@@ -118,7 +118,7 @@ This pattern is useful when migrating scripts from Data Center to Cloud.
 Atlassian account ID of the user (used on Jira Cloud).
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -140,7 +140,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -161,7 +161,7 @@ HelpMessage: ''
 Limits the search to users where the username or account ID is exactly the term searched for.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -194,7 +194,7 @@ HelpMessage: ''
 Include inactive users in the search
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -215,7 +215,7 @@ HelpMessage: ''
 User Object of the user.
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -238,7 +238,7 @@ Maximum number of user to be returned.
 > The API does not allow for any value higher than 1000.
 
 ```yaml
-Type: System.UInt32
+Type: UInt32
 DefaultValue: 50
 SupportsWildcards: false
 Aliases: []
@@ -267,7 +267,7 @@ Controls how many objects will be skipped before starting output.
 Defaults to 0.
 
 ```yaml
-Type: System.UInt64
+Type: UInt64
 DefaultValue: 0
 SupportsWildcards: false
 Aliases: []
@@ -294,7 +294,7 @@ HelpMessage: ''
 Name of the user to search for.
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

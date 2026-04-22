@@ -118,7 +118,7 @@ You can read more about splatting in: about_Splatting
 Add a comment to the issue along with other changes.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -144,7 +144,7 @@ Use `-UseDefaultAssignee` to set the project's default assignee.
 Empty strings and `$null` values are not accepted.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -165,7 +165,7 @@ HelpMessage: ''
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -188,7 +188,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -209,7 +209,7 @@ HelpMessage: ''
 New description of the issue.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -232,7 +232,7 @@ Any additional fields that should be updated.
 Inspect [about_JiraPS_CustomFields](../../about/custom-fields.html) for more information.
 
 ```yaml
-Type: System.Management.Automation.PSObject
+Type: PSObject
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -253,7 +253,7 @@ HelpMessage: ''
 Set the FixVersion of the issue, this will overwrite any present FixVersions
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -277,7 +277,7 @@ Issue to be changed.
 Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -303,7 +303,7 @@ These will overwrite any existing labels on the issue.
 For more granular control over issue labels, use `Set-JiraIssueLabel`.
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -325,7 +325,7 @@ HelpMessage: ''
 Whether output should be provided after invoking this function.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -346,7 +346,7 @@ HelpMessage: ''
 Whether send notification to users about issue change or not
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -367,7 +367,7 @@ HelpMessage: ''
 New summary of the issue.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -388,7 +388,7 @@ HelpMessage: ''
 Remove the current assignee of the issue.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -412,7 +412,7 @@ This is useful when you want Jira to automatically determine the assignee
 based on the project's configuration.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -434,7 +434,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

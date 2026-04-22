@@ -65,7 +65,7 @@ Removes all *.png attachments from Issue FOO-1234 without prompting for confirma
 Id of the Attachment to delete
 
 ```yaml
-Type: System.Int32[]
+Type: Int32[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -87,7 +87,7 @@ HelpMessage: ''
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -110,7 +110,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -131,7 +131,7 @@ HelpMessage: ''
 Name of the File to delete
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -152,7 +152,7 @@ HelpMessage: ''
 Suppress user confirmation.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -175,7 +175,7 @@ Issue from which to delete on or more attachments.
 Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -198,7 +198,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

@@ -49,7 +49,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -72,7 +72,7 @@ The Issue to search for link.
 Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -94,7 +94,7 @@ HelpMessage: ''
 Get a single link by it's id.
 
 ```yaml
-Type: System.Int32
+Type: Int32
 DefaultValue: 0
 SupportsWildcards: false
 Aliases: []

@@ -56,7 +56,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -79,7 +79,7 @@ The IssueLink ID to search.
 Accepts input from pipeline when the object is of type `JiraPS.IssueLink`
 
 ```yaml
-Type: System.Int32[]
+Type: Int32[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

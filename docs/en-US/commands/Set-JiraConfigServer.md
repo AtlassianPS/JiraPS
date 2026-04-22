@@ -39,7 +39,7 @@ This example defines the server URL of the JIRA server configured for the JiraPS
 The base URL of the Jira instance.
 
 ```yaml
-Type: System.Uri
+Type: Uri
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

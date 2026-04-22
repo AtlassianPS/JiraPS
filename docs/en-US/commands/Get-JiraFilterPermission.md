@@ -62,7 +62,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -104,7 +104,7 @@ HelpMessage: ''
 Id of the Filter from which to retrieve the permissions
 
 ```yaml
-Type: System.UInt32[]
+Type: UInt32[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

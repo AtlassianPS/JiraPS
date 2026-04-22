@@ -69,7 +69,7 @@ Share Filter 12345 only with users in the administrators groups.
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -92,7 +92,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -136,7 +136,7 @@ Id of the Filter to which the permission should be applied
 _Id can be passed over the pipeline when reading from a file._
 
 ```yaml
-Type: System.UInt32[]
+Type: UInt32[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -157,7 +157,7 @@ HelpMessage: ''
 Type of the permission to add
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -194,7 +194,7 @@ Here is a table to know what Value to provide:
 |Global       | **must be null**    |                                                    |
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -216,7 +216,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

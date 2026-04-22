@@ -49,7 +49,7 @@ This example assigns the modifies the existing version with a new name 'New-Name
 New value for Archived.
 
 ```yaml
-Type: System.Boolean
+Type: Boolean
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -70,7 +70,7 @@ HelpMessage: ''
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -93,7 +93,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -114,7 +114,7 @@ HelpMessage: ''
 New Description of the Version.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -135,7 +135,7 @@ HelpMessage: ''
 New Name of the Version.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -158,7 +158,7 @@ The new Project where this version should be in.
 This can be the ID of the Project, or the Project Object
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -179,7 +179,7 @@ HelpMessage: ''
 New value for Released.
 
 ```yaml
-Type: System.Boolean
+Type: Boolean
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -200,7 +200,7 @@ HelpMessage: ''
 New Date of the release.
 
 ```yaml
-Type: System.DateTime
+Type: DateTime
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -221,7 +221,7 @@ HelpMessage: ''
 New Date of the user release.
 
 ```yaml
-Type: System.DateTime
+Type: DateTime
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -242,7 +242,7 @@ HelpMessage: ''
 Version to be changed
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -264,7 +264,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

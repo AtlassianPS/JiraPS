@@ -113,7 +113,7 @@ reduced, which speeds up the search.
 User AccountId used to return filters with the matching owner.accountId.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -135,7 +135,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -170,7 +170,7 @@ Allows any combination of the following values:
 - viewUrl
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: "'description','favourite','favouritedCount','jql','owner','searchUrl','sharePermissions','subscriptions','viewUrl'"
 SupportsWildcards: false
 Aliases: []
@@ -200,7 +200,7 @@ HelpMessage: ''
 Indicates how many items to return.
 
 ```yaml
-Type: System.UInt64
+Type: UInt64
 DefaultValue: 18446744073709551615
 SupportsWildcards: false
 Aliases: []
@@ -221,7 +221,7 @@ HelpMessage: ''
 Group name used to return filters that are shared with a group that matches sharePermissions.group.groupname.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -244,7 +244,7 @@ Causes an extra output of the total count at the beginning.
 Note this is actually a uInt64, but with a custom string representation.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -266,7 +266,7 @@ String used to perform a case-insensitive partial match with name.
  An exact match can be requested by including quotes (refer to the examples above).
 
 ```yaml
-Type: System.String[]
+Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -287,7 +287,7 @@ HelpMessage: ''
 User Object or user name used to return filters with the matching owner.accountId.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -309,7 +309,7 @@ HelpMessage: ''
 The ID or Key of the Project to search.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -332,7 +332,7 @@ Controls how many things will be skipped before starting output.
 Defaults to 0.
 
 ```yaml
-Type: System.UInt64
+Type: UInt64
 DefaultValue: 0
 SupportsWildcards: false
 Aliases: []
@@ -361,7 +361,7 @@ Note that this ordering works independently of whether the expand to display the
 - *owner* Orders by owner.accountId.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

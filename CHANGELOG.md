@@ -53,6 +53,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Enhanced `Resolve-JiraError` to parse all Jira error response formats: `message`, `errorMessage`, `errorMessages` array, and `errors` dictionary (#576)
 - Hid internal `-Cmdlet` and `-_RetryCount` parameters on `Invoke-JiraMethod` from tab-completion via `[Parameter(DontShow)]` (follow-up to #582)
 - Hardened the `GenerateExternalHelp` build task with explicit command-count and file-existence assertions, warnings on multi-fence examples, and UTF-8-with-BOM encoding for about-topic files (follow-up to #582/#587)
+- Migrated all 64 command markdown files in `docs/en-US/commands/` to the PlatyPS 1.0 native schema (`document type: cmdlet`, fenced YAML parameter metadata, `### -Parameter` headings with full `Aliases`, `AcceptedValues`, `PSTypeName`, and `DefaultValue` blocks). The `GenerateExternalHelp` task is now a thin `Import-MarkdownCommandHelp | Export-MamlCommandHelp` pipeline plus a ~30-line MAML splice that re-injects `aliases`/`pipelineInput`/`<dev:defaultValue>` (which `Export-MamlCommandHelp` still drops); the previous ~250-line `Repair-MamlMetadata` helper, the bracket pre-strip pass, and the example splitter were all removed. Markdown is now the single source of truth for help (the build only reads, never patches, the markdown). `Get-Help -Full` output is unchanged for all 64 cmdlets and the rendered Jekyll site has no content regressions (verified with side-by-side `_site/` builds)
 
 ### Internal
 

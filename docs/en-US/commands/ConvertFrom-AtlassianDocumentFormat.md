@@ -64,7 +64,7 @@ When a plain string is provided it is returned unchanged, making the function sa
 to use regardless of whether the server returns ADF or wiki markup.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

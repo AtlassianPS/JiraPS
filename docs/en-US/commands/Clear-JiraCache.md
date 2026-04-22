@@ -71,7 +71,7 @@ Valid values are:
 - `ServerInfo`: Clears cached server information
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: All
 SupportsWildcards: false
 Aliases: []

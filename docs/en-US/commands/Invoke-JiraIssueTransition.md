@@ -102,7 +102,7 @@ Empty strings and `$null` values are not accepted.
 Assignee field must be configured to appear on the transition screen to use this parameter.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -125,7 +125,7 @@ Comment that should be added to JIRA.
 Comment field must be configured to appear on the transition screen to use this parameter.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -147,7 +147,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -170,7 +170,7 @@ Any additional fields that should be updated.
 Fields must be configured to appear on the transition screen to use this parameter.
 
 ```yaml
-Type: System.Management.Automation.PSObject
+Type: PSObject
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -193,7 +193,7 @@ The Issue Object or ID to transition.
 Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -215,7 +215,7 @@ HelpMessage: ''
 Whether output should be provided after invoking this function.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -236,7 +236,7 @@ HelpMessage: ''
 The Transition Object or it's ID.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -259,7 +259,7 @@ Remove the current assignee of the issue as part of the transition.
 Assignee field must be configured to appear on the transition screen to use this parameter.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []

@@ -60,7 +60,7 @@ A Jira session to be closed.
 If not specified, this function will use a saved session.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

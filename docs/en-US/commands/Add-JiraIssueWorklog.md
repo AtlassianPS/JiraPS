@@ -71,7 +71,7 @@ Note the use of `Format-Jira` to convert the output of `Get-Process` into a form
 Worklog item that should be added to JIRA
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -92,7 +92,7 @@ HelpMessage: ''
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -115,7 +115,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -136,7 +136,7 @@ HelpMessage: ''
 Date/time started to be logged
 
 ```yaml
-Type: System.DateTime
+Type: DateTime
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -159,7 +159,7 @@ Issue to receive the new worklog item.
 Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: System.Object
+Type: Object
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -181,7 +181,7 @@ HelpMessage: ''
 Time spent to be logged
 
 ```yaml
-Type: System.TimeSpan
+Type: TimeSpan
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -209,7 +209,7 @@ Allowed values are:
 - `Administrators`
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: All Users
 SupportsWildcards: false
 Aliases: []
@@ -234,7 +234,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

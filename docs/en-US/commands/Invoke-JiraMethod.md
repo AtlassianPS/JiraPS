@@ -168,8 +168,7 @@ Subsequent calls with the same CacheKey will return the cached data without maki
 ```powershell
 # 30 seconds — short-lived data
 Invoke-JiraMethod -URI $uri -CacheKey "Status" -CacheExpiry ([TimeSpan]::FromSeconds(30))
-```
-
+
 # 15 minutes — moderately static data
 Invoke-JiraMethod -URI $uri -CacheKey "Priorities" -CacheExpiry ([TimeSpan]::FromMinutes(15))
 
@@ -184,6 +183,8 @@ Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry (New-TimeSpan -Hours
 
 # Using string literal — PowerShell auto-converts "hh:mm:ss" to TimeSpan
 Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry "00:45:00"
+
+```
 
 Demonstrates various ways to construct a `[TimeSpan]` value for `-CacheExpiry`.
 Use the form that best communicates the intended duration.
@@ -216,7 +217,7 @@ https://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-specia
 This behavior can be changed with -RawBody.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -239,7 +240,7 @@ The fresh response will still be stored in the cache.
 Only applies when `-CacheKey` is specified.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -271,7 +272,7 @@ Common ways to construct a TimeSpan:
 | 1 day       | `[TimeSpan]::FromDays(1)`           | `New-TimeSpan -Days 1`          | `"1.00:00:00"` |
 
 ```yaml
-Type: System.TimeSpan
+Type: TimeSpan
 DefaultValue: '[TimeSpan]::FromHours(1)'
 SupportsWildcards: false
 Aliases: []
@@ -296,7 +297,7 @@ Only applies to GET requests.
 POST, PUT, DELETE requests are never cached.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -317,7 +318,7 @@ HelpMessage: ''
 Context which will be used for throwing errors.
 
 ```yaml
-Type: System.Management.Automation.PSCmdlet
+Type: PSCmdlet
 DefaultValue: 'PSCmdlet'
 SupportsWildcards: false
 Aliases: []
@@ -341,7 +342,7 @@ If none are provided, `Get-JiraSession` will be used for authentication.
 If no sessions is available, the request will be executed anonymously.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -362,7 +363,7 @@ HelpMessage: ''
 Indicates how many items to return.
 
 ```yaml
-Type: System.UInt64
+Type: UInt64
 DefaultValue: 18446744073709551615
 SupportsWildcards: false
 Aliases: []
@@ -383,7 +384,7 @@ HelpMessage: ''
 Key-Value pair of the Headers to be used.
 
 ```yaml
-Type: System.Collections.Hashtable
+Type: Hashtable
 DefaultValue: '@{}'
 SupportsWildcards: false
 Aliases: []
@@ -404,7 +405,7 @@ HelpMessage: ''
 Define a key-value set of HTTP headers that should be used in the call.
 
 ```yaml
-Type: System.Collections.Hashtable
+Type: Hashtable
 DefaultValue: '@{}'
 SupportsWildcards: false
 Aliases: []
@@ -427,7 +428,7 @@ Causes an extra output of the total count at the beginning.
 Note this is actually a uInt64, but with a custom string representation.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -450,7 +451,7 @@ Path to a file that will be uploaded with a multipart/form-data request.
 This parameter does not validate the input in any way.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -471,7 +472,7 @@ HelpMessage: ''
 Method of the HTTP request.
 
 ```yaml
-Type: Microsoft.PowerShell.Commands.WebRequestMethod
+Type: WebRequestMethod
 DefaultValue: '"GET"'
 SupportsWildcards: false
 Aliases: []
@@ -494,7 +495,7 @@ Path to the file where the response should be stored to.
 This parameter does not validate the input in any way
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -517,7 +518,7 @@ Name of the data type that is expected to be returned.
 Currently only used in combination with `-Paging`
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -545,7 +546,7 @@ Use paging on the results.
 More about paging: <https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/#pagination>
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -566,7 +567,7 @@ HelpMessage: ''
 Keep the Body from being encoded.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -589,7 +590,7 @@ Controls how many things will be skipped before starting output.
 Defaults to 0.
 
 ```yaml
-Type: System.UInt64
+Type: UInt64
 DefaultValue: 0
 SupportsWildcards: false
 Aliases: []
@@ -610,7 +611,7 @@ HelpMessage: ''
 Instead of returning the response, it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -631,7 +632,7 @@ HelpMessage: ''
 URI address of the REST API endpoint.
 
 ```yaml
-Type: System.Uri
+Type: Uri
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

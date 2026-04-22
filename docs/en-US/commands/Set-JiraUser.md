@@ -59,7 +59,7 @@ This allows updating properties that are not exposed as parameters to this funct
 Sets user to active or inactive.
 
 ```yaml
-Type: System.Boolean
+Type: Boolean
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -80,7 +80,7 @@ HelpMessage: ''
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -103,7 +103,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -124,7 +124,7 @@ HelpMessage: ''
 Display name to set.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -145,7 +145,7 @@ HelpMessage: ''
 E-mail address to set.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -166,7 +166,7 @@ HelpMessage: ''
 Whether output should be provided after invoking this function.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
 Aliases: []
@@ -190,7 +190,7 @@ Property names defined in the hashtable are strictly case-sensitive and must mat
 For example, "name" and "displayName" will work correctly when passed in the hashtable but "Name" and "DisplayName" do not.
 
 ```yaml
-Type: System.Collections.Hashtable
+Type: Hashtable
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -211,7 +211,7 @@ HelpMessage: ''
 Username or user object obtained from `Get-JiraUser`.
 
 ```yaml
-Type: System.Object[]
+Type: Object[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -234,7 +234,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

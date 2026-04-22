@@ -67,7 +67,7 @@ Remove all favorite filters where the name does not start with "My"
 Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -90,7 +90,7 @@ Credentials to use to connect to JIRA.
 If not specified, this function will use anonymous access.
 
 ```yaml
-Type: System.Management.Automation.PSCredential
+Type: PSCredential
 DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
@@ -113,7 +113,7 @@ New value for the filter's Description.
 Can be an empty string.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -134,7 +134,7 @@ HelpMessage: ''
 Boolean flag if the filter should be marked as favorite for the user.
 
 ```yaml
-Type: System.Boolean
+Type: Boolean
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -181,7 +181,7 @@ New value for the filter's JQL string which the filter uses for matching issues.
 More about JQL at <https://confluence.atlassian.com/display/JIRA/Advanced+Searching>
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -202,7 +202,7 @@ HelpMessage: ''
 New value for the filter's Name.
 
 ```yaml
-Type: System.String
+Type: String
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -224,7 +224,7 @@ Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
 
 ```yaml
-Type: System.Management.Automation.SwitchParameter
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
