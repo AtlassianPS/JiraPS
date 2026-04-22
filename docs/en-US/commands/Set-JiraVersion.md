@@ -293,8 +293,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### JiraPS.Version
 
 
-### System.Object[]
-
 ## OUTPUTS
 
 ### JiraPS.Version

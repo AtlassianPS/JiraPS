@@ -188,10 +188,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### This function can accept JiraPS.Issue objects via pipeline.
+### String[]
 
-
-### System.String[]
+Pipe one or more file paths to attach to the issue.
 
 ## OUTPUTS
 
