@@ -25,8 +25,8 @@ This function parses a Markdown string and produces the corresponding ADF struct
 
 Supported Markdown constructs:
 
-- **Block**: headings (# to ######), code fences, blockquotes (>), tables, bullet lists (\* item), ordered lists (1.
-item), task lists (\* [ ] / \* [x]), images (!\[alt\](url)) - **Inline**: \*\*bold\*\*, \_italic\_, \~\~strike\~\~, \`code\`, \[text\](url)
+- **Block**: headings (# to ######), code fences, blockquotes (>), tables, bullet lists (\* item), ordered lists (1. item), task lists (\* [ ] / \* [x]), images (!\[alt\](url))
+- **Inline**: \*\*bold\*\*, \_italic\_, \~\~strike\~\~, \`code\`, \[text\](url)
 
 ## EXAMPLES
 
@@ -45,7 +45,6 @@ Converts a Markdown string to ADF and posts it as a comment via the Jira Cloud v
 ```powershell
 $description = @"
 # Release Notes
-```
 
 * Bug fix for login
 * New dashboard widget
@@ -53,6 +52,7 @@ $description = @"
 
 $body = @{ fields = @{ description = $description } } | ConvertTo-Json -Depth 20
 Invoke-JiraMethod -Uri "$server/rest/api/3/issue/TEST-1" -Method Put -Body $body
+```
 
 Updates an issue description on Jira Cloud using Markdown converted to ADF.
 

@@ -41,7 +41,9 @@ This removes the need to use the `-Credential` parameter constantly for each fun
 
 JiraPS supports multiple authentication methods:
 
-- **Credential**: Traditional username/password authentication (Jira Data Center) - **PersonalAccessToken**: Personal Access Token (PAT) authentication (Jira Data Center 8.14+) - **ApiToken**: API Token authentication with email address (Jira Cloud)
+- **Credential**: Traditional username/password authentication (Jira Data Center)
+- **PersonalAccessToken**: Personal Access Token (PAT) authentication (Jira Data Center 8.14+)
+- **ApiToken**: API Token authentication with email address (Jira Cloud)
 
 You can find more information in [about_JiraPS_Authentication](../../about/authentication.html)
 

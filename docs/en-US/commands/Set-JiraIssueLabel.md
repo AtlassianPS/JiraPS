@@ -40,7 +40,10 @@ Set-JiraIssueLabel [-Issue] <Object[]> -Clear [-Credential <pscredential>] [-Pas
 This function modifies labels on an existing JIRA issue.
 There are four supported operations on labels:
 
-- **Add**: appends additional labels to the labels that an issue already has - **Remove**: Removes labels from an issue's current labels - **Set**: erases the existing labels on the issue and replaces them with the provided values - **Clear**: removes all labels from the issue
+- **Add**: appends additional labels to the labels that an issue already has
+- **Remove**: Removes labels from an issue's current labels
+- **Set**: erases the existing labels on the issue and replaces them with the provided values
+- **Clear**: removes all labels from the issue
 
 ## EXAMPLES
 
