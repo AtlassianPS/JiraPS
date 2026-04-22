@@ -273,12 +273,9 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
 
                 It "documents every public parameter exposed by the code" {
-                    # Reverse-direction drift guard: catches new parameters added
-                    # to a function whose markdown was never updated. The
-                    # existing "...not in the code" test only catches the other
-                    # direction (orphan doc entries). Re-derive the public
-                    # surface here so the It block does not depend on
-                    # discovery-phase script state ($parameters, $DefaultParams).
+                    # Re-derive the public surface from $command instead of
+                    # reusing $parameters / $DefaultParams: those are set in
+                    # BeforeDiscovery and not reliably visible from It blocks.
                     $help = $_.Help
 
                     $documented = @()
@@ -293,16 +290,12 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         'WhatIf', 'Confirm'
                     )
 
-                    $publicCodeParams = $command.Parameters.Keys | Where-Object {
-                        $_ -notin $commonParams -and
-                        -not (
-                            $command.Parameters[$_].Attributes |
-                                Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] -and $_.DontShow }
-                        )
-                    }
+                    foreach ($paramName in $command.Parameters.Keys) {
+                        if ($paramName -in $commonParams) { continue }
+                        $paramAttr = $command.Parameters[$paramName].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
+                        if ($paramAttr.DontShow -contains $true) { continue }
 
-                    foreach ($codeParm in $publicCodeParams) {
-                        $documented | Should -Contain $codeParm -Because "every public parameter must be documented in docs/en-US/commands/$($command.Name).md (or marked [Parameter(DontShow)] if it is internal)"
+                        $documented | Should -Contain $paramName -Because "every public parameter must be documented in docs/en-US/commands/$($command.Name).md (or marked [Parameter(DontShow)] if it is internal)"
                     }
                 }
             }
