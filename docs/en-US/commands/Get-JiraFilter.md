@@ -169,8 +169,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 The filter to look up in JIRA.
 This can be a String (filter ID) or a JiraPS.Filter object.
 
-### System.Object[]
-
 ## OUTPUTS
 
 ### JiraPS.Filter

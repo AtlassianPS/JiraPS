@@ -153,6 +153,22 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                     $command.HelpUri | Should -Match $pattern
                 }
 
+                It "does not list System.Object[] / Object[] as a pipeline INPUT type" {
+                    # PlatyPS 1.0's `New-MarkdownCommandHelp` introspected
+                    # parameter signatures and added `### System.Object[]`
+                    # for every `Object[]` parameter (typically those tagged
+                    # with `[PSTypeName('JiraPS.X')]`). That heading is
+                    # always redundant with the matching `### JiraPS.X`
+                    # entry and pollutes Get-Help. Guard against it
+                    # creeping back in.
+                    $inputNames = @($help.inputTypes.inputType) | Where-Object { $_ } | ForEach-Object {
+                        if ($_.type -and $_.type.name) { ($_.type.name -as [String]).Trim() }
+                    }
+                    foreach ($n in $inputNames) {
+                        $n | Should -Not -Match '^(System\.)?Object(\[\])?$' -Because "raw Object / System.Object[] is PlatyPS introspection noise; use the JiraPS.<Type> heading instead"
+                    }
+                }
+
                 It "does not emit mangled input/output type names" {
                     # Regression guard for PlatyPS 1.0's Markdig-based heading parser:
                     # malformed `### [...]` headings have produced single-character names

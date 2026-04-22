@@ -88,6 +88,14 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   The null-result `ErrorRecord` interpolated `$Project` and `$IssueType`, neither of which is a parameter of this cmdlet, so the message was always garbled.
   It now references the actual `-Issue` parameter and uses `$PSCmdlet.ThrowTerminatingError` to match other JiraPS cmdlets.
   The same `if ($result)` block also carried four `Write-Error` branches that validated the createmeta envelope shape (`$result.fields.projects` / `.issuetypes`) — fields the editmeta endpoint never returns, so those branches were unreachable dead code copy-pasted from `Get-JiraIssueCreateMetadata` and have been removed.
+- Cleaned up `## INPUTS` sections across 35 cmdlets (follow-up to the PlatyPS 1.0 migration in #596).
+  `New-MarkdownCommandHelp` introspected every parameter signature and added `### System.Object[]`, `### System.String[]`, `### System.SwitchParameter`, `### System.TimeSpan`, `### System.DateTime` and similar headings that had never been part of the hand-curated docs and were either redundant with the matching `### JiraPS.<Type>` entry or actively misleading (switches and value types are not pipeline objects).
+  All 35 spurious `### System.*` headings were removed.
+  Four cmdlets (`Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`) had a long-standing master-era documentation bug where the entire prose sentence "This function can accept JiraPS.Issue objects via pipeline." served as the type heading; these were replaced with a real type heading plus the explanation as a paragraph.
+  In particular `Add-JiraIssueAttachment` claimed to accept `JiraPS.Issue` from the pipeline, but the only pipeline-bound parameter on that cmdlet is `-FilePath [String[]]`; the docs now say so.
+  `Get-JiraUser` had `### String` from a Markdig bracket-strip (master was `[String[]]`) — now correctly `### String[]`.
+  Pre-existing legitimate `### JiraPS.*` headings discovered by PlatyPS via `[PSTypeName(...)]` attributes were kept (they reflect what the parameters actually accept).
+  A new Pester guard (`does not list System.Object[] / Object[] as a pipeline INPUT type`) prevents the most common PlatyPS-introspection noise from creeping back in.
 
 ## 3.0 - 2026-04-17
 

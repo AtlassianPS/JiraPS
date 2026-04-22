@@ -107,8 +107,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### Int[]
 
 
-### System.Int32[]
-
 ## OUTPUTS
 
 ### JiraPS.IssueLink
