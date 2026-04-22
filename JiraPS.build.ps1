@@ -34,17 +34,17 @@ Remove-Item -Path env:\BH* -ErrorAction SilentlyContinue
 # git introspection (`git rev-parse`, `git log`, `git branch`) just to fill
 # `BHBranchName`/`BHCommitHash`/`BHCommitMessage`/`BHBuildNumber`/`BHBuildSystem`
 # — env vars that only `ShowDebugInfo` actually reads. The dynamic vars are
-# populated lazily in `Initialize-BuildEnvironmentMetadata` (called by
+# populated lazily in `Initialize-BuildEnvironmentInfo` (called by
 # `ShowDebugInfo`).
 $ProjectName = 'JiraPS'
-$env:BHProjectName      = $ProjectName
-$env:BHProjectPath      = $PSScriptRoot
-$env:BHModulePath       = Join-Path $PSScriptRoot $ProjectName
-$env:BHPSModulePath     = $env:BHModulePath
+$env:BHProjectName = $ProjectName
+$env:BHProjectPath = $PSScriptRoot
+$env:BHModulePath = Join-Path $PSScriptRoot $ProjectName
+$env:BHPSModulePath = $env:BHModulePath
 $env:BHPSModuleManifest = Join-Path $env:BHModulePath "$ProjectName.psd1"
-$env:BHBuildOutput      = Join-Path $PSScriptRoot 'Release'
+$env:BHBuildOutput = Join-Path $PSScriptRoot 'Release'
 
-function Initialize-BuildEnvironmentMetadata {
+function Initialize-BuildEnvironmentInfo {
     # Populates the dynamic BH* env vars (branch, commit hash, commit message,
     # build number, build system). Auto-imports BuildHelpers on first call.
     Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
@@ -76,7 +76,7 @@ if ($VersionToPublish) {
 $builtManifestPath = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1"
 
 Task ShowDebugInfo {
-    Initialize-BuildEnvironmentMetadata
+    Initialize-BuildEnvironmentInfo
     Write-Build Gray
     Write-Build Gray ('BHBuildSystem:              {0}' -f $env:BHBuildSystem)
     Write-Build Gray '-------------------------------------------------------'

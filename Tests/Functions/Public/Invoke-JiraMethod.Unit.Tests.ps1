@@ -589,7 +589,7 @@ InModuleScope JiraPS {
                     $response = switch -Regex ([string]$Uri) {
                         'startAt=5' { $pagedResponse2; break }
                         'startAt=7' { $pagedResponse3; break }
-                        default     { $pagedResponse1 }
+                        default { $pagedResponse1 }
                     }
 
                     $bytes = [System.Text.Encoding]::UTF8.GetBytes($response)
