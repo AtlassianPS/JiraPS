@@ -40,15 +40,9 @@ function Get-InputHeading {
 }
 
 function ConvertTo-NormalisedHeading {
-    # Pre-migration headings used [Type] / [Type[]] / [A] / [B] notation.
-    # Strip outer square brackets that wrap a token so heading-level
-    # equality matches across the bracket-stripping migration. The
-    # regex matches a `[...]` that contains either non-bracket chars or
-    # the empty `[]` array suffix, so `[Int[]]` -> `Int[]` works.
     param([string] $Heading)
-    # Match `[Token]` or `[Token[]]` where Token has no inner brackets.
-    # This matches master's notation `[Type]`/`[Type[]]` without
-    # accidentally consuming a bare `String[]` array suffix.
+    # Strip master's `[Token]` / `[Token[]]` notation while preserving
+    # bare `String[]` array suffixes (which don't have outer brackets).
     $stripped = [regex]::Replace($Heading, '\[([^\[\]]+(?:\[\])?)\]', '$1')
     return $stripped.Trim()
 }
