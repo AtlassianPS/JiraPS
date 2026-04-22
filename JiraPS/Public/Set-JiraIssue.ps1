@@ -126,7 +126,7 @@
 
         # Build the assignee payload once; inputs do not vary across piped issues.
         if ($validAssignee) {
-            $assigneeProps = Resolve-JiraAssigneePayload -AssigneeObject $assigneeObj -AssigneeString $assigneeString -IsCloud $isCloud
+            $assigneeProps = Resolve-JiraUserPayload -UserObject $assigneeObj -UserString $assigneeString -IsCloud $isCloud
         }
     }
 
