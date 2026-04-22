@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueAttachment/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Add-JiraIssueAttachment
+online version: https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueAttachment/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Add-JiraIssueAttachment/
 ---
-
 # Add-JiraIssueAttachment
 
 ## SYNOPSIS
@@ -17,17 +14,10 @@ Adds a file attachment to an existing Jira Issue
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Add-JiraIssueAttachment [-Issue] <Object> [-FilePath] <string[]> [[-Credential] <pscredential>]
  [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -37,16 +27,18 @@ This function adds an Attachment to an existing issue in JIRA.
 
 ### EXAMPLE 1
 
+```powershell
 Add-JiraIssueAttachment -FilePath "Test comment" -Issue "TEST-001"
+```
 
-
 This example adds a simple comment to the issue TEST-001.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraIssue "TEST-002" | Add-JiraIssueAttachment -FilePath "Test comment from PowerShell"
+```
 
-
 This example illustrates pipeline use from Get-JiraIssue to Add-JiraIssueAttachment.
 
 ## PARAMETERS
@@ -80,7 +72,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -198,11 +190,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### This function can accept JiraPS.Issue objects via pipeline.
 
-{{ Fill in the Description }}
 
 ### System.String[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -216,9 +205,8 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueAttachment/)
-- [Get-JiraIssueAttachment](../Get-JiraIssueAttachment/)
-- [Remove-JiraIssueAttachment](../Remove-JiraIssueAttachment/)
+[Get-JiraIssueAttachment](../Get-JiraIssueAttachment/)
+
+[Remove-JiraIssueAttachment](../Remove-JiraIssueAttachment/)

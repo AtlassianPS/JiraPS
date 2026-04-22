@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraField/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraField
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraField/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraField/
 ---
-
 # Get-JiraField
 
 ## SYNOPSIS
@@ -19,20 +16,15 @@ This function returns information about JIRA fields
 
 ### _All (Default)
 
-```
+```powershell
 Get-JiraField [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```
+```powershell
 Get-JiraField [-Field] <string[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -49,23 +41,26 @@ Use the `-Force` parameter to bypass the cache and fetch fresh data from the ser
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraField
+```
 
-
 This example returns information about all JIRA fields visible to the current user.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraField "Key"
+```
 
-
 This example returns information about the Key field.
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraField -Force
+```
 
-
 This example bypasses the cache and fetches fresh field data from the server.
 
 ## PARAMETERS
@@ -77,7 +72,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -149,13 +144,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### System.String[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Field
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -169,9 +160,8 @@ or use `Clear-JiraCache -Type Fields` to clear all cached field data.
 
 Remaining operations for `field` have not yet been implemented in the module.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraField/)
-- [Get-JiraIssueCreateMetadata](../Get-JiraIssueCreateMetadata/)
-- [Clear-JiraCache](../Clear-JiraCache/)
+[Get-JiraIssueCreateMetadata](../Get-JiraIssueCreateMetadata/)
+
+[Clear-JiraCache](../Clear-JiraCache/)

@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssue/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Set-JiraIssue
+online version: https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssue/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Set-JiraIssue/
 ---
-
 # Set-JiraIssue
 
 ## SYNOPSIS
@@ -19,7 +16,7 @@ Modifies an existing issue in JIRA
 
 ### AssignToUser (Default)
 
-```
+```powershell
 Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-Assignee <Object>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
@@ -28,7 +25,7 @@ Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-Fi
 
 ### Unassign
 
-```
+```powershell
 Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
@@ -37,17 +34,12 @@ Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-Fi
 
 ### UseDefaultAssignee
 
-```
+```powershell
 Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -58,43 +50,49 @@ This can include changing the issue's summary or description, or assigning the i
 
 ### EXAMPLE 1
 
+```powershell
 Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell' -SkipNotification
+```
 
-
 This example changes the summary and description of the JIRA issue TEST-01 without updating users by email about the change.
 
 ### EXAMPLE 2
 
+```powershell
 $issue = Get-JiraIssue TEST-01
 $issue | Set-JiraIssue -Description "$($issue.Description)\`n\`nEdit: Also foo."
+```
 
-
 This example appends text to the end of an existing issue description by using
 `Get-JiraIssue` to obtain a reference to the current issue and description.
 
 ### EXAMPLE 3
 
+```powershell
 Set-JiraIssue -Issue TEST-01 -Unassign
+```
 
-
 This example removes the assignee from JIRA issue TEST-01.
 
 ### EXAMPLE 4
 
+```powershell
 Set-JiraIssue -Issue TEST-01 -UseDefaultAssignee
+```
 
-
 This example sets the assignee of JIRA issue TEST-01 to the project's default assignee.
 
 ### EXAMPLE 5
 
+```powershell
 Set-JiraIssue -Issue TEST-01 -Assignee 'joe' -AddComment 'Dear [~joe], please review.'
+```
 
-
 This example assigns the JIRA Issue TEST-01 to 'joe' and adds a comment at one.
 
 ### EXAMPLE 6
 
+```powershell
 $parameters = @{
     labels = @("DEPRECATED")
     AddComment = "Updated with a script"
@@ -107,8 +105,8 @@ $parameters = @{
     }
 }
 Set-JiraIssue @parameters -Issue TEST-001, TEST-002
+```
 
-
 This example uses splatting to update "TEST-001" and "TEST-002".
 
 You can read more about splatting in: about_Splatting
@@ -191,7 +189,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -464,11 +462,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Issue / String / Int
 
-{{ Fill in the Description }}
 
 ### System.Object[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -484,16 +479,22 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssue/)
-- [about_JiraPS_UpdatingIssues](../../about/updating-issues.html)
-- [about_JiraPS_CustomFields](../../about/custom-fields.html)
-- [Get-JiraIssueEditMetadata](../Get-JiraIssueEditMetadata/)
-- [Get-JiraComponent](../Get-JiraComponent/)
-- [Get-JiraField](../Get-JiraField/)
-- [Get-JiraPriority](../Get-JiraPriority/)
-- [Get-JiraProject](../Get-JiraProject/)
-- [Get-JiraVersion](../Get-JiraVersion/)
-- [Set-JiraIssueLabel](../Set-JiraIssueLabel/)
+[about_JiraPS_UpdatingIssues](../../about/updating-issues.html)
+
+[about_JiraPS_CustomFields](../../about/custom-fields.html)
+
+[Get-JiraIssueEditMetadata](../Get-JiraIssueEditMetadata/)
+
+[Get-JiraComponent](../Get-JiraComponent/)
+
+[Get-JiraField](../Get-JiraField/)
+
+[Get-JiraPriority](../Get-JiraPriority/)
+
+[Get-JiraProject](../Get-JiraProject/)
+
+[Get-JiraVersion](../Get-JiraVersion/)
+
+[Set-JiraIssueLabel](../Set-JiraIssueLabel/)

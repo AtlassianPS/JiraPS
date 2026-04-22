@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraFilter/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraFilter
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraFilter/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraFilter/
 ---
-
 # Get-JiraFilter
 
 ## SYNOPSIS
@@ -19,26 +16,21 @@ Returns information about a filter in JIRA
 
 ### ByFilterID (Default)
 
-```
+```powershell
 Get-JiraFilter [-Id] <string[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
-```
+```powershell
 Get-JiraFilter -InputObject <Object[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### MyFavorite
 
-```
+```powershell
 Get-JiraFilter -Favorite [-Credential <pscredential>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -53,23 +45,26 @@ The easiest way to obtain the ID of a filter is to load the filter in the "regul
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraFilter -Id 12345
+```
 
-
 Gets a reference to filter ID 12345 from JIRA
 
 ### EXAMPLE 2
 
+```powershell
 $filterObject | Get-JiraFilter
+```
 
-
 Gets the information of a filter by providing a filter object
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraFilter -Favorite
+```
 
-
 Gets all filters makes as "favorite" by the user
 
 ## PARAMETERS
@@ -81,7 +76,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -176,13 +171,9 @@ This can be a String (filter ID) or a JiraPS.Filter object.
 
 ### System.Object[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Filter
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -191,13 +182,16 @@ a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraFilter/)
-- [New-JiraFilter](../New-JiraFilter/)
-- [Set-JiraFilter](../Set-JiraFilter/)
-- [Remove-JiraFilter](../Remove-JiraFilter/)
-- [Add-JiraFilterPermission](../Add-JiraFilterPermission/)
-- [Get-JiraFilterPermission](../Get-JiraFilterPermission/)
-- [Remove-JiraFilterPermission](../Remove-JiraFilterPermission/)
+[New-JiraFilter](../New-JiraFilter/)
+
+[Set-JiraFilter](../Set-JiraFilter/)
+
+[Remove-JiraFilter](../Remove-JiraFilter/)
+
+[Add-JiraFilterPermission](../Add-JiraFilterPermission/)
+
+[Get-JiraFilterPermission](../Get-JiraFilterPermission/)
+
+[Remove-JiraFilterPermission](../Remove-JiraFilterPermission/)

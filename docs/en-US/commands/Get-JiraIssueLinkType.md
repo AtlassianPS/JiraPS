@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueLinkType/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraIssueLinkType
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueLinkType/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraIssueLinkType/
 ---
-
 # Get-JiraIssueLinkType
 
 ## SYNOPSIS
@@ -19,20 +16,15 @@ Gets available issue link types
 
 ### _All (Default)
 
-```
+```powershell
 Get-JiraIssueLinkType [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```
+```powershell
 Get-JiraIssueLinkType [-LinkType] <Object> [-Credential <pscredential>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -45,16 +37,18 @@ This is a useful function for discovering data about issueLink types in order to
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraIssueLinkType
+```
 
-
 This example returns all available links from the JIRA server
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraIssueLinkType -LinkType 1
+```
 
-
 This example returns information about the link type with ID 1.
 
 ## PARAMETERS
@@ -66,7 +60,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -113,13 +107,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### Int
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.IssueLinkType
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -129,10 +119,10 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 Remaining operations for `issuetype` have not yet been implemented in the module.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueLinkType/)
-- [Add-JiraIssueLink](../Add-JiraIssueLink/)
-- [Get-JiraIssueLink](../Get-JiraIssueLink/)
-- [Remove-JiraIssueLink](../Remove-JiraIssueLink/)
+[Add-JiraIssueLink](../Add-JiraIssueLink/)
+
+[Get-JiraIssueLink](../Get-JiraIssueLink/)
+
+[Remove-JiraIssueLink](../Remove-JiraIssueLink/)

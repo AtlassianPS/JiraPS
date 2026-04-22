@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Add-JiraFilterPermission/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Add-JiraFilterPermission
+online version: https://atlassianps.org/docs/JiraPS/commands/Add-JiraFilterPermission/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Add-JiraFilterPermission/
 ---
-
 # Add-JiraFilterPermission
 
 ## SYNOPSIS
@@ -19,22 +16,17 @@ Share a Filter with other users.
 
 ### ByInputObject (Default)
 
-```
+```powershell
 Add-JiraFilterPermission [-Filter] <Filter> -Type <string> [-Value <string>]
  [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ById
 
-```
+```powershell
 Add-JiraFilterPermission [-Id] <uint[]> -Type <string> [-Value <string>]
  [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -44,27 +36,30 @@ Share a Filter with other users, such as "Group", "Project", "ProjectRole", "Aut
 
 ### Example 1
 
+```powershell
 Add-JiraFilterPermission -Filter (Get-JiraFilter 12345) -Type "Global"
 #-------
 Add-JiraFilterPermission -Id 12345 -Type "Global"
+```
 
-
 Two methods of sharing Filter 12345 with everyone.
 
 ### Example 2
 
+```powershell
 12345 | Add-JiraFilterPermission -Type "Authenticated"
+```
 
-
 Share Filter 12345 with authenticated users.
 
 The Id could be read from a file.
 
 ### Example 3
 
+```powershell
 Get-JiraFilter 12345 | Add-JiraFilterPermission -Type "Group" -Value "administrators"
+```
 
-
 Share Filter 12345 only with users in the administrators groups.
 
 ## PARAMETERS
@@ -98,7 +93,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -118,7 +113,7 @@ HelpMessage: ''
 Filter object to which the permission should be applied
 
 ```yaml
-Type: System.Object
+Type: JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -174,7 +169,12 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- Group
+- Project
+- ProjectRole
+- Authenticated
+- Global
 HelpMessage: ''
 ```
 
@@ -244,21 +244,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Filter
 
-{{ Fill in the Description }}
-
-### System.Object
-
-{{ Fill in the Description }}
 
 ### System.UInt32[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
 ### JiraPS.Filter
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -271,10 +262,10 @@ a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Add-JiraFilterPermission/)
-- [Get-JiraFilter](../Get-JiraFilter/)
-- [Get-JiraFilterPermission](../Get-JiraFilterPermission/)
-- [Remove-JiraFilterPermission](../Remove-JiraFilterPermission/)
+[Get-JiraFilter](../Get-JiraFilter/)
+
+[Get-JiraFilterPermission](../Get-JiraFilterPermission/)
+
+[Remove-JiraFilterPermission](../Remove-JiraFilterPermission/)

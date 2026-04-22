@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraUser/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraUser
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraUser/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraUser/
 ---
-
 # Get-JiraUser
 
 ## SYNOPSIS
@@ -19,35 +16,30 @@ Returns a user from Jira
 
 ### Self (Default)
 
-```
+```powershell
 Get-JiraUser [-IncludeInactive] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByUserName
 
-```
+```powershell
 Get-JiraUser [-UserName] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <uint>] [-Skip <ulong>]
  [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByAccountId
 
-```
+```powershell
 Get-JiraUser [-AccountId] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <uint>]
  [-Skip <ulong>] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
-```
+```powershell
 Get-JiraUser [-InputObject] <Object[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>]
  [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -57,45 +49,51 @@ This function returns information regarding a specified user from Jira.
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraUser -UserName user1
+```
 
-
 Returns information about all users with username like user1
 
 ### EXAMPLE 2
 
+```powershell
 Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
+```
 
-
 This example searches Active Directory for "John*Smith", then obtains their JIRA user accounts.
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraUser -Credential $cred
+```
 
-
 This example returns the JIRA user that is executing the command.
 
 ### EXAMPLE 4
 
+```powershell
 Get-JiraUser -UserName user1 -Exact
+```
 
-
 Returns information about user user1
 
 ### EXAMPLE 5
 
+```powershell
 Get-JiraUser -UserName ""
+```
 
-
 Returns information about all users.
 The empty string "" matches all users.
 
 ### EXAMPLE 6
 
+```powershell
 Get-JiraUser -AccountId "5b10a2844c20165700ede21g"
+```
 
-
 Returns user information for the specified account ID.
 Use this on Jira Cloud where
 usernames are not available due to GDPR requirements.
@@ -104,11 +102,12 @@ can then be used in other commands like `Set-JiraIssue -Assignee`.
 
 ### EXAMPLE 7
 
+```powershell
 # Find a user by display name and get their accountId for Cloud
 $user = Get-JiraUser -UserName "John Smith" | Select-Object -First 1
 Set-JiraIssue TEST-1 -Assignee $user.AccountId
+```
 
-
 Searches for a user by name, then uses their account ID to assign an issue.
 This pattern is useful when migrating scripts from Data Center to Cloud.
 
@@ -142,7 +141,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -328,13 +327,9 @@ Username, name, or e-mail address
 
 ### System.String[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.User
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -349,9 +344,8 @@ may be empty on Cloud) and `AccountId` (always present on Cloud).
 When working with Cloud,
 use the `AccountId` property for user-related operations like assigning issues.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraUser/)
-- [New-JiraUser](../New-JiraUser/)
-- [Remove-JiraUser](../Remove-JiraUser/)
+[New-JiraUser](../New-JiraUser/)
+
+[Remove-JiraUser](../Remove-JiraUser/)

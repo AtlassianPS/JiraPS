@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Set-JiraUser/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Set-JiraUser
+online version: https://atlassianps.org/docs/JiraPS/commands/Set-JiraUser/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Set-JiraUser/
 ---
-
 # Set-JiraUser
 
 ## SYNOPSIS
@@ -19,22 +16,17 @@ Modifies user properties in JIRA
 
 ### ByNamedParameters (Default)
 
-```
+```powershell
 Set-JiraUser [-User] <Object[]> [-DisplayName <string>] [-EmailAddress <string>] [-Active <bool>]
  [-Credential <pscredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByHashtable
 
-```
+```powershell
 Set-JiraUser [-User] <Object[]> [-Property] <hashtable> [-Credential <pscredential>] [-PassThru]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -44,17 +36,19 @@ This function modifies user properties in JIRA, allowing you to change a user's 
 
 ### EXAMPLE 1
 
+```powershell
 Set-JiraUser -User user1 -EmailAddress user1_new@example.com
+```
 
-
 Modifies user1's e-mail address to a new value.
 The original value is overridden.
 
 ### EXAMPLE 2
 
+```powershell
 Set-JiraUser -User user2 -Property @{emailAddress='user2_new@example.com';displayName='User 2'}
+```
 
-
 This example modifies a user's properties using a hashtable.
 This allows updating properties that are not exposed as parameters to this function.
 
@@ -110,7 +104,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -268,11 +262,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.User
 
-{{ Fill in the Description }}
 
 ### System.Object[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -290,9 +281,8 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Set-JiraUser/)
-- [New-JiraUser](../New-JiraUser/)
-- [Get-JiraUser](../Get-JiraUser/)
+[New-JiraUser](../New-JiraUser/)
+
+[Get-JiraUser](../Get-JiraUser/)

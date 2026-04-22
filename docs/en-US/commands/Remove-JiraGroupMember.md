@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraGroupMember/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Remove-JiraGroupMember
+online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraGroupMember/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Remove-JiraGroupMember/
 ---
-
 # Remove-JiraGroupMember
 
 ## SYNOPSIS
@@ -17,17 +14,10 @@ Removes a user from a JIRA group
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Remove-JiraGroupMember [-Group] <Object[]> [-User] <Object[]> [[-Credential] <pscredential>]
  [-PassThru] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -37,16 +27,18 @@ This function removes a JIRA user from a JIRA group.
 
 ### EXAMPLE 1
 
+```powershell
 Remove-JiraGroupMember -Group testUsers -User jsmith
+```
 
-
 This example removes the user jsmith from the group testUsers.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraGroup 'Project Admins' | Remove-JiraGroupMember -User jsmith
+```
 
-
 This example illustrates the use of the pipeline to remove jsmith from the "Project Admins" group in JIRA.
 
 ## PARAMETERS
@@ -80,7 +72,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -223,8 +215,6 @@ User(s) which to remove
 
 ### System.Object[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Group
@@ -242,12 +232,14 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Remove-JiraGroupMember/)
-- [Add-JiraGroupMember](../Add-JiraGroupMember/)
-- [Get-JiraGroup](../Get-JiraGroup/)
-- [Get-JiraGroupMember](../Get-JiraGroupMember/)
-- [Get-JiraUser](../Get-JiraUser/)
-- [New-JiraGroup](../New-JiraGroup/)
+[Add-JiraGroupMember](../Add-JiraGroupMember/)
+
+[Get-JiraGroup](../Get-JiraGroup/)
+
+[Get-JiraGroupMember](../Get-JiraGroupMember/)
+
+[Get-JiraUser](../Get-JiraUser/)
+
+[New-JiraGroup](../New-JiraGroup/)

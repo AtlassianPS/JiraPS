@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraGroup/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraGroup
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraGroup/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraGroup/
 ---
-
 # Get-JiraGroup
 
 ## SYNOPSIS
@@ -17,16 +14,9 @@ Returns a group from Jira
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Get-JiraGroup [-GroupName] <string[]> [[-Credential] <pscredential>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -38,17 +28,19 @@ To get the members of a group, use `Get-JiraGroupMember`.
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraGroup -GroupName testGroup
+```
 
-
 Returns information about the group "testGroup"
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraGroup -GroupName testGroup |
     Get-JiraGroupMember
+```
 
-
 This example retrieves the members of "testGroup".
 
 ## PARAMETERS
@@ -60,7 +52,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -108,13 +100,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### System.String[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Group
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -122,11 +110,12 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraGroup/)
-- [Get-JiraGroupMember](../Get-JiraGroupMember/)
-- [Get-JiraUser](../Get-JiraUser/)
-- [New-JiraGroup](../New-JiraGroup/)
-- [Remove-JiraGroup](../Remove-JiraGroup/)
+[Get-JiraGroupMember](../Get-JiraGroupMember/)
+
+[Get-JiraUser](../Get-JiraUser/)
+
+[New-JiraGroup](../New-JiraGroup/)
+
+[Remove-JiraGroup](../Remove-JiraGroup/)

@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Clear-JiraCache/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Clear-JiraCache
+online version: https://atlassianps.org/docs/JiraPS/commands/Clear-JiraCache/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Clear-JiraCache/
 ---
-
 # Clear-JiraCache
 
 ## SYNOPSIS
@@ -17,16 +14,9 @@ Clears cached data stored by JiraPS.
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Clear-JiraCache [[-Type] <string>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -41,26 +31,29 @@ Use this function when you need fresh data from the server, for example after ma
 
 ### EXAMPLE 1
 
+```powershell
 Clear-JiraCache
+```
 
-
 Clears all cached data.
 
 ### EXAMPLE 2
 
+```powershell
 Clear-JiraCache -Type Fields
+```
 
-
 Clears only the cached field data.
 The next call to `Get-JiraField` will fetch
 fresh data from the server.
 
 ### EXAMPLE 3
 
+```powershell
 Clear-JiraCache -Type ServerInfo
 Get-JiraServerInformation
+```
 
-
 Clears cached server information and fetches fresh data.
 
 ## PARAMETERS
@@ -90,7 +83,13 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- All
+- Fields
+- IssueTypes
+- Priorities
+- Statuses
+- ServerInfo
 HelpMessage: ''
 ```
 
@@ -113,10 +112,10 @@ Restarting PowerShell will also clear the cache.
 Functions like `Get-JiraField` also support a `-Force` parameter that bypasses
 the cache for a single call without clearing the entire cache.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Clear-JiraCache/)
-- [Get-JiraField](../Get-JiraField/)
-- [Get-JiraIssueType](../Get-JiraIssueType/)
-- [Get-JiraServerInformation](../Get-JiraServerInformation/)
+[Get-JiraField](../Get-JiraField/)
+
+[Get-JiraIssueType](../Get-JiraIssueType/)
+
+[Get-JiraServerInformation](../Get-JiraServerInformation/)

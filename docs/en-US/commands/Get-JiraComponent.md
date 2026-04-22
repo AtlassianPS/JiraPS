@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraComponent/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraComponent
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraComponent/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraComponent/
 ---
-
 # Get-JiraComponent
 
 ## SYNOPSIS
@@ -19,20 +16,15 @@ Returns a Component from Jira
 
 ### ByID (Default)
 
-```
+```powershell
 Get-JiraComponent [-ComponentId] <int[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByProject
 
-```
+```powershell
 Get-JiraComponent [-Project] <Object[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -45,30 +37,34 @@ Therefore, it is not possible to query for Components without a project.
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraComponent -Id 10000
+```
 
-
 Returns information about the component with ID 10000
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraComponent 20000 -Credential $cred
+```
 
-
 Returns information about the component with ID 20000
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraProject "Project1" | Get-JiraComponent
+```
 
-
 Returns information about all components within project 'Project1'
 
 ### EXAMPLE 4
 
+```powershell
 Get-JiraComponent ABC,DEF
+```
 
-
 Return information about all components within projects 'ABC' and 'DEF'
 
 ## PARAMETERS
@@ -102,7 +98,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -157,13 +153,9 @@ Retrieve specific Components by theirs id.
 
 ### System.Object[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Component
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -173,7 +165,4 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 Remaining operations for `component` have not yet been implemented in the module.
 
-
 ## RELATED LINKS
-
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraComponent/)

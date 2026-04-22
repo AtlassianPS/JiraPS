@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/New-JiraFilter/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: New-JiraFilter
+online version: https://atlassianps.org/docs/JiraPS/commands/New-JiraFilter/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/New-JiraFilter/
 ---
-
 # New-JiraFilter
 
 ## SYNOPSIS
@@ -17,17 +14,10 @@ Create a new Jira filter.
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 New-JiraFilter [-Name] <string> [[-Description] <string>] [-JQL] <string>
  [[-Credential] <pscredential>] [-Favorite] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -37,20 +27,23 @@ Create a new Jira filter.
 
 ### Example 1
 
+```powershell
 New-JiraFilter -Name "My Bugs" -JQL "type = Bug and assignee = currentuser()"
+```
 
-
 Creates a new filter named "My Bugs"
 
 ### Example 2
 
+```powershell
 New-JiraFilter -Name "My Bugs" -JQL "type = Bug and assignee = currentuser()" -Favorite
+```
 
-
 Creates a new filter named "My Bugs" and stores it as favorite
 
 ### Example 3
 
+```powershell
 $splatNewFilter = @{
     Name = "My Bugs"
     Description = "collections of bugs assigned to me"
@@ -58,8 +51,8 @@ $splatNewFilter = @{
     Favorite = $true
 }
 New-JiraFilter @splatNewFilter
+```
 
-
 Creates a new filter named "My Bugs" using splatting
 
 ## PARAMETERS
@@ -93,7 +86,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -229,17 +222,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### System.String
 
-{{ Fill in the Description }}
 
 ### System.Management.Automation.SwitchParameter
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
 ### JiraPS.Filter
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -247,10 +235,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/New-JiraFilter/)
-- [Get-JiraFilter](../Get-JiraFilter/)
-- [Set-JiraFilter](../Set-JiraFilter/)
-- [Remove-JiraFilter](../Remove-JiraFilter/)
+[Get-JiraFilter](../Get-JiraFilter/)
+
+[Set-JiraFilter](../Set-JiraFilter/)
+
+[Remove-JiraFilter](../Remove-JiraFilter/)

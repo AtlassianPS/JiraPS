@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Format-Jira/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Format-Jira
+online version: https://atlassianps.org/docs/JiraPS/commands/Format-Jira/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Format-Jira/
 ---
-
 # Format-Jira
 
 ## SYNOPSIS
@@ -17,16 +14,9 @@ Converts an object into a table formatted according to JIRA's markdown syntax
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Format-Jira [-InputObject] <psobject[]> [[-Property] <Object[]>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -37,16 +27,18 @@ This cmdlet formats PowerShell objects as JIRA-compatible markdown tables that c
 
 ### EXAMPLE 1
 
+```powershell
 Get-Process | Format-Jira | Add-JiraIssueComment -Issue TEST-001
+```
 
-
 This example illustrates converting the output from `Get-Process` into a JIRA table, which is then added as a comment to issue TEST-001.
 
 ### EXAMPLE 2
 
+```powershell
 Get-Process chrome | Format-Jira Name,Id,VM
+```
 
-
 This example obtains all Google Chrome processes, then creates a JIRA table with only the Name,ID, and VM properties of each object.
 
 ## PARAMETERS
@@ -105,19 +97,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### System.Object
-
-accepts any Object via pipeline
-
 ### System.Management.Automation.PSObject[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
 ### System.String
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -125,7 +109,4 @@ Like the native `Format-*` cmdlets, this is a destructive operation.
 
 Remember to "filter left, format right!"
 
-
 ## RELATED LINKS
-
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Format-Jira/)

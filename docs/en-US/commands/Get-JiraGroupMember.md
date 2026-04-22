@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraGroupMember/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraGroupMember
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraGroupMember/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraGroupMember/
 ---
-
 # Get-JiraGroupMember
 
 ## SYNOPSIS
@@ -17,17 +14,10 @@ Returns members of a given group in JIRA
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Get-JiraGroupMember [-Group] <Object[]> [[-PageSize] <uint>] [[-Credential] <pscredential>]
  [-IncludeInactive] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -37,16 +27,18 @@ This function returns members of a provided group in JIRA.
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraGroupMember testGroup
+```
 
-
 This example returns all members of the JIRA group testGroup.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraGroup 'Developers' | Get-JiraGroupMember
+```
 
-
 This example illustrates the use of the pipeline to return members of
 the Developers group in JIRA.
 
@@ -59,7 +51,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -225,13 +217,9 @@ The group to query for members
 
 ### System.Object[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.User
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -248,12 +236,14 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraGroupMember/)
-- [Get-JiraGroup](../Get-JiraGroup/)
-- [Add-JiraGroupMember](../Add-JiraGroupMember/)
-- [New-JiraGroup](../New-JiraGroup/)
-- [New-JiraUser](../New-JiraUser/)
-- [Remove-JiraGroupMember](../Remove-JiraGroupMember/)
+[Get-JiraGroup](../Get-JiraGroup/)
+
+[Add-JiraGroupMember](../Add-JiraGroupMember/)
+
+[New-JiraGroup](../New-JiraGroup/)
+
+[New-JiraUser](../New-JiraUser/)
+
+[Remove-JiraGroupMember](../Remove-JiraGroupMember/)

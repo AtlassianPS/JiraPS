@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraFilterPermission/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraFilterPermission
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraFilterPermission/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraFilterPermission/
 ---
-
 # Get-JiraFilterPermission
 
 ## SYNOPSIS
@@ -19,20 +16,15 @@ Fetch the permissions of a specific Filter.
 
 ### ById (Default)
 
-```
+```powershell
 Get-JiraFilterPermission [-Id] <uint[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
-```
+```powershell
 Get-JiraFilterPermission [-Filter] <Filter> [-Credential <pscredential>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -42,20 +34,22 @@ This allows the user to retrieve all the sharing permissions set for a Filter.
 
 ### Example 1
 
+```powershell
 Get-JiraFilterPermission -Filter (Get-JiraFilter 12345)
 #-------
 Get-JiraFilterPermission -Id 12345
+```
 
-
 Two methods for retrieving the permissions set for Filter 12345.
 
 ### Example 2
 
+```powershell
 12345 | Get-JiraFilterPermission
 #-------
 Get-JiraFilter 12345 | Add-JiraFilterPermission
+```
 
-
 Two methods for retrieve the permissions set for Filter 12345 by using the pipeline.
 
 The Id could be read from a file.
@@ -69,7 +63,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -89,7 +83,7 @@ HelpMessage: ''
 Filter object from which to retrieve the permissions
 
 ```yaml
-Type: System.Object
+Type: JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -137,21 +131,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Filter
 
-{{ Fill in the Description }}
-
-### System.Object
-
-{{ Fill in the Description }}
 
 ### System.UInt32[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
 ### JiraPS.Filter
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -160,10 +145,10 @@ a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraFilterPermission/)
-- [Get-JiraFilter](../Get-JiraFilter/)
-- [Add-JiraFilterPermission](../Add-JiraFilterPermission/)
-- [Remove-JiraFilterPermission](../Remove-JiraFilterPermission/)
+[Get-JiraFilter](../Get-JiraFilter/)
+
+[Add-JiraFilterPermission](../Add-JiraFilterPermission/)
+
+[Remove-JiraFilterPermission](../Remove-JiraFilterPermission/)

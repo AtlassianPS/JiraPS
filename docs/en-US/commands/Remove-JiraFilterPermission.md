@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilterPermission/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Remove-JiraFilterPermission
+online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilterPermission/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Remove-JiraFilterPermission/
 ---
-
 # Remove-JiraFilterPermission
 
 ## SYNOPSIS
@@ -19,22 +16,17 @@ Remove a permission of a Filter
 
 ### ByFilterId (Default)
 
-```
+```powershell
 Remove-JiraFilterPermission [-FilterId] <uint> [-PermissionId] <uint[]> [-Credential <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByFilterObject
 
-```
+```powershell
 Remove-JiraFilterPermission [-Filter] <Filter> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -44,16 +36,18 @@ Remove a sharing permission of a Filter.
 
 ### Example 1
 
+```powershell
 Remove-JiraFilterPermission -FilterId 11822 -PermissionId 1111, 2222
+```
 
-
 Remove two share permissions of Filter with ID '11822'
 
 ### Example 1
 
+```powershell
 Get-JiraFilter 11822 | Get-JiraFilterPermission | Remove-JiraFilterPermission
+```
 
-
 Remove all permissions of Filter 11822
 
 ## PARAMETERS
@@ -87,7 +81,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -107,7 +101,7 @@ HelpMessage: ''
 Object of the Filter from which to remove a permission.
 
 ```yaml
-Type: System.Object
+Type: JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -200,13 +194,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### System.Object
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### System.Object
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -215,10 +205,10 @@ a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilterPermission/)
-- [Get-JiraFilter](../Get-JiraFilter/)
-- [Add-JiraFilterPermission](../Add-JiraFilterPermission/)
-- [Get-JiraFilterPermission](../Get-JiraFilterPermission/)
+[Get-JiraFilter](../Get-JiraFilter/)
+
+[Add-JiraFilterPermission](../Add-JiraFilterPermission/)
+
+[Get-JiraFilterPermission](../Get-JiraFilterPermission/)

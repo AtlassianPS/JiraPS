@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Set-JiraFilter/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Set-JiraFilter
+online version: https://atlassianps.org/docs/JiraPS/commands/Set-JiraFilter/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Set-JiraFilter/
 ---
-
 # Set-JiraFilter
 
 ## SYNOPSIS
@@ -17,18 +14,11 @@ Make changes to an existing Filter.
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Set-JiraFilter [-InputObject] <Filter> [[-Name] <string>] [[-Description] <string>]
  [[-JQL] <string>] [[-Favorite] <bool>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -40,13 +30,15 @@ If no changing parameter is provided, no action will be performed.
 
 ### Example 1
 
+```powershell
 Set-JiraFilter -InputObject (Get-JiraFilter "12345") -Name "NewName"
+```
 
-
 Changes the name of filter "12345" to "NewName"
 
 ### Example 2
 
+```powershell
 $filterData = @{
     InputObject = Get-JiraFilter "12345"
     Description = "A new description"
@@ -54,17 +46,18 @@ $filterData = @{
     Favorite = $true
 }
 Set-JiraFilter @filterData
+```
 
-
 Changes the description and JQL of filter "12345" and make it a favorite
 
 ### Example 3
 
+```powershell
 Get-JiraFilter -Favorite |
     Where name -notlike "My*" |
     Set-JiraFilter -Favorite $false
+```
 
-
 Remove all favorite filters where the name does not start with "My"
 
 ## PARAMETERS
@@ -98,7 +91,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -165,7 +158,7 @@ Filter object to be changed.
 Object can be retrieved with `Get-JiraFilter`
 
 ```yaml
-Type: System.Object
+Type: JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -259,17 +252,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Filter / String
 
-{{ Fill in the Description }}
-
-### System.Object
-
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Filter
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -277,10 +262,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Set-JiraFilter/)
-- [Get-JiraFilter](../Get-JiraFilter/)
-- [New-JiraFilter](../New-JiraFilter/)
-- [Remove-JiraFilter](../Remove-JiraFilter/)
+[Get-JiraFilter](../Get-JiraFilter/)
+
+[New-JiraFilter](../New-JiraFilter/)
+
+[Remove-JiraFilter](../Remove-JiraFilter/)

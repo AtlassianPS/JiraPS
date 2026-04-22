@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssueLabel/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Set-JiraIssueLabel
+online version: https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssueLabel/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Set-JiraIssueLabel/
 ---
-
 # Set-JiraIssueLabel
 
 ## SYNOPSIS
@@ -19,29 +16,24 @@ Modifies labels on an existing JIRA issue
 
 ### ReplaceLabels (Default)
 
-```
+```powershell
 Set-JiraIssueLabel [-Issue] <Object[]> -Set <string[]> [-Credential <pscredential>] [-PassThru]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ModifyLabels
 
-```
+```powershell
 Set-JiraIssueLabel [-Issue] <Object[]> [-Add <string[]>] [-Remove <string[]>]
  [-Credential <pscredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ClearLabels
 
-```
+```powershell
 Set-JiraIssueLabel [-Issue] <Object[]> -Clear [-Credential <pscredential>] [-PassThru] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -54,24 +46,27 @@ There are four supported operations on labels:
 
 ### EXAMPLE 1
 
+```powershell
 Set-JiraIssueLabel -Issue TEST-01 -Set 'fixed'
+```
 
-
 This example replaces all existing labels on issue TEST-01 with one label, "fixed".
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraIssue -Query 'created >= -7d AND reporter in (joeSmith)' | Set-JiraIssueLabel -Add 'enhancement'
+```
 
-
 This example adds the "enhancement" label to all issues matching the JQL - in this case,
 all issues created by user joeSmith in the last 7 days.
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraIssue TEST-01 | Set-JiraIssueLabel -Clear
+```
 
-
 This example removes all labels from the issue TEST-01.
 
 ## PARAMETERS
@@ -147,7 +142,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -287,11 +282,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Issue
 
-{{ Fill in the Description }}
 
 ### System.Object[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -307,8 +299,6 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Set-JiraIssueLabel/)
-- [Get-JiraIssue](../Get-JiraIssue/)
+[Get-JiraIssue](../Get-JiraIssue/)

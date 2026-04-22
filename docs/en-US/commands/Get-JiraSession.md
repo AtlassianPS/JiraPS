@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraSession/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraSession
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraSession/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraSession/
 ---
-
 # Get-JiraSession
 
 ## SYNOPSIS
@@ -17,16 +14,9 @@ Obtains a reference to the currently saved JIRA session
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Get-JiraSession [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -38,10 +28,11 @@ This can provide a JIRA session ID, as well as the username used to connect to J
 
 ### EXAMPLE 1
 
+```powershell
 New-JiraSession -Credential (Get-Credential jiraUsername)
 Get-JiraSession
+```
 
-
 Creates a Jira session for jiraUsername, then obtains a reference to it.
 
 ## PARAMETERS
@@ -59,15 +50,10 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Session
 
-{{ Fill in the Description }}
-
 ## NOTES
-
-
-
 
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraSession/)
-- [about_JiraPS_Authentication](../../about/authentication.html)
-- [New-JiraSession](../New-JiraSession/)
+[about_JiraPS_Authentication](../../about/authentication.html)
+
+[New-JiraSession](../New-JiraSession/)

@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraVersion/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Remove-JiraVersion
+online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraVersion/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Remove-JiraVersion/
 ---
-
 # Remove-JiraVersion
 
 ## SYNOPSIS
@@ -17,17 +14,10 @@ This function removes an existing version.
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Remove-JiraVersion [-Version] <Object[]> [[-Credential] <pscredential>] [-Force] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -37,16 +27,18 @@ This function removes an existing version in JIRA.
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraVersion -Name '1.0.0.0' -Project $Project | Remove-JiraVersion
+```
 
-
 This example removes the Version given.
 
 ### EXAMPLE 2
 
+```powershell
 Remove-JiraVersion -Version '66596'
+```
 
-
 This example removes the Version given.
 
 ## PARAMETERS
@@ -80,7 +72,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -171,11 +163,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Version
 
-{{ Fill in the Description }}
 
 ### System.Object[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -185,11 +174,9 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Remove-JiraVersion/)
 - [New-JiraVersion]()
 - [Get-JiraVersion]()
 - [Set-JiraVersion]()
-- [Move-JiraVersion](../Move-JiraVersion/)
+[Move-JiraVersion](../Move-JiraVersion/)

@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/New-JiraVersion/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: New-JiraVersion
+online version: https://atlassianps.org/docs/JiraPS/commands/New-JiraVersion/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/New-JiraVersion/
 ---
-
 # New-JiraVersion
 
 ## SYNOPSIS
@@ -19,23 +16,18 @@ Creates a new FixVersion in JIRA
 
 ### byObject (Default)
 
-```
+```powershell
 New-JiraVersion [-InputObject] <Object> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### byParameters
 
-```
+```powershell
 New-JiraVersion [-Name] <string> [-Project] <Object> [-Description <string>] [-Archived <bool>]
  [-Released <bool>] [-ReleaseDate <datetime>] [-StartDate <datetime>] [-Credential <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -45,26 +37,29 @@ This function creates a new FixVersion in JIRA.
 
 ### EXAMPLE 1
 
+```powershell
 New-JiraVersion -Name '1.0.0.0' -Project "RD"
+```
 
-
 This example creates a new JIRA Version named "1.0.0.0" in project "RD".
 
 ### EXAMPLE 2
 
+```powershell
 $project = Get-JiraProject -Project "RD"
 New-JiraVersion -Name '1.0.0.0' -Project $project -ReleaseDate "2000-12-31"
+```
 
-
 Create a new Version in Project "RD" with a set release date.
 
 ### EXAMPLE 3
 
+```powershell
 $version = Get-JiraVersion -Name "1.0.0.0" -Project "RD"
 $version = $version.Project.Key "TEST"
 $version | New-JiraVersion
+```
 
-
 This example duplicates the Version named "1.0.0.0" in Project "RD" to Project "TEST".
 
 ## PARAMETERS
@@ -119,7 +114,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -315,13 +310,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### System.Object
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Version
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -329,12 +320,14 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/New-JiraVersion/)
-- [Get-JiraVersion](../Get-JiraVersion/)
-- [Remove-JiraVersion](../Remove-JiraVersion/)
-- [Set-JiraVersion](../Set-JiraVersion/)
-- [Get-JiraProject](../Get-JiraProject/)
-- [Move-JiraVersion](../Move-JiraVersion/)
+[Get-JiraVersion](../Get-JiraVersion/)
+
+[Remove-JiraVersion](../Remove-JiraVersion/)
+
+[Set-JiraVersion](../Set-JiraVersion/)
+
+[Get-JiraProject](../Get-JiraProject/)
+
+[Move-JiraVersion](../Move-JiraVersion/)

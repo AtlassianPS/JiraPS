@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraPriority/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraPriority
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraPriority/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraPriority/
 ---
-
 # Get-JiraPriority
 
 ## SYNOPSIS
@@ -19,20 +16,15 @@ Returns information about the available priorities in JIRA.
 
 ### _All (Default)
 
-```
+```powershell
 Get-JiraPriority [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```
+```powershell
 Get-JiraPriority [-Id] <int[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -47,16 +39,18 @@ Use `-Force` to bypass the cache and fetch fresh data.
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraPriority
+```
 
-
 This example returns all the IssueTypes on the JIRA server.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraPriority -ID 1
+```
 
-
 This example returns only the Priority with ID 1.
 
 ## PARAMETERS
@@ -68,7 +62,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -136,13 +130,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### System.Int32[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Priority
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -152,7 +142,4 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 Remaining operations for `priority` have not yet been implemented in the module.
 
-
 ## RELATED LINKS
-
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraPriority/)

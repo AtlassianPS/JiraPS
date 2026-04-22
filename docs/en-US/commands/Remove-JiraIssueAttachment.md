@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraIssueAttachment/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Remove-JiraIssueAttachment
+online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraIssueAttachment/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Remove-JiraIssueAttachment/
 ---
-
 # Remove-JiraIssueAttachment
 
 ## SYNOPSIS
@@ -19,22 +16,17 @@ Removes an attachment from a JIRA issue
 
 ### byId (Default)
 
-```
+```powershell
 Remove-JiraIssueAttachment [-AttachmentId] <int[]> [-Credential <pscredential>] [-Force] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
 ### byIssue
 
-```
+```powershell
 Remove-JiraIssueAttachment [-Issue] <Object> [-FileName <string[]>] [-Credential <pscredential>]
  [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -44,23 +36,26 @@ This function removes an attachment from a JIRA issue.
 
 ### EXAMPLE 1
 
+```powershell
 Remove-JiraIssueAttachment -AttachmentId 10039
+```
 
-
 Removes attachment with id of 10039
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraIssueAttachment -Issue FOO-1234 | Remove-JiraIssueAttachment
+```
 
-
 Removes all attachments from issue FOO-1234
 
 ### EXAMPLE 3
 
+```powershell
 Remove-JiraIssueAttachment -Issue FOO-1234 -FileName '*.png' -force
+```
 
-
 Removes all *.png attachments from Issue FOO-1234 without prompting for confirmation
 
 ## PARAMETERS
@@ -116,7 +111,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -231,11 +226,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Issue / String / Int
 
-{{ Fill in the Description }}
 
 ### System.Int32[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -245,10 +237,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Remove-JiraIssueAttachment/)
-- [Add-JiraIssueAttachment](../Add-JiraIssueAttachment/)
-- [Get-JiraIssue](../Get-JiraIssue/)
-- [Get-JiraIssueAttachment](../Get-JiraIssueAttachment/)
+[Add-JiraIssueAttachment](../Add-JiraIssueAttachment/)
+
+[Get-JiraIssue](../Get-JiraIssue/)
+
+[Get-JiraIssueAttachment](../Get-JiraIssueAttachment/)

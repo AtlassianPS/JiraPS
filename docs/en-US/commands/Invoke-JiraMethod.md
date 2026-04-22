@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Invoke-JiraMethod/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Invoke-JiraMethod
+online version: https://atlassianps.org/docs/JiraPS/commands/Invoke-JiraMethod/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Invoke-JiraMethod/
 ---
-
 # Invoke-JiraMethod
 
 ## SYNOPSIS
@@ -17,21 +14,14 @@ Invoke a specific call to a Jira REST Api endpoint
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Invoke-JiraMethod [-URI] <uri> [[-Method] <WebRequestMethod>] [[-Body] <string>]
  [[-Headers] <hashtable>] [[-GetParameter] <hashtable>] [[-InFile] <string>] [[-OutFile] <string>]
  [[-OutputType] <string>] [[-Credential] <pscredential>] [[-Cmdlet] <PSCmdlet>]
- [[-_RetryCount] <int>] [[-CacheKey] <string>] [[-CacheExpiry] <timespan>] [-RawBody] [-Paging]
+ [[-CacheKey] <string>] [[-CacheExpiry] <timespan>] [-RawBody] [-Paging]
  [-StoreSession] [-BypassCache] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
  [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -50,30 +40,33 @@ This will import the module if not already loaded or even download it from the P
 
 ### Example 1
 
+```powershell
 Invoke-JiraMethod -URI "$(Get-JiraConfigServer)/rest/api/latest/project"
+```
 
-
 Sends a GET request which will return all the projects on the Jira server.
 This call would either be executed anonymously or require a session to be available.
 
 ### Example 2
 
+```powershell
 Invoke-JiraMethod -URI "$(Get-JiraConfigServer)/rest/api/latest/project" -Credential (Get-Credential)
+```
 
-
 Prompts the user for his Jira credentials and send a GET request,
 which will return all the projects on the Jira server.
 
 ### Example 3
 
+```powershell
 $parameter = @{
     URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
     Method = "POST"
     Credential = $cred
 }
 Invoke-JiraMethod @parameter
+```
 
-
 Sends a POST request to the server.
 
 > This will example doesn't really do anything on the server, as the content API needs requires a value for the BODY.
@@ -82,6 +75,7 @@ See next example
 
 ### Example 4
 
+```powershell
 $body = '{"name": "NewGroup"}'
 $params = @{
     Uri = "$(Get-JiraConfigServer)/rest/api/latest/group"
@@ -90,12 +84,13 @@ $params = @{
     Credential = $cred
 }
 Invoke-JiraMethod @params
+```
 
-
 Creates a new group named "NewGroup"
 
 ### Example 5
 
+```powershell
 $params = @{
     Uri = "$(Get-JiraConfigServer)/rest/api/latest/mypermissions"
     Method = "GET"
@@ -104,13 +99,14 @@ $params = @{
     Credential = $cred
 }
 Invoke-JiraMethod @params
+```
 
-
 Executes the GET request but instead of returning the response,
 it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
 
 ### Example 6
 
+```powershell
 $params = @{
     Uri = "$(Get-JiraConfigServer)/rest/api/latest/issue/10000"
     Method = "POST"
@@ -118,12 +114,13 @@ $params = @{
     Credential = $cred
 }
 Invoke-JiraMethod @params
+```
 
-
 Executes a POST request on the defined URI and uploads the InFile with a multipart/form-data request.
 
 ### Example 7
 
+```powershell
 $parameter = @{
     URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
     Method = "GET"
@@ -131,12 +128,13 @@ $parameter = @{
     Credential = $cred
 }
 Invoke-JiraMethod @parameter
+```
 
-
 Executes a GET request on all available projects and stores the response json in the defined file.
 
 ### Example 8
 
+```powershell
 $parameter = @{
     URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
     Method = "GET"
@@ -145,13 +143,14 @@ $parameter = @{
     Credential = $cred
 }
 Invoke-JiraMethod @parameter
+```
 
-
 Executes a GET request on the defined URI and stores the output on the File System.
 It also uses the Headers to define what mimeTypes are expected in the response.
 
 ### Example 9
 
+```powershell
 $parameter = @{
     URI = "$(Get-JiraConfigServer)/rest/api/latest/field"
     Method = "GET"
@@ -159,15 +158,17 @@ $parameter = @{
     CacheExpiry = [TimeSpan]::FromHours(1)
 }
 Invoke-JiraMethod @parameter
+```
 
-
 Fetches all fields from Jira and caches the response for 1 hour.
 Subsequent calls with the same CacheKey will return the cached data without making an API call.
 
 ### Example 10
 
+```powershell
 # 30 seconds — short-lived data
 Invoke-JiraMethod -URI $uri -CacheKey "Status" -CacheExpiry ([TimeSpan]::FromSeconds(30))
+```
 
 # 15 minutes — moderately static data
 Invoke-JiraMethod -URI $uri -CacheKey "Priorities" -CacheExpiry ([TimeSpan]::FromMinutes(15))
@@ -184,45 +185,24 @@ Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry (New-TimeSpan -Hours
 # Using string literal — PowerShell auto-converts "hh:mm:ss" to TimeSpan
 Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry "00:45:00"
 
-
 Demonstrates various ways to construct a `[TimeSpan]` value for `-CacheExpiry`.
 Use the form that best communicates the intended duration.
 
 ### Example 11
 
+```powershell
 $parameter = @{
     URI = "$(Get-JiraConfigServer)/rest/api/latest/field"
     CacheKey = "Fields"
     BypassCache = $true
 }
 Invoke-JiraMethod @parameter
+```
 
-
 Forces a fresh API call, ignoring any cached data.
 The fresh response will be stored in the cache.
 
 ## PARAMETERS
-
-### -_RetryCount
-
-{{ Fill _RetryCount Description }}
-
-```yaml
-Type: System.Int32
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: 10
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
 
 ### -Body
 
@@ -338,7 +318,7 @@ Context which will be used for throwing errors.
 
 ```yaml
 Type: System.Management.Automation.PSCmdlet
-DefaultValue: ''
+DefaultValue: 'PSCmdlet'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -362,7 +342,7 @@ If no sessions is available, the request will be executed anonymously.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -404,7 +384,7 @@ Key-Value pair of the Headers to be used.
 
 ```yaml
 Type: System.Collections.Hashtable
-DefaultValue: ''
+DefaultValue: '@{}'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -425,7 +405,7 @@ Define a key-value set of HTTP headers that should be used in the call.
 
 ```yaml
 Type: System.Collections.Hashtable
-DefaultValue: ''
+DefaultValue: '@{}'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -492,7 +472,7 @@ Method of the HTTP request.
 
 ```yaml
 Type: Microsoft.PowerShell.Commands.WebRequestMethod
-DefaultValue: ''
+DefaultValue: '"GET"'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -549,7 +529,12 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- JiraComment
+- JiraIssue
+- JiraUser
+- JiraVersion
+- JiraWorklogItem
 HelpMessage: ''
 ```
 
@@ -680,11 +665,8 @@ The response is convert to PSCustomObject with `ConvertFrom-Json`
 
 ## NOTES
 
-
-
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Invoke-JiraMethod/)
-- [Jira Cloud API](https://developer.atlassian.com/cloud/jira/platform/rest/)
-- [Jira Server API](https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/)
+[Jira Cloud API](https://developer.atlassian.com/cloud/jira/platform/rest/)
+
+[Jira Server API](https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/)

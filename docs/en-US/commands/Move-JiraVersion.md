@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Move-JiraVersion/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Move-JiraVersion
+online version: https://atlassianps.org/docs/JiraPS/commands/Move-JiraVersion/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Move-JiraVersion/
 ---
-
 # Move-JiraVersion
 
 ## SYNOPSIS
@@ -19,21 +16,16 @@ Moves an existing Version in JIRA
 
 ### ByAfter (Default)
 
-```
+```powershell
 Move-JiraVersion -Version <Object> -After <Object> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByPosition
 
-```
+```powershell
 Move-JiraVersion -Version <Object> -Position <string> [-Credential <pscredential>]
  [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -44,23 +36,26 @@ Moving the Version modifies the order/sequence of the Version in relation to oth
 
 ### EXAMPLE 1
 
+```powershell
 Move-JiraVersion -Version 10 -After 9
+```
 
-
 This example moves the Version with ID 10 after the Version with ID 9.
 
 ### EXAMPLE 2
 
+```powershell
 Move-JiraVersion -Version $myVersionObject -After $otherVersionObject
+```
 
-
 This example moves the Version object after the other Version object.
 
 ### EXAMPLE 3
 
+```powershell
 Move-JiraVersion -Version $myVersionObject -Position Earliest
+```
 
-
 This example moves the Version object to the earliest position.
 
 ## PARAMETERS
@@ -93,7 +88,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -125,7 +120,11 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- First
+- Last
+- Earlier
+- Later
 HelpMessage: ''
 ```
 
@@ -161,12 +160,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Version
 
-{{ Fill in the Description }}
-
-### System.Object
-
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ## NOTES
@@ -175,11 +168,12 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Move-JiraVersion/)
-- [Get-JiraVersion](../Get-JiraVersion/)
-- [New-JiraVersion](../New-JiraVersion/)
-- [Remove-JiraVersion](../Remove-JiraVersion/)
-- [Set-JiraVersion](../Set-JiraVersion/)
+[Get-JiraVersion](../Get-JiraVersion/)
+
+[New-JiraVersion](../New-JiraVersion/)
+
+[Remove-JiraVersion](../Remove-JiraVersion/)
+
+[Set-JiraVersion](../Set-JiraVersion/)

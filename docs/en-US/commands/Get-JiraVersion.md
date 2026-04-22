@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraVersion/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraVersion
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraVersion/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraVersion/
 ---
-
 # Get-JiraVersion
 
 ## SYNOPSIS
@@ -19,21 +16,21 @@ This function returns information about a JIRA Project's Version
 
 ### byId (Default)
 
-```
+```powershell
 Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount]
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### byInputVersion
 
-```
+```powershell
 Get-JiraVersion [-InputVersion] <Version> [-PageSize <uint>] [-Credential <pscredential>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### byProject
 
-```
+```powershell
 Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
  [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
  [<CommonParameters>]
@@ -41,16 +38,11 @@ Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-Page
 
 ### byInputProject
 
-```
+```powershell
 Get-JiraVersion [-InputProject] <Project> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
  [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
  [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -60,30 +52,34 @@ This function provides information about JIRA Version
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraVersion -Project $ProjectKey
+```
 
-
 This example returns information about all JIRA Version visible to the current user for the project.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraVersion -Project $ProjectKey -Name '1.0.0.0'
+```
 
-
 This example returns the information of a specific Version.
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraProject "FOO", "BAR" | Get-JiraVersion -Name "v1.0", "v2.0"
+```
 
-
 Get the Version with name "v1.0" and "v2.0" from both projects "FOO" and "BAR"
 
 ### EXAMPLE 4
 
+```powershell
 Get-JiraVersion -ID '66596'
+```
 
-
 This example returns information about all JIRA Version visible to the current user
 (or using anonymous access if a JiraPS session has not been defined) for the project.
 
@@ -96,7 +92,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -181,7 +177,7 @@ HelpMessage: ''
 A Project Object to search
 
 ```yaml
-Type: System.Object
+Type: JiraPS.Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -202,7 +198,7 @@ HelpMessage: ''
 A Version object to search for
 
 ```yaml
-Type: System.Object
+Type: JiraPS.Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -224,7 +220,7 @@ Jira Version Name
 
 ```yaml
 Type: System.String[]
-DefaultValue: ''
+DefaultValue: '"*"'
 SupportsWildcards: false
 Aliases:
 - Versions
@@ -329,7 +325,7 @@ Possible values are:
 
 ```yaml
 Type: System.String
-DefaultValue: ''
+DefaultValue: '"name"'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -346,7 +342,11 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- sequence
+- name
+- startDate
+- releaseDate
 HelpMessage: ''
 ```
 
@@ -361,21 +361,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Version
 
-{{ Fill in the Description }}
 
 ### JiraPS.Project
-
-{{ Fill in the Description }}
-
-### System.Object
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
 ### JiraPS.Version
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -383,12 +374,14 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraVersion/)
-- [Get-JiraProject](../Get-JiraProject/)
-- [New-JiraVersion](../New-JiraVersion/)
-- [Remove-JiraVersion](../Remove-JiraVersion/)
-- [Set-JiraVersion](../Set-JiraVersion/)
-- [Move-JiraVersion](../Move-JiraVersion/)
+[Get-JiraProject](../Get-JiraProject/)
+
+[New-JiraVersion](../New-JiraVersion/)
+
+[Remove-JiraVersion](../Remove-JiraVersion/)
+
+[Set-JiraVersion](../Set-JiraVersion/)
+
+[Move-JiraVersion](../Move-JiraVersion/)

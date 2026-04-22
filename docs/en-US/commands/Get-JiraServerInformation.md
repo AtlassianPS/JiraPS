@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraServerInformation/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraServerInformation
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraServerInformation/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraServerInformation/
 ---
-
 # Get-JiraServerInformation
 
 ## SYNOPSIS
@@ -17,16 +14,9 @@ This function returns the information about the JIRA Server
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Get-JiraServerInformation [[-Credential] <pscredential>] [-Force] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -44,25 +34,28 @@ If the API call fails or the response lacks a `deploymentType` field (older Jira
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraServerInformation
+```
 
-
 This example returns information about the JIRA server.
 Subsequent calls return the cached result.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraServerInformation -Force
+```
 
-
 Bypasses the cache and re-fetches server information from the API.
 Use this after a Jira upgrade or configuration change.
 
 ### EXAMPLE 3
 
+```powershell
 (Get-JiraServerInformation).DeploymentType
+```
 
-
 Returns `Cloud` or `Server`, indicating which Jira platform is in use.
 
 ## PARAMETERS
@@ -74,7 +67,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -123,8 +116,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.ServerInfo
 
-{{ Fill in the Description }}
-
 ## NOTES
 
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
@@ -142,7 +133,4 @@ API behavior (e.g., `accountId` instead of `username`, API v3 endpoints).
 Jira Cloud returns `"Cloud"`, while Data Center and older Server instances
 return `"Server"` or omit the field entirely (defaulting to `"Server"`).
 
-
 ## RELATED LINKS
-
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraServerInformation/)

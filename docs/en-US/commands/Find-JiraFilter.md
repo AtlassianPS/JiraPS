@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Find-JiraFilter/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Find-JiraFilter
+online version: https://atlassianps.org/docs/JiraPS/commands/Find-JiraFilter/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Find-JiraFilter/
 ---
-
 # Find-JiraFilter
 
 ## SYNOPSIS
@@ -19,7 +16,7 @@ Find JIRA filter(s).
 
 ### ByAccountId (Default)
 
-```
+```powershell
 Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [-Project <Object>]
  [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-IncludeTotalCount]
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
@@ -27,16 +24,11 @@ Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [
 
 ### ByOwner
 
-```
+```powershell
 Find-JiraFilter [-Name <string[]>] [-Owner <Object>] [-GroupName <string>] [-Project <Object>]
  [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-IncludeTotalCount]
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -54,54 +46,61 @@ Disclaimer
 
 ### EXAMPLE 1
 
+```powershell
 Find-JiraFilter -Name 'ABC'
+```
 
-
 This example finds all JIRA filters that include ABC in the name.
  The search is case insensitive.
 
 ### EXAMPLE 2
 
+```powershell
 Find-JiraFilter -Name """George Jetsons Filter"""
+```
 
-
 This example finds a JIRA filter by exact name (case insensitive)
 
 ### EXAMPLE 3
 
+```powershell
 'My','Your' | Find-JiraFilter
+```
 
-
 This example demonstrates use of the pipeline to search for multiple filter Name(s).
  The search is case insensitive.
 
 ### EXAMPLE 4
 
+```powershell
 Find-JiraFilter -Name 'My','Your'
+```
 
-
 This example demonstrates the use of a list of names to search for multiple filter Name(s).
  The search is case insensitive.
 
 ### EXAMPLE 5
 
+```powershell
 Find-JiraFilter -AccountId 'c62dde3418235be1c8424950' -First 3 -Skip 3
+```
 
-
 This example finds all JIRA filters belonging to a specific owner, and illustrates the use of the -First and -Skip Paging parameters.
 
 ### EXAMPLE 6
 
+```powershell
 Find-JiraFilter -Project 'TEST' -First 8
+```
 
-
 This example finds all JIRA filters belonging to project TEST.
 
 ### Example 7
 
+```powershell
 Find-JiraFilter -Name """George Jetsons Filter""" -Fields 'description','jql'
+```
 
-
 This example finds the JIRA filter named "George Jetsons Filter" but only expands the fields listed.
 
 By retrieving only the data really needed, the payload the server sends is
@@ -137,7 +136,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -183,7 +182,16 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- description
+- favourite
+- favouritedCount
+- jql
+- owner
+- searchUrl
+- sharePermissions
+- subscriptions
+- viewUrl
 HelpMessage: ''
 ```
 
@@ -365,7 +373,13 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- description
+- favourite_count
+- is_favourite
+- id
+- name
+- owner
 HelpMessage: ''
 ```
 
@@ -380,21 +394,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### System.String[]
 
-{{ Fill in the Description }}
 
 ### System.String
-
-{{ Fill in the Description }}
-
-### System.Object
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
 ### JiraPS.Filter
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -402,10 +407,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Find-JiraFilter/)
-- [Get-JiraFilter](../Get-JiraFilter/)
-- [Get-JiraProject](../Get-JiraProject/)
-- [Get-JiraUser](../Get-JiraUser/)
+[Get-JiraFilter](../Get-JiraFilter/)
+
+[Get-JiraProject](../Get-JiraProject/)
+
+[Get-JiraUser](../Get-JiraUser/)

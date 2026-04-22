@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilter/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Remove-JiraFilter
+online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilter/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Remove-JiraFilter/
 ---
-
 # Remove-JiraFilter
 
 ## SYNOPSIS
@@ -19,22 +16,17 @@ Removes an existing filter.
 
 ### ByInputObject (Default)
 
-```
+```powershell
 Remove-JiraFilter [-InputObject] <Filter> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### ById
 
-```
+```powershell
 Remove-JiraFilter [-Id] <uint[]> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -45,39 +37,44 @@ Deleting a filter removed is permanently from Jira.
 
 ### Example 1
 
+```powershell
 Remove-JiraFilter -InputObject (Get-JiraFilter "12345")
+```
 
-
 Removes the filter `12345` from Jira.
 
 ### Example 2
 
+```powershell
 $filter = Get-JiraFilter "12345", "98765"
 Remove-JiraFilter -InputObject $filter
+```
 
-
 Removes two filters (`12345` and `98765`) from Jira.
 
 ### Example 3
 
+```powershell
 Get-JiraFilter "12345", "98765" | Remove-JiraFilter
+```
 
-
 Removes two filters (`12345` and `98765`) from Jira.
 
 ### Example 4
 
+```powershell
 Get-JiraFilter -Favorite | Remove-JiraFilter -Confirm
+```
 
-
 Asks for each favorite filter confirmation to delete it.
 
 ### Example 5
 
+```powershell
 $listOfFilters = 1,2,3,4
 $listOfFilters | Remove-JiraFilter
+```
 
-
 Remove filters with id "1", "2", "3" and "4".
 
 This input allows for the ID of the filters to be stored in an array and passed
@@ -115,7 +112,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -160,7 +157,7 @@ Filter object to be deleted.
 Object can be retrieved with `Get-JiraFilter`
 
 ```yaml
-Type: System.Object
+Type: JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -210,15 +207,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Filter
 
-{{ Fill in the Description }}
-
-### System.Object
-
-{{ Fill in the Description }}
 
 ### System.UInt32[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -229,10 +219,10 @@ a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Remove-JiraFilter/)
-- [Get-JiraFilter](../Get-JiraFilter/)
-- [New-JiraFilter](../New-JiraFilter/)
-- [Set-JiraFilter](../Set-JiraFilter/)
+[Get-JiraFilter](../Get-JiraFilter/)
+
+[New-JiraFilter](../New-JiraFilter/)
+
+[Set-JiraFilter](../Set-JiraFilter/)

@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraGroup/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Remove-JiraGroup
+online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraGroup/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Remove-JiraGroup/
 ---
-
 # Remove-JiraGroup
 
 ## SYNOPSIS
@@ -17,17 +14,10 @@ Removes an existing group from JIRA
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Remove-JiraGroup [-Group] <Object[]> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -39,9 +29,10 @@ This function removes an existing group from JIRA.
 
 ### EXAMPLE 1
 
+```powershell
 Remove-JiraGroup -GroupName testGroup
+```
 
-
 Removes the JIRA group testGroup
 
 ## PARAMETERS
@@ -75,7 +66,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -167,11 +158,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Group
 
-{{ Fill in the Description }}
 
 ### System.Object[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
@@ -181,9 +169,8 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Remove-JiraGroup/)
-- [Get-JiraGroup](../Get-JiraGroup/)
-- [New-JiraGroup](../New-JiraGroup/)
+[Get-JiraGroup](../Get-JiraGroup/)
+
+[New-JiraGroup](../New-JiraGroup/)

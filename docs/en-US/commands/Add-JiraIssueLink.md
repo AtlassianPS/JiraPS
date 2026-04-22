@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueLink/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Add-JiraIssueLink
+online version: https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueLink/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Add-JiraIssueLink/
 ---
-
 # Add-JiraIssueLink
 
 ## SYNOPSIS
@@ -17,17 +14,10 @@ Adds a link between two Issues on Jira
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Add-JiraIssueLink [-Issue] <Object[]> [-IssueLink] <Object[]> [[-Comment] <string>]
  [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -37,13 +27,14 @@ Creates a new link of the specified type between two Issue.
 
 ### EXAMPLE 1
 
+```powershell
 $_issueLink = [PSCustomObject]@{
     outwardIssue = [PSCustomObject]@{key = "TEST-10"}
     type = [PSCustomObject]@{name = "Composition"}
 }
 Add-JiraIssueLink -Issue TEST-01 -IssueLink $_issueLink
+```
 
-
 Creates a link "is part of" between TEST-01 and TEST-10
 
 ## PARAMETERS
@@ -98,7 +89,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -197,8 +188,6 @@ The JIRA issue link that should be used
 
 ### System.Object[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ## NOTES
@@ -207,11 +196,12 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueLink/)
-- [Get-JiraIssue](../Get-JiraIssue/)
-- [Get-JiraIssueLink](../Get-JiraIssueLink/)
-- [Get-JiraIssueLinkType](../Get-JiraIssueLinkType/)
-- [Remove-JiraIssueLink](../Remove-JiraIssueLink/)
+[Get-JiraIssue](../Get-JiraIssue/)
+
+[Get-JiraIssueLink](../Get-JiraIssueLink/)
+
+[Get-JiraIssueLinkType](../Get-JiraIssueLinkType/)
+
+[Remove-JiraIssueLink](../Remove-JiraIssueLink/)

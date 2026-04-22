@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/ConvertTo-AtlassianDocumentFormat/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: ConvertTo-AtlassianDocumentFormat
+online version: https://atlassianps.org/docs/JiraPS/commands/ConvertTo-AtlassianDocumentFormat/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/ConvertTo-AtlassianDocumentFormat/
 ---
-
 # ConvertTo-AtlassianDocumentFormat
 
 ## SYNOPSIS
@@ -17,16 +14,9 @@ Converts Markdown to Atlassian Document Format (ADF).
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 ConvertTo-AtlassianDocumentFormat [-Markdown] <string> [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -42,17 +32,20 @@ item), task lists (\* [ ] / \* [x]), images (!\[alt\](url)) - **Inline**: \*\*bo
 
 ### EXAMPLE 1
 
+```powershell
 $adf = ConvertTo-AtlassianDocumentFormat -Markdown "**Hello** world"
 $body = @{ body = $adf } | ConvertTo-Json -Depth 20
 Invoke-JiraMethod -Uri "$server/rest/api/3/issue/TEST-1/comment" -Method Post -Body $body
+```
 
-
 Converts a Markdown string to ADF and posts it as a comment via the Jira Cloud v3 API.
 
 ### EXAMPLE 2
 
+```powershell
 $description = @"
 # Release Notes
+```
 
 * Bug fix for login
 * New dashboard widget
@@ -61,15 +54,15 @@ $description = @"
 $body = @{ fields = @{ description = $description } } | ConvertTo-Json -Depth 20
 Invoke-JiraMethod -Uri "$server/rest/api/3/issue/TEST-1" -Method Put -Body $body
 
-
 Updates an issue description on Jira Cloud using Markdown converted to ADF.
 
 ### EXAMPLE 3
 
+```powershell
 $adf = ConvertTo-AtlassianDocumentFormat -Markdown "**Hello** world"
 $adf | ConvertTo-Json -Depth 20
+```
 
-
 Inspects the ADF structure generated from a simple Markdown string.
 
 ## PARAMETERS
@@ -128,10 +121,10 @@ reimplementing the logic.
 
 Alias: `ConvertTo-ADF`
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/ConvertTo-AtlassianDocumentFormat/)
-- [ConvertFrom-AtlassianDocumentFormat](ConvertFrom-AtlassianDocumentFormat.md)
-- [Invoke-JiraMethod](Invoke-JiraMethod.md)
-- [Atlassian Document Format](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/)
+[ConvertFrom-AtlassianDocumentFormat](ConvertFrom-AtlassianDocumentFormat.md)
+
+[Invoke-JiraMethod](Invoke-JiraMethod.md)
+
+[Atlassian Document Format](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/)

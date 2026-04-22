@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueComment/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraIssueComment
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueComment/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraIssueComment/
 ---
-
 # Get-JiraIssueComment
 
 ## SYNOPSIS
@@ -17,16 +14,9 @@ Returns comments on an issue in JIRA.
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Get-JiraIssueComment [-Issue] <Object> [[-Credential] <pscredential>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -36,16 +26,18 @@ This function obtains comments from existing issues in JIRA.
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraIssueComment -Key TEST-001
+```
 
-
 This example returns all comments posted to issue TEST-001.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraIssue TEST-002 | Get-JiraIssueComment
+```
 
-
 This example illustrates use of the pipeline to return all comments on issue TEST-002.
 
 ## PARAMETERS
@@ -57,7 +49,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -107,17 +99,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Issue / String
 
-{{ Fill in the Description }}
-
-### System.Object
-
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Comment
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -125,9 +109,8 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueComment/)
-- [Add-JiraIssueComment](../Add-JiraIssueComment/)
-- [Get-JiraIssue](../Get-JiraIssue/)
+[Add-JiraIssueComment](../Add-JiraIssueComment/)
+
+[Get-JiraIssue](../Get-JiraIssue/)

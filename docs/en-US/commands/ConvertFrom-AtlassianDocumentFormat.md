@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/ConvertFrom-AtlassianDocumentFormat/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: ConvertFrom-AtlassianDocumentFormat
+online version: https://atlassianps.org/docs/JiraPS/commands/ConvertFrom-AtlassianDocumentFormat/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/ConvertFrom-AtlassianDocumentFormat/
 ---
-
 # ConvertFrom-AtlassianDocumentFormat
 
 ## SYNOPSIS
@@ -17,16 +14,9 @@ Converts an Atlassian Document Format (ADF) object to Markdown.
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 ConvertFrom-AtlassianDocumentFormat [[-InputObject] <Object>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -39,27 +29,30 @@ Plain strings (Data Center / API v2) are returned unchanged.
 
 ### EXAMPLE 1
 
+```powershell
 $raw = Invoke-JiraMethod -Uri "$server/rest/api/3/issue/TEST-1" -Method Get
 $markdown = ConvertFrom-AtlassianDocumentFormat -InputObject $raw.fields.description
+```
 
-
 Converts the ADF description returned by the Jira Cloud v3 API into readable Markdown.
 
 ### EXAMPLE 2
 
+```powershell
 $raw.fields.description | ConvertFrom-AtlassianDocumentFormat
+```
 
-
 The same conversion using pipeline input.
 
 ### EXAMPLE 3
 
+```powershell
 $comments = Invoke-JiraMethod -Uri "$server/rest/api/3/issue/TEST-1/comment" -Method Get
 $comments.comments | ForEach-Object {
     ConvertFrom-AtlassianDocumentFormat -InputObject $_.body
 }
+```
 
-
 Converts each ADF comment body to Markdown.
 
 ## PARAMETERS
@@ -120,10 +113,10 @@ converted Markdown output.
 
 Alias: `ConvertFrom-ADF`
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/ConvertFrom-AtlassianDocumentFormat/)
-- [ConvertTo-AtlassianDocumentFormat](ConvertTo-AtlassianDocumentFormat.md)
-- [Invoke-JiraMethod](Invoke-JiraMethod.md)
-- [Atlassian Document Format](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/)
+[ConvertTo-AtlassianDocumentFormat](ConvertTo-AtlassianDocumentFormat.md)
+
+[Invoke-JiraMethod](Invoke-JiraMethod.md)
+
+[Atlassian Document Format](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/)

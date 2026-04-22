@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueComment/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Add-JiraIssueComment
+online version: https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueComment/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Add-JiraIssueComment/
 ---
-
 # Add-JiraIssueComment
 
 ## SYNOPSIS
@@ -17,17 +14,10 @@ Adds a comment to an existing JIRA issue
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Add-JiraIssueComment [-Comment] <string> [-Issue] <Object> [[-VisibleRole] <string>]
  [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -38,33 +28,37 @@ You can optionally set the visibility of the comment (All Users, Developers, or 
 
 ### EXAMPLE 1
 
+```powershell
 Add-JiraIssueComment -Comment "Test comment" -Issue "TEST-001"
+```
 
-
 This example adds a simple comment to the issue TEST-001.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraIssue "TEST-002" | Add-JiraIssueComment "Test comment from PowerShell"
+```
 
-
 This example illustrates pipeline use from `Get-JiraIssue` to `Add-JiraIssueComment`.
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' |
     Add-JiraIssueComment "This issue has been cancelled per Vice President's orders."
+```
 
-
 This example illustrates commenting on all projects which match a given JQL query.
 It would be best to validate the query first to make sure the query returns the expected issues!
 
 ### EXAMPLE 4
 
+```powershell
 $comment = Get-Process | Format-Jira
 Add-JiraIssueComment $comment -Issue TEST-003
+```
 
-
 This example illustrates adding a comment based on other logic to a JIRA issue.
 Note the use of `Format-Jira` to convert the output of `Get-Process` into a format that is easily read by users.
 
@@ -120,7 +114,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -183,7 +177,10 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- All Users
+- Developers
+- Administrators
 HelpMessage: ''
 ```
 
@@ -221,17 +218,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### This function can accept JiraPS.Issue objects via pipeline.
 
-{{ Fill in the Description }}
-
-### System.Object
-
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Comment
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -239,10 +228,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Add-JiraIssueComment/)
-- [Get-JiraIssue](../Get-JiraIssue/)
-- [Get-JiraIssueComment](../Get-JiraIssueComment/)
-- [Format-Jira](../Format-Jira/)
+[Get-JiraIssue](../Get-JiraIssue/)
+
+[Get-JiraIssueComment](../Get-JiraIssueComment/)
+
+[Format-Jira](../Format-Jira/)

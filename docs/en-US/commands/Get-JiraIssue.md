@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssue/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraIssue
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssue/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraIssue/
 ---
-
 # Get-JiraIssue
 
 ## SYNOPSIS
@@ -19,36 +16,31 @@ Returns information about an issue in JIRA.
 
 ### ByIssueKey (Default)
 
-```
+```powershell
 Get-JiraIssue [-Key] <string[]> [-Fields <string[]>] [-Credential <pscredential>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
-```
+```powershell
 Get-JiraIssue [-InputObject] <Object[]> [-Fields <string[]>] [-Credential <pscredential>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByJQL
 
-```
+```powershell
 Get-JiraIssue -Query <string> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByFilter
 
-```
+```powershell
 Get-JiraIssue -Filter <Object> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -65,9 +57,10 @@ Output from this function can be piped to various other functions in this module
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraIssue -Key TEST-001
+```
 
-
 This example fetches the issue "TEST-001".
 
 The default `Format-Table` view of a Jira issue only shows the value of "Key", "Summary", "Status" and "Created".
@@ -75,52 +68,59 @@ The default `Format-Table` view of a Jira issue only shows the value of "Key", "
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraIssue "TEST-002" | Add-JiraIssueComment "Test comment from PowerShell"
+```
 
-
 This example illustrates pipeline use from `Get-JiraIssue` to `Add-JiraIssueComment`.
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraIssue -Query 'project = "TEST" AND created >= -5d'
+```
 
-
 This example illustrates using the `-Query` parameter and JQL syntax to query Jira for matching issues.
 
 ### EXAMPLE 4
 
+```powershell
 Get-JiraIssue -InputObject $oldIssue
+```
 
-
 This example illustrates how to get an update of an issue from an old result of `Get-JiraIssue` stored in $oldIssue.
 
 ### EXAMPLE 5
 
+```powershell
 Get-JiraIssue TEST-001 | Get-JiraIssue
+```
 
-
 This example shows how to refresh issue data by piping an existing issue object back to `Get-JiraIssue`.
 The `-Key` parameter accepts pipeline input by property name, so the `Key` property from the piped issue is used.
 
 ### EXAMPLE 6
 
+```powershell
 Get-JiraFilter -Id 12345 | Get-JiraIssue
+```
 
-
 This example retrieves all issues that match the criteria in the saved filter with id 12345.
 
 ### EXAMPLE 7
 
+```powershell
 Get-JiraFilter 12345 | Get-JiraIssue | Select-Object *
+```
 
-
 This prints all fields of the issue to the console.
 
 ### EXAMPLE 8
 
+```powershell
 Get-JiraIssue -Query "project = TEST" -Fields "key", "summary", "assignee"
+```
 
-
 This example retrieves all issues in project "TEST" - but only the 3 properties
 listed above: key, summary and assignee
 
@@ -136,7 +136,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -388,13 +388,9 @@ This enables patterns like `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh iss
 
 ### System.String[]
 
-{{ Fill in the Description }}
-
 ## OUTPUTS
 
 ### JiraPS.Issue
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -402,10 +398,10 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssue/)
-- [about_JiraPS_CreatingIssues](../../about/creating-issues.html)
-- [about_JiraPS_CustomFields](../../about/custom-fields.html)
-- [New-JiraIssue](../New-JiraIssue/)
+[about_JiraPS_CreatingIssues](../../about/creating-issues.html)
+
+[about_JiraPS_CustomFields](../../about/custom-fields.html)
+
+[New-JiraIssue](../New-JiraIssue/)

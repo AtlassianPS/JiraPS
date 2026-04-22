@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/New-JiraUser/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: New-JiraUser
+online version: https://atlassianps.org/docs/JiraPS/commands/New-JiraUser/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/New-JiraUser/
 ---
-
 # New-JiraUser
 
 ## SYNOPSIS
@@ -17,17 +14,10 @@ Creates a new user in JIRA
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 New-JiraUser [-UserName] <string> [-EmailAddress] <string> [[-DisplayName] <string>]
  [[-Notify] <bool>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -41,18 +31,20 @@ The new user's password is also randomly generated.
 
 ### EXAMPLE 1
 
+```powershell
 New-JiraUser -UserName "testUser" -EmailAddress "testUser@example.com"
+```
 
-
 This example creates a new JIRA user named testUser,
 and sends a notification e-mail.
 The user's DisplayName will be set to "testUser" since it is not specified.
 
 ### EXAMPLE 2
 
+```powershell
 New-JiraUser -UserName "testUser2" -EmailAddress "testUser2@example.com" -DisplayName "Test User 2"
+```
 
-
 This example illustrates setting a user's display name during user creation.
 
 ## PARAMETERS
@@ -86,7 +78,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -222,17 +214,14 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.User
 
-{{ Fill in the Description }}
-
 ## NOTES
 
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/New-JiraUser/)
-- [Get-JiraUser](../Get-JiraUser/)
-- [Remove-JiraUser](../Remove-JiraUser/)
+[Get-JiraUser](../Get-JiraUser/)
+
+[Remove-JiraUser](../Remove-JiraUser/)

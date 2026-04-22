@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraIssue/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Remove-JiraIssue
+online version: https://atlassianps.org/docs/JiraPS/commands/Remove-JiraIssue/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Remove-JiraIssue/
 ---
-
 # Remove-JiraIssue
 
 ## SYNOPSIS
@@ -19,22 +16,17 @@ Removes an existing issue from JIRA.
 
 ### ByInputObject (Default)
 
-```
+```powershell
 Remove-JiraIssue [-InputObject] <Issue[]> [-IncludeSubTasks] [-Credential <pscredential>] [-Force]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByIssueId
 
-```
+```powershell
 Remove-JiraIssue [-IssueId] <string[]> [-IncludeSubTasks] [-Credential <pscredential>] [-Force]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -49,23 +41,26 @@ If an issue includes sub-tasks, these are deleted as well.
 
 ### EXAMPLE 1
 
+```powershell
 Remove-JiraIssue -IssueId ABC-123
+```
 
-
 Removes issue \[ABC-123\] from JIRA.
 
 ### EXAMPLE 2
 
+```powershell
 Remove-JiraIssue -IssueId ABC-124 -IncludeSubTasks
+```
 
-
 Removes issue \[ABC-124\] from JIRA, including any subtasks therein.
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraIssue -Query "Project = ABC AND label = NeedsDeletion" | Remove-JiraIssue -IncludeSubTasks
+```
 
-
 Removes all issues from project ABC (including their subtasks) that have the label "NeedsDeletion".
 
 ## PARAMETERS
@@ -98,7 +93,7 @@ Credentials to use to connect to JIRA.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -165,7 +160,7 @@ One or more issues to delete, specified as `JiraPS.Issue` objects (e.g.
 from `Get-JiraIssue`)
 
 ```yaml
-Type: System.Object[]
+Type: JiraPS.Issue[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -244,17 +239,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Issue / String
 
-{{ Fill in the Description }}
 
 ### System.Object[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
 ### Output (if any)
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -264,7 +254,4 @@ You cannot delete an issue without its subtasks also being deleted.
 This function requires either the \`-Credential\` parameter to be passed or a persistent JIRA session.
 See \`New-JiraSession\` for more details.
 
-
 ## RELATED LINKS
-
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Remove-JiraIssue/)

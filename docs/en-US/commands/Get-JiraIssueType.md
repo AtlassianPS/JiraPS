@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueType/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Get-JiraIssueType
+online version: https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueType/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Get-JiraIssueType/
 ---
-
 # Get-JiraIssueType
 
 ## SYNOPSIS
@@ -19,20 +16,15 @@ Returns information about the available issue type in JIRA.
 
 ### _All (Default)
 
-```
+```powershell
 Get-JiraIssueType [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```
+```powershell
 Get-JiraIssueType [-IssueType] <string[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -47,23 +39,26 @@ Use `-Force` to bypass the cache and fetch fresh data.
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraIssueType
+```
 
-
 This example returns all the IssueTypes on the JIRA server.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraIssueType -IssueType "Bug"
+```
 
-
 This example returns only the IssueType "Bug".
 
 ### EXAMPLE 3
 
+```powershell
 Get-JiraIssueType -IssueType "Bug","Task","4"
+```
 
-
 This example return the information about the IssueType named "Bug" and "Task" and with id "4".
 
 ## PARAMETERS
@@ -75,7 +70,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -143,17 +138,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### Int
 
-{{ Fill in the Description }}
 
 ### System.String[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
 ### JiraPS.IssueType
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -161,8 +151,6 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Get-JiraIssueType/)
-- [Get-JiraIssue](../Get-JiraIssue/)
+[Get-JiraIssue](../Get-JiraIssue/)

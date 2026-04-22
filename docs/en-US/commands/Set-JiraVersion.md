@@ -1,14 +1,11 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Set-JiraVersion/
-Locale: en-DE
 Module Name: JiraPS
-ms.date: 04.22.2026
-PlatyPS schema version: 2024-05-01
-title: Set-JiraVersion
+online version: https://atlassianps.org/docs/JiraPS/commands/Set-JiraVersion/
+locale: en-US
+layout: documentation
+permalink: /docs/JiraPS/commands/Set-JiraVersion/
 ---
-
 # Set-JiraVersion
 
 ## SYNOPSIS
@@ -17,18 +14,11 @@ Modifies an existing Version in JIRA
 
 ## SYNTAX
 
-### __AllParameterSets
-
-```
+```powershell
 Set-JiraVersion [-Version] <Object[]> [[-Name] <string>] [[-Description] <string>]
  [[-Archived] <bool>] [[-Released] <bool>] [[-ReleaseDate] <datetime>] [[-StartDate] <datetime>]
  [[-Project] <Object>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
-
-## ALIASES
-
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
 
 ## DESCRIPTION
 
@@ -38,16 +28,18 @@ This function modifies the Version for an existing Project in JIRA.
 
 ### EXAMPLE 1
 
+```powershell
 Get-JiraVersion -Project $Project -Name "Old-Name" | Set-JiraVersion -Name 'New-Name'
+```
 
-
 This example assigns the modifies the existing version with a new name 'New-Name'.
 
 ### EXAMPLE 2
 
+```powershell
 Get-JiraVersion -ID 162401 | Set-JiraVersion -Description 'Descriptive String'
+```
 
-
 This example assigns the modifies the existing version with a new name 'New-Name'.
 
 ## PARAMETERS
@@ -102,7 +94,7 @@ If not specified, this function will use anonymous access.
 
 ```yaml
 Type: System.Management.Automation.PSCredential
-DefaultValue: ''
+DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -300,17 +292,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### JiraPS.Version
 
-{{ Fill in the Description }}
 
 ### System.Object[]
-
-{{ Fill in the Description }}
 
 ## OUTPUTS
 
 ### JiraPS.Version
-
-{{ Fill in the Description }}
 
 ## NOTES
 
@@ -318,11 +305,12 @@ This function requires either the `-Credential` parameter to be passed or a pers
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
 
-
 ## RELATED LINKS
 
-- [Online Version](https://atlassianps.org/docs/JiraPS/commands/Set-JiraVersion/)
-- [Get-JiraVersion](../Get-JiraVersion/)
-- [New-JiraVersion](../New-JiraVersion/)
-- [Set-JiraVersion](../Set-JiraVersion/)
-- [Move-JiraVersion](../Move-JiraVersion/)
+[Get-JiraVersion](../Get-JiraVersion/)
+
+[New-JiraVersion](../New-JiraVersion/)
+
+[Set-JiraVersion](../Set-JiraVersion/)
+
+[Move-JiraVersion](../Move-JiraVersion/)
