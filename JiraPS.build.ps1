@@ -23,8 +23,32 @@ param(
 )
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force
+
+# Stale BH* vars from a prior build (potentially of a different repo) would
+# leak into this run; clear them before we re-populate the static subset.
 Remove-Item -Path env:\BH* -ErrorAction SilentlyContinue
-Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
+
+# Populate the static path BH* variables directly. Calling
+# `Set-BuildEnvironment` (BuildHelpers) here is what previously cost ~470 ms
+# per Invoke-Build invocation because it auto-imports BuildHelpers and runs
+# git introspection (`git rev-parse`, `git log`, `git branch`) just to fill
+# `BHBranchName`/`BHCommitHash`/`BHCommitMessage`/`BHBuildNumber`/`BHBuildSystem`
+# — env vars that only `ShowDebugInfo` actually reads. The dynamic vars are
+# populated lazily in `Initialize-BuildEnvironmentMetadata` (called by
+# `ShowDebugInfo`).
+$ProjectName = 'JiraPS'
+$env:BHProjectName      = $ProjectName
+$env:BHProjectPath      = $PSScriptRoot
+$env:BHModulePath       = Join-Path $PSScriptRoot $ProjectName
+$env:BHPSModulePath     = $env:BHModulePath
+$env:BHPSModuleManifest = Join-Path $env:BHModulePath "$ProjectName.psd1"
+$env:BHBuildOutput      = Join-Path $PSScriptRoot 'Release'
+
+function Initialize-BuildEnvironmentMetadata {
+    # Populates the dynamic BH* env vars (branch, commit hash, commit message,
+    # build number, build system). Auto-imports BuildHelpers on first call.
+    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
+}
 
 #region HarmonizeVariables
 switch ($true) {
@@ -52,6 +76,7 @@ if ($VersionToPublish) {
 $builtManifestPath = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1"
 
 Task ShowDebugInfo {
+    Initialize-BuildEnvironmentMetadata
     Write-Build Gray
     Write-Build Gray ('BHBuildSystem:              {0}' -f $env:BHBuildSystem)
     Write-Build Gray '-------------------------------------------------------'
