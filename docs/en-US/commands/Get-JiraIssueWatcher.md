@@ -101,7 +101,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### Markdig.Syntax.Inlines.HtmlInline
+### JiraPS.User
 
 ## NOTES
 

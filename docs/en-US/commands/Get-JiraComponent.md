@@ -147,7 +147,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 Retrieve all Components in a specific project.
 
-### Int
+### Int[]
 
 Retrieve specific Components by theirs id.
 

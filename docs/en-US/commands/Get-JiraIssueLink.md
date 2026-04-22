@@ -104,7 +104,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### Int
+### Int[]
 
 
 ### System.Int32[]
