@@ -192,7 +192,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### System.Object
+### JiraPS.Filter
+
+Pipe a JiraPS.Filter to remove all of its share permissions.
 
 ## OUTPUTS
 

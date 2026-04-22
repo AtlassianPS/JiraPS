@@ -95,7 +95,9 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   In particular `Add-JiraIssueAttachment` claimed to accept `JiraPS.Issue` from the pipeline, but the only pipeline-bound parameter on that cmdlet is `-FilePath [String[]]`; the docs now say so.
   `Get-JiraUser` had `### String` from a Markdig bracket-strip (master was `[String[]]`) — now correctly `### String[]`.
   Pre-existing legitimate `### JiraPS.*` headings discovered by PlatyPS via `[PSTypeName(...)]` attributes were kept (they reflect what the parameters actually accept).
-  A new Pester guard (`does not list System.Object[] / Object[] as a pipeline INPUT type`) prevents the most common PlatyPS-introspection noise from creeping back in.
+  `Remove-JiraFilterPermission` had `### System.Object` from master that didn't reflect the actual `[PSTypeName('JiraPS.Filter')]` parameter; replaced with `### JiraPS.Filter`.
+  A new Pester guard (`does not list Object[] / System.Object[] as a pipeline INPUT type`) prevents the most common PlatyPS-introspection noise from creeping back in.
+  Bare `### System.Object` is still allowed for cmdlets like `ConvertFrom-AtlassianDocumentFormat` whose `[Object]` parameter genuinely accepts any object.
 
 ## 3.0 - 2026-04-17
 
