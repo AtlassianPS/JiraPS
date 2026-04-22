@@ -91,7 +91,7 @@
         }
 
         if ($validAssignee) {
-            $assigneeBody = Resolve-JiraAssigneePayload -AssigneeObject $assigneeObj -AssigneeString $assigneeString -IsCloud $isCloud
+            $assigneeBody = Resolve-JiraUserPayload -UserObject $assigneeObj -UserString $assigneeString -IsCloud $isCloud
         }
     }
 

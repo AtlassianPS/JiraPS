@@ -65,6 +65,50 @@ $parameters = @{
 New-JiraIssue @parameters
 ```
 
+## Assigning the Issue
+
+`New-JiraIssue` accepts a first-class `-Assignee` parameter (and a mutually
+exclusive `-Unassign` switch). Both reuse the same dispatch logic as
+`Set-JiraIssue`, so the same value works against Jira Cloud and Jira
+Server / Data Center.
+
+```powershell
+# Jira Data Center - assign by username
+New-JiraIssue -Project TEST -IssueType Task -Summary 'Triage me' -Assignee 'alice'
+
+# Jira Cloud - assign by accountId
+New-JiraIssue -Project TEST -IssueType Task -Summary 'Triage me' -Assignee '5b10ac8d82e05b22cc7d4ef5'
+
+# Or pass a JiraPS.User object resolved beforehand
+$user = Get-JiraUser -UserName 'alice'
+New-JiraIssue -Project TEST -IssueType Task -Summary 'Triage me' -Assignee $user
+```
+
+To create an issue with no assignee at all, use `-Unassign`:
+
+```powershell
+New-JiraIssue -Project TEST -IssueType Task -Summary 'Backlog item' -Unassign
+```
+
+To let Jira pick the project's default assignee, **omit `-Assignee`
+entirely** — there is no `-UseDefaultAssignee` switch on `New-JiraIssue`,
+because the create endpoint already applies the project default when the
+`assignee` field is not in the request body.
+
+```powershell
+# Default assignee comes from the project configuration in Jira
+New-JiraIssue -Project TEST -IssueType Task -Summary 'Whoever is on rotation'
+```
+
+> **Note**: If the project's createmeta marks `Assignee` as required and you
+> use `-Unassign`, Jira will reject the request. Inspect the create
+> metadata first if you are unsure:
+>
+> ```powershell
+> Get-JiraIssueCreateMetadata -Project TEST -IssueType Task |
+>     Where-Object Name -eq 'Assignee'
+> ```
+
 ## Additional Fields
 
 In most Jira instances, the default fields are not the only fields necessary when creating an issue. Most organizations have additional information they track in Jira through the use of custom issue fields.
