@@ -288,8 +288,6 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
 
                 It "documents every public parameter exposed by the code" {
-                    $help = $_.Help
-
                     $documented = @()
                     if ($help.Parameters | Get-Member -Name Parameter) {
                         $documented = @($help.Parameters.Parameter.Name)
