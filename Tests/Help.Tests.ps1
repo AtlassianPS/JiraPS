@@ -271,6 +271,23 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         $command.Parameters.Keys | Should -Contain $helpParm
                     }
                 }
+
+                It "documents every public parameter exposed by the code" {
+                    $help = $_.Help
+
+                    $documented = @()
+                    if ($help.Parameters | Get-Member -Name Parameter) {
+                        $documented = @($help.Parameters.Parameter.Name)
+                    }
+
+                    foreach ($paramName in $command.Parameters.Keys) {
+                        if ($paramName -in $DefaultParams) { continue }
+                        $paramAttr = $command.Parameters[$paramName].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
+                        if ($paramAttr.DontShow -contains $true) { continue }
+
+                        $documented | Should -Contain $paramName -Because "every public parameter must be documented in docs/en-US/commands/$($command.Name).md (or marked [Parameter(DontShow)] if it is internal)"
+                    }
+                }
             }
         }
     }
