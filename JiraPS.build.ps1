@@ -118,7 +118,7 @@ Task Lint {
 
     $results = @(
         Invoke-ScriptAnalyzer @analyzerParams |
-            Where-Object { $_.ScriptPath -notlike "*${/}Release${/}*" -and $_.ScriptPath -notlike "*${/}experiment${/}*" }
+            Where-Object { $_.ScriptPath -notlike "*${/}Release${/}*" }
     )
 
     if ($results.Count -gt 0) {

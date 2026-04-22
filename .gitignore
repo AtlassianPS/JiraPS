@@ -9,9 +9,6 @@ Test*.xml
 # Ignore backup files from Pester migration
 *.bak
 
-# Local scratch space — never shipped.
-experiment/
-
 #######
 # Excerpts from https://www.gitignore.io
 #######
