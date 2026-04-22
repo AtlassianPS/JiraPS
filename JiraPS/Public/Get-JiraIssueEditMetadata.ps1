@@ -44,50 +44,16 @@
         Write-Debug ($result | Out-String)
 
         if ($result) {
-            if (@($result.fields.projects).Count -eq 0) {
-                $errorMessage = @{
-                    Category         = "InvalidResult"
-                    CategoryActivity = "Validating response"
-                    Message          = "No projects were found for the given project [$Project]. Use Get-JiraProject for more details."
-                }
-                Write-Error @errorMessage
-            }
-            elseif (@($result.fields.projects).Count -gt 1) {
-                $errorMessage = @{
-                    Category         = "InvalidResult"
-                    CategoryActivity = "Validating response"
-                    Message          = "Multiple projects were found for the given project [$Project]. Refine the parameters to return only one project."
-                }
-                Write-Error @errorMessage
-            }
-
-            if (@($result.fields.projects.issuetypes) -eq 0) {
-                $errorMessage = @{
-                    Category         = "InvalidResult"
-                    CategoryActivity = "Validating response"
-                    Message          = "No issue types were found for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
-                }
-                Write-Error @errorMessage
-            }
-            elseif (@($result.fields.projects.issuetypes).Count -gt 1) {
-                $errorMessage = @{
-                    Category         = "InvalidResult"
-                    CategoryActivity = "Validating response"
-                    Message          = "Multiple issue types were found for the given issue type [$IssueType]. Refine the parameters to return only one issue type."
-                }
-                Write-Error @errorMessage
-            }
-
             Write-Output (ConvertTo-JiraEditMetaField -InputObject $result)
         }
         else {
             $exception = ([System.ArgumentException]"No results")
             $errorId = 'IssueMetadata.ObjectNotFound'
             $errorCategory = 'ObjectNotFound'
-            $errorTarget = $Project
+            $errorTarget = $Issue
             $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-            $errorItem.ErrorDetails = "No metadata found for project $Project and issueType $IssueType."
-            throw $errorItem
+            $errorItem.ErrorDetails = "No edit metadata found for issue [$Issue]."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
         }
     }
 
