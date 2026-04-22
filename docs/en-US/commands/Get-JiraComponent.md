@@ -143,15 +143,17 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### String
+### String[]
 
 Retrieve all Components in a specific project.
+
+### JiraPS.Component[]
+
+Pipe an existing Component object back into the cmdlet.
 
 ### Int[]
 
 Retrieve specific Components by theirs id.
-
-### System.Object[]
 
 ## OUTPUTS
 

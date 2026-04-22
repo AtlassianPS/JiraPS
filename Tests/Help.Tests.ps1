@@ -154,10 +154,10 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
 
                 It "does not emit mangled input/output type names" {
-                    # Regression guard for the PlatyPS 1.0 input/output heading parser bug:
-                    # bracketed headings like '### [JiraPS.Issue[]]' would yield single-character
-                    # type names such as '[', ']', or 'e'. Anything <= 1 char or starting with a
-                    # bracket character is almost certainly a regression.
+                    # Regression guard for PlatyPS 1.0's Markdig-based heading parser:
+                    # malformed `### [...]` headings have produced single-character names
+                    # ('[', ']'), Markdig internal class names (Markdig.Syntax.Inlines.*),
+                    # and stray legacy `<TODO>` placeholders that leak into Get-Help.
                     $typeNames = @(
                         @($help.inputTypes.inputType) +
                         @($help.returnValues.returnValue)
@@ -168,6 +168,8 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         if ([string]::IsNullOrEmpty($typeName)) { continue }
                         $typeName | Should -Not -Match '^[\[\]]$' -Because "type names should never be a stray bracket character"
                         $typeName.Length | Should -BeGreaterThan 1 -Because "single-character type names indicate a parser regression in INPUTS/OUTPUTS"
+                        $typeName | Should -Not -Match '^Markdig\.' -Because "Markdig parser internals must never appear as type names; check the markdown heading for malformed brackets"
+                        $typeName | Should -Not -Match '^<' -Because "legacy '<TODO>' placeholder headings must be replaced with real type names"
                     }
                 }
 
