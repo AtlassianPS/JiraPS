@@ -428,6 +428,14 @@ Follow the [`powershell-rules.md` Review Checklist](.github/ai-context/powershel
 - **About topics**: `docs/en-US/about_*.md` → compiled to `JiraPS/en-US/*.help.txt`
 - **Project site**: https://atlassianps.org/docs/JiraPS/ · **Gallery**: https://www.powershellgallery.com/packages/JiraPS
 
+### Markdown Style (hand-authored files)
+
+- **One sentence per line** in hand-authored markdown (`CHANGELOG.md`, `README.md`, `AGENTS.md`, `.github/**/*.md`, etc.).
+  Long single-line paragraphs make code review and `git blame` painful.
+  Inside a list item, indent continuation lines two spaces so they stay part of the same bullet.
+- **Do not reformat generated markdown** (`docs/en-US/commands/*.md`).
+  PlatyPS rewrites those files on every `Invoke-Build -Task GenerateExternalHelp`, so manual reflows are lost at the next regen.
+
 ## When Working on This Project
 
 > Cloud/DC rules live in the [Quick Reference](#quick-reference-critical-rules) and
