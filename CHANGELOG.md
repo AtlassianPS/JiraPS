@@ -52,6 +52,12 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Renamed `Format-Jira` to `ConvertTo-JiraTable`.
   The old name is preserved as a deprecated exported alias for backward compatibility and will be removed in a future major version.
   Update scripts to call `ConvertTo-JiraTable` directly.
+- Promoted the eight most-used JiraPS domain types (`Issue`, `User`, `Project`, `Filter`, `Version`, `Comment`, `Session`, `ServerInfo`) to real .NET classes under the `AtlassianPS.JiraPS.*` namespace.
+  The classes are compiled once per session from a single `JiraPS/Types/AtlassianPS.JiraPS.cs` file via `Add-Type` in the module's `#region Dependencies` block; the type-presence guard keeps re-imports cheap.
+  Returned objects now have `GetType().FullName -eq 'AtlassianPS.JiraPS.<Type>'` and surface real properties to `Get-Member` and IDE IntelliSense, while the historic `JiraPS.<Type>` name remains the first entry in `PSObject.TypeNames` via the new private `Add-LegacyTypeAlias` helper.
+  Existing format selectors in `JiraPS.format.ps1xml`, parameter binding via `[PSTypeName('JiraPS.X')]`, and any user script that inspects `PSObject.TypeNames` continue to work unchanged.
+  Added parallel `<TypeName>AtlassianPS.JiraPS.{Issue,User}</TypeName>` entries to `JiraPS.format.ps1xml` so consumers who strip the legacy alias still get formatting.
+  The remaining 16 leaf types (`Group`, `Status`, `Priority`, `IssueType`, `IssueLink`, `IssueLinkType`, `Component`, `Attachment`, `Worklogitem`, `ProjectRole`, `Field`, `CreateMetaField`, `EditMetaField`, `Transition`, `Link`, `FilterPermission`) are tracked for a follow-up phase.
 - `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
 - `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
 - `Invoke-JiraMethod` now supports Jira-doc style relative endpoint paths (for example, `/rest/api/2/issue/TEST-1`) and resolves them against `Get-JiraConfigServer`.
