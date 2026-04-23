@@ -145,7 +145,7 @@ HelpMessage: ''
 
 Issue that should be commented upon.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: Object
@@ -228,13 +228,13 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
-Pipe a JiraPS.Issue object to add a comment to it.
+Pipe a AtlassianPS.JiraPS.Issue object to add a comment to it.
 
 ## OUTPUTS
 
-### JiraPS.Comment
+### AtlassianPS.JiraPS.Comment
 
 ## NOTES
 

@@ -290,12 +290,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Version
+### AtlassianPS.JiraPS.Version
 
 
 ## OUTPUTS
 
-### JiraPS.Version
+### AtlassianPS.JiraPS.Version
 
 ## NOTES
 

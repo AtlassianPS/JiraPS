@@ -12,9 +12,9 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Filter"
 
-            $result = [AtlassianPS.JiraPS.Filter]@{
+            $hash = @{
                 ID                = $i.id
                 Name              = $i.name
                 JQL               = $i.jql
@@ -22,27 +22,25 @@
                 ViewUrl           = $i.viewUrl
                 SearchUrl         = $i.searchUrl
                 Favourite         = $i.favourite
-                FilterPermissions = @()
+                FilterPermissions = if ($FilterPermissions) { @(ConvertTo-JiraFilterPermission ($FilterPermissions)) } else { @() }
                 SharePermission   = $i.sharePermissions
                 SharedUser        = $i.sharedUsers
                 Subscription      = $i.subscriptions
             }
 
-            if ($FilterPermissions) {
-                $result.FilterPermissions = @(ConvertTo-JiraFilterPermission ($FilterPermissions))
-            }
-
             if ($i.description) {
-                $result.Description = $i.description
+                $hash.Description = $i.description
             }
 
             if ($i.owner) {
-                $result.Owner = ConvertTo-JiraUser -InputObject $i.owner
+                $hash.Owner = ConvertTo-JiraUser -InputObject $i.owner
             }
+
+            $result = [AtlassianPS.JiraPS.Filter]$hash
 
             $result | Add-Member -MemberType AliasProperty -Name 'Favorite' -Value 'Favourite' -Force
 
-            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.Filter'
+            $result
         }
     }
 }

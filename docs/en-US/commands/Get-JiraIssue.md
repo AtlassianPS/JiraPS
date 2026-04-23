@@ -375,12 +375,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue / String
+### AtlassianPS.JiraPS.Issue / String
 
 The `-Key` parameter accepts pipeline input by property name.
 This means:
 
-- If a JiraPS.Issue object is piped, its `Key` property is bound to the `-Key` parameter.
+- If a AtlassianPS.JiraPS.Issue object is piped, its `Key` property is bound to the `-Key` parameter.
 - If a String is passed, this function searches for an issue with that issue key or internal ID.
 - If an Object with a `Key` property is piped, that property value is used.
 
@@ -388,7 +388,7 @@ This enables patterns like `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh iss
 
 ## OUTPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 ## NOTES
 

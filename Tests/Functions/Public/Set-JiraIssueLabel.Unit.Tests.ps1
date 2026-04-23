@@ -28,7 +28,7 @@ InModuleScope JiraPS {
                     'RestURL' = "$jiraServer/rest/api/2/issue/12345"
                     'Labels'  = @('existingLabel1', 'existingLabel2')
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 return $object
             }
 

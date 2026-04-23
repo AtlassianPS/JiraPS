@@ -95,7 +95,7 @@ InModuleScope JiraPS {
             Mock ConvertTo-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
                 foreach ($i in $InputObject) {
-                    $i.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+                    $i.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
                     $i
                 }
             }
@@ -182,13 +182,13 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/filter/67890' }
                 }
 
-                It "Accepts a JiraPS.Filter object to the InputObject parameter" {
+                It "Accepts a AtlassianPS.JiraPS.Filter object to the InputObject parameter" {
                     { Get-JiraFilter -InputObject $sampleFilter } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844' }
                 }
 
-                It "Accepts a JiraPS.Filter object via pipeline" {
+                It "Accepts a AtlassianPS.JiraPS.Filter object via pipeline" {
                     { $sampleFilter | Get-JiraFilter } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844' }

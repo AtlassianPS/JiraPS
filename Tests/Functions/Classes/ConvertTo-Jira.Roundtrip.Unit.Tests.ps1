@@ -37,10 +37,7 @@ InModuleScope JiraPS {
 
             It "returns AtlassianPS.JiraPS.User" {
                 $script:userObj.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.User'
-            }
-
-            It "preserves the legacy PSTypeName at index 0" {
-                $script:userObj.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                $script:userObj.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
             }
 
             It "maps wire-payload fields onto class properties" {
@@ -83,12 +80,12 @@ InModuleScope JiraPS {
 
             It "returns AtlassianPS.JiraPS.Project with the legacy alias" {
                 $script:projectObj.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.Project'
-                $script:projectObj.PSObject.TypeNames[0] | Should -Be 'JiraPS.Project'
+                $script:projectObj.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Project'
             }
 
             It "converts the lead into a strong-typed User" {
                 $script:projectObj.Lead.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.User'
-                $script:projectObj.Lead.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                $script:projectObj.Lead.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
             }
 
             It "preserves the projectCategory mapping" {
@@ -117,7 +114,7 @@ InModuleScope JiraPS {
 
             It "returns AtlassianPS.JiraPS.Version with the legacy alias" {
                 $script:versionObj.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.Version'
-                $script:versionObj.PSObject.TypeNames[0] | Should -Be 'JiraPS.Version'
+                $script:versionObj.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version'
             }
 
             It "parses dates into DateTime" {
@@ -150,7 +147,7 @@ InModuleScope JiraPS {
 
             It "returns AtlassianPS.JiraPS.Comment with the legacy alias" {
                 $script:commentObj.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.Comment'
-                $script:commentObj.PSObject.TypeNames[0] | Should -Be 'JiraPS.Comment'
+                $script:commentObj.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Comment'
             }
 
             It "promotes the author to a strong-typed User" {
@@ -175,7 +172,7 @@ InModuleScope JiraPS {
 
             It "returns AtlassianPS.JiraPS.Filter with the legacy alias" {
                 $script:filterObj.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.Filter'
-                $script:filterObj.PSObject.TypeNames[0] | Should -Be 'JiraPS.Filter'
+                $script:filterObj.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Filter'
             }
 
             It "exposes 'Favorite' as an AliasProperty for 'Favourite'" {
@@ -203,7 +200,7 @@ InModuleScope JiraPS {
 
             It "returns AtlassianPS.JiraPS.ServerInfo with the legacy alias" {
                 $script:siObj.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.ServerInfo'
-                $script:siObj.PSObject.TypeNames[0] | Should -Be 'JiraPS.ServerInfo'
+                $script:siObj.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.ServerInfo'
             }
 
             It "parses BuildDate into DateTime" {

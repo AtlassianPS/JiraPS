@@ -6,13 +6,13 @@
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
-                if (("JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
+                if (("AtlassianPS.JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
                     $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
                     $errorId = 'ParameterType.NotJiraVersion'
                     $errorCategory = 'InvalidArgument'
                     $errorTarget = $_
                     $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [String], but was $($_.GetType().Name)"
+                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [AtlassianPS.JiraPS.Version] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
                       #ToDo:CustomClass
@@ -38,7 +38,7 @@
                 $_input = $_
 
                 switch ($true) {
-                    { "JiraPS.Project" -in $_input.PSObject.TypeNames } { return $true }
+                    { "AtlassianPS.JiraPS.Project" -in $_input.PSObject.TypeNames } { return $true }
                     { $_input -is [String] } { return $true }
                     Default {
                         $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
@@ -46,7 +46,7 @@
                         $errorCategory = 'InvalidArgument'
                         $errorTarget = $_input
                         $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                        $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($_input.GetType().Name)"
+                        $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [AtlassianPS.JiraPS.Project] or [String], but was $($_input.GetType().Name)"
                         $PSCmdlet.ThrowTerminatingError($errorItem)
                         <#
                           #ToDo:CustomClass
@@ -129,7 +129,7 @@
                     $requestBody["startDate"] = Get-Date $StartDate -Format 'yyyy-MM-dd'
                 }
 
-                if ("JiraPS.Project" -in $Project.PSObject.TypeNames) {
+                if ("AtlassianPS.JiraPS.Project" -in $Project.PSObject.TypeNames) {
                     if ($Project.Id) {
                         $requestBody["projectId"] = $Project.Id
                     }

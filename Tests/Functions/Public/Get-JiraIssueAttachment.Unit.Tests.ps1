@@ -72,7 +72,7 @@ InModuleScope JiraPS {
                     RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
                     attachment = (ConvertFrom-Json -InputObject $attachments)
                 }
-                $IssueObj.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $IssueObj.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 $IssueObj
             }
 
@@ -99,7 +99,7 @@ InModuleScope JiraPS {
                 $script:issueObject = Get-JiraIssue -Key $issueKey
             }
 
-            It 'only accepts String or JiraPS.Issue as input' {
+            It 'only accepts String or AtlassianPS.JiraPS.Issue as input' {
                 { Get-JiraIssueAttachment -Issue (Get-Date) } | Should -Throw -ExpectedMessage "*Invalid Type*"
                 { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should -Throw -ExpectedMessage "*Invalid Type*"
                 { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should -Not -Throw

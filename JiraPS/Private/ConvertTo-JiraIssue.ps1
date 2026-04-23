@@ -11,9 +11,6 @@
     )
 
     begin {
-        $userFields = @('Assignee', 'Creator', 'Reporter')
-        $dateFields = @('Created', 'LastViewed', 'Updated')
-
         # Property names native to AtlassianPS.JiraPS.Issue. Anything outside
         # this set (notably `customfield_*` keys) is attached afterwards as a
         # PSObject NoteProperty so we keep the historical "every field is
@@ -25,21 +22,15 @@
             'Created', 'LastViewed', 'Updated',
             'Fields', 'Expand', 'Transition', 'Comment'
         )
-
-        $transitions = New-Object -TypeName System.Collections.ArrayList
-        $comments = New-Object -TypeName System.Collections.ArrayList
     }
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
-
-            [void] $transitions.Clear()
-            [void] $comments.Clear()
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Issue"
 
             $http = "{0}browse/$($i.key)" -f ($InputObject.self -split 'rest')[0]
 
-            $result = [AtlassianPS.JiraPS.Issue]@{
+            $hash = @{
                 ID          = $i.id
                 Key         = $i.key
                 HttpUrl     = $http
@@ -50,54 +41,54 @@
             }
 
             if ($i.fields.issuelinks) {
-                $result.IssueLinks = ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks
+                $hash.IssueLinks = ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks
             }
 
             if ($i.fields.attachment) {
-                $result.Attachment = ConvertTo-JiraAttachment $i.fields.attachment
+                $hash.Attachment = ConvertTo-JiraAttachment $i.fields.attachment
             }
 
             if ($i.fields.project) {
-                $result.Project = ConvertTo-JiraProject -InputObject $i.fields.project
+                $hash.Project = ConvertTo-JiraProject -InputObject $i.fields.project
             }
 
-            foreach ($field in $userFields) {
+            foreach ($field in @('Assignee', 'Creator', 'Reporter')) {
                 if ($i.fields.$field) {
-                    $result.$field = ConvertTo-JiraUser -InputObject $i.fields.$field
+                    $hash.$field = ConvertTo-JiraUser -InputObject $i.fields.$field
                 }
                 elseif ($field -eq 'Assignee') {
-                    # Legacy sentinel. Surface as a string so downstream
+                    # Legacy sentinel. Surfaced as a string so downstream
                     # `if ($issue.Assignee -eq 'Unassigned')` checks keep working.
-                    $result.Assignee = 'Unassigned'
+                    $hash.Assignee = 'Unassigned'
                 }
             }
 
-            foreach ($field in $dateFields) {
+            foreach ($field in @('Created', 'LastViewed', 'Updated')) {
                 if ($i.fields.$field) {
-                    $result.$field = Get-Date -Date ($i.fields.$field)
+                    $hash.$field = Get-Date -Date ($i.fields.$field)
                 }
             }
 
             if ($IncludeDebug) {
-                $result.Fields = $i.fields
-                $result.Expand = $i.expand
+                $hash.Fields = $i.fields
+                $hash.Expand = $i.expand
             }
 
-            [void] $transitions.Clear()
+            $transitions = @()
             foreach ($t in $i.transitions) {
-                [void] $transitions.Add( (ConvertTo-JiraTransition -InputObject $t) )
+                $transitions += ConvertTo-JiraTransition -InputObject $t
             }
-            $result.Transition = $transitions.ToArray()
+            $hash.Transition = $transitions
 
-            [void] $comments.Clear()
-            if ($i.fields.comment) {
-                if ($i.fields.comment.comments) {
-                    foreach ($c in $i.fields.comment.comments) {
-                        [void] $comments.Add( (ConvertTo-JiraComment -InputObject $c) )
-                    }
-                    $result.Comment = $comments.ToArray()
+            if ($i.fields.comment -and $i.fields.comment.comments) {
+                $comments = @()
+                foreach ($c in $i.fields.comment.comments) {
+                    $comments += ConvertTo-JiraComment -InputObject $c
                 }
+                $hash.Comment = $comments
             }
+
+            $result = [AtlassianPS.JiraPS.Issue](ConvertTo-Hashtable -InputObject ([PSCustomObject]$hash))
 
             # Custom fields and any unmapped server payload keys ride along as
             # PSObject NoteProperties to preserve the historical contract that
@@ -107,7 +98,7 @@
                 $result | Add-Member -MemberType NoteProperty -Name $f.Name -Value $f.Value -Force
             }
 
-            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.Issue'
+            $result
         }
     }
 }

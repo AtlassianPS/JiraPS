@@ -177,7 +177,7 @@ HelpMessage: ''
 A Project Object to search
 
 ```yaml
-Type: JiraPS.Project
+Type: AtlassianPS.JiraPS.Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -198,7 +198,7 @@ HelpMessage: ''
 A Version object to search for
 
 ```yaml
-Type: JiraPS.Version
+Type: AtlassianPS.JiraPS.Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -359,14 +359,14 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Version
+### AtlassianPS.JiraPS.Version
 
 
-### JiraPS.Project
+### AtlassianPS.JiraPS.Project
 
 ## OUTPUTS
 
-### JiraPS.Version
+### AtlassianPS.JiraPS.Version
 
 ## NOTES
 

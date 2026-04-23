@@ -3,15 +3,19 @@
 // Loaded once at module import via Add-Type from JiraPS.psm1 (#region Dependencies).
 //
 // Design notes:
-//   * Properties whose values can legitimately be either a strong type *or* a
-//     legacy sentinel (e.g. Issue.Assignee may be a User OR the literal string
-//     "Unassigned") are typed as `object` to preserve backward compatibility.
+//   * Cross-reference slots use the strong sibling type (e.g. Project.Lead is
+//     [User], Issue.Project is [Project]). Converters launder PSCustomObject
+//     payloads through ConvertTo-Hashtable before casting to a class so that
+//     Windows PowerShell 5.1's hashtable-cast does not stumble on PSObject
+//     wrappers (the same workaround ConfluencePS uses).
+//   * Properties that legitimately hold polymorphic values (Issue.Assignee can
+//     be a User OR the legacy "Unassigned" sentinel; Version dates can be
+//     DateTime or "" when missing) are typed as `object` and called out below.
 //   * Properties that pass through raw API payloads (custom fields, ADF bodies,
-//     avatar URL maps) are typed as `object` for the same reason.
+//     avatar URL maps, role dictionaries) are typed as `object`.
 //   * `WebSession` on Session is `object` so this assembly does not have to
 //     reference Microsoft.PowerShell.Commands.Utility.dll, which lives in
 //     different paths on Desktop vs Core.
-//   * Date columns that can be missing in the API stay nullable (`DateTime?`).
 //   * Issue keeps `Project`, `Comment[]` strong-typed; arbitrary custom fields
 //     and ADF descriptions are attached as PSObject NoteProperties from the
 //     converter, not modelled here.
@@ -50,13 +54,7 @@ namespace AtlassianPS.JiraPS
         public string Key { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        // Lead's runtime value is an AtlassianPS.JiraPS.User produced by
-        // ConvertTo-JiraUser, but the slot is typed as `object` so the
-        // hashtable-cast `[Project]@{ Lead = ConvertTo-JiraUser $x }` does
-        // not have to unwrap a PSObject (which silently works on PS7 but
-        // throws PSInvalidCastException on Windows PowerShell 5.1 once
-        // Add-LegacyTypeAlias has touched the value's PSObject.TypeNames).
-        public object Lead { get; set; }
+        public User Lead { get; set; }
         public object IssueTypes { get; set; }
         public object Roles { get; set; }
         public string RestUrl { get; set; }
@@ -76,10 +74,8 @@ namespace AtlassianPS.JiraPS
         public object Body { get; set; }
         public object Visibility { get; set; }
         public string RestUrl { get; set; }
-        // Author / UpdateAuthor are AtlassianPS.JiraPS.User at runtime; see the
-        // note on Project.Lead for why the storage slot is `object`.
-        public object Author { get; set; }
-        public object UpdateAuthor { get; set; }
+        public User Author { get; set; }
+        public User UpdateAuthor { get; set; }
         public DateTime? Created { get; set; }
         public DateTime? Updated { get; set; }
 
@@ -100,9 +96,7 @@ namespace AtlassianPS.JiraPS
         public string Status { get; set; }
         public object IssueLinks { get; set; }
         public object Attachment { get; set; }
-        // Project's runtime value is AtlassianPS.JiraPS.Project; the slot is
-        // `object` for the same PS5.1 hashtable-cast reason as Project.Lead.
-        public object Project { get; set; }
+        public Project Project { get; set; }
         // Assignee may be a User instance OR the legacy string "Unassigned".
         public object Assignee { get; set; }
         public object Creator { get; set; }
@@ -158,9 +152,7 @@ namespace AtlassianPS.JiraPS
         public object SharedUser { get; set; }
         public object Subscription { get; set; }
         public string Description { get; set; }
-        // Owner is AtlassianPS.JiraPS.User at runtime; see the note on
-        // Project.Lead for why the storage slot is `object`.
-        public object Owner { get; set; }
+        public User Owner { get; set; }
 
         // The PowerShell-side AliasProperty for the American spelling (`Favorite`)
         // is added by ConvertTo-JiraFilter so historical assertions about the

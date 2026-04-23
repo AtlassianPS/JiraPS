@@ -117,7 +117,7 @@ The third call omits both parameters; Jira applies the project's default assigne
 ### -Assignee
 
 User to assign the new issue to.
-Accepts a username (Jira Server / Data Center), an `accountId` (Jira Cloud), or a `JiraPS.User` object.
+Accepts a username (Jira Server / Data Center), an `accountId` (Jira Cloud), or a `AtlassianPS.JiraPS.User` object.
 
 If omitted, Jira will apply the project's default assignee — there is no separate `-UseDefaultAssignee` switch
 on this cmdlet because the create endpoint already does the right thing when the field is missing.
@@ -479,7 +479,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 ## NOTES
 

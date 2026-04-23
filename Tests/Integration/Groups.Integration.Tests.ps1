@@ -68,7 +68,7 @@ InModuleScope JiraPS {
                     $members = Get-JiraGroupMember -Group $fixtures.TestGroup
 
                     if ($members) {
-                        @($members)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                        @($members)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                     }
                 }
             }

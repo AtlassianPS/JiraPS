@@ -25,7 +25,7 @@ Remove-JiraSession [[-Session] <Object>] [<CommonParameters>]
 This function removes a persistent JIRA authenticated session and closes the session for JIRA.
 This can be used to "log out" of JIRA once work is complete.
 
-If called with the Session parameter, this function will attempt to close the provided `JiraPS.Session` object.
+If called with the Session parameter, this function will attempt to close the provided `AtlassianPS.JiraPS.Session` object.
 
 If called with no parameters, this function will close the saved JIRA session in the module's PrivateData.
 
@@ -85,7 +85,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Session
+### AtlassianPS.JiraPS.Session
 
 ## OUTPUTS
 

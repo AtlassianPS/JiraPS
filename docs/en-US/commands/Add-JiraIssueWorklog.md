@@ -168,7 +168,7 @@ HelpMessage: ''
 
 Issue to receive the new worklog item.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: Object
@@ -272,9 +272,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
-Pipe a JiraPS.Issue object to record work against it.
+Pipe a AtlassianPS.JiraPS.Issue object to record work against it.
 
 ## OUTPUTS
 

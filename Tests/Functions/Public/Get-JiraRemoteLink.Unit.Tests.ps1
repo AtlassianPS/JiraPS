@@ -50,7 +50,7 @@ InModuleScope JiraPS {
                     'RestURL' = "$jiraServer/rest/api/2/issue/12345"
                     'Key'     = $issueKey
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 return $object
             }
 

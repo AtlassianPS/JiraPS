@@ -9,9 +9,9 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Version"
 
-            $result = [AtlassianPS.JiraPS.Version]@{
+            $hash = @{
                 ID          = $i.id
                 Project     = $i.projectId
                 Name        = $i.name
@@ -20,26 +20,14 @@
                 Released    = $i.released
                 Overdue     = $i.overdue
                 RestUrl     = $i.self
+                # Legacy contract: missing dates surface as empty string, not $null,
+                # so existing user scripts that test `if ($v.StartDate)` keep
+                # short-circuiting on missing values.
+                StartDate   = if ($i.startDate) { Get-Date $i.startDate } else { '' }
+                ReleaseDate = if ($i.releaseDate) { Get-Date $i.releaseDate } else { '' }
             }
 
-            # Legacy contract: missing dates surface as empty string, not $null,
-            # so existing user scripts that test `if ($v.StartDate)` continue
-            # to short-circuit on missing values.
-            if ($i.startDate) {
-                $result.StartDate = Get-Date $i.startDate
-            }
-            else {
-                $result.StartDate = ""
-            }
-
-            if ($i.releaseDate) {
-                $result.ReleaseDate = Get-Date $i.releaseDate
-            }
-            else {
-                $result.ReleaseDate = ""
-            }
-
-            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.Version'
+            [AtlassianPS.JiraPS.Version]$hash
         }
     }
 }

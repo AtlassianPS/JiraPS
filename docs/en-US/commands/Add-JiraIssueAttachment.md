@@ -115,7 +115,7 @@ HelpMessage: ''
 
 Issue to which to attach the file.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: Object

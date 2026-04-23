@@ -11,16 +11,16 @@
     )
 
     process {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Building AtlassianPS.JiraPS.Session"
 
-        $result = [AtlassianPS.JiraPS.Session]@{
+        $hash = @{
             WebSession = $Session
         }
 
         if ($Username) {
-            $result.Username = $Username
+            $hash.Username = $Username
         }
 
-        Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.Session'
+        [AtlassianPS.JiraPS.Session]$hash
     }
 }

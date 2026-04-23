@@ -163,8 +163,8 @@ InModuleScope JiraPS {
                     $script:result = ConvertTo-JiraFilterPermission -InputObject $sampleObject
                 }
 
-                It "converts nested Project to 'JiraPS.Project' type" {
-                    $result[1].Project.PSObject.TypeNames[0] | Should -Be 'JiraPS.Project'
+                It "converts nested Project to 'AtlassianPS.JiraPS.Project' type" {
+                    $result[1].Project.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Project'
                 }
 
                 It "converts nested Role to 'JiraPS.ProjectRole' type" {

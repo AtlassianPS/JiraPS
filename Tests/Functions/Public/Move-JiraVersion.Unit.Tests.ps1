@@ -42,7 +42,7 @@ InModuleScope JiraPS {
             Mock Get-JiraProject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project'
                 $Projects = ConvertFrom-Json $JiraProjectData
-                $Projects.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+                $Projects.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 $Projects | Where-Object { $_.Key -in $Project }
             }
 
@@ -58,7 +58,7 @@ InModuleScope JiraPS {
                         StartDate   = (Get-Date "2017-01-01")
                         RestUrl     = "$jiraServer/rest/api/2/version/$_Id"
                     }
-                    $Version.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+                    $Version.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Version')
                     $Version
                 }
             }
@@ -123,7 +123,7 @@ InModuleScope JiraPS {
                         $Body -match '"position":\s*"Earlier"'
                     }
                 }
-                It 'moves a Version using a JiraPS.Version object and Later Position' {
+                It 'moves a Version using a AtlassianPS.JiraPS.Version object and Later Position' {
                     {
                         $version = Get-JiraVersion -Id $versionID2
                         Move-JiraVersion -Version $version -Position Later -ErrorAction Stop
@@ -136,7 +136,7 @@ InModuleScope JiraPS {
                         $Body -match '"position":\s*"Later"'
                     }
                 }
-                It 'moves a Version using JiraPS.Version object and First Position' {
+                It 'moves a Version using AtlassianPS.JiraPS.Version object and First Position' {
                     {
                         $version = Get-JiraVersion -Id $versionID2
                         Move-JiraVersion -Version $version -Position First -ErrorAction Stop
@@ -149,7 +149,7 @@ InModuleScope JiraPS {
                         $Body -match '"position":\s*"First"'
                     }
                 }
-                It 'moves a Version using JiraPS.Version object over pipeline and First Position' {
+                It 'moves a Version using AtlassianPS.JiraPS.Version object over pipeline and First Position' {
                     {
                         $version = Get-JiraVersion -Id $versionID2
                         $version | Move-JiraVersion -Position First -ErrorAction Stop
@@ -187,7 +187,7 @@ InModuleScope JiraPS {
                         $Body -match """after"":\s*""$restUrl"""
                     }
                 }
-                It 'moves a Version using JiraPS.Version object and other Version ID' {
+                It 'moves a Version using AtlassianPS.JiraPS.Version object and other Version ID' {
                     $restUrl = (Get-JiraVersion -Id $versionID2).RestUrl
                     $version1 = Get-JiraVersion -Id $versionID1
                     { Move-JiraVersion -Version $version1 -After $versionID2 -ErrorAction Stop } | Should -Not -Throw
@@ -199,7 +199,7 @@ InModuleScope JiraPS {
                         $Body -match """after"":\s*""$restUrl"""
                     }
                 }
-                It 'moves a Version using its ID and other Version JiraPS.Version object' {
+                It 'moves a Version using its ID and other Version AtlassianPS.JiraPS.Version object' {
                     $version2 = Get-JiraVersion -Id $versionID2
                     { Move-JiraVersion -Version $versionID1 -After $version2 -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
@@ -210,7 +210,7 @@ InModuleScope JiraPS {
                         $Body -match """after"":\s*""$($version2.RestUrl)"""
                     }
                 }
-                It 'moves a Version using its ID over pipeline and other Version JiraPS.Version object' {
+                It 'moves a Version using its ID over pipeline and other Version AtlassianPS.JiraPS.Version object' {
                     $version2 = Get-JiraVersion -Id $versionID2
                     { $versionID1 | Move-JiraVersion -After $version2 -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
@@ -221,7 +221,7 @@ InModuleScope JiraPS {
                         $Body -match """after"":\s*""$($version2.RestUrl)"""
                     }
                 }
-                It 'moves a Version using JiraPS.Version object over pipeline and other Version JiraPS.Version object' {
+                It 'moves a Version using AtlassianPS.JiraPS.Version object over pipeline and other Version AtlassianPS.JiraPS.Version object' {
                     $version1 = Get-JiraVersion -Id $versionID1
                     $version2 = Get-JiraVersion -Id $versionID2
                     { $version1 | Move-JiraVersion -After $version2 -ErrorAction Stop } | Should -Not -Throw

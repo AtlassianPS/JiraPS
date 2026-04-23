@@ -52,7 +52,7 @@ InModuleScope JiraPS {
                     'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
                     'Key'     = $testIssueKey
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 return $object
             }
 
@@ -110,7 +110,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
-                It "Accepts a JiraPS.Issue object to the -Issue parameter" {
+                It "Accepts a AtlassianPS.JiraPS.Issue object to the -Issue parameter" {
                     $Issue = Get-JiraIssue $testIssueKey
                     { Remove-JiraRemoteLink -Issue $Issue -LinkId 10000 -Force } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1

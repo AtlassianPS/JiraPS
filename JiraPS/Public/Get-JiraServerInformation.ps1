@@ -38,7 +38,7 @@
         catch {
             Write-Warning "[$($MyInvocation.MyCommand.Name)] Could not retrieve server information: $_"
             $fallback = [PSCustomObject]@{
-                PSTypeName     = 'JiraPS.ServerInfo'
+                PSTypeName     = 'AtlassianPS.JiraPS.ServerInfo'
                 DeploymentType = 'Server'
             }
             Write-Output $fallback

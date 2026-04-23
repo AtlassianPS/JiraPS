@@ -890,8 +890,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Issue'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Issue'
+                It "adds custom type 'AtlassianPS.JiraPS.Issue'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
                 }
             }
 
@@ -939,18 +939,18 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "converts user fields to JiraPS.User objects" {
+                It "converts user fields to AtlassianPS.JiraPS.User objects" {
                     $userFields = @('Creator', 'Reporter') # Again, Assignee is another user field, but in this example it's unassigned
                     foreach ($f in $userFields) {
                         $value = $result.$f
                         $value | Should -Not -BeNullOrEmpty
-                        $value.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                        $value.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                     }
                 }
 
-                It "converts project field to JiraPS.Project object" {
+                It "converts project field to AtlassianPS.JiraPS.Project object" {
                     $result.Project | Should -Not -BeNullOrEmpty
-                    $result.Project.PSObject.TypeNames[0] | Should -Be 'JiraPS.Project'
+                    $result.Project.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Project'
                 }
 
                 It "converts transitions to JiraPS.Transition objects" {

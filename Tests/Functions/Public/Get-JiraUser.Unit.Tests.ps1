@@ -158,7 +158,7 @@ InModuleScope JiraPS {
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
             }
 
-            It "Gets information for a provided Jira user if a JiraPS.User object is provided to the InputObject parameter" {
+            It "Gets information for a provided Jira user if a AtlassianPS.JiraPS.User object is provided to the InputObject parameter" {
                 $getResult = Get-JiraUser -UserName $testUsername
                 $result2 = Get-JiraUser -InputObject $getResult
 

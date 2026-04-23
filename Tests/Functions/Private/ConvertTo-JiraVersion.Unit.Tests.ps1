@@ -41,7 +41,7 @@ InModuleScope JiraPS {
                     Id  = $projectId
                     Key = "ABC"
                 }
-                $Project.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+                $Project.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 $Project
             }
             #endregion Mocks
@@ -57,8 +57,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Version'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Version'
+                It "adds custom type 'AtlassianPS.JiraPS.Version'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version'
                 }
             }
 

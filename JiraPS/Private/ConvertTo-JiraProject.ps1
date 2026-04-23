@@ -9,32 +9,23 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Project"
 
-            $result = [AtlassianPS.JiraPS.Project]@{
+            $hash = @{
                 ID          = $i.id
                 Key         = $i.key
                 Name        = $i.name
                 Description = $i.description
-                Lead        = ConvertTo-JiraUser $i.lead
-                IssueTypes  = ConvertTo-JiraIssueType $i.issueTypes
+                Lead        = if ($i.lead) { ConvertTo-JiraUser $i.lead } else { $null }
+                IssueTypes  = if ($i.issueTypes) { ConvertTo-JiraIssueType $i.issueTypes } else { $null }
                 Roles       = $i.roles
                 RestUrl     = $i.self
                 Components  = $i.components
                 Style       = $i.style
+                Category    = if ($i.projectCategory) { $i.projectCategory } elseif ($i.Category) { $i.Category } else { $null }
             }
 
-            if ($i.projectCategory) {
-                $result.Category = $i.projectCategory
-            }
-            elseif ($i.Category) {
-                $result.Category = $i.Category
-            }
-            else {
-                $result.Category = $null
-            }
-
-            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.Project'
+            [AtlassianPS.JiraPS.Project]$hash
         }
     }
 }

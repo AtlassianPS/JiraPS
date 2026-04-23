@@ -104,7 +104,7 @@ Invoke-JiraMethod @params
 ```
 
 Executes the GET request but instead of returning the response,
-it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
+it returns a `[AtlassianPS.JiraPS.Session]` which contains the `[WebRequestSession]`.
 
 ### Example 6
 
@@ -610,7 +610,7 @@ HelpMessage: ''
 
 ### -StoreSession
 
-Instead of returning the response, it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
+Instead of returning the response, it returns a `[AtlassianPS.JiraPS.Session]` which contains the `[WebRequestSession]`.
 
 ```yaml
 Type: SwitchParameter

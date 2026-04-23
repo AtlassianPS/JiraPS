@@ -9,9 +9,9 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.ServerInfo"
 
-            $result = [AtlassianPS.JiraPS.ServerInfo]@{
+            $hash = @{
                 BaseURL        = $i.baseUrl
                 Version        = $i.version
                 DeploymentType = if ($i.deploymentType) { $i.deploymentType } else { 'Server' }
@@ -22,7 +22,7 @@
                 ServerTitle    = $i.serverTitle
             }
 
-            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.ServerInfo'
+            [AtlassianPS.JiraPS.ServerInfo]$hash
         }
     }
 }

@@ -60,7 +60,7 @@ InModuleScope JiraPS {
                     'Key' = "TEST"
                 }
                 Add-Member -InputObject $object -MemberType NoteProperty -Name "IssueTypes" -Value $issueObject
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 return $object
             }
 
@@ -69,7 +69,7 @@ InModuleScope JiraPS {
                 $object = [PSCustomObject] @{
                     'Name' = $UserName
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                 return $object
             }
 
@@ -269,7 +269,7 @@ InModuleScope JiraPS {
                         'Name'      = 'testUsername'
                         'AccountId' = '5b10ac8d82e05b22cc7d4ef5'
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     return $object
                 }
             }
@@ -291,7 +291,7 @@ InModuleScope JiraPS {
 
                     Mock Resolve-JiraUser -ModuleName JiraPS {
                         $object = [PSCustomObject]@{ 'Name' = 'testUsername' }
-                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                         return $object
                     }
                 }
@@ -376,7 +376,7 @@ InModuleScope JiraPS {
 
                     Mock Resolve-JiraUser -ModuleName JiraPS {
                         $object = [PSCustomObject]@{ 'Name' = $InputObject }
-                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                         return $object
                     }
                 }
@@ -411,7 +411,7 @@ InModuleScope JiraPS {
                             'Name'      = $InputObject
                             'AccountId' = '5b10ac8d82e05b22cc7d4ef5'
                         }
-                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                         return $object
                     }
                 }
@@ -483,11 +483,11 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Accepts JiraPS.User objects via -Assignee" {
+            Context "Accepts AtlassianPS.JiraPS.User objects via -Assignee" {
                 BeforeAll {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
-                    # Resolve-JiraUser will pass a JiraPS.User-typed input through
+                    # Resolve-JiraUser will pass a AtlassianPS.JiraPS.User-typed input through
                     # unchanged; this mock returns a known object so the helper
                     # has a stable AccountId to dispatch on.
                     Mock Resolve-JiraUser -ModuleName JiraPS {
@@ -495,17 +495,17 @@ InModuleScope JiraPS {
                             'Name'      = 'alice'
                             'AccountId' = 'aaaa-bbbb-cccc'
                         }
-                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                         return $object
                     }
                 }
 
-                It "accepts a JiraPS.User object via -Assignee and extracts its AccountId" {
+                It "accepts a AtlassianPS.JiraPS.User object via -Assignee and extracts its AccountId" {
                     $user = [PSCustomObject]@{
                         'Name'      = 'alice'
                         'AccountId' = 'aaaa-bbbb-cccc'
                     }
-                    $user.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $user.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
 
                     { New-JiraIssue @newParams -Assignee $user } | Should -Not -Throw
 

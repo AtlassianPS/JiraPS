@@ -79,8 +79,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.User'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                It "adds custom type 'AtlassianPS.JiraPS.User'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                 }
             }
 

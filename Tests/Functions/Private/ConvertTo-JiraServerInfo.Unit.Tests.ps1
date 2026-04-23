@@ -44,8 +44,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.ServerInfo'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.ServerInfo'
+                It "adds custom type 'AtlassianPS.JiraPS.ServerInfo'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.ServerInfo'
                 }
             }
 

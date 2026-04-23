@@ -209,7 +209,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 Group(s) from which users should be removed
 
-### JiraPS.User
+### AtlassianPS.JiraPS.User
 
 User(s) which to remove
 

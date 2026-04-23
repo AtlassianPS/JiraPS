@@ -6,7 +6,7 @@
         [ValidateNotNullOrEmpty()]
         [ValidateScript({
                 if (
-                    ("JiraPS.Issue" -in $_.PSObject.TypeNames) -or
+                    ("AtlassianPS.JiraPS.Issue" -in $_.PSObject.TypeNames) -or
                     (($_ -is [String]))
                 ) {
                     return $true
@@ -17,7 +17,7 @@
                     $errorCategory = 'InvalidArgument'
                     $errorTarget = $_
                     $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
+                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [AtlassianPS.JiraPS.Issue] or [String], but was $($_.GetType().Name)"
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
                       #ToDo:CustomClass

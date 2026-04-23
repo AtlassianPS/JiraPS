@@ -9,9 +9,9 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.User"
 
-            $result = [AtlassianPS.JiraPS.User]@{
+            $hash = @{
                 Key          = $i.key
                 AccountId    = $i.accountId
                 Name         = $i.name
@@ -21,17 +21,11 @@
                 AvatarUrl    = $i.avatarUrls
                 TimeZone     = $i.timeZone
                 Locale       = $i.locale
-                # Initial value taken from the wire payload; overwritten below if
-                # the API also returned the expanded `groups` block.
-                Groups       = $i.groups.items
+                Groups       = if ($i.groups) { $i.groups.items.name } else { $i.groups.items }
                 RestUrl      = $i.self
             }
 
-            if ($i.groups) {
-                $result.Groups = $i.groups.items.name
-            }
-
-            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.User'
+            [AtlassianPS.JiraPS.User]$hash
         }
     }
 }

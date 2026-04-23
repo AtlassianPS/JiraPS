@@ -205,7 +205,7 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $obj = $TestIssueJSONs[$Key] | ConvertFrom-Json
 
-                $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $obj.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
 
                 $obj | Add-Member -MemberType ScriptMethod -Name ToString -Value { return "" } -Force
                 return $obj
@@ -289,7 +289,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
-                It "Accepts a JiraPS.Issue object over the pipeline" {
+                It "Accepts a AtlassianPS.JiraPS.Issue object over the pipeline" {
                     { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Force } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }

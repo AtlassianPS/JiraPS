@@ -78,8 +78,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Project'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Project'
+                It "adds custom type 'AtlassianPS.JiraPS.Project'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Project'
                 }
             }
 
@@ -110,8 +110,8 @@ InModuleScope JiraPS {
                     $script:result = ConvertTo-JiraProject -InputObject $sampleObject
                 }
 
-                It "converts Lead to JiraPS.User type" {
-                    $result.Lead.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                It "converts Lead to AtlassianPS.JiraPS.User type" {
+                    $result.Lead.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                 }
             }
 

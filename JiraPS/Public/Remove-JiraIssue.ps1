@@ -15,7 +15,7 @@
         [Alias(
             "Issue"
         )]
-        [PSTypeName("JiraPS.Issue")]
+        [PSTypeName("AtlassianPS.JiraPS.Issue")]
         [Object[]]
         $InputObject,
 

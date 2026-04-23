@@ -190,7 +190,7 @@ HelpMessage: ''
 
 The Issue Object or ID to transition.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: Object
@@ -284,11 +284,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue / String / JiraPS.Transition
+### AtlassianPS.JiraPS.Issue / String / JiraPS.Transition
 
 ## OUTPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 When `-Passthru` is provided, the issue will be returned.
 

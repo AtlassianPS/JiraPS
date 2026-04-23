@@ -32,7 +32,7 @@ InModuleScope JiraPS {
                     Key     = $issueKey
                     RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 return $object
             }
 
@@ -67,7 +67,7 @@ InModuleScope JiraPS {
                     $command | Should -HaveParameter $parameter
 
                     #ToDo:CustomClass
-                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
+                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')`
                     (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
                 }
             }

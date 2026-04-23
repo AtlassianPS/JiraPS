@@ -217,7 +217,7 @@ The group to query for members
 
 ## OUTPUTS
 
-### JiraPS.User
+### AtlassianPS.JiraPS.User
 
 ## NOTES
 

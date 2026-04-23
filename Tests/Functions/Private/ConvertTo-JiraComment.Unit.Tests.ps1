@@ -74,8 +74,8 @@ InModuleScope JiraPS {
                     $result | Should -BeOfType [PSCustomObject]
                 }
 
-                It "adds custom type 'JiraPS.Comment'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Comment'
+                It "adds custom type 'AtlassianPS.JiraPS.Comment'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Comment'
                 }
             }
 

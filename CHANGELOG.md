@@ -26,6 +26,13 @@ Both accept `SecureString` and work seamlessly in automation. See the updated [a
 - **BREAKING**: `Invoke-JiraIssueTransition -Assignee` no longer accepts the magic string `'Unassigned'`, `$null`, or empty/whitespace strings. Use the new `-Unassign` switch instead.
 - **BREAKING**: `Set-JiraIssue` and `Invoke-JiraIssueTransition` now use parameter sets to make `-Assignee`, `-Unassign`, and `-UseDefaultAssignee` mutually exclusive at parameter binding time.
 - **BREAKING (soft)**: `New-JiraIssue -Reporter` no longer accepts `$null`, empty, or whitespace-only strings. Previously these were silently forwarded to Jira (which rejected them with an opaque server error); they are now rejected at parameter binding with an actionable message. Omit `-Reporter` to let Jira apply the project's default reporter.
+- **BREAKING**: Renamed the historic `JiraPS.<Type>` PSTypeName for the eight most-used domain types to `AtlassianPS.JiraPS.<Type>`, in line with how every other AtlassianPS module (e.g. ConfluencePS) namespaces its types.
+  Affected types: `Issue`, `User`, `Project`, `Filter`, `Version`, `Comment`, `Session`, `ServerInfo`.
+  Scripts that test `if ('JiraPS.Issue' -in $obj.PSObject.TypeNames)` must switch to `'AtlassianPS.JiraPS.Issue'` (or use the more idiomatic `$obj -is [AtlassianPS.JiraPS.Issue]`).
+  Mocks built as `[PSCustomObject]@{ PSTypeName = 'JiraPS.Issue'; ... }` must use `'AtlassianPS.JiraPS.Issue'`.
+  All `[PSTypeName('JiraPS.X')]` parameter attributes and `[ValidateScript]` blocks inside the module were updated accordingly.
+  No legacy alias is added — the rename is intentional and final.
+  The remaining 16 leaf types (`Group`, `Status`, `Priority`, `IssueType`, `IssueLink`, `IssueLinkType`, `Component`, `Attachment`, `Worklogitem`, `ProjectRole`, `Field`, `CreateMetaField`, `EditMetaField`, `Transition`, `Link`, `FilterPermission`) are tracked for a follow-up phase and still use the legacy `JiraPS.<Type>` PSTypeName until then.
 
 See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migration-v3.html) for migration examples.
 
@@ -53,11 +60,13 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   The old name is preserved as a deprecated exported alias for backward compatibility and will be removed in a future major version.
   Update scripts to call `ConvertTo-JiraTable` directly.
 - Promoted the eight most-used JiraPS domain types (`Issue`, `User`, `Project`, `Filter`, `Version`, `Comment`, `Session`, `ServerInfo`) to real .NET classes under the `AtlassianPS.JiraPS.*` namespace.
+- Promoted the eight most-used JiraPS domain types (`Issue`, `User`, `Project`, `Filter`, `Version`, `Comment`, `Session`, `ServerInfo`) to real .NET classes under the `AtlassianPS.JiraPS.*` namespace, mirroring the long-standing convention used by `ConfluencePS` and other AtlassianPS modules.
   The classes are compiled once per session from a single `JiraPS/Types/AtlassianPS.JiraPS.cs` file via `Add-Type` in the module's `#region Dependencies` block; the type-presence guard keeps re-imports cheap.
-  Returned objects now have `GetType().FullName -eq 'AtlassianPS.JiraPS.<Type>'` and surface real properties to `Get-Member` and IDE IntelliSense, while the historic `JiraPS.<Type>` name remains the first entry in `PSObject.TypeNames` via the new private `Add-LegacyTypeAlias` helper.
-  Existing format selectors in `JiraPS.format.ps1xml`, parameter binding via `[PSTypeName('JiraPS.X')]`, and any user script that inspects `PSObject.TypeNames` continue to work unchanged.
-  Added parallel `<TypeName>AtlassianPS.JiraPS.{Issue,User}</TypeName>` entries to `JiraPS.format.ps1xml` so consumers who strip the legacy alias still get formatting.
-  The remaining 16 leaf types (`Group`, `Status`, `Priority`, `IssueType`, `IssueLink`, `IssueLinkType`, `Component`, `Attachment`, `Worklogitem`, `ProjectRole`, `Field`, `CreateMetaField`, `EditMetaField`, `Transition`, `Link`, `FilterPermission`) are tracked for a follow-up phase.
+  Returned objects have `GetType().FullName -eq 'AtlassianPS.JiraPS.<Type>'`, surface real properties to `Get-Member` and IDE IntelliSense, and accept hashtable initialization (`[AtlassianPS.JiraPS.User]@{ Name = 'jdoe' }`).
+  Cross-reference slots are strongly typed: `Project.Lead` is `[User]`, `Issue.Project` is `[Project]`, `Comment.Author`/`UpdateAuthor` are `[User]`, `Filter.Owner` is `[User]`. Slots that legitimately hold polymorphic values (e.g. `Issue.Assignee` may be a `User` OR the legacy string `"Unassigned"`) stay typed as `[object]`.
+  A new private `ConvertTo-Hashtable` helper handles the Windows PowerShell 5.1 wrinkle where casting a `PSCustomObject` directly to a custom .NET class throws `PSInvalidCastException` — every converter laundering payloads through this helper before the class cast (the same workaround `ConfluencePS` ships).
+  `JiraPS.format.ps1xml` selectors now reference `<TypeName>AtlassianPS.JiraPS.Issue</TypeName>` and `<TypeName>AtlassianPS.JiraPS.User</TypeName>` directly; legacy entries were dropped because `PSObject.TypeNames` of a true .NET instance is the .NET full name, so the format-data engine matches automatically.
+  See the **Removed (Breaking)** section above for the user-visible PSTypeName rename and migration steps. The remaining 16 leaf types (`Group`, `Status`, `Priority`, `IssueType`, `IssueLink`, `IssueLinkType`, `Component`, `Attachment`, `Worklogitem`, `ProjectRole`, `Field`, `CreateMetaField`, `EditMetaField`, `Transition`, `Link`, `FilterPermission`) are tracked for a follow-up phase.
 - `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
 - `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
 - `Invoke-JiraMethod` now supports Jira-doc style relative endpoint paths (for example, `/rest/api/2/issue/TEST-1`) and resolves them against `Get-JiraConfigServer`.

@@ -46,14 +46,14 @@ InModuleScope JiraPS {
                 $object = [PSCustomObject] @{
                     'Name' = 'username'
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                 return $object
             }
 
             Mock Get-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter'
                 [PSCustomObject]@{
-                    PSTypeName = "JiraPS.Filter"
+                    PSTypeName = "AtlassianPS.JiraPS.Filter"
                     Id         = 12345
                     SearchUrl  = "https://jira.example.com/rest/api/2/filter/12345"
                 }
@@ -147,7 +147,7 @@ InModuleScope JiraPS {
 
                 It "Returns only the fields required with -Fields" {
                     $issue = [PSCustomObject]@{
-                        PSTypeName = "JiraPS.Issue"
+                        PSTypeName = "AtlassianPS.JiraPS.Issue"
                         Key        = "TEST-001"
                     }
 
@@ -196,7 +196,7 @@ InModuleScope JiraPS {
                         'Key' = 'TEST-001'
                         'ID'  = '12345'
                     }
-                    $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                    $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
 
                     # Should call Get-JiraIssue using the -Key parameter, so our URL should reflect the key we provided
                     { Get-JiraIssue -InputObject $Issue } | Should -Not -Throw
@@ -212,7 +212,7 @@ InModuleScope JiraPS {
                         'Key' = 'TEST-001'
                         'ID'  = '12345'
                     }
-                    $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                    $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
 
                     # Pipeline input binds Key property to -Key parameter via ValueFromPipelineByPropertyName
                     { $issue | Get-JiraIssue } | Should -Not -Throw
@@ -229,12 +229,12 @@ InModuleScope JiraPS {
                 # ValueFromPipelineByPropertyName to -Key. This is a soft breaking change:
                 # objects with a Key property now bind to ByIssueKey instead of failing.
 
-                It "Binds JiraPS.Issue via pipeline to ByIssueKey parameter set" {
+                It "Binds AtlassianPS.JiraPS.Issue via pipeline to ByIssueKey parameter set" {
                     $issue = [PSCustomObject] @{
                         'Key' = 'TEST-001'
                         'ID'  = '12345'
                     }
-                    $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                    $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
 
                     # The Key property should bind to -Key via ValueFromPipelineByPropertyName
                     $issue | Get-JiraIssue
@@ -262,7 +262,7 @@ InModuleScope JiraPS {
                         [PSCustomObject]@{ Key = 'TEST-001' }
                         [PSCustomObject]@{ Key = 'TEST-001' }  # Same key, should call twice
                     )
-                    $issues | ForEach-Object { $_.PSObject.TypeNames.Insert(0, 'JiraPS.Issue') }
+                    $issues | ForEach-Object { $_.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue') }
 
                     { $issues | Get-JiraIssue } | Should -Not -Throw
 
@@ -272,13 +272,13 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "Explicit -InputObject still works with JiraPS.Issue objects" {
+                It "Explicit -InputObject still works with AtlassianPS.JiraPS.Issue objects" {
                     # Verify the ByInputObject parameter set still functions when used explicitly
                     $issue = [PSCustomObject] @{
                         'Key' = 'TEST-001'
                         'ID'  = '12345'
                     }
-                    $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                    $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
 
                     { Get-JiraIssue -InputObject $issue } | Should -Not -Throw
 

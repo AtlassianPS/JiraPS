@@ -164,14 +164,14 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Filter / String
+### AtlassianPS.JiraPS.Filter / String
 
 The filter to look up in JIRA.
-This can be a String (filter ID) or a JiraPS.Filter object.
+This can be a String (filter ID) or a AtlassianPS.JiraPS.Filter object.
 
 ## OUTPUTS
 
-### JiraPS.Filter
+### AtlassianPS.JiraPS.Filter
 
 ## NOTES
 

@@ -9,9 +9,9 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Comment"
 
-            $result = [AtlassianPS.JiraPS.Comment]@{
+            $hash = @{
                 ID         = $i.id
                 Body       = ConvertFrom-AtlassianDocumentFormat -InputObject $i.body
                 Visibility = $i.visibility
@@ -19,22 +19,22 @@
             }
 
             if ($i.author) {
-                $result.Author = ConvertTo-JiraUser -InputObject $i.author
+                $hash.Author = ConvertTo-JiraUser -InputObject $i.author
             }
 
             if ($i.updateAuthor) {
-                $result.UpdateAuthor = ConvertTo-JiraUser -InputObject $i.updateAuthor
+                $hash.UpdateAuthor = ConvertTo-JiraUser -InputObject $i.updateAuthor
             }
 
             if ($i.created) {
-                $result.Created = (Get-Date ($i.created))
+                $hash.Created = (Get-Date ($i.created))
             }
 
             if ($i.updated) {
-                $result.Updated = (Get-Date ($i.updated))
+                $hash.Updated = (Get-Date ($i.updated))
             }
 
-            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.Comment'
+            [AtlassianPS.JiraPS.Comment]$hash
         }
     }
 }

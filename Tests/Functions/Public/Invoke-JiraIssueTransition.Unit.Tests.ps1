@@ -55,7 +55,7 @@ InModuleScope JiraPS {
                     RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
                     Transition = @($t1, $t2)
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 $object
             }
 
@@ -86,7 +86,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Issue"; type = "JiraPS.Issue" }
+                    @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
                     @{ parameter = "Transition"; type = "Object" }
                     @{ parameter = "Comment"; type = "String" }
                     @{ parameter = "Assignee"; type = "String" }
@@ -276,7 +276,7 @@ InModuleScope JiraPS {
                         'AccountId' = $testAccountId
                         'RestUrl'   = "$jiraServer/rest/api/2/user?username=$InputObject"
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     $object
                 }
             }

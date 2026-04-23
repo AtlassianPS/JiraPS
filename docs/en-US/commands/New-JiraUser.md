@@ -212,7 +212,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.User
+### AtlassianPS.JiraPS.User
 
 ## NOTES
 

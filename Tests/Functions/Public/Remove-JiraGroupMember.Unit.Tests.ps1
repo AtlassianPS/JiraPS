@@ -41,13 +41,13 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'UserName', 'InputObject'
                 if ($InputObject) {
                     $obj = [PSCustomObject]@{
-                        PSTypeName = "JiraPS.User"
+                        PSTypeName = "AtlassianPS.JiraPS.User"
                         Name       = "$InputObject"
                     }
                 }
                 else {
                     $obj = [PSCustomObject]@{
-                        PSTypeName = "JiraPS.User"
+                        PSTypeName = "AtlassianPS.JiraPS.User"
                         Name       = "$UserName"
                     }
                 }
@@ -60,7 +60,7 @@ InModuleScope JiraPS {
             Mock Get-JiraGroupMember -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraGroupMember' 'Group'
                 [PSCustomObject]@{
-                    PSTypeName = "JiraPS.User"
+                    PSTypeName = "AtlassianPS.JiraPS.User"
                     Name       = $testUsername1
                 }
             }
@@ -174,7 +174,7 @@ InModuleScope JiraPS {
                     } -Exactly -Times 1
                 }
 
-                It "Accepts a JiraPS.User as input for -User parameter" {
+                It "Accepts a AtlassianPS.JiraPS.User as input for -User parameter" {
                     {
                         $user = Get-JiraUser -UserName $testUsername1
                         Remove-JiraGroupMember -Group $testGroupName -User $user -Force
@@ -204,7 +204,7 @@ InModuleScope JiraPS {
                         'Name'      = 'testUser'
                         'AccountId' = 'abc123def456'
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     $object
                 }
             }

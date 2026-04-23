@@ -4,7 +4,6 @@
     <View>
       <Name>JiraPS-Issue-TableView</Name>
       <ViewSelectedBy>
-        <TypeName>JiraPS.Issue</TypeName>
         <TypeName>AtlassianPS.JiraPS.Issue</TypeName>
       </ViewSelectedBy>
       <TableControl>
@@ -52,7 +51,6 @@
     <View>
       <Name>JiraPS-User-TableView</Name>
       <ViewSelectedBy>
-        <TypeName>JiraPS.User</TypeName>
         <TypeName>AtlassianPS.JiraPS.User</TypeName>
       </ViewSelectedBy>
       <TableControl>

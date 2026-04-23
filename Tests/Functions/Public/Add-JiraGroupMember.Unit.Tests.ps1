@@ -44,7 +44,7 @@ InModuleScope JiraPS {
                     $object = [PSCustomObject] @{
                         'Name' = "$user"
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     Write-Output $object
                 }
             }
@@ -85,7 +85,7 @@ InModuleScope JiraPS {
                     $command | Should -HaveParameter $parameter
 
                     #ToDo:CustomClass
-                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
+                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')`
                     (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
                 }
             }
@@ -199,7 +199,7 @@ InModuleScope JiraPS {
                             'Name'      = "$user"
                             'AccountId' = "abc123def456"
                         }
-                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                         Write-Output $object
                     }
                 }

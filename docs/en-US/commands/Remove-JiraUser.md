@@ -157,7 +157,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.User / String
+### AtlassianPS.JiraPS.User / String
 
 
 ## OUTPUTS

@@ -35,7 +35,7 @@ InModuleScope JiraPS {
             Mock ConvertTo-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
                 $i = (ConvertFrom-Json $responseFilter)
-                $i.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+                $i.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
                 $i | Add-Member -MemberType AliasProperty -Name 'RestURL' -Value 'self'
                 $i
             }

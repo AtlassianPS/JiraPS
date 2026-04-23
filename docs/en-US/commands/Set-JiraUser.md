@@ -260,12 +260,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.User
+### AtlassianPS.JiraPS.User
 
 
 ## OUTPUTS
 
-### JiraPS.User
+### AtlassianPS.JiraPS.User
 
 If the `-PassThru` parameter is provided, this function will provide a reference
 to the JIRA user modified.

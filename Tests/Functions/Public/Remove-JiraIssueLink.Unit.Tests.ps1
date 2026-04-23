@@ -41,7 +41,7 @@ InModuleScope JiraPS {
                 $issue = [PSCustomObject]@{
                     issueLinks = @( (Get-JiraIssueLink -Id 1234) )
                 }
-                $issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 return $issue
             }
 
@@ -87,7 +87,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 2
                 }
 
-                It "Accepts a JiraPS.Issue object over the pipeline" {
+                It "Accepts a AtlassianPS.JiraPS.Issue object over the pipeline" {
                     { Get-JiraIssue -Key TEST-01 | Remove-JiraIssueLink } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }

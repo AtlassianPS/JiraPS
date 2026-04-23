@@ -90,66 +90,51 @@ InModuleScope JiraPS {
             }
         }
 
-        Context "Cross-reference property typing (Windows PowerShell 5.1 hashtable-cast guard)" {
-            # On Windows PowerShell 5.1, [Type]@{ Property = $value } throws
-            # PSInvalidCastException when $value is a PSObject-wrapped instance
-            # (which Add-LegacyTypeAlias produces) and the destination property
-            # is typed as a sibling .NET class. PowerShell 7 silently unwraps,
-            # so this regression class would slip through PS7-only CI.
-            #
-            # These assertions lock the cross-reference slots open so any future
-            # tightening of e.g. Project.Lead to `User` triggers a test failure
-            # on every platform, not just on PS5.1.
+        Context "Strong cross-reference slot typing" {
+            # These assertions lock in the slot type for every cross-reference
+            # so a future loosening (e.g. Project.Lead going back to System.Object)
+            # is caught immediately. Strong slots are what give us IntelliSense
+            # and parse-time errors when the wrong thing is assigned.
 
-            It "keeps Project.Lead, Project.IssueTypes, and Project.Components as object" {
-                [AtlassianPS.JiraPS.Project].GetProperty('Lead').PropertyType.FullName | Should -Be 'System.Object'
-                [AtlassianPS.JiraPS.Project].GetProperty('IssueTypes').PropertyType.FullName | Should -Be 'System.Object'
-                [AtlassianPS.JiraPS.Project].GetProperty('Components').PropertyType.FullName | Should -Be 'System.Object'
+            It "Project.Lead is AtlassianPS.JiraPS.User" {
+                [AtlassianPS.JiraPS.Project].GetProperty('Lead').PropertyType.FullName | Should -Be 'AtlassianPS.JiraPS.User'
             }
 
-            It "keeps Comment.Author and Comment.UpdateAuthor as object" {
-                [AtlassianPS.JiraPS.Comment].GetProperty('Author').PropertyType.FullName | Should -Be 'System.Object'
-                [AtlassianPS.JiraPS.Comment].GetProperty('UpdateAuthor').PropertyType.FullName | Should -Be 'System.Object'
+            It "Comment.Author and Comment.UpdateAuthor are AtlassianPS.JiraPS.User" {
+                [AtlassianPS.JiraPS.Comment].GetProperty('Author').PropertyType.FullName | Should -Be 'AtlassianPS.JiraPS.User'
+                [AtlassianPS.JiraPS.Comment].GetProperty('UpdateAuthor').PropertyType.FullName | Should -Be 'AtlassianPS.JiraPS.User'
             }
 
-            It "keeps Issue.Project, Issue.Assignee, Issue.Creator, Issue.Reporter as object" {
-                [AtlassianPS.JiraPS.Issue].GetProperty('Project').PropertyType.FullName | Should -Be 'System.Object'
+            It "Issue.Project is AtlassianPS.JiraPS.Project" {
+                [AtlassianPS.JiraPS.Issue].GetProperty('Project').PropertyType.FullName | Should -Be 'AtlassianPS.JiraPS.Project'
+            }
+
+            It "Filter.Owner is AtlassianPS.JiraPS.User" {
+                [AtlassianPS.JiraPS.Filter].GetProperty('Owner').PropertyType.FullName | Should -Be 'AtlassianPS.JiraPS.User'
+            }
+
+            It "Issue.Assignee stays System.Object (legacy 'Unassigned' string sentinel)" {
                 [AtlassianPS.JiraPS.Issue].GetProperty('Assignee').PropertyType.FullName | Should -Be 'System.Object'
-                [AtlassianPS.JiraPS.Issue].GetProperty('Creator').PropertyType.FullName | Should -Be 'System.Object'
-                [AtlassianPS.JiraPS.Issue].GetProperty('Reporter').PropertyType.FullName | Should -Be 'System.Object'
-            }
-
-            It "keeps Filter.Owner as object" {
-                [AtlassianPS.JiraPS.Filter].GetProperty('Owner').PropertyType.FullName | Should -Be 'System.Object'
             }
         }
 
-        Context "Add-LegacyTypeAlias" {
-            It "inserts the legacy PSTypeName at index 0" {
-                $strong = [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }
-                Add-LegacyTypeAlias -InputObject $strong -LegacyName 'JiraPS.Issue' | Out-Null
+        Context "ConvertTo-Hashtable" {
+            It "round-trips a PSCustomObject into a Hashtable" {
+                $hash = [PSCustomObject]@{ A = 1; B = 'two' } | ConvertTo-Hashtable
 
-                $strong.PSObject.TypeNames[0] | Should -Be 'JiraPS.Issue'
-                $strong.PSObject.TypeNames | Should -Contain 'AtlassianPS.JiraPS.Issue'
+                $hash | Should -BeOfType [hashtable]
+                $hash.A | Should -Be 1
+                $hash.B | Should -Be 'two'
             }
 
-            It "is idempotent across repeated invocations" {
-                $strong = [AtlassianPS.JiraPS.User]@{ Name = 'jdoe' }
-                1..3 | ForEach-Object { Add-LegacyTypeAlias -InputObject $strong -LegacyName 'JiraPS.User' | Out-Null }
-
-                ($strong.PSObject.TypeNames | Where-Object { $_ -eq 'JiraPS.User' }).Count | Should -Be 1
-            }
-
-            It "passes the object through the pipeline" {
-                $strong = [AtlassianPS.JiraPS.Project]@{ Name = 'Repro' }
-                $piped = $strong | Add-LegacyTypeAlias -LegacyName 'JiraPS.Project'
-
-                $piped | Should -Be $strong
-                $piped.PSObject.TypeNames[0] | Should -Be 'JiraPS.Project'
-            }
-
-            It "no-ops on `$null without throwing" {
-                { Add-LegacyTypeAlias -InputObject $null -LegacyName 'JiraPS.Issue' } | Should -Not -Throw
+            It "lets a [Class](ConvertTo-Hashtable) cast succeed where [Class]\$psobject would fail on PS5.1" {
+                # The motivating bug for ConvertTo-Hashtable: casting a
+                # PSCustomObject to a custom .NET class throws
+                # PSInvalidCastException on Windows PowerShell 5.1, but casting
+                # from a Hashtable is fine. This test would fail on PS5.1
+                # without the round-trip.
+                $payload = [PSCustomObject]@{ Name = 'jdoe'; DisplayName = 'John Doe'; Active = $true }
+                { [AtlassianPS.JiraPS.User](ConvertTo-Hashtable -InputObject $payload) } | Should -Not -Throw
             }
         }
     }

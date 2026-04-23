@@ -54,7 +54,7 @@ InModuleScope JiraPS {
                     'key'     = $testJson.key
                     'restUrl' = $testJson.self
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 $object
             }
 
@@ -65,7 +65,7 @@ InModuleScope JiraPS {
                     'key'     = $testJson.key
                     'restUrl' = $testJson.self
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 $object
             }
 
@@ -75,7 +75,7 @@ InModuleScope JiraPS {
                     'Name'    = $InputObject
                     'RestUrl' = "$jiraServer/rest/api/2/user?username=$InputObject"
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                 $object
             }
 
@@ -440,7 +440,7 @@ InModuleScope JiraPS {
                         'AccountId' = $testAccountId
                         'RestUrl'   = "$jiraServer/rest/api/2/user?username=$InputObject"
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     $object
                 }
             }

@@ -164,7 +164,7 @@ HelpMessage: ''
 
 Issue of which the labels should be manipulated.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: Object[]
@@ -283,12 +283,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 
 ## OUTPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 If the `-PassThru` parameter is provided, this function will provide a reference
 to the JIRA issue modified.

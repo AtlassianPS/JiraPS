@@ -54,7 +54,7 @@ InModuleScope JiraPS {
             Mock Get-JiraProject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project'
                 $Projects = ConvertFrom-Json $JiraProjectData
-                $Projects.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+                $Projects.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 $Projects | Where-Object { $_.Key -in $Project }
             }
 
@@ -71,7 +71,7 @@ InModuleScope JiraPS {
                     Project = $InputObject.projectId
                     RestUrl = $InputObject.self
                 }
-                $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+                $result.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Version')
                 $result
             }
 
@@ -121,7 +121,7 @@ InModuleScope JiraPS {
                     $version = Get-JiraVersion -Project $projectKey -Name $versionName
                     $results = Set-JiraVersion -Version $version -Name "NewName" -ErrorAction Stop
                     $results | Should -Not -BeNullOrEmpty
-                    $results.PSObject.TypeNames[0] | Should -Be 'JiraPS.Version'
+                    $results.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version'
                     Should -Invoke 'Get-JiraVersion' -Times 2 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Get-JiraProject' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke 'ConvertTo-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
@@ -131,7 +131,7 @@ InModuleScope JiraPS {
                 It "sets an Issue's Version Name using the pipeline" {
                     $results = Get-JiraVersion -Project $projectKey | Set-JiraVersion -Name "NewName" -ErrorAction Stop
                     $results | Should -Not -BeNullOrEmpty
-                    $results.PSObject.TypeNames[0] | Should -Be 'JiraPS.Version'
+                    $results.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version'
                     Should -Invoke 'Get-JiraVersion' -Times 2 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Get-JiraProject' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke 'ConvertTo-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
