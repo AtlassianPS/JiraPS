@@ -82,6 +82,8 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   - `Project.ProjectTypeKey`, `Project.Url`, `Project.Email`, plus the optional flags `Project.Archived`, `Project.Simplified`, `Project.IsPrivate` (all `[bool?]`).
   - `Comment.RenderedBody` (DC, populated when the request used `expand=renderedBody`) and `Comment.Properties` (Cloud entity-properties array).
   - `ServerInfo.VersionNumbers` (the parsed `[int[]]` form of `Version`, e.g. `9, 17, 0`) and `ServerInfo.DisplayUrl` (DC's externally-visible base URL).
+  - `ServerInfo.DisplayUrlConfluence` and `ServerInfo.DisplayUrlServicedeskHelpCenter` (DC, populated when Jira is paired with Confluence / Service Desk so callers can build cross-product links without extra round-trips).
+  - `ServerInfo.BuildPartnerName` (DC OEM attribution), `ServerInfo.ServerTimeZone` (DC `{ id, displayName }`), and `ServerInfo.DefaultLocale` (DC `{ locale }`); the latter two stay typed as `[object]` because their wire shape is a side-band wrapper that no other class consumes.
 - `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
 - `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
 - `Invoke-JiraMethod` now supports Jira-doc style relative endpoint paths (for example, `/rest/api/2/issue/TEST-1`) and resolves them against `Get-JiraConfigServer`.

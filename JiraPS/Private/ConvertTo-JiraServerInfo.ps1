@@ -12,15 +12,20 @@
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.ServerInfo"
 
             $hash = @{
-                BaseURL        = $i.baseUrl
-                Version        = $i.version
-                DeploymentType = if ($i.deploymentType) { $i.deploymentType } else { 'Server' }
-                BuildNumber    = $i.buildNumber
-                BuildDate      = if ($i.buildDate) { Get-Date $i.buildDate } else { $null }
-                ServerTime     = if ($i.serverTime) { Get-Date $i.serverTime } else { $null }
-                ScmInfo        = $i.scmInfo
-                ServerTitle    = $i.serverTitle
-                DisplayUrl     = $i.displayUrl
+                BaseURL                         = $i.baseUrl
+                Version                         = $i.version
+                DeploymentType                  = if ($i.deploymentType) { $i.deploymentType } else { 'Server' }
+                BuildNumber                     = $i.buildNumber
+                BuildDate                       = if ($i.buildDate) { Get-Date $i.buildDate } else { $null }
+                ServerTime                      = if ($i.serverTime) { Get-Date $i.serverTime } else { $null }
+                ScmInfo                         = $i.scmInfo
+                ServerTitle                     = $i.serverTitle
+                DisplayUrl                      = $i.displayUrl
+                DisplayUrlConfluence            = $i.displayUrlConfluence
+                DisplayUrlServicedeskHelpCenter = $i.displayUrlServicedeskHelpCenter
+                BuildPartnerName                = $i.buildPartnerName
+                ServerTimeZone                  = $i.serverTimeZone
+                DefaultLocale                   = $i.defaultLocale
             }
 
             if ($i.versionNumbers) {

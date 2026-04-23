@@ -199,6 +199,17 @@ namespace AtlassianPS.JiraPS
         // DC-only display URL (the canonical externally-visible base URL,
         // which can differ from BaseURL behind a reverse proxy).
         public string DisplayUrl { get; set; }
+        // DC-only co-located product display URLs; null on Cloud and on DC
+        // instances that are not paired with Confluence / Service Desk.
+        public string DisplayUrlConfluence { get; set; }
+        public string DisplayUrlServicedeskHelpCenter { get; set; }
+        // DC-only OEM partner attribution (e.g. "Marketplace App Vendor").
+        public string BuildPartnerName { get; set; }
+        // DC-only complex shapes: { id, displayName } and { locale }.
+        // Kept as object so this assembly does not have to model side-band
+        // helper structs that no other class consumes.
+        public object ServerTimeZone { get; set; }
+        public object DefaultLocale { get; set; }
 
         public override string ToString()
         {
