@@ -6,10 +6,7 @@ param()
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
-    Initialize-TestEnvironment
-    $script:moduleToTest = Resolve-ModuleSource
-
-    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 InModuleScope JiraPS {
@@ -90,26 +87,64 @@ InModuleScope JiraPS {
                     Write-MockDebugInfo "ConvertTo-$type"
                 }
             }
+            # Synthetic response factory. The previous implementation shelled out
+            # to the real postman-echo.com on every test (~300 ms each, ~9 s total
+            # for this file alone). We now build an offline response that mimics
+            # the subset of Invoke-WebRequest's output that Invoke-JiraMethod
+            # actually reads: StatusCode, Content, RawContentStream, Headers -
+            # and shaped to echo the caller's headers/body like postman-echo did,
+            # so downstream "$response.headers.'x-fake' | Should -Be ..." assertions
+            # keep working without referencing the wire format.
+            function script:New-FakeEchoResponse {
+                param(
+                    [Parameter(Mandatory)][uri] $Uri,
+                    [string] $Method,
+                    $Body,
+                    [hashtable] $Headers
+                )
+
+                $statusCode = if ($Uri.AbsolutePath -match '/status/(\d+)') {
+                    [System.Net.HttpStatusCode][int]$Matches[1]
+                }
+                else {
+                    [System.Net.HttpStatusCode]::OK
+                }
+
+                $data = if ($null -eq $Body) { $null }
+                elseif ($Body -is [byte[]]) { [System.Text.Encoding]::UTF8.GetString($Body) }
+                else { [string]$Body }
+
+                $echoHeaders = @{}
+                if ($Headers) {
+                    foreach ($k in $Headers.Keys) {
+                        $echoHeaders[[string]$k.ToString().ToLower()] = $Headers[$k]
+                    }
+                }
+                $payload = [ordered]@{
+                    args    = @{}
+                    headers = $echoHeaders
+                    data    = $data
+                    url     = $Uri.AbsoluteUri
+                }
+                $json = $payload | ConvertTo-Json -Depth 10 -Compress
+                $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+
+                [PSCustomObject]@{
+                    StatusCode       = $statusCode
+                    Content          = $json
+                    RawContentStream = [System.IO.MemoryStream]::new($bytes)
+                    Headers          = $Headers
+                }
+            }
+
             Mock Invoke-WebRequest -ModuleName 'JiraPS' {
                 Write-MockDebugInfo 'Invoke-WebRequest' 'Uri', 'Method', 'Body', 'Headers', 'ContentType', 'SessionVariable', 'WebSession'
-                $InvokeWebRequestSplat = @{
-                    Uri             = $Uri
-                    Method          = $Method
-                    Body            = $Body
-                    Headers         = $Headers
-                    WebSession      = $WebSession
-                    ContentType     = $ContentType
-                    UseBasicParsing = $true
-                }
-                if ($SessionVariable) {
-                    $InvokeWebRequestSplat["SessionVariable"] = $SessionVariable
-                }
-
-                Microsoft.PowerShell.Utility\Invoke-WebRequest @InvokeWebRequestSplat
 
                 if ($SessionVariable) {
-                    Set-Variable -Name $SessionVariable -Value (Get-Variable $SessionVariable).Value -Scope 3 # Pester adds 2 levels of nesting
+                    Set-Variable -Name $SessionVariable -Value (New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession) -Scope 3 # Pester adds 2 levels of nesting
                 }
+
+                New-FakeEchoResponse -Uri $Uri -Method $Method -Body $Body -Headers $Headers
             }
             #endregion
         }
@@ -543,32 +578,26 @@ InModuleScope JiraPS {
 
         Context "Paged restuls" {
             BeforeAll {
+                # Offline paging mock - the previous version round-tripped through
+                # postman-echo.com to obtain a "real" Invoke-WebRequest result shape
+                # and then monkey-patched RawContentStream.ToArray onto it. Building
+                # the response directly from a MemoryStream is simpler and avoids ~6
+                # real HTTP calls that this Context used to make on every run.
                 Mock Invoke-WebRequest -ModuleName 'JiraPS' {
                     Write-MockDebugInfo 'Invoke-WebRequest' -Params 'Uri', 'Method', 'Body'
 
-                    $response = ""
-                    if ($Uri -match "startAt\=(\d+)") {
-                        switch ($matches[1]) {
-                            5 { $response = $pagedResponse2; break }
-                            7 { $response = $pagedResponse3; break }
-                        }
-                    }
-                    if (-not $response) {
-                        $response = $pagedResponse1
+                    $response = switch -Regex ([string]$Uri) {
+                        'startAt=5' { $pagedResponse2; break }
+                        'startAt=7' { $pagedResponse3; break }
+                        default { $pagedResponse1 }
                     }
 
-                    $InvokeWebRequestSplat = @{
-                        Uri             = "https://postman-echo.com/post"
-                        Method          = "Post"
-                        Body            = $response
-                        UseBasicParsing = $true
-
+                    $bytes = [System.Text.Encoding]::UTF8.GetBytes($response)
+                    [PSCustomObject]@{
+                        StatusCode       = [System.Net.HttpStatusCode]::OK
+                        Content          = $response
+                        RawContentStream = [System.IO.MemoryStream]::new($bytes)
                     }
-                    $result = Microsoft.PowerShell.Utility\Invoke-WebRequest @InvokeWebRequestSplat
-
-                    $scriptBlock = "`$response = @`"`n$response`n`"@;Write-Output ([System.Text.Encoding]::UTF8.GetBytes(`$response))"
-                    $result.RawContentStream | Add-Member -MemberType ScriptMethod -Name "ToArray" -Force -Value ([Scriptblock]::Create($scriptBlock))
-                    $result
                 }
                 Mock Join-Hashtable -ModuleName 'JiraPS' {
                     $table = @{ }

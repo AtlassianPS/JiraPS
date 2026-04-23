@@ -420,7 +420,7 @@ Follow the [`powershell-rules.md` Review Checklist](.github/ai-context/powershel
 
 **Runtime**: None (pure PowerShell)
 
-**Build-time**: Pinned in [`Tools/build.requirements.psd1`](Tools/build.requirements.psd1) — InvokeBuild, BuildHelpers, Metadata, Pester, PlatyPS, PSScriptAnalyzer.
+**Build-time**: Pinned in [`Tools/build.requirements.psd1`](Tools/build.requirements.psd1) — InvokeBuild, Metadata, Pester, PlatyPS, PSScriptAnalyzer.
 
 ## Documentation
 

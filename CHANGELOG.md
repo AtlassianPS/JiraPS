@@ -64,6 +64,25 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Internal
 
+- Sped up `Invoke-Build -Task Test` by ~45% (~32 s → ~20 s on macOS, larger on Windows).
+  `Initialize-TestEnvironment` (`Tests/Helpers/TestTools.ps1`) now caches the JiraPS module across Pester files via a source-tree fingerprint stored in the module's own scope, so a full run reimports once instead of once per file (~96 → 1).
+  All ~117 test files migrated to the new contract.
+  Behaviour covered by `Tests/TestTools.Tests.ps1`. (#600)
+- Deferred `Get-Help` discovery in `Tests/Help.Tests.ps1` from `BeforeDiscovery` to a per-cmdlet `BeforeAll` and short-circuited the parameter matrix in source mode (where the `Help` / `Parameter` contexts are `-Skip`'d).
+  Source-mode runs drop from ~8.9 s to ~4.6 s (-48%). (#600)
+- Replaced live `postman-echo.com` round-trips in `Tests/Functions/Public/Invoke-JiraMethod.Unit.Tests.ps1` with an offline `MemoryStream`-backed response factory mirroring postman-echo's `{ args, headers, data, url }` shape.
+  The file drops from ~9.5 s to ~2 s and no longer needs network connectivity. (#600)
+- Cut ~2 s of fixed overhead from every `Invoke-Build` invocation by removing the `BuildHelpers` build-time dependency and dropping the eager `#requires PowerShellGet` directive from `Tools/BuildTools.psm1`.
+  Static path `BH*` env vars are populated directly from `$PSScriptRoot`; the diagnostic `BH*` vars used by `ShowDebugInfo` (branch, commit hash, commit message, build number, build system) are derived inline from `$env:GITHUB_*` or `git` and only computed when that task runs.
+  Cold overhead drops from ~2.4 s to ~225 ms (-90%).
+  Warm overhead drops from ~200 ms to ~30 ms. (#600)
+- Made `GenerateExternalHelp` incremental via Invoke-Build's `-Inputs` / `-Outputs`, with a companion `RemoveOrphanedExternalHelp` task that trims locale dirs / `about_*.help.txt` / `*-help.xml` artifacts whose markdown source has been removed.
+  `Clean` no longer wipes `JiraPS/<locale>/` (it's an inter-build cache; `Release/` is still rebuilt from scratch).
+  Warm `GenerateExternalHelp` drops from ~550 ms to ~20 ms (-95%).
+  Inner-loop `Invoke-Build -Task Build` drops from ~3.4 s to ~1.0 s. (#600)
+- Narrowed `Invoke-ScriptAnalyzer`'s scope in the `Lint` task from the full project root to the actual code roots (`JiraPS/`, `Tests/`, `Tools/`, `JiraPS.build.ps1`), avoiding redundant parsing of the ~130 duplicated files under `Release/`.
+  Cold `Invoke-Build -Task Lint` drops from ~17.7 s to ~16.0 s.
+  Warm runs drop from ~3.2 s to ~1.8 s (-43%). (#600)
 - Modernized hot-path code now that PowerShell 5.1 is the floor:
   - Replaced `System.Collections.ArrayList` with `[System.Collections.Generic.List[T]]` in `New-JiraIssue`, `ConvertTo-JiraGroup`, and `Set-JiraIssueLabel` (the latter now initializes via constructor from existing labels).
   - Pre-compiled the regex patterns used by `ConvertTo-AtlassianDocumentFormat` once at module load.

@@ -4,8 +4,7 @@ Describe "Validation of build environment" -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/Helpers/TestTools.ps1"
 
-        Initialize-TestEnvironment
-        $script:moduleToTest = Resolve-ModuleSource
+        $script:moduleToTest = Initialize-TestEnvironment
         $script:moduleRoot = Resolve-ProjectRoot
     }
 
