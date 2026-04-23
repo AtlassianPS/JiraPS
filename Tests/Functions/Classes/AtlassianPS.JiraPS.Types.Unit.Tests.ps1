@@ -90,6 +90,40 @@ InModuleScope JiraPS {
             }
         }
 
+        Context "Cross-reference property typing (Windows PowerShell 5.1 hashtable-cast guard)" {
+            # On Windows PowerShell 5.1, [Type]@{ Property = $value } throws
+            # PSInvalidCastException when $value is a PSObject-wrapped instance
+            # (which Add-LegacyTypeAlias produces) and the destination property
+            # is typed as a sibling .NET class. PowerShell 7 silently unwraps,
+            # so this regression class would slip through PS7-only CI.
+            #
+            # These assertions lock the cross-reference slots open so any future
+            # tightening of e.g. Project.Lead to `User` triggers a test failure
+            # on every platform, not just on PS5.1.
+
+            It "keeps Project.Lead, Project.IssueTypes, and Project.Components as object" {
+                [AtlassianPS.JiraPS.Project].GetProperty('Lead').PropertyType.FullName | Should -Be 'System.Object'
+                [AtlassianPS.JiraPS.Project].GetProperty('IssueTypes').PropertyType.FullName | Should -Be 'System.Object'
+                [AtlassianPS.JiraPS.Project].GetProperty('Components').PropertyType.FullName | Should -Be 'System.Object'
+            }
+
+            It "keeps Comment.Author and Comment.UpdateAuthor as object" {
+                [AtlassianPS.JiraPS.Comment].GetProperty('Author').PropertyType.FullName | Should -Be 'System.Object'
+                [AtlassianPS.JiraPS.Comment].GetProperty('UpdateAuthor').PropertyType.FullName | Should -Be 'System.Object'
+            }
+
+            It "keeps Issue.Project, Issue.Assignee, Issue.Creator, Issue.Reporter as object" {
+                [AtlassianPS.JiraPS.Issue].GetProperty('Project').PropertyType.FullName | Should -Be 'System.Object'
+                [AtlassianPS.JiraPS.Issue].GetProperty('Assignee').PropertyType.FullName | Should -Be 'System.Object'
+                [AtlassianPS.JiraPS.Issue].GetProperty('Creator').PropertyType.FullName | Should -Be 'System.Object'
+                [AtlassianPS.JiraPS.Issue].GetProperty('Reporter').PropertyType.FullName | Should -Be 'System.Object'
+            }
+
+            It "keeps Filter.Owner as object" {
+                [AtlassianPS.JiraPS.Filter].GetProperty('Owner').PropertyType.FullName | Should -Be 'System.Object'
+            }
+        }
+
         Context "Add-LegacyTypeAlias" {
             It "inserts the legacy PSTypeName at index 0" {
                 $strong = [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }

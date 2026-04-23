@@ -50,7 +50,13 @@ namespace AtlassianPS.JiraPS
         public string Key { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public User Lead { get; set; }
+        // Lead's runtime value is an AtlassianPS.JiraPS.User produced by
+        // ConvertTo-JiraUser, but the slot is typed as `object` so the
+        // hashtable-cast `[Project]@{ Lead = ConvertTo-JiraUser $x }` does
+        // not have to unwrap a PSObject (which silently works on PS7 but
+        // throws PSInvalidCastException on Windows PowerShell 5.1 once
+        // Add-LegacyTypeAlias has touched the value's PSObject.TypeNames).
+        public object Lead { get; set; }
         public object IssueTypes { get; set; }
         public object Roles { get; set; }
         public string RestUrl { get; set; }
@@ -70,8 +76,10 @@ namespace AtlassianPS.JiraPS
         public object Body { get; set; }
         public object Visibility { get; set; }
         public string RestUrl { get; set; }
-        public User Author { get; set; }
-        public User UpdateAuthor { get; set; }
+        // Author / UpdateAuthor are AtlassianPS.JiraPS.User at runtime; see the
+        // note on Project.Lead for why the storage slot is `object`.
+        public object Author { get; set; }
+        public object UpdateAuthor { get; set; }
         public DateTime? Created { get; set; }
         public DateTime? Updated { get; set; }
 
@@ -92,7 +100,9 @@ namespace AtlassianPS.JiraPS
         public string Status { get; set; }
         public object IssueLinks { get; set; }
         public object Attachment { get; set; }
-        public Project Project { get; set; }
+        // Project's runtime value is AtlassianPS.JiraPS.Project; the slot is
+        // `object` for the same PS5.1 hashtable-cast reason as Project.Lead.
+        public object Project { get; set; }
         // Assignee may be a User instance OR the legacy string "Unassigned".
         public object Assignee { get; set; }
         public object Creator { get; set; }
@@ -148,7 +158,9 @@ namespace AtlassianPS.JiraPS
         public object SharedUser { get; set; }
         public object Subscription { get; set; }
         public string Description { get; set; }
-        public User Owner { get; set; }
+        // Owner is AtlassianPS.JiraPS.User at runtime; see the note on
+        // Project.Lead for why the storage slot is `object`.
+        public object Owner { get; set; }
 
         // The PowerShell-side AliasProperty for the American spelling (`Favorite`)
         // is added by ConvertTo-JiraFilter so historical assertions about the
