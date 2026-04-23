@@ -59,10 +59,7 @@ JiraPS uses two primary test templates based on function type:
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
-    Initialize-TestEnvironment
-    $script:moduleToTest = Resolve-ModuleSource
-
-    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 InModuleScope JiraPS {
@@ -157,10 +154,7 @@ InModuleScope JiraPS {
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
-    Initialize-TestEnvironment
-    $script:moduleToTest = Resolve-ModuleSource
-
-    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 InModuleScope JiraPS {
@@ -279,15 +273,15 @@ The `Tests/Helpers/TestTools.ps1` module provides reusable functions for test se
 
 **`Initialize-TestEnvironment`**
 
-- Cleans up previously loaded JiraPS modules to ensure clean test state
-- Must be called in `BeforeDiscovery` block before importing the module
-- No return value; works via side effects
+- Ensures the JiraPS module is loaded at the current on-disk version and returns the manifest path used.
+- Must be called in `BeforeDiscovery`; assign its return value to `$script:moduleToTest`.
+- Idempotent: short-circuits when the loaded module already matches the on-disk source. The next test file in a Pester run skips the Remove-Module / Import-Module churn entirely; the cache invalidates automatically when a source file (or `Release/JiraPS/JiraPS.psm1`) is touched.
 
 **`Resolve-ModuleSource`**
 
-- Returns the path to the JiraPS module manifest (`.psd1`)
-- Automatically detects source vs. Release build
-- Store result in `$script:moduleToTest`
+- Returns the path to the JiraPS module manifest (`.psd1`).
+- Automatically detects source vs. Release build.
+- You normally don't call this directly — `Initialize-TestEnvironment` already returns it.
 
 **`Resolve-ProjectRoot`**
 
@@ -307,10 +301,7 @@ The `Tests/Helpers/TestTools.ps1` module provides reusable functions for test se
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
-    Initialize-TestEnvironment                    # Clean up modules
-    $script:moduleToTest = Resolve-ModuleSource  # Get module path
-
-    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+    $script:moduleToTest = Initialize-TestEnvironment   # imports + returns manifest path
 }
 
 InModuleScope JiraPS {

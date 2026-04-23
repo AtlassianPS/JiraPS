@@ -23,10 +23,7 @@ BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
     . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
-    Initialize-TestEnvironment
-    $script:moduleToTest = Resolve-ModuleSource
-
-    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+    $script:moduleToTest = Initialize-TestEnvironment
 
     $script:Skip = Skip-IntegrationTest
     if (-not $Skip) {

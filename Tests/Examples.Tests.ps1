@@ -3,10 +3,7 @@
 BeforeDiscovery {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
 
-    Initialize-TestEnvironment
-    $script:moduleToTest = Resolve-ModuleSource
-
-    Import-Module $script:moduleToTest -Force -ErrorAction Stop
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 Describe "Validation of example codes in the documentation" -Tag Documentation, NotImplemented -Skip {

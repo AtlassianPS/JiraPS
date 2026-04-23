@@ -23,8 +23,36 @@ param(
 )
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force
+
 Remove-Item -Path env:\BH* -ErrorAction SilentlyContinue
-Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
+
+$ProjectName = 'JiraPS'
+$env:BHProjectName = $ProjectName
+$env:BHProjectPath = $PSScriptRoot
+$env:BHModulePath = Join-Path $PSScriptRoot $ProjectName
+$env:BHPSModulePath = $env:BHModulePath
+$env:BHPSModuleManifest = Join-Path $env:BHModulePath "$ProjectName.psd1"
+$env:BHBuildOutput = Join-Path $PSScriptRoot 'Release'
+
+# Populates the dynamic BH* env vars (branch, commit hash, build number,
+# build system). Kept out of the top-level so the git introspection only
+# runs when ShowDebugInfo actually needs the values.
+function Initialize-BuildEnvironmentInfo {
+    if ($env:GITHUB_ACTIONS) {
+        $env:BHBuildSystem = 'GitHub Actions'
+        # On PR builds GITHUB_REF_NAME is `<pr>/merge`; the source branch lives in GITHUB_HEAD_REF.
+        $env:BHBranchName = if ($env:GITHUB_HEAD_REF) { $env:GITHUB_HEAD_REF } else { $env:GITHUB_REF_NAME }
+        $env:BHCommitHash = $env:GITHUB_SHA
+        $env:BHBuildNumber = $env:GITHUB_RUN_NUMBER
+    }
+    else {
+        $env:BHBuildSystem = 'Unknown'
+        $env:BHBranchName = git -C $env:BHProjectPath rev-parse --abbrev-ref HEAD 2>$null
+        $env:BHCommitHash = git -C $env:BHProjectPath rev-parse HEAD 2>$null
+        $env:BHBuildNumber = '0'
+    }
+    $env:BHCommitMessage = (git -C $env:BHProjectPath log -1 --pretty=%B 2>$null) -join "`n"
+}
 
 #region HarmonizeVariables
 switch ($true) {
@@ -52,6 +80,7 @@ if ($VersionToPublish) {
 $builtManifestPath = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1"
 
 Task ShowDebugInfo {
+    Initialize-BuildEnvironmentInfo
     Write-Build Gray
     Write-Build Gray ('BHBuildSystem:              {0}' -f $env:BHBuildSystem)
     Write-Build Gray '-------------------------------------------------------'
@@ -80,7 +109,6 @@ Task ShowDebugInfo {
 # annotations on the PR diff.
 Task Lint {
     $isGitHubActions = [bool]$env:GITHUB_ACTIONS
-    ${/} = [System.IO.Path]::DirectorySeparatorChar
     $failures = [System.Collections.Generic.List[String]]::new()
 
     Write-Build Gray "Running style tests..."
@@ -106,19 +134,25 @@ Task Lint {
 
     Write-Build Gray "Running PSScriptAnalyzer..."
 
-    # Filter Release/* client-side rather than via -ExcludePath: the latter
-    # requires wildcard syntax that's easy to get subtly wrong, and Release/
-    # only matters for local devs (CI runs Lint before Build).
+    # Explicit source roots so PSSA does not recurse into Release/.
+    $analyzerPaths = @(
+        "$env:BHProjectPath/JiraPS"
+        "$env:BHProjectPath/Tests"
+        "$env:BHProjectPath/Tools"
+        "$env:BHProjectPath/JiraPS.build.ps1"
+    )
+
     $analyzerParams = @{
-        Path     = $env:BHProjectPath
         Settings = "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
         Severity = @('Error', 'Warning')
         Recurse  = $true
     }
 
+    # -Path is single-valued, so invoke per root and concatenate.
     $results = @(
-        Invoke-ScriptAnalyzer @analyzerParams |
-            Where-Object { $_.ScriptPath -notlike "*${/}Release${/}*" }
+        foreach ($path in $analyzerPaths) {
+            Invoke-ScriptAnalyzer -Path $path @analyzerParams
+        }
     )
 
     if ($results.Count -gt 0) {
@@ -150,14 +184,58 @@ Task Lint {
 Task Clean {
     Remove-Item $env:BHBuildOutput -Force -Recurse -ErrorAction SilentlyContinue
     Remove-Item "Test*.xml" -Force -ErrorAction SilentlyContinue
-    Remove-Item "$env:BHModulePath/en-US" -Recurse -Force -ErrorAction SilentlyContinue
+    # `JiraPS/<locale>/` is preserved as the GenerateExternalHelp incremental cache.
 }
 
 Task Build Clean, {
     if (-not (Test-Path "$env:BHBuildOutput/$env:BHProjectName")) {
         $null = New-Item -Path "$env:BHBuildOutput", "$env:BHBuildOutput/$env:BHProjectName" -ItemType Directory
     }
-}, GenerateExternalHelp, CopyModuleFiles, CompileModule, UpdateManifest
+}, GenerateExternalHelp, RemoveOrphanedExternalHelp, CopyModuleFiles, CompileModule, UpdateManifest
+
+# Synopsis: Remove generated help artifacts whose source markdown no longer exists.
+# Deletions in `docs/` would otherwise survive in `JiraPS/<locale>/` (the
+# GenerateExternalHelp cache) and ship via CopyModuleFiles.
+Task RemoveOrphanedExternalHelp {
+    if (-not (Test-Path $env:BHModulePath)) { return }
+    $docsRoot = Join-Path $env:BHProjectPath 'docs'
+
+    # Safety net: only sweep dirs that already look like generated help output.
+    # Prevents a missing/renamed `docs/<locale>/` from wiping `Public/` or `Private/`.
+    $isHelpOutputDir = {
+        param($dir)
+        $files = @(Get-ChildItem $dir.FullName -File -ErrorAction SilentlyContinue)
+        if ($files.Count -eq 0) { return $false }
+        @($files | Where-Object { $_.Name -notlike '*.help.txt' -and $_.Name -notlike '*-help.xml' }).Count -eq 0
+    }
+    $helpDirs = Get-ChildItem $env:BHModulePath -Directory -ErrorAction SilentlyContinue |
+        Where-Object { & $isHelpOutputDir $_ }
+
+    foreach ($localeDir in $helpDirs) {
+        $localeDocs = Join-Path $docsRoot $localeDir.Name
+        if (-not (Test-Path $localeDocs)) {
+            Remove-Item $localeDir.FullName -Recurse -Force
+            continue
+        }
+
+        $expected = [System.Collections.Generic.HashSet[string]]::new(
+            [System.StringComparer]::OrdinalIgnoreCase)
+
+        $hasCommandHelp = Get-ChildItem (Join-Path $localeDocs 'commands/*.md') -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -ne 'index.md' } |
+            Select-Object -First 1
+        if ($hasCommandHelp) {
+            $null = $expected.Add("$env:BHProjectName-help.xml")
+        }
+
+        Get-ChildItem (Join-Path $localeDocs 'about_*.md') -File -ErrorAction SilentlyContinue |
+            ForEach-Object { $null = $expected.Add("$($_.BaseName).help.txt") }
+
+        Get-ChildItem $localeDir.FullName -File -ErrorAction SilentlyContinue |
+            Where-Object { -not $expected.Contains($_.Name) } |
+            Remove-Item -Force
+    }
+}
 
 # Synopsis: Generate ./Release structure
 Task CopyModuleFiles {
@@ -210,7 +288,23 @@ Task CompileModule {
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
-Task GenerateExternalHelp {
+Task GenerateExternalHelp -Inputs {
+    Get-ChildItem "$env:BHProjectPath/docs" -Recurse -File -Filter '*.md'
+} -Outputs {
+    foreach ($locale in (Get-ChildItem "$env:BHProjectPath/docs" -Attribute Directory)) {
+        $localeOut = Join-Path $env:BHModulePath $locale.BaseName
+
+        $hasCommandHelp = Get-ChildItem "$($locale.FullName)/commands/*.md" -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -ne 'index.md' } |
+            Select-Object -First 1
+        if ($hasCommandHelp) {
+            Join-Path $localeOut "$env:BHProjectName-help.xml"
+        }
+
+        Get-ChildItem "$($locale.FullName)/about_*.md" -File -ErrorAction SilentlyContinue |
+            ForEach-Object { Join-Path $localeOut "$($_.BaseName).help.txt" }
+    }
+} {
     Import-Module Microsoft.PowerShell.PlatyPS -Force
 
     try {

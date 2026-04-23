@@ -4,43 +4,40 @@ $script:_TestToolsDir = $PSScriptRoot
 function Initialize-TestEnvironment {
     <#
     .SYNOPSIS
-        Cleans up previously loaded JiraPS modules to ensure a clean test state.
+        Ensures the JiraPS module is loaded at the current on-disk version and
+        returns the manifest path used.
 
     .DESCRIPTION
-        This helper function performs module cleanup for JiraPS unit tests by:
-        - Finding any modules that depend on JiraPS
-        - Removing dependent modules and JiraPS itself
-        - Ensuring a clean slate for module import in tests
+        Idempotent helper for test BeforeDiscovery blocks. On the first call it
+        removes any previously loaded JiraPS (and dependents), imports the
+        module from the resolved manifest path, and stamps the freshly loaded
+        module's session state with a fingerprint of the source tree.
 
-        This function should be called in BeforeDiscovery blocks before importing
-        the module under test.
+        On subsequent calls it recomputes the fingerprint and short-circuits
+        when the loaded module already matches - no Remove-Module / Import-Module
+        churn. When the on-disk module changes (a developer edits a function,
+        or `CompileModule` rewrites Release/JiraPS/JiraPS.psm1), the fingerprint
+        differs and the module is reimported.
+
+        The cache lives inside the loaded module's own session state, so its
+        lifetime is exactly the lifetime of the module instance it describes -
+        a stale-cache / fresh-module mismatch is impossible by construction.
 
     .OUTPUTS
-        None. This function works via side effects (module cleanup).
+        [string] The absolute path to the JiraPS manifest that was loaded.
 
     .EXAMPLE
-        # Standard usage in function tests
         BeforeDiscovery {
             . "$PSScriptRoot/../Helpers/TestTools.ps1"
 
-            Initialize-TestEnvironment
-            $script:moduleToTest = Resolve-ModuleSource
-
-            Import-Module $script:moduleToTest -Force -ErrorAction Stop
-        }
-
-    .EXAMPLE
-        # Usage in project-level tests
-        BeforeAll {
-            . "$PSScriptRoot/Helpers/TestTools.ps1"
-
-            Initialize-TestEnvironment
-            $script:moduleToTest = Resolve-ModuleSource
+            $script:moduleToTest = Initialize-TestEnvironment
         }
 
     .NOTES
-        This function should be called before importing the JiraPS module in tests
-        to prevent conflicts with previously loaded versions.
+        Replaces the previous "remove only, then explicit Import-Module -Force
+        in every test file" pattern. Across a full Pester run that pattern
+        triggered ~96 forced reimports per invocation; this helper limits it to
+        one per actual source change.
 
     .LINK
         Resolve-ModuleSource
@@ -49,11 +46,44 @@ function Initialize-TestEnvironment {
         Resolve-ProjectRoot
     #>
     [CmdletBinding()]
-    [OutputType([void])]
+    [OutputType([string])]
     param()
 
-    $dependentModules = Get-Module | Where-Object { $_.RequiredModules.Name -eq 'JiraPS' }
-    $dependentModules, "JiraPS" | Remove-Module -Force -ErrorAction SilentlyContinue
+    $manifestPath = Resolve-ModuleSource
+    $moduleDir = Split-Path $manifestPath -Parent
+
+    # Cheapest robust freshness signal: max LastWriteTimeUtc across all .ps*
+    # files under the module directory (~8 ms warm, ~40 ms cold). Detects
+    # source edits in JiraPS/{Public,Private}/*.ps1 as well as CompileModule
+    # rewriting Release/JiraPS/JiraPS.psm1 between Build runs.
+    $fingerprint = (
+        Get-ChildItem $moduleDir -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -in '.ps1', '.psm1', '.psd1' } |
+            ForEach-Object { $_.LastWriteTimeUtc.Ticks } |
+            Measure-Object -Maximum
+    ).Maximum
+
+    # Get-Module exposes the .psm1 as .Path (not the .psd1 manifest), so the
+    # stable identity for "same module loaded" is .ModuleBase, the directory
+    # containing the manifest.
+    $loaded = Get-Module JiraPS
+    if ($loaded -and $loaded.ModuleBase -eq $moduleDir) {
+        $cached = & $loaded { $script:__TestImportFingerprint }
+        if ($cached -eq $fingerprint) {
+            return $manifestPath
+        }
+    }
+
+    Get-Module |
+        Where-Object { $_.RequiredModules.Name -eq 'JiraPS' } |
+        Remove-Module -Force -ErrorAction SilentlyContinue
+    Remove-Module JiraPS -Force -ErrorAction SilentlyContinue
+
+    Import-Module $manifestPath -Force -ErrorAction Stop
+
+    & (Get-Module JiraPS) { param($fp) $script:__TestImportFingerprint = $fp } $fingerprint
+
+    return $manifestPath
 }
 
 function Resolve-ModuleSource {

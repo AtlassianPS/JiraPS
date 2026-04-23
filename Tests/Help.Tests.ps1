@@ -3,11 +3,8 @@
 BeforeDiscovery {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
 
-    Initialize-TestEnvironment
-    $script:moduleToTest = Resolve-ModuleSource
+    $script:moduleToTest = Initialize-TestEnvironment
     $script:projectRoot = Resolve-ProjectRoot
-
-    Import-Module $script:moduleToTest -Force -ErrorAction Stop
 }
 
 Describe "Help tests" -Tag "Documentation", "Build" {
@@ -22,12 +19,15 @@ Describe "Help tests" -Tag "Documentation", "Build" {
         # Only test public functions (those that have markdown documentation)
         $script:publicFunctions = (Get-ChildItem "$projectRoot/JiraPS/Public/*.ps1").BaseName
 
+        # Help data is fetched lazily per-cmdlet in BeforeAll below instead of
+        # eagerly at discovery. Calling Get-Help for all 64 public cmdlets up
+        # front cost ~9 s regardless of which tests actually ran, including
+        # source-mode runs where every Help/Parameter context is -Skip'd.
         $script:commands = Get-Command -Module JiraPS -CommandType Cmdlet, Function |
             Where-Object { $_.Name -in $publicFunctions } |
             ForEach-Object { @{
                     Command     = $_
                     CommandName = $_.Name
-                    Help        = (Get-Help $_.Name)
                 }
             }
 
@@ -57,16 +57,28 @@ Describe "Help tests" -Tag "Documentation", "Build" {
             BeforeDiscovery {
                 # Exclude default params and any parameter marked [Parameter(DontShow)],
                 # which is the principled signal for "internal, not part of the public surface".
-                $cmd = $_.Command
-                $isDontShow = {
-                    param($name)
-                    $paramAttr = $cmd.Parameters[$name].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
-                    return ($paramAttr.DontShow -contains $true)
+                # The parameter matrix only feeds a -Skip'd context in source mode, so skip the
+                # per-cmdlet attribute reflection there as well (it compounds over 64 cmdlets).
+                if ($isRunningInReleaseFolder) {
+                    $cmd = $_.Command
+                    $isDontShow = {
+                        param($name)
+                        $paramAttr = $cmd.Parameters[$name].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
+                        return ($paramAttr.DontShow -contains $true)
+                    }
+                    $script:parameters = $cmd.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and -not (& $isDontShow $_) }
                 }
-                $script:parameters = $cmd.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and -not (& $isDontShow $_) }
+                else {
+                    $script:parameters = @()
+                }
             }
             BeforeAll {
                 $script:command = $_.Command
+                # Get-Help is only consumed by the Help / Parameter contexts, which
+                # are -Skip'd against the source tree. Skip the MAML parse entirely
+                # in that mode. In Release mode the first call per cmdlet parses the
+                # MAML (~150 ms); sibling contexts below reuse the cached result.
+                $script:help = if ($isRunningInReleaseFolder) { Get-Help $command.Name }
             }
 
             Context "Markdown file for <_.CommandName>" {
@@ -107,10 +119,6 @@ Describe "Help tests" -Tag "Documentation", "Build" {
             }
 
             Context "Help for <_.CommandName>" -Skip:(-not $isRunningInReleaseFolder) {
-                BeforeAll {
-                    $script:help = $command.Help
-                }
-
                 It "has a synopsis" {
                     $help.Synopsis | Should -Not -BeNullOrEmpty
                 }
@@ -269,8 +277,6 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
 
                 It "does not have parameters that are not in the code" {
-                    $help = $_.Help
-
                     $parameter = @()
                     if ($help.Parameters | Get-Member -Name Parameter) {
                         $parameter = $help.Parameters.Parameter.Name | Sort-Object -Unique
@@ -282,8 +288,6 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
 
                 It "documents every public parameter exposed by the code" {
-                    $help = $_.Help
-
                     $documented = @()
                     if ($help.Parameters | Get-Member -Name Parameter) {
                         $documented = @($help.Parameters.Parameter.Name)
