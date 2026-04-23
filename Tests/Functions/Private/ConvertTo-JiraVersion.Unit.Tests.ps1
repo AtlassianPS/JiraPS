@@ -116,6 +116,19 @@ InModuleScope JiraPS {
                 It "converts Overdue to correct type" {
                     $result.Overdue | Should -BeOfType [bool]
                 }
+
+                It "converts Project to System.Int64 (long?)" {
+                    $result.Project | Should -BeOfType [long]
+                }
+
+                It "leaves Project null when projectId is missing from the payload" {
+                    $payloadWithoutProject = $sampleObject.PSObject.Copy()
+                    $payloadWithoutProject.PSObject.Properties.Remove('projectId')
+
+                    $defaulted = ConvertTo-JiraVersion -InputObject $payloadWithoutProject
+
+                    $defaulted.Project | Should -BeNullOrEmpty
+                }
             }
 
             Context "Pipeline Support" {

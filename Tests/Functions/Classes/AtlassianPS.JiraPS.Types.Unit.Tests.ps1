@@ -139,6 +139,20 @@ InModuleScope JiraPS {
                 [AtlassianPS.JiraPS.ServerInfo].GetProperty('ScmInfo').PropertyType | Should -Be ([string])
                 [AtlassianPS.JiraPS.ServerInfo].GetProperty('BuildNumber').PropertyType | Should -Be ([System.Nullable[long]])
             }
+
+            It "Filter.Favourite is System.Boolean" {
+                [AtlassianPS.JiraPS.Filter].GetProperty('Favourite').PropertyType | Should -Be ([bool])
+            }
+
+            It "Version.Archived, Version.Released and Version.Overdue are System.Boolean" {
+                [AtlassianPS.JiraPS.Version].GetProperty('Archived').PropertyType | Should -Be ([bool])
+                [AtlassianPS.JiraPS.Version].GetProperty('Released').PropertyType | Should -Be ([bool])
+                [AtlassianPS.JiraPS.Version].GetProperty('Overdue').PropertyType | Should -Be ([bool])
+            }
+
+            It "Version.Project is Nullable<Int64>" {
+                [AtlassianPS.JiraPS.Version].GetProperty('Project').PropertyType | Should -Be ([System.Nullable[long]])
+            }
         }
 
         Context "ConvertTo-Hashtable" {

@@ -21,7 +21,7 @@
                 RestUrl           = $i.self
                 ViewUrl           = $i.viewUrl
                 SearchUrl         = $i.searchUrl
-                Favourite         = $i.favourite
+                Favourite         = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) } else { $false }
                 FilterPermissions = if ($FilterPermissions) { @(ConvertTo-JiraFilterPermission ($FilterPermissions)) } else { @() }
                 SharePermission   = $i.sharePermissions
                 SharedUser        = $i.sharedUsers

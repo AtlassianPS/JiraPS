@@ -13,18 +13,23 @@
 
             $hash = @{
                 ID          = $i.id
-                Project     = $i.projectId
                 Name        = $i.name
                 Description = $i.description
-                Archived    = $i.archived
-                Released    = $i.released
-                Overdue     = $i.overdue
+                # Booleans default to $false on the class; an absent flag in the
+                # payload means "not set" which the Jira REST docs spell as false.
+                Archived    = if ($null -ne $i.archived) { [System.Convert]::ToBoolean($i.archived) } else { $false }
+                Released    = if ($null -ne $i.released) { [System.Convert]::ToBoolean($i.released) } else { $false }
+                Overdue     = if ($null -ne $i.overdue) { [System.Convert]::ToBoolean($i.overdue) } else { $false }
                 RestUrl     = $i.self
                 # Legacy contract: missing dates surface as empty string, not $null,
                 # so existing user scripts that test `if ($v.StartDate)` keep
                 # short-circuiting on missing values.
                 StartDate   = if ($i.startDate) { Get-Date $i.startDate } else { '' }
                 ReleaseDate = if ($i.releaseDate) { Get-Date $i.releaseDate } else { '' }
+            }
+
+            if ($null -ne $i.projectId) {
+                $hash.Project = [long]$i.projectId
             }
 
             [AtlassianPS.JiraPS.Version]$hash

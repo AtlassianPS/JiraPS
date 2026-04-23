@@ -40,6 +40,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
 | `Invoke-JiraMethod -Uri`     | Relative endpoint paths are now first-class (`/rest/api/...`).          |
 | PSTypeName rename            | Eight core types moved from `JiraPS.<Type>` to `AtlassianPS.JiraPS.<Type>`. |
+| Class slot type tightening   | Boolean / numeric slots on `Filter` and `Version` are now strongly typed; missing flags surface as `$false` instead of `$null`. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -314,6 +315,40 @@ names), but if a test must keep the v2 hashtable shape, just rename the
 `PSTypeName` value to `'AtlassianPS.JiraPS.<Type>'` and it will continue
 to bind correctly to `[PSTypeName('AtlassianPS.JiraPS.<Type>')]`
 parameter attributes.
+
+### Class slot type tightening — `Filter`, `Version`
+
+The boolean and numeric properties on `AtlassianPS.JiraPS.Filter` and
+`AtlassianPS.JiraPS.Version` are now strongly typed:
+
+| Property              | v2 slot type | v3 slot type |
+| --------------------- | ------------ | ------------ |
+| `Filter.Favourite`    | `[object]`   | `[bool]`     |
+| `Version.Archived`    | `[object]`   | `[bool]`     |
+| `Version.Released`    | `[object]`   | `[bool]`     |
+| `Version.Overdue`     | `[object]`   | `[bool]`     |
+| `Version.Project`     | `[object]`   | `[long?]`    |
+
+This matches what the Jira REST APIs actually return and lets `Get-Member`,
+IDE IntelliSense, and `[ValidateScript]` see the real types.
+
+The user-visible behaviour change is around **missing fields**.
+The Jira docs describe a missing boolean flag as "not set" (i.e. `false`),
+and v3 surfaces it that way:
+
+```powershell
+# v2 — a Filter without a `favourite` key in the payload
+$filter.Favourite -eq $null    # True (slot was [object], default $null)
+
+# v3 — same payload
+$filter.Favourite -eq $null    # False
+$filter.Favourite -eq $false   # True
+```
+
+If your scripts deliberately distinguish "field absent" from "field set to
+false" via `if ($null -eq $f.Favourite)` you need to switch to a different
+signal (e.g. inspect the raw payload before the converter runs, or use
+`[Nullable[bool]]` in your own wrapper code).
 
 ### Minimum PowerShell Version
 

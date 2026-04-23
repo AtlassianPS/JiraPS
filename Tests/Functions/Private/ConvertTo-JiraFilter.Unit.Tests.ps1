@@ -203,6 +203,15 @@ InModuleScope JiraPS {
                 It "defines the 'Favorite' property as an alias of 'Favourite'" {
                     ($result | Get-Member -Name Favorite).MemberType | Should -Be "AliasProperty"
                 }
+
+                It "defaults 'Favourite' to `$false when the payload omits the field" {
+                    $payloadWithoutFavourite = $sampleObject.PSObject.Copy()
+                    $payloadWithoutFavourite.PSObject.Properties.Remove('favourite')
+                    $defaulted = ConvertTo-JiraFilter -InputObject $payloadWithoutFavourite -FilterPermission $samplePermission
+
+                    $defaulted.Favourite | Should -BeOfType [bool]
+                    $defaulted.Favourite | Should -BeFalse
+                }
             }
 
             Context "Type Conversion" {

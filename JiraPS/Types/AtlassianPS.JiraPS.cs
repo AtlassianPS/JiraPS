@@ -106,14 +106,14 @@ namespace AtlassianPS.JiraPS
     public class Version
     {
         public string ID { get; set; }
-        // Project here is the source projectId from the wire payload (numeric or
-        // string), not a Project instance. Typed as object to preserve.
-        public object Project { get; set; }
+        // Wire field is `projectId` (a long); kept under the legacy `Project`
+        // name for backward compatibility with v2 scripts.
+        public long? Project { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public object Archived { get; set; }
-        public object Released { get; set; }
-        public object Overdue { get; set; }
+        public bool Archived { get; set; }
+        public bool Released { get; set; }
+        public bool Overdue { get; set; }
         public string RestUrl { get; set; }
         // StartDate / ReleaseDate are DateTime when set, empty string when not
         // (legacy converter behavior). Typed as object to preserve.
@@ -134,7 +134,7 @@ namespace AtlassianPS.JiraPS
         public string RestUrl { get; set; }
         public string ViewUrl { get; set; }
         public string SearchUrl { get; set; }
-        public object Favourite { get; set; }
+        public bool Favourite { get; set; }
         public object FilterPermissions { get; set; }
         public object SharePermission { get; set; }
         public object SharedUser { get; set; }
