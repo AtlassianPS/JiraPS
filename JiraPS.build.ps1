@@ -35,10 +35,23 @@ $env:BHPSModuleManifest = Join-Path $env:BHModulePath "$ProjectName.psd1"
 $env:BHBuildOutput = Join-Path $PSScriptRoot 'Release'
 
 # Populates the dynamic BH* env vars (branch, commit hash, build number,
-# build system) via BuildHelpers. Kept out of the top-level so the git
-# introspection only runs when ShowDebugInfo actually needs the values.
+# build system). Kept out of the top-level so the git introspection only
+# runs when ShowDebugInfo actually needs the values.
 function Initialize-BuildEnvironmentInfo {
-    Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
+    if ($env:GITHUB_ACTIONS) {
+        $env:BHBuildSystem = 'GitHub Actions'
+        # On PR builds GITHUB_REF_NAME is `<pr>/merge`; the source branch lives in GITHUB_HEAD_REF.
+        $env:BHBranchName = if ($env:GITHUB_HEAD_REF) { $env:GITHUB_HEAD_REF } else { $env:GITHUB_REF_NAME }
+        $env:BHCommitHash = $env:GITHUB_SHA
+        $env:BHBuildNumber = $env:GITHUB_RUN_NUMBER
+    }
+    else {
+        $env:BHBuildSystem = 'Unknown'
+        $env:BHBranchName = git -C $env:BHProjectPath rev-parse --abbrev-ref HEAD 2>$null
+        $env:BHCommitHash = git -C $env:BHProjectPath rev-parse HEAD 2>$null
+        $env:BHBuildNumber = '0'
+    }
+    $env:BHCommitMessage = (git -C $env:BHProjectPath log -1 --pretty=%B 2>$null) -join "`n"
 }
 
 #region HarmonizeVariables

@@ -72,8 +72,8 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   Source-mode runs drop from ~8.9 s to ~4.6 s (-48%). (#600)
 - Replaced live `postman-echo.com` round-trips in `Tests/Functions/Public/Invoke-JiraMethod.Unit.Tests.ps1` with an offline `MemoryStream`-backed response factory mirroring postman-echo's `{ args, headers, data, url }` shape.
   The file drops from ~9.5 s to ~2 s and no longer needs network connectivity. (#600)
-- Cut ~2 s of fixed overhead from every `Invoke-Build` invocation by lazy-loading `BuildHelpers` (now triggered inside `ShowDebugInfo` via a new `Initialize-BuildEnvironmentInfo` helper) and dropping the eager `#requires PowerShellGet` directive from `Tools/BuildTools.psm1`.
-  Static path `BH*` env vars are populated directly from `$PSScriptRoot`.
+- Cut ~2 s of fixed overhead from every `Invoke-Build` invocation by removing the `BuildHelpers` build-time dependency and dropping the eager `#requires PowerShellGet` directive from `Tools/BuildTools.psm1`.
+  Static path `BH*` env vars are populated directly from `$PSScriptRoot`; the diagnostic `BH*` vars used by `ShowDebugInfo` (branch, commit hash, commit message, build number, build system) are derived inline from `$env:GITHUB_*` or `git` and only computed when that task runs.
   Cold overhead drops from ~2.4 s to ~225 ms (-90%).
   Warm overhead drops from ~200 ms to ~30 ms. (#600)
 - Made `GenerateExternalHelp` incremental via Invoke-Build's `-Inputs` / `-Outputs`, with a companion `RemoveOrphanedExternalHelp` task that trims locale dirs / `about_*.help.txt` / `*-help.xml` artifacts whose markdown source has been removed.

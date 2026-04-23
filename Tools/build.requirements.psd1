@@ -1,6 +1,5 @@
 ﻿@(
     @{ ModuleName = "InvokeBuild"; RequiredVersion = "5.14.22" }
-    @{ ModuleName = "BuildHelpers"; RequiredVersion = "2.0.16" }
     @{ ModuleName = "Metadata"; RequiredVersion = "1.5.7" }
     @{ ModuleName = "Pester"; RequiredVersion = "5.7.1" }
     @{ ModuleName = "Microsoft.PowerShell.PlatyPS"; RequiredVersion = "1.0.1" }
