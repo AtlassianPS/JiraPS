@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraVersion {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Version])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -10,38 +11,35 @@
         foreach ($i in $InputObject) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
-            $props = @{
-                'ID'          = $i.id
-                'Project'     = $i.projectId
-                'Name'        = $i.name
-                'Description' = $i.description
-                'Archived'    = $i.archived
-                'Released'    = $i.released
-                'Overdue'     = $i.overdue
-                'RestUrl'     = $i.self
+            $result = [AtlassianPS.JiraPS.Version]@{
+                ID          = $i.id
+                Project     = $i.projectId
+                Name        = $i.name
+                Description = $i.description
+                Archived    = $i.archived
+                Released    = $i.released
+                Overdue     = $i.overdue
+                RestUrl     = $i.self
             }
 
+            # Legacy contract: missing dates surface as empty string, not $null,
+            # so existing user scripts that test `if ($v.StartDate)` continue
+            # to short-circuit on missing values.
             if ($i.startDate) {
-                $props["StartDate"] = Get-Date $i.startDate
+                $result.StartDate = Get-Date $i.startDate
             }
             else {
-                $props["StartDate"] = ""
+                $result.StartDate = ""
             }
 
             if ($i.releaseDate) {
-                $props["ReleaseDate"] = Get-Date $i.releaseDate
+                $result.ReleaseDate = Get-Date $i.releaseDate
             }
             else {
-                $props["ReleaseDate"] = ""
+                $result.ReleaseDate = ""
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
-            }
-
-            Write-Output $result
+            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.Version'
         }
     }
 }

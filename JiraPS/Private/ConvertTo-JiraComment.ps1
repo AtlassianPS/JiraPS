@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraComment {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Comment])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -10,36 +11,30 @@
         foreach ($i in $InputObject) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
 
-            $props = @{
-                'ID'         = $i.id
-                'Body'       = ConvertFrom-AtlassianDocumentFormat -InputObject $i.body
-                'Visibility' = $i.visibility
-                'RestUrl'    = $i.self
+            $result = [AtlassianPS.JiraPS.Comment]@{
+                ID         = $i.id
+                Body       = ConvertFrom-AtlassianDocumentFormat -InputObject $i.body
+                Visibility = $i.visibility
+                RestUrl    = $i.self
             }
 
             if ($i.author) {
-                $props.Author = ConvertTo-JiraUser -InputObject $i.author
+                $result.Author = ConvertTo-JiraUser -InputObject $i.author
             }
 
             if ($i.updateAuthor) {
-                $props.UpdateAuthor = ConvertTo-JiraUser -InputObject $i.updateAuthor
+                $result.UpdateAuthor = ConvertTo-JiraUser -InputObject $i.updateAuthor
             }
 
             if ($i.created) {
-                $props.Created = (Get-Date ($i.created))
+                $result.Created = (Get-Date ($i.created))
             }
 
             if ($i.updated) {
-                $props.Updated = (Get-Date ($i.updated))
+                $result.Updated = (Get-Date ($i.updated))
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Comment')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Body)"
-            }
-
-            Write-Output $result
+            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.Comment'
         }
     }
 }

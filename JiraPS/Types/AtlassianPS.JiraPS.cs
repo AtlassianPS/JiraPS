@@ -150,13 +150,9 @@ namespace AtlassianPS.JiraPS
         public string Description { get; set; }
         public User Owner { get; set; }
 
-        // Alias for users who prefer American spelling. The PowerShell-side
-        // AliasProperty applied historically is preserved for back-compat.
-        public object Favorite
-        {
-            get { return Favourite; }
-            set { Favourite = value; }
-        }
+        // The PowerShell-side AliasProperty for the American spelling (`Favorite`)
+        // is added by ConvertTo-JiraFilter so historical assertions about the
+        // member type continue to hold.
 
         public override string ToString()
         {

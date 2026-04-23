@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraIssue {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Issue])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -12,6 +13,18 @@
     begin {
         $userFields = @('Assignee', 'Creator', 'Reporter')
         $dateFields = @('Created', 'LastViewed', 'Updated')
+
+        # Property names native to AtlassianPS.JiraPS.Issue. Anything outside
+        # this set (notably `customfield_*` keys) is attached afterwards as a
+        # PSObject NoteProperty so we keep the historical "every field is
+        # accessible by name" contract intact.
+        $nativeProperties = @(
+            'ID', 'Key', 'HttpUrl', 'RestUrl', 'Summary', 'Description',
+            'Status', 'IssueLinks', 'Attachment', 'Project',
+            'Assignee', 'Creator', 'Reporter',
+            'Created', 'LastViewed', 'Updated',
+            'Fields', 'Expand', 'Transition', 'Comment'
+        )
 
         $transitions = New-Object -TypeName System.Collections.ArrayList
         $comments = New-Object -TypeName System.Collections.ArrayList
@@ -26,55 +39,55 @@
 
             $http = "{0}browse/$($i.key)" -f ($InputObject.self -split 'rest')[0]
 
-            $props = @{
-                'ID'          = $i.id
-                'Key'         = $i.key
-                'HttpUrl'     = $http
-                'RestUrl'     = $i.self
-                'Summary'     = $i.fields.summary
-                'Description' = ConvertFrom-AtlassianDocumentFormat -InputObject $i.fields.description
-                'Status'      = $i.fields.status.name
+            $result = [AtlassianPS.JiraPS.Issue]@{
+                ID          = $i.id
+                Key         = $i.key
+                HttpUrl     = $http
+                RestUrl     = $i.self
+                Summary     = $i.fields.summary
+                Description = ConvertFrom-AtlassianDocumentFormat -InputObject $i.fields.description
+                Status      = $i.fields.status.name
             }
 
             if ($i.fields.issuelinks) {
-                $props['IssueLinks'] = ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks
+                $result.IssueLinks = ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks
             }
 
             if ($i.fields.attachment) {
-                $props["Attachment"] = ConvertTo-JiraAttachment $i.fields.attachment
+                $result.Attachment = ConvertTo-JiraAttachment $i.fields.attachment
             }
 
             if ($i.fields.project) {
-                $props.Project = ConvertTo-JiraProject -InputObject $i.fields.project
+                $result.Project = ConvertTo-JiraProject -InputObject $i.fields.project
             }
 
             foreach ($field in $userFields) {
                 if ($i.fields.$field) {
-                    $props.$field = ConvertTo-JiraUser -InputObject $i.fields.$field
+                    $result.$field = ConvertTo-JiraUser -InputObject $i.fields.$field
                 }
                 elseif ($field -eq 'Assignee') {
-                    $props.Assignee = 'Unassigned'
-                }
-                else {
+                    # Legacy sentinel. Surface as a string so downstream
+                    # `if ($issue.Assignee -eq 'Unassigned')` checks keep working.
+                    $result.Assignee = 'Unassigned'
                 }
             }
 
             foreach ($field in $dateFields) {
                 if ($i.fields.$field) {
-                    $props.$field = Get-Date -Date ($i.fields.$field)
+                    $result.$field = Get-Date -Date ($i.fields.$field)
                 }
             }
 
             if ($IncludeDebug) {
-                $props.Fields = $i.fields
-                $props.Expand = $i.expand
+                $result.Fields = $i.fields
+                $result.Expand = $i.expand
             }
 
             [void] $transitions.Clear()
             foreach ($t in $i.transitions) {
                 [void] $transitions.Add( (ConvertTo-JiraTransition -InputObject $t) )
             }
-            $props.Transition = $transitions.ToArray()
+            $result.Transition = $transitions.ToArray()
 
             [void] $comments.Clear()
             if ($i.fields.comment) {
@@ -82,23 +95,19 @@
                     foreach ($c in $i.fields.comment.comments) {
                         [void] $comments.Add( (ConvertTo-JiraComment -InputObject $c) )
                     }
-                    $props.Comment = $comments.ToArray()
+                    $result.Comment = $comments.ToArray()
                 }
             }
 
-            $extraFields = $i.fields.PSObject.Properties | Where-Object -FilterScript { $_.Name -notin $props.Keys }
+            # Custom fields and any unmapped server payload keys ride along as
+            # PSObject NoteProperties to preserve the historical contract that
+            # every API field is accessible by name on the returned object.
+            $extraFields = $i.fields.PSObject.Properties | Where-Object -FilterScript { $_.Name -notin $nativeProperties }
             foreach ($f in $extraFields) {
-                $name = $f.Name
-                $props[$name] = $f.Value
+                $result | Add-Member -MemberType NoteProperty -Name $f.Name -Value $f.Value -Force
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "[$($this.Key)] $($this.Summary)"
-            }
-
-            Write-Output $result
+            Add-LegacyTypeAlias -InputObject $result -LegacyName 'JiraPS.Issue'
         }
     }
 }
