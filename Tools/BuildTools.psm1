@@ -1,11 +1,4 @@
-﻿# NOTE: This module intentionally does NOT use `#requires -Modules PowerShellGet`.
-# That directive forces PowerShell to eagerly load PowerShellGet whenever the
-# module is imported, costing ~500 ms per `Invoke-Build` invocation even though
-# only `Install-Dependency` actually needs it. PSGet auto-loads on demand when
-# `Install-Module`/`Get-PSRepository` are called, so the dependency is still
-# satisfied at the only call site that matters (`setup.ps1`).
-
-function Assert-True {
+﻿function Assert-True {
     [CmdletBinding( DefaultParameterSetName = 'ByBool' )]
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByScriptBlock' )]

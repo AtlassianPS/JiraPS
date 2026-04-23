@@ -24,18 +24,8 @@ param(
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force
 
-# Stale BH* vars from a prior build (potentially of a different repo) would
-# leak into this run; clear them before we re-populate the static subset.
 Remove-Item -Path env:\BH* -ErrorAction SilentlyContinue
 
-# Populate the static path BH* variables directly. Calling
-# `Set-BuildEnvironment` (BuildHelpers) here is what previously cost ~470 ms
-# per Invoke-Build invocation because it auto-imports BuildHelpers and runs
-# git introspection (`git rev-parse`, `git log`, `git branch`) just to fill
-# `BHBranchName`/`BHCommitHash`/`BHCommitMessage`/`BHBuildNumber`/`BHBuildSystem`
-# — env vars that only `ShowDebugInfo` actually reads. The dynamic vars are
-# populated lazily in `Initialize-BuildEnvironmentInfo` (called by
-# `ShowDebugInfo`).
 $ProjectName = 'JiraPS'
 $env:BHProjectName = $ProjectName
 $env:BHProjectPath = $PSScriptRoot
@@ -44,9 +34,10 @@ $env:BHPSModulePath = $env:BHModulePath
 $env:BHPSModuleManifest = Join-Path $env:BHModulePath "$ProjectName.psd1"
 $env:BHBuildOutput = Join-Path $PSScriptRoot 'Release'
 
+# Populates the dynamic BH* env vars (branch, commit hash, build number,
+# build system) via BuildHelpers. Kept out of the top-level so the git
+# introspection only runs when ShowDebugInfo actually needs the values.
 function Initialize-BuildEnvironmentInfo {
-    # Populates the dynamic BH* env vars (branch, commit hash, commit message,
-    # build number, build system). Auto-imports BuildHelpers on first call.
     Set-BuildEnvironment -BuildOutput '$ProjectPath/Release' -ErrorAction SilentlyContinue
 }
 
@@ -130,14 +121,7 @@ Task Lint {
 
     Write-Build Gray "Running PSScriptAnalyzer..."
 
-    # Scope -Path to the actual code roots instead of the project root. The
-    # previous design pointed -Path at $env:BHProjectPath and filtered
-    # Release/* findings client-side, which forced PSSA to parse every
-    # `.ps1`/`.psm1`/`.psd1` file under Release/ (~130 files duplicated
-    # from JiraPS/ and Tests/) just so the results could be discarded.
-    # Listing the source roots explicitly skips that work entirely while
-    # remaining safe: every PowerShell file we author lives under one of
-    # these paths.
+    # Explicit source roots so PSSA does not recurse into Release/.
     $analyzerPaths = @(
         "$env:BHProjectPath/JiraPS"
         "$env:BHProjectPath/Tests"
@@ -151,7 +135,7 @@ Task Lint {
         Recurse  = $true
     }
 
-    # PSSA's -Path is single-valued, so invoke it per root and concatenate.
+    # -Path is single-valued, so invoke per root and concatenate.
     $results = @(
         foreach ($path in $analyzerPaths) {
             Invoke-ScriptAnalyzer -Path $path @analyzerParams
@@ -187,14 +171,7 @@ Task Lint {
 Task Clean {
     Remove-Item $env:BHBuildOutput -Force -Recurse -ErrorAction SilentlyContinue
     Remove-Item "Test*.xml" -Force -ErrorAction SilentlyContinue
-    # NOTE: We intentionally do NOT wipe `JiraPS/<locale>/` here.
-    # GenerateExternalHelp uses Invoke-Build's `-Inputs/-Outputs` incremental
-    # mode and relies on those artifacts surviving across builds so it can
-    # skip itself when nothing in `docs/` has changed. Release/ is recreated
-    # from scratch every build anyway via CopyModuleFiles, so the source-tree
-    # en-US/ folder is purely a build cache. To force a full help rebuild,
-    # delete `JiraPS/<locale>/` manually or run `Invoke-Build -Task GenerateExternalHelp`
-    # after `git clean -fdx JiraPS/`.
+    # `JiraPS/<locale>/` is preserved as the GenerateExternalHelp incremental cache.
 }
 
 Task Build Clean, {
@@ -204,20 +181,14 @@ Task Build Clean, {
 }, GenerateExternalHelp, RemoveOrphanedExternalHelp, CopyModuleFiles, CompileModule, UpdateManifest
 
 # Synopsis: Remove generated help artifacts whose source markdown no longer exists.
-#
-# `Clean` no longer wipes `JiraPS/<locale>/` (so `GenerateExternalHelp` can use
-# it as an incremental-build cache). That means a deleted `docs/<locale>/about_X.md`
-# would leave a stale `about_X.help.txt` on disk, which `CopyModuleFiles` would
-# then ship into Release. This sweep runs every Build (cost: a few directory
-# enumerations) so deletions in `docs/` always reach the artifact.
+# Deletions in `docs/` would otherwise survive in `JiraPS/<locale>/` (the
+# GenerateExternalHelp cache) and ship via CopyModuleFiles.
 Task RemoveOrphanedExternalHelp {
     if (-not (Test-Path $env:BHModulePath)) { return }
     $docsRoot = Join-Path $env:BHProjectPath 'docs'
 
-    # Only sweep directories under $env:BHModulePath that look like
-    # GenerateExternalHelp output (i.e., contain only `*.help.txt` and
-    # `*-help.xml` files). This rules out the source layout (`Public/`,
-    # `Private/`) and any future siblings that aren't generated artifacts.
+    # Safety net: only sweep dirs that already look like generated help output.
+    # Prevents a missing/renamed `docs/<locale>/` from wiping `Public/` or `Private/`.
     $isHelpOutputDir = {
         param($dir)
         $files = @(Get-ChildItem $dir.FullName -File -ErrorAction SilentlyContinue)
@@ -304,14 +275,6 @@ Task CompileModule {
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
-#
-# Incremental: declared `-Inputs` (every `docs/*/*.md` file) and `-Outputs`
-# (the per-locale `<ProjectName>-help.xml` plus one `about_*.help.txt` per
-# `about_*.md`). Invoke-Build skips this task when every output exists and
-# is newer than every input — so an inner-loop `Build, Test` cycle that
-# hasn't touched `docs/` no longer pays the ~1.5 s PlatyPS reparse +
-# MAML splice. To force a regeneration, touch any markdown file under
-# `docs/` or delete the corresponding artifact under `JiraPS/<locale>/`.
 Task GenerateExternalHelp -Inputs {
     Get-ChildItem "$env:BHProjectPath/docs" -Recurse -File -Filter '*.md'
 } -Outputs {
