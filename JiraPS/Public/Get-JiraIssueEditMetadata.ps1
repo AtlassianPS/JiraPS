@@ -8,7 +8,7 @@
         $Issue,
         <#
           #ToDo:CustomClass
-          Once we have custom classes, this should be a AtlassianPS.JiraPS.Issue
+          Now that we have custom classes, this could be typed as [AtlassianPS.JiraPS.Issue]
         #>
 
         [Parameter()]

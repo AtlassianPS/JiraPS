@@ -962,6 +962,19 @@ InModuleScope JiraPS {
                     $result.Attachment | Should -Not -BeNullOrEmpty
                     $result.Attachment[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Attachment'
                 }
+
+                It "attaches unmapped customfield_* keys as PSObject NoteProperties" {
+                    # Sample fixture contains numerous customfield_* keys; pick one
+                    # of the populated ones to assert the historical
+                    # 'every API field is accessible by name' contract holds
+                    # alongside the new strong .NET typing.
+                    $result.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.Issue'
+                    $result.customfield_12531 | Should -Be 'Not Started'
+
+                    $noteProp = $result.PSObject.Properties['customfield_12531']
+                    $noteProp | Should -Not -BeNullOrEmpty
+                    $noteProp.MemberType | Should -Be 'NoteProperty'
+                }
             }
 
             Context "Pipeline Support" {

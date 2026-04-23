@@ -93,7 +93,11 @@
                 $hash.Comment = $comments
             }
 
-            $result = [AtlassianPS.JiraPS.Issue](ConvertTo-Hashtable -InputObject ([PSCustomObject]$hash))
+            # $hash is a fresh hashtable literal — cast straight to the class.
+            # ConvertTo-Hashtable is only needed when the input is already a
+            # PSCustomObject (which trips PS5.1's [Class]$psobject cast); a
+            # locally-built hashtable does not have that problem.
+            $result = [AtlassianPS.JiraPS.Issue]$hash
 
             # Custom fields and any unmapped server payload keys ride along as
             # PSObject NoteProperties to preserve the historical contract that

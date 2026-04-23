@@ -14,7 +14,7 @@
         $UserName,
         <#
           #ToDo:CustomClass
-          Once we have custom classes, this can also accept ValueFromPipeline
+          Now that we have custom classes, this can also accept ValueFromPipeline
         #>
 
         [Parameter()]

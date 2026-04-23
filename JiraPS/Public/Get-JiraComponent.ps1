@@ -16,7 +16,7 @@
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
                       #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
+                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
                     #>
                 }
                 else {
@@ -28,7 +28,7 @@
         $Project,
         <#
           #ToDo:CustomClass
-          Once we have custom classes, these two parameters can be one
+          Now that we have custom classes, these two parameters could be merged into a single one with [AtlassianPS.JiraPS.<Type>] typing
         #>
 
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByID' )]

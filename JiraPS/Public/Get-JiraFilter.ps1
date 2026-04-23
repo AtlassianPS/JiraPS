@@ -7,7 +7,7 @@
         $Id,
         <#
           #ToDo:CustomClass
-          Once we have custom classes for the module,
+          Now that we have custom classes for the module,
           this can use ValueFromPipelineByPropertyName
           and we will no longer need the InputObject
         #>
@@ -26,7 +26,7 @@
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                     <#
                       #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
+                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
                     #>
                 }
                 else {

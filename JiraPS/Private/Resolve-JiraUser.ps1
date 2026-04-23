@@ -1,7 +1,7 @@
 ﻿function Resolve-JiraUser {
     <#
       #ToDo:CustomClass
-      Once we have custom classes, this will no longer be necessary
+      Now that we have custom classes, this Resolve-* shim could be replaced by a parameter set that takes [AtlassianPS.JiraPS.<Type>] directly
     #>
     [CmdletBinding()]
     param(
