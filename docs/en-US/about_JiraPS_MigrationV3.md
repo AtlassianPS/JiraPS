@@ -39,6 +39,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `New-JiraIssue -Reporter`    | No longer accepts `$null`, empty, or whitespace-only strings.           |
 | `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
 | `Invoke-JiraMethod -Uri`     | Relative endpoint paths are now first-class (`/rest/api/...`).          |
+| PSTypeName rename            | Eight core types moved from `JiraPS.<Type>` to `AtlassianPS.JiraPS.<Type>`. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -244,6 +245,76 @@ Invoke-JiraMethod -Uri '/rest/api/2/project'
 Invoke-JiraMethod -Uri '/rest/api/2/issue/TEST-1'
 ```
 
+### PSTypeName Rename — `AtlassianPS.JiraPS.*`
+
+The eight most-used JiraPS domain types are now real .NET classes under the
+`AtlassianPS.JiraPS` namespace, mirroring the long-standing convention used by
+`ConfluencePS` and other AtlassianPS modules.
+Returned objects have `GetType().FullName -eq 'AtlassianPS.JiraPS.<Type>'`,
+support hashtable construction (`[AtlassianPS.JiraPS.User]@{ Name = 'jdoe' }`),
+expose strongly-typed cross-references (e.g. `Project.Lead` is `[User]`,
+`Issue.Project` is `[Project]`), and surface real properties to
+`Get-Member` and IDE IntelliSense.
+
+The following types were renamed:
+
+| v2 PSTypeName       | v3 .NET full name                |
+| ------------------- | -------------------------------- |
+| `JiraPS.Issue`      | `AtlassianPS.JiraPS.Issue`       |
+| `JiraPS.User`       | `AtlassianPS.JiraPS.User`        |
+| `JiraPS.Project`    | `AtlassianPS.JiraPS.Project`     |
+| `JiraPS.Filter`     | `AtlassianPS.JiraPS.Filter`      |
+| `JiraPS.Version`    | `AtlassianPS.JiraPS.Version`     |
+| `JiraPS.Comment`    | `AtlassianPS.JiraPS.Comment`     |
+| `JiraPS.Session`    | `AtlassianPS.JiraPS.Session`     |
+| `JiraPS.ServerInfo` | `AtlassianPS.JiraPS.ServerInfo`  |
+
+There is no backward-compatibility alias.
+Scripts that inspect `PSObject.TypeNames` or hand-construct mock objects with
+the legacy `JiraPS.<Type>` name must be updated.
+
+The remaining 16 leaf types (`Group`, `Status`, `Priority`, `IssueType`,
+`IssueLink`, `IssueLinkType`, `Component`, `Attachment`, `Worklogitem`,
+`ProjectRole`, `Field`, `CreateMetaField`, `EditMetaField`, `Transition`,
+`Link`, `FilterPermission`) keep the legacy `JiraPS.<Type>` PSTypeName
+until a follow-up phase converts them too.
+
+#### Type-name inspection
+
+```powershell
+# v2
+if ('JiraPS.Issue' -in $obj.PSObject.TypeNames) { ... }
+$obj.PSObject.TypeNames[0] -eq 'JiraPS.Issue'
+
+# v3
+if ($obj -is [AtlassianPS.JiraPS.Issue]) { ... }                # idiomatic
+if ('AtlassianPS.JiraPS.Issue' -in $obj.PSObject.TypeNames) { ... }   # also works
+$obj.GetType().FullName -eq 'AtlassianPS.JiraPS.Issue'
+```
+
+#### Building mock objects in tests
+
+```powershell
+# v2 — PSCustomObject with a PSTypeName tag
+$mockIssue = [PSCustomObject]@{
+    PSTypeName = 'JiraPS.Issue'
+    Key        = 'TEST-1'
+    Summary    = 'mock issue'
+}
+
+# v3 — real strong-typed instance
+$mockIssue = [AtlassianPS.JiraPS.Issue]@{
+    Key     = 'TEST-1'
+    Summary = 'mock issue'
+}
+```
+
+The v3 form is preferred (it gives parse-time errors for typo'd property
+names), but if a test must keep the v2 hashtable shape, just rename the
+`PSTypeName` value to `'AtlassianPS.JiraPS.<Type>'` and it will continue
+to bind correctly to `[PSTypeName('AtlassianPS.JiraPS.<Type>')]`
+parameter attributes.
+
 ### Minimum PowerShell Version
 
 JiraPS v3 requires PowerShell 5.1 or later.
@@ -270,6 +341,11 @@ Get-ChildItem -Recurse -Filter *.ps1 |
 # Find usages of the deprecated Format-Jira alias
 Get-ChildItem -Recurse -Filter *.ps1 |
     Select-String -Pattern "\bFormat-Jira\b"
+
+# Find legacy PSTypeName usage for the eight renamed types
+Get-ChildItem -Recurse -Filter *.ps1 |
+    Select-String -Pattern "JiraPS\.(Issue|User|Project|Filter|Version|Session|ServerInfo|Comment)\b" |
+    Where-Object { $_.Line -notmatch 'AtlassianPS\.JiraPS\.' }
 ```
 
 # SEE ALSO
