@@ -115,10 +115,8 @@ namespace AtlassianPS.JiraPS
         public bool Released { get; set; }
         public bool Overdue { get; set; }
         public string RestUrl { get; set; }
-        // StartDate / ReleaseDate are DateTime when set, empty string when not
-        // (legacy converter behavior). Typed as object to preserve.
-        public object StartDate { get; set; }
-        public object ReleaseDate { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? ReleaseDate { get; set; }
 
         public override string ToString()
         {

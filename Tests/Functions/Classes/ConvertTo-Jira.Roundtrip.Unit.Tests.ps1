@@ -122,11 +122,11 @@ InModuleScope JiraPS {
                 $script:versionObj.ReleaseDate | Should -BeOfType [System.DateTime]
             }
 
-            It "uses the empty string sentinel when a date is missing" {
+            It "leaves StartDate and ReleaseDate null when the payload omits them" {
                 $minimalJson = '{ "id": "1", "name": "minimal" }'
                 $minimalVersion = ConvertTo-JiraVersion -InputObject (ConvertFrom-Json $minimalJson)
-                $minimalVersion.StartDate | Should -Be ''
-                $minimalVersion.ReleaseDate | Should -Be ''
+                $minimalVersion.StartDate | Should -BeNullOrEmpty
+                $minimalVersion.ReleaseDate | Should -BeNullOrEmpty
             }
         }
 

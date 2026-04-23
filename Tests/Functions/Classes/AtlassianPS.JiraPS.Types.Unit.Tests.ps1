@@ -153,6 +153,11 @@ InModuleScope JiraPS {
             It "Version.Project is Nullable<Int64>" {
                 [AtlassianPS.JiraPS.Version].GetProperty('Project').PropertyType | Should -Be ([System.Nullable[long]])
             }
+
+            It "Version.StartDate and Version.ReleaseDate are Nullable<DateTime>" {
+                [AtlassianPS.JiraPS.Version].GetProperty('StartDate').PropertyType | Should -Be ([System.Nullable[datetime]])
+                [AtlassianPS.JiraPS.Version].GetProperty('ReleaseDate').PropertyType | Should -Be ([System.Nullable[datetime]])
+            }
         }
 
         Context "ConvertTo-Hashtable" {

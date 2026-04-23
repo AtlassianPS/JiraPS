@@ -21,15 +21,17 @@
                 Released    = if ($null -ne $i.released) { [System.Convert]::ToBoolean($i.released) } else { $false }
                 Overdue     = if ($null -ne $i.overdue) { [System.Convert]::ToBoolean($i.overdue) } else { $false }
                 RestUrl     = $i.self
-                # Legacy contract: missing dates surface as empty string, not $null,
-                # so existing user scripts that test `if ($v.StartDate)` keep
-                # short-circuiting on missing values.
-                StartDate   = if ($i.startDate) { Get-Date $i.startDate } else { '' }
-                ReleaseDate = if ($i.releaseDate) { Get-Date $i.releaseDate } else { '' }
             }
 
             if ($null -ne $i.projectId) {
                 $hash.Project = [long]$i.projectId
+            }
+
+            if ($i.startDate) {
+                $hash.StartDate = Get-Date $i.startDate
+            }
+            if ($i.releaseDate) {
+                $hash.ReleaseDate = Get-Date $i.releaseDate
             }
 
             [AtlassianPS.JiraPS.Version]$hash

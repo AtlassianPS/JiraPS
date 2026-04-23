@@ -41,6 +41,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `Invoke-JiraMethod -Uri`     | Relative endpoint paths are now first-class (`/rest/api/...`).          |
 | PSTypeName rename            | Eight core types moved from `JiraPS.<Type>` to `AtlassianPS.JiraPS.<Type>`. |
 | Class slot type tightening   | Boolean / numeric slots on `Filter` and `Version` are now strongly typed; missing flags surface as `$false` instead of `$null`. |
+| `Version.StartDate` / `Version.ReleaseDate` | Empty-string sentinel for missing dates dropped; the slots are now `[DateTime?]` and `$null` when absent. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -349,6 +350,34 @@ If your scripts deliberately distinguish "field absent" from "field set to
 false" via `if ($null -eq $f.Favourite)` you need to switch to a different
 signal (e.g. inspect the raw payload before the converter runs, or use
 `[Nullable[bool]]` in your own wrapper code).
+
+### `Version.StartDate` / `Version.ReleaseDate` — empty-string sentinel removed
+
+In v2 the converter emitted an empty string `''` for missing version dates,
+so user code could keep using `if ($v.StartDate)` short-circuit checks
+without first thinking about `$null`. The slots were typed `[object]` to
+preserve that behaviour.
+
+In v3 the slots are `[DateTime?]` and missing values are `$null`:
+
+```powershell
+# v2 — payload without startDate / releaseDate
+$v.StartDate -eq ''        # True
+$v.StartDate -eq $null     # False
+
+# v3 — same payload
+$v.StartDate -eq ''        # False
+$v.StartDate -eq $null     # True
+```
+
+Truthy short-circuiting still works the same way:
+
+```powershell
+if (-not $v.StartDate)     { 'no start date set' }   # works on both v2 and v3
+if ($v.StartDate)          { $v.StartDate.AddDays(7) } # works on both v2 and v3
+```
+
+Equality comparisons against `''` are the only thing that needs updating.
 
 ### Minimum PowerShell Version
 
