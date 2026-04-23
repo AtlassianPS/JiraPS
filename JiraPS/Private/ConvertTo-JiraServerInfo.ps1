@@ -20,6 +20,11 @@
                 ServerTime     = if ($i.serverTime) { Get-Date $i.serverTime } else { $null }
                 ScmInfo        = $i.scmInfo
                 ServerTitle    = $i.serverTitle
+                DisplayUrl     = $i.displayUrl
+            }
+
+            if ($i.versionNumbers) {
+                $hash.VersionNumbers = [int[]]@($i.versionNumbers)
             }
 
             [AtlassianPS.JiraPS.ServerInfo]$hash

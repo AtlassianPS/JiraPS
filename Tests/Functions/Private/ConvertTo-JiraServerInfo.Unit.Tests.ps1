@@ -159,6 +159,27 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
             }
+
+            Context "Cross-platform expansion fields" {
+                It "exposes 'VersionNumbers' as int[] when present" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://x","version":"9.17.0","versionNumbers":[9,17,0],"buildNumber":1}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    , $result.VersionNumbers | Should -BeOfType [int[]]
+                    $result.VersionNumbers | Should -Be @(9, 17, 0)
+                }
+
+                It "leaves 'VersionNumbers' null when the payload omits the field" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://x","version":"9.17.0","buildNumber":1}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    $result.VersionNumbers | Should -BeNullOrEmpty
+                }
+
+                It "exposes 'DisplayUrl' (DC-only) when the payload provides it" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://internal","version":"9.17.0","buildNumber":1,"displayUrl":"https://jira.example.com"}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    $result.DisplayUrl | Should -Be 'https://jira.example.com'
+                }
+            }
         }
     }
 }

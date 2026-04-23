@@ -18,6 +18,14 @@
                 RestUrl    = $i.self
             }
 
+            if ($i.renderedBody) {
+                $hash.RenderedBody = [string]$i.renderedBody
+            }
+
+            if ($i.properties) {
+                $hash.Properties = [object[]]@($i.properties)
+            }
+
             if ($i.author) {
                 $hash.Author = ConvertTo-JiraUser -InputObject $i.author
             }

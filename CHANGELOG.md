@@ -74,6 +74,14 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migration-v3.html) for migration examples.
 - **BREAKING**: `Version.StartDate` and `Version.ReleaseDate` are now `[DateTime?]` (were `[object]`). The empty-string sentinel that the v2 converter emitted when a date was missing is gone — the slots are `$null` instead. Scripts that tested `if ($v.StartDate -eq '')` need to switch to `if ($null -eq $v.StartDate)` (or simply `if (-not $v.StartDate)`, which still works for both shapes).
   See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migration-v3.html).
+
+### Added
+
+- Surface fields the eight `AtlassianPS.JiraPS.*` converters previously dropped, so scripts can read them without re-querying the raw payload:
+  - `User.AccountType` (Cloud), `User.Deleted` (DC, `[bool?]`), `User.LastLoginTime` (DC, `[DateTime?]`).
+  - `Project.ProjectTypeKey`, `Project.Url`, `Project.Email`, plus the optional flags `Project.Archived`, `Project.Simplified`, `Project.IsPrivate` (all `[bool?]`).
+  - `Comment.RenderedBody` (DC, populated when the request used `expand=renderedBody`) and `Comment.Properties` (Cloud entity-properties array).
+  - `ServerInfo.VersionNumbers` (the parsed `[int[]]` form of `Version`, e.g. `9, 17, 0`) and `ServerInfo.DisplayUrl` (DC's externally-visible base URL).
 - `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
 - `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
 - `Invoke-JiraMethod` now supports Jira-doc style relative endpoint paths (for example, `/rest/api/2/issue/TEST-1`) and resolves them against `Get-JiraConfigServer`.

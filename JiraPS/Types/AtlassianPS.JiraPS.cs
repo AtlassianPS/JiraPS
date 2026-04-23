@@ -17,14 +17,20 @@ namespace AtlassianPS.JiraPS
     {
         public string Key { get; set; }
         public string AccountId { get; set; }
+        // Cloud-only field documented in REST v3: 'atlassian', 'app', 'customer', 'unknown'.
+        public string AccountType { get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string EmailAddress { get; set; }
         public bool Active { get; set; }
+        // DC-only "right-to-be-forgotten" flag; nullable so callers can tell
+        // "field missing" (legacy instances) apart from "explicitly false".
+        public bool? Deleted { get; set; }
         public object AvatarUrl { get; set; }
         public string TimeZone { get; set; }
         public string Locale { get; set; }
         public string[] Groups { get; set; }
+        public DateTime? LastLoginTime { get; set; }
         public string RestUrl { get; set; }
 
         public override string ToString()
@@ -49,6 +55,15 @@ namespace AtlassianPS.JiraPS
         public object Components { get; set; }
         public string Style { get; set; }
         public object Category { get; set; }
+        // Both platforms: 'software', 'business', 'service_desk', 'product_discovery'.
+        public string ProjectTypeKey { get; set; }
+        public string Url { get; set; }
+        public string Email { get; set; }
+        // Optional flags returned only by newer instances; nullable so callers
+        // can tell "field absent" apart from "explicitly false".
+        public bool? Archived { get; set; }
+        public bool? Simplified { get; set; }
+        public bool? IsPrivate { get; set; }
 
         public override string ToString()
         {
@@ -60,7 +75,12 @@ namespace AtlassianPS.JiraPS
     {
         public string ID { get; set; }
         public string Body { get; set; }
+        // Server-side rendered HTML body; only populated when the request
+        // included expand=renderedBody (DC v2; not available on Cloud v3).
+        public string RenderedBody { get; set; }
         public object Visibility { get; set; }
+        // Cloud-only entity-properties array (each item is { key, value }).
+        public object[] Properties { get; set; }
         public string RestUrl { get; set; }
         public User Author { get; set; }
         public User UpdateAuthor { get; set; }
@@ -167,12 +187,18 @@ namespace AtlassianPS.JiraPS
     {
         public string BaseURL { get; set; }
         public string Version { get; set; }
+        // Both platforms expose this as e.g. [9, 17, 0]; surfaced separately
+        // from the Version string so callers can compare numerically.
+        public int[] VersionNumbers { get; set; }
         public string DeploymentType { get; set; }
         public long? BuildNumber { get; set; }
         public DateTime? BuildDate { get; set; }
         public DateTime? ServerTime { get; set; }
         public string ScmInfo { get; set; }
         public string ServerTitle { get; set; }
+        // DC-only display URL (the canonical externally-visible base URL,
+        // which can differ from BaseURL behind a reverse proxy).
+        public string DisplayUrl { get; set; }
 
         public override string ToString()
         {

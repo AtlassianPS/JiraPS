@@ -121,6 +121,34 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
             }
+
+            Context "Cross-platform fields" {
+                BeforeAll {
+                    $script:result = ConvertTo-JiraProject -InputObject $sampleObject
+                }
+
+                It "exposes 'ProjectTypeKey' from the payload" {
+                    $script:result.ProjectTypeKey | Should -Be 'software'
+                }
+
+                It "exposes the project 'Url' from the payload (DC field)" {
+                    $script:result.Url | Should -Be "$jiraServer/browse/HCC/"
+                }
+
+                It "leaves the new bool? flags null when the payload omits them" {
+                    $script:result.Archived | Should -BeNullOrEmpty
+                    $script:result.Simplified | Should -BeNullOrEmpty
+                    $script:result.IsPrivate | Should -BeNullOrEmpty
+                }
+
+                It "binds the new bool? flags when the payload provides them" {
+                    $cloudPayload = ConvertFrom-Json '{"id":"1","key":"X","name":"X","projectTypeKey":"software","simplified":true,"isPrivate":false,"archived":false}'
+                    $cloudResult = ConvertTo-JiraProject -InputObject $cloudPayload
+                    $cloudResult.Simplified | Should -BeTrue
+                    $cloudResult.IsPrivate | Should -BeFalse
+                    $cloudResult.Archived | Should -BeFalse
+                }
+            }
         }
     }
 }

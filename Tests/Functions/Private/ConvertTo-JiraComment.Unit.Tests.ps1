@@ -157,6 +157,29 @@ InModuleScope JiraPS {
                 $adfResult.Body | Should -BeOfType [string]
             }
         }
+
+        Context "expand=renderedBody and Cloud properties" {
+            It "exposes 'RenderedBody' as a string when the payload provides it (DC v2)" {
+                $payload = ConvertFrom-Json '{"id":"1","body":"plain","renderedBody":"<p>plain</p>"}'
+                $result = ConvertTo-JiraComment -InputObject $payload
+                $result.RenderedBody | Should -BeOfType [string]
+                $result.RenderedBody | Should -Be '<p>plain</p>'
+            }
+
+            It "leaves 'RenderedBody' null when the payload omits it" {
+                $payload = ConvertFrom-Json '{"id":"1","body":"plain"}'
+                $result = ConvertTo-JiraComment -InputObject $payload
+                $result.RenderedBody | Should -BeNullOrEmpty
+            }
+
+            It "exposes Cloud comment 'properties' as an array" {
+                $payload = ConvertFrom-Json '{"id":"1","body":"plain","properties":[{"key":"sd.public.comment","value":{"internal":false}}]}'
+                $result = ConvertTo-JiraComment -InputObject $payload
+                $result.Properties | Should -Not -BeNullOrEmpty
+                @($result.Properties).Count | Should -Be 1
+                $result.Properties[0].key | Should -Be 'sd.public.comment'
+            }
+        }
     }
 }
 

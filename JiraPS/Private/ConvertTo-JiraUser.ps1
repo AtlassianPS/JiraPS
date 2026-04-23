@@ -14,6 +14,7 @@
             $hash = @{
                 Key          = $i.key
                 AccountId    = $i.accountId
+                AccountType  = $i.accountType
                 Name         = $i.name
                 DisplayName  = $i.displayName
                 EmailAddress = $i.emailAddress
@@ -23,6 +24,14 @@
                 Locale       = $i.locale
                 Groups       = if ($i.groups) { [string[]]@($i.groups.items.name) } else { $null }
                 RestUrl      = $i.self
+            }
+
+            if ($null -ne $i.deleted) {
+                $hash.Deleted = [System.Convert]::ToBoolean($i.deleted)
+            }
+
+            if ($i.lastLoginTime) {
+                $hash.LastLoginTime = Get-Date $i.lastLoginTime
             }
 
             [AtlassianPS.JiraPS.User]$hash

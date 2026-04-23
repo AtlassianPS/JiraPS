@@ -150,6 +150,39 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
             }
+
+            Context "Cloud-only fields" {
+                It "exposes 'AccountType' when the payload provides it" {
+                    $cloudPayload = ConvertFrom-Json '{"accountId":"abc","accountType":"atlassian","displayName":"X","active":true}'
+                    $result = ConvertTo-JiraUser -InputObject $cloudPayload
+                    $result.AccountType | Should -Be 'atlassian'
+                }
+
+                It "leaves 'AccountType' null on a payload that omits the field" {
+                    $result = ConvertTo-JiraUser -InputObject $sampleObject
+                    $result.AccountType | Should -BeNullOrEmpty
+                }
+            }
+
+            Context "Data Center-only fields" {
+                It "exposes 'Deleted' as a [bool?] when the payload provides it" {
+                    $dcPayload = ConvertFrom-Json '{"name":"x","displayName":"X","active":false,"deleted":true}'
+                    $result = ConvertTo-JiraUser -InputObject $dcPayload
+                    $result.Deleted | Should -BeOfType [bool]
+                    $result.Deleted | Should -BeTrue
+                }
+
+                It "leaves 'Deleted' null when the payload omits the field" {
+                    $result = ConvertTo-JiraUser -InputObject $sampleObject
+                    $result.Deleted | Should -BeNullOrEmpty
+                }
+
+                It "parses 'LastLoginTime' to a DateTime" {
+                    $dcPayload = ConvertFrom-Json '{"name":"x","displayName":"X","active":true,"lastLoginTime":"2025-04-01T12:00:00.000+0000"}'
+                    $result = ConvertTo-JiraUser -InputObject $dcPayload
+                    $result.LastLoginTime | Should -BeOfType [datetime]
+                }
+            }
         }
     }
 }
