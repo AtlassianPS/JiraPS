@@ -86,11 +86,12 @@
             $hash.Transition = $transitions
 
             if ($i.fields.comment -and $i.fields.comment.comments) {
-                $comments = @()
-                foreach ($c in $i.fields.comment.comments) {
-                    $comments += ConvertTo-JiraComment -InputObject $c
+                $comments = foreach ($c in $i.fields.comment.comments) {
+                    ConvertTo-JiraComment -InputObject $c
                 }
-                $hash.Comment = $comments
+                # Explicit cast keeps the [Comment[]] slot bound when only one
+                # comment is present (PowerShell would otherwise unwrap to a scalar).
+                $hash.Comment = [AtlassianPS.JiraPS.Comment[]]@($comments)
             }
 
             # $hash is a fresh hashtable literal — cast straight to the class.

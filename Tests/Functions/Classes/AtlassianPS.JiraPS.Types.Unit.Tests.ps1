@@ -116,6 +116,29 @@ InModuleScope JiraPS {
             It "Issue.Assignee stays System.Object (legacy 'Unassigned' string sentinel)" {
                 [AtlassianPS.JiraPS.Issue].GetProperty('Assignee').PropertyType.FullName | Should -Be 'System.Object'
             }
+
+            It "Issue.Creator and Issue.Reporter are AtlassianPS.JiraPS.User" {
+                [AtlassianPS.JiraPS.Issue].GetProperty('Creator').PropertyType.FullName | Should -Be 'AtlassianPS.JiraPS.User'
+                [AtlassianPS.JiraPS.Issue].GetProperty('Reporter').PropertyType.FullName | Should -Be 'AtlassianPS.JiraPS.User'
+            }
+
+            It "Issue.Comment is AtlassianPS.JiraPS.Comment[]" {
+                [AtlassianPS.JiraPS.Issue].GetProperty('Comment').PropertyType.FullName | Should -Be 'AtlassianPS.JiraPS.Comment[]'
+            }
+
+            It "Issue.Description and Comment.Body are System.String" {
+                [AtlassianPS.JiraPS.Issue].GetProperty('Description').PropertyType.FullName | Should -Be 'System.String'
+                [AtlassianPS.JiraPS.Comment].GetProperty('Body').PropertyType.FullName | Should -Be 'System.String'
+            }
+
+            It "User.Groups is System.String[]" {
+                [AtlassianPS.JiraPS.User].GetProperty('Groups').PropertyType.FullName | Should -Be 'System.String[]'
+            }
+
+            It "ServerInfo.ScmInfo is System.String and ServerInfo.BuildNumber is Nullable<Int64>" {
+                [AtlassianPS.JiraPS.ServerInfo].GetProperty('ScmInfo').PropertyType | Should -Be ([string])
+                [AtlassianPS.JiraPS.ServerInfo].GetProperty('BuildNumber').PropertyType | Should -Be ([System.Nullable[long]])
+            }
         }
 
         Context "ConvertTo-Hashtable" {

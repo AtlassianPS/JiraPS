@@ -1,24 +1,12 @@
 // Strongly-typed POCOs for the JiraPS module's most-used domain types.
-//
 // Loaded once at module import via Add-Type from JiraPS.psm1 (#region Dependencies).
 //
-// Design notes:
-//   * Cross-reference slots use the strong sibling type (e.g. Project.Lead is
-//     [User], Issue.Project is [Project]). Converters launder PSCustomObject
-//     payloads through ConvertTo-Hashtable before casting to a class so that
-//     Windows PowerShell 5.1's hashtable-cast does not stumble on PSObject
-//     wrappers (the same workaround ConfluencePS uses).
-//   * Properties that legitimately hold polymorphic values (Issue.Assignee can
-//     be a User OR the legacy "Unassigned" sentinel; Version dates can be
-//     DateTime or "" when missing) are typed as `object` and called out below.
-//   * Properties that pass through raw API payloads (custom fields, ADF bodies,
-//     avatar URL maps, role dictionaries) are typed as `object`.
-//   * `WebSession` on Session is `object` so this assembly does not have to
-//     reference Microsoft.PowerShell.Commands.Utility.dll, which lives in
-//     different paths on Desktop vs Core.
-//   * Issue keeps `Project`, `Comment[]` strong-typed; arbitrary custom fields
-//     and ADF descriptions are attached as PSObject NoteProperties from the
-//     converter, not modelled here.
+// Slots typed `object` are intentional — they hold polymorphic values
+// (e.g. Issue.Assignee is a User OR the string "Unassigned"), pass through
+// opaque API payloads (avatar URL maps, role dictionaries, ADF Visibility),
+// or — in Session.WebSession — avoid forcing a reference to
+// Microsoft.PowerShell.Commands.Utility.dll, whose path differs across
+// PowerShell editions.
 
 using System;
 using System.Collections.Generic;
@@ -36,7 +24,7 @@ namespace AtlassianPS.JiraPS
         public object AvatarUrl { get; set; }
         public string TimeZone { get; set; }
         public string Locale { get; set; }
-        public object Groups { get; set; }
+        public string[] Groups { get; set; }
         public string RestUrl { get; set; }
 
         public override string ToString()
@@ -71,7 +59,7 @@ namespace AtlassianPS.JiraPS
     public class Comment
     {
         public string ID { get; set; }
-        public object Body { get; set; }
+        public string Body { get; set; }
         public object Visibility { get; set; }
         public string RestUrl { get; set; }
         public User Author { get; set; }
@@ -81,7 +69,7 @@ namespace AtlassianPS.JiraPS
 
         public override string ToString()
         {
-            return Body == null ? string.Empty : Body.ToString();
+            return Body ?? string.Empty;
         }
     }
 
@@ -92,22 +80,22 @@ namespace AtlassianPS.JiraPS
         public string HttpUrl { get; set; }
         public string RestUrl { get; set; }
         public string Summary { get; set; }
-        public object Description { get; set; }
+        public string Description { get; set; }
         public string Status { get; set; }
         public object IssueLinks { get; set; }
         public object Attachment { get; set; }
         public Project Project { get; set; }
         // Assignee may be a User instance OR the legacy string "Unassigned".
         public object Assignee { get; set; }
-        public object Creator { get; set; }
-        public object Reporter { get; set; }
+        public User Creator { get; set; }
+        public User Reporter { get; set; }
         public DateTime? Created { get; set; }
         public DateTime? LastViewed { get; set; }
         public DateTime? Updated { get; set; }
         public object Fields { get; set; }
         public object Expand { get; set; }
         public object Transition { get; set; }
-        public object Comment { get; set; }
+        public Comment[] Comment { get; set; }
 
         public override string ToString()
         {
@@ -166,9 +154,7 @@ namespace AtlassianPS.JiraPS
 
     public class Session
     {
-        // Typed as object so this assembly does not need to reference
-        // Microsoft.PowerShell.Commands.Utility (whose path differs across editions).
-        // The runtime value is a Microsoft.PowerShell.Commands.WebRequestSession.
+        // Runtime type is Microsoft.PowerShell.Commands.WebRequestSession.
         public object WebSession { get; set; }
         public string Username { get; set; }
         public string JSessionID { get; set; }
@@ -184,10 +170,10 @@ namespace AtlassianPS.JiraPS
         public string BaseURL { get; set; }
         public string Version { get; set; }
         public string DeploymentType { get; set; }
-        public object BuildNumber { get; set; }
+        public long? BuildNumber { get; set; }
         public DateTime? BuildDate { get; set; }
         public DateTime? ServerTime { get; set; }
-        public object ScmInfo { get; set; }
+        public string ScmInfo { get; set; }
         public string ServerTitle { get; set; }
 
         public override string ToString()

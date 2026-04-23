@@ -182,6 +182,62 @@ InModuleScope JiraPS {
             }
         }
 
+        Context "ConvertTo-JiraIssue (Cloud v3 shape)" {
+            BeforeAll {
+                $script:cloudIssueJson = @"
+{
+    "id": "10001",
+    "key": "TEST-1",
+    "self": "$script:server/rest/api/3/issue/10001",
+    "fields": {
+        "summary": "Cloud-shaped issue",
+        "description": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+                { "type": "paragraph", "content": [ { "type": "text", "text": "ADF description" } ] }
+            ]
+        },
+        "creator":  { "self": "$script:server/rest/api/3/user?accountId=abc", "accountId": "abc", "displayName": "Creator User", "active": true },
+        "reporter": { "self": "$script:server/rest/api/3/user?accountId=def", "accountId": "def", "displayName": "Reporter User", "active": true },
+        "comment": {
+            "comments": [
+                {
+                    "self": "$script:server/rest/api/3/issue/10001/comment/1",
+                    "id": "1",
+                    "author": { "accountId": "abc", "displayName": "Creator User" },
+                    "body": { "type": "doc", "version": 1, "content": [ { "type": "paragraph", "content": [ { "type": "text", "text": "Only comment" } ] } ] },
+                    "created": "2025-04-01T12:00:00.000+0000",
+                    "updated": "2025-04-01T12:00:00.000+0000"
+                }
+            ],
+            "total": 1
+        }
+    }
+}
+"@
+                $script:cloudIssue = ConvertTo-JiraIssue -InputObject (ConvertFrom-Json $script:cloudIssueJson)
+            }
+
+            It "promotes Creator and Reporter to AtlassianPS.JiraPS.User" {
+                $script:cloudIssue.Creator | Should -BeOfType [AtlassianPS.JiraPS.User]
+                $script:cloudIssue.Reporter | Should -BeOfType [AtlassianPS.JiraPS.User]
+            }
+
+            It "flattens an ADF description into a string" {
+                $script:cloudIssue.Description | Should -BeOfType [string]
+                $script:cloudIssue.Description | Should -Be 'ADF description'
+            }
+
+            It "binds a single-comment payload as a Comment[] array" {
+                # Regression guard for PowerShell single-element unwrap.
+                $script:cloudIssue.Comment | Should -Not -BeNullOrEmpty
+                $script:cloudIssue.Comment.GetType() | Should -Be ([AtlassianPS.JiraPS.Comment[]])
+                $script:cloudIssue.Comment.Length | Should -Be 1
+                $script:cloudIssue.Comment[0].Body | Should -Be 'Only comment'
+            }
+        }
+
         Context "ConvertTo-JiraServerInfo" {
             BeforeAll {
                 $script:siJson = @"

@@ -21,7 +21,7 @@
                 AvatarUrl    = $i.avatarUrls
                 TimeZone     = $i.timeZone
                 Locale       = $i.locale
-                Groups       = if ($i.groups) { $i.groups.items.name } else { $i.groups.items }
+                Groups       = if ($i.groups) { [string[]]@($i.groups.items.name) } else { $null }
                 RestUrl      = $i.self
             }
 
