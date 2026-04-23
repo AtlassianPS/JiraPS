@@ -973,6 +973,23 @@ InModuleScope JiraPS {
                     $result = @($sampleObject, $sampleObject) | ConvertTo-JiraIssue
                     $result | Should -HaveCount 2
                 }
+
+                It "derives HttpUrl per-item when converting multiple distinct issues" {
+                    # Regression guard: ConvertTo-JiraIssue used to read the
+                    # parent $InputObject.self instead of the loop variable
+                    # $i.self when building HttpUrl. With identical inputs the
+                    # bug was invisible (existing test above passes the same
+                    # object twice). This test feeds two issues with distinct
+                    # `self` URLs and asserts each result's HttpUrl is derived
+                    # from its own server prefix.
+                    $issueA = ConvertFrom-Json '{"id":"1","key":"AAA-1","self":"http://server-a.example.com/rest/api/2/issue/1","fields":{"summary":"A"}}'
+                    $issueB = ConvertFrom-Json '{"id":"2","key":"BBB-2","self":"http://server-b.example.com/rest/api/2/issue/2","fields":{"summary":"B"}}'
+
+                    $results = @($issueA, $issueB) | ConvertTo-JiraIssue
+
+                    $results[0].HttpUrl | Should -Be 'http://server-a.example.com/browse/AAA-1'
+                    $results[1].HttpUrl | Should -Be 'http://server-b.example.com/browse/BBB-2'
+                }
             }
         }
     }

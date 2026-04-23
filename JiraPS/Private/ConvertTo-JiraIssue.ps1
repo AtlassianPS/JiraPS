@@ -28,7 +28,12 @@
         foreach ($i in $InputObject) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Issue"
 
-            $http = "{0}browse/$($i.key)" -f ($InputObject.self -split 'rest')[0]
+            # Derive the user-facing /browse URL from the item's own self link.
+            # Previously this used $InputObject.self, which returns the entire
+            # array of self URLs when more than one issue is converted in a
+            # single call — producing a stringified-array prefix on every
+            # HttpUrl after the first. Per-item $i.self is correct.
+            $http = "{0}browse/$($i.key)" -f ($i.self -split 'rest')[0]
 
             $hash = @{
                 ID          = $i.id
