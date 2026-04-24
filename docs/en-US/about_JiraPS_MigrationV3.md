@@ -216,8 +216,16 @@ Get-Process | ConvertTo-JiraTable | Add-JiraIssueComment -Issue TEST-001
 $comment = Get-Process powershell | ConvertTo-JiraTable
 ```
 
-`ConvertTo-JiraTable` produces wiki markup, which is the native format for Jira Data Center and the legacy v2 endpoints used by JiraPS write commands.
-For Jira Cloud v3 endpoints (which require Atlassian Document Format), wrap the result with `ConvertTo-AtlassianDocumentFormat` before submitting it.
+`ConvertTo-JiraTable` produces Jira wiki markup, the native format for Jira Server / Data Center and the legacy v2 REST API.
+On **Jira Cloud** the picture is different:
+
+- **Cloud REST v3** endpoints expect Atlassian Document Format (ADF) and render the resulting `||header||` / `|cell|` syntax as literal text rather than as a table.
+- **Cloud REST v2** endpoints still accept wiki markup, so the output remains valid in those workflows.
+- There is currently no clean wiki-markup → ADF round-trip helper in JiraPS.
+  `ConvertTo-AtlassianDocumentFormat` parses **Markdown** table syntax (`|cell|cell|`), not Jira wiki markup (`||header||header||`), so chaining the two cmdlets does not produce a valid ADF table.
+
+To make this mismatch visible at runtime, `ConvertTo-JiraTable` emits a `Write-Warning` whenever the active session is connected to a Cloud deployment.
+Suppress it with `-WarningAction SilentlyContinue` once you have confirmed your call site targets Cloud's legacy v2 endpoints (or accepts the literal-text rendering).
 
 ### Minimum PowerShell Version
 

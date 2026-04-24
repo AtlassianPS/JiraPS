@@ -103,6 +103,11 @@ $commentText = Get-Process powershell | ConvertTo-JiraTable
 Get-JiraIssue TEST-1 | Add-JiraIssueComment "Current PowerShell processes:`n$commentText"
 ```
 
+> **Server / Data Center vs Cloud.**
+> `ConvertTo-JiraTable` emits Jira **wiki markup**, which is the native format on Jira Server / Data Center and on the legacy v2 REST API.
+> Jira **Cloud** REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` syntax as literal text.
+> When the active session is connected to a Cloud deployment, `ConvertTo-JiraTable` emits a `Write-Warning` describing the mismatch; suppress it with `-WarningAction SilentlyContinue` if you knowingly target Cloud's legacy v2 endpoints.
+
 > `ConvertTo-JiraTable` (formerly `Format-Jira`) is a destructive operation for data in the pipeline.
 > Remember to "filter left, format right!"
 > The deprecated `Format-Jira` alias still works but will be removed in a future major version.

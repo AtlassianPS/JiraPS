@@ -64,6 +64,9 @@ Add-JiraIssueWorklog -Issue TEST-100 -TimeSpent 14400 -DateStarted (Get-Date) -C
 This example logs four hours of work against issue TEST-100 with a worklog comment that lists the issues the current user closed in the last day, formatted as a wiki-markup table.
 A common pattern for end-of-day time tracking when several related tickets roll up into a single parent.
 
+> Wiki-markup tables render natively on Jira **Server / Data Center**.
+> On Jira **Cloud** (REST v3 / ADF) the table syntax appears as literal text — `ConvertTo-JiraTable` emits a `Write-Warning` in that case so the mismatch is visible at runtime.
+
 ### EXAMPLE 5
 
 ```powershell

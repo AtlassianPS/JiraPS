@@ -15,6 +15,20 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        # Jira wiki markup is the native format for Jira Server / Data Center and for the
+        # legacy v2 REST API. Cloud REST v3 endpoints expect Atlassian Document Format (ADF)
+        # and render `||header||` / `|cell|` syntax as literal text. Warn once per invocation
+        # if we can confirm the connected deployment is Cloud — but stay silent when no
+        # session is configured (this cmdlet is also valid as a pure offline string formatter).
+        try {
+            if (Test-JiraCloudServer -ErrorAction Stop) {
+                Write-Warning "[$($MyInvocation.MyCommand.Name)] You are connected to a Jira Cloud deployment. The output of this cmdlet is Jira wiki markup, which is the native format for Jira Server / Data Center; Jira Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and will render `||header||` syntax as literal text. The output remains valid for Cloud's legacy v2 endpoints. Suppress this warning with -WarningAction SilentlyContinue."
+            }
+        }
+        catch {
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Could not determine deployment type ($($_.Exception.Message)); skipping Cloud-deployment warning."
+        }
+
         $headers = New-Object -TypeName System.Collections.ArrayList
         $thisLine = New-Object -TypeName System.Text.StringBuilder
         $allText = New-Object -TypeName System.Text.StringBuilder

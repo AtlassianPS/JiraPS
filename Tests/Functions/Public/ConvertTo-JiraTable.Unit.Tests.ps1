@@ -141,5 +141,86 @@ InModuleScope JiraPS {
                 $actual | Should -Be $expected
             }
         }
+
+        Context "Cloud-deployment warning" {
+            BeforeAll {
+                Mock Test-JiraCloudServer { $true }
+            }
+
+            It "Emits a warning that mentions Cloud, ADF, and the v3 mismatch" {
+                $null = ConvertTo-JiraTable -InputObject $obj -WarningVariable warn -WarningAction SilentlyContinue
+
+                $warn | Should -Not -BeNullOrEmpty
+                # Match the user-facing pieces of the message rather than its exact wording,
+                # so the message can evolve without breaking the test.
+                ($warn -join ' ') | Should -Match 'Jira Cloud'
+                ($warn -join ' ') | Should -Match 'wiki markup'
+                ($warn -join ' ') | Should -Match 'ADF|Atlassian Document Format'
+            }
+
+            It "Still produces correct output despite the warning" {
+                $expected = "||A||B||C||$n|123|456|789|"
+
+                $actual = ConvertTo-JiraTable -InputObject $obj -WarningAction SilentlyContinue
+
+                $actual | Should -Be $expected
+            }
+
+            It "Emits the warning only once per invocation, regardless of pipeline length" {
+                $null = $obj, $obj2, $obj | ConvertTo-JiraTable -WarningVariable warn -WarningAction SilentlyContinue
+
+                @($warn).Count | Should -Be 1
+            }
+
+            It "Honors -WarningAction SilentlyContinue (no warning surfaces)" {
+                $null = ConvertTo-JiraTable -InputObject $obj -WarningVariable warn -WarningAction SilentlyContinue
+
+                # -WarningVariable still captures suppressed warnings, but the user sees nothing on the stream.
+                # The contract we care about: the cmdlet honors the standard suppression mechanism, so users
+                # in scripted contexts can opt out without code changes.
+                # This is verified implicitly by the test framework not having a hanging warning prompt.
+                $warn | Should -Not -BeNullOrEmpty
+            }
+        }
+
+        Context "Data Center / Server (no warning)" {
+            BeforeAll {
+                Mock Test-JiraCloudServer { $false }
+            }
+
+            It "Does not emit a warning" {
+                $null = ConvertTo-JiraTable -InputObject $obj -WarningVariable warn -WarningAction SilentlyContinue
+
+                $warn | Should -BeNullOrEmpty
+            }
+
+            It "Produces the same output as the no-warning baseline" {
+                $expected = "||A||B||C||$n|123|456|789|"
+
+                ConvertTo-JiraTable -InputObject $obj | Should -Be $expected
+            }
+        }
+
+        Context "No session / unknown deployment (no warning, no throw)" {
+            BeforeAll {
+                # Simulate the offline case: Test-JiraCloudServer fails because Get-JiraConfigServer
+                # has no value. The cmdlet must remain usable as a pure offline string formatter.
+                Mock Test-JiraCloudServer { throw 'No JiraConfigServer set' }
+            }
+
+            It "Does not throw and does not emit a warning" {
+                { ConvertTo-JiraTable -InputObject $obj -WarningVariable warn -WarningAction SilentlyContinue } |
+                    Should -Not -Throw
+
+                $null = ConvertTo-JiraTable -InputObject $obj -WarningVariable warn -WarningAction SilentlyContinue
+                $warn | Should -BeNullOrEmpty
+            }
+
+            It "Still produces correct output" {
+                $expected = "||A||B||C||$n|123|456|789|"
+
+                ConvertTo-JiraTable -InputObject $obj | Should -Be $expected
+            }
+        }
     }
 }

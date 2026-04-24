@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/ConvertTo-JiraTable/
 
 ## SYNOPSIS
 
-Converts an object into a Jira wiki-markup table string.
+Converts an object into a Jira **wiki-markup** table string (Server / Data Center native format).
 
 ## SYNTAX
 
@@ -20,8 +20,15 @@ ConvertTo-JiraTable [-InputObject] <psobject[]> [[-Property] <Object[]>] [<Commo
 
 ## DESCRIPTION
 
-Converts one or more PowerShell objects into a string formatted as a Jira wiki-markup table.
-The result is a `[String]` suitable for passing to commands such as `Add-JiraIssueComment` or `Add-JiraIssueWorklog`, or for assignment to text fields on Jira Data Center.
+Converts one or more PowerShell objects into a string formatted as a Jira **wiki-markup** table (`||header||header|| ... |cell|cell|`).
+The result is a `[String]` suitable for passing to commands such as `Add-JiraIssueComment` or `Add-JiraIssueWorklog`, or for assignment to text fields on Jira Server / Data Center.
+
+> **Important — Jira Cloud compatibility.**
+> Wiki markup is the native rendering format for Jira **Server / Data Center** and for the **legacy v2 REST API**.
+> Jira **Cloud REST v3** endpoints expect [Atlassian Document Format (ADF)](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/) and will render `||header||` syntax as literal text, not as a table.
+> The output of this cmdlet is therefore best suited to Data Center / Server, or to Cloud workflows that explicitly target the legacy v2 REST endpoints.
+> When invoked while the active session is connected to a Cloud deployment, the cmdlet emits a `Write-Warning` that can be silenced with `-WarningAction SilentlyContinue` (see [NOTES](#notes)).
+> There is currently no clean wiki-markup → ADF round-trip helper in JiraPS — `ConvertTo-AtlassianDocumentFormat` consumes Markdown table syntax (`|cell|cell|`), not Jira wiki-markup tables (`||header||header||`).
 
 Despite producing tabular output, this cmdlet is intentionally a `ConvertTo-*` rather than a `Format-*`: it returns a `[String]`, not the host-only display objects emitted by built-in `Format-*` cmdlets such as `Format-Table`.
 
@@ -114,8 +121,15 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 Like the native `Format-*` cmdlets, this is a destructive operation for data in the pipeline.
 Remember to "filter left, format right!"
 
-The output is Jira **wiki markup**, which is the native format for text fields on Jira Data Center and for the legacy v2 API endpoints used by JiraPS write commands such as `Add-JiraIssueComment` and `Add-JiraIssueWorklog`.
-For Jira Cloud v3 endpoints (which require Atlassian Document Format), wrap the result with `ConvertTo-AtlassianDocumentFormat` before submitting it.
+**Output format.**
+The output is Jira **wiki markup**, the native format for text fields on Jira Server / Data Center and for the legacy v2 REST API endpoints used by JiraPS write commands such as `Add-JiraIssueComment` and `Add-JiraIssueWorklog`.
+
+**Jira Cloud caveat.**
+Jira Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` / `|cell|` strings as literal text rather than as a table.
+When the active JiraPS session is connected to a Cloud deployment, the cmdlet emits a one-shot `Write-Warning` per invocation describing this mismatch.
+The check uses `Test-JiraCloudServer`, which in turn calls the cached `Get-JiraServerInformation` (5-minute TTL), so it does not add a per-call HTTP round-trip.
+If no session is configured (no `Set-JiraConfigServer` / `New-JiraSession`), the check is silently skipped — `ConvertTo-JiraTable` is also valid as a pure offline string formatter.
+Suppress the warning with `-WarningAction SilentlyContinue` when you knowingly target Cloud's legacy v2 endpoints.
 
 Alias: `Format-Jira` (deprecated)
 
