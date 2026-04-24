@@ -15,13 +15,12 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        # Jira wiki markup is the native format for Jira Server / Data Center and for the
-        # legacy v2 REST API. Cloud REST v3 endpoints expect Atlassian Document Format (ADF)
-        # and render `||header||` / `|cell|` syntax as literal text. Warn once per invocation
-        # if we can confirm the connected deployment is Cloud — but stay silent when no
-        # session is configured (this cmdlet is also valid as a pure offline string formatter).
+        # Best-effort deployment-type check: this cmdlet is also valid as a pure offline
+        # string formatter, so a missing session must NOT throw, and transient warnings from
+        # the underlying Get-JiraServerInformation lookup must NOT leak through and surface
+        # as if they came from ConvertTo-JiraTable itself.
         try {
-            if (Test-JiraCloudServer -ErrorAction Stop) {
+            if (Test-JiraCloudServer -ErrorAction Stop -WarningAction SilentlyContinue) {
                 Write-Warning "[$($MyInvocation.MyCommand.Name)] You are connected to a Jira Cloud deployment. The output of this cmdlet is Jira wiki markup, which is the native format for Jira Server / Data Center; Jira Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and will render `||header||` syntax as literal text. The output remains valid for Cloud's legacy v2 endpoints. Suppress this warning with -WarningAction SilentlyContinue."
             }
         }

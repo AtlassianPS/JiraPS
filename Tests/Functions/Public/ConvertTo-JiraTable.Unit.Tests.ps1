@@ -144,7 +144,7 @@ InModuleScope JiraPS {
 
         Context "Cloud-deployment warning" {
             BeforeAll {
-                Mock Test-JiraCloudServer { $true }
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
             }
 
             It "Emits a warning that mentions Cloud, ADF, and the v3 mismatch" {
@@ -172,20 +172,50 @@ InModuleScope JiraPS {
                 @($warn).Count | Should -Be 1
             }
 
-            It "Honors -WarningAction SilentlyContinue (no warning surfaces)" {
-                $null = ConvertTo-JiraTable -InputObject $obj -WarningVariable warn -WarningAction SilentlyContinue
+            It "Honors -WarningAction SilentlyContinue (warning stream is silent)" {
+                # PowerShell's `-WarningVariable` still captures warnings even when -WarningAction
+                # is SilentlyContinue or Ignore, so we test the user-visible contract directly:
+                # the warning STREAM (stream 3) is empty when suppression is requested.
+                $output = ConvertTo-JiraTable -InputObject $obj -WarningAction SilentlyContinue 3>&1
 
-                # -WarningVariable still captures suppressed warnings, but the user sees nothing on the stream.
-                # The contract we care about: the cmdlet honors the standard suppression mechanism, so users
-                # in scripted contexts can opt out without code changes.
-                # This is verified implicitly by the test framework not having a hanging warning prompt.
-                $warn | Should -Not -BeNullOrEmpty
+                @($output | Where-Object { $_ -is [System.Management.Automation.WarningRecord] }).Count |
+                    Should -Be 0
+            }
+        }
+
+        Context "Inner deployment-lookup warnings do not leak" {
+            # The real Test-JiraCloudServer is exercised here so its `-WarningAction` propagation
+            # to the underlying Get-JiraServerInformation call is part of what we're verifying.
+            # (Pester mocks do not propagate CommonParameter preferences to the mock body, so
+            # mocking Test-JiraCloudServer directly cannot test this.)
+            BeforeAll {
+                Mock Get-JiraServerInformation -ModuleName JiraPS {
+                    # Simulate the fallback path: Get-JiraServerInformation emits a transient
+                    # Write-Warning when the API is unreachable, then returns a fallback object.
+                    # We force DeploymentType = Cloud so we can also confirm the OUTER
+                    # Cloud-deployment warning still surfaces.
+                    Write-Warning "[Get-JiraServerInformation] Could not retrieve server information: simulated transient failure"
+                    [PSCustomObject]@{
+                        PSTypeName     = 'JiraPS.ServerInfo'
+                        DeploymentType = 'Cloud'
+                    }
+                }
+            }
+
+            It "Suppresses the inner Write-Warning while keeping the outer Cloud-deployment warning" {
+                $output = ConvertTo-JiraTable -InputObject $obj 3>&1
+                $warnings = @($output | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })
+
+                @($warnings | Where-Object { $_.Message -match 'Could not retrieve server information' }).Count |
+                    Should -Be 0
+                @($warnings | Where-Object { $_.Message -match 'Jira Cloud' }).Count |
+                    Should -Be 1
             }
         }
 
         Context "Data Center / Server (no warning)" {
             BeforeAll {
-                Mock Test-JiraCloudServer { $false }
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
             }
 
             It "Does not emit a warning" {
@@ -205,7 +235,7 @@ InModuleScope JiraPS {
             BeforeAll {
                 # Simulate the offline case: Test-JiraCloudServer fails because Get-JiraConfigServer
                 # has no value. The cmdlet must remain usable as a pure offline string formatter.
-                Mock Test-JiraCloudServer { throw 'No JiraConfigServer set' }
+                Mock Test-JiraCloudServer -ModuleName JiraPS { throw 'No JiraConfigServer set' }
             }
 
             It "Does not throw and does not emit a warning" {
