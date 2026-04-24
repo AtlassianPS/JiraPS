@@ -194,71 +194,107 @@ catch {
 Write-Host "==> Provisioning test project '$ProjectKey' via $projectApiUrl"
 
 # The integration test suite expects a project with key 'TEST' (override via
-# JIRA_TEST_PROJECT). The moveworkforward image starts with no projects, so we
-# create one here using the Software template that ships with Jira Software 11.
-# `lead` must be the admin's username (Server) — Cloud uses accountId but this
-# script never targets Cloud.
-$projectBody = @{
-    key                = $ProjectKey
-    name               = $ProjectName
-    projectTypeKey     = 'software'
-    projectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-basic'
-    lead               = $AdminUser
-    description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
-    assigneeType       = 'PROJECT_LEAD'
-} | ConvertTo-Json -Compress
+# JIRA_TEST_PROJECT). The moveworkforward image starts with no projects.
+#
+# Project creation in Jira Server/DC requires a (projectTypeKey, projectTemplateKey)
+# pair that the running instance actually has installed. Templates vary across
+# Jira versions and bundle combinations, so rather than hard-coding values we
+# enumerate the templates the live server reports and try them in order until
+# one works.
+$templatesUrl = "$baseUrl/rest/project-templates/1.0/templates"
+$candidatePairs = New-Object 'System.Collections.Generic.List[hashtable]'
 
 try {
-    $project = Invoke-RestMethod -Uri $projectApiUrl -Method Post -Headers $headers -ContentType 'application/json' -Body $projectBody -TimeoutSec 60
-    Write-Host ("==> Provisioned project: key={0} id={1}" -f $project.key, $project.id)
-}
-catch {
-    $statusCode = $null
-    if ($_.Exception.Response) {
-        try { $statusCode = [int]$_.Exception.Response.StatusCode } catch { $statusCode = $null }
-    }
-
-    $message = $_.Exception.Message
-    $bodyText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
-
-    # 400 with "key ... already exists" is treated as success (idempotent reruns).
-    $alreadyExists = $false
-    if ($statusCode -in 400, 409) {
-        if ($bodyText -and ($bodyText -match 'key.*already.*used' -or $bodyText -match 'project.*already.*exists' -or $bodyText -match 'A project with that name already exists')) {
-            $alreadyExists = $true
+    $templatesResponse = Invoke-RestMethod -Uri $templatesUrl -Method Get -Headers $headers -TimeoutSec 30
+    # Response shape: { projectTemplates: [ { projectTypeBean: { key }, projectTemplateModuleCompleteKey, ... } ], ... }
+    if ($templatesResponse.projectTemplates) {
+        foreach ($tpl in $templatesResponse.projectTemplates) {
+            $typeKey = $null
+            try { $typeKey = $tpl.projectTypeBean.key } catch { }
+            $tplKey = $null
+            if ($tpl.projectTemplateModuleCompleteKey) {
+                $tplKey = $tpl.projectTemplateModuleCompleteKey
+            } elseif ($tpl.projectTemplateModuleKey) {
+                $tplKey = $tpl.projectTemplateModuleKey
+            }
+            if ($typeKey -and $tplKey) {
+                $candidatePairs.Add(@{ ProjectTypeKey = $typeKey; ProjectTemplateKey = $tplKey })
+            }
         }
-    }
-
-    if ($alreadyExists) {
-        Write-Host "==> Project '$ProjectKey' already exists; treating as success."
+        Write-Host ("==> Discovered {0} project templates from {1}" -f $candidatePairs.Count, $templatesUrl)
+        foreach ($p in $candidatePairs) {
+            Write-Host ("    - {0} / {1}" -f $p.ProjectTypeKey, $p.ProjectTemplateKey)
+        }
     }
     else {
-        # Try a fallback template — older Jira Software builds occasionally reject
-        # gh-simplified-basic. jira-core templates ship with all Jira flavours.
-        Write-Host "==> First template rejected (status=$statusCode message=$message body=$bodyText). Retrying with jira-core template."
-        $fallbackBody = @{
-            key                = $ProjectKey
-            name               = $ProjectName
-            projectTypeKey     = 'business'
-            projectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-process-control'
-            lead               = $AdminUser
-            description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
-            assigneeType       = 'PROJECT_LEAD'
-        } | ConvertTo-Json -Compress
-        try {
-            $project = Invoke-RestMethod -Uri $projectApiUrl -Method Post -Headers $headers -ContentType 'application/json' -Body $fallbackBody -TimeoutSec 60
-            Write-Host ("==> Provisioned project (fallback template): key={0} id={1}" -f $project.key, $project.id)
-        }
-        catch {
-            $fallbackStatus = $null
-            if ($_.Exception.Response) {
-                try { $fallbackStatus = [int]$_.Exception.Response.StatusCode } catch { $fallbackStatus = $null }
-            }
-            $fallbackBody2 = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
-            Write-Error "Failed to provision project '$ProjectKey' (status=$fallbackStatus): $($_.Exception.Message)`n$fallbackBody2"
-            exit 3
+        Write-Host "==> Templates endpoint returned no entries; will fall through to hardcoded candidates."
+    }
+}
+catch {
+    Write-Host ("==> Could not enumerate templates from {0}: {1}. Falling back to hardcoded candidates." -f $templatesUrl, $_.Exception.Message)
+}
+
+# Always append a known-good fallback list so we still try sensible defaults if
+# enumeration failed entirely or returned a sparse response.
+$fallbacks = @(
+    @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-basic' }
+    @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-scrum-classic' }
+    @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-kanban-classic' }
+    @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-agility-kanban' }
+    @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-process-control' }
+    @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-task-tracking' }
+    @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-project-management' }
+)
+foreach ($f in $fallbacks) {
+    $alreadyListed = $false
+    foreach ($existing in $candidatePairs) {
+        if ($existing.ProjectTypeKey -eq $f.ProjectTypeKey -and $existing.ProjectTemplateKey -eq $f.ProjectTemplateKey) {
+            $alreadyListed = $true
+            break
         }
     }
+    if (-not $alreadyListed) { $candidatePairs.Add($f) }
+}
+
+$project = $null
+$lastError = $null
+foreach ($pair in $candidatePairs) {
+    $body = @{
+        key                = $ProjectKey
+        name               = $ProjectName
+        projectTypeKey     = $pair.ProjectTypeKey
+        projectTemplateKey = $pair.ProjectTemplateKey
+        lead               = $AdminUser
+        description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
+        assigneeType       = 'PROJECT_LEAD'
+    } | ConvertTo-Json -Compress
+
+    try {
+        Write-Host ("==> Trying template: {0} / {1}" -f $pair.ProjectTypeKey, $pair.ProjectTemplateKey)
+        $project = Invoke-RestMethod -Uri $projectApiUrl -Method Post -Headers $headers -ContentType 'application/json' -Body $body -TimeoutSec 60
+        Write-Host ("==> Provisioned project: key={0} id={1} (type={2} template={3})" -f $project.key, $project.id, $pair.ProjectTypeKey, $pair.ProjectTemplateKey)
+        break
+    }
+    catch {
+        $statusCode = $null
+        if ($_.Exception.Response) {
+            try { $statusCode = [int]$_.Exception.Response.StatusCode } catch { $statusCode = $null }
+        }
+        $bodyText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
+        $lastError = "status=$statusCode message=$($_.Exception.Message) body=$bodyText"
+
+        if ($statusCode -in 400, 409 -and $bodyText -and ($bodyText -match 'key.*already.*used' -or $bodyText -match 'project.*already.*exists' -or $bodyText -match 'A project with that name already exists')) {
+            Write-Host "==> Project '$ProjectKey' already exists; treating as success."
+            $project = [PSCustomObject]@{ key = $ProjectKey; id = $null }
+            break
+        }
+        Write-Host ("    rejected: {0}" -f $lastError)
+    }
+}
+
+if (-not $project) {
+    Write-Error "Failed to provision project '$ProjectKey' with any of the $($candidatePairs.Count) candidate templates. Last error: $lastError"
+    exit 3
 }
 
 Write-Host "==> Seeding baseline issue in project '$ProjectKey'"
