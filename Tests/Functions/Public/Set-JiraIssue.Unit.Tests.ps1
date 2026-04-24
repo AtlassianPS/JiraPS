@@ -50,8 +50,8 @@ InModuleScope JiraPS {
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key', 'Credential'
                 $object = [AtlassianPS.JiraPS.Issue]@{
-                    id = $testJson.id
-                    key = $testJson.key
+                    id      = $testJson.id
+                    key     = $testJson.key
                     restUrl = $testJson.self
                 }
                 $object
@@ -60,8 +60,8 @@ InModuleScope JiraPS {
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject', 'Credential'
                 $object = [AtlassianPS.JiraPS.Issue]@{
-                    id = $testJson.id
-                    key = $testJson.key
+                    id      = $testJson.id
+                    key     = $testJson.key
                     restUrl = $testJson.self
                 }
                 $object

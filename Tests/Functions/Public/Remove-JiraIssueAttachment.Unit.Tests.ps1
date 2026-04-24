@@ -56,7 +56,7 @@ InModuleScope JiraPS {
                 $Attachment.PSObject.TypeNames.Insert(0, 'JiraPS.Attachment')
 
                 $IssueObj = [AtlassianPS.JiraPS.Issue]@{
-                    Key = $issueKey
+                    Key        = $issueKey
                     attachment = $Attachment
                 }
                 $IssueObj

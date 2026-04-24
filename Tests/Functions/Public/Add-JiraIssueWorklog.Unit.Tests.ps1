@@ -69,8 +69,8 @@ InModuleScope JiraPS {
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $result = [AtlassianPS.JiraPS.Issue]@{
-                    ID = $issueID
-                    Key = $issueKey
+                    ID      = $issueID
+                    Key     = $issueKey
                     RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
                 }
                 Write-Output $result

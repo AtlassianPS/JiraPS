@@ -193,7 +193,7 @@ InModuleScope JiraPS {
                 It "Accepts an issue object for the -InputObject parameter" {
                     $issue = [AtlassianPS.JiraPS.Issue]@{
                         Key = 'TEST-001'
-                        ID = '12345'
+                        ID  = '12345'
                     }
 
                     # Should call Get-JiraIssue using the -Key parameter, so our URL should reflect the key we provided
@@ -208,7 +208,7 @@ InModuleScope JiraPS {
                 It "Accepts an issue object via pipeline using ValueFromPipelineByPropertyName" {
                     $issue = [AtlassianPS.JiraPS.Issue]@{
                         Key = 'TEST-001'
-                        ID = '12345'
+                        ID  = '12345'
                     }
 
                     # Pipeline input binds Key property to -Key parameter via ValueFromPipelineByPropertyName
@@ -229,7 +229,7 @@ InModuleScope JiraPS {
                 It "Binds AtlassianPS.JiraPS.Issue via pipeline to ByIssueKey parameter set" {
                     $issue = [AtlassianPS.JiraPS.Issue]@{
                         Key = 'TEST-001'
-                        ID = '12345'
+                        ID  = '12345'
                     }
 
                     # The Key property should bind to -Key via ValueFromPipelineByPropertyName
@@ -272,7 +272,7 @@ InModuleScope JiraPS {
                     # Verify the ByInputObject parameter set still functions when used explicitly
                     $issue = [AtlassianPS.JiraPS.Issue]@{
                         Key = 'TEST-001'
-                        ID = '12345'
+                        ID  = '12345'
                     }
 
                     { Get-JiraIssue -InputObject $issue } | Should -Not -Throw

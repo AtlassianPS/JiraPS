@@ -50,9 +50,9 @@ InModuleScope JiraPS {
                 $t2.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
 
                 $object = [AtlassianPS.JiraPS.Issue]@{
-                    ID = $issueID
-                    Key = $issueKey
-                    RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
+                    ID         = $issueID
+                    Key        = $issueKey
+                    RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
                     Transition = @($t1, $t2)
                 }
                 $object

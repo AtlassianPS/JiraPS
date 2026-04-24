@@ -67,9 +67,9 @@ InModuleScope JiraPS {
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue'
                 $IssueObj = [AtlassianPS.JiraPS.Issue]@{
-                    ID = $script:issueID
-                    Key = $script:issueKey
-                    RestUrl = "$($script:jiraServer)/rest/api/2/issue/$($script:issueID)"
+                    ID         = $script:issueID
+                    Key        = $script:issueKey
+                    RestUrl    = "$($script:jiraServer)/rest/api/2/issue/$($script:issueID)"
                     Attachment = (ConvertFrom-Json -InputObject $script:attachments)
                 }
                 $IssueObj

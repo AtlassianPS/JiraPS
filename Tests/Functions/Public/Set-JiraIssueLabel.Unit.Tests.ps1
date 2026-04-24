@@ -24,8 +24,8 @@ InModuleScope JiraPS {
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
-                    Id = 123
-                    Key = $Key
+                    Id      = 123
+                    Key     = $Key
                     RestURL = "$jiraServer/rest/api/2/issue/12345"
                 }
                 $object | Add-Member -NotePropertyName Labels -NotePropertyValue @('existingLabel1', 'existingLabel2') -Force

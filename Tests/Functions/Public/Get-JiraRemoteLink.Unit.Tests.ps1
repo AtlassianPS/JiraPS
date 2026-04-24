@@ -48,7 +48,7 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     RestURL = "$jiraServer/rest/api/2/issue/12345"
-                    Key = $issueKey
+                    Key     = $issueKey
                 }
                 return $object
             }
