@@ -15,7 +15,7 @@ Modifies an existing Version in JIRA
 ## SYNTAX
 
 ```powershell
-Set-JiraVersion [-Version] <Object[]> [[-Name] <string>] [[-Description] <string>]
+Set-JiraVersion [-Version] <Version[]> [[-Name] <string>] [[-Description] <string>]
  [[-Archived] <bool>] [[-Released] <bool>] [[-ReleaseDate] <datetime>] [[-StartDate] <datetime>]
  [[-Project] <Object>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
@@ -242,7 +242,7 @@ HelpMessage: ''
 Version to be changed
 
 ```yaml
-Type: Object[]
+Type: Version[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

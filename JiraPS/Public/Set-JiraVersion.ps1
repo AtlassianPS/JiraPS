@@ -3,28 +3,9 @@
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("AtlassianPS.JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraVersion'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [AtlassianPS.JiraPS.Version] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.VersionTransformation()]
+        [AtlassianPS.JiraPS.Version[]]
         $Version,
 
         [String]

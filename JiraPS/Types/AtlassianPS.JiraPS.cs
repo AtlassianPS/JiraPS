@@ -469,4 +469,109 @@ namespace AtlassianPS.JiraPS
                 value.GetType().FullName));
         }
     }
+
+    // Same idea as the other transformers, for Version-typed parameters.
+    // Accepts an existing Version, a numeric value (int / long / numeric
+    // string — Jira Version IDs are integers on the wire), a non-numeric
+    // string (treated as a Version name, the shape New-JiraVersion's byObject
+    // path used to coerce out of [Object]), or a legacy PSCustomObject tagged
+    // as AtlassianPS.JiraPS.Version. The cmdlet body is responsible for
+    // resolving stub Versions through Get-JiraVersion when it needs the full
+    // payload (RestUrl etc.).
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class VersionTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
+    {
+        public override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
+        {
+            return JiraTransform.TransformOrFanout(inputData, TransformOne);
+        }
+
+        private static object TransformOne(object inputData)
+        {
+            if (inputData == null) return null;
+
+            var pso = inputData as System.Management.Automation.PSObject;
+            object value = pso != null ? pso.BaseObject : inputData;
+
+            if (value is Version) return value;
+
+            // Numeric scalars — Jira Version IDs are always integral.
+            if (value is int || value is long || value is short || value is byte
+                || value is uint || value is ulong || value is ushort || value is sbyte)
+            {
+                return new Version { ID = System.Convert.ToInt64(value).ToString(System.Globalization.CultureInfo.InvariantCulture) };
+            }
+
+            if (value is string str)
+            {
+                if (string.IsNullOrWhiteSpace(str))
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "Cannot bind an empty or whitespace string to a Version parameter.");
+                }
+                long parsed;
+                if (long.TryParse(str, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out parsed))
+                {
+                    return new Version { ID = parsed.ToString(System.Globalization.CultureInfo.InvariantCulture) };
+                }
+                return new Version { Name = str };
+            }
+
+            // Legacy PSCustomObject masquerading as a Version (PSTypeName trick).
+            if (pso != null && pso.TypeNames != null && (pso.TypeNames.Contains("AtlassianPS.JiraPS.Version") || pso.TypeNames.Contains("JiraPS.Version")))
+            {
+                var version = new Version();
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "ID": case "Id": case "id": version.ID = prop.Value as string ?? (prop.Value != null ? prop.Value.ToString() : null); break;
+                        case "Name": case "name": version.Name = prop.Value as string; break;
+                        case "Description": case "description": version.Description = prop.Value as string; break;
+                        case "RestUrl": case "RestURL": case "self":
+                            version.RestUrl = prop.Value as string; break;
+                        case "Archived": case "archived":
+                            if (prop.Value != null)
+                            {
+                                bool archived;
+                                if (bool.TryParse(prop.Value.ToString(), out archived)) { version.Archived = archived; }
+                            }
+                            break;
+                        case "Released": case "released":
+                            if (prop.Value != null)
+                            {
+                                bool released;
+                                if (bool.TryParse(prop.Value.ToString(), out released)) { version.Released = released; }
+                            }
+                            break;
+                        case "Overdue": case "overdue":
+                            if (prop.Value != null)
+                            {
+                                bool overdue;
+                                if (bool.TryParse(prop.Value.ToString(), out overdue)) { version.Overdue = overdue; }
+                            }
+                            break;
+                        case "Project": case "project": case "projectId":
+                            if (prop.Value != null)
+                            {
+                                long projectId;
+                                if (long.TryParse(prop.Value.ToString(), out projectId)) { version.Project = projectId; }
+                            }
+                            break;
+                    }
+                }
+                return version;
+            }
+
+            // Get-JiraVersion has sister parameter sets that share ValueFromPipeline
+            // (notably -InputProject [PSTypeName('AtlassianPS.JiraPS.Project')]).
+            // If a Project is piped, we want PowerShell's parameter binder to fall
+            // through to the matching Project set rather than fail here. Throwing
+            // an ArgumentTransformationMetadataException at this point is fatal
+            // for parameter set selection, so return the value untouched and let
+            // the binder's normal type coercion either succeed (for an alternate
+            // set) or fail with a stock "Cannot convert" message.
+            return inputData;
+        }
+    }
 }

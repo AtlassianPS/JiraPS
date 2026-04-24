@@ -17,7 +17,7 @@ Creates a new FixVersion in JIRA
 ### byObject (Default)
 
 ```powershell
-New-JiraVersion [-InputObject] <Object> [-Credential <pscredential>] [-WhatIf] [-Confirm]
+New-JiraVersion [-InputObject] <Version> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
@@ -155,7 +155,7 @@ HelpMessage: ''
 Version object that should be created on the server.
 
 ```yaml
-Type: Object
+Type: Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

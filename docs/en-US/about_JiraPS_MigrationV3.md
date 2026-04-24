@@ -46,6 +46,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | User-scoped cmdlets          | `-User` / `-UserName` / `-Owner` on `Set-JiraUser`, `Remove-JiraUser`, `Add-JiraGroupMember`, `Remove-JiraGroupMember`, and `Find-JiraFilter` are now strongly-typed `[AtlassianPS.JiraPS.User]` / `[AtlassianPS.JiraPS.User[]]` with a custom transformer. |
 | Group promoted to .NET class | `Group` joins the eight original `AtlassianPS.JiraPS.*` types. `ConvertTo-JiraGroup` returns `[AtlassianPS.JiraPS.Group]`; `PSObject.TypeNames[0]` is `AtlassianPS.JiraPS.Group` (was `JiraPS.Group`). |
 | Group-scoped cmdlets         | `-Group` on `Add-JiraGroupMember`, `Get-JiraGroupMember`, `Remove-JiraGroup`, and `Remove-JiraGroupMember` is now strongly-typed `[AtlassianPS.JiraPS.Group[]]` with a custom transformer. |
+| Version-scoped cmdlets       | `-Version` / `-After` / `-InputObject` / `-InputVersion` on `Get-JiraVersion`, `Move-JiraVersion`, `New-JiraVersion`, `Remove-JiraVersion`, and `Set-JiraVersion` are now strongly-typed `[AtlassianPS.JiraPS.Version]` / `[AtlassianPS.JiraPS.Version[]]` with a custom transformer. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -602,6 +603,90 @@ if ('JiraPS.Group' -in $g.PSObject.TypeNames) { ... }
 if ($g -is [AtlassianPS.JiraPS.Group]) { ... }
 # (or the equivalent `'AtlassianPS.JiraPS.Group' -in $g.PSObject.TypeNames`)
 ```
+
+### Strongly-typed `-Version` parameter on version-scoped cmdlets
+
+The five version-scoped public cmdlets that previously declared `-Version` /
+`-After` / `-InputObject` / `-InputVersion` as `[Object]` (or `[Object[]]`) with
+a polymorphic `[ValidateScript]` block (accepting an `AtlassianPS.JiraPS.Version`
+`PSTypeName`, an `[Int]` ID, or a `[String]` Version name) now declare a real
+typed parameter and use the new `[AtlassianPS.JiraPS.VersionTransformation()]`
+attribute against it:
+
+| Cmdlet              | Parameter      | v2 declaration                  | v3 declaration                    |
+| ------------------- | -------------- | ------------------------------- | --------------------------------- |
+| `Get-JiraVersion`   | `-InputVersion`| `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Version]`    |
+| `Move-JiraVersion`  | `-Version`     | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Version]`    |
+| `Move-JiraVersion`  | `-After`       | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Version]`    |
+| `New-JiraVersion`   | `-InputObject` | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Version]`    |
+| `Remove-JiraVersion`| `-Version`     | `[Object[]]` + ValidateScript   | `[AtlassianPS.JiraPS.Version[]]`  |
+| `Set-JiraVersion`   | `-Version`     | `[Object[]]` + ValidateScript   | `[AtlassianPS.JiraPS.Version[]]`  |
+
+The transformer accepts:
+
+- An existing `[AtlassianPS.JiraPS.Version]` instance (returned as-is).
+- A numeric scalar (any integer width — Jira version IDs are integral) — wrapped
+  in a stub `Version` whose `ID` is set; the cmdlet's body uses the ID directly.
+- A non-empty string — parsed as a version ID when it looks numeric, otherwise
+  stored in `Name` for the `New-JiraVersion -InputObject 'My Version'` shape
+  that fell out of the previous `[Object]` parameter.
+- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Version`
+  `PSTypeName` (or the historical `JiraPS.Version` for hand-rolled v2 mocks) —
+  its scalar slots are mapped to a real `Version` instance.
+
+Empty or whitespace-only strings now fail at parameter binding with:
+
+```
+Cannot bind an empty or whitespace string to a Version parameter.
+```
+
+#### Parameter-set fallthrough on `Get-JiraVersion`
+
+Unlike the Issue / User / Group transformers, `VersionTransformation` returns
+the input unchanged (rather than throwing) when the value is not one of the
+recognized shapes. `Get-JiraVersion` has sister `ValueFromPipeline` parameter
+sets — notably `-InputProject [PSTypeName('AtlassianPS.JiraPS.Project')]` — and
+a hard transformer throw would block PowerShell's parameter-set fallthrough.
+Returning the value untouched lets the binder reject it cleanly and try the next
+set, preserving the well-known `Get-JiraProject ... | Get-JiraVersion` pipeline.
+
+#### Internal adapter blocks removed
+
+The adapter pattern that every Version-mutating cmdlet used to massage `[Object]`
+input into an ID is gone:
+
+##### v2
+
+```powershell
+foreach ($_version in $Version) {
+    if ($_version.Id) { $versionId = $_version.Id }
+    else              { $versionId = $_version }
+    # …call Invoke-JiraMethod with $versionId…
+}
+```
+
+##### v3
+
+```powershell
+foreach ($_version in $Version) {
+    # $_version is always a real [AtlassianPS.JiraPS.Version]
+    Invoke-JiraMethod -URI ".../version/$($_version.Id)" …
+}
+```
+
+Scripts that already passed `Get-JiraVersion … | Set-JiraVersion …`-style
+pipelines or real `[AtlassianPS.JiraPS.Version]` objects need no changes.
+
+#### `New-JiraVersion -InputObject` body fixes
+
+The transformer move uncovered two bugs in `New-JiraVersion -InputObject` that
+were masked by the `[Object]` parameter:
+
+- The request body now skips `releaseDate` / `startDate` when the slot is
+  `$null` instead of calling `.ToString('yyyy-MM-dd')` on a `$null` and emitting
+  a malformed payload.
+- The project ID is read from the new strongly-typed `Version.Project [long?]`
+  slot instead of the legacy `Project.Key`/`Project.Id` PSObject lookup.
 
 ### Minimum PowerShell Version
 

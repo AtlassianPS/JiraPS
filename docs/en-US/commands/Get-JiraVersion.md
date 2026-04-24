@@ -198,7 +198,7 @@ HelpMessage: ''
 A Version object to search for
 
 ```yaml
-Type: AtlassianPS.JiraPS.Version
+Type: Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
