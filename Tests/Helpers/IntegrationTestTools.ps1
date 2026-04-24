@@ -185,7 +185,7 @@ function Initialize-IntegrationEnvironment {
         if (-not $global:_JiraPSIntegrationEnvWarned) {
             Write-Warning "Integration tests ($deploymentType track) require the following environment variables: $($missing -join ', ')"
             if ($deploymentType -eq 'Server') {
-                Write-Warning "Set CI_JIRA_TYPE=Server and the CI_JIRA_* vars (defaults match the addono/jira-software-standalone Docker image). See .env.example."
+                Write-Warning "Set CI_JIRA_TYPE=Server and the CI_JIRA_* vars (defaults match the moveworkforward/atlas-run-standalone Docker image). See .env.example."
             }
             else {
                 Write-Warning "Copy .env.example to .env and configure your Jira Cloud connection."
@@ -208,9 +208,9 @@ function Initialize-IntegrationEnvironment {
             UsernameNormal = $env:CI_JIRA_USER
             PasswordNormal = $env:CI_JIRA_USER_PASSWORD
             HasNormalUser  = -not [string]::IsNullOrEmpty($env:CI_JIRA_USER)
-            # Server track creates fixtures dynamically; the bare addono image ships with
-            # no project, so most tests should fall back to creating their own resources
-            # (or skip with a clear message) rather than assuming a permanent fixture.
+            # Server track creates fixtures dynamically; the bare moveworkforward image
+            # ships with no project, so most tests should fall back to creating their own
+            # resources (or skip with a clear message) rather than assuming a permanent fixture.
             TestProject    = if ($env:JIRA_TEST_PROJECT) { $env:JIRA_TEST_PROJECT } else { 'TEST' }
             TestIssue      = $null
             TestUser       = $env:CI_JIRA_USER
@@ -261,7 +261,7 @@ function Connect-JiraTestServer {
 
         - Cloud: uses `New-JiraSession -ApiToken -EmailAddress` (Atlassian API token).
         - Data Center: uses `New-JiraSession -Credential` with admin Basic auth (the
-          addono/jira-software-standalone Docker container ships with `admin/admin`
+          moveworkforward/atlas-run-standalone Docker container ships with `admin/admin`
           and Wait-JiraServer.ps1 provisions a normal user on top).
 
         Only calls Set-JiraConfigServer if the URL differs from current config,
@@ -317,7 +317,7 @@ function Connect-JiraTestServer {
         $cred = New-Object System.Management.Automation.PSCredential($Environment.Username, $secure)
         $session = New-JiraSession -Credential $cred
         if (-not $session) {
-            throw "Failed to establish Jira session. Check credentials and server URL. For Jira Data Center, CI_JIRA_ADMIN_PASSWORD must be the admin user's password (default: 'admin' for the addono/jira-software-standalone image)."
+            throw "Failed to establish Jira session. Check credentials and server URL. For Jira Data Center, CI_JIRA_ADMIN_PASSWORD must be the admin user's password (default: 'admin' for the moveworkforward/atlas-run-standalone image)."
         }
         Write-Verbose "Connected to Jira Data Center: $($Environment.CloudUrl)"
     }

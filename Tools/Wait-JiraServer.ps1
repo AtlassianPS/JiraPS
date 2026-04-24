@@ -6,13 +6,15 @@
 
 .DESCRIPTION
     Used by the Server-track integration tests (.github/workflows/jira_server_ci.yml and the
-    StartJiraDocker build task) to bring up Atlassian Jira inside the addono/jira-software-standalone
-    Docker container and seed the user account that JIRA-side tests authenticate as.
+    StartJiraDocker build task) to bring up Atlassian Jira inside the moveworkforward/atlas-run-standalone
+    Docker container (Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1) and seed the user
+    account that JIRA-side tests authenticate as.
 
     The script:
 
-    1. Polls "${CI_JIRA_URL}/rest/api/2/serverInfo" every 10 seconds for up to 15 minutes,
-       waiting for Jira's web app to start serving requests.
+    1. Polls "${CI_JIRA_URL}/rest/api/2/serverInfo" every 10 seconds for up to 20 minutes,
+       waiting for Jira's web app to start serving requests (cold boot includes Maven
+       dep verification + Tomcat startup + jira.war extraction + first-time DB init).
     2. Once reachable, POSTs to "/rest/api/2/user" with admin Basic auth to create a normal
        user account. If the user already exists, the call is treated as success (idempotent).
 
@@ -38,8 +40,9 @@
     The password for the regular test user. Defaults to $env:CI_JIRA_USER_PASSWORD or 'jira'.
 
 .PARAMETER TimeoutSeconds
-    The total wait budget before giving up. Defaults to 900 (15 minutes), which matches the
-    healthcheck start-up grace plus several retry attempts on a cold container start.
+    The total wait budget before giving up. Defaults to 1200 (20 minutes), which matches the
+    SDK + Tomcat + Jira cold-boot budget plus several retry attempts. Cold boot of the
+    moveworkforward image typically completes in 5-10 minutes on a GitHub Actions runner.
 
 .PARAMETER PollIntervalSeconds
     The delay between health probes. Defaults to 10.
@@ -57,7 +60,7 @@
     also be invoked from Windows desktops while iterating locally.
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Test infrastructure: provisions a known-secret test user against a local Docker container, not a real instance')]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '', Justification = 'Defaults match the addono/jira-software-standalone image used in CI; never used against a real instance')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '', Justification = 'Defaults match the moveworkforward/atlas-run-standalone image used in CI; never used against a real instance')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeRestMethod', '', Justification = 'Test infrastructure runs before the JiraPS module is loaded; AGENTS.md documents this as the one allowed Invoke-RestMethod site')]
 [CmdletBinding()]
 param(
@@ -77,7 +80,7 @@ param(
     [string]$NormalPassword = $(if ($env:CI_JIRA_USER_PASSWORD) { $env:CI_JIRA_USER_PASSWORD } else { 'jira' }),
 
     [Parameter()]
-    [int]$TimeoutSeconds = 900,
+    [int]$TimeoutSeconds = 1200,
 
     [Parameter()]
     [int]$PollIntervalSeconds = 10

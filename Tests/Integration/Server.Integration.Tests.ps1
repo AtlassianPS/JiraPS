@@ -7,7 +7,7 @@
 .DESCRIPTION
     Proves the Server-track plumbing end-to-end: connectivity, Basic-auth session,
     DC-style user lookup by username, and a CRUD path against whatever project the
-    bare `addono/jira-software-standalone` image happens to provide.
+    bare `moveworkforward/atlas-run-standalone` image happens to provide.
 
     The bare image typically ships with no project, so the project-dependent CRUD
     test is allowed to skip with an explicit message. That is intentional - the

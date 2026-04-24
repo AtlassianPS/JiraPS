@@ -14,12 +14,13 @@ The integration suite has two deployment targets:
 | Track | Target | Auth | Trigger |
 |-------|--------|------|---------|
 | **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | `.github/workflows/integration_tests.yml` (PR + scheduled) |
-| **Server** | A Dockerized Jira Data Center instance (`addono/jira-software-standalone:latest`, Jira version pinned to `8.17.1` via the entrypoint in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` (**`workflow_dispatch` only — see note below**) |
+| **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` (PR + scheduled) |
 
-> **⚠️ Server CI is currently disabled (manual dispatch only).**
-> The `addono/jira-software-standalone` image has been broken upstream since 2025: its embedded Atlassian Plugin SDK calls `https://marketplace.atlassian.com/rest/1.0/plugins/atlassian-plugin-sdk-rpm`, which Atlassian has retired (returns 404), so the container never starts Jira.
-> The image author has stated the project is unsupported, and `pycontribs/jira` hit the same wall — see their [PR #2376 "(server seems to be pretty hard tbh)"](https://github.com/pycontribs/jira/pull/2376) which culminated in `ci: remove broken workflows`.
-> All the local plumbing (`docker-compose.yml`, `Tools/Wait-JiraServer.ps1`, `Invoke-Build -Task StartJiraDocker`, the deployment-aware helpers in `Tests/Helpers/IntegrationTestTools.ps1`, the `Server`/`Cloud` tags on every `Describe` block) is intact and ready to be re-enabled the moment a working image surfaces — flipping the workflow back on is a one-line change to `.github/workflows/jira_server_ci.yml`.
+> **Local prerequisite — Docker memory.** The container asks for a 4 GiB Java heap and needs ~1 GiB of base overhead, so allocate **at least 6 GiB** to Docker Desktop in *Settings > Resources* before running locally. CI runners (~7 GiB) have enough headroom out of the box.
+>
+> **Apple Silicon — switch to the native arm64 build.** The default `jira-11` tag is the multi-arch amd64 build that CI uses; on Apple Silicon set `JIRA_IMAGE_TAG=jira-11-arm64` in your `.env` to pull the native arm64 build (~3 GB compressed) and avoid QEMU emulation overhead. Both tags ship the same SDK + Jira version.
+>
+> **Why this image and not `addono/jira-software-standalone`.** The older `addono` image's bundled Plugin SDK 8.2.8 (frozen since 2021) calls the retired `marketplace.atlassian.com/.../atlassian-plugin-sdk-rpm` endpoint at boot and dies before Jira starts; `moveworkforward` ships SDK 9.6.0 which talks to the still-live `packages.atlassian.com` Artifactory and actually boots end-to-end. `pycontribs/jira` hit the same `addono` wall — see their [PR #2376 "(server seems to be pretty hard tbh)"](https://github.com/pycontribs/jira/pull/2376) and the `ci: remove broken workflows` follow-up.
 
 The `CI_JIRA_TYPE` environment variable selects the track.
 Setting `CI_JIRA_TYPE=Server` switches `Initialize-IntegrationEnvironment`, `Connect-JiraTestServer`, and the `TestIntegration` build task to the Server-track configuration; the default (`Cloud`) preserves existing behaviour.
