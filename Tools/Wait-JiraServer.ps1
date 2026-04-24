@@ -15,6 +15,10 @@
     1. Polls "${CI_JIRA_URL}/rest/api/2/serverInfo" every 10 seconds for up to 20 minutes,
        waiting for Jira's web app to start serving requests (cold boot includes Maven
        dep verification + Tomcat startup + jira.war extraction + first-time DB init).
+       The poll is sent with admin Basic auth so it works regardless of whether the image
+       allows anonymous access — the moveworkforward image, for example, returns 401 on
+       /serverInfo for anonymous callers, so we have to authenticate even on the readiness
+       probe.
     2. Once reachable, POSTs to "/rest/api/2/user" with admin Basic auth to create a normal
        user account. If the user already exists, the call is treated as success (idempotent).
 
@@ -92,6 +96,17 @@ $baseUrl = $Url.TrimEnd('/')
 $serverInfoUrl = "$baseUrl/rest/api/2/serverInfo"
 $userApiUrl = "$baseUrl/rest/api/2/user"
 
+# Build Basic auth headers up-front: needed for both the readiness probe (the
+# moveworkforward image returns 401 on /serverInfo for anonymous callers, even
+# once Jira is fully up) and the user-provisioning POST. Sending creds on the
+# probe is harmless against installs that allow anonymous access too.
+$pair = "${AdminUser}:${AdminPassword}"
+$encoded = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
+$headers = @{
+    Authorization = "Basic $encoded"
+    'X-Atlassian-Token' = 'no-check'
+}
+
 Write-Host "==> Waiting for Jira at $serverInfoUrl (timeout: ${TimeoutSeconds}s, poll: ${PollIntervalSeconds}s)"
 
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
@@ -103,7 +118,7 @@ while ((Get-Date) -lt $deadline) {
     try {
         # Documented exception to AGENTS.md (no Invoke-JiraMethod): the module is not yet
         # importable and the goal is to detect when Jira itself starts responding.
-        $info = Invoke-RestMethod -Uri $serverInfoUrl -Method Get -TimeoutSec 10
+        $info = Invoke-RestMethod -Uri $serverInfoUrl -Method Get -Headers $headers -TimeoutSec 10
         if ($info -and $info.version) {
             Write-Host ("==> Jira is up: version={0} buildNumber={1} deploymentType={2}" -f $info.version, $info.buildNumber, $info.deploymentType)
             $ready = $true
@@ -124,13 +139,6 @@ if (-not $ready) {
 }
 
 Write-Host "==> Provisioning normal test user '$NormalUser' via $userApiUrl"
-
-$pair = "${AdminUser}:${AdminPassword}"
-$encoded = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
-$headers = @{
-    Authorization = "Basic $encoded"
-    'X-Atlassian-Token' = 'no-check'
-}
 
 $body = @{
     name         = $NormalUser
