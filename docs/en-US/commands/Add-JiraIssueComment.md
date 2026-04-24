@@ -55,12 +55,24 @@ It would be best to validate the query first to make sure the query returns the 
 ### EXAMPLE 4
 
 ```powershell
-$comment = Get-Process | Format-Jira
+$summary = Get-JiraIssue -Query 'project = TEST AND status != Done AND assignee = currentUser()' |
+    ConvertTo-JiraTable -Property Key, Summary, Status, Priority
+Add-JiraIssueComment -Issue TEST-100 -Comment "My open issues:`n$summary"
+```
+
+This example assembles a wiki-markup table of the caller's open issues and posts it as a comment on the parent ticket TEST-100 — a typical status-update or stand-up workflow.
+The JQL used here works on any Jira deployment (Core, Service Management, Software).
+`ConvertTo-JiraTable` is the canonical way to embed tabular data in a Jira **Server / Data Center** comment.
+On Jira **Cloud** the resulting `||header||` syntax renders as literal text rather than a table because Cloud REST v3 expects Atlassian Document Format (ADF); see [#602](https://github.com/AtlassianPS/JiraPS/issues/602) for the planned ADF wrapping.
+
+### EXAMPLE 5
+
+```powershell
+$comment = Get-Process | ConvertTo-JiraTable
 Add-JiraIssueComment $comment -Issue TEST-003
 ```
 
-This example illustrates adding a comment based on other logic to a JIRA issue.
-Note the use of `Format-Jira` to convert the output of `Get-Process` into a format that is easily read by users.
+`ConvertTo-JiraTable` accepts any `PSObject` pipeline, so non-Jira data — here, the local process list — can also be tabulated and added to a comment.
 
 ## PARAMETERS
 
@@ -236,4 +248,4 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 [Get-JiraIssueComment](../Get-JiraIssueComment/)
 
-[Format-Jira](../Format-Jira/)
+[ConvertTo-JiraTable](../ConvertTo-JiraTable/)

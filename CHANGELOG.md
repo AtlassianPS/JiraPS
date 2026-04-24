@@ -44,9 +44,14 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Added caching to `Get-JiraField`, `Get-JiraIssueType`, and `Get-JiraPriority` with a `-Force` parameter to bypass the cache (#576)
 - Added `Clear-JiraCache` public function to clear cached API responses by type (#576)
 - Added "Automation and CI/CD" section to authentication documentation with programmatic SecureString examples (#576)
+- Added `ConvertTo-JiraTable` as the descriptive replacement for `Format-Jira`.
+  The new name reflects what the cmdlet actually does: it returns a `[String]` of Jira wiki-markup table syntax, not a host-only `Format-*` display object.
 
 ### Changed
 
+- Renamed `Format-Jira` to `ConvertTo-JiraTable`.
+  The old name is preserved as a deprecated exported alias for backward compatibility and will be removed in a future major version.
+  Update scripts to call `ConvertTo-JiraTable` directly.
 - `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
 - `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
 - Enhanced `Test-ServerResponse` to handle HTTP 503 (Service Unavailable) with retry, jitter on backoff delays, and 60-second max delay cap (#576)
