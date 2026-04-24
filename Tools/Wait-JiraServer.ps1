@@ -244,6 +244,39 @@ try {
 
 Write-Host ("    Resolved schemes: permission={0} notification={1} security={2} category={3}" -f $permissionScheme, $notificationScheme, $issueSecurityScheme, $projectCategory)
 
+# Diagnostic: dump what project types and templates the running instance actually
+# advertises so future debugging doesn't need another CI round-trip.
+try {
+    $projectTypes = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/project/type" -Method Get -Headers $headers -TimeoutSec 30
+    if ($projectTypes) {
+        Write-Host ("    Available project types: {0}" -f (($projectTypes | ForEach-Object { $_.key }) -join ', '))
+    }
+} catch { Write-Host "    (project/type lookup failed: $($_.Exception.Message))" }
+
+try {
+    $rawTemplates = Invoke-RestMethod -Uri "$baseUrl/rest/project-templates/1.0/templates" -Method Get -Headers $headers -TimeoutSec 30
+    $count = 0
+    if ($rawTemplates -and $rawTemplates.projectTemplates) { $count = @($rawTemplates.projectTemplates).Count }
+    Write-Host ("    /rest/project-templates/1.0/templates returned {0} entries (raw type={1})" -f $count, $rawTemplates.GetType().FullName)
+    if ($count -eq 0) {
+        $body = $rawTemplates | ConvertTo-Json -Depth 5 -Compress
+        if ($body.Length -gt 600) { $body = $body.Substring(0, 600) + '...' }
+        Write-Host ("    raw body: {0}" -f $body)
+    }
+} catch { Write-Host "    (project-templates lookup failed: $($_.Exception.Message))" }
+
+# Also check whether a project already exists (idempotent re-runs, or if the
+# image happens to ship one).
+try {
+    $existing = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/project" -Method Get -Headers $headers -TimeoutSec 30
+    if ($existing) {
+        $names = ($existing | ForEach-Object { "$($_.key) ($($_.projectTypeKey))" }) -join ', '
+        Write-Host ("    Existing projects: {0}" -f $names)
+    } else {
+        Write-Host "    No existing projects."
+    }
+} catch { Write-Host "    (project list failed: $($_.Exception.Message))" }
+
 # 2. Candidate (projectTypeKey, projectTemplateKey) pairs. Order matters — first
 #    is the canonical Server Software template that pycontribs/jira uses.
 $candidatePairs = @(
