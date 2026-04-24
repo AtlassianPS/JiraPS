@@ -1,4 +1,4 @@
-﻿function Format-Jira {
+﻿function ConvertTo-JiraTable {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     [OutputType([System.String])]
@@ -115,3 +115,5 @@
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
+
+New-Alias -Name "Format-Jira" -Value "ConvertTo-JiraTable" -ErrorAction SilentlyContinue

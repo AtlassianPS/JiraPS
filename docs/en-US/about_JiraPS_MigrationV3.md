@@ -40,6 +40,15 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
+## DEPRECATIONS (NON-BREAKING)
+
+The following changes do **not** break existing scripts in v3 — the old name continues to work via an exported alias — but the alias will be removed in a future major version.
+Update at your convenience.
+
+| Area          | What Changed                                                                  |
+| ------------- | ----------------------------------------------------------------------------- |
+| `Format-Jira` | Renamed to `ConvertTo-JiraTable`. The old name is preserved as a deprecated, exported alias. |
+
 ## DETAILED MIGRATION GUIDE
 
 ### Pagination — `Get-JiraIssue` and `Get-JiraGroupMember`
@@ -192,6 +201,33 @@ New-JiraIssue -Project TEST -IssueType Task -Summary 'x'
 New-JiraIssue -Project TEST -IssueType Task -Summary 'x' -Reporter 'powershell'
 ```
 
+### Renaming — `Format-Jira` → `ConvertTo-JiraTable`
+
+The `Format-Jira` cmdlet has been renamed to `ConvertTo-JiraTable`.
+The new name reflects what the command actually does: it returns a `[String]` containing Jira wiki-markup table syntax, not a host-only `Format-*` display object like `Format-Table` produces.
+Treating it as a `ConvertTo-*` is also more honest about the destructive nature of the conversion.
+
+Existing scripts continue to work because `Format-Jira` is preserved as an exported deprecated alias.
+The alias will be removed in a future major version, so update scripts at your convenience.
+
+#### v2
+
+```powershell
+Get-Process | Format-Jira | Add-JiraIssueComment -Issue TEST-001
+$comment = Get-Process powershell | Format-Jira
+```
+
+#### v3
+
+```powershell
+Get-Process | ConvertTo-JiraTable | Add-JiraIssueComment -Issue TEST-001
+$comment = Get-Process powershell | ConvertTo-JiraTable
+```
+
+`ConvertTo-JiraTable` produces Jira wiki markup, the native format for Jira Server / Data Center.
+On **Jira Cloud** REST v3 endpoints expect Atlassian Document Format (ADF) and render the resulting `||header||` / `|cell|` syntax as literal text rather than as a table.
+Wrapping the write-side text payloads (`Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `New-JiraIssue -Description`, etc.) in ADF on Cloud is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
+
 ### Minimum PowerShell Version
 
 JiraPS v3 requires PowerShell 5.1 or later.
@@ -214,6 +250,10 @@ Get-ChildItem -Recurse -Filter *.ps1 |
 # Find legacy paging parameters
 Get-ChildItem -Recurse -Filter *.ps1 |
     Select-String -Pattern "-(StartIndex|MaxResults)\b"
+
+# Find usages of the deprecated Format-Jira alias
+Get-ChildItem -Recurse -Filter *.ps1 |
+    Select-String -Pattern "\bFormat-Jira\b"
 ```
 
 # SEE ALSO
