@@ -7,6 +7,10 @@ BeforeDiscovery {
     $script:moduleToTest = Initialize-TestEnvironment
 
     $script:Skip = Skip-IntegrationTest
+    if (-not $Skip) {
+        $testEnv = Initialize-IntegrationEnvironment
+        $script:SkipWrite = $testEnv.ReadOnly
+    }
 }
 
 InModuleScope JiraPS {
@@ -20,6 +24,9 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
+            if ($tempIssue -and $tempIssue.Key) {
+                Remove-JiraIssue -IssueId $tempIssue.Key -Force -ErrorAction SilentlyContinue
+            }
             Remove-JiraSession -ErrorAction SilentlyContinue
         }
 
@@ -175,6 +182,141 @@ InModuleScope JiraPS {
                     $result = ConvertFrom-AtlassianDocumentFormat -InputObject $null
 
                     $result | Should -BeNullOrEmpty
+                }
+            }
+        }
+
+        Describe "Markdown -> ADF round-trip on Cloud" -Skip:$SkipWrite {
+            BeforeAll {
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
+                    $script:tempIssue = $null
+                }
+                else {
+                    $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures
+                }
+            }
+
+            Context "New-JiraIssue -Description (create path)" {
+                It "round-trips a Markdown description created by New-JiraIssue" {
+                    if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $marker = "ADFCREATE_$(Get-Date -Format 'HHmmssff')"
+                    $description = "# Heading $marker`n`nA paragraph with **bold**, _italic_, and ``inline code``."
+
+                    $summary = New-TestResourceName -Type "ADFCreateIssue"
+                    $created = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary -Description $description
+
+                    try {
+                        $created | Should -Not -BeNullOrEmpty
+
+                        # Reading back should render ADF -> plain text, not raw JSON
+                        $fetched = Get-JiraIssue -Key $created.Key
+                        $fetched.Description | Should -BeOfType [string]
+                        $fetched.Description | Should -Not -Match '"type":\s*"doc"'
+                        $fetched.Description | Should -Match $marker
+                        $fetched.Description | Should -Match 'bold'
+                        $fetched.Description | Should -Match 'italic'
+                    }
+                    finally {
+                        if ($created -and $created.Key) {
+                            Remove-JiraIssue -IssueId $created.Key -Force -ErrorAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+
+            Context "Set-JiraIssue -Description (edit path)" {
+                It "round-trips a Markdown description set via Set-JiraIssue" {
+                    if (-not $tempIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $marker = "ADFEDIT_$(Get-Date -Format 'HHmmssff')"
+                    $description = "Edited description $marker with **bold** text."
+
+                    Set-JiraIssue -Issue $tempIssue.Key -Description $description
+
+                    $fetched = Get-JiraIssue -Key $tempIssue.Key
+                    $fetched.Description | Should -BeOfType [string]
+                    $fetched.Description | Should -Not -Match '"type":\s*"doc"'
+                    $fetched.Description | Should -Match $marker
+                    $fetched.Description | Should -Match 'bold'
+                }
+            }
+
+            Context "Add-JiraIssueComment + Get-JiraIssueComment" {
+                It "round-trips a Markdown comment body" {
+                    if (-not $tempIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $marker = "ADFCOMMENT_$(Get-Date -Format 'HHmmssff')"
+                    $body = "## Heading $marker`n`nLine with **bold** and _italic_."
+
+                    $added = Add-JiraIssueComment -Issue $tempIssue.Key -Comment $body
+
+                    $added | Should -Not -BeNullOrEmpty
+                    $added.Body | Should -BeOfType [string]
+                    $added.Body | Should -Not -Match '"type":\s*"doc"'
+                    $added.Body | Should -Match $marker
+                    $added.Body | Should -Match 'bold'
+
+                    # Verify it survives a round-trip via Get-JiraIssueComment as well
+                    $fetched = Get-JiraIssueComment -Issue $tempIssue.Key
+                    $matching = $fetched | Where-Object { $_.Body -match $marker }
+                    $matching | Should -Not -BeNullOrEmpty
+                    $matching.Body | Should -Not -Match '"type":\s*"doc"'
+                }
+            }
+
+            Context "Set-JiraIssue -AddComment (edit path)" {
+                It "round-trips a Markdown comment added via -AddComment" {
+                    if (-not $tempIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $marker = "ADFADDCOMMENT_$(Get-Date -Format 'HHmmssff')"
+                    $body = "Edit-comment $marker with **bold**."
+
+                    Set-JiraIssue -Issue $tempIssue.Key -AddComment $body
+
+                    $fetched = Get-JiraIssueComment -Issue $tempIssue.Key
+                    $matching = $fetched | Where-Object { $_.Body -match $marker }
+                    $matching | Should -Not -BeNullOrEmpty
+                    $matching.Body | Should -Not -Match '"type":\s*"doc"'
+                    $matching.Body | Should -Match 'bold'
+                }
+            }
+
+            Context "Add-JiraIssueWorklog + Get-JiraIssueWorklog" {
+                It "round-trips a Markdown worklog comment" {
+                    if (-not $tempIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $marker = "ADFWORKLOG_$(Get-Date -Format 'HHmmssff')"
+                    $body = "Worklog $marker with **bold** prose."
+
+                    $added = Add-JiraIssueWorklog -Issue $tempIssue.Key -Comment $body -TimeSpent ([TimeSpan]::FromMinutes(1)) -DateStarted (Get-Date)
+
+                    $added | Should -Not -BeNullOrEmpty
+                    $added.Comment | Should -BeOfType [string]
+                    $added.Comment | Should -Not -Match '"type":\s*"doc"'
+                    $added.Comment | Should -Match $marker
+                    $added.Comment | Should -Match 'bold'
+
+                    $fetched = Get-JiraIssueWorklog -Issue $tempIssue.Key
+                    $matching = $fetched | Where-Object { $_.Comment -match $marker }
+                    $matching | Should -Not -BeNullOrEmpty
+                    $matching.Comment | Should -BeOfType [string]
+                    $matching.Comment | Should -Not -Match '"type":\s*"doc"'
                 }
             }
         }
