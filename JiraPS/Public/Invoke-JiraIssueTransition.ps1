@@ -185,7 +185,7 @@
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding comment"
             $requestBody.update.comment += , @{
                 'add' = @{
-                    'body' = $Comment
+                    'body' = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
                 }
             }
         }
@@ -193,7 +193,7 @@
         $parameter = @{
             URI        = "{0}/transitions" -f $issueObj.RestURL
             Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $requestBody -Depth 5
+            Body       = ConvertTo-Json -InputObject $requestBody -Depth 20
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

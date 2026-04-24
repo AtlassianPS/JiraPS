@@ -40,6 +40,10 @@ For example, the "Start Progress" transition typically moves an issue from an Op
 To identify the transitions that an issue can perform, use `Get-JiraIssue` and check the Transition property of the issue obj ect returned.
 Attempting to perform a transition that does not apply to the issue (for example, trying to "start progress" on an issue in progress) will result in an exception.
 
+On **Jira Cloud**, the `-Comment` text is interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent.
+On **Jira Server / Data Center**, the comment is sent verbatim and the legacy wiki-markup syntax continues to apply.
+See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/) for the supported Markdown subset.
+
 ## EXAMPLES
 
 ### EXAMPLE 1

@@ -300,6 +300,20 @@ InModuleScope JiraPS {
                     $Body -match '"accountId":\s*null'
                 }
             }
+
+            It "wraps -Comment into an ADF document on Cloud deployment" {
+                { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Comment 'transition note' } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
+                    ($payload = $Body | ConvertFrom-Json) -and
+                    $payload.update.comment[0].add.body.type -eq 'doc' -and
+                    $payload.update.comment[0].add.body.version -eq 1 -and
+                    $payload.update.comment[0].add.body.content[0].type -eq 'paragraph' -and
+                    $payload.update.comment[0].add.body.content[0].content[0].text -eq 'transition note'
+                }
+            }
         }
     }
 }
