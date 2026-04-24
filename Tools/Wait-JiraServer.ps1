@@ -197,77 +197,83 @@ Write-Host "==> Provisioning test project '$ProjectKey' via $projectApiUrl"
 # JIRA_TEST_PROJECT). The moveworkforward image starts with no projects.
 #
 # Project creation in Jira Server/DC requires a (projectTypeKey, projectTemplateKey)
-# pair that the running instance actually has installed. Templates vary across
-# Jira versions and bundle combinations, so rather than hard-coding values we
-# enumerate the templates the live server reports and try them in order until
-# one works.
-$templatesUrl = "$baseUrl/rest/project-templates/1.0/templates"
-$candidatePairs = New-Object 'System.Collections.Generic.List[hashtable]'
+# pair that the running instance has installed, plus references to existing
+# permission/notification/security schemes (otherwise the create fails with an
+# unhelpful 400). The pycontribs/jira tests do the same dance — see their
+# `Jira.create_project()` (jira/client.py): they look up the default schemes by
+# name first, then POST to /rest/api/2/project with the full payload.
+#
+# Template name matters: `gh-simplified-*` are Cloud-only; for Jira Server/DC
+# the canonical Software template is
+# `com.pyxis.greenhopper.jira:basic-software-development-template`.
+
+# 1. Resolve default schemes (best-effort; missing values are fine, Jira will use
+#    its built-in defaults if we omit them).
+$permissionScheme = $null
+$notificationScheme = 10000  # Jira's documented default
+$issueSecurityScheme = $null
+$projectCategory = $null
 
 try {
-    $templatesResponse = Invoke-RestMethod -Uri $templatesUrl -Method Get -Headers $headers -TimeoutSec 30
-    # Response shape: { projectTemplates: [ { projectTypeBean: { key }, projectTemplateModuleCompleteKey, ... } ], ... }
-    if ($templatesResponse.projectTemplates) {
-        foreach ($tpl in $templatesResponse.projectTemplates) {
-            $typeKey = $null
-            try { $typeKey = $tpl.projectTypeBean.key } catch { }
-            $tplKey = $null
-            if ($tpl.projectTemplateModuleCompleteKey) {
-                $tplKey = $tpl.projectTemplateModuleCompleteKey
-            } elseif ($tpl.projectTemplateModuleKey) {
-                $tplKey = $tpl.projectTemplateModuleKey
-            }
-            if ($typeKey -and $tplKey) {
-                $candidatePairs.Add(@{ ProjectTypeKey = $typeKey; ProjectTemplateKey = $tplKey })
-            }
-        }
-        Write-Host ("==> Discovered {0} project templates from {1}" -f $candidatePairs.Count, $templatesUrl)
-        foreach ($p in $candidatePairs) {
-            Write-Host ("    - {0} / {1}" -f $p.ProjectTypeKey, $p.ProjectTemplateKey)
-        }
+    $ps = (Invoke-RestMethod -Uri "$baseUrl/rest/api/2/permissionscheme" -Method Get -Headers $headers -TimeoutSec 30).permissionSchemes
+    if ($ps) {
+        $default = $ps | Where-Object { $_.name -eq 'Default Permission Scheme' } | Select-Object -First 1
+        if (-not $default) { $default = $ps | Select-Object -First 1 }
+        if ($default) { $permissionScheme = [int]$default.id }
     }
-    else {
-        Write-Host "==> Templates endpoint returned no entries; will fall through to hardcoded candidates."
-    }
-}
-catch {
-    Write-Host ("==> Could not enumerate templates from {0}: {1}. Falling back to hardcoded candidates." -f $templatesUrl, $_.Exception.Message)
-}
+} catch { Write-Host "    (permissionscheme lookup skipped: $($_.Exception.Message))" }
 
-# Always append a known-good fallback list so we still try sensible defaults if
-# enumeration failed entirely or returned a sparse response.
-$fallbacks = @(
+try {
+    $iss = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issuesecurityschemes" -Method Get -Headers $headers -TimeoutSec 30
+    $list = if ($iss.issueSecuritySchemes) { $iss.issueSecuritySchemes } else { $iss }
+    if ($list) {
+        $default = $list | Where-Object { $_.name -eq 'Default' } | Select-Object -First 1
+        if (-not $default) { $default = $list | Select-Object -First 1 }
+        if ($default) { $issueSecurityScheme = [int]$default.id }
+    }
+} catch { Write-Host "    (issuesecurityschemes lookup skipped: $($_.Exception.Message))" }
+
+try {
+    $cats = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/projectCategory" -Method Get -Headers $headers -TimeoutSec 30
+    if ($cats) {
+        $default = $cats | Where-Object { $_.name -eq 'Default' } | Select-Object -First 1
+        if (-not $default) { $default = $cats | Select-Object -First 1 }
+        if ($default) { $projectCategory = [int]$default.id }
+    }
+} catch { Write-Host "    (projectCategory lookup skipped: $($_.Exception.Message))" }
+
+Write-Host ("    Resolved schemes: permission={0} notification={1} security={2} category={3}" -f $permissionScheme, $notificationScheme, $issueSecurityScheme, $projectCategory)
+
+# 2. Candidate (projectTypeKey, projectTemplateKey) pairs. Order matters — first
+#    is the canonical Server Software template that pycontribs/jira uses.
+$candidatePairs = @(
+    @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:basic-software-development-template' }
     @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-basic' }
     @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-scrum-classic' }
     @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-kanban-classic' }
-    @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-agility-kanban' }
     @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-process-control' }
     @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-task-tracking' }
     @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-project-management' }
 )
-foreach ($f in $fallbacks) {
-    $alreadyListed = $false
-    foreach ($existing in $candidatePairs) {
-        if ($existing.ProjectTypeKey -eq $f.ProjectTypeKey -and $existing.ProjectTemplateKey -eq $f.ProjectTemplateKey) {
-            $alreadyListed = $true
-            break
-        }
-    }
-    if (-not $alreadyListed) { $candidatePairs.Add($f) }
-}
 
 $project = $null
 $lastError = $null
 foreach ($pair in $candidatePairs) {
-    $body = @{
-        key                = $ProjectKey
+    $payload = [ordered]@{
         name               = $ProjectName
+        key                = $ProjectKey
         projectTypeKey     = $pair.ProjectTypeKey
         projectTemplateKey = $pair.ProjectTemplateKey
         lead               = $AdminUser
-        description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
         assigneeType       = 'PROJECT_LEAD'
-    } | ConvertTo-Json -Compress
+        description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
+        notificationScheme = $notificationScheme
+    }
+    if ($permissionScheme)    { $payload['permissionScheme']    = $permissionScheme }
+    if ($issueSecurityScheme) { $payload['issueSecurityScheme'] = $issueSecurityScheme }
+    if ($projectCategory)     { $payload['categoryId']          = $projectCategory }
+
+    $body = $payload | ConvertTo-Json -Compress
 
     try {
         Write-Host ("==> Trying template: {0} / {1}" -f $pair.ProjectTypeKey, $pair.ProjectTemplateKey)
