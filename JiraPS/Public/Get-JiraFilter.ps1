@@ -5,36 +5,11 @@
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByFilterID' )]
         [String[]]
         $Id,
-        <#
-          #ToDo:CustomClass
-          Now that we have custom classes for the module,
-          this can use ValueFromPipelineByPropertyName
-          and we will no longer need the InputObject
-        #>
 
         [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("AtlassianPS.JiraPS.Filter" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraFilter'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Filter. Expected [AtlassianPS.JiraPS.Filter] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.FilterTransformation()]
+        [AtlassianPS.JiraPS.Filter[]]
         $InputObject,
 
         [Parameter( Mandatory, ParameterSetName = 'MyFavorite' )]
@@ -80,15 +55,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$object]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$object [$object]"
 
-                    if ('AtlassianPS.JiraPS.Filter' -in $object.PSObject.TypeNames) {
-                        $thisId = $object.ID
-                    }
-                    else {
-                        $thisId = $object.ToString()
-                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] ID is assumed to be [$thisId] via ToString()"
-                    }
-
-                    Write-Output (Get-JiraFilter -Id $thisId -Credential $Credential)
+                    Write-Output (Get-JiraFilter -Id $object.ID -Credential $Credential)
                 }
             }
             "MyFavorite" {

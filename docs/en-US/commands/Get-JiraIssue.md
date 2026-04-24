@@ -38,7 +38,7 @@ Get-JiraIssue -Query <string> [-Fields <string[]>] [-PageSize <uint>] [-Credenti
 ### ByFilter
 
 ```powershell
-Get-JiraIssue -Filter <Object> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>]
+Get-JiraIssue -Filter <Filter> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
@@ -187,7 +187,7 @@ HelpMessage: ''
 Object of an existing JIRA filter from which the results will be returned.
 
 ```yaml
-Type: Object
+Type: Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

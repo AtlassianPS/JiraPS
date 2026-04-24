@@ -113,6 +113,13 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   - Empty or whitespace-only strings still fail at parameter binding (`"Cannot bind an empty or whitespace string to a Version parameter."`).
   - The internal `if ($Version.Id) { $versionId = $Version.Id } else { $versionId = $Version }` adapter blocks in `Move-JiraVersion`, `Remove-JiraVersion`, and `Set-JiraVersion` are gone — the typed parameter is always a real `Version` instance, so the body can read `$Version.Id` directly.
   - `New-JiraVersion -InputObject` now skips `releaseDate` / `startDate` from the request body when the slot is `$null` (previously it called `.ToString('yyyy-MM-dd')` on a `$null` and produced a malformed payload), and reads the project ID from the new `Version.Project [long?]` slot instead of the legacy `Project.Key`/`Project.Id` PSObject lookup.
+- **BREAKING (soft)**: The two filter-scoped cmdlets that previously accepted `-InputObject` / `-Filter` as `[Object]`/`[Object[]]` (with a polymorphic `ValidateScript` accepting an `AtlassianPS.JiraPS.Filter` PSTypeName or a `[String]` filter ID) now declare a real typed parameter and use the new `[AtlassianPS.JiraPS.FilterTransformation()]` attribute to coerce the bound value at parameter binding time. Affected cmdlets:
+  - `Get-JiraFilter` (`-InputObject` → `[AtlassianPS.JiraPS.Filter[]]`)
+  - `Get-JiraIssue` (`-Filter` → `[AtlassianPS.JiraPS.Filter]`)
+  - The transformer accepts: an existing `[AtlassianPS.JiraPS.Filter]`; a numeric scalar (any integer width — Jira filter IDs are integral); a non-empty string (treated as a filter ID, matching the historic `Get-JiraFilter -InputObject [String]` shape that always called `.ToString()` on the value and forwarded it to `-Id`); or a legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Filter` (or, for backward compatibility with hand-rolled mocks, the historical `JiraPS.Filter`) `PSTypeName`.
+  - Empty or whitespace-only strings now fail at parameter binding (`"Cannot bind an empty or whitespace string to a Filter parameter."`) instead of silently passing through and producing an opaque server error.
+  - The `if ('AtlassianPS.JiraPS.Filter' -in $object.PSObject.TypeNames) { $thisId = $object.ID } else { $thisId = $object.ToString() }` adapter block in `Get-JiraFilter` is gone — the typed parameter is always a real `Filter` instance, so the body reads `$object.ID` directly.
+  - `Get-JiraIssue -Filter` no longer round-trips through `Get-JiraFilter -InputObject`; it calls `Get-JiraFilter -Id $Filter.ID` directly.
 
 ### Added
 

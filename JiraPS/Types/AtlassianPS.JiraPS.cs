@@ -574,4 +574,86 @@ namespace AtlassianPS.JiraPS
             return inputData;
         }
     }
+
+    // Same shape as the other transformers, for Filter-typed parameters.
+    // Accepts an existing Filter, a numeric scalar or string (treated as a
+    // filter ID — Jira filter IDs are integral on the wire and the historic
+    // Get-JiraFilter -InputObject [String] path always treated the string as
+    // an ID via .ToString()), or a legacy PSCustomObject tagged as
+    // AtlassianPS.JiraPS.Filter. The cmdlet body is responsible for resolving
+    // stub Filters through Get-JiraFilter -Id when it needs the full payload
+    // (SearchUrl, RestUrl, JQL, ...).
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class FilterTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
+    {
+        public override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
+        {
+            return JiraTransform.TransformOrFanout(inputData, TransformOne);
+        }
+
+        private static object TransformOne(object inputData)
+        {
+            if (inputData == null) return null;
+
+            var pso = inputData as System.Management.Automation.PSObject;
+            object value = pso != null ? pso.BaseObject : inputData;
+
+            if (value is Filter) return value;
+
+            if (value is int || value is long || value is short || value is byte
+                || value is uint || value is ulong || value is ushort || value is sbyte)
+            {
+                return new Filter { ID = System.Convert.ToInt64(value).ToString(System.Globalization.CultureInfo.InvariantCulture) };
+            }
+
+            if (value is string str)
+            {
+                if (string.IsNullOrWhiteSpace(str))
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "Cannot bind an empty or whitespace string to a Filter parameter.");
+                }
+                // Historic behaviour: a string passed to -InputObject was always
+                // treated as a filter ID (the body called ToString() on it and
+                // forwarded to Get-JiraFilter -Id). Preserve that contract.
+                return new Filter { ID = str };
+            }
+
+            // Legacy PSCustomObject masquerading as a Filter (PSTypeName trick).
+            if (pso != null && pso.TypeNames != null && (pso.TypeNames.Contains("AtlassianPS.JiraPS.Filter") || pso.TypeNames.Contains("JiraPS.Filter")))
+            {
+                var filter = new Filter();
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "ID": case "Id": case "id": filter.ID = prop.Value as string ?? (prop.Value != null ? prop.Value.ToString() : null); break;
+                        case "Name": case "name": filter.Name = prop.Value as string; break;
+                        case "JQL": case "jql": filter.JQL = prop.Value as string; break;
+                        case "RestUrl": case "RestURL": case "self":
+                            filter.RestUrl = prop.Value as string; break;
+                        case "ViewUrl": case "viewUrl":
+                            filter.ViewUrl = prop.Value as string; break;
+                        case "SearchUrl": case "SearchURL": case "searchUrl":
+                            filter.SearchUrl = prop.Value as string; break;
+                        case "Description": case "description": filter.Description = prop.Value as string; break;
+                        case "Favourite": case "Favorite": case "favourite":
+                            if (prop.Value != null)
+                            {
+                                bool fav;
+                                if (bool.TryParse(prop.Value.ToString(), out fav)) { filter.Favourite = fav; }
+                            }
+                            break;
+                        case "Owner": case "owner":
+                            filter.Owner = prop.Value as User; break;
+                    }
+                }
+                return filter;
+            }
+
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
+                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Filter. Expected a filter-ID string, a numeric ID, or an existing AtlassianPS.JiraPS.Filter object.",
+                value.GetType().FullName));
+        }
+    }
 }

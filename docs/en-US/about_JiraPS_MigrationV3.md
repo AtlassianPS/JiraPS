@@ -47,6 +47,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | Group promoted to .NET class | `Group` joins the eight original `AtlassianPS.JiraPS.*` types. `ConvertTo-JiraGroup` returns `[AtlassianPS.JiraPS.Group]`; `PSObject.TypeNames[0]` is `AtlassianPS.JiraPS.Group` (was `JiraPS.Group`). |
 | Group-scoped cmdlets         | `-Group` on `Add-JiraGroupMember`, `Get-JiraGroupMember`, `Remove-JiraGroup`, and `Remove-JiraGroupMember` is now strongly-typed `[AtlassianPS.JiraPS.Group[]]` with a custom transformer. |
 | Version-scoped cmdlets       | `-Version` / `-After` / `-InputObject` / `-InputVersion` on `Get-JiraVersion`, `Move-JiraVersion`, `New-JiraVersion`, `Remove-JiraVersion`, and `Set-JiraVersion` are now strongly-typed `[AtlassianPS.JiraPS.Version]` / `[AtlassianPS.JiraPS.Version[]]` with a custom transformer. |
+| Filter-scoped cmdlets        | `-InputObject` on `Get-JiraFilter` and `-Filter` on `Get-JiraIssue` are now strongly-typed `[AtlassianPS.JiraPS.Filter]` / `[AtlassianPS.JiraPS.Filter[]]` with a custom transformer. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -687,6 +688,67 @@ were masked by the `[Object]` parameter:
   a malformed payload.
 - The project ID is read from the new strongly-typed `Version.Project [long?]`
   slot instead of the legacy `Project.Key`/`Project.Id` PSObject lookup.
+
+### Strongly-typed `-Filter` / `-InputObject` parameter on filter-scoped cmdlets
+
+The two filter-scoped public cmdlets that previously declared `-InputObject` /
+`-Filter` as `[Object]`/`[Object[]]` with a polymorphic `[ValidateScript]` block
+(accepting an `AtlassianPS.JiraPS.Filter` `PSTypeName` or a `[String]` filter
+ID) now declare a real typed parameter and use the new
+`[AtlassianPS.JiraPS.FilterTransformation()]` attribute against it:
+
+| Cmdlet            | Parameter      | v2 declaration                  | v3 declaration                    |
+| ----------------- | -------------- | ------------------------------- | --------------------------------- |
+| `Get-JiraFilter`  | `-InputObject` | `[Object[]]` + ValidateScript   | `[AtlassianPS.JiraPS.Filter[]]`   |
+| `Get-JiraIssue`   | `-Filter`      | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Filter]`     |
+
+The transformer accepts:
+
+- An existing `[AtlassianPS.JiraPS.Filter]` instance (returned as-is).
+- A numeric scalar (any integer width — Jira filter IDs are integral) — wrapped
+  in a stub `Filter` whose `ID` is set.
+- A non-empty string — treated as a filter ID, matching the historic
+  `Get-JiraFilter -InputObject [String]` shape that always called `.ToString()`
+  on the value and forwarded it to `-Id`.
+- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Filter`
+  `PSTypeName` (or the historical `JiraPS.Filter` for hand-rolled v2 mocks).
+
+Empty or whitespace-only strings now fail at parameter binding with:
+
+```
+Cannot bind an empty or whitespace string to a Filter parameter.
+```
+
+#### Adapter blocks removed
+
+`Get-JiraFilter`'s body used to massage `[Object]` input into an ID:
+
+##### v2
+
+```powershell
+foreach ($object in $InputObject) {
+    if ('AtlassianPS.JiraPS.Filter' -in $object.PSObject.TypeNames) {
+        $thisId = $object.ID
+    }
+    else {
+        $thisId = $object.ToString()
+    }
+    Get-JiraFilter -Id $thisId
+}
+```
+
+##### v3
+
+```powershell
+foreach ($object in $InputObject) {
+    # $object is always a real [AtlassianPS.JiraPS.Filter]
+    Get-JiraFilter -Id $object.ID
+}
+```
+
+`Get-JiraIssue -Filter` no longer round-trips through `Get-JiraFilter
+-InputObject` either; it calls `Get-JiraFilter -Id $Filter.ID` directly,
+removing one layer of indirection.
 
 ### Minimum PowerShell Version
 

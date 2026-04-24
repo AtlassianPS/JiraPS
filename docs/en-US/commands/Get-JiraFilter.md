@@ -23,7 +23,7 @@ Get-JiraFilter [-Id] <string[]> [-Credential <pscredential>] [<CommonParameters>
 ### ByInputObject
 
 ```powershell
-Get-JiraFilter -InputObject <Object[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraFilter -InputObject <Filter[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### MyFavorite
@@ -139,7 +139,7 @@ HelpMessage: ''
 Object of the filter to search for.
 
 ```yaml
-Type: Object[]
+Type: Filter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
