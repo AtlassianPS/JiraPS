@@ -1,0 +1,68 @@
+name: Backlog idea
+description: File a refactor / cleanup / follow-up that should live on the JiraPS Backlog board.
+title: "[Backlog] "
+labels: ["Backlog"]
+projects: ["AtlassianPS/2"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for ideas that come out of a chat, code review, or audit and that should be tracked on the **JiraPS Backlog** project board so they don't get lost between worktrees.
+        Active bugs go to *Bug report*; new user-facing features go to *Feature request*.
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What did you observe and why does it matter?
+      placeholder: |
+        Linked transcript, PR, code path, audit finding, or chat log.
+        Plain prose is fine — one sentence per line.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What is the change you have in mind?
+      placeholder: |
+        The shape of the work, not the implementation steps.
+        Mention the files / cmdlets / classes you expect to touch.
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Trade-offs
+      description: Why might we *not* do this, or do it differently?
+      placeholder: |
+        Backward-compat risk, scope creep, test cost, alternative designs.
+        "None" is a valid answer when it's truly trivial.
+    validations:
+      required: false
+  - type: textarea
+    id: related
+    attributes:
+      label: Related items
+      description: PRs, other issues, transcripts, or external docs that share context.
+      placeholder: |
+        - #NNN
+        - chat: <transcript link>
+        - upstream: https://...
+    validations:
+      required: false
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Theme (set on the project board after triage)
+      description: Pick the closest fit. Triage may move this.
+      options:
+        - TypeSystem
+        - Docs
+        - Cmdlets
+        - API
+        - Tests
+        - Build
+        - Other
+      default: 6
+    validations:
+      required: false
