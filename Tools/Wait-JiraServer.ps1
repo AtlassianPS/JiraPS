@@ -84,6 +84,12 @@ param(
     [string]$NormalPassword = $(if ($env:CI_JIRA_USER_PASSWORD) { $env:CI_JIRA_USER_PASSWORD } else { 'jira' }),
 
     [Parameter()]
+    [string]$ProjectKey = $(if ($env:JIRA_TEST_PROJECT) { $env:JIRA_TEST_PROJECT } else { 'TEST' }),
+
+    [Parameter()]
+    [string]$ProjectName = $(if ($env:JIRA_TEST_PROJECT_NAME) { $env:JIRA_TEST_PROJECT_NAME } else { 'JiraPS Integration Tests' }),
+
+    [Parameter()]
     [int]$TimeoutSeconds = 1200,
 
     [Parameter()]
@@ -95,6 +101,8 @@ $ErrorActionPreference = 'Stop'
 $baseUrl = $Url.TrimEnd('/')
 $serverInfoUrl = "$baseUrl/rest/api/2/serverInfo"
 $userApiUrl = "$baseUrl/rest/api/2/user"
+$projectApiUrl = "$baseUrl/rest/api/2/project"
+$issueApiUrl = "$baseUrl/rest/api/2/issue"
 
 # Build Basic auth headers up-front: needed for both the readiness probe (the
 # moveworkforward image returns 401 on /serverInfo for anonymous callers, even
@@ -183,5 +191,104 @@ catch {
     }
 }
 
-Write-Host "==> Jira is ready and the test user is provisioned."
+Write-Host "==> Provisioning test project '$ProjectKey' via $projectApiUrl"
+
+# The integration test suite expects a project with key 'TEST' (override via
+# JIRA_TEST_PROJECT). The moveworkforward image starts with no projects, so we
+# create one here using the Software template that ships with Jira Software 11.
+# `lead` must be the admin's username (Server) — Cloud uses accountId but this
+# script never targets Cloud.
+$projectBody = @{
+    key                = $ProjectKey
+    name               = $ProjectName
+    projectTypeKey     = 'software'
+    projectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-basic'
+    lead               = $AdminUser
+    description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
+    assigneeType       = 'PROJECT_LEAD'
+} | ConvertTo-Json -Compress
+
+try {
+    $project = Invoke-RestMethod -Uri $projectApiUrl -Method Post -Headers $headers -ContentType 'application/json' -Body $projectBody -TimeoutSec 60
+    Write-Host ("==> Provisioned project: key={0} id={1}" -f $project.key, $project.id)
+}
+catch {
+    $statusCode = $null
+    if ($_.Exception.Response) {
+        try { $statusCode = [int]$_.Exception.Response.StatusCode } catch { $statusCode = $null }
+    }
+
+    $message = $_.Exception.Message
+    $bodyText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
+
+    # 400 with "key ... already exists" is treated as success (idempotent reruns).
+    $alreadyExists = $false
+    if ($statusCode -in 400, 409) {
+        if ($bodyText -and ($bodyText -match 'key.*already.*used' -or $bodyText -match 'project.*already.*exists' -or $bodyText -match 'A project with that name already exists')) {
+            $alreadyExists = $true
+        }
+    }
+
+    if ($alreadyExists) {
+        Write-Host "==> Project '$ProjectKey' already exists; treating as success."
+    }
+    else {
+        # Try a fallback template — older Jira Software builds occasionally reject
+        # gh-simplified-basic. jira-core templates ship with all Jira flavours.
+        Write-Host "==> First template rejected (status=$statusCode message=$message body=$bodyText). Retrying with jira-core template."
+        $fallbackBody = @{
+            key                = $ProjectKey
+            name               = $ProjectName
+            projectTypeKey     = 'business'
+            projectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-process-control'
+            lead               = $AdminUser
+            description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
+            assigneeType       = 'PROJECT_LEAD'
+        } | ConvertTo-Json -Compress
+        try {
+            $project = Invoke-RestMethod -Uri $projectApiUrl -Method Post -Headers $headers -ContentType 'application/json' -Body $fallbackBody -TimeoutSec 60
+            Write-Host ("==> Provisioned project (fallback template): key={0} id={1}" -f $project.key, $project.id)
+        }
+        catch {
+            $fallbackStatus = $null
+            if ($_.Exception.Response) {
+                try { $fallbackStatus = [int]$_.Exception.Response.StatusCode } catch { $fallbackStatus = $null }
+            }
+            $fallbackBody2 = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
+            Write-Error "Failed to provision project '$ProjectKey' (status=$fallbackStatus): $($_.Exception.Message)`n$fallbackBody2"
+            exit 3
+        }
+    }
+}
+
+Write-Host "==> Seeding baseline issue in project '$ProjectKey'"
+
+# Create one Task so read-only tests (Get-JiraIssue, JQL search, Get-JiraComment
+# fixture queries, etc.) have something to discover. Idempotency: if there's
+# already an issue we don't care, this is a baseline and tests create their own.
+$issueBody = @{
+    fields = @{
+        project   = @{ key = $ProjectKey }
+        summary   = 'JiraPS-IntTest-Baseline'
+        issuetype = @{ name = 'Task' }
+        description = 'Baseline issue created by Tools/Wait-JiraServer.ps1. Safe to delete.'
+    }
+} | ConvertTo-Json -Depth 5 -Compress
+
+try {
+    $issue = Invoke-RestMethod -Uri $issueApiUrl -Method Post -Headers $headers -ContentType 'application/json' -Body $issueBody -TimeoutSec 30
+    Write-Host ("==> Seeded baseline issue: key={0}" -f $issue.key)
+}
+catch {
+    $issueStatus = $null
+    if ($_.Exception.Response) {
+        try { $issueStatus = [int]$_.Exception.Response.StatusCode } catch { $issueStatus = $null }
+    }
+    $issueBodyText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
+    # Non-fatal — most tests create their own issues. Just log and continue.
+    Write-Host "==> Baseline issue creation failed (status=$issueStatus): $($_.Exception.Message)`n$issueBodyText"
+    Write-Host "==> Continuing — tests that require an existing issue may skip."
+}
+
+Write-Host "==> Jira is ready, the test user is provisioned, and the test project '$ProjectKey' is available."
 exit 0

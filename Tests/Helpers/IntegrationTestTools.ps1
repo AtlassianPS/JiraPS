@@ -313,62 +313,17 @@ function Connect-JiraTestServer {
         Write-Verbose "Connected to Jira Cloud: $($Environment.CloudUrl)"
     }
     else {
-        # Server / Data Center: send Basic auth proactively via the Authorization
-        # header instead of relying on `Invoke-WebRequest -Credential` (which uses
-        # challenge-response auth and fails when Atlassian Seraph's 401 omits a
-        # `WWW-Authenticate: Basic` header on /myself).
+        # Server / Data Center: send Basic auth proactively via an explicit Authorization
+        # header. PowerShell's `Invoke-WebRequest -Credential` uses challenge-response
+        # (it sends the first request unauthenticated and only retries with credentials
+        # if the server responds with `WWW-Authenticate: Basic`). Atlassian Seraph on
+        # /rest/api/2/myself does not always advertise Basic in its 401, so the retry
+        # never happens and the JiraPS session never gets established. Sending the
+        # header up-front bypasses the handshake entirely and matches what
+        # Wait-JiraServer.ps1 does successfully against the same image.
         $authPair = "$($Environment.Username):$($Environment.Password)"
         $basicAuthHeader = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($authPair))
-
-        # Diagnostic probe: previous run confirmed Basic auth works against the same
-        # endpoint (200 OK with admin user JSON). The remaining mystery is why
-        # New-JiraSession ends up returning $null. Re-probe and additionally inspect
-        # the Atlassian Seraph LoginReason header (Test-ServerResponse turns
-        # AUTHENTICATED_FAILED / AUTHENTICATION_DENIED / AUTHORISATION_FAILED into
-        # terminating errors even on 2xx responses), then run New-JiraSession itself
-        # inside try/catch with -Verbose so the actual Invoke-JiraMethod call chain
-        # (and any error it emits via WriteError → swallowed by default) shows up in
-        # the test step log.
-        $myselfUrl = "$($Environment.CloudUrl)/rest/api/2/myself"
-        Write-Host "==> [Connect-JiraTestServer] probing $myselfUrl with Basic auth (user=$($Environment.Username))"
-        try {
-            $probe = Invoke-WebRequest -Uri $myselfUrl -Method Get -Headers @{ Authorization = $basicAuthHeader } -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop
-            $seraph = $null
-            try {
-                if ($probe.Headers -and $probe.Headers['X-Seraph-LoginReason']) {
-                    $seraph = ($probe.Headers['X-Seraph-LoginReason'] -join ',')
-                }
-            } catch { }
-            $allHeaders = $null
-            try { $allHeaders = ($probe.Headers.Keys | Sort-Object) -join ',' } catch { }
-            Write-Host "==> [Connect-JiraTestServer] probe OK: status=$($probe.StatusCode) X-Seraph-LoginReason=$seraph headers=$allHeaders"
-        }
-        catch {
-            Write-Host "==> [Connect-JiraTestServer] probe FAILED: $($_.Exception.Message)"
-        }
-
-        Write-Host "==> [Connect-JiraTestServer] calling New-JiraSession (verbose)"
-        $sessionErrors = @()
-        $session = $null
-        try {
-            $session = New-JiraSession -Headers @{ Authorization = $basicAuthHeader } -Verbose -ErrorVariable sessionErrors -ErrorAction Continue 4>&1 | ForEach-Object {
-                if ($_ -is [System.Management.Automation.VerboseRecord]) {
-                    Write-Host "    [verbose] $($_.Message)"
-                } else {
-                    $_
-                }
-            } | Select-Object -Last 1
-        }
-        catch {
-            Write-Host "==> [Connect-JiraTestServer] New-JiraSession threw: $($_.Exception.GetType().FullName): $($_.Exception.Message)"
-        }
-        if ($sessionErrors) {
-            foreach ($e in $sessionErrors) {
-                Write-Host "==> [Connect-JiraTestServer] New-JiraSession error: $($e.Exception.GetType().FullName): $($e.Exception.Message)"
-            }
-        }
-        Write-Host "==> [Connect-JiraTestServer] New-JiraSession returned: type=$($session.GetType().FullName 2>$null) value=$session"
-
+        $session = New-JiraSession -Headers @{ Authorization = $basicAuthHeader }
         if (-not $session) {
             throw "Failed to establish Jira session. Check credentials and server URL. For Jira Data Center, CI_JIRA_ADMIN_PASSWORD must be the admin user's password (default: 'admin' for the moveworkforward/atlas-run-standalone image)."
         }
