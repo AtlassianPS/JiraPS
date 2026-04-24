@@ -15,7 +15,7 @@ Returns a remote link from a Jira issue
 ## SYNTAX
 
 ```powershell
-Get-JiraRemoteLink [-Issue] <Object> [[-LinkId] <int>] [[-Credential] <pscredential>]
+Get-JiraRemoteLink [-Issue] <Issue> [[-LinkId] <int>] [[-Credential] <pscredential>]
  [<CommonParameters>]
 ```
 
@@ -72,7 +72,7 @@ The Issue to search for link.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

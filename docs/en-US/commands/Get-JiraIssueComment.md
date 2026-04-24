@@ -15,7 +15,7 @@ Returns comments on an issue in JIRA.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueComment [-Issue] <Object> [[-Credential] <pscredential>] [<CommonParameters>]
+Get-JiraIssueComment [-Issue] <Issue> [[-Credential] <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -71,7 +71,7 @@ JIRA issue to check for comments.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

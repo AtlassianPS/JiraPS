@@ -49,23 +49,21 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key', 'Credential'
-                $object = [PSCustomObject] @{
-                    'id'      = $testJson.id
-                    'key'     = $testJson.key
-                    'restUrl' = $testJson.self
+                $object = [AtlassianPS.JiraPS.Issue]@{
+                    id = $testJson.id
+                    key = $testJson.key
+                    restUrl = $testJson.self
                 }
-                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 $object
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject', 'Credential'
-                $object = [PSCustomObject] @{
-                    'id'      = $testJson.id
-                    'key'     = $testJson.key
-                    'restUrl' = $testJson.self
+                $object = [AtlassianPS.JiraPS.Issue]@{
+                    id = $testJson.id
+                    key = $testJson.key
+                    restUrl = $testJson.self
                 }
-                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 $object
             }
 
@@ -130,7 +128,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Issue'; type = 'Object[]' }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
                     @{ parameter = 'Summary'; type = 'String' }
                     @{ parameter = 'Description'; type = 'String' }
                     @{ parameter = 'Assignee'; type = 'Object' }

@@ -17,7 +17,7 @@ Removes an existing issue from JIRA.
 ### ByInputObject (Default)
 
 ```powershell
-Remove-JiraIssue [-InputObject] <Issue[]> [-IncludeSubTasks] [-Credential <pscredential>] [-Force]
+Remove-JiraIssue [-InputObject] <Issue> [-IncludeSubTasks] [-Credential <pscredential>] [-Force]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -160,7 +160,7 @@ One or more issues to delete, specified as `AtlassianPS.JiraPS.Issue` objects (e
 from `Get-JiraIssue`)
 
 ```yaml
-Type: AtlassianPS.JiraPS.Issue[]
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

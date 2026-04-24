@@ -49,19 +49,18 @@ InModuleScope JiraPS {
                 }
                 $t2.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
 
-                $object = [PSCustomObject] @{
-                    ID         = $issueID
-                    Key        = $issueKey
-                    RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
+                $object = [AtlassianPS.JiraPS.Issue]@{
+                    ID = $issueID
+                    Key = $issueKey
+                    RestUrl = "$jiraServer/rest/api/2/issue/$issueID"
                     Transition = @($t1, $t2)
                 }
-                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 $object
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
-                Get-JiraIssue -Key $Issue
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                Get-JiraIssue -Key $InputObject.Key
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {

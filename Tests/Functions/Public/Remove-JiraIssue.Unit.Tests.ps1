@@ -203,9 +203,15 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
-                $obj = $TestIssueJSONs[$Key] | ConvertFrom-Json
+                $raw = $TestIssueJSONs[$Key] | ConvertFrom-Json
 
-                $obj.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
+                $obj = [AtlassianPS.JiraPS.Issue]@{
+                    ID      = $raw.id
+                    Key     = $raw.key
+                    RestUrl = $raw.self
+                    HttpUrl = "{0}browse/$($raw.key)" -f ($raw.self -split 'rest')[0]
+                    Summary = $raw.fields.summary
+                }
 
                 $obj | Add-Member -MemberType ScriptMethod -Name ToString -Value { return "" } -Force
                 return $obj
@@ -259,7 +265,7 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'IssueId'; type = 'String[]' }
-                    @{ parameter = 'InputObject'; type = 'Object[]' }
+                    @{ parameter = 'InputObject'; type = 'AtlassianPS.JiraPS.Issue' }
                     @{ parameter = 'IncludeSubTasks'; type = 'Switch' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                     @{ parameter = 'Force'; type = 'Switch' }
@@ -317,7 +323,7 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "Validates pipeline input" {
-                    { @{id = 1 } | Remove-JiraIssue -ErrorAction Stop } | Should -Throw -ExpectedMessage "*input object*"
+                    { @{id = 1 } | Remove-JiraIssue -ErrorAction Stop } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
                 }
             }
         }

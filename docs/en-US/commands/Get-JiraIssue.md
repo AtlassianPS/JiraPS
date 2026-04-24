@@ -24,7 +24,7 @@ Get-JiraIssue [-Key] <string[]> [-Fields <string[]>] [-Credential <pscredential>
 ### ByInputObject
 
 ```powershell
-Get-JiraIssue [-InputObject] <Object[]> [-Fields <string[]>] [-Credential <pscredential>]
+Get-JiraIssue [-InputObject] <Issue> [-Fields <string[]>] [-Credential <pscredential>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
@@ -252,7 +252,7 @@ HelpMessage: ''
 Object of an issue to search for.
 
 ```yaml
-Type: Object[]
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -260,7 +260,7 @@ ParameterSets:
 - Name: ByInputObject
   Position: 0
   IsRequired: true
-  ValueFromPipeline: false
+  ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false

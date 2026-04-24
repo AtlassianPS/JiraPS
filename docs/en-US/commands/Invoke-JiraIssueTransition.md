@@ -17,7 +17,7 @@ Performs an issue transition on a JIRA issue changing it's status
 ### AssignToUser (Default)
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <Object> -Transition <Object> [-Fields <psobject>]
+Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobject>]
  [-Assignee <Object>] [-Comment <string>] [-Credential <pscredential>] [-Passthru]
  [<CommonParameters>]
 ```
@@ -25,7 +25,7 @@ Invoke-JiraIssueTransition -Issue <Object> -Transition <Object> [-Fields <psobje
 ### Unassign
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <Object> -Transition <Object> [-Fields <psobject>] [-Unassign]
+Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobject>] [-Unassign]
  [-Comment <string>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
 
@@ -193,7 +193,7 @@ The Issue Object or ID to transition.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

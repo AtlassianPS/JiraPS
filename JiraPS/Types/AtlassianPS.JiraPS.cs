@@ -216,4 +216,63 @@ namespace AtlassianPS.JiraPS
             return string.Format("[{0}] {1}", DeploymentType, Version);
         }
     }
+
+    // ArgumentTransformationAttribute lets cmdlets type their parameters as
+    // [AtlassianPS.JiraPS.Issue] while still accepting an issue-key string at
+    // the call site. The attribute wraps strings in a stub Issue (Key only),
+    // leaving the eventual GET to Resolve-JiraIssueObject in the cmdlet body.
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+    // Accepts an existing Issue, an issue-key string, or a legacy PSCustomObject
+    // decorated with the AtlassianPS.JiraPS.Issue PSTypeName (the contract several
+    // test fixtures still construct). For everything else we throw a clear
+    // transformation error rather than letting PowerShell's stock coercion
+    // produce a less helpful "Cannot convert" message.
+    public sealed class IssueTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
+    {
+        public override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
+        {
+            if (inputData == null) return null;
+
+            var pso = inputData as System.Management.Automation.PSObject;
+            object value = pso != null ? pso.BaseObject : inputData;
+
+            if (value is Issue) return value;
+
+            if (value is string key)
+            {
+                if (string.IsNullOrWhiteSpace(key))
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "Cannot bind an empty or whitespace string to parameter -Issue.");
+                }
+                return new Issue { Key = key };
+            }
+
+            // Legacy PSCustomObject masquerading as an Issue (PSTypeName trick).
+            // Map the well-known scalar slots so old call sites keep working.
+            if (pso != null && pso.TypeNames != null && pso.TypeNames.Contains("AtlassianPS.JiraPS.Issue"))
+            {
+                var issue = new Issue();
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "ID": case "Id": case "id": issue.ID = prop.Value as string; break;
+                        case "Key": case "key": issue.Key = prop.Value as string; break;
+                        case "HttpUrl": issue.HttpUrl = prop.Value as string; break;
+                        case "RestUrl": case "RestURL": issue.RestUrl = prop.Value as string; break;
+                        case "Summary": issue.Summary = prop.Value as string; break;
+                        case "Description": issue.Description = prop.Value as string; break;
+                        case "Status": issue.Status = prop.Value as string; break;
+                        case "Project": issue.Project = prop.Value as Project; break;
+                    }
+                }
+                return issue;
+            }
+
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
+                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Issue. Expected an issue-key string or an existing AtlassianPS.JiraPS.Issue object.",
+                value.GetType().FullName));
+        }
+    }
 }

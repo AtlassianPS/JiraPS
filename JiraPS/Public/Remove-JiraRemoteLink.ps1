@@ -3,29 +3,10 @@
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("AtlassianPS.JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssue'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [AtlassianPS.JiraPS.Issue] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Alias("Key")]
-        [Object[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
+        [Alias('Key')]
+        [AtlassianPS.JiraPS.Issue]
         $Issue,
 
         [Parameter( Mandatory )]
@@ -57,26 +38,24 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($_issue in $Issue) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
 
-            # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-            foreach ($_link in $LinkId) {
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_link]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_link [$_link]"
+        foreach ($_link in $LinkId) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_link]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_link [$_link]"
 
-                $parameter = @{
-                    URI        = $resourceURi -f $issueObj.Key, $_link
-                    Method     = "DELETE"
-                    Credential = $Credential
-                }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) {
-                    Invoke-JiraMethod @parameter
-                }
+            $parameter = @{
+                URI        = $resourceURi -f $issueObj.Key, $_link
+                Method     = "DELETE"
+                Credential = $Credential
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) {
+                Invoke-JiraMethod @parameter
             }
         }
     }

@@ -55,17 +55,16 @@ InModuleScope JiraPS {
                 }
                 $Attachment.PSObject.TypeNames.Insert(0, 'JiraPS.Attachment')
 
-                $IssueObj = [PSCustomObject]@{
-                    Key        = $issueKey
+                $IssueObj = [AtlassianPS.JiraPS.Issue]@{
+                    Key = $issueKey
                     attachment = $Attachment
                 }
-                $IssueObj.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 $IssueObj
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
-                Get-JiraIssue -Key $Issue
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                Get-JiraIssue -Key $InputObject.Key
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "/rest/api/2/attachment/$attachmentId1" } {
@@ -92,7 +91,7 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'AttachmentId'; type = 'Int32[]' }
-                    @{ parameter = 'Issue'; type = 'Object' }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
                     @{ parameter = 'FileName'; type = 'String[]' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                     @{ parameter = 'Force'; type = 'Switch' }
@@ -117,9 +116,9 @@ InModuleScope JiraPS {
                     # AttachmentId must be an Int
                     { Remove-JiraIssueAttachment -AttachmentId "a" -Force } | Should -Throw -ExpectedMessage "*'AttachmentId'*"
                     # Issue must be an Issue or a String
-                    { Remove-JiraIssueAttachment -Issue (Get-Date) -Force } | Should -Throw -ExpectedMessage "*Invalid Type*"
-                    # Issue can't be an array
-                    { Remove-JiraIssueAttachment -Issue $issueKey, $issueKey -Force } | Should -Throw -ExpectedMessage "*invalid Issue*"
+                    { Remove-JiraIssueAttachment -Issue (Get-Date) -Force } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
+                    # Issue can't be an array passed directly (use the pipeline instead)
+                    { Remove-JiraIssueAttachment -Issue $issueKey, $issueKey -Force } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
 
                     # All Parameters for DefaultParameterSet
                     { Remove-JiraIssueAttachment -AttachmentId $attachmentId1 -Force } | Should -Not -Throw
@@ -159,7 +158,8 @@ InModuleScope JiraPS {
                 }
 
                 It 'accepts input over the pipeline' {
-                    { Get-JiraIssueAttachment $issueKey | Remove-JiraIssueAttachment -Force } | Should -Not -Throw
+                    $issue = [AtlassianPS.JiraPS.Issue]@{ Key = $issueKey }
+                    { Get-JiraIssueAttachment $issue | Remove-JiraIssueAttachment -Force } | Should -Not -Throw
 
                     # ensure the calls under the hood
                     Should -Invoke 'Get-JiraIssueAttachment' -ModuleName JiraPS -Exactly -Times 1

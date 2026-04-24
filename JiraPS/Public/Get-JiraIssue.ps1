@@ -8,31 +8,14 @@
         [String[]]
         $Key,
 
-        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("AtlassianPS.JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssue'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [AtlassianPS.JiraPS.Issue] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object[]]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
+        [AtlassianPS.JiraPS.Issue]
         $InputObject,
         <#
           #ToDo:Deprecate
           This is not necessary if $Key uses ValueFromPipelineByPropertyName
-          #ToDo:CustomClass
-          Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
         #>
 
         [Parameter( Mandatory, ParameterSetName = 'ByJQL' )]
@@ -123,12 +106,10 @@
             }
             'ByInputObject' {
                 # Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-InputObject' has been marked as deprecated."
-                foreach ($_issue in $InputObject) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$InputObject]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$InputObject [$InputObject]"
 
-                    Write-Output (Get-JiraIssue -Key $_issue.Key -Fields $Fields -Credential $Credential)
-                }
+                Write-Output (Get-JiraIssue -Key $InputObject.Key -Fields $Fields -Credential $Credential)
             }
             'ByJQL' {
                 $parameter = @{

@@ -17,7 +17,7 @@ Modifies an existing issue in JIRA
 ### AssignToUser (Default)
 
 ```powershell
-Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-Assignee <Object>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -26,7 +26,7 @@ Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-Fi
 ### Unassign
 
 ```powershell
-Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -35,7 +35,7 @@ Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-Fi
 ### UseDefaultAssignee
 
 ```powershell
-Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -277,7 +277,7 @@ Issue to be changed.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object[]
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

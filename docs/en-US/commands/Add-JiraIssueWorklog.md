@@ -15,7 +15,7 @@ Adds a worklog item to an existing JIRA issue
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueWorklog [-Comment] <string> [-Issue] <Object> [-TimeSpent] <timespan>
+Add-JiraIssueWorklog [-Comment] <string> [-Issue] <Issue> [-TimeSpent] <timespan>
  [-DateStarted] <datetime> [[-VisibleRole] <string>] [[-Credential] <pscredential>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
@@ -171,7 +171,7 @@ Issue to receive the new worklog item.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

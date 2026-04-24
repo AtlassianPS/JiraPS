@@ -42,6 +42,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | PSTypeName rename            | Eight core types moved from `JiraPS.<Type>` to `AtlassianPS.JiraPS.<Type>`. |
 | Class slot type tightening   | Boolean / numeric slots on `Filter` and `Version` are now strongly typed; missing flags surface as `$false` instead of `$null`. |
 | `Version.StartDate` / `Version.ReleaseDate` | Empty-string sentinel for missing dates dropped; the slots are now `[DateTime?]` and `$null` when absent. |
+| Issue-scoped cmdlets         | `-Issue` (and `-InputObject` on `Get-JiraIssue` / `Remove-JiraIssue`) is now `[AtlassianPS.JiraPS.Issue]` with a custom transformer; arrays / pipelines iterate the `process` block per item instead of throwing. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -378,6 +379,90 @@ if ($v.StartDate)          { $v.StartDate.AddDays(7) } # works on both v2 and v3
 ```
 
 Equality comparisons against `''` are the only thing that needs updating.
+
+### Strongly-typed `-Issue` parameter on issue-scoped cmdlets
+
+In v2, every cmdlet that took a `-Issue` parameter declared it as `[Object]`
+with a `[ValidateScript]` block that hand-rolled the "is this a string or a
+`JiraPS.Issue` `PSCustomObject`?" check. After binding succeeded, each cmdlet
+also asserted `if (@($Issue).Count -ne 1) { throw }` to refuse arrays.
+
+In v3 the parameter is declared `[AtlassianPS.JiraPS.Issue]` and decorated with
+the new `[AtlassianPS.JiraPS.IssueTransformation()]` attribute. The transformer
+runs at parameter binding time and accepts:
+
+- An existing `[AtlassianPS.JiraPS.Issue]` instance (returned as-is).
+- A non-empty issue-key string — wrapped in a stub `Issue` whose `Key` is set;
+  the cmdlet's own `Resolve-JiraIssueObject` call then performs the GET as
+  before.
+- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Issue`
+  `PSTypeName` — its scalar slots are mapped to a real `Issue` instance so
+  hand-rolled v2 mocks keep working without changes.
+
+Anything else throws an `ArgumentTransformationMetadataException` at parameter
+binding time with an actionable message, instead of failing later inside the
+cmdlet body with a generic `Cannot convert ...` error.
+
+#### Affected cmdlets
+
+`Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueLink`,
+`Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`, `Get-JiraIssue`
+(`-InputObject`), `Get-JiraIssueAttachment`, `Get-JiraIssueComment`,
+`Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraRemoteLink`,
+`Invoke-JiraIssueTransition`, `Remove-JiraIssue` (`-InputObject`),
+`Remove-JiraIssueAttachment`, `Remove-JiraIssueWatcher`,
+`Remove-JiraRemoteLink`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+#### Pipelines and arrays now iterate
+
+The "single Issue only" runtime guardrail was removed from cmdlets where
+pipeline iteration is the obviously-correct behaviour. The cmdlet's `process`
+block now runs once per piped (or array-bound) issue, matching the rest of
+PowerShell.
+
+##### v2
+
+```powershell
+# Pipeline iteration: throws "Only one issue at a time"
+Get-JiraIssue -Query 'project = TEST' | Add-JiraIssueComment -Comment 'reviewed'
+
+# Array bind: same throw
+Add-JiraIssueComment -Issue @($issueA, $issueB) -Comment 'reviewed'
+```
+
+##### v3
+
+```powershell
+# Pipeline iteration: comments each issue once
+Get-JiraIssue -Query 'project = TEST' | Add-JiraIssueComment -Comment 'reviewed'
+
+# Array bind: comments each issue once
+Add-JiraIssueComment -Issue @($issueA, $issueB) -Comment 'reviewed'
+```
+
+If your script previously *relied* on the old guardrail to surface "you passed
+too many issues" mistakes, replace it with an explicit check before the call:
+
+```powershell
+if (@($Issue).Count -gt 1) {
+    throw "This script only supports one issue at a time"
+}
+Add-JiraIssueComment -Issue $Issue -Comment 'reviewed'
+```
+
+#### `Remove-JiraIssueAttachment` pipeline binding
+
+`-Issue` on `Remove-JiraIssueAttachment` no longer accepts `ValueFromPipeline`
+(it still accepts `ValueFromPipelineByPropertyName`). This lets the obvious
+pipeline shape work for the first time:
+
+```powershell
+# v3 — binds the attachment's Id to -AttachmentId via property name
+Get-JiraIssueAttachment -Issue TEST-1 | Remove-JiraIssueAttachment
+```
+
+In v2 the same call mis-bound the attachment object to `-Issue` and surfaced a
+type-conversion error.
 
 ### Minimum PowerShell Version
 

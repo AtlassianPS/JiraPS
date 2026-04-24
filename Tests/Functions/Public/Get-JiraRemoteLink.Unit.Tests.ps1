@@ -46,17 +46,16 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue {
                 Write-MockDebugInfo 'Get-JiraIssue'
-                $object = [PSCustomObject] @{
-                    'RestURL' = "$jiraServer/rest/api/2/issue/12345"
-                    'Key'     = $issueKey
+                $object = [AtlassianPS.JiraPS.Issue]@{
+                    RestURL = "$jiraServer/rest/api/2/issue/12345"
+                    Key = $issueKey
                 }
-                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 return $object
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
-                Get-JiraIssue -Key $Issue
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                Get-JiraIssue -Key $InputObject.Key
             }
 
             Mock ConvertTo-JiraLink -ModuleName JiraPS {

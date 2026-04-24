@@ -146,9 +146,8 @@ InModuleScope JiraPS {
                 }
 
                 It "Returns only the fields required with -Fields" {
-                    $issue = [PSCustomObject]@{
-                        PSTypeName = "AtlassianPS.JiraPS.Issue"
-                        Key        = "TEST-001"
+                    $issue = [AtlassianPS.JiraPS.Issue]@{
+                        Key = "TEST-001"
                     }
 
                     { Get-JiraIssue -Key TEST-001 } | Should -Not -Throw
@@ -192,11 +191,10 @@ InModuleScope JiraPS {
                 }
 
                 It "Accepts an issue object for the -InputObject parameter" {
-                    $issue = [PSCustomObject] @{
-                        'Key' = 'TEST-001'
-                        'ID'  = '12345'
+                    $issue = [AtlassianPS.JiraPS.Issue]@{
+                        Key = 'TEST-001'
+                        ID = '12345'
                     }
-                    $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
 
                     # Should call Get-JiraIssue using the -Key parameter, so our URL should reflect the key we provided
                     { Get-JiraIssue -InputObject $Issue } | Should -Not -Throw
@@ -208,11 +206,10 @@ InModuleScope JiraPS {
                 }
 
                 It "Accepts an issue object via pipeline using ValueFromPipelineByPropertyName" {
-                    $issue = [PSCustomObject] @{
-                        'Key' = 'TEST-001'
-                        'ID'  = '12345'
+                    $issue = [AtlassianPS.JiraPS.Issue]@{
+                        Key = 'TEST-001'
+                        ID = '12345'
                     }
-                    $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
 
                     # Pipeline input binds Key property to -Key parameter via ValueFromPipelineByPropertyName
                     { $issue | Get-JiraIssue } | Should -Not -Throw
@@ -230,11 +227,10 @@ InModuleScope JiraPS {
                 # objects with a Key property now bind to ByIssueKey instead of failing.
 
                 It "Binds AtlassianPS.JiraPS.Issue via pipeline to ByIssueKey parameter set" {
-                    $issue = [PSCustomObject] @{
-                        'Key' = 'TEST-001'
-                        'ID'  = '12345'
+                    $issue = [AtlassianPS.JiraPS.Issue]@{
+                        Key = 'TEST-001'
+                        ID = '12345'
                     }
-                    $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
 
                     # The Key property should bind to -Key via ValueFromPipelineByPropertyName
                     $issue | Get-JiraIssue
@@ -274,11 +270,10 @@ InModuleScope JiraPS {
 
                 It "Explicit -InputObject still works with AtlassianPS.JiraPS.Issue objects" {
                     # Verify the ByInputObject parameter set still functions when used explicitly
-                    $issue = [PSCustomObject] @{
-                        'Key' = 'TEST-001'
-                        'ID'  = '12345'
+                    $issue = [AtlassianPS.JiraPS.Issue]@{
+                        Key = 'TEST-001'
+                        ID = '12345'
                     }
-                    $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
 
                     { Get-JiraIssue -InputObject $issue } | Should -Not -Throw
 

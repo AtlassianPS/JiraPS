@@ -38,10 +38,9 @@ InModuleScope JiraPS {
             Mock Get-JiraIssue -ModuleName JiraPS -ParameterFilter { $Key -eq "TEST-01" } {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 # We don't care about the content of any field except for the id of the issuelinks
-                $issue = [PSCustomObject]@{
+                $issue = [AtlassianPS.JiraPS.Issue]@{
                     issueLinks = @( (Get-JiraIssueLink -Id 1234) )
                 }
-                $issue.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
                 return $issue
             }
 
@@ -106,7 +105,7 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "Validates pipeline input" {
-                    { @{id = 1 } | Remove-JiraIssueLink -ErrorAction SilentlyContinue } | Should -Throw -ExpectedMessage "*Invalid Type*"
+                    { @{id = 1 } | Remove-JiraIssueLink -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Invalid Type*"
                 }
             }
         }

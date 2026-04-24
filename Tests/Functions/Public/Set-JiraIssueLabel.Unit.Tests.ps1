@@ -23,18 +23,18 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
-                $object = [PSCustomObject] @{
-                    'Id'      = 123
-                    'RestURL' = "$jiraServer/rest/api/2/issue/12345"
-                    'Labels'  = @('existingLabel1', 'existingLabel2')
+                $object = [AtlassianPS.JiraPS.Issue]@{
+                    Id = 123
+                    Key = $Key
+                    RestURL = "$jiraServer/rest/api/2/issue/12345"
                 }
-                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Issue')
+                $object | Add-Member -NotePropertyName Labels -NotePropertyValue @('existingLabel1', 'existingLabel2') -Force
                 return $object
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
-                Get-JiraIssue -Key $Issue
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                Get-JiraIssue -Key $InputObject.Key
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345" } {
@@ -55,7 +55,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Issue'; type = 'Object[]' }
+                    @{ parameter = 'Issue'; type = 'Issue' }
                     @{ parameter = 'Set'; type = 'String[]' }
                     @{ parameter = 'Add'; type = 'String[]' }
                     @{ parameter = 'Remove'; type = 'String[]' }

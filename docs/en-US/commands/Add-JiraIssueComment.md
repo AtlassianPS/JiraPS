@@ -15,7 +15,7 @@ Adds a comment to an existing JIRA issue
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueComment [-Comment] <string> [-Issue] <Object> [[-VisibleRole] <string>]
+Add-JiraIssueComment [-Comment] <string> [-Issue] <Issue> [[-VisibleRole] <string>]
  [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -148,7 +148,7 @@ Issue that should be commented upon.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

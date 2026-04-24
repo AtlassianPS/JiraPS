@@ -15,7 +15,7 @@ Removes a watcher from an existing JIRA issue
 ## SYNTAX
 
 ```powershell
-Remove-JiraIssueWatcher [-Watcher] <string[]> [-Issue] <Object> [[-Credential] <pscredential>]
+Remove-JiraIssueWatcher [-Watcher] <string[]> [-Issue] <Issue> [[-Credential] <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -104,7 +104,7 @@ Issue that should be updated.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
