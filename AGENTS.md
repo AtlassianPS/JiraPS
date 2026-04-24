@@ -155,7 +155,7 @@ Release/                 # Build output (gitignored)
 
     - `ConvertTo-JiraIssue`: Main issue converter
     - `ConvertTo-JiraUser`, `ConvertTo-JiraProject`, etc.
-    - Pattern: Accept `-InputObject`, return custom PSObject with type name
+    - Pattern: Accept `-InputObject`, emit `[AtlassianPS.JiraPS.*]` instances (hashtable cast, with `ConvertTo-Hashtable` when the input is a `PSCustomObject` on Windows PowerShell 5.1)
 
 3. **Session Management**:
 
@@ -167,6 +167,21 @@ Release/                 # Build output (gitignored)
     - Dot-sources all Public and Private functions
     - Exports only Public functions
     - Configures default settings ($script:DefaultPageSize, headers, etc.)
+
+5. **Strong types (`AtlassianPS.JiraPS.*`)**:
+    - POCOs live in `JiraPS/Types/AtlassianPS.JiraPS.cs` and compile at first import via `Add-Type` in `JiraPS.psm1` (`#region Dependencies`). See **Compiled types at import** in `CHANGELOG.md` (`[Unreleased]`) for cold-start, host, and C# language constraints.
+    - `ConvertTo-Jira*` functions build a hashtable (or launder a wire `PSCustomObject` through `ConvertTo-Hashtable` on Windows PowerShell 5.1), then cast to the target class.
+
+### Argument transformation attributes
+
+`ArgumentTransformationAttribute` subclasses in `AtlassianPS.JiraPS.cs` coerce issue keys, user identifiers, and similar inputs at parameter binding time.
+
+**Throw vs. pass-through (parameter-set fallthrough)**
+
+- Use **`return inputData` unchanged** (do not throw) when the parameter participates in **competing `ValueFromPipeline` parameter sets** and the piped value might legitimately bind to a **different** set. Throwing `ArgumentTransformationMetadataException` blocks the binder from trying the alternate set. Example: `Get-JiraVersion` pipes either a `Version` (`-InputVersion`) or a `Project` (`-InputProject`) — `VersionTransformationAttribute` therefore returns unrecognized input untouched so fallthrough can occur.
+- Use **throw** with an actionable `ArgumentTransformationMetadataException` when there is **no** such alternate set, so callers get a clear error instead of a generic coercion failure.
+
+When you add a new `*TransformationAttribute`, decide which rule applies before copying an existing implementation.
 
 ### Coding Standards
 

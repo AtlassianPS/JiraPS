@@ -330,13 +330,23 @@ namespace AtlassianPS.JiraPS
         }
     }
 
-    // Internal helper shared by every JiraPS argument transformer. PowerShell's
-    // ArgumentTransformationAttribute is invoked once with whatever the caller
-    // typed at the call site — that may be a single value OR an enumerable
-    // bound to a [Type[]] parameter (e.g. -User $a, $b on Remove-JiraGroupMember).
-    // For singular parameters the per-element transform is enough; for array
+    // Internal helper shared by JiraPS argument transformers that fan out
+    // array arguments (e.g. [User[]], [Group[]]). IssueTransformation does
+    // not use this — singular [Issue] parameters must not auto-iterate a
+    // bound array; callers pipeline-iterate instead.
+    //
+    // Throw vs. pass-through (binder fallthrough): see AGENTS.md
+    // "Argument transformation attributes". When a parameter shares
+    // ValueFromPipeline with another parameter set that expects a different
+    // type, TransformOne must return inputData unchanged for unrecognized
+    // shapes (see VersionTransformationAttribute). Otherwise TransformOne
+    // should throw ArgumentTransformationMetadataException.
+    //
+    // PowerShell's ArgumentTransformationAttribute is invoked once with
+    // whatever the caller typed — a single value OR an enumerable bound to a
+    // [T[]] parameter (e.g. -User $a, $b on Remove-JiraGroupMember). For array
     // parameters we walk the enumerable so each element is transformed in
-    // isolation and PowerShell's element coercion sees the right runtime type.
+    // isolation and element coercion sees the right runtime type.
     internal static class JiraTransform
     {
         public static object TransformOrFanout(object inputData, Func<object, object> perItem)
