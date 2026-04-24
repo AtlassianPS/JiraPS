@@ -1,0 +1,54 @@
+name: Stale Test Resource Cleanup
+
+on:
+  schedule:
+    # Daily at 04:00 UTC. This is intentionally offset from the 06:00 UTC
+    # nightly Integration Tests run in integration_tests.yml so the two jobs
+    # never overlap on the shared Cloud test instance.
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  JIRA_CLOUD_URL: ${{ secrets.JIRA_CLOUD_URL }}
+  JIRA_CLOUD_USERNAME: ${{ secrets.JIRA_CLOUD_USERNAME }}
+  JIRA_CLOUD_PASSWORD: ${{ secrets.JIRA_CLOUD_PASSWORD }}
+  JIRA_TEST_PROJECT: ${{ secrets.JIRA_TEST_PROJECT }}
+  JIRA_TEST_ISSUE: ${{ secrets.JIRA_TEST_ISSUE }}
+  JIRA_TEST_USER: ${{ secrets.JIRA_TEST_USER }}
+  JIRA_TEST_GROUP: ${{ secrets.JIRA_TEST_GROUP }}
+  JIRA_TEST_FILTER: ${{ secrets.JIRA_TEST_FILTER }}
+  JIRA_TEST_VERSION: ${{ secrets.JIRA_TEST_VERSION }}
+
+jobs:
+  sweep:
+    name: Sweep stale test resources
+    runs-on: ubuntu-latest
+    # Defense in depth: a schedule-only + workflow_dispatch workflow cannot be
+    # triggered by Dependabot or fork PRs today, but this guard protects
+    # against future trigger additions (e.g. workflow_call or pull_request).
+    # Mirrors the secrets-availability guard in integration_tests.yml.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-powershell
+
+      # Running the Smoke-tagged integration tests is the lightest path that
+      # also exercises Connect-JiraTestServer, which calls Remove-StaleTestResource
+      # as a side effect (see Tests/Helpers/IntegrationTestTools.ps1). This
+      # validates connectivity at the same time without adding a new build
+      # task or duplicating cleanup logic.
+      - name: Run smoke tests (triggers stale-resource sweep)
+        run: |
+          Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed
+        shell: pwsh
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        with:
+          name: Stale-Cleanup-Results
+          path: IntegrationTests.xml
+        if: failure()

@@ -95,6 +95,8 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   - Replaced `Get-Member -MemberType *Property` lookups with direct `PSObject.Properties` access in `Format-Jira`, `Add-JiraIssueLink`, `Remove-JiraIssueLink`, `Resolve-JiraError`, `Expand-Result`, `ConvertTo-JiraCreateMetaField`, and `ConvertTo-JiraEditMetaField`.
 - Extracted user-reference payload construction into a private `Resolve-JiraUserPayload` helper shared by `Set-JiraIssue`, `Invoke-JiraIssueTransition`, and `New-JiraIssue` (and reusable for any future cmdlet that needs to point at a Jira user — assignee, reporter, etc.). As a side-effect, `Invoke-JiraIssueTransition -Unassign` on Jira Cloud now correctly emits `{accountId: null}` instead of `{name: ""}`. The helper also throws explicitly when handed a Cloud user object that has no `AccountId`, instead of silently emitting an unassign payload.
 - `New-JiraIssue -Reporter` now resolves the user via `Resolve-JiraUser` on Jira Server / Data Center too (previously only resolved on Jira Cloud). Typo'd usernames are now caught client-side instead of producing an opaque server error from the create endpoint.
+- Added daily scheduled `stale_cleanup.yml` workflow that sweeps `JiraPS-IntTest-` resources from the Cloud test instance as a safety net for periods of low CI activity.
+  It runs at 04:00 UTC (offset from the existing 06:00 UTC nightly Integration Tests run) and triggers cleanup by invoking the `Smoke`-tagged integration tests, which call `Connect-JiraTestServer` → `Remove-StaleTestResource` as a side effect.
 
 ### Fixed
 
