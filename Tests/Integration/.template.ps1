@@ -45,6 +45,22 @@
        - $script:Skip (from BeforeDiscovery) skips entire Describe when env not configured
        - $script:SkipWrite skips write tests in read-only mode
        These work because BeforeDiscovery runs in file scope before discovery
+
+    7. DEPLOYMENT TARGETING: Tag every Describe block with the deployment(s) it supports.
+       Default for new tests:    -Tag 'Integration', 'Server', 'Cloud'
+       Cloud-only (ADF, accountId queries, /rest/api/3/* endpoints):
+                                 -Tag 'Integration', 'Cloud'
+       Server-only (basic-auth + admin/admin, DC-only endpoints):
+                                 -Tag 'Integration', 'Server'
+
+       The TestIntegration task filters by deployment via -Tag at invocation time
+       (`Invoke-Build -Task TestIntegration -Tag 'Server'`). The deployment target
+       is selected by $env:CI_JIRA_TYPE ('Cloud' default, 'Server' for Docker DC).
+
+       Inside tests, branch on $env.IsCloud or $env.UserIdProperty rather than
+       hard-coding accountId/username:
+           $userIdParam = @{ ($env.UserIdProperty) = $userIdValue }
+           Get-JiraUser @userIdParam
 #>
 
 BeforeDiscovery {
@@ -61,7 +77,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "FunctionName" -Tag 'Integration' -Skip:$Skip {
+    Describe "FunctionName" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 

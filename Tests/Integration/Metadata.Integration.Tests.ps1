@@ -10,7 +10,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Metadata" -Tag 'Integration' -Skip:$Skip {
+    Describe "Metadata" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 

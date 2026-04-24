@@ -35,7 +35,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Issue Links" -Tag 'Integration' -Skip:$Skip {
+    Describe "Issue Links" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 

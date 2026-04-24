@@ -1,0 +1,12 @@
+services:
+  jira:
+    image: addono/jira-software-standalone:8.17.1
+    container_name: jiraps-jira-dc
+    ports:
+      - "2990:2990"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:2990/jira/rest/api/2/serverInfo || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 60s

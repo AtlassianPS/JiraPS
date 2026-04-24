@@ -15,7 +15,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Versions" -Tag 'Integration' -Skip:$Skip {
+    Describe "Versions" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 

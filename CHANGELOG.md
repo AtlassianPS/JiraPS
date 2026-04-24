@@ -46,6 +46,10 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Added "Automation and CI/CD" section to authentication documentation with programmatic SecureString examples (#576)
 - Added `ConvertTo-JiraTable` as the descriptive replacement for `Format-Jira`.
   The new name reflects what the cmdlet actually does: it returns a `[String]` of Jira wiki-markup table syntax, not a host-only `Format-*` display object.
+- Added a Jira Data Center integration test track using the `addono/jira-software-standalone:8.17.1` Docker image, alongside the existing Jira Cloud track.
+  Run locally with `Invoke-Build -Task StartJiraDocker; $env:CI_JIRA_TYPE='Server'; Invoke-Build -Task TestIntegration -Tag 'Server'; Invoke-Build -Task StopJiraDocker`.
+  CI runs daily at 05:00 UTC and on every PR via `.github/workflows/jira_server_ci.yml`.
+  See `Tests/Integration/README.md` for the full track guide.
 
 ### Changed
 

@@ -1,10 +1,59 @@
 # JiraPS Integration Tests
 
-This directory contains integration tests that run against a live Jira Cloud instance.
+This directory contains integration tests that exercise JiraPS against a real Jira instance.
 
 ## Overview
 
-Integration tests verify that JiraPS functions work correctly with actual Jira APIs. Unlike unit tests that mock API calls, integration tests make real HTTP requests and validate real responses.
+Integration tests verify that JiraPS functions work correctly with actual Jira APIs.
+Unlike unit tests that mock API calls, integration tests make real HTTP requests and validate real responses.
+
+## Test Tracks
+
+The integration suite has two deployment targets:
+
+| Track | Target | Auth | Trigger |
+|-------|--------|------|---------|
+| **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | `.github/workflows/integration_tests.yml` |
+| **Server** | A Dockerized Jira Data Center instance (`addono/jira-software-standalone:8.17.1`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` |
+
+The `CI_JIRA_TYPE` environment variable selects the track.
+Setting `CI_JIRA_TYPE=Server` switches `Initialize-IntegrationEnvironment`, `Connect-JiraTestServer`, and the `TestIntegration` build task to the Server-track configuration; the default (`Cloud`) preserves existing behaviour.
+
+Tests route via Pester tags on each `Describe` block:
+
+- `'Integration', 'Server', 'Cloud'` — runs on both tracks (the default for new tests)
+- `'Integration', 'Cloud'` — Cloud-only (ADF v3, `accountId`-shaped fixtures, `/rest/api/3/*` endpoints)
+- `'Integration', 'Server'` — Server-only (DC-specific identity model, basic-auth-only flows)
+
+Inside a test, branch on the env config rather than hard-coding identity:
+
+```powershell
+$userIdParam = @{ ($env.UserIdProperty) = $userIdValue }
+Get-JiraUser @userIdParam
+```
+
+`$env.IsCloud` (`$true` / `$false`) and `$env.UserIdProperty` (`'accountId'` / `'name'`) are both surfaced by `Initialize-IntegrationEnvironment`.
+
+### Local quickstart for the Server track
+
+The Server track is fully self-contained — no secrets, no live Jira, just Docker:
+
+```powershell
+Invoke-Build -Task StartJiraDocker     # ~5 min on first run while image pulls + Jira boots
+$env:CI_JIRA_TYPE = 'Server'
+Invoke-Build -Task TestIntegration -Tag 'Server'
+Invoke-Build -Task StopJiraDocker
+```
+
+`StartJiraDocker` runs `docker compose up -d` against the repo-root `docker-compose.yml` and then invokes `Tools/Wait-JiraServer.ps1` to poll until Jira is reachable and to provision the regular test user (`jira_user/jira`).
+`StopJiraDocker` runs `docker compose down -v` to discard the container and its volumes.
+
+### CI scheduling
+
+| Workflow | Cron | Notes |
+|----------|------|-------|
+| `integration_tests.yml` (Cloud) | `0 6 * * *` | Smoke on every PR; full suite on label / schedule |
+| `jira_server_ci.yml` (Server) | `0 5 * * *` | Single 25-minute job per run; Jira boot dominates wall time |
 
 ## Prerequisites
 

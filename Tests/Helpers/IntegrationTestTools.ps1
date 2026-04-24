@@ -142,13 +142,32 @@ function Initialize-IntegrationEnvironment {
         Write-Verbose "Loaded environment from: $envFile"
     }
 
-    $requiredVars = @(
-        'JIRA_CLOUD_URL'
-        'JIRA_CLOUD_USERNAME'
-        'JIRA_CLOUD_PASSWORD'
-        'JIRA_TEST_PROJECT'
-        'JIRA_TEST_ISSUE'
-    )
+    # CI_JIRA_TYPE selects the deployment target for this test run. 'Cloud' is the
+    # historical default and is what the Cloud workflow drives; 'Server' is set by
+    # the jira_server_ci.yml workflow (and locally by the StartJiraDocker task).
+    $deploymentType = if ($env:CI_JIRA_TYPE) { $env:CI_JIRA_TYPE } else { 'Cloud' }
+    if ($deploymentType -notin @('Cloud', 'Server')) {
+        throw "Invalid CI_JIRA_TYPE '$deploymentType'. Must be 'Cloud' or 'Server'."
+    }
+
+    $requiredVars = if ($deploymentType -eq 'Server') {
+        @(
+            'CI_JIRA_URL'
+            'CI_JIRA_ADMIN'
+            'CI_JIRA_ADMIN_PASSWORD'
+            'CI_JIRA_USER'
+            'CI_JIRA_USER_PASSWORD'
+        )
+    }
+    else {
+        @(
+            'JIRA_CLOUD_URL'
+            'JIRA_CLOUD_USERNAME'
+            'JIRA_CLOUD_PASSWORD'
+            'JIRA_TEST_PROJECT'
+            'JIRA_TEST_ISSUE'
+        )
+    }
 
     $missing = @()
     foreach ($var in $requiredVars) {
@@ -164,8 +183,13 @@ function Initialize-IntegrationEnvironment {
         # the warning N times. A process-wide global flag stays set across
         # every dot-source within the same runspace.
         if (-not $global:_JiraPSIntegrationEnvWarned) {
-            Write-Warning "Integration tests require the following environment variables: $($missing -join ', ')"
-            Write-Warning "Copy .env.example to .env and configure your Jira Cloud connection."
+            Write-Warning "Integration tests ($deploymentType track) require the following environment variables: $($missing -join ', ')"
+            if ($deploymentType -eq 'Server') {
+                Write-Warning "Set CI_JIRA_TYPE=Server and the CI_JIRA_* vars (defaults match the addono/jira-software-standalone Docker image). See .env.example."
+            }
+            else {
+                Write-Warning "Copy .env.example to .env and configure your Jira Cloud connection."
+            }
             $global:_JiraPSIntegrationEnvWarned = $true
         }
         $script:_EnvLoaded = $true
@@ -173,18 +197,51 @@ function Initialize-IntegrationEnvironment {
         return $null
     }
 
-    $result = [PSCustomObject]@{
-        CloudUrl      = $env:JIRA_CLOUD_URL.TrimEnd('/')
-        Username      = $env:JIRA_CLOUD_USERNAME
-        Password      = $env:JIRA_CLOUD_PASSWORD
-        TestProject   = $env:JIRA_TEST_PROJECT
-        TestIssue     = $env:JIRA_TEST_ISSUE
-        TestUser      = $env:JIRA_TEST_USER
-        TestGroup     = $env:JIRA_TEST_GROUP
-        TestFilter    = $env:JIRA_TEST_FILTER
-        TestVersion   = $env:JIRA_TEST_VERSION
-        ReadOnly      = $env:JIRA_TEST_READONLY -eq 'true'
-        VerboseOutput = $env:JIRA_TEST_VERBOSE -eq 'true'
+    if ($deploymentType -eq 'Server') {
+        $result = [PSCustomObject]@{
+            DeploymentType = 'Server'
+            IsCloud        = $false
+            UserIdProperty = 'name'
+            CloudUrl       = $env:CI_JIRA_URL.TrimEnd('/')
+            Username       = $env:CI_JIRA_ADMIN
+            Password       = $env:CI_JIRA_ADMIN_PASSWORD
+            UsernameNormal = $env:CI_JIRA_USER
+            PasswordNormal = $env:CI_JIRA_USER_PASSWORD
+            HasNormalUser  = -not [string]::IsNullOrEmpty($env:CI_JIRA_USER)
+            # Server track creates fixtures dynamically; the bare addono image ships with
+            # no project, so most tests should fall back to creating their own resources
+            # (or skip with a clear message) rather than assuming a permanent fixture.
+            TestProject    = if ($env:JIRA_TEST_PROJECT) { $env:JIRA_TEST_PROJECT } else { 'TEST' }
+            TestIssue      = $null
+            TestUser       = $env:CI_JIRA_USER
+            TestGroup      = $env:JIRA_TEST_GROUP
+            TestFilter     = $null
+            TestVersion    = $null
+            ReadOnly       = $env:JIRA_TEST_READONLY -eq 'true'
+            VerboseOutput  = $env:JIRA_TEST_VERBOSE -eq 'true'
+        }
+    }
+    else {
+        $result = [PSCustomObject]@{
+            DeploymentType = 'Cloud'
+            IsCloud        = $true
+            UserIdProperty = 'accountId'
+            CloudUrl       = $env:JIRA_CLOUD_URL.TrimEnd('/')
+            Username       = $env:JIRA_CLOUD_USERNAME
+            Password       = $env:JIRA_CLOUD_PASSWORD
+            UsernameNormal = $env:JIRA_CLOUD_USERNAME_NORMAL
+            PasswordNormal = $env:JIRA_CLOUD_PASSWORD_NORMAL
+            HasNormalUser  = (-not [string]::IsNullOrEmpty($env:JIRA_CLOUD_USERNAME_NORMAL)) -and
+            (-not [string]::IsNullOrEmpty($env:JIRA_CLOUD_PASSWORD_NORMAL))
+            TestProject    = $env:JIRA_TEST_PROJECT
+            TestIssue      = $env:JIRA_TEST_ISSUE
+            TestUser       = $env:JIRA_TEST_USER
+            TestGroup      = $env:JIRA_TEST_GROUP
+            TestFilter     = $env:JIRA_TEST_FILTER
+            TestVersion    = $env:JIRA_TEST_VERSION
+            ReadOnly       = $env:JIRA_TEST_READONLY -eq 'true'
+            VerboseOutput  = $env:JIRA_TEST_VERBOSE -eq 'true'
+        }
     }
 
     $script:_EnvLoaded = $true
@@ -195,12 +252,17 @@ function Initialize-IntegrationEnvironment {
 function Connect-JiraTestServer {
     <#
     .SYNOPSIS
-        Establishes an authenticated session with the Jira Cloud test server.
+        Establishes an authenticated session with the test Jira instance.
 
     .DESCRIPTION
-        This function configures the JiraPS module to connect to the test Jira Cloud
-        instance and creates an authenticated session using the credentials from
-        the environment configuration.
+        Configures the JiraPS module to connect to the test Jira instance (Cloud or
+        Data Center, depending on `$Environment.IsCloud`) and creates an authenticated
+        session using the credentials from the environment configuration.
+
+        - Cloud: uses `New-JiraSession -ApiToken -EmailAddress` (Atlassian API token).
+        - Data Center: uses `New-JiraSession -Credential` with admin Basic auth (the
+          addono/jira-software-standalone Docker container ships with `admin/admin`
+          and Wait-JiraServer.ps1 provisions a normal user on top).
 
         Only calls Set-JiraConfigServer if the URL differs from current config,
         avoiding unnecessary file writes in parallel test runs.
@@ -242,13 +304,23 @@ function Connect-JiraTestServer {
         Set-JiraConfigServer -Server $Environment.CloudUrl
     }
 
-    $secureToken = ConvertTo-SecureString -String $Environment.Password -AsPlainText -Force
-    $session = New-JiraSession -ApiToken $secureToken -EmailAddress $Environment.Username
-    if (-not $session) {
-        throw "Failed to establish Jira session. Check credentials and server URL. For Jira Cloud, JIRA_CLOUD_PASSWORD must be an API token (not your account password)."
+    if ($Environment.IsCloud) {
+        $secureToken = ConvertTo-SecureString -String $Environment.Password -AsPlainText -Force
+        $session = New-JiraSession -ApiToken $secureToken -EmailAddress $Environment.Username
+        if (-not $session) {
+            throw "Failed to establish Jira session. Check credentials and server URL. For Jira Cloud, JIRA_CLOUD_PASSWORD must be an API token (not your account password)."
+        }
+        Write-Verbose "Connected to Jira Cloud: $($Environment.CloudUrl)"
     }
-
-    Write-Verbose "Connected to Jira Cloud: $($Environment.CloudUrl)"
+    else {
+        $secure = ConvertTo-SecureString -String $Environment.Password -AsPlainText -Force
+        $cred = New-Object System.Management.Automation.PSCredential($Environment.Username, $secure)
+        $session = New-JiraSession -Credential $cred
+        if (-not $session) {
+            throw "Failed to establish Jira session. Check credentials and server URL. For Jira Data Center, CI_JIRA_ADMIN_PASSWORD must be the admin user's password (default: 'admin' for the addono/jira-software-standalone image)."
+        }
+        Write-Verbose "Connected to Jira Data Center: $($Environment.CloudUrl)"
+    }
 
     # Sweep stale resources from previous failed runs once per runspace.
     # Remove-StaleTestResource short-circuits via $script:_CleanupInProgress, so
@@ -308,14 +380,17 @@ function Get-TestFixture {
     }
 
     @{
-        TestProject = $Environment.TestProject
-        TestIssue   = $Environment.TestIssue
-        TestUser    = $Environment.TestUser
-        TestGroup   = $Environment.TestGroup
-        TestFilter  = $Environment.TestFilter
-        TestVersion = $Environment.TestVersion
-        CloudUrl    = $Environment.CloudUrl
-        ReadOnly    = $Environment.ReadOnly
+        TestProject    = $Environment.TestProject
+        TestIssue      = $Environment.TestIssue
+        TestUser       = $Environment.TestUser
+        TestGroup      = $Environment.TestGroup
+        TestFilter     = $Environment.TestFilter
+        TestVersion    = $Environment.TestVersion
+        CloudUrl       = $Environment.CloudUrl
+        ReadOnly       = $Environment.ReadOnly
+        DeploymentType = $Environment.DeploymentType
+        IsCloud        = $Environment.IsCloud
+        UserIdProperty = $Environment.UserIdProperty
     }
 }
 

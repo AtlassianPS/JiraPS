@@ -33,7 +33,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Invoke-JiraIssueTransition" -Tag 'Integration' -Skip:$Skip {
+    Describe "Invoke-JiraIssueTransition" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
