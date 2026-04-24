@@ -63,11 +63,11 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -like "$jiraServer/rest/api/*/version/$versionID1/move" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -like "/rest/api/*/version/$versionID1/move" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -like "$jiraServer/rest/api/*/version/$versionID2/move" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -like "/rest/api/*/version/$versionID2/move" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             }
 
@@ -106,20 +106,20 @@ InModuleScope JiraPS {
                 It 'moves a Version using its ID and Last Position' {
                     { Move-JiraVersion -Version $versionID1 -Position Last -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 0 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID1/move" -and
+                        $URI -like "/rest/api/2/version/$versionID1/move" -and
                         $Body -match '"position":\s*"Last"'
                     }
                 }
                 It 'moves a Version using its ID and Earlier Position' {
                     { Move-JiraVersion -Version $versionID1 -Position Earlier -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 0 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID1/move" -and
+                        $URI -like "/rest/api/2/version/$versionID1/move" -and
                         $Body -match '"position":\s*"Earlier"'
                     }
                 }
@@ -129,10 +129,10 @@ InModuleScope JiraPS {
                         Move-JiraVersion -Version $version -Position Later -ErrorAction Stop
                     } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID2/move" -and
+                        $URI -like "/rest/api/2/version/$versionID2/move" -and
                         $Body -match '"position":\s*"Later"'
                     }
                 }
@@ -142,10 +142,10 @@ InModuleScope JiraPS {
                         Move-JiraVersion -Version $version -Position First -ErrorAction Stop
                     } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID2/move" -and
+                        $URI -like "/rest/api/2/version/$versionID2/move" -and
                         $Body -match '"position":\s*"First"'
                     }
                 }
@@ -155,10 +155,10 @@ InModuleScope JiraPS {
                         $version | Move-JiraVersion -Position First -ErrorAction Stop
                     } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID2/move" -and
+                        $URI -like "/rest/api/2/version/$versionID2/move" -and
                         $Body -match '"position":\s*"First"'
                     }
                 }
@@ -167,10 +167,10 @@ InModuleScope JiraPS {
                         $versionID1 | Move-JiraVersion -Position First -ErrorAction Stop
                     } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 0 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID1/move" -and
+                        $URI -like "/rest/api/2/version/$versionID1/move" -and
                         $Body -match '"position":\s*"First"'
                     }
                 }
@@ -180,10 +180,10 @@ InModuleScope JiraPS {
                     $restUrl = (Get-JiraVersion -Id $versionID2).RestUrl
                     { Move-JiraVersion -Version $versionID1 -After $versionID2 -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 2 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID1/move" -and
+                        $URI -like "/rest/api/2/version/$versionID1/move" -and
                         $Body -match """after"":\s*""$restUrl"""
                     }
                 }
@@ -192,10 +192,10 @@ InModuleScope JiraPS {
                     $version1 = Get-JiraVersion -Id $versionID1
                     { Move-JiraVersion -Version $version1 -After $versionID2 -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID1/move" -and
+                        $URI -like "/rest/api/2/version/$versionID1/move" -and
                         $Body -match """after"":\s*""$restUrl"""
                     }
                 }
@@ -203,10 +203,10 @@ InModuleScope JiraPS {
                     $version2 = Get-JiraVersion -Id $versionID2
                     { Move-JiraVersion -Version $versionID1 -After $version2 -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID1/move" -and
+                        $URI -like "/rest/api/2/version/$versionID1/move" -and
                         $Body -match """after"":\s*""$($version2.RestUrl)"""
                     }
                 }
@@ -214,10 +214,10 @@ InModuleScope JiraPS {
                     $version2 = Get-JiraVersion -Id $versionID2
                     { $versionID1 | Move-JiraVersion -After $version2 -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID1/move" -and
+                        $URI -like "/rest/api/2/version/$versionID1/move" -and
                         $Body -match """after"":\s*""$($version2.RestUrl)"""
                     }
                 }
@@ -226,10 +226,10 @@ InModuleScope JiraPS {
                     $version2 = Get-JiraVersion -Id $versionID2
                     { $version1 | Move-JiraVersion -After $version2 -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke -CommandName 'Get-JiraVersion' -Times 2 -ModuleName JiraPS -Exactly
-                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke -CommandName 'Get-JiraConfigServer' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter {
                         $Method -eq 'POST' -and
-                        $URI -like "$jiraServer/rest/api/2/version/$versionID1/move" -and
+                        $URI -like "/rest/api/2/version/$versionID1/move" -and
                         $Body -match """after"":\s*""$($version2.RestUrl)"""
                     }
                 }

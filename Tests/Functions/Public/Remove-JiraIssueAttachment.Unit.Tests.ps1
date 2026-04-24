@@ -68,11 +68,11 @@ InModuleScope JiraPS {
                 Get-JiraIssue -Key $Issue
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/2/attachment/$attachmentId1" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "/rest/api/2/attachment/$attachmentId1" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "$jiraServer/rest/api/2/attachment/$attachmentId2" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -eq "/rest/api/2/attachment/$attachmentId2" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             }
 
@@ -133,8 +133,8 @@ InModuleScope JiraPS {
                     Should -Invoke 'Get-JiraIssueAttachment' -ModuleName JiraPS -Exactly -Times 3
                     Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -ne 'Delete' } -Exactly -Times 0
                     Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' } -Exactly -Times 8
-                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/attachment/$attachmentId1" } -Exactly -Times 5
-                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/attachment/$attachmentId2" } -Exactly -Times 3
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "/rest/api/2/attachment/$attachmentId1" } -Exactly -Times 5
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "/rest/api/2/attachment/$attachmentId2" } -Exactly -Times 3
                 }
 
                 It 'accepts positional parameters' {

@@ -54,6 +54,10 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   Update scripts to call `ConvertTo-JiraTable` directly.
 - `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
 - `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
+- `Invoke-JiraMethod` now supports Jira-doc style relative endpoint paths (for example, `/rest/api/2/issue/TEST-1`) and resolves them against `Get-JiraConfigServer`.
+  Relative paths must start with `/`, otherwise the cmdlet now throws a clear terminating argument error that includes the rejected path.
+  Absolute URLs are still supported for backward compatibility (including values coming from object `RestURL` properties).
+- Public cmdlets now pass relative `/rest/api/...` endpoints into `Invoke-JiraMethod` instead of concatenating `Get-JiraConfigServer` at each call site.
 - Enhanced `Test-ServerResponse` to handle HTTP 503 (Service Unavailable) with retry, jitter on backoff delays, and 60-second max delay cap (#576)
 - Enhanced `Resolve-JiraError` to parse all Jira error response formats: `message`, `errorMessage`, `errorMessages` array, and `errors` dictionary (#576)
 - Hid internal `-Cmdlet` and `-_RetryCount` parameters on `Invoke-JiraMethod` from tab-completion via `[Parameter(DontShow)]` (follow-up to #582)

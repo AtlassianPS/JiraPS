@@ -52,7 +52,7 @@ InModuleScope JiraPS {
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Get' -and
-                $URI -eq "$jiraServer/rest/api/2/group?groupname=$testGroupNameEscaped"
+                $URI -eq "/rest/api/2/group?groupname=$testGroupNameEscaped"
             } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 ConvertFrom-Json -InputObject $restResult
@@ -114,7 +114,7 @@ InModuleScope JiraPS {
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
-                        $URI -eq "$jiraServer/rest/api/2/group?groupname=$testGroupNameEscaped"
+                        $URI -eq "/rest/api/2/group?groupname=$testGroupNameEscaped"
                     }
                 }
             }

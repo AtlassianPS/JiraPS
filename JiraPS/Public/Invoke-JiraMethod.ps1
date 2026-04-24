@@ -78,6 +78,55 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
+        #region Manage URI
+        $providedUriValue = $Uri.OriginalString
+        if (-not $Uri.IsAbsoluteUri) {
+            if (-not $providedUriValue.StartsWith('/')) {
+                $errorParameter = @{
+                    Cmdlet       = $PSCmdlet
+                    Exception    = [System.ArgumentException]::new("Invalid URI path '$providedUriValue'. Relative URIs must start with '/'.")
+                    ErrorId      = 'ParameterValue.UriPathMustStartWithSlash'
+                    Category     = [System.Management.Automation.ErrorCategory]::InvalidArgument
+                    TargetObject = $providedUriValue
+                }
+                ThrowError @errorParameter
+            }
+
+            $server = Get-JiraConfigServer -ErrorAction SilentlyContinue
+            if ([String]::IsNullOrWhiteSpace($server)) {
+                $errorParameter = @{
+                    Cmdlet       = $PSCmdlet
+                    Exception    = [System.ArgumentException]::new("Cannot resolve relative URI '$providedUriValue' because no Jira server is configured. Use Set-JiraConfigServer first.")
+                    ErrorId      = 'ParameterValue.JiraServerNotConfigured'
+                    Category     = [System.Management.Automation.ErrorCategory]::InvalidArgument
+                    TargetObject = $providedUriValue
+                }
+                ThrowError @errorParameter
+            }
+
+            [Uri]$Uri = "{0}{1}" -f $server.TrimEnd('/'), $providedUriValue
+        }
+
+        if (-not $Uri.IsAbsoluteUri) {
+            $errorParameter = @{
+                Cmdlet       = $PSCmdlet
+                Exception    = [System.ArgumentException]::new("Invoke-JiraMethod: -Uri must be an absolute URI. Got '$providedUriValue'.")
+                ErrorId      = 'ParameterValue.UriMustBeAbsolute'
+                Category     = [System.Management.Automation.ErrorCategory]::InvalidArgument
+                TargetObject = $providedUriValue
+            }
+            ThrowError @errorParameter
+        }
+
+        # Amend query from URI with GetParameter
+        $uriQuery = ConvertTo-ParameterHash -Uri $Uri
+        $internalGetParameter = Join-Hashtable $uriQuery, $GetParameter
+
+        # And remove it from URI
+        [Uri]$Uri = $Uri.GetLeftPart("Path")
+        $PaginatedUri = $Uri
+        #endregion Manage URI
+
         #region Cache Check
         if ($CacheKey -and $Method -eq 'GET' -and -not $BypassCache) {
             if (-not $script:JiraCache) {
@@ -106,15 +155,6 @@
         $_headers = Join-Hashtable -Hashtable $script:DefaultHeaders, $PSDefaultParameterValues["Invoke-WebRequest:Headers"], $Headers
         #endregion Headers
 
-        #region Manage URI
-        # Amend query from URI with GetParameter
-        $uriQuery = ConvertTo-ParameterHash -Uri $Uri
-        $internalGetParameter = Join-Hashtable $uriQuery, $GetParameter
-
-        # And remove it from URI
-        [Uri]$Uri = $Uri.GetLeftPart("Path")
-        $PaginatedUri = $Uri
-
         # Use default PageSize
         if (-not $internalGetParameter.ContainsKey("maxResults")) {
             $internalGetParameter["maxResults"] = $script:DefaultPageSize
@@ -131,7 +171,6 @@
         }
 
         [Uri]$PaginatedUri = "{0}{1}" -f $PaginatedUri, (ConvertTo-GetParameter $internalGetParameter)
-        #endregion Manage URI
 
         #region Constructe IWR Parameter
         $splatParameters = @{

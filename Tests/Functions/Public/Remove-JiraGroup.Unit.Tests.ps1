@@ -46,7 +46,7 @@ InModuleScope JiraPS {
                 return $object
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'DELETE' -and $URI -like "$jiraServer/rest/api/*/group?groupname=$testGroupName" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'DELETE' -and $URI -like "/rest/api/*/group?groupname=$testGroupName" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 # This REST method should produce no output
             }
