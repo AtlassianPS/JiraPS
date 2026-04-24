@@ -225,9 +225,11 @@ The `IntegrationTestTools.ps1` module provides:
 | Function | Description |
 |----------|-------------|
 | `Initialize-IntegrationEnvironment` | Loads `.env` and returns config object |
-| `Connect-JiraTestServer` | Establishes authenticated session |
+| `Connect-JiraTestServer` | Establishes authenticated session as the admin user |
+| `Connect-JiraTestServerAsNormalUser` | Establishes authenticated session as the optional non-admin user (see [Permission Tests](#permission-tests)) |
 | `Get-TestFixture` | Returns hashtable of test fixture references |
 | `Skip-IntegrationTest` | Returns `$true` if environment not configured |
+| `Skip-IntegrationTestForNormalUser` | Returns `$true` if the normal-user credentials are not configured (or the base env is missing) |
 | `New-TemporaryTestIssue` | Creates a temporary issue for write tests |
 | `New-TestResourceName` | Generates prefixed name like `JiraPS-IntTest-Issue-20260412...` |
 | `Get-TestResourcePrefix` | Returns the prefix used for test resources |
@@ -355,6 +357,8 @@ Configure these in your repository settings:
 | `JIRA_TEST_GROUP` | ⚪ | Group name for group tests |
 | `JIRA_TEST_FILTER` | ⚪ | Filter ID for filter tests |
 | `JIRA_TEST_VERSION` | ⚪ | Version name for version tests |
+| `JIRA_CLOUD_USERNAME_NORMAL` | ⚪ | Email of a non-admin user for permission tests |
+| `JIRA_CLOUD_PASSWORD_NORMAL` | ⚪ | API token for the non-admin user |
 
 If secrets are not configured, integration tests are skipped automatically.
 
@@ -372,6 +376,36 @@ To run full integration tests on a pull request:
 - **Parallel execution**: Uses `Invoke-Build -Task TestIntegration` with `ThrottleLimit=4`
 - **Concurrency control**: Cancels in-progress runs for the same branch
 - **NUnit results artifact**: Uploads `IntegrationTestResults.xml` as a workflow artifact for downstream inspection
+
+## Permission Tests
+
+`Tests/Integration/Permissions.Integration.Tests.ps1` exercises the boundary between an administrator and a regular Jira user.
+This mirrors jira-python's `JiraTestManager.jira_normal` pattern and lets us assert that read endpoints work for both accounts while write endpoints are correctly rejected for the non-admin.
+
+The framework supports an optional second authenticated session driven by two env vars:
+
+| Env var | Description |
+|---------|-------------|
+| `JIRA_CLOUD_USERNAME_NORMAL` | Email address of a Jira user that is **not** a Jira administrator |
+| `JIRA_CLOUD_PASSWORD_NORMAL` | API token for that user (generated from [Atlassian Account Settings](https://id.atlassian.com/manage-profile/security/api-tokens)) |
+
+Provision the normal user as a regular member of the test project with no admin role.
+The test suite verifies that this account can read filters and projects but is rejected when it tries to delete admin-owned filters and issues — so granting it admin will silently make the assertions pass for the wrong reason.
+
+When either env var is unset (the default in most repositories), `Skip-IntegrationTestForNormalUser` returns `$true` and the entire `Permissions` describe block is skipped.
+The rest of the integration suite continues to run as usual.
+
+These tests are tagged `Integration` only, **not** `Smoke`, so they do not run on every PR.
+They are exercised on the nightly schedule, on `workflow_dispatch`, and on PRs labeled `run-integration-tests`.
+
+In code, switching between the two accounts inside an `It` block looks like:
+
+```powershell
+function Use-AdminSession  { Remove-JiraSession -ErrorAction SilentlyContinue; Connect-JiraTestServer            -Environment $script:env | Out-Null }
+function Use-NormalSession { Remove-JiraSession -ErrorAction SilentlyContinue; Connect-JiraTestServerAsNormalUser -Environment $script:env | Out-Null }
+```
+
+The `Connect-JiraTestServerAsNormalUser` helper lives in `Tests/Helpers/IntegrationTestTools.ps1`; the `Use-*` shims belong in the test file itself.
 
 ## Troubleshooting
 
