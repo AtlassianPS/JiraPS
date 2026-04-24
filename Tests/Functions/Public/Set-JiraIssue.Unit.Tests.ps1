@@ -465,6 +465,32 @@ InModuleScope JiraPS {
                     $Body -match "`"accountId`":\s*null"
                 }
             }
+
+            It "Wraps -Description into ADF on Cloud" {
+                { Set-JiraIssue -Issue "IT-3676" -Description "rewritten description" } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $set = $payload.update.description[0].set
+                    $set.type -eq 'doc' -and
+                    $set.version -eq 1 -and
+                    $set.content[0].type -eq 'paragraph' -and
+                    $set.content[0].content[0].text -eq 'rewritten description'
+                }
+            }
+
+            It "Wraps -AddComment into ADF on Cloud" {
+                { Set-JiraIssue -Issue "IT-3676" -AddComment "follow-up comment" } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $body = $payload.update.comment[0].add.body
+                    $body.type -eq 'doc' -and
+                    $body.version -eq 1 -and
+                    $body.content[0].type -eq 'paragraph' -and
+                    $body.content[0].content[0].text -eq 'follow-up comment'
+                }
+            }
         }
     }
 }

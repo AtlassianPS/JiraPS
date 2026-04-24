@@ -118,7 +118,7 @@
         }
 
         if ($Description) {
-            $requestBody["description"] = $Description
+            $requestBody["description"] = Resolve-JiraTextFieldPayload -Text $Description -IsCloud $isCloud
         }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
@@ -271,7 +271,7 @@
         $parameter = @{
             URI        = $resourceURi
             Method     = "POST"
-            Body       = (ConvertTo-Json -InputObject ([PSCustomObject]$hashtable) -Depth 7)
+            Body       = (ConvertTo-Json -InputObject ([PSCustomObject]$hashtable) -Depth 20)
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

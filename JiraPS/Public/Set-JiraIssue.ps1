@@ -151,7 +151,11 @@
             }
 
             if ($Description) {
-                $issueProps.update["description"] = @(@{ 'set' = $Description })
+                $issueProps.update["description"] = @(
+                    @{
+                        'set' = Resolve-JiraTextFieldPayload -Text $Description -IsCloud $isCloud
+                    }
+                )
             }
 
             if ($FixVersion) {
@@ -164,7 +168,7 @@
                 $issueProps.update["comment"] = @(
                     @{
                         'add' = @{
-                            'body' = $AddComment
+                            'body' = Resolve-JiraTextFieldPayload -Text $AddComment -IsCloud $isCloud
                         }
                     }
                 )
@@ -241,7 +245,7 @@
                 $parameter = @{
                     URI          = $issueObj.RestUrl
                     Method       = "PUT"
-                    Body         = ConvertTo-Json -InputObject $issueProps -Depth 10
+                    Body         = ConvertTo-Json -InputObject $issueProps -Depth 20
                     Credential   = $Credential
                     GetParameter = $SkipNotificationParams
                 }

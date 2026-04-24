@@ -282,6 +282,34 @@ InModuleScope JiraPS {
                     $Body -match 'accountId'
                 }
             }
+
+            It "wraps -Description into an Atlassian Document Format document on Cloud" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $payload.fields.description.type -eq 'doc' -and
+                    $payload.fields.description.version -eq 1 -and
+                    $payload.fields.description.content[0].type -eq 'paragraph' -and
+                    $payload.fields.description.content[0].content[0].text -eq 'Test description'
+                }
+            }
+        }
+
+        Describe "Description on Server / Data Center" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+            }
+
+            It "sends -Description verbatim as a plain string" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $payload.fields.description -is [string] -and
+                    $payload.fields.description -eq 'Test description'
+                }
+            }
         }
 
         Describe "Reporter resolution" {

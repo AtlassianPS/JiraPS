@@ -45,6 +45,10 @@ In addition to the parameterized fields provided in this function, the Fields pa
 This allows users to provide custom field data when creating an issue.
 Read more about it in [about_JiraPS_CustomFields](../../about/custom-fields.html)
 
+On **Jira Cloud**, the `-Description` text is interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, so familiar Markdown syntax (headings, bold/italic, lists, fenced code blocks, links, Markdown tables) renders as rich text on the new issue.
+On **Jira Server / Data Center**, the description is sent verbatim and the legacy wiki-markup syntax continues to apply.
+See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/) for the supported Markdown subset.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
