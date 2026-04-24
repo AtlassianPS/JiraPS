@@ -39,6 +39,11 @@ Invoke-Build -Task Build, Test
 ```
 Tests run against the built module in `Release/` — you must build before testing.
 
+### Backlog Handling
+- **Out-of-scope ideas go on the board, not into the current PR.**
+  File them as `Backlog idea` issues — see [Filing a Backlog Idea](#filing-a-backlog-idea).
+- Board: [`AtlassianPS/JiraPS` · Project 2 — *JiraPS Backlog*](https://github.com/orgs/AtlassianPS/projects/2)
+
 ---
 
 ## AI Tool Compatibility
@@ -388,6 +393,56 @@ function Get-JiraExample {
 ```
 
 6. **Build and test**: `Invoke-Build -Task Build, Test`
+
+### Filing a Backlog Idea
+
+> **RULE**: When a chat, code review, or audit produces a follow-up that does not belong in the current PR, file it as a `Backlog idea` issue **before** the conversation ends.
+> Worktrees and chat transcripts are not durable backlog storage.
+
+The repository ships a dedicated GitHub issue form (`.github/ISSUE_TEMPLATE/backlog-idea.yml`) and a repo-scoped GitHub Project board for triage.
+The form auto-applies the `Backlog` label and adds the issue to the project on submit, so the only manual triage step is setting `Theme`, `Effort`, and `Priority` on the board.
+
+| Where | What |
+|-------|------|
+| Issue template | `.github/ISSUE_TEMPLATE/backlog-idea.yml` (Context / Proposal / Trade-offs / Related items) |
+| Label | `Backlog` (applied automatically by the template) |
+| Theme labels | `Theme:TypeSystem` (more added as themes emerge) |
+| Project board | [AtlassianPS · Project 2 — *JiraPS Backlog*](https://github.com/orgs/AtlassianPS/projects/2) — custom fields: `Theme`, `Effort` (S/M/L/XL), `Priority` (P0–P3) |
+
+**File via UI:**
+
+1. Open *New issue* on `AtlassianPS/JiraPS` → choose **Backlog idea**.
+2. Fill in *Context*, *Proposal*, *Trade-offs* (optional), *Related items* (optional).
+3. Submit.
+   The `Backlog` label and the project board entry are applied automatically; pick `Theme`, `Effort`, and `Priority` on the board.
+
+**File via CLI** (one-shot, from any worktree):
+
+```bash
+gh issue create \
+    --repo AtlassianPS/JiraPS \
+    --title "[Backlog] <one-line summary>" \
+    --label Backlog \
+    --body "$(cat <<'EOF'
+## Context
+…
+
+## Proposal
+…
+
+## Trade-offs
+…
+
+## Related items
+…
+EOF
+)"
+
+# Then attach to the project board:
+gh project item-add 2 --owner AtlassianPS --url <issue-url>
+```
+
+When linking an idea that came out of a chat, paste the transcript link into *Related items* so the design rationale is one click away.
 
 ### Releasing a New Version
 
