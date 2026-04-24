@@ -38,8 +38,16 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `Set-JiraIssue -Assignee`    | No longer positional; must be supplied by name.                         |
 | `New-JiraIssue -Reporter`    | No longer accepts `$null`, empty, or whitespace-only strings.           |
 | `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
-| `Format-Jira`                | Renamed to `ConvertTo-JiraTable`. Old name retained as a deprecated alias. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
+
+## DEPRECATIONS (NON-BREAKING)
+
+The following changes do **not** break existing scripts in v3 — the old name continues to work via an exported alias — but the alias will be removed in a future major version.
+Update at your convenience.
+
+| Area          | What Changed                                                                  |
+| ------------- | ----------------------------------------------------------------------------- |
+| `Format-Jira` | Renamed to `ConvertTo-JiraTable`. The old name is preserved as a deprecated, exported alias. |
 
 ## DETAILED MIGRATION GUIDE
 
@@ -216,18 +224,9 @@ Get-Process | ConvertTo-JiraTable | Add-JiraIssueComment -Issue TEST-001
 $comment = Get-Process powershell | ConvertTo-JiraTable
 ```
 
-`ConvertTo-JiraTable` produces Jira wiki markup, the native format for Jira Server / Data Center and the legacy v2 REST API.
-On **Jira Cloud** the picture is different:
-
-- **Cloud REST v3** endpoints expect Atlassian Document Format (ADF) and render the resulting `||header||` / `|cell|` syntax as literal text rather than as a table.
-- **Cloud REST v2** endpoints still accept wiki markup, so the output remains valid in those workflows.
-- There is currently no clean wiki-markup → ADF round-trip helper in JiraPS.
-  `ConvertTo-AtlassianDocumentFormat` parses **Markdown** table syntax (`|cell|cell|`), not Jira wiki markup (`||header||header||`), so chaining the two cmdlets does not produce a valid ADF table.
-
-To make this mismatch visible at runtime, the **write-side** cmdlets `Add-JiraIssueComment` and `Add-JiraIssueWorklog` emit a `Write-Warning` when their `-Comment` text contains wiki-markup table syntax (`||header||`) and the active session is connected to a Cloud deployment.
-The warning fires at the actual point of harm — the API call that posts the unrenderable table — rather than at the upstream `ConvertTo-JiraTable` step, which is a pure offline string formatter and does not consult the active session.
-Suppress the warning with `-WarningAction SilentlyContinue` once you have confirmed your call site targets Cloud's legacy v2 endpoints (or accepts the literal-text rendering).
-See the help for [`Add-JiraIssueComment`](../commands/Add-JiraIssueComment/) and [`Add-JiraIssueWorklog`](../commands/Add-JiraIssueWorklog/) for the warning's exact behavior and detection rules.
+`ConvertTo-JiraTable` produces Jira wiki markup, the native format for Jira Server / Data Center.
+On **Jira Cloud** REST v3 endpoints expect Atlassian Document Format (ADF) and render the resulting `||header||` / `|cell|` syntax as literal text rather than as a table.
+Wrapping the write-side text payloads (`Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `New-JiraIssue -Description`, etc.) in ADF on Cloud is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
 
 ### Minimum PowerShell Version
 

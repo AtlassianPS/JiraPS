@@ -126,12 +126,9 @@ InModuleScope JiraPS {
         }
 
         Context "Pure transform (no session side-effects)" {
-            # Regression guard for the original PR design that had ConvertTo-JiraTable
-            # consult Test-JiraCloudServer in its `begin` block. The Cloud-compatibility
-            # warning lives on the write-side cmdlets (Add-JiraIssueComment,
-            # Add-JiraIssueWorklog) where the actual API call decides what format it's
-            # posting; ConvertTo-JiraTable itself must remain a pure offline string
-            # formatter, consistent with every other ConvertTo-* cmdlet in the module.
+            # ConvertTo-* cmdlets must remain deterministic, offline string transforms.
+            # Any deployment-aware behavior (e.g., the planned ADF wrapping in #602)
+            # belongs on the write-side cmdlets, where the actual API payload is built.
             It "Does not call Test-JiraCloudServer" {
                 Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 

@@ -23,16 +23,12 @@ ConvertTo-JiraTable [-InputObject] <psobject[]> [[-Property] <Object[]>] [<Commo
 Converts one or more PowerShell objects into a string formatted as a Jira **wiki-markup** table (`||header||header|| ... |cell|cell|`).
 The result is a `[String]` suitable for passing to commands such as `Add-JiraIssueComment` or `Add-JiraIssueWorklog`, or for assignment to text fields on Jira Server / Data Center.
 
-> **Important — Jira Cloud compatibility.**
-> Wiki markup is the native rendering format for Jira **Server / Data Center** and for the **legacy v2 REST API**.
-> Jira **Cloud REST v3** endpoints expect [Atlassian Document Format (ADF)](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/) and will render `||header||` syntax as literal text, not as a table.
-> The output of this cmdlet is therefore best suited to Data Center / Server, or to Cloud workflows that explicitly target the legacy v2 REST endpoints.
-> `ConvertTo-JiraTable` itself is a pure offline string formatter and does not consult the active session.
-> The Cloud-compatibility warning is emitted at the actual point of harm — by `Add-JiraIssueComment` and `Add-JiraIssueWorklog` — when their `-Comment` text contains wiki-markup table syntax and the active session is connected to a Cloud deployment.
-> See those cmdlets' help for the warning's exact behavior and how to silence it.
-> There is currently no clean wiki-markup → ADF round-trip helper in JiraPS — `ConvertTo-AtlassianDocumentFormat` consumes Markdown table syntax (`|cell|cell|`), not Jira wiki-markup tables (`||header||header||`).
-
 Despite producing tabular output, this cmdlet is intentionally a `ConvertTo-*` rather than a `Format-*`: it returns a `[String]`, not the host-only display objects emitted by built-in `Format-*` cmdlets such as `Format-Table`.
+
+> **Jira Cloud caveat.**
+> The output is wiki markup, the native format on Server / Data Center.
+> Jira **Cloud** (REST v3) expects [Atlassian Document Format (ADF)](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/) and renders `||header||` syntax as literal text rather than as a table.
+> Wrapping these payloads in ADF on Cloud is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
 
 Deprecated alias: `Format-Jira` (will be removed in a future major version; update scripts to call `ConvertTo-JiraTable` directly).
 
@@ -121,17 +117,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-Like the native `Format-*` cmdlets, this is a destructive operation for data in the pipeline.
+This is a destructive transform: it walks the input pipeline and emits a single `[String]`, so any per-object data not selected via `-Property` is dropped.
 Remember to "filter left, format right!"
 
 **Output format.**
 The output is Jira **wiki markup**, the native format for text fields on Jira Server / Data Center and for the legacy v2 REST API endpoints used by JiraPS write commands such as `Add-JiraIssueComment` and `Add-JiraIssueWorklog`.
-
-**Jira Cloud caveat.**
-Jira Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` / `|cell|` strings as literal text rather than as a table.
-`ConvertTo-JiraTable` is a pure offline string formatter — it does not consult the active session, does not emit a deployment-related warning, and is consistent with every other `ConvertTo-*` cmdlet in this module.
-Cloud-compatibility warnings are emitted by the **write-side** cmdlets (`Add-JiraIssueComment`, `Add-JiraIssueWorklog`) when their `-Comment` text contains wiki-markup table syntax and the active session is connected to a Cloud deployment, because that is the actual point of harm: the warning sees the literal text being sent to the API and fires only when the format mismatch will produce a visible bug in the UI.
-See those cmdlets' help for the exact warning, its detection rules, and how to suppress it.
+On Jira Cloud (REST v3 / ADF) the table syntax renders as literal text; ADF wrapping for the write-side cmdlets is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
 
 Alias: `Format-Jira` (deprecated)
 

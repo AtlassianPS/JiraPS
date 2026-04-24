@@ -65,7 +65,7 @@ This example logs four hours of work against issue TEST-100 with a worklog comme
 A common pattern for end-of-day time tracking when several related tickets roll up into a single parent.
 
 > Wiki-markup tables render natively on Jira **Server / Data Center**.
-> On Jira **Cloud** (REST v3 / ADF) the table syntax appears as literal text — `Add-JiraIssueWorklog` detects this content shape in `-Comment` and emits a `Write-Warning` (see [NOTES](#notes)) so the mismatch is visible at the actual point of harm rather than after the worklog has posted.
+> On Jira **Cloud** the table syntax appears as literal text because Cloud REST v3 expects Atlassian Document Format (ADF); see [#602](https://github.com/AtlassianPS/JiraPS/issues/602) for the planned ADF wrapping.
 
 ### EXAMPLE 5
 
@@ -285,15 +285,6 @@ Pipe a JiraPS.Issue object to record work against it.
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
-
-**Jira Cloud compatibility warning.**
-When the supplied `-Comment` text contains Jira wiki-markup table syntax (`||header||`) and the active session is connected to a **Jira Cloud** deployment, this cmdlet emits a one-shot `Write-Warning` per invocation.
-The reason: Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` strings as literal text rather than as a table, so output produced by `ConvertTo-JiraTable` will not appear as a table in the Cloud UI even though the worklog posts successfully.
-Detection is purely textual: the cmdlet looks for `||<non-whitespace char>...||` in the comment, which catches `ConvertTo-JiraTable` output (and other authored wiki-markup tables) while avoiding false-positives on patterns such as `a || b || c` (boolean operators in code blocks).
-Plain-text comments and Data Center / Server sessions never trigger the warning.
-The deployment-type lookup uses `Test-JiraCloudServer`, which in turn calls the cached `Get-JiraServerInformation` (5-minute TTL), so the check does not add a per-call HTTP round-trip.
-If no session is configured (no `Set-JiraConfigServer` / `New-JiraSession`), the check is silently skipped and the worklog is posted as usual.
-Suppress the warning with `-WarningAction SilentlyContinue` when you knowingly target Cloud's legacy v2 endpoints.
 
 ## RELATED LINKS
 

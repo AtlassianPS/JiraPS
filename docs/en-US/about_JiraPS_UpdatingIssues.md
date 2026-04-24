@@ -104,13 +104,10 @@ Get-JiraIssue TEST-1 | Add-JiraIssueComment "Current PowerShell processes:`n$com
 ```
 
 > **Server / Data Center vs Cloud.**
-> `ConvertTo-JiraTable` emits Jira **wiki markup**, which is the native format on Jira Server / Data Center and on the legacy v2 REST API.
-> Jira **Cloud** REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` syntax as literal text.
-> `ConvertTo-JiraTable` itself is a pure offline string formatter and does not consult the active session.
-> The mismatch is surfaced at the actual point of harm: `Add-JiraIssueComment` (and `Add-JiraIssueWorklog`) detects wiki-markup table syntax in `-Comment` and emits a `Write-Warning` when the active session is connected to Cloud.
-> Suppress it with `-WarningAction SilentlyContinue` if you knowingly target Cloud's legacy v2 endpoints.
+> `ConvertTo-JiraTable` emits Jira **wiki markup**, which is the native format on Jira Server / Data Center.
+> Jira **Cloud** REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` syntax as literal text; ADF wrapping for the write-side cmdlets is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
 
-> `ConvertTo-JiraTable` (formerly `Format-Jira`) is a destructive operation for data in the pipeline.
+> `ConvertTo-JiraTable` (formerly `Format-Jira`) is a destructive transform: it walks the input pipeline and emits a single string, dropping any per-object data that is not selected via `-Property`.
 > Remember to "filter left, format right!"
 > The deprecated `Format-Jira` alias still works but will be removed in a future major version.
 
