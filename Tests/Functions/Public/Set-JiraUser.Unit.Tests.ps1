@@ -46,7 +46,7 @@ InModuleScope JiraPS {
                 return $object
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -eq "$jiraServer/rest/api/2/user?username=$testUsername" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -eq "/rest/api/2/user?username=$testUsername" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 ConvertFrom-Json $restResultGet
             }
@@ -144,7 +144,7 @@ InModuleScope JiraPS {
 
                 Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Put' -and
-                    $URI -like "$jiraServer/rest/api/2/user?accountId=*"
+                    $URI -like "/rest/api/2/user?accountId=*"
                 } {
                     Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                     ConvertFrom-Json $restResultGet

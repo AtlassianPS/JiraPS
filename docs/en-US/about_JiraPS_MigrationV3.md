@@ -38,6 +38,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `Set-JiraIssue -Assignee`    | No longer positional; must be supplied by name.                         |
 | `New-JiraIssue -Reporter`    | No longer accepts `$null`, empty, or whitespace-only strings.           |
 | `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
+| `Invoke-JiraMethod -Uri`     | Relative endpoint paths are now first-class (`/rest/api/...`).          |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -227,6 +228,21 @@ $comment = Get-Process powershell | ConvertTo-JiraTable
 `ConvertTo-JiraTable` produces Jira wiki markup, the native format for Jira Server / Data Center.
 On **Jira Cloud** REST v3 endpoints expect Atlassian Document Format (ADF) and render the resulting `||header||` / `|cell|` syntax as literal text rather than as a table.
 Wrapping the write-side text payloads (`Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `New-JiraIssue -Description`, etc.) in ADF on Cloud is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
+
+### Endpoint Paths in `Invoke-JiraMethod`
+
+In v3, JiraPS standardizes internal REST calls on relative endpoint paths that match Atlassian documentation (for example, `/rest/api/2/project`).
+`Invoke-JiraMethod` resolves those relative paths against `Get-JiraConfigServer`.
+Relative paths must start with `/`.
+Calls like `Invoke-JiraMethod -Uri 'rest/api/2/project'` now throw a clear argument error.
+Absolute URLs are still accepted for backward compatibility and for object properties like `RestURL`.
+
+#### Recommended in v3
+
+```powershell
+Invoke-JiraMethod -Uri '/rest/api/2/project'
+Invoke-JiraMethod -Uri '/rest/api/2/issue/TEST-1'
+```
 
 ### Minimum PowerShell Version
 

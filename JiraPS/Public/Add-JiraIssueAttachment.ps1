@@ -83,7 +83,7 @@
         }
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential -ErrorAction Stop
 
         foreach ($file in $FilePath) {
             $file = Resolve-FilePath -Path $file

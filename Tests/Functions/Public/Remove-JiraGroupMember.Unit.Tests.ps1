@@ -107,7 +107,7 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq 'Delete' -and
-                        $URI -like "$jiraServer/rest/api/*/group/user?groupname=$testGroupName&username=$testUsername1"
+                        $URI -like "/rest/api/*/group/user?groupname=$testGroupName&username=$testUsername1"
                     } -Exactly -Times 1
                 }
 
@@ -130,7 +130,7 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq 'Delete' -and
-                        $URI -like "$jiraServer/rest/api/*/group/user?groupname=$testGroupName&username=*"
+                        $URI -like "/rest/api/*/group/user?groupname=$testGroupName&username=*"
                     } -Exactly -Times 2
                 }
             }

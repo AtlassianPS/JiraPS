@@ -46,7 +46,7 @@ InModuleScope JiraPS {
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'POST' -and
-                $URI -eq "$jiraServer/rest/api/2/issueLink"
+                $URI -eq "/rest/api/2/issueLink"
             } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
                 return $true

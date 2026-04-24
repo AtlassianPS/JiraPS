@@ -18,8 +18,8 @@ InModuleScope JiraPS {
 
 
             #region Mocks
-            $filterAll = { $Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/2/issueLinkType" }
-            $filterOne = { $Method -eq 'Get' -and $Uri -ceq "$jiraServer/rest/api/2/issueLinkType/10000" }
+            $filterAll = { $Method -eq 'Get' -and $Uri -ceq "/rest/api/2/issueLinkType" }
+            $filterOne = { $Method -eq 'Get' -and $Uri -ceq "/rest/api/2/issueLinkType/10000" }
 
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'

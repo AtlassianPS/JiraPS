@@ -124,7 +124,7 @@ InModuleScope JiraPS {
                 BeforeAll {
                     # Default mock: Invoke-JiraMethod -Paging would yield the
                     # expanded field items, so the mock returns values directly.
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/issue/createmeta/*/issuetypes/*" } {
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "/rest/api/*/issue/createmeta/*/issuetypes/*" } {
                         Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                         (ConvertFrom-Json $restResult).values
                     }
@@ -140,7 +140,7 @@ InModuleScope JiraPS {
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
-                        $URI -like "$jiraServer/rest/api/*/issue/createmeta/*/issuetypes/*" -and
+                        $URI -like "/rest/api/*/issue/createmeta/*/issuetypes/*" -and
                         $Paging -eq $true
                     } -Exactly -Times 1
                 }

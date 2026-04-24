@@ -49,7 +49,7 @@ InModuleScope JiraPS {
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'DELETE' -and
-                $URI -like "$jiraServer/rest/api/*/user?username=$testUsername"
+                $URI -like "/rest/api/*/user?username=$testUsername"
             } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 # This REST method should produce no output
@@ -135,7 +135,7 @@ InModuleScope JiraPS {
 
                 Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'DELETE' -and
-                    $URI -like "$jiraServer/rest/api/*/user?accountId=*"
+                    $URI -like "/rest/api/*/user?accountId=*"
                 } {
                     Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 }

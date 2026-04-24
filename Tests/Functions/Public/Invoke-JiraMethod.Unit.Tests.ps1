@@ -76,6 +76,9 @@ InModuleScope JiraPS {
                     WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
                 }
             }
+            Mock Get-JiraConfigServer -ModuleName 'JiraPS' {
+                'https://jira.example.com'
+            }
             Mock Test-ServerResponse -ModuleName 'JiraPS' {
                 Write-MockDebugInfo 'Test-ServerResponse'
             }
@@ -234,7 +237,32 @@ InModuleScope JiraPS {
                 { Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop } | Should -Not -Throw
                 { Invoke-JiraMethod -URI $Uri -ErrorAction Stop } | Should -Not -Throw
 
-                { Invoke-JiraMethod -URI "hello" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*relative URI*"
+                { Invoke-JiraMethod -URI "hello" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*must start with '/'*"
+            }
+
+            It "resolves relative URIs against configured Jira server" {
+                $null = Invoke-JiraMethod -URI "/rest/api/2/field" -ErrorAction Stop
+
+                Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
+                    $Uri -like "https://jira.example.com/rest/api/2/field?*"
+                } -Exactly -Times 1
+            }
+
+            It "throws when relative URI is used without configured Jira server" {
+                Mock Get-JiraConfigServer -ModuleName 'JiraPS' { $null }
+
+                { Invoke-JiraMethod -URI "/rest/api/2/field" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*no Jira server is configured*"
+            }
+
+            It "validates URI before returning cached data" {
+                $script:JiraCache = @{
+                    "TestCache:https://jira.example.com" = @{
+                        Data   = [PSCustomObject]@{ id = "cached-data" }
+                        Expiry = (Get-Date).AddMinutes(5)
+                    }
+                }
+
+                { Invoke-JiraMethod -URI "hello" -CacheKey 'TestCache' -ErrorAction Stop } | Should -Throw -ExpectedMessage "*must start with '/'*"
             }
 
             It "accepts [<_>] as HTTP method" -ForEach @('GET', 'POST', 'PUT', 'DELETE') {

@@ -29,6 +29,8 @@ Make a call to a REST Api endpoint with all the benefits of JiraPS.
 
 This cmdlet is what the other cmdlets call under the hood.
 It handles the authentication, parses the response, handles exceptions from Jira, returns specific objects and handles the differences between versions of Powershell and Operating Systems.
+When you pass a relative URI path, it must start with `/` and JiraPS resolves it against `Get-JiraConfigServer`.
+Absolute URIs are also accepted for compatibility with object properties like `RestURL`.
 
 JiraPS does not support any third-party plugins on Jira.
 This cmdlet can be used to interact with REST Api enpoints which are not already coverted in JiraPS.
@@ -41,7 +43,7 @@ This will import the module if not already loaded or even download it from the P
 ### Example 1
 
 ```powershell
-Invoke-JiraMethod -URI "$(Get-JiraConfigServer)/rest/api/latest/project"
+Invoke-JiraMethod -URI "/rest/api/latest/project"
 ```
 
 Sends a GET request which will return all the projects on the Jira server.
@@ -50,7 +52,7 @@ This call would either be executed anonymously or require a session to be availa
 ### Example 2
 
 ```powershell
-Invoke-JiraMethod -URI "$(Get-JiraConfigServer)/rest/api/latest/project" -Credential (Get-Credential)
+Invoke-JiraMethod -URI "/rest/api/latest/project" -Credential (Get-Credential)
 ```
 
 Prompts the user for his Jira credentials and send a GET request,
@@ -60,7 +62,7 @@ which will return all the projects on the Jira server.
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
+    URI = "/rest/api/latest/project"
     Method = "POST"
     Credential = $cred
 }
@@ -78,7 +80,7 @@ See next example
 ```powershell
 $body = '{"name": "NewGroup"}'
 $params = @{
-    Uri = "$(Get-JiraConfigServer)/rest/api/latest/group"
+    Uri = "/rest/api/latest/group"
     Method = "POST"
     Body = $body
     Credential = $cred
@@ -92,7 +94,7 @@ Creates a new group named "NewGroup"
 
 ```powershell
 $params = @{
-    Uri = "$(Get-JiraConfigServer)/rest/api/latest/mypermissions"
+    Uri = "/rest/api/latest/mypermissions"
     Method = "GET"
     Body = $body
     StoreSession = $true
@@ -108,7 +110,7 @@ it returns a `[JiraPS.Session]` which contains the `[WebRequestSession]`.
 
 ```powershell
 $params = @{
-    Uri = "$(Get-JiraConfigServer)/rest/api/latest/issue/10000"
+    Uri = "/rest/api/latest/issue/10000"
     Method = "POST"
     InFile = "c:\temp\20001231_Connection.log"
     Credential = $cred
@@ -122,7 +124,7 @@ Executes a POST request on the defined URI and uploads the InFile with a multipa
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
+    URI = "/rest/api/latest/project"
     Method = "GET"
     OutFile = "c:\temp\jira_projects.json"
     Credential = $cred
@@ -136,7 +138,7 @@ Executes a GET request on all available projects and stores the response json in
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/project"
+    URI = "/rest/api/latest/project"
     Method = "GET"
     Headers = @{"Accept" = "text/plain"}
     OutFile = "c:\temp\jira_projects.json"
@@ -152,7 +154,7 @@ It also uses the Headers to define what mimeTypes are expected in the response.
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/field"
+    URI = "/rest/api/latest/field"
     Method = "GET"
     CacheKey = "Fields"
     CacheExpiry = [TimeSpan]::FromHours(1)
@@ -193,7 +195,7 @@ Use the form that best communicates the intended duration.
 
 ```powershell
 $parameter = @{
-    URI = "$(Get-JiraConfigServer)/rest/api/latest/field"
+    URI = "/rest/api/latest/field"
     CacheKey = "Fields"
     BypassCache = $true
 }
@@ -630,6 +632,9 @@ HelpMessage: ''
 ### -URI
 
 URI address of the REST API endpoint.
+Relative paths must start with `/`.
+When a relative path is used, JiraPS prefixes it with the configured Jira server URL.
+Absolute URLs are still supported.
 
 ```yaml
 Type: Uri

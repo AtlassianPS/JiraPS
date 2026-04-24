@@ -45,18 +45,17 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
         $isCloud = Test-JiraCloudServer -Credential $Credential
 
-        $selfResourceUri = "$server/rest/api/2/myself"
+        $selfResourceUri = "/rest/api/2/myself"
 
         if ($isCloud) {
-            $searchResourceUri = "$server/rest/api/2/user/search?query={0}"
-            $exactResourceUri = "$server/rest/api/2/user?accountId={0}"
+            $searchResourceUri = "/rest/api/2/user/search?query={0}"
+            $exactResourceUri = "/rest/api/2/user?accountId={0}"
         }
         else {
-            $searchResourceUri = "$server/rest/api/2/user/search?username={0}"
-            $exactResourceUri = "$server/rest/api/2/user?username={0}"
+            $searchResourceUri = "/rest/api/2/user/search?username={0}"
+            $exactResourceUri = "/rest/api/2/user?username={0}"
         }
 
         if ($IncludeInactive) {

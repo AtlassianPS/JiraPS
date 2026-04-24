@@ -84,12 +84,11 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
         $isCloud = Test-JiraCloudServer -Credential $Credential
 
-        $searchURi = "$server/rest/api/2/search"
-        $searchURi_v3 = "$server/rest/api/3/search/jql"
-        $resourceURi = "$server/rest/api/2/issue/{0}"
+        $searchURi = "/rest/api/2/search"
+        $searchURi_v3 = "/rest/api/3/search/jql"
+        $resourceURi = "/rest/api/2/issue/{0}"
 
         [String]$Fields = $Fields -join ","
     }
