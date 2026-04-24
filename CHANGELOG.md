@@ -73,6 +73,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Internal
 
+- Added private helper `Resolve-JiraTextFieldPayload` that returns either the input string (Server / Data Center) or an Atlassian Document Format hashtable (Cloud) for rich-text fields, and warns when wiki-markup table syntax is detected on Cloud. Used by `Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, and `Set-JiraIssue` to centralise the Cloud-vs-DC payload-shape decision in one place. (#602)
 - Sped up `Invoke-Build -Task Test` by ~45% (~32 s → ~20 s on macOS, larger on Windows).
   `Initialize-TestEnvironment` (`Tests/Helpers/TestTools.ps1`) now caches the JiraPS module across Pester files via a source-tree fingerprint stored in the module's own scope, so a full run reimports once instead of once per file (~96 → 1).
   All ~117 test files migrated to the new contract.
