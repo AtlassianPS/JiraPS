@@ -56,8 +56,10 @@
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
+        $isCloud = Test-JiraCloudServer -Credential $Credential
+
         $requestBody = @{
-            'body' = $Comment
+            'body' = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
         }
 
         # If the visible role should be all users, the visibility block shouldn't be passed at
@@ -73,7 +75,7 @@
         $parameter = @{
             URI        = $resourceURi -f $issueObj.RestURL
             Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $requestBody
+            Body       = ConvertTo-Json -InputObject $requestBody -Depth 20
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

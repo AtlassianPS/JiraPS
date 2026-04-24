@@ -64,6 +64,8 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 throw "Unidentified call to Invoke-JiraMethod"
             }
+
+            Mock Test-JiraCloudServer -ModuleName JiraPS { return $false }
             #endregion Mocks
         }
 
@@ -120,6 +122,46 @@ InModuleScope JiraPS {
                 Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey | Out-Null
 
                 Should -Invoke 'ConvertTo-JiraComment'
+            }
+
+            Context "Cloud vs Data Center body shape" {
+                It "sends a plain-string body on Server / Data Center" {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { return $false }
+
+                    Add-JiraIssueComment -Comment 'Hello *world*' -Issue $issueKey | Out-Null
+
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $payload.body -is [string] -and $payload.body -eq 'Hello *world*'
+                    }
+                }
+
+                It "wraps the body in an Atlassian Document Format document on Cloud" {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { return $true }
+
+                    Add-JiraIssueComment -Comment 'Hello world' -Issue $issueKey | Out-Null
+
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $payload.body.type -eq 'doc' -and
+                        $payload.body.version -eq 1 -and
+                        $payload.body.content[0].type -eq 'paragraph' -and
+                        $payload.body.content[0].content[0].text -eq 'Hello world'
+                    }
+                }
+
+                It "preserves the visibility block alongside an ADF body on Cloud" {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { return $true }
+
+                    Add-JiraIssueComment -Comment 'Restricted note' -VisibleRole 'Developers' -Issue $issueKey | Out-Null
+
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $payload.body.type -eq 'doc' -and
+                        $payload.visibility.type -eq 'role' -and
+                        $payload.visibility.value -eq 'Developers'
+                    }
+                }
             }
         }
 

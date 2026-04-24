@@ -49,6 +49,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Changed
 
+- `Add-JiraIssueComment -Comment` is now interpreted as Markdown on Jira Cloud and converted to Atlassian Document Format before being sent, so headings, bold/italic, lists, fenced code blocks, links, and Markdown tables render as rich text in the issue. Behaviour on Jira Server / Data Center is unchanged: the text is sent verbatim and continues to honour the legacy wiki-markup syntax. (#602)
 - Renamed `Format-Jira` to `ConvertTo-JiraTable`.
   The old name is preserved as a deprecated exported alias for backward compatibility and will be removed in a future major version.
   Update scripts to call `ConvertTo-JiraTable` directly.
