@@ -99,8 +99,10 @@
             }
         }
 
+        $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestURL -IsCloud $isCloud
+
         $parameter = @{
-            URI        = $resourceURi -f $issueObj.RestURL
+            URI        = $resourceURi -f $issueRestUrl
             Method     = "POST"
             Body       = ConvertTo-Json -InputObject $requestBody -Depth 20
             Credential = $Credential

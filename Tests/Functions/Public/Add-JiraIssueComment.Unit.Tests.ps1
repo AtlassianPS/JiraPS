@@ -59,6 +59,14 @@ InModuleScope JiraPS {
                 ConvertFrom-Json $restResponse
             }
 
+            # Cloud equivalent: when Test-JiraCloudServer returns $true the
+            # cmdlet hits the v3 endpoint (so the API accepts ADF). The
+            # mocked response is the same — only the URI changes.
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/3/issue/$issueID/comment" } {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                ConvertFrom-Json $restResponse
+            }
+
             # Generic catch-all. This will throw an exception if we forgot to mock something.
             Mock Invoke-JiraMethod -ModuleName JiraPS {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
@@ -160,6 +168,26 @@ InModuleScope JiraPS {
                         $payload.body.type -eq 'doc' -and
                         $payload.visibility.type -eq 'role' -and
                         $payload.visibility.value -eq 'Developers'
+                    }
+                }
+
+                It "targets the v3 comment endpoint on Cloud" {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { return $true }
+
+                    Add-JiraIssueComment -Comment 'Hello world' -Issue $issueKey | Out-Null
+
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                        $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/3/issue/$issueID/comment"
+                    }
+                }
+
+                It "targets the v2 comment endpoint on Server / DC" {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { return $false }
+
+                    Add-JiraIssueComment -Comment 'Hello world' -Issue $issueKey | Out-Null
+
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                        $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/comment"
                     }
                 }
             }

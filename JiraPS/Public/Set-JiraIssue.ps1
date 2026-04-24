@@ -239,11 +239,13 @@
                 $SkipNotificationParams = @{ notifyUsers = "false" }
             }
 
+            $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
+
             if ( @($issueProps.update.Keys).Count -gt 0 ) {
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue fields"
 
                 $parameter = @{
-                    URI          = $issueObj.RestUrl
+                    URI          = $issueRestUrl
                     Method       = "PUT"
                     Body         = ConvertTo-Json -InputObject $issueProps -Depth 20
                     Credential   = $Credential
@@ -261,7 +263,7 @@
                 # you customize the "Edit Issue" screen.
 
                 $parameter = @{
-                    URI          = "{0}/assignee" -f $issueObj.RestUrl
+                    URI          = "{0}/assignee" -f $issueRestUrl
                     Method       = "PUT"
                     Body         = ConvertTo-Json -InputObject $assigneeProps
                     Credential   = $Credential

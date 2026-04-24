@@ -72,6 +72,16 @@ InModuleScope JiraPS {
                 # This should return a 204 status code, so no data should actually be returned
             }
 
+            # Cloud equivalent: when Test-JiraCloudServer returns $true the
+            # cmdlet hits the v3 endpoint (so the API accepts ADF). The
+            # mocked response is the same — only the URI changes.
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Post' -and
+                $URI -eq "$jiraServer/rest/api/3/issue/$issueID/transitions"
+            } {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+            }
+
             Mock Invoke-JiraMethod -ModuleName JiraPS {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 throw "Unidentified call to Invoke-JiraMethod: $Method $URI"
@@ -286,7 +296,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
+                    $URI -like "*/rest/api/3/issue/$issueID/transitions" -and
                     $Body -like "*accountId*$testAccountId*"
                 }
             }
@@ -296,7 +306,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
+                    $URI -like "*/rest/api/3/issue/$issueID/transitions" -and
                     $Body -match '"accountId":\s*null'
                 }
             }
@@ -306,12 +316,21 @@ InModuleScope JiraPS {
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
+                    $URI -like "*/rest/api/3/issue/$issueID/transitions" -and
                     ($payload = $Body | ConvertFrom-Json) -and
                     $payload.update.comment[0].add.body.type -eq 'doc' -and
                     $payload.update.comment[0].add.body.version -eq 1 -and
                     $payload.update.comment[0].add.body.content[0].type -eq 'paragraph' -and
                     $payload.update.comment[0].add.body.content[0].content[0].text -eq 'transition note'
+                }
+            }
+
+            It "uses the v3 issue endpoint on Cloud" {
+                { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $URI -eq "$jiraServer/rest/api/3/issue/$issueID/transitions"
                 }
             }
         }

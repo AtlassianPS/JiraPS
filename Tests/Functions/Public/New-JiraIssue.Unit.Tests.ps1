@@ -294,6 +294,14 @@ InModuleScope JiraPS {
                     $payload.fields.description.content[0].content[0].text -eq 'Test description'
                 }
             }
+
+            It "targets the v3 create-issue endpoint on Cloud" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Post' -and $URI -eq '/rest/api/3/issue'
+                }
+            }
         }
 
         Describe "Description on Server / Data Center" {
@@ -308,6 +316,14 @@ InModuleScope JiraPS {
                     $payload = $Body | ConvertFrom-Json
                     $payload.fields.description -is [string] -and
                     $payload.fields.description -eq 'Test description'
+                }
+            }
+
+            It "targets the v2 create-issue endpoint on Server / DC" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Post' -and $URI -eq '/rest/api/2/issue'
                 }
             }
         }

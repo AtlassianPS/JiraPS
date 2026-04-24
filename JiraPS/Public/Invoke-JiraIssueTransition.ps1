@@ -190,8 +190,10 @@
             }
         }
 
+        $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestURL -IsCloud $isCloud
+
         $parameter = @{
-            URI        = "{0}/transitions" -f $issueObj.RestURL
+            URI        = "{0}/transitions" -f $issueRestUrl
             Method     = "POST"
             Body       = ConvertTo-Json -InputObject $requestBody -Depth 20
             Credential = $Credential

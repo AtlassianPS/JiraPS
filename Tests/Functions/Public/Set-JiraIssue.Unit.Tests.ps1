@@ -491,6 +491,24 @@ InModuleScope JiraPS {
                     $body.content[0].content[0].text -eq 'follow-up comment'
                 }
             }
+
+            It "uses the v3 issue endpoint on Cloud" {
+                { Set-JiraIssue -Issue "IT-3676" -Description "rewritten description" } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'Put' -and
+                    $URI -eq "$jiraServer/rest/api/3/issue/41701"
+                }
+            }
+
+            It "uses the v3 assignee endpoint on Cloud" {
+                { Set-JiraIssue -Issue "IT-3676" -Assignee "testUser" } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'Put' -and
+                    $URI -eq "$jiraServer/rest/api/3/issue/41701/assignee"
+                }
+            }
         }
     }
 }
