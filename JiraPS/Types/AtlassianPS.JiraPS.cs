@@ -352,7 +352,10 @@ namespace AtlassianPS.JiraPS
             // Hashtables are IEnumerable<DictionaryEntry>; never fan-out.
             if (value is System.Collections.IDictionary) { return perItem(inputData); }
 
-            if (value is System.Collections.IEnumerable enumerable)
+            // C# 5 compatible (PS 5.1's bundled csc.exe): use `as` + null check
+            // instead of pattern-matching `is X identifier` (C# 7+).
+            var enumerable = value as System.Collections.IEnumerable;
+            if (enumerable != null)
             {
                 var results = new System.Collections.Generic.List<object>();
                 foreach (var item in enumerable) { results.Add(perItem(item)); }
@@ -394,7 +397,8 @@ namespace AtlassianPS.JiraPS
 
             if (value is Issue) return value;
 
-            if (value is string key)
+            var key = value as string;
+            if (key != null)
             {
                 if (string.IsNullOrWhiteSpace(key))
                 {
@@ -455,7 +459,8 @@ namespace AtlassianPS.JiraPS
 
             if (value is User) return value;
 
-            if (value is string identifier)
+            var identifier = value as string;
+            if (identifier != null)
             {
                 if (string.IsNullOrWhiteSpace(identifier))
                 {
@@ -518,7 +523,8 @@ namespace AtlassianPS.JiraPS
 
             if (value is Group) return value;
 
-            if (value is string name)
+            var name = value as string;
+            if (name != null)
             {
                 if (string.IsNullOrWhiteSpace(name))
                 {
@@ -595,7 +601,8 @@ namespace AtlassianPS.JiraPS
                 return new Version { ID = System.Convert.ToInt64(value).ToString(System.Globalization.CultureInfo.InvariantCulture) };
             }
 
-            if (value is string str)
+            var str = value as string;
+            if (str != null)
             {
                 if (string.IsNullOrWhiteSpace(str))
                 {
@@ -697,7 +704,8 @@ namespace AtlassianPS.JiraPS
                 return new Filter { ID = System.Convert.ToInt64(value).ToString(System.Globalization.CultureInfo.InvariantCulture) };
             }
 
-            if (value is string str)
+            var str = value as string;
+            if (str != null)
             {
                 if (string.IsNullOrWhiteSpace(str))
                 {
@@ -781,7 +789,8 @@ namespace AtlassianPS.JiraPS
                 return new Project { ID = System.Convert.ToInt64(value).ToString(System.Globalization.CultureInfo.InvariantCulture) };
             }
 
-            if (value is string str)
+            var str = value as string;
+            if (str != null)
             {
                 if (string.IsNullOrWhiteSpace(str))
                 {
