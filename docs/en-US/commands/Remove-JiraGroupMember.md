@@ -15,7 +15,7 @@ Removes a user from a JIRA group
 ## SYNTAX
 
 ```powershell
-Remove-JiraGroupMember [-Group] <Object[]> [-User] <User[]> [[-Credential] <pscredential>]
+Remove-JiraGroupMember [-Group] <Group[]> [-User] <User[]> [[-Credential] <pscredential>]
  [-PassThru] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -113,7 +113,7 @@ HelpMessage: ''
 Group Object or ID from which to remove the user(s).
 
 ```yaml
-Type: Object[]
+Type: Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

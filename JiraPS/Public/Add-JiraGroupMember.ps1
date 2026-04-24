@@ -3,9 +3,10 @@
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.GroupTransformation()]
         [Alias('GroupName')]
-        [ValidateNotNullOrEmpty()]
-        [Object[]]
+        [AtlassianPS.JiraPS.Group[]]
         $Group,
 
         [Parameter( Mandatory )]

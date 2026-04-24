@@ -217,6 +217,26 @@ namespace AtlassianPS.JiraPS
         }
     }
 
+    // Both REST API v2 (DC) and v3 (Cloud) describe a group as { name, self }
+    // with an optional { users: { size, items: [...] } } expansion. The shape
+    // is intentionally narrow on purpose — Jira does not expose any other
+    // Group properties.
+    public class Group
+    {
+        public string Name { get; set; }
+        public string RestUrl { get; set; }
+        // Only populated when the GET request expanded the users sub-resource;
+        // remains 0 / null on the lightweight responses that come back from
+        // /group?groupname=... without an expand.
+        public int Size { get; set; }
+        public User[] Member { get; set; }
+
+        public override string ToString()
+        {
+            return Name ?? string.Empty;
+        }
+    }
+
     // Internal helper shared by every JiraPS argument transformer. PowerShell's
     // ArgumentTransformationAttribute is invoked once with whatever the caller
     // typed at the call site — that may be a single value OR an enumerable
@@ -381,6 +401,71 @@ namespace AtlassianPS.JiraPS
 
             throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
                 "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.User. Expected a username/accountId string or an existing AtlassianPS.JiraPS.User object.",
+                value.GetType().FullName));
+        }
+    }
+
+    // Same shape as UserTransformationAttribute. -Group / -GroupName parameters
+    // are typed as [Group[]] on the cmdlets that take more than one (so the
+    // attribute uses TransformOrFanout), and as [Group] on the singletons.
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class GroupTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
+    {
+        public override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
+        {
+            return JiraTransform.TransformOrFanout(inputData, TransformOne);
+        }
+
+        private static object TransformOne(object inputData)
+        {
+            if (inputData == null) return null;
+
+            var pso = inputData as System.Management.Automation.PSObject;
+            object value = pso != null ? pso.BaseObject : inputData;
+
+            if (value is Group) return value;
+
+            if (value is string name)
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "Cannot bind an empty or whitespace string to a Group parameter.");
+                }
+                return new Group { Name = name };
+            }
+
+            // Legacy PSCustomObject masquerading as a Group (PSTypeName trick).
+            // Map both the new "AtlassianPS.JiraPS.Group" tag and the historical
+            // "JiraPS.Group" tag, the latter so test fixtures and v2 user
+            // scripts that still construct PSCustomObjects bind without changes
+            // until they are migrated.
+            if (pso != null && pso.TypeNames != null && (pso.TypeNames.Contains("AtlassianPS.JiraPS.Group") || pso.TypeNames.Contains("JiraPS.Group")))
+            {
+                var group = new Group();
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "Name": case "name": group.Name = prop.Value as string; break;
+                        case "RestUrl": case "RestURL": case "self":
+                            group.RestUrl = prop.Value as string; break;
+                        case "Size": case "size":
+                            if (prop.Value != null)
+                            {
+                                int size;
+                                if (int.TryParse(prop.Value.ToString(), out size)) { group.Size = size; }
+                            }
+                            break;
+                        case "Member": case "Members":
+                            group.Member = prop.Value as User[]; break;
+                    }
+                }
+                return group;
+            }
+
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
+                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Group. Expected a group-name string or an existing AtlassianPS.JiraPS.Group object.",
                 value.GetType().FullName));
         }
     }

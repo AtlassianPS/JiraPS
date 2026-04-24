@@ -15,7 +15,7 @@ Returns members of a given group in JIRA
 ## SYNTAX
 
 ```powershell
-Get-JiraGroupMember [-Group] <Object[]> [[-PageSize] <uint>] [[-Credential] <pscredential>]
+Get-JiraGroupMember [-Group] <Group[]> [[-PageSize] <uint>] [[-Credential] <pscredential>]
  [-IncludeInactive] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
@@ -92,7 +92,7 @@ HelpMessage: ''
 Group object of which to display the members.
 
 ```yaml
-Type: Object[]
+Type: Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

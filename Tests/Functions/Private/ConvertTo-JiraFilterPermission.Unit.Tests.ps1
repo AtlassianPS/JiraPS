@@ -171,8 +171,8 @@ InModuleScope JiraPS {
                     $result[2].Role.PSObject.TypeNames[0] | Should -Be 'JiraPS.ProjectRole'
                 }
 
-                It "converts nested Group to 'JiraPS.Group' type" {
-                    $result[3].Group.PSObject.TypeNames[0] | Should -Be 'JiraPS.Group'
+                It "converts nested Group to 'AtlassianPS.JiraPS.Group' type" {
+                    $result[3].Group.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Group'
                 }
 
                 It "converts Id to numeric type" {

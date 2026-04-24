@@ -44,6 +44,8 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `Version.StartDate` / `Version.ReleaseDate` | Empty-string sentinel for missing dates dropped; the slots are now `[DateTime?]` and `$null` when absent. |
 | Issue-scoped cmdlets         | `-Issue` (and `-InputObject` on `Get-JiraIssue` / `Remove-JiraIssue`) is now `[AtlassianPS.JiraPS.Issue]` with a custom transformer; arrays / pipelines iterate the `process` block per item instead of throwing. |
 | User-scoped cmdlets          | `-User` / `-UserName` / `-Owner` on `Set-JiraUser`, `Remove-JiraUser`, `Add-JiraGroupMember`, `Remove-JiraGroupMember`, and `Find-JiraFilter` are now strongly-typed `[AtlassianPS.JiraPS.User]` / `[AtlassianPS.JiraPS.User[]]` with a custom transformer. |
+| Group promoted to .NET class | `Group` joins the eight original `AtlassianPS.JiraPS.*` types. `ConvertTo-JiraGroup` returns `[AtlassianPS.JiraPS.Group]`; `PSObject.TypeNames[0]` is `AtlassianPS.JiraPS.Group` (was `JiraPS.Group`). |
+| Group-scoped cmdlets         | `-Group` on `Add-JiraGroupMember`, `Get-JiraGroupMember`, `Remove-JiraGroup`, and `Remove-JiraGroupMember` is now strongly-typed `[AtlassianPS.JiraPS.Group[]]` with a custom transformer. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -544,6 +546,62 @@ Cannot bind an empty or whitespace string to a User parameter.
 Scripts that asserted on the old wording (e.g.
 `Should -Throw -ExpectedMessage '*whitespace-only string*'`) need to be
 relaxed to `*empty or whitespace*`.
+
+### Strongly-typed `-Group` parameter on group-scoped cmdlets
+
+`Group` joined the `AtlassianPS.JiraPS.*` namespace as a real .NET class,
+exposing `Name [string]`, `RestUrl [string]`, `Size [int]`, and
+`Member [AtlassianPS.JiraPS.User[]]`. `ConvertTo-JiraGroup` now returns
+`[AtlassianPS.JiraPS.Group]` instances directly, so:
+
+- `GetType().FullName` is `AtlassianPS.JiraPS.Group` (was `System.Management.Automation.PSCustomObject`).
+- `PSObject.TypeNames[0]` is `AtlassianPS.JiraPS.Group` (was `JiraPS.Group`).
+- The format-data engine still picks up the type because the `.format.ps1xml`
+  selector was updated alongside the rename.
+
+The four group-scoped public cmdlets that previously declared `-Group` as
+`[Object[]]` with a polymorphic `[ValidateScript]` block now use the new
+`[AtlassianPS.JiraPS.GroupTransformation()]` attribute against a real typed
+parameter:
+
+| Cmdlet                   | v2 declaration                | v3 declaration                  |
+| ------------------------ | ----------------------------- | ------------------------------- |
+| `Add-JiraGroupMember`    | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.Group[]]`  |
+| `Get-JiraGroupMember`    | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.Group[]]`  |
+| `Remove-JiraGroup`       | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.Group[]]`  |
+| `Remove-JiraGroupMember` | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.Group[]]`  |
+
+The transformer accepts:
+
+- An existing `[AtlassianPS.JiraPS.Group]` instance (returned as-is).
+- A non-empty group-name string — wrapped in a stub `Group` whose `Name` slot
+  holds the raw identifier.
+- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Group`
+  `PSTypeName` (or, for backward compatibility with hand-rolled v2 mocks, the
+  historical `JiraPS.Group` `PSTypeName`) — its scalar slots are mapped to a
+  real `Group` instance.
+
+Anything else throws an `ArgumentTransformationMetadataException` at parameter
+binding time. Empty or whitespace-only strings, which previously slipped
+through `ValidateScript` and produced opaque server errors, now fail at
+binding with:
+
+```
+Cannot bind an empty or whitespace string to a Group parameter.
+```
+
+#### Updating mocks and TypeName checks
+
+```powershell
+# v2
+[PSCustomObject]@{ PSTypeName = 'JiraPS.Group'; Name = 'dev' }
+if ('JiraPS.Group' -in $g.PSObject.TypeNames) { ... }
+
+# v3
+[AtlassianPS.JiraPS.Group]@{ Name = 'dev' }
+if ($g -is [AtlassianPS.JiraPS.Group]) { ... }
+# (or the equivalent `'AtlassianPS.JiraPS.Group' -in $g.PSObject.TypeNames`)
+```
 
 ### Minimum PowerShell Version
 

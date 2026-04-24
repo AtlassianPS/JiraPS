@@ -15,7 +15,7 @@ Adds a user to a JIRA group
 ## SYNTAX
 
 ```powershell
-Add-JiraGroupMember [-Group] <Object[]> [-UserName] <User[]> [[-Credential] <pscredential>]
+Add-JiraGroupMember [-Group] <Group[]> [-UserName] <User[]> [[-Credential] <pscredential>]
  [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -93,7 +93,7 @@ HelpMessage: ''
 Group (or list of groups) to which the user(s) will be added.
 
 ```yaml
-Type: Object[]
+Type: Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

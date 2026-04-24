@@ -77,8 +77,8 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Group"; type = "Object" }
-                    @{ parameter = "UserName"; type = "Object" }
+                    @{ parameter = "Group"; type = "AtlassianPS.JiraPS.Group[]" }
+                    @{ parameter = "UserName"; type = "AtlassianPS.JiraPS.User[]" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                     @{ parameter = "Passthru"; type = "Switch" }
                 ) {
