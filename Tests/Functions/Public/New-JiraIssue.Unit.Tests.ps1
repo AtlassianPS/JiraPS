@@ -146,14 +146,14 @@ InModuleScope JiraPS {
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/issue" }
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/issue" }
             }
             It "Creates an issue in JIRA from pipeline" {
                 { $pipelineParams | New-JiraIssue } | Should -Not -Throw
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/issue" }
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/issue" }
             }
 
             Context "New-JiraIssue handles duplicate fields" {

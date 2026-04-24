@@ -29,10 +29,9 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
         $isCloud = Test-JiraCloudServer -Credential $Credential
 
-        $resourceURi = "$server/rest/api/2/group/user?groupname={0}"
+        $resourceURi = "/rest/api/2/group/user?groupname={0}"
     }
 
     process {

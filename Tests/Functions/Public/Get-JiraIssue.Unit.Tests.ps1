@@ -61,7 +61,7 @@ InModuleScope JiraPS {
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Get' -and
-                $URI -like "$jiraServer/rest/api/*/issue/TEST-001*"
+                $URI -like "/rest/api/*/issue/TEST-001*"
             } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 ConvertFrom-Json $response
@@ -69,7 +69,7 @@ InModuleScope JiraPS {
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Get' -and
-                $URI -like "$jiraServer/rest/api/*/search" -and
+                $URI -like "/rest/api/*/search" -and
                 $GetParameter["jql"] -eq $jqlEscaped
             } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
@@ -78,7 +78,7 @@ InModuleScope JiraPS {
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Get' -and
-                $URI -like "$jiraServer/rest/api/*/filter/*"
+                $URI -like "*rest/api/*/filter/*"
             } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 ConvertFrom-Json $response
@@ -301,7 +301,7 @@ InModuleScope JiraPS {
 
                 Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Get' -and
-                    $URI -like "$jiraServer/rest/api/3/search/jql*"
+                    $URI -like "/rest/api/3/search/jql*"
                 } {
                     Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                     ConvertFrom-Json $response
@@ -318,7 +318,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $Method -eq 'Get' -and
-                    $URI -like "$jiraServer/rest/api/3/search/jql*"
+                    $URI -like "/rest/api/3/search/jql*"
                 }
             }
         }

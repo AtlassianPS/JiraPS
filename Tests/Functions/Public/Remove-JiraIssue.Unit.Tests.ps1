@@ -211,12 +211,12 @@ InModuleScope JiraPS {
                 return $obj
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "$jiraServer/rest/api/*/issue/TEST-1?*" -and $Method -eq "Delete" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-1?*" -and $Method -eq "Delete" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 return $null
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "$jiraServer/rest/api/*/issue/TEST-2?deleteSubTasks=False" -and $Method -eq "Delete" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=False" -and $Method -eq "Delete" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 $MockedResponse = @"
             {
@@ -238,7 +238,7 @@ InModuleScope JiraPS {
                 $PSCmdlet.WriteError($errorItem)
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "$jiraServer/rest/api/*/issue/TEST-2?deleteSubTasks=True" -and $Method -eq "Delete" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=True" -and $Method -eq "Delete" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 return $null
             }
