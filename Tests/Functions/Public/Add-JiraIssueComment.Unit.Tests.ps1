@@ -134,5 +134,98 @@ InModuleScope JiraPS {
 
             Context "Type Validation - Negative Cases" {}
         }
+
+        Describe "Cloud-deployment warning for wiki-markup tables" {
+            # Wiki-markup tables (`||header||`) render as literal text on Jira Cloud
+            # REST v3 endpoints. Add-JiraIssueComment detects this content shape and
+            # warns when the active session is connected to Cloud, so users get
+            # actionable feedback at the actual point of harm (the API call) rather
+            # than at the upstream ConvertTo-JiraTable step.
+            BeforeAll {
+                $script:wikiTable = "||A||B||$([Environment]::NewLine)|1|2|"
+                $script:plainComment = 'Plain text comment with no wiki markup.'
+            }
+
+            Context "Cloud session" {
+                BeforeAll {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+                }
+
+                It "Warns when -Comment contains wiki-markup table syntax" {
+                    Add-JiraIssueComment -Comment $wikiTable -Issue $issueKey -WarningVariable warn -WarningAction SilentlyContinue | Out-Null
+
+                    $warn | Should -Not -BeNullOrEmpty
+                    ($warn -join ' ') | Should -Match 'Jira Cloud'
+                    ($warn -join ' ') | Should -Match 'wiki-markup'
+                    ($warn -join ' ') | Should -Match 'ADF|Atlassian Document Format'
+                }
+
+                It "Does not warn when -Comment is plain text" {
+                    Add-JiraIssueComment -Comment $plainComment -Issue $issueKey -WarningVariable warn -WarningAction SilentlyContinue | Out-Null
+
+                    $warn | Should -BeNullOrEmpty
+                }
+
+                It "Does not warn for ambiguous '||' patterns (e.g. boolean operators)" {
+                    Add-JiraIssueComment -Comment 'A comparison: a || b || c, see code.' -Issue $issueKey -WarningVariable warn -WarningAction SilentlyContinue | Out-Null
+
+                    $warn | Should -BeNullOrEmpty
+                }
+
+                It "Honors -WarningAction SilentlyContinue (warning stream is silent)" {
+                    # PowerShell's -WarningVariable still captures warnings even when
+                    # -WarningAction is SilentlyContinue, so verify the user-visible
+                    # contract directly: the warning STREAM (3) is empty.
+                    $output = Add-JiraIssueComment -Comment $wikiTable -Issue $issueKey -WarningAction SilentlyContinue 3>&1
+
+                    @($output | Where-Object { $_ -is [System.Management.Automation.WarningRecord] }).Count |
+                        Should -Be 0
+                }
+
+                It "Emits the warning only once per invocation, regardless of pipeline length" {
+                    @('IT-1', 'IT-2', 'IT-3') | Add-JiraIssueComment -Comment $wikiTable -WarningVariable warn -WarningAction SilentlyContinue | Out-Null
+
+                    @($warn).Count | Should -Be 1
+                }
+
+                It "Posts the comment regardless of the warning" {
+                    $result = Add-JiraIssueComment -Comment $wikiTable -Issue $issueKey -WarningAction SilentlyContinue
+
+                    $result | Should -Not -BeNullOrEmpty
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                        $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/comment"
+                    } -Times 1
+                }
+            }
+
+            Context "Data Center / Server session" {
+                BeforeAll {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+                }
+
+                It "Does not warn even with wiki-markup table syntax" {
+                    Add-JiraIssueComment -Comment $wikiTable -Issue $issueKey -WarningVariable warn -WarningAction SilentlyContinue | Out-Null
+
+                    $warn | Should -BeNullOrEmpty
+                }
+            }
+
+            Context "No session / unknown deployment" {
+                BeforeAll {
+                    # Simulate the offline case: Test-JiraCloudServer fails because
+                    # Get-JiraConfigServer has no value. The cmdlet must not throw
+                    # in its content-detection path even when the lookup is impossible.
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { throw 'No JiraConfigServer set' }
+                }
+
+                It "Does not throw and does not emit a Cloud warning" {
+                    { Add-JiraIssueComment -Comment $wikiTable -Issue $issueKey -WarningVariable warn -WarningAction SilentlyContinue | Out-Null } |
+                        Should -Not -Throw
+
+                    Add-JiraIssueComment -Comment $wikiTable -Issue $issueKey -WarningVariable warn -WarningAction SilentlyContinue | Out-Null
+                    $warn | Should -BeNullOrEmpty
+                }
+            }
+        }
     }
 }

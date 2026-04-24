@@ -63,7 +63,7 @@ Add-JiraIssueComment -Issue TEST-100 -Comment "My open issues:`n$summary"
 This example assembles a wiki-markup table of the caller's open issues and posts it as a comment on the parent ticket TEST-100 — a typical status-update or stand-up workflow.
 The JQL used here works on any Jira deployment (Core, Service Management, Software).
 `ConvertTo-JiraTable` is the canonical way to embed tabular data in a Jira **Server / Data Center** comment.
-On Jira **Cloud** (REST v3 / ADF) the resulting `||header||` syntax renders as literal text, and `ConvertTo-JiraTable` will emit a `Write-Warning` advising the same.
+On Jira **Cloud** (REST v3 / ADF) the resulting `||header||` syntax renders as literal text in the UI; `Add-JiraIssueComment` detects this content shape and emits a `Write-Warning` (see [NOTES](#notes)) so you find out at the point of harm rather than after the comment has posted.
 
 ### EXAMPLE 5
 
@@ -241,6 +241,15 @@ Pipe a JiraPS.Issue object to add a comment to it.
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
+
+**Jira Cloud compatibility warning.**
+When the supplied `-Comment` text contains Jira wiki-markup table syntax (`||header||`) and the active session is connected to a **Jira Cloud** deployment, this cmdlet emits a one-shot `Write-Warning` per invocation.
+The reason: Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` strings as literal text rather than as a table, so output produced by `ConvertTo-JiraTable` will not appear as a table in the Cloud UI even though the comment posts successfully.
+Detection is purely textual: the cmdlet looks for `||<non-whitespace char>...||` in the comment, which catches `ConvertTo-JiraTable` output (and other authored wiki-markup tables) while avoiding false-positives on patterns such as `a || b || c` (boolean operators in code blocks).
+Plain-text comments and Data Center / Server sessions never trigger the warning.
+The deployment-type lookup uses `Test-JiraCloudServer`, which in turn calls the cached `Get-JiraServerInformation` (5-minute TTL), so the check does not add a per-call HTTP round-trip.
+If no session is configured (no `Set-JiraConfigServer` / `New-JiraSession`), the check is silently skipped and the comment is posted as usual.
+Suppress the warning with `-WarningAction SilentlyContinue` when you knowingly target Cloud's legacy v2 endpoints.
 
 ## RELATED LINKS
 

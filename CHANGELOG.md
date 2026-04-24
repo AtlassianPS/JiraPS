@@ -52,12 +52,13 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Renamed `Format-Jira` to `ConvertTo-JiraTable`.
   The old name is preserved as a deprecated exported alias for backward compatibility and will be removed in a future major version.
   Update scripts to call `ConvertTo-JiraTable` directly.
-- `ConvertTo-JiraTable` now emits a `Write-Warning` when invoked while the active session is connected to a Jira Cloud deployment.
+- `Add-JiraIssueComment` and `Add-JiraIssueWorklog` now emit a `Write-Warning` when their `-Comment` text contains Jira wiki-markup table syntax (`||header||`) and the active session is connected to a Jira Cloud deployment.
   Jira wiki markup is the native format for Server / Data Center and the legacy v2 REST API.
-  Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` / `|cell|` syntax as literal text.
-  The check uses the cached `Test-JiraCloudServer` result (5-minute TTL) so it adds no per-call HTTP traffic.
-  It is silently skipped when no session is configured (the cmdlet remains valid as an offline string formatter), and any transient warnings from the inner deployment-type lookup are suppressed so they don't surface from `ConvertTo-JiraTable`.
-  Suppress the Cloud-deployment warning itself with `-WarningAction SilentlyContinue` when targeting Cloud's legacy v2 endpoints knowingly.
+  Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` / `|cell|` syntax as literal text, so a tabulated comment will post but will not appear as a table in the Cloud UI.
+  Detection is purely textual and gated on a non-whitespace first interior character (`||\S...||`), which catches `ConvertTo-JiraTable` output while avoiding false-positives such as `a || b || c` (boolean operators in code blocks).
+  The deployment-type check uses the cached `Test-JiraCloudServer` / `Get-JiraServerInformation` result (5-minute TTL) so it adds no per-call HTTP traffic, is silently skipped when no session is configured, and any transient warnings from the inner deployment-type lookup are suppressed so they don't surface from the write-side cmdlets themselves.
+  Suppress the Cloud-deployment warning with `-WarningAction SilentlyContinue` when targeting Cloud's legacy v2 endpoints knowingly.
+  `ConvertTo-JiraTable` itself remains a pure offline string formatter and does not consult the active session, consistent with every other `ConvertTo-*` cmdlet in the module.
 - `Get-JiraIssue -Key` now accepts pipeline input by property name, enabling `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data. **Soft breaking change**: Objects with a `Key` property (e.g., `[PSCustomObject]@{ Key = 'TEST-1' }`) now bind to `-Key` instead of failing. Scripts relying on the previous failure behavior may need adjustment.
 - `Invoke-Build -Task Test` now excludes integration tests by default (use `-Tag 'Integration'` to include them)
 - Enhanced `Test-ServerResponse` to handle HTTP 503 (Service Unavailable) with retry, jitter on backoff delays, and 60-second max delay cap (#576)

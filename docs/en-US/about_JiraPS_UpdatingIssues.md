@@ -106,7 +106,8 @@ Get-JiraIssue TEST-1 | Add-JiraIssueComment "Current PowerShell processes:`n$com
 > **Server / Data Center vs Cloud.**
 > `ConvertTo-JiraTable` emits Jira **wiki markup**, which is the native format on Jira Server / Data Center and on the legacy v2 REST API.
 > Jira **Cloud** REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` syntax as literal text.
-> When the active session is connected to a Cloud deployment, `ConvertTo-JiraTable` emits a `Write-Warning` describing the mismatch.
+> `ConvertTo-JiraTable` itself is a pure offline string formatter and does not consult the active session.
+> The mismatch is surfaced at the actual point of harm: `Add-JiraIssueComment` (and `Add-JiraIssueWorklog`) detects wiki-markup table syntax in `-Comment` and emits a `Write-Warning` when the active session is connected to Cloud.
 > Suppress it with `-WarningAction SilentlyContinue` if you knowingly target Cloud's legacy v2 endpoints.
 
 > `ConvertTo-JiraTable` (formerly `Format-Jira`) is a destructive operation for data in the pipeline.

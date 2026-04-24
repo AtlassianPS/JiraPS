@@ -15,19 +15,6 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        # Best-effort deployment-type check: this cmdlet is also valid as a pure offline
-        # string formatter, so a missing session must NOT throw, and transient warnings from
-        # the underlying Get-JiraServerInformation lookup must NOT leak through and surface
-        # as if they came from ConvertTo-JiraTable itself.
-        try {
-            if (Test-JiraCloudServer -ErrorAction Stop -WarningAction SilentlyContinue) {
-                Write-Warning "[$($MyInvocation.MyCommand.Name)] You are connected to a Jira Cloud deployment. The output of this cmdlet is Jira wiki markup, which is the native format for Jira Server / Data Center; Jira Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and will render '||header||' syntax as literal text. The output remains valid for Cloud's legacy v2 endpoints. Suppress this warning with -WarningAction SilentlyContinue."
-            }
-        }
-        catch {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Could not determine deployment type ($($_.Exception.Message)); skipping Cloud-deployment warning."
-        }
-
         $headers = New-Object -TypeName System.Collections.ArrayList
         $thisLine = New-Object -TypeName System.Text.StringBuilder
         $allText = New-Object -TypeName System.Text.StringBuilder

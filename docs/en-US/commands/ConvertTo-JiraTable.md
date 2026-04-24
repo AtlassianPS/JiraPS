@@ -27,7 +27,9 @@ The result is a `[String]` suitable for passing to commands such as `Add-JiraIss
 > Wiki markup is the native rendering format for Jira **Server / Data Center** and for the **legacy v2 REST API**.
 > Jira **Cloud REST v3** endpoints expect [Atlassian Document Format (ADF)](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/) and will render `||header||` syntax as literal text, not as a table.
 > The output of this cmdlet is therefore best suited to Data Center / Server, or to Cloud workflows that explicitly target the legacy v2 REST endpoints.
-> When invoked while the active session is connected to a Cloud deployment, the cmdlet emits a `Write-Warning` that can be silenced with `-WarningAction SilentlyContinue` (see [NOTES](#notes)).
+> `ConvertTo-JiraTable` itself is a pure offline string formatter and does not consult the active session.
+> The Cloud-compatibility warning is emitted at the actual point of harm — by `Add-JiraIssueComment` and `Add-JiraIssueWorklog` — when their `-Comment` text contains wiki-markup table syntax and the active session is connected to a Cloud deployment.
+> See those cmdlets' help for the warning's exact behavior and how to silence it.
 > There is currently no clean wiki-markup → ADF round-trip helper in JiraPS — `ConvertTo-AtlassianDocumentFormat` consumes Markdown table syntax (`|cell|cell|`), not Jira wiki-markup tables (`||header||header||`).
 
 Despite producing tabular output, this cmdlet is intentionally a `ConvertTo-*` rather than a `Format-*`: it returns a `[String]`, not the host-only display objects emitted by built-in `Format-*` cmdlets such as `Format-Table`.
@@ -127,10 +129,9 @@ The output is Jira **wiki markup**, the native format for text fields on Jira Se
 
 **Jira Cloud caveat.**
 Jira Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and render `||header||` / `|cell|` strings as literal text rather than as a table.
-When the active JiraPS session is connected to a Cloud deployment, the cmdlet emits a one-shot `Write-Warning` per invocation describing this mismatch.
-The check uses `Test-JiraCloudServer`, which in turn calls the cached `Get-JiraServerInformation` (5-minute TTL), so it does not add a per-call HTTP round-trip.
-If no session is configured (no `Set-JiraConfigServer` / `New-JiraSession`), the check is silently skipped — `ConvertTo-JiraTable` is also valid as a pure offline string formatter.
-Suppress the warning with `-WarningAction SilentlyContinue` when you knowingly target Cloud's legacy v2 endpoints.
+`ConvertTo-JiraTable` is a pure offline string formatter — it does not consult the active session, does not emit a deployment-related warning, and is consistent with every other `ConvertTo-*` cmdlet in this module.
+Cloud-compatibility warnings are emitted by the **write-side** cmdlets (`Add-JiraIssueComment`, `Add-JiraIssueWorklog`) when their `-Comment` text contains wiki-markup table syntax and the active session is connected to a Cloud deployment, because that is the actual point of harm: the warning sees the literal text being sent to the API and fires only when the format mismatch will produce a visible bug in the UI.
+See those cmdlets' help for the exact warning, its detection rules, and how to suppress it.
 
 Alias: `Format-Jira` (deprecated)
 

@@ -224,8 +224,10 @@ On **Jira Cloud** the picture is different:
 - There is currently no clean wiki-markup → ADF round-trip helper in JiraPS.
   `ConvertTo-AtlassianDocumentFormat` parses **Markdown** table syntax (`|cell|cell|`), not Jira wiki markup (`||header||header||`), so chaining the two cmdlets does not produce a valid ADF table.
 
-To make this mismatch visible at runtime, `ConvertTo-JiraTable` emits a `Write-Warning` whenever the active session is connected to a Cloud deployment.
-Suppress it with `-WarningAction SilentlyContinue` once you have confirmed your call site targets Cloud's legacy v2 endpoints (or accepts the literal-text rendering).
+To make this mismatch visible at runtime, the **write-side** cmdlets `Add-JiraIssueComment` and `Add-JiraIssueWorklog` emit a `Write-Warning` when their `-Comment` text contains wiki-markup table syntax (`||header||`) and the active session is connected to a Cloud deployment.
+The warning fires at the actual point of harm — the API call that posts the unrenderable table — rather than at the upstream `ConvertTo-JiraTable` step, which is a pure offline string formatter and does not consult the active session.
+Suppress the warning with `-WarningAction SilentlyContinue` once you have confirmed your call site targets Cloud's legacy v2 endpoints (or accepts the literal-text rendering).
+See the help for [`Add-JiraIssueComment`](../commands/Add-JiraIssueComment/) and [`Add-JiraIssueWorklog`](../commands/Add-JiraIssueWorklog/) for the warning's exact behavior and detection rules.
 
 ### Minimum PowerShell Version
 
