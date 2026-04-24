@@ -1,4 +1,4 @@
-function Resolve-JiraTextFieldPayload {
+﻿function Resolve-JiraTextFieldPayload {
     <#
     .SYNOPSIS
         Builds the JSON-ready value for a Jira rich-text field (description,
