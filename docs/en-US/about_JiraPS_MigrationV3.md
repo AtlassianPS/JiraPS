@@ -38,6 +38,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `Set-JiraIssue -Assignee`    | No longer positional; must be supplied by name.                         |
 | `New-JiraIssue -Reporter`    | No longer accepts `$null`, empty, or whitespace-only strings.           |
 | `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
+| `Format-Jira`                | Renamed to `ConvertTo-JiraTable`. Old name retained as a deprecated alias. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DETAILED MIGRATION GUIDE
@@ -192,6 +193,32 @@ New-JiraIssue -Project TEST -IssueType Task -Summary 'x'
 New-JiraIssue -Project TEST -IssueType Task -Summary 'x' -Reporter 'powershell'
 ```
 
+### Renaming — `Format-Jira` → `ConvertTo-JiraTable`
+
+The `Format-Jira` cmdlet has been renamed to `ConvertTo-JiraTable`.
+The new name reflects what the command actually does: it returns a `[String]` containing Jira wiki-markup table syntax, not a host-only `Format-*` display object like `Format-Table` produces.
+Treating it as a `ConvertTo-*` is also more honest about the destructive nature of the conversion.
+
+Existing scripts continue to work because `Format-Jira` is preserved as an exported deprecated alias.
+The alias will be removed in a future major version, so update scripts at your convenience.
+
+#### v2
+
+```powershell
+Get-Process | Format-Jira | Add-JiraIssueComment -Issue TEST-001
+$comment = Get-Process powershell | Format-Jira
+```
+
+#### v3
+
+```powershell
+Get-Process | ConvertTo-JiraTable | Add-JiraIssueComment -Issue TEST-001
+$comment = Get-Process powershell | ConvertTo-JiraTable
+```
+
+`ConvertTo-JiraTable` produces wiki markup, which is the native format for Jira Data Center and the legacy v2 endpoints used by JiraPS write commands.
+For Jira Cloud v3 endpoints (which require Atlassian Document Format), wrap the result with `ConvertTo-AtlassianDocumentFormat` before submitting it.
+
 ### Minimum PowerShell Version
 
 JiraPS v3 requires PowerShell 5.1 or later.
@@ -214,6 +241,10 @@ Get-ChildItem -Recurse -Filter *.ps1 |
 # Find legacy paging parameters
 Get-ChildItem -Recurse -Filter *.ps1 |
     Select-String -Pattern "-(StartIndex|MaxResults)\b"
+
+# Find usages of the deprecated Format-Jira alias
+Get-ChildItem -Recurse -Filter *.ps1 |
+    Select-String -Pattern "\bFormat-Jira\b"
 ```
 
 # SEE ALSO

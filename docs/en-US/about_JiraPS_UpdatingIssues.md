@@ -87,15 +87,25 @@ $issue | Set-JiraIssueLabel -Clear
 Add-JiraIssueComment -Issue TEST-1 -Comment "Test comment from PowerShell"
 ```
 
-You can also use `Format-Jira` to convert a PowerShell object into a Jira table.
+You can also use `ConvertTo-JiraTable` to convert PowerShell objects into a Jira wiki-markup table.
+The canonical use case is embedding a tabulated list of related issues into a comment:
 
 ```powershell
-$commentText = Get-Process powershell | Format-Jira
-Get-JiraIssue TEST-1 | Add-JiraIssueComment "Current PowerShell processes:\n$commentText"
+$summary = Get-JiraIssue -Query 'project = TEST AND assignee = currentUser()' |
+    ConvertTo-JiraTable -Property Key, Summary, Status
+Get-JiraIssue TEST-1 | Add-JiraIssueComment "My open issues:`n$summary"
 ```
 
-> Like other `Format-*` commands, `Format-Jira` is a destructive operation for data in the pipeline.
+`ConvertTo-JiraTable` is not limited to Jira objects — any `PSObject` pipeline works:
+
+```powershell
+$commentText = Get-Process powershell | ConvertTo-JiraTable
+Get-JiraIssue TEST-1 | Add-JiraIssueComment "Current PowerShell processes:`n$commentText"
+```
+
+> `ConvertTo-JiraTable` (formerly `Format-Jira`) is a destructive operation for data in the pipeline.
 > Remember to "filter left, format right!"
+> The deprecated `Format-Jira` alias still works but will be removed in a future major version.
 
 Comments can also be added while changing other fields of issues, e.g. the assignee:
 
