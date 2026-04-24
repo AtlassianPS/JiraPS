@@ -33,6 +33,24 @@ namespace AtlassianPS.JiraPS
         public DateTime? LastLoginTime { get; set; }
         public string RestUrl { get; set; }
 
+        // Parameterless ctor preserved explicitly: declaring the
+        // string-arg overload below removes C#'s implicit parameterless
+        // ctor, which the [Class]@{ ... } hashtable-cast pattern requires.
+        public User() { }
+
+        // Convenience ctor for the common stub-from-an-identifier case.
+        // Matches UserTransformationAttribute's wire contract: the raw
+        // identifier lands in Name and Resolve-JiraUser routes to
+        // /accountId or /username at call time based on shape.
+        public User(string identifier)
+        {
+            if (string.IsNullOrWhiteSpace(identifier))
+            {
+                throw new ArgumentException("identifier must not be null, empty, or whitespace.", "identifier");
+            }
+            Name = identifier;
+        }
+
         public override string ToString()
         {
             if (!string.IsNullOrEmpty(Name)) { return Name; }
@@ -64,6 +82,19 @@ namespace AtlassianPS.JiraPS
         public bool? Archived { get; set; }
         public bool? Simplified { get; set; }
         public bool? IsPrivate { get; set; }
+
+        public Project() { }
+
+        // Stub-from-key ctor; matches ProjectTransformationAttribute's
+        // string-input contract (alphanumeric tokens are project keys).
+        public Project(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key must not be null, empty, or whitespace.", "key");
+            }
+            Key = key;
+        }
 
         public override string ToString()
         {
@@ -117,6 +148,19 @@ namespace AtlassianPS.JiraPS
         public object Transition { get; set; }
         public Comment[] Comment { get; set; }
 
+        public Issue() { }
+
+        // Stub-from-key ctor; matches IssueTransformationAttribute's
+        // string-input contract.
+        public Issue(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key must not be null, empty, or whitespace.", "key");
+            }
+            Key = key;
+        }
+
         public override string ToString()
         {
             return string.Format("[{0}] {1}", Key, Summary);
@@ -137,6 +181,28 @@ namespace AtlassianPS.JiraPS
         public string RestUrl { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? ReleaseDate { get; set; }
+
+        public Version() { }
+
+        // Stub-from-identifier ctor; matches VersionTransformationAttribute's
+        // string-input contract: a numeric token is the integer ID, anything
+        // else is the human-readable Name.
+        public Version(string nameOrId)
+        {
+            if (string.IsNullOrWhiteSpace(nameOrId))
+            {
+                throw new ArgumentException("nameOrId must not be null, empty, or whitespace.", "nameOrId");
+            }
+            long parsed;
+            if (long.TryParse(nameOrId, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out parsed))
+            {
+                ID = parsed.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                Name = nameOrId;
+            }
+        }
 
         public override string ToString()
         {
@@ -163,6 +229,20 @@ namespace AtlassianPS.JiraPS
         // The PowerShell-side AliasProperty for the American spelling (`Favorite`)
         // is added by ConvertTo-JiraFilter so historical assertions about the
         // member type continue to hold.
+
+        public Filter() { }
+
+        // Stub-from-id ctor; matches FilterTransformationAttribute's
+        // string-input contract (the historic Get-JiraFilter -InputObject
+        // [String] path always treated the value as an ID).
+        public Filter(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("id must not be null, empty, or whitespace.", "id");
+            }
+            ID = id;
+        }
 
         public override string ToString()
         {
@@ -230,6 +310,19 @@ namespace AtlassianPS.JiraPS
         // /group?groupname=... without an expand.
         public int Size { get; set; }
         public User[] Member { get; set; }
+
+        public Group() { }
+
+        // Stub-from-name ctor; matches GroupTransformationAttribute's
+        // string-input contract.
+        public Group(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException("name must not be null, empty, or whitespace.", "name");
+            }
+            Name = name;
+        }
 
         public override string ToString()
         {
@@ -308,7 +401,7 @@ namespace AtlassianPS.JiraPS
                     throw new System.Management.Automation.ArgumentTransformationMetadataException(
                         "Cannot bind an empty or whitespace string to parameter -Issue.");
                 }
-                return new Issue { Key = key };
+                return new Issue(key);
             }
 
             // Legacy PSCustomObject masquerading as an Issue (PSTypeName trick).
@@ -373,7 +466,7 @@ namespace AtlassianPS.JiraPS
                 // it at call time and dispatches to /accountId or /username
                 // based on the detected platform — same semantics as the
                 // legacy ValidateScript code path.
-                return new User { Name = identifier };
+                return new User(identifier);
             }
 
             // Legacy PSCustomObject masquerading as a User (PSTypeName trick).
@@ -432,7 +525,7 @@ namespace AtlassianPS.JiraPS
                     throw new System.Management.Automation.ArgumentTransformationMetadataException(
                         "Cannot bind an empty or whitespace string to a Group parameter.");
                 }
-                return new Group { Name = name };
+                return new Group(name);
             }
 
             // Legacy PSCustomObject masquerading as a Group (PSTypeName trick).
@@ -509,12 +602,10 @@ namespace AtlassianPS.JiraPS
                     throw new System.Management.Automation.ArgumentTransformationMetadataException(
                         "Cannot bind an empty or whitespace string to a Version parameter.");
                 }
-                long parsed;
-                if (long.TryParse(str, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out parsed))
-                {
-                    return new Version { ID = parsed.ToString(System.Globalization.CultureInfo.InvariantCulture) };
-                }
-                return new Version { Name = str };
+                // Version(string) parses numeric tokens into ID and falls
+                // back to Name for everything else — same routing as the
+                // historic transformer body.
+                return new Version(str);
             }
 
             // Legacy PSCustomObject masquerading as a Version (PSTypeName trick).
@@ -616,7 +707,7 @@ namespace AtlassianPS.JiraPS
                 // Historic behaviour: a string passed to -InputObject was always
                 // treated as a filter ID (the body called ToString() on it and
                 // forwarded to Get-JiraFilter -Id). Preserve that contract.
-                return new Filter { ID = str };
+                return new Filter(str);
             }
 
             // Legacy PSCustomObject masquerading as a Filter (PSTypeName trick).
@@ -702,7 +793,7 @@ namespace AtlassianPS.JiraPS
                 // -Project (which is documented as taking a key). Wrap as Key so
                 // the call sites continue to work without per-cmdlet branching
                 // on "did the user pass an ID or a key?".
-                return new Project { Key = str };
+                return new Project(str);
             }
 
             // Legacy PSCustomObject masquerading as a Project (PSTypeName trick).

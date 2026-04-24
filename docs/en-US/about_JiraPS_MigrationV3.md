@@ -49,6 +49,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | Version-scoped cmdlets       | `-Version` / `-After` / `-InputObject` / `-InputVersion` on `Get-JiraVersion`, `Move-JiraVersion`, `New-JiraVersion`, `Remove-JiraVersion`, and `Set-JiraVersion` are now strongly-typed `[AtlassianPS.JiraPS.Version]` / `[AtlassianPS.JiraPS.Version[]]` with a custom transformer. |
 | Filter-scoped cmdlets        | `-InputObject` on `Get-JiraFilter` and `-Filter` on `Get-JiraIssue` are now strongly-typed `[AtlassianPS.JiraPS.Filter]` / `[AtlassianPS.JiraPS.Filter[]]` with a custom transformer. |
 | Project-scoped cmdlets       | `-Project` on `Get-JiraComponent`, `Find-JiraFilter`, `New-JiraVersion`, and `Set-JiraVersion` is now strongly-typed `[AtlassianPS.JiraPS.Project]` / `[AtlassianPS.JiraPS.Project[]]` with a custom transformer. |
+| Class construction           | The six identifier-driven `AtlassianPS.JiraPS.*` classes ship a single string-arg constructor for stub-from-an-identifier (`[AtlassianPS.JiraPS.Issue]::new('TEST-1')`). The hashtable-cast form `[AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }` continues to work. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -818,6 +819,52 @@ elseif ($Project.Key) {
 `Get-JiraComponent -Project` reads `$_project.Key` (or `$_project.ID` when only
 an ID was bound) and inlines it into the `/project/{idOrKey}/components` URL —
 no separate `Get-JiraProject` round-trip.
+
+### Convenience constructors on the `AtlassianPS.JiraPS.*` classes
+
+The six identifier-driven classes — `Issue`, `User`, `Project`, `Group`,
+`Filter`, and `Version` — each ship a single string-arg constructor that
+covers the recurring "build a stub from one identifier" case. The routing
+mirrors the matching `*TransformationAttribute` so that a value built via
+`::new()` and a value bound via `-Parameter <string>` produce the exact
+same stub:
+
+| Constructor                                  | Stores into                                           |
+| -------------------------------------------- | ----------------------------------------------------- |
+| `[AtlassianPS.JiraPS.Issue]::new(string)`    | `Key`                                                 |
+| `[AtlassianPS.JiraPS.User]::new(string)`     | `Name` (Resolve-JiraUser routes by shape at call time)|
+| `[AtlassianPS.JiraPS.Project]::new(string)`  | `Key`                                                 |
+| `[AtlassianPS.JiraPS.Group]::new(string)`    | `Name`                                                |
+| `[AtlassianPS.JiraPS.Filter]::new(string)`   | `ID`                                                  |
+| `[AtlassianPS.JiraPS.Version]::new(string)`  | `ID` if the input parses as an integer, else `Name`   |
+
+Null, empty, or whitespace-only input throws `ArgumentException`.
+
+#### v2 — hashtable cast
+
+The hashtable cast still works in v3 (we keep an explicit parameterless
+ctor on every class for exactly this reason), but it is verbose for the
+common single-identifier case and does not surface in IntelliSense:
+
+```powershell
+'TEST-1','TEST-2','TEST-3' |
+    ForEach-Object { [AtlassianPS.JiraPS.Issue]@{ Key = $_ } } |
+    Add-JiraIssueComment -Comment 'reviewed'
+```
+
+#### v3 — convenience ctor
+
+```powershell
+'TEST-1','TEST-2','TEST-3' |
+    ForEach-Object { [AtlassianPS.JiraPS.Issue]::new($_) } |
+    Add-JiraIssueComment -Comment 'reviewed'
+```
+
+`Comment`, `Session`, and `ServerInfo` are intentionally not extended with
+string-arg ctors — they are never stub-constructed by user scripts in
+practice and a string-arg ctor would suggest a contract (e.g., "comment
+body string") that does not match the multi-field, server-populated shape
+of the type.
 
 ### Minimum PowerShell Version
 

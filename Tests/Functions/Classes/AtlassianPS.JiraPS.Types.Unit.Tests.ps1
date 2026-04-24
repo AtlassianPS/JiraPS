@@ -160,6 +160,129 @@ InModuleScope JiraPS {
             }
         }
 
+        Context "Convenience constructors" {
+            # The six identifier-driven classes ship a string-arg ctor for the
+            # common stub-from-an-identifier flow that scripts and pipelines
+            # exercise constantly. Each one mirrors the routing logic of its
+            # matching ArgumentTransformationAttribute so passing a string
+            # through `[Class]::new('value')` and through `-Parameter 'value'`
+            # produce identical stubs.
+
+            It "Issue('TEST-1') stores the input in Key" {
+                $issue = [AtlassianPS.JiraPS.Issue]::new('TEST-1')
+
+                $issue | Should -BeOfType [AtlassianPS.JiraPS.Issue]
+                $issue.Key | Should -Be 'TEST-1'
+                $issue.ID | Should -BeNullOrEmpty
+            }
+
+            It "User('jdoe') stores the input in Name (matches UserTransformation)" {
+                $user = [AtlassianPS.JiraPS.User]::new('jdoe')
+
+                $user | Should -BeOfType [AtlassianPS.JiraPS.User]
+                $user.Name | Should -Be 'jdoe'
+                $user.AccountId | Should -BeNullOrEmpty
+            }
+
+            It "Project('TEST') stores the input in Key" {
+                $project = [AtlassianPS.JiraPS.Project]::new('TEST')
+
+                $project | Should -BeOfType [AtlassianPS.JiraPS.Project]
+                $project.Key | Should -Be 'TEST'
+                $project.ID | Should -BeNullOrEmpty
+            }
+
+            It "Group('jira-users') stores the input in Name" {
+                $group = [AtlassianPS.JiraPS.Group]::new('jira-users')
+
+                $group | Should -BeOfType [AtlassianPS.JiraPS.Group]
+                $group.Name | Should -Be 'jira-users'
+            }
+
+            It "Filter('12345') stores the input in ID" {
+                $filter = [AtlassianPS.JiraPS.Filter]::new('12345')
+
+                $filter | Should -BeOfType [AtlassianPS.JiraPS.Filter]
+                $filter.ID | Should -Be '12345'
+                $filter.Name | Should -BeNullOrEmpty
+            }
+
+            It "Version('10001') routes a numeric string into ID" {
+                $version = [AtlassianPS.JiraPS.Version]::new('10001')
+
+                $version | Should -BeOfType [AtlassianPS.JiraPS.Version]
+                $version.ID | Should -Be '10001'
+                $version.Name | Should -BeNullOrEmpty
+            }
+
+            It "Version('My Version') routes a non-numeric string into Name" {
+                $version = [AtlassianPS.JiraPS.Version]::new('My Version')
+
+                $version.Name | Should -Be 'My Version'
+                $version.ID | Should -BeNullOrEmpty
+            }
+
+            It "string-arg ctors reject null, empty, and whitespace input" {
+                # Symmetric with the matching ArgumentTransformationAttribute
+                # error: building a stub via the ctor must not silently
+                # accept nonsense that the parameter binder would reject.
+                foreach ($empty in @($null, '', ' ', "`t")) {
+                    { [AtlassianPS.JiraPS.Issue]::new($empty) } | Should -Throw
+                    { [AtlassianPS.JiraPS.User]::new($empty) } | Should -Throw
+                    { [AtlassianPS.JiraPS.Project]::new($empty) } | Should -Throw
+                    { [AtlassianPS.JiraPS.Group]::new($empty) } | Should -Throw
+                    { [AtlassianPS.JiraPS.Filter]::new($empty) } | Should -Throw
+                    { [AtlassianPS.JiraPS.Version]::new($empty) } | Should -Throw
+                }
+            }
+
+            It "the parameterless ctor is preserved on every identifier-driven class" {
+                # Regression guard: declaring a parameterized ctor in C#
+                # removes the implicit parameterless ctor, which the
+                # [Class]@{ ... } hashtable-cast pattern depends on. Each
+                # class must keep `public Foo() {}` explicitly.
+                foreach ($typeName in 'AtlassianPS.JiraPS.Issue', 'AtlassianPS.JiraPS.User', 'AtlassianPS.JiraPS.Project', 'AtlassianPS.JiraPS.Group', 'AtlassianPS.JiraPS.Filter', 'AtlassianPS.JiraPS.Version') {
+                    $type = $typeName -as [Type]
+                    $type | Should -Not -BeNullOrEmpty -Because "$typeName must be loaded"
+                    $type.GetConstructor([Type]::EmptyTypes) |
+                        Should -Not -BeNullOrEmpty -Because "$typeName must keep an explicit parameterless ctor"
+                }
+            }
+
+            It "the hashtable-cast pattern still works after adding the parameterized ctor" {
+                # The 30+ existing [Class]@{ ... } call sites in the test
+                # suite would fail loudly if we lost the parameterless ctor
+                # or its property setters; this assertion locks the contract
+                # in one place so it cannot regress quietly.
+                ([AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }).Key       | Should -Be 'TEST-1'
+                ([AtlassianPS.JiraPS.User]@{ Name = 'jdoe' }).Name        | Should -Be 'jdoe'
+                ([AtlassianPS.JiraPS.Project]@{ Key = 'TEST' }).Key       | Should -Be 'TEST'
+                ([AtlassianPS.JiraPS.Group]@{ Name = 'jira-users' }).Name | Should -Be 'jira-users'
+                ([AtlassianPS.JiraPS.Filter]@{ ID = '1' }).ID             | Should -Be '1'
+                ([AtlassianPS.JiraPS.Version]@{ Name = '1.0' }).Name      | Should -Be '1.0'
+            }
+
+            It "the string-arg ctor produces a stub that round-trips through the matching transformer parameter" {
+                # End-to-end check: build a stub via ::new() and bind it to
+                # an actual cmdlet parameter so the transformer either
+                # passes it through (singleton case) or fans it out (array
+                # case). This catches a transformer regression that would
+                # accept the string but reject the typed stub.
+                $cmd = Get-Command Add-JiraIssueComment
+                $param = $cmd.Parameters['Issue']
+                $param.ParameterType.FullName | Should -Be 'AtlassianPS.JiraPS.Issue'
+
+                $stub = [AtlassianPS.JiraPS.Issue]::new('TEST-1')
+                # The transformer accepts an existing Issue and returns it
+                # unchanged. We do not invoke the cmdlet (no live Jira),
+                # but we drive the transformer directly to prove the round-trip.
+                $transformerType = [AtlassianPS.JiraPS.IssueTransformationAttribute]
+                $transformer = $transformerType::new()
+                $result = $transformer.Transform($null, $stub)
+                $result | Should -Be $stub
+            }
+        }
+
         Context "ConvertTo-Hashtable" {
             It "round-trips a PSCustomObject into a Hashtable" {
                 $hash = [PSCustomObject]@{ A = 1; B = 'two' } | ConvertTo-Hashtable

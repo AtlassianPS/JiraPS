@@ -132,6 +132,9 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Added
 
+- Added a single string-arg convenience constructor to the six identifier-driven `AtlassianPS.JiraPS.*` classes — `Issue(string key)`, `User(string identifier)`, `Project(string key)`, `Group(string name)`, `Filter(string id)`, and `Version(string nameOrId)` — for the recurring stub-from-an-identifier case (`[AtlassianPS.JiraPS.Issue]::new('TEST-1')` instead of `[AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }`).
+  Each ctor's routing is identical to the matching `*TransformationAttribute` so a value built via `::new()` and a value bound via `-Parameter <string>` produce the same stub: the `User` ctor stores the input in `Name`, `Version` stores numeric tokens in `ID` and falls back to `Name` for the rest, etc. Null / empty / whitespace input throws an `ArgumentException` at construction, matching the transformers' "no silent garbage" contract.
+  Each class also gains an explicit parameterless ctor (`public Foo() {}`) so the existing `[AtlassianPS.JiraPS.Foo]@{ ... }` hashtable-cast pattern keeps working — declaring a parameterized ctor in C# removes the implicit default, which the 30+ existing call sites depend on; a regression test locks the parameterless ctor into place. `Comment`, `Session`, and `ServerInfo` are intentionally untouched (they are not stub-typical). The transformer bodies were reworked to use the new ctors at their stub-construction sites for symmetry with the public surface.
 - Surface fields the eight `AtlassianPS.JiraPS.*` converters previously dropped, so scripts can read them without re-querying the raw payload:
   - `User.AccountType` (Cloud), `User.Deleted` (DC, `[bool?]`), `User.LastLoginTime` (DC, `[DateTime?]`).
   - `Project.ProjectTypeKey`, `Project.Url`, `Project.Email`, plus the optional flags `Project.Archived`, `Project.Simplified`, `Project.IsPrivate` (all `[bool?]`).
