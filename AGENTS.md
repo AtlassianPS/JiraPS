@@ -288,7 +288,8 @@ Invoke-Build -Task TestIntegration                   # Integration tests (needs 
 Invoke-Build -Task TestIntegration -Tag 'Smoke'      # Smoke subset only
 ```
 
-The integration suite has two tracks: **Cloud** (the default, against a live Atlassian Cloud instance via `JIRA_CLOUD_*` secrets) and **Server** (Jira Data Center, booted on demand from the `addono/jira-software-standalone:latest` Docker image with the Jira version pinned in `docker-compose.yml` — no secrets needed). Switch by setting `CI_JIRA_TYPE=Server` and filtering with `-Tag 'Server'`. Local Server-track quickstart: `Invoke-Build -Task StartJiraDocker; $env:CI_JIRA_TYPE='Server'; Invoke-Build -Task TestIntegration -Tag 'Server'; Invoke-Build -Task StopJiraDocker`. See [`Tests/Integration/README.md`](Tests/Integration/README.md) for the full track guide.
+The integration suite has two tracks: **Cloud** (the default, against a live Atlassian Cloud instance via `JIRA_CLOUD_*` secrets) and **Server** (Jira Data Center, booted on demand from the `addono/jira-software-standalone:latest` Docker image with the Jira version pinned in `docker-compose.yml` — no secrets needed). Switch by setting `CI_JIRA_TYPE=Server` and filtering with `-Tag 'Server'`. Local Server-track quickstart: `Invoke-Build -Task StartJiraDocker; $env:CI_JIRA_TYPE='Server'; Invoke-Build -Task TestIntegration -Tag 'Server'; Invoke-Build -Task StopJiraDocker`.
+**Server CI is currently disabled** (manual `workflow_dispatch` only) because the upstream `addono` image has been broken since Atlassian retired the legacy SDK marketplace endpoint in 2025; all local infrastructure is in place, ready to re-enable when a working image surfaces. See [`Tests/Integration/README.md`](Tests/Integration/README.md) for the full track guide and the upstream-breakage rationale.
 
 The `Publish` task (PowerShell Gallery upload) is reserved for release tags.
 

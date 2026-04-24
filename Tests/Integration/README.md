@@ -13,8 +13,13 @@ The integration suite has two deployment targets:
 
 | Track | Target | Auth | Trigger |
 |-------|--------|------|---------|
-| **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | `.github/workflows/integration_tests.yml` |
-| **Server** | A Dockerized Jira Data Center instance (`addono/jira-software-standalone:latest`, Jira version pinned to `8.17.1` via the entrypoint in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` |
+| **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | `.github/workflows/integration_tests.yml` (PR + scheduled) |
+| **Server** | A Dockerized Jira Data Center instance (`addono/jira-software-standalone:latest`, Jira version pinned to `8.17.1` via the entrypoint in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` (**`workflow_dispatch` only — see note below**) |
+
+> **⚠️ Server CI is currently disabled (manual dispatch only).**
+> The `addono/jira-software-standalone` image has been broken upstream since 2025: its embedded Atlassian Plugin SDK calls `https://marketplace.atlassian.com/rest/1.0/plugins/atlassian-plugin-sdk-rpm`, which Atlassian has retired (returns 404), so the container never starts Jira.
+> The image author has stated the project is unsupported, and `pycontribs/jira` hit the same wall — see their [PR #2376 "(server seems to be pretty hard tbh)"](https://github.com/pycontribs/jira/pull/2376) which culminated in `ci: remove broken workflows`.
+> All the local plumbing (`docker-compose.yml`, `Tools/Wait-JiraServer.ps1`, `Invoke-Build -Task StartJiraDocker`, the deployment-aware helpers in `Tests/Helpers/IntegrationTestTools.ps1`, the `Server`/`Cloud` tags on every `Describe` block) is intact and ready to be re-enabled the moment a working image surfaces — flipping the workflow back on is a one-line change to `.github/workflows/jira_server_ci.yml`.
 
 The `CI_JIRA_TYPE` environment variable selects the track.
 Setting `CI_JIRA_TYPE=Server` switches `Initialize-IntegrationEnvironment`, `Connect-JiraTestServer`, and the `TestIntegration` build task to the Server-track configuration; the default (`Cloud`) preserves existing behaviour.

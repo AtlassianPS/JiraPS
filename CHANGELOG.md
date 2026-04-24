@@ -46,9 +46,11 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Added "Automation and CI/CD" section to authentication documentation with programmatic SecureString examples (#576)
 - Added `ConvertTo-JiraTable` as the descriptive replacement for `Format-Jira`.
   The new name reflects what the cmdlet actually does: it returns a `[String]` of Jira wiki-markup table syntax, not a host-only `Format-*` display object.
-- Added a Jira Data Center integration test track using the `addono/jira-software-standalone:latest` Docker image (the Jira version itself is pinned in `docker-compose.yml` via the entrypoint `--version 8.17.1` argument, mirroring how `jira-python` invokes the same image), alongside the existing Jira Cloud track.
+- Added Jira Data Center integration test infrastructure (deployment-aware `Tests/Helpers/IntegrationTestTools.ps1`, `Server`/`Cloud` Pester tags on every `Describe` block, `docker-compose.yml`, `Tools/Wait-JiraServer.ps1`, `StartJiraDocker`/`StopJiraDocker` build tasks) alongside the existing Jira Cloud track, so DC-specific code paths can be exercised end-to-end.
   Run locally with `Invoke-Build -Task StartJiraDocker; $env:CI_JIRA_TYPE='Server'; Invoke-Build -Task TestIntegration -Tag 'Server'; Invoke-Build -Task StopJiraDocker`.
-  CI runs daily at 05:00 UTC and on every PR via `.github/workflows/jira_server_ci.yml`.
+  **The Server-track CI workflow is currently `workflow_dispatch`-only** because the only viable Dockerized Jira-Server image we could find — `addono/jira-software-standalone` — has been broken upstream since Atlassian retired the legacy SDK marketplace endpoint in 2025 (the SDK's startup probe to `https://marketplace.atlassian.com/rest/1.0/plugins/atlassian-plugin-sdk-rpm` now returns 404, and the image's author has stated the project is unsupported).
+  `pycontribs/jira` hit the same wall — see their [PR #2376 "(server seems to be pretty hard tbh)"](https://github.com/pycontribs/jira/pull/2376) and the follow-up `ci: remove broken workflows` commit.
+  Re-enabling the workflow on PR/schedule is a one-line change once a working image surfaces (see the header comment in `.github/workflows/jira_server_ci.yml`).
   See `Tests/Integration/README.md` for the full track guide.
 
 ### Changed
