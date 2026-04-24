@@ -314,19 +314,37 @@ function Connect-JiraTestServer {
     }
     else {
         # Server / Data Center: send Basic auth proactively via the Authorization
-        # header instead of relying on `Invoke-WebRequest -Credential`. PowerShell's
-        # -Credential parameter uses challenge-response auth (it sends the first
-        # request with no auth and only retries with credentials if the server
-        # responds with `WWW-Authenticate: Basic realm="..."`). Atlassian Seraph on
-        # /rest/api/2/myself does not always advertise Basic in its 401 response, so
-        # the retry never happens and the JiraPS session is never established. The
-        # explicit Authorization header bypasses that handshake and is the same
-        # mechanism Wait-JiraServer.ps1 uses successfully against the same image.
-        $secure = ConvertTo-SecureString -String $Environment.Password -AsPlainText -Force
-        $cred = New-Object System.Management.Automation.PSCredential($Environment.Username, $secure)
+        # header instead of relying on `Invoke-WebRequest -Credential` (which uses
+        # challenge-response auth and fails when Atlassian Seraph's 401 omits a
+        # `WWW-Authenticate: Basic` header on /myself).
         $authPair = "$($Environment.Username):$($Environment.Password)"
         $basicAuthHeader = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($authPair))
-        $session = New-JiraSession -Credential $cred -Headers @{ Authorization = $basicAuthHeader }
+
+        # Diagnostic probe: hit /myself directly so the test log shows exactly what the
+        # server returns (status, headers, body) before we ask New-JiraSession to do the
+        # same call inside Invoke-JiraMethod (which swallows the response on errors via
+        # Resolve-ErrorWebResponse + WriteError, leaving us with only the generic
+        # "Failed to establish Jira session" symptom). Logged via Write-Host so it
+        # always reaches the CI test step output, regardless of $VerbosePreference.
+        $myselfUrl = "$($Environment.CloudUrl)/rest/api/2/myself"
+        Write-Host "==> [Connect-JiraTestServer] probing $myselfUrl with Basic auth (user=$($Environment.Username))"
+        try {
+            $probe = Invoke-WebRequest -Uri $myselfUrl -Method Get -Headers @{ Authorization = $basicAuthHeader } -UseBasicParsing -TimeoutSec 30 -ErrorAction Stop
+            $probeBody = if ($probe.Content) { $probe.Content.Substring(0, [Math]::Min(200, $probe.Content.Length)) } else { '<empty>' }
+            Write-Host "==> [Connect-JiraTestServer] probe OK: status=$($probe.StatusCode) body=$probeBody"
+        }
+        catch {
+            $statusCode = $null
+            $wwwAuth = $null
+            if ($_.Exception.Response) {
+                try { $statusCode = [int]$_.Exception.Response.StatusCode } catch { $statusCode = '<unknown>' }
+                try { $wwwAuth = $_.Exception.Response.Headers.WwwAuthenticate -join ', ' } catch { $wwwAuth = $null }
+            }
+            $errBody = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message.Substring(0, [Math]::Min(400, $_.ErrorDetails.Message.Length)) } else { '<no body>' }
+            Write-Host "==> [Connect-JiraTestServer] probe FAILED: status=$statusCode wwwAuthenticate=$wwwAuth message=$($_.Exception.Message) body=$errBody"
+        }
+
+        $session = New-JiraSession -Headers @{ Authorization = $basicAuthHeader }
         if (-not $session) {
             throw "Failed to establish Jira session. Check credentials and server URL. For Jira Data Center, CI_JIRA_ADMIN_PASSWORD must be the admin user's password (default: 'admin' for the moveworkforward/atlas-run-standalone image)."
         }
