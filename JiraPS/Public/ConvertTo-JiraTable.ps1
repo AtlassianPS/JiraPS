@@ -21,7 +21,7 @@
         # as if they came from ConvertTo-JiraTable itself.
         try {
             if (Test-JiraCloudServer -ErrorAction Stop -WarningAction SilentlyContinue) {
-                Write-Warning "[$($MyInvocation.MyCommand.Name)] You are connected to a Jira Cloud deployment. The output of this cmdlet is Jira wiki markup, which is the native format for Jira Server / Data Center; Jira Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and will render `||header||` syntax as literal text. The output remains valid for Cloud's legacy v2 endpoints. Suppress this warning with -WarningAction SilentlyContinue."
+                Write-Warning "[$($MyInvocation.MyCommand.Name)] You are connected to a Jira Cloud deployment. The output of this cmdlet is Jira wiki markup, which is the native format for Jira Server / Data Center; Jira Cloud REST v3 endpoints expect Atlassian Document Format (ADF) and will render '||header||' syntax as literal text. The output remains valid for Cloud's legacy v2 endpoints. Suppress this warning with -WarningAction SilentlyContinue."
             }
         }
         catch {

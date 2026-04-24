@@ -24,108 +24,123 @@ InModuleScope JiraPS {
             }
         }
 
-        It "Translates an object into a String" {
-
-            $expected = "||A||B||C||$n|123|456|789|"
-
-            $string = ConvertTo-JiraTable -InputObject $obj
-            $string | Should -Be $expected
-        }
-
-        It "Handles positional parameters correctly" {
-            $expected = "||A||B||C||$n|123|456|789|"
-
-            ConvertTo-JiraTable -Property A, B, C $obj | Should -Be $expected
-            ConvertTo-JiraTable A, B, C $obj | Should -Be $expected
-        }
-
-        It "Handles pipeline input correctly" {
-            $expected = "||A||B||C||D||$n|12345|12345|12345|12345|"
-
-            $obj2 | ConvertTo-JiraTable | Should -Be $expected
-        }
-
-        It "Accepts multiple input objects" {
-
-            $expected1 = "||A||B||C||$n|123|456|789|$n|12345|12345|12345|"
-
-            $expected2 = "||A||B||C||D||$n|12345|12345|12345|12345|$n|123|456|789| |"
-
-            $obj, $obj2 | ConvertTo-JiraTable | Should -Be $expected1
-            $obj2, $obj | ConvertTo-JiraTable | Should -Be $expected2
-        }
-
-        It "Returns only selected properties if the -Property argument is passed" {
-            Mock Get-Process {
-                # Rather than actually running Get-Process, we'll use a known example of what
-                # its output *could* be, so we can produce repeatable results.
-                [PSCustomObject] @{
-                    CompanyName = 'Microsoft Corporation'
-                    Handle      = 5368
-                    Id          = 4496
-                    MachineName = '.'
-                    Name        = 'explorer'
-                    Path        = 'C:\Windows\Explorer.EXE'
-                }
+        Context "Output transformation (deterministic DC baseline)" {
+            # Mocking Test-JiraCloudServer to $false here keeps these tests hermetic
+            # on a developer machine that has Set-JiraConfigServer configured: the
+            # cmdlet's begin block would otherwise fall through to the real deployment-
+            # type lookup, which is best-effort but adds non-determinism (and a network
+            # round-trip on a cold cache) to tests that only care about output shape.
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
             }
 
-            $expected1 = "||Name||Id||$n|explorer|4496|"
-            $expected2 = "||Name||CompanyName||Id||MachineName||Handle||$n|explorer|Microsoft Corporation|4496|.|5368|"
+            It "Translates an object into a String" {
 
-            Get-Process | ConvertTo-JiraTable -Property Name, Id | Should -Be $expected1
-            Get-Process | ConvertTo-JiraTable -Property Name, CompanyName, Id, MachineName, Handle | Should -Be $expected2
-        }
+                $expected = "||A||B||C||$n|123|456|789|"
 
-        It "Returns an object's default properties if the -Property argument is not passed" {
-            Mock Get-Process {
-                $obj = [PSCustomObject] @{
-                    CompanyName = 'Microsoft Corporation'
-                    Handle      = 5368
-                    Id          = 4496
-                    MachineName = '.'
-                    Name        = 'explorer'
-                    Path        = 'C:\Windows\Explorer.EXE'
-                }
-
-                # Since we're mocking this with a PSCustomObject, we need to define its default property set
-                [String[]] $DefaultProperties = @('Name', 'Id')
-                $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet', $DefaultProperties
-                $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
-                Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
-
-                Write-Output $obj
+                $string = ConvertTo-JiraTable -InputObject $obj
+                $string | Should -Be $expected
             }
 
-            $expected = "||Name||Id||$n|explorer|4496|"
+            It "Handles positional parameters correctly" {
+                $expected = "||A||B||C||$n|123|456|789|"
 
-            Get-Process | ConvertTo-JiraTable | Should -Be $expected
-        }
-
-        It "Returns ALL object's default properties if the -Property argument is not passed" {
-            Mock Get-Process {
-                $obj = [PSCustomObject] @{
-                    CompanyName = 'Microsoft Corporation'
-                    Handle      = 5368
-                    Id          = 4496
-                    MachineName = '.'
-                    Name        = 'explorer'
-                    Path        = 'C:\Windows\Explorer.EXE'
-                }
-
-                [String[]] $DefaultProperties = @('Name', 'Id')
-                $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet', $DefaultProperties
-                $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
-                Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
-
-                Write-Output $obj
+                ConvertTo-JiraTable -Property A, B, C $obj | Should -Be $expected
+                ConvertTo-JiraTable A, B, C $obj | Should -Be $expected
             }
 
-            $expected = "||CompanyName||Handle||Id||MachineName||Name||Path||$n|Microsoft Corporation|5368|4496|.|explorer|C:\Windows\Explorer.EXE|"
+            It "Handles pipeline input correctly" {
+                $expected = "||A||B||C||D||$n|12345|12345|12345|12345|"
 
-            Get-Process | ConvertTo-JiraTable -Property * | Should -Be $expected
+                $obj2 | ConvertTo-JiraTable | Should -Be $expected
+            }
+
+            It "Accepts multiple input objects" {
+
+                $expected1 = "||A||B||C||$n|123|456|789|$n|12345|12345|12345|"
+
+                $expected2 = "||A||B||C||D||$n|12345|12345|12345|12345|$n|123|456|789| |"
+
+                $obj, $obj2 | ConvertTo-JiraTable | Should -Be $expected1
+                $obj2, $obj | ConvertTo-JiraTable | Should -Be $expected2
+            }
+
+            It "Returns only selected properties if the -Property argument is passed" {
+                Mock Get-Process {
+                    # Rather than actually running Get-Process, we'll use a known example of what
+                    # its output *could* be, so we can produce repeatable results.
+                    [PSCustomObject] @{
+                        CompanyName = 'Microsoft Corporation'
+                        Handle      = 5368
+                        Id          = 4496
+                        MachineName = '.'
+                        Name        = 'explorer'
+                        Path        = 'C:\Windows\Explorer.EXE'
+                    }
+                }
+
+                $expected1 = "||Name||Id||$n|explorer|4496|"
+                $expected2 = "||Name||CompanyName||Id||MachineName||Handle||$n|explorer|Microsoft Corporation|4496|.|5368|"
+
+                Get-Process | ConvertTo-JiraTable -Property Name, Id | Should -Be $expected1
+                Get-Process | ConvertTo-JiraTable -Property Name, CompanyName, Id, MachineName, Handle | Should -Be $expected2
+            }
+
+            It "Returns an object's default properties if the -Property argument is not passed" {
+                Mock Get-Process {
+                    $obj = [PSCustomObject] @{
+                        CompanyName = 'Microsoft Corporation'
+                        Handle      = 5368
+                        Id          = 4496
+                        MachineName = '.'
+                        Name        = 'explorer'
+                        Path        = 'C:\Windows\Explorer.EXE'
+                    }
+
+                    # Since we're mocking this with a PSCustomObject, we need to define its default property set
+                    [String[]] $DefaultProperties = @('Name', 'Id')
+                    $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet', $DefaultProperties
+                    $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
+                    Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
+
+                    Write-Output $obj
+                }
+
+                $expected = "||Name||Id||$n|explorer|4496|"
+
+                Get-Process | ConvertTo-JiraTable | Should -Be $expected
+            }
+
+            It "Returns ALL object's default properties if the -Property argument is not passed" {
+                Mock Get-Process {
+                    $obj = [PSCustomObject] @{
+                        CompanyName = 'Microsoft Corporation'
+                        Handle      = 5368
+                        Id          = 4496
+                        MachineName = '.'
+                        Name        = 'explorer'
+                        Path        = 'C:\Windows\Explorer.EXE'
+                    }
+
+                    [String[]] $DefaultProperties = @('Name', 'Id')
+                    $defaultPropertySet = New-Object -TypeName System.Management.Automation.PSPropertySet -ArgumentList 'DefaultDisplayPropertySet', $DefaultProperties
+                    $PSStandardMembers = [System.Management.Automation.PSMemberInfo[]] $defaultPropertySet
+                    Add-Member -InputObject $obj -MemberType MemberSet -Name PSStandardMembers -Value $PSStandardMembers -Force
+
+                    Write-Output $obj
+                }
+
+                $expected = "||CompanyName||Handle||Id||MachineName||Name||Path||$n|Microsoft Corporation|5368|4496|.|explorer|C:\Windows\Explorer.EXE|"
+
+                Get-Process | ConvertTo-JiraTable -Property * | Should -Be $expected
+            }
         }
 
         Context "Backward-compatibility alias 'Format-Jira'" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+            }
+
             It "Is exported as an alias of ConvertTo-JiraTable" {
                 $aliasCommand = Get-Command -Name Format-Jira -ErrorAction Stop
 

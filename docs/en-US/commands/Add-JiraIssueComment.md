@@ -55,12 +55,13 @@ It would be best to validate the query first to make sure the query returns the 
 ### EXAMPLE 4
 
 ```powershell
-$summary = Get-JiraIssue -Query 'project = TEST AND sprint in openSprints()' |
-    ConvertTo-JiraTable -Property Key, Summary, Status, Assignee
-Add-JiraIssueComment -Issue TEST-100 -Comment "Sprint status:`n$summary"
+$summary = Get-JiraIssue -Query 'project = TEST AND status != Done AND assignee = currentUser()' |
+    ConvertTo-JiraTable -Property Key, Summary, Status, Priority
+Add-JiraIssueComment -Issue TEST-100 -Comment "My open issues:`n$summary"
 ```
 
-This example assembles a wiki-markup table of the in-flight issues in the current sprint and posts it as a comment on the parent ticket TEST-100 — a typical sprint-summary or stand-up workflow.
+This example assembles a wiki-markup table of the caller's open issues and posts it as a comment on the parent ticket TEST-100 — a typical status-update or stand-up workflow.
+The JQL used here works on any Jira deployment (Core, Service Management, Software).
 `ConvertTo-JiraTable` is the canonical way to embed tabular data in a Jira **Server / Data Center** comment.
 On Jira **Cloud** (REST v3 / ADF) the resulting `||header||` syntax renders as literal text, and `ConvertTo-JiraTable` will emit a `Write-Warning` advising the same.
 

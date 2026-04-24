@@ -39,13 +39,14 @@ Deprecated alias: `Format-Jira` (will be removed in a future major version; upda
 ### EXAMPLE 1
 
 ```powershell
-$summary = Get-JiraIssue -Query 'project = TEST AND sprint in openSprints()' |
-    ConvertTo-JiraTable -Property Key, Summary, Status, Assignee
-Add-JiraIssueComment -Issue TEST-100 -Comment "Sprint status:`n$summary"
+$summary = Get-JiraIssue -Query 'project = TEST AND status != Done AND assignee = currentUser()' |
+    ConvertTo-JiraTable -Property Key, Summary, Status, Priority
+Add-JiraIssueComment -Issue TEST-100 -Comment "My open issues:`n$summary"
 ```
 
-This example tabulates the in-flight issues of the current sprint of project TEST and posts the resulting wiki-markup table as a comment on the parent ticket TEST-100.
+This example tabulates the caller's open issues in project TEST and posts the resulting wiki-markup table as a comment on the parent ticket TEST-100.
 This is the canonical use case: assemble a small report from `Get-Jira*` output and embed it in another issue.
+The JQL used here works on any Jira deployment (Core, Service Management, Software) — replace it with whatever filter your reporting workflow needs.
 
 ### EXAMPLE 2
 
