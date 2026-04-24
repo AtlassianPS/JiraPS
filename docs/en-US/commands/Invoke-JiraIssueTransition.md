@@ -18,7 +18,7 @@ Performs an issue transition on a JIRA issue changing it's status
 
 ```powershell
 Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobject>]
- [-Assignee <Object>] [-Comment <string>] [-Credential <pscredential>] [-Passthru]
+ [-Assignee <User>] [-Comment <string>] [-Credential <pscredential>] [-Passthru]
  [<CommonParameters>]
 ```
 
@@ -102,7 +102,7 @@ Empty strings and `$null` values are not accepted.
 Assignee field must be configured to appear on the transition screen to use this parameter.
 
 ```yaml
-Type: Object
+Type: User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

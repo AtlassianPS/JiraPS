@@ -29,29 +29,10 @@
         $Group,
 
         [Parameter( Mandatory )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("AtlassianPS.JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.UotJirauser'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for User. Expected [AtlassianPS.JiraPS.User] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
         [Alias('UserName')]
-        [Object[]]
+        [AtlassianPS.JiraPS.User[]]
         $User,
 
         [Parameter()]

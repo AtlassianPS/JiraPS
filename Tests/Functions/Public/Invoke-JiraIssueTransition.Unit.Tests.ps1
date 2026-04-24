@@ -88,9 +88,9 @@ InModuleScope JiraPS {
                     @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
                     @{ parameter = "Transition"; type = "Object" }
                     @{ parameter = "Comment"; type = "String" }
-                    @{ parameter = "Assignee"; type = "String" }
+                    @{ parameter = "Assignee"; type = "User" }
                     @{ parameter = "Unassign"; type = "Switch" }
-                    @{ parameter = "Fields"; type = "Hashtable" }
+                    @{ parameter = "Fields"; type = "PSCustomObject" }
                     @{ parameter = "Passthru"; type = "Switch" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
@@ -210,7 +210,7 @@ InModuleScope JiraPS {
                 }
 
                 It "throws when -Assignee is given a whitespace-only string" {
-                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "   " } | Should -Throw -ExpectedMessage "*whitespace-only*"
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "   " } | Should -Throw -ExpectedMessage "*empty or whitespace*"
                 }
 
                 It "throws when -Assignee is given `$null" {

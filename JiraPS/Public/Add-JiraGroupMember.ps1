@@ -9,13 +9,10 @@
         $Group,
 
         [Parameter( Mandatory )]
-        [ValidateNotNullOrEmpty()]
-        [Object[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
+        [AtlassianPS.JiraPS.User[]]
         $UserName,
-        <#
-          #ToDo:CustomClass
-          Now that we have custom classes, this can also accept ValueFromPipeline
-        #>
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -44,7 +41,7 @@
 
             $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
             $existingMembers = @(Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop)
-            $users = Resolve-JiraUser -InputObject $UserName -Exact -Credential $Credential
+            $users = $UserName | Resolve-JiraUser -Exact -Credential $Credential
 
             foreach ($user in $users) {
 

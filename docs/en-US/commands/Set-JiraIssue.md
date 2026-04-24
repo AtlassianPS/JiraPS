@@ -18,7 +18,7 @@ Modifies an existing issue in JIRA
 
 ```powershell
 Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
- [-Assignee <Object>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
+ [-Assignee <User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
@@ -144,7 +144,7 @@ Use `-UseDefaultAssignee` to set the project's default assignee.
 Empty strings and `$null` values are not accepted.
 
 ```yaml
-Type: Object
+Type: User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

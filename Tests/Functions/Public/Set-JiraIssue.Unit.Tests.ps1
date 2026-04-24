@@ -131,7 +131,7 @@ InModuleScope JiraPS {
                     @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
                     @{ parameter = 'Summary'; type = 'String' }
                     @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'Assignee'; type = 'Object' }
+                    @{ parameter = 'Assignee'; type = 'AtlassianPS.JiraPS.User' }
                     @{ parameter = 'Unassign'; type = 'Switch' }
                     @{ parameter = 'UseDefaultAssignee'; type = 'Switch' }
                     @{ parameter = 'Label'; type = 'String[]' }
@@ -273,7 +273,7 @@ InModuleScope JiraPS {
                 }
 
                 It "Throws when -Assignee is given a whitespace-only string" {
-                    { Set-JiraIssue -Issue "IT-3676" -Assignee "   " } | Should -Throw -ExpectedMessage "*whitespace-only*"
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee "   " } | Should -Throw -ExpectedMessage "*empty or whitespace*"
                 }
 
                 It "Throws when -Assignee is given `$null" {

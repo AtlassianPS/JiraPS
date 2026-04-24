@@ -79,6 +79,20 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   - The historical "single Issue only" runtime guardrail (`if (@($Issue).Count -ne 1) { throw }`) was removed from cmdlets where pipeline iteration is the obviously-correct behaviour. Pipelines like `Get-JiraIssue -Query 'project = TEST' | Add-JiraIssueComment -Comment 'reviewed'` now run the cmdlet's `process` block once per piped issue, matching the rest of PowerShell. Passing an array to `-Issue` directly (e.g. `-Issue $array`) also iterates instead of throwing — this is a soft behaviour change for scripts that relied on the old guard to surface "you passed too many issues" mistakes.
   - `Add-JiraIssueLink` no longer self-shadows its loop variable (`foreach ($IssueLink in $IssueLink)` is now `foreach ($_issueLink in $IssueLink)`); the public surface is unchanged.
   - `Remove-JiraIssueAttachment` drops `ValueFromPipeline` from `-Issue` (it keeps `ValueFromPipelineByPropertyName`), so piping the output of `Get-JiraIssueAttachment` now binds correctly to `-AttachmentId` via the attachment object's `Id` property instead of mis-binding to `-Issue` and producing a transformation error.
+- **BREAKING (soft)**: The user-scoped cmdlets that previously accepted `-User` / `-UserName` / `-Owner` / `-Assignee` / `-Reporter` as `[Object]` (or `[String]`) with a polymorphic `ValidateScript` now declare a real typed parameter and use the new `[AtlassianPS.JiraPS.UserTransformation()]` attribute to coerce the bound value at parameter binding time. Affected cmdlets:
+  - `Add-JiraGroupMember` (`-UserName` → `[AtlassianPS.JiraPS.User[]]`)
+  - `Find-JiraFilter` (`-Owner` → `[AtlassianPS.JiraPS.User]`)
+  - `Invoke-JiraIssueTransition` (`-Assignee` → `[AtlassianPS.JiraPS.User]`)
+  - `New-JiraIssue` (`-Assignee` → `[AtlassianPS.JiraPS.User]`, `-Reporter` → `[AtlassianPS.JiraPS.User]`)
+  - `Remove-JiraGroupMember` (`-User` → `[AtlassianPS.JiraPS.User[]]`)
+  - `Remove-JiraUser` (`-User` → `[AtlassianPS.JiraPS.User]`)
+  - `Set-JiraIssue` (`-Assignee` → `[AtlassianPS.JiraPS.User]`)
+  - `Set-JiraUser` (`-User` → `[AtlassianPS.JiraPS.User]`)
+  The private `Resolve-JiraUser` helper switched its `-InputObject` to the same shape.
+  - The transformer accepts: an existing `[AtlassianPS.JiraPS.User]`, a non-empty identifier string (a username on Data Center, an `accountId` on Cloud — the slot is stored in `Name` and `Resolve-JiraUser` inspects the pattern at call time to dispatch to `/accountId` or `/username`), or a legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.User` `PSTypeName` (mapped to a real `User` instance for backward compatibility with hand-rolled mocks). Anything else throws an `ArgumentTransformationMetadataException` at parameter binding time with an actionable error message instead of failing later inside the cmdlet body.
+  - The internal `foreach ($_user in $User) { ... }` fan-out loops in `Set-JiraUser` and `Remove-JiraUser` are gone — pipeline iteration handles arrays naturally now (`Get-JiraGroupMember -Group dev | Remove-JiraUser -Force` runs the cmdlet's `process` block once per piped user). `Remove-JiraGroupMember` keeps its `-User` array fan-out because each user has to be paired against every `-Group` in the cross-product.
+  - `Find-JiraFilter -Owner` now resolves the user through `Resolve-JiraUser` (which handles the Cloud-vs-DC `accountId`/`username` dispatch consistently) instead of calling `Get-JiraUser -InputObject` directly.
+  - The whitespace-only rejection messages on `Set-JiraIssue -Assignee`, `Invoke-JiraIssueTransition -Assignee`, and `New-JiraIssue -Assignee`/`-Reporter` now come from the transformer (`"Cannot bind an empty or whitespace string to a User parameter."`) instead of the old per-cmdlet `ValidateScript` blocks. The contract is unchanged — empty/whitespace strings still fail at parameter binding — only the wording differs.
 
 ### Added
 

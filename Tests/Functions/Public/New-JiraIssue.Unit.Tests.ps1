@@ -124,7 +124,7 @@ InModuleScope JiraPS {
                     @{ parameter = 'Priority'; type = 'Int32' }
                     @{ parameter = 'Summary'; type = 'String' }
                     @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'Reporter'; type = 'String' }
+                    @{ parameter = 'Reporter'; type = 'User' }
                     @{ parameter = 'Label'; type = 'String[]' }
                     @{ parameter = 'Fields'; type = 'PSObject' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
@@ -302,7 +302,7 @@ InModuleScope JiraPS {
                     { New-JiraIssue @newParams } | Should -Not -Throw
 
                     Should -Invoke Resolve-JiraUser -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                        $InputObject -eq 'testUsername'
+                        $InputObject.Name -eq 'testUsername'
                     }
                 }
 
@@ -343,7 +343,7 @@ InModuleScope JiraPS {
                     # opaque server error; rejecting at the cmdlet boundary is
                     # both clearer and consistent with Set-JiraIssue's contract.
                     { New-JiraIssue @noReporterParams -Reporter '   ' } |
-                        Should -Throw -ExpectedMessage "*whitespace-only string*"
+                        Should -Throw -ExpectedMessage "*empty or whitespace*"
                 }
 
                 It "throws a friendly error when Resolve-JiraUser returns nothing" {
@@ -375,7 +375,8 @@ InModuleScope JiraPS {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
                     Mock Resolve-JiraUser -ModuleName JiraPS {
-                        $object = [PSCustomObject]@{ 'Name' = $InputObject }
+                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name } else { [string]$InputObject }
+                        $object = [PSCustomObject]@{ 'Name' = $name }
                         $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                         return $object
                     }
@@ -407,8 +408,9 @@ InModuleScope JiraPS {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
                     Mock Resolve-JiraUser -ModuleName JiraPS {
+                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name } else { [string]$InputObject }
                         $object = [PSCustomObject]@{
-                            'Name'      = $InputObject
+                            'Name'      = $name
                             'AccountId' = '5b10ac8d82e05b22cc7d4ef5'
                         }
                         $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
@@ -473,7 +475,7 @@ InModuleScope JiraPS {
 
                 It "throws a friendly error when -Assignee is whitespace-only" {
                     { New-JiraIssue @newParams -Assignee '   ' } |
-                        Should -Throw -ExpectedMessage "*whitespace-only string*"
+                        Should -Throw -ExpectedMessage "*empty or whitespace*"
                 }
 
                 It "throws when Resolve-JiraUser returns nothing for -Assignee" {

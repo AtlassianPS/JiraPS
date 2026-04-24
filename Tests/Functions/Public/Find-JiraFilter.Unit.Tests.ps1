@@ -98,7 +98,7 @@ InModuleScope JiraPS {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = "Name"; type = "String[]" }
                     @{ parameter = "AccountId"; type = "String" }
-                    @{ parameter = "Owner"; type = "Object" }
+                    @{ parameter = "Owner"; type = "AtlassianPS.JiraPS.User" }
                     @{ parameter = "GroupName"; type = "String" }
                     @{ parameter = "Project"; type = "Object" }
                     @{ parameter = "Fields"; type = "String[]" }
@@ -106,7 +106,9 @@ InModuleScope JiraPS {
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
                     $command | Should -HaveParameter $parameter
-                    # Type validation would go here if needed
+                    if ($parameter -eq 'Owner') {
+                        $command.Parameters[$parameter].ParameterType.FullName | Should -Be $type
+                    }
                 }
             }
 
@@ -223,8 +225,12 @@ InModuleScope JiraPS {
                         $URI -like '*rest/api/*/filter/search*'
                     } -Exactly 1
 
+                    # Resolve-JiraUser routes a Name-only stub through
+                    # Get-JiraUser -UserName (DC) or -AccountId (Cloud).
+                    # The Find-JiraFilter mock setup leaves Test-JiraCloudServer
+                    # at its default behaviour, so we accept either dispatch.
                     Should -Invoke Get-JiraUser -ModuleName JiraPS -ParameterFilter {
-                        $InputObject -eq $mockOwner.Name
+                        $UserName -contains $mockOwner.Name -or $AccountId -contains $mockOwner.Name
                     } -Exactly 1
                 }
             }

@@ -217,6 +217,39 @@ namespace AtlassianPS.JiraPS
         }
     }
 
+    // Internal helper shared by every JiraPS argument transformer. PowerShell's
+    // ArgumentTransformationAttribute is invoked once with whatever the caller
+    // typed at the call site — that may be a single value OR an enumerable
+    // bound to a [Type[]] parameter (e.g. -User $a, $b on Remove-JiraGroupMember).
+    // For singular parameters the per-element transform is enough; for array
+    // parameters we walk the enumerable so each element is transformed in
+    // isolation and PowerShell's element coercion sees the right runtime type.
+    internal static class JiraTransform
+    {
+        public static object TransformOrFanout(object inputData, Func<object, object> perItem)
+        {
+            if (inputData == null) return null;
+
+            var pso = inputData as System.Management.Automation.PSObject;
+            object value = pso != null ? pso.BaseObject : inputData;
+
+            // Strings are IEnumerable<char>; treat them as scalars.
+            if (value is string) { return perItem(inputData); }
+
+            // Hashtables are IEnumerable<DictionaryEntry>; never fan-out.
+            if (value is System.Collections.IDictionary) { return perItem(inputData); }
+
+            if (value is System.Collections.IEnumerable enumerable)
+            {
+                var results = new System.Collections.Generic.List<object>();
+                foreach (var item in enumerable) { results.Add(perItem(item)); }
+                return results.ToArray();
+            }
+
+            return perItem(inputData);
+        }
+    }
+
     // ArgumentTransformationAttribute lets cmdlets type their parameters as
     // [AtlassianPS.JiraPS.Issue] while still accepting an issue-key string at
     // the call site. The attribute wraps strings in a stub Issue (Key only),
@@ -229,7 +262,17 @@ namespace AtlassianPS.JiraPS
     // produce a less helpful "Cannot convert" message.
     public sealed class IssueTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
     {
+        // No fan-out: every consumer of [IssueTransformation] declares the
+        // parameter as singular [AtlassianPS.JiraPS.Issue]. Passing an array
+        // directly stays a hard error (existing test contract — pipeline-iterate
+        // instead). UserTransformation does fan out because Remove-JiraGroupMember
+        // legitimately takes [User[]].
         public override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
+        {
+            return TransformOne(inputData);
+        }
+
+        private static object TransformOne(object inputData)
         {
             if (inputData == null) return null;
 
@@ -272,6 +315,72 @@ namespace AtlassianPS.JiraPS
 
             throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
                 "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Issue. Expected an issue-key string or an existing AtlassianPS.JiraPS.Issue object.",
+                value.GetType().FullName));
+        }
+    }
+
+    // Same idea as IssueTransformationAttribute, for User-typed parameters.
+    // Accepts an existing User, a non-empty identifier string (a username on
+    // DC, an accountId on Cloud — Resolve-JiraUser inspects the slot pattern
+    // at call time and routes the GET accordingly), or a legacy PSCustomObject
+    // tagged as AtlassianPS.JiraPS.User. Anything else throws a transformer
+    // error so the caller sees an actionable message at parameter binding.
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class UserTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
+    {
+        public override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
+        {
+            return JiraTransform.TransformOrFanout(inputData, TransformOne);
+        }
+
+        private static object TransformOne(object inputData)
+        {
+            if (inputData == null) return null;
+
+            var pso = inputData as System.Management.Automation.PSObject;
+            object value = pso != null ? pso.BaseObject : inputData;
+
+            if (value is User) return value;
+
+            if (value is string identifier)
+            {
+                if (string.IsNullOrWhiteSpace(identifier))
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "Cannot bind an empty or whitespace string to a User parameter.");
+                }
+                // Store the raw identifier in Name; Resolve-JiraUser inspects
+                // it at call time and dispatches to /accountId or /username
+                // based on the detected platform — same semantics as the
+                // legacy ValidateScript code path.
+                return new User { Name = identifier };
+            }
+
+            // Legacy PSCustomObject masquerading as a User (PSTypeName trick).
+            if (pso != null && pso.TypeNames != null && pso.TypeNames.Contains("AtlassianPS.JiraPS.User"))
+            {
+                var user = new User();
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "Key": case "key": user.Key = prop.Value as string; break;
+                        case "AccountId": case "accountId": user.AccountId = prop.Value as string; break;
+                        case "AccountType": case "accountType": user.AccountType = prop.Value as string; break;
+                        case "Name": case "name": user.Name = prop.Value as string; break;
+                        case "DisplayName": case "displayName": user.DisplayName = prop.Value as string; break;
+                        case "EmailAddress": case "emailAddress": user.EmailAddress = prop.Value as string; break;
+                        case "TimeZone": case "timeZone": user.TimeZone = prop.Value as string; break;
+                        case "Locale": case "locale": user.Locale = prop.Value as string; break;
+                        case "RestUrl": case "RestURL":
+                            user.RestUrl = prop.Value as string; break;
+                    }
+                }
+                return user;
+            }
+
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
+                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.User. Expected a username/accountId string or an existing AtlassianPS.JiraPS.User object.",
                 value.GetType().FullName));
         }
     }

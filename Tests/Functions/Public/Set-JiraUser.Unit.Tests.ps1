@@ -65,7 +65,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'User'; type = 'Object[]' }
+                    @{ parameter = 'User'; type = 'User' }
                     @{ parameter = 'DisplayName'; type = 'String' }
                     @{ parameter = 'EmailAddress'; type = 'String' }
                     @{ parameter = 'Active'; type = 'Boolean' }

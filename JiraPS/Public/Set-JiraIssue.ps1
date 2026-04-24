@@ -20,16 +20,9 @@
         $FixVersion,
 
         [Parameter( ParameterSetName = 'AssignToUser' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
-                    throw "The -Assignee value cannot be a whitespace-only string. Use -Unassign to remove the assignee, or -UseDefaultAssignee for the project default."
-                }
-                $true
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
+        [AtlassianPS.JiraPS.User]
         $Assignee,
 
         [Parameter( ParameterSetName = 'Unassign' )]

@@ -18,7 +18,7 @@ Creates a new issue in JIRA
 
 ```powershell
 New-JiraIssue -Project <string> -IssueType <string> -Summary <string> [-Priority <int>]
- [-Description <string>] [-Reporter <string>] [-Assignee <Object>] [-Label <string[]>]
+ [-Description <string>] [-Reporter <User>] [-Assignee <User>] [-Label <string[]>]
  [-Parent <string>] [-FixVersion <string[]>] [-Fields <psobject>] [-Components <string[]>]
  [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
@@ -27,7 +27,7 @@ New-JiraIssue -Project <string> -IssueType <string> -Summary <string> [-Priority
 
 ```powershell
 New-JiraIssue -Project <string> -IssueType <string> -Summary <string> [-Priority <int>]
- [-Description <string>] [-Reporter <string>] [-Unassign] [-Label <string[]>] [-Parent <string>]
+ [-Description <string>] [-Reporter <User>] [-Unassign] [-Label <string[]>] [-Parent <string>]
  [-FixVersion <string[]>] [-Fields <psobject>] [-Components <string[]>] [-Credential <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
@@ -125,7 +125,7 @@ on this cmdlet because the create endpoint already does the right thing when the
 To create an issue with no assignee, use `-Unassign` instead.
 
 ```yaml
-Type: Object
+Type: User
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []
@@ -386,7 +386,7 @@ If omitted, Jira will apply the default reporter (typically the currently authen
 Empty, `$null`, and whitespace-only values are rejected at parameter binding.
 
 ```yaml
-Type: String
+Type: User
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []

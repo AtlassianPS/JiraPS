@@ -43,6 +43,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | Class slot type tightening   | Boolean / numeric slots on `Filter` and `Version` are now strongly typed; missing flags surface as `$false` instead of `$null`. |
 | `Version.StartDate` / `Version.ReleaseDate` | Empty-string sentinel for missing dates dropped; the slots are now `[DateTime?]` and `$null` when absent. |
 | Issue-scoped cmdlets         | `-Issue` (and `-InputObject` on `Get-JiraIssue` / `Remove-JiraIssue`) is now `[AtlassianPS.JiraPS.Issue]` with a custom transformer; arrays / pipelines iterate the `process` block per item instead of throwing. |
+| User-scoped cmdlets          | `-User` / `-UserName` / `-Owner` on `Set-JiraUser`, `Remove-JiraUser`, `Add-JiraGroupMember`, `Remove-JiraGroupMember`, and `Find-JiraFilter` are now strongly-typed `[AtlassianPS.JiraPS.User]` / `[AtlassianPS.JiraPS.User[]]` with a custom transformer. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -463,6 +464,86 @@ Get-JiraIssueAttachment -Issue TEST-1 | Remove-JiraIssueAttachment
 
 In v2 the same call mis-bound the attachment object to `-Issue` and surfaced a
 type-conversion error.
+
+### Strongly-typed `-User` parameter on user-scoped cmdlets
+
+The public cmdlets that previously accepted `-User` / `-UserName` / `-Owner` /
+`-Assignee` / `-Reporter` as `[Object]` (or `[String]`) with a polymorphic
+`[ValidateScript]` block now declare a real typed parameter and use the new
+`[AtlassianPS.JiraPS.UserTransformation()]` attribute to coerce the bound value
+at parameter binding time:
+
+| Cmdlet                       | Parameter   | v2 declaration                | v3 declaration                |
+| ---------------------------- | ----------- | ----------------------------- | ----------------------------- |
+| `Add-JiraGroupMember`        | `-UserName` | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.User[]]` |
+| `Find-JiraFilter`            | `-Owner`    | `[Object]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
+| `Invoke-JiraIssueTransition` | `-Assignee` | `[Object]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
+| `New-JiraIssue`              | `-Assignee` | `[Object]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
+| `New-JiraIssue`              | `-Reporter` | `[String]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
+| `Remove-JiraGroupMember`     | `-User`     | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.User[]]` |
+| `Remove-JiraUser`            | `-User`     | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.User]`   |
+| `Set-JiraIssue`              | `-Assignee` | `[Object]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
+| `Set-JiraUser`               | `-User`     | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.User]`   |
+
+The transformer accepts:
+
+- An existing `[AtlassianPS.JiraPS.User]` instance (returned as-is).
+- A non-empty identifier string — wrapped in a stub `User` whose `Name` slot
+  holds the raw identifier; `Resolve-JiraUser` inspects it at call time and
+  dispatches to `/accountId` or `/username` based on the detected platform
+  (Cloud vs Data Center).
+- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.User`
+  `PSTypeName` — its scalar slots are mapped to a real `User` instance so
+  hand-rolled v2 mocks keep working without changes.
+
+Anything else throws an `ArgumentTransformationMetadataException` at parameter
+binding time with an actionable message.
+
+#### Pipeline iteration replaces internal fan-out
+
+`Set-JiraUser` and `Remove-JiraUser` previously had an internal
+`foreach ($_user in $User) { ... }` loop. With a single typed `[User]`
+parameter and `ValueFromPipeline`, PowerShell already iterates the `process`
+block once per piped item, so the inner loop is gone:
+
+##### v2 / v3 — both behave identically
+
+```powershell
+Get-JiraGroupMember -Group dev | Remove-JiraUser -Force
+'alice', 'bob' | Set-JiraUser -DisplayName 'New Name'
+```
+
+`Remove-JiraGroupMember` keeps the `-User` array fan-out because each user has
+to be paired against every `-Group` in the cross-product:
+
+```powershell
+Remove-JiraGroupMember -Group 'dev', 'qa' -User 'alice', 'bob' -Force
+```
+
+#### `Find-JiraFilter -Owner` resolution
+
+`Find-JiraFilter -Owner` now resolves the user through `Resolve-JiraUser`
+(which handles the Cloud-vs-DC `accountId`/`username` dispatch consistently)
+instead of calling `Get-JiraUser -InputObject` directly. The public surface
+is unchanged for callers; the only observable difference is that an unknown
+owner is now rejected with the standard `Resolve-JiraUser` error message.
+
+#### Whitespace error message on issue-scoped `-Assignee` / `-Reporter`
+
+`Set-JiraIssue -Assignee`, `Invoke-JiraIssueTransition -Assignee`, and
+`New-JiraIssue -Assignee`/`-Reporter` previously rejected empty-or-whitespace
+strings with cmdlet-specific `ValidateScript` messages such as
+*"The -Assignee value cannot be a whitespace-only string. Use -Unassign…"*.
+The contract is unchanged — empty/whitespace strings still fail at parameter
+binding — but the wording now comes from the shared transformer:
+
+```
+Cannot bind an empty or whitespace string to a User parameter.
+```
+
+Scripts that asserted on the old wording (e.g.
+`Should -Throw -ExpectedMessage '*whitespace-only string*'`) need to be
+relaxed to `*empty or whitespace*`.
 
 ### Minimum PowerShell Version
 

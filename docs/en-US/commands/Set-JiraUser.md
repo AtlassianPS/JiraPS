@@ -17,14 +17,14 @@ Modifies user properties in JIRA
 ### ByNamedParameters (Default)
 
 ```powershell
-Set-JiraUser [-User] <Object[]> [-DisplayName <string>] [-EmailAddress <string>] [-Active <bool>]
+Set-JiraUser [-User] <User> [-DisplayName <string>] [-EmailAddress <string>] [-Active <bool>]
  [-Credential <pscredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByHashtable
 
 ```powershell
-Set-JiraUser [-User] <Object[]> [-Property] <hashtable> [-Credential <pscredential>] [-PassThru]
+Set-JiraUser [-User] <User> [-Property] <hashtable> [-Credential <pscredential>] [-PassThru]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -211,7 +211,7 @@ HelpMessage: ''
 Username or user object obtained from `Get-JiraUser`.
 
 ```yaml
-Type: Object[]
+Type: User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

@@ -9,29 +9,10 @@
         [string]$AccountId,
 
         [Parameter(ParameterSetName = 'ByOwner', ValueFromPipelineByPropertyName)]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("AtlassianPS.JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraUser'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Owner. Expected [AtlassianPS.JiraPS.User] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
         [Alias('UserName')]
-        [Object]
+        [AtlassianPS.JiraPS.User]
         $Owner,
 
         [Parameter(ValueFromPipelineByPropertyName)]
@@ -96,7 +77,7 @@
             $parameter['GetParameter']['accountId'] = $AccountId
         }
         elseif ($PSCmdlet.ParameterSetName -eq 'ByOwner') {
-            $userObj = Get-JiraUser -InputObject $Owner -Credential $Credential -ErrorAction Stop
+            $userObj = Resolve-JiraUser -InputObject $Owner -Exact -Credential $Credential -ErrorAction Stop
             $parameter['GetParameter']['accountId'] = $userObj.AccountId
         }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('GroupName')) {
