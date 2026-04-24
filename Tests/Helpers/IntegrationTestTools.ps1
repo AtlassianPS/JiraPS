@@ -313,9 +313,20 @@ function Connect-JiraTestServer {
         Write-Verbose "Connected to Jira Cloud: $($Environment.CloudUrl)"
     }
     else {
+        # Server / Data Center: send Basic auth proactively via the Authorization
+        # header instead of relying on `Invoke-WebRequest -Credential`. PowerShell's
+        # -Credential parameter uses challenge-response auth (it sends the first
+        # request with no auth and only retries with credentials if the server
+        # responds with `WWW-Authenticate: Basic realm="..."`). Atlassian Seraph on
+        # /rest/api/2/myself does not always advertise Basic in its 401 response, so
+        # the retry never happens and the JiraPS session is never established. The
+        # explicit Authorization header bypasses that handshake and is the same
+        # mechanism Wait-JiraServer.ps1 uses successfully against the same image.
         $secure = ConvertTo-SecureString -String $Environment.Password -AsPlainText -Force
         $cred = New-Object System.Management.Automation.PSCredential($Environment.Username, $secure)
-        $session = New-JiraSession -Credential $cred
+        $authPair = "$($Environment.Username):$($Environment.Password)"
+        $basicAuthHeader = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($authPair))
+        $session = New-JiraSession -Credential $cred -Headers @{ Authorization = $basicAuthHeader }
         if (-not $session) {
             throw "Failed to establish Jira session. Check credentials and server URL. For Jira Data Center, CI_JIRA_ADMIN_PASSWORD must be the admin user's password (default: 'admin' for the moveworkforward/atlas-run-standalone image)."
         }
