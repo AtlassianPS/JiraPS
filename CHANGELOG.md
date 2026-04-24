@@ -46,6 +46,8 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Added "Automation and CI/CD" section to authentication documentation with programmatic SecureString examples (#576)
 - Added `ConvertTo-JiraTable` as the descriptive replacement for `Format-Jira`.
   The new name reflects what the cmdlet actually does: it returns a `[String]` of Jira wiki-markup table syntax, not a host-only `Format-*` display object.
+- Added optional second authenticated session (`Connect-JiraTestServerAsNormalUser`) and `Tests/Integration/Permissions.Integration.Tests.ps1` for permission-boundary integration tests.
+  Configure with `JIRA_CLOUD_USERNAME_NORMAL` / `JIRA_CLOUD_PASSWORD_NORMAL`; tests skip silently when these env vars are absent.
 
 ### Changed
 
