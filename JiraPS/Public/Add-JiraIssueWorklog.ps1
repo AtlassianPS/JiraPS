@@ -78,8 +78,10 @@
         # which is required by the API
         $DateStarted = [DateTime]::new($DateStarted.Ticks, 'Local')
 
+        $isCloud = Test-JiraCloudServer -Credential $Credential
+
         $requestBody = @{
-            'comment'          = $Comment
+            'comment'          = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
             # We need to fix the date with a RegEx replace because the API does not like:
             # * miliseconds with more than 3 digits
             # * `:` in the TimeZone
@@ -100,7 +102,7 @@
         $parameter = @{
             URI        = $resourceURi -f $issueObj.RestURL
             Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $requestBody
+            Body       = ConvertTo-Json -InputObject $requestBody -Depth 20
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

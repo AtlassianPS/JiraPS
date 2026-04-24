@@ -92,6 +92,8 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 throw "Unidentified call to Invoke-JiraMethod"
             }
+
+            Mock Test-JiraCloudServer -ModuleName JiraPS { return $false }
             #endregion Mocks
         }
 
@@ -159,6 +161,33 @@ InModuleScope JiraPS {
                 Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                     $Body -match '"started":\s*"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[\+\-]\d{4}"'
                 } -Exactly -Times 3
+            }
+
+            Context "Cloud vs Data Center comment shape" {
+                It "sends a plain-string comment on Server / Data Center" {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { return $false }
+
+                    Add-JiraIssueWorklog -Comment 'Spent on *fix*' -Issue $issueKey -TimeSpent "00:10:00" -DateStarted "2018-01-01" | Out-Null
+
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $payload.comment -is [string] -and $payload.comment -eq 'Spent on *fix*'
+                    }
+                }
+
+                It "wraps the comment in an Atlassian Document Format document on Cloud" {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { return $true }
+
+                    Add-JiraIssueWorklog -Comment 'Spent on the fix' -Issue $issueKey -TimeSpent "00:10:00" -DateStarted "2018-01-01" | Out-Null
+
+                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $payload.comment.type -eq 'doc' -and
+                        $payload.comment.version -eq 1 -and
+                        $payload.comment.content[0].type -eq 'paragraph' -and
+                        $payload.comment.content[0].content[0].text -eq 'Spent on the fix'
+                    }
+                }
             }
         }
 
