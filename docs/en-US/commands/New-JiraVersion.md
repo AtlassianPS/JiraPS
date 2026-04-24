@@ -24,7 +24,7 @@ New-JiraVersion [-InputObject] <Version> [-Credential <pscredential>] [-WhatIf] 
 ### byParameters
 
 ```powershell
-New-JiraVersion [-Name] <string> [-Project] <Object> [-Description <string>] [-Archived <bool>]
+New-JiraVersion [-Name] <string> [-Project] <Project> [-Description <string>] [-Archived <bool>]
  [-Released <bool>] [-ReleaseDate <datetime>] [-StartDate <datetime>] [-Credential <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
@@ -197,7 +197,7 @@ HelpMessage: ''
 The Project ID
 
 ```yaml
-Type: Object
+Type: Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

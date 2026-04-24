@@ -100,7 +100,7 @@ InModuleScope JiraPS {
                     @{ parameter = "AccountId"; type = "String" }
                     @{ parameter = "Owner"; type = "AtlassianPS.JiraPS.User" }
                     @{ parameter = "GroupName"; type = "String" }
-                    @{ parameter = "Project"; type = "Object" }
+                    @{ parameter = "Project"; type = "AtlassianPS.JiraPS.Project" }
                     @{ parameter = "Fields"; type = "String[]" }
                     @{ parameter = "Sort"; type = "String" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }

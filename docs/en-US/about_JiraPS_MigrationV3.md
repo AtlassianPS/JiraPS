@@ -48,6 +48,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | Group-scoped cmdlets         | `-Group` on `Add-JiraGroupMember`, `Get-JiraGroupMember`, `Remove-JiraGroup`, and `Remove-JiraGroupMember` is now strongly-typed `[AtlassianPS.JiraPS.Group[]]` with a custom transformer. |
 | Version-scoped cmdlets       | `-Version` / `-After` / `-InputObject` / `-InputVersion` on `Get-JiraVersion`, `Move-JiraVersion`, `New-JiraVersion`, `Remove-JiraVersion`, and `Set-JiraVersion` are now strongly-typed `[AtlassianPS.JiraPS.Version]` / `[AtlassianPS.JiraPS.Version[]]` with a custom transformer. |
 | Filter-scoped cmdlets        | `-InputObject` on `Get-JiraFilter` and `-Filter` on `Get-JiraIssue` are now strongly-typed `[AtlassianPS.JiraPS.Filter]` / `[AtlassianPS.JiraPS.Filter[]]` with a custom transformer. |
+| Project-scoped cmdlets       | `-Project` on `Get-JiraComponent`, `Find-JiraFilter`, `New-JiraVersion`, and `Set-JiraVersion` is now strongly-typed `[AtlassianPS.JiraPS.Project]` / `[AtlassianPS.JiraPS.Project[]]` with a custom transformer. |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -749,6 +750,74 @@ foreach ($object in $InputObject) {
 `Get-JiraIssue -Filter` no longer round-trips through `Get-JiraFilter
 -InputObject` either; it calls `Get-JiraFilter -Id $Filter.ID` directly,
 removing one layer of indirection.
+
+### Strongly-typed `-Project` parameter on project-scoped cmdlets
+
+The four project-scoped public cmdlets that previously declared `-Project` as
+`[Object]`/`[Object[]]` with a polymorphic `[ValidateScript]` block (accepting
+an `AtlassianPS.JiraPS.Project` `PSTypeName`, an `[Int]` ID, or a `[String]`
+key) now declare a real typed parameter and use the new
+`[AtlassianPS.JiraPS.ProjectTransformation()]` attribute against it:
+
+| Cmdlet            | Parameter   | v2 declaration                  | v3 declaration                    |
+| ----------------- | ----------- | ------------------------------- | --------------------------------- |
+| `Get-JiraComponent` | `-Project` | `[Object[]]` + ValidateScript   | `[AtlassianPS.JiraPS.Project[]]`  |
+| `Find-JiraFilter`   | `-Project` | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Project]`    |
+| `New-JiraVersion`   | `-Project` | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Project]`    |
+| `Set-JiraVersion`   | `-Project` | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Project]`    |
+
+The transformer accepts:
+
+- An existing `[AtlassianPS.JiraPS.Project]` instance (returned as-is).
+- A numeric scalar (any integer width — Jira project IDs are integral on the
+  wire) — wrapped in a stub `Project` whose `ID` is set.
+- A non-empty string — treated as a project key, matching the historic call-
+  site contract that forwarded the raw value to `Get-JiraProject -Project` or
+  to `/project/{idOrKey}` URLs (project keys are uppercase letters; numeric IDs
+  go through the integer overload above).
+- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Project`
+  `PSTypeName` (or the historical `JiraPS.Project` for hand-rolled v2 mocks).
+
+Empty or whitespace-only strings now fail at parameter binding with:
+
+```
+Cannot bind an empty or whitespace string to a Project parameter.
+```
+
+#### Adapter blocks removed
+
+`Find-JiraFilter`, `New-JiraVersion`, and `Set-JiraVersion` used to massage
+`[Object]` input into a project ID by re-querying the server:
+
+##### v2
+
+```powershell
+if ($Project.Id) {
+    $projectId = $Project.Id
+}
+else {
+    $projectObj = Get-JiraProject -Project $Project
+    $projectId  = $projectObj.Id
+}
+$requestBody["projectId"] = $projectId
+```
+
+##### v3
+
+```powershell
+# $Project is always a real [AtlassianPS.JiraPS.Project]
+if ($Project.Id) {
+    $requestBody["projectId"] = $Project.Id
+}
+elseif ($Project.Key) {
+    # Cloud v3 / DC v2 create endpoints accept the key under "project"
+    $requestBody["project"] = $Project.Key
+}
+```
+
+`Get-JiraComponent -Project` reads `$_project.Key` (or `$_project.ID` when only
+an ID was bound) and inlines it into the `/project/{idOrKey}/components` URL —
+no separate `Get-JiraProject` round-trip.
 
 ### Minimum PowerShell Version
 

@@ -656,4 +656,87 @@ namespace AtlassianPS.JiraPS
                 value.GetType().FullName));
         }
     }
+
+    // Same shape as the other transformers, for Project-typed parameters.
+    // Accepts an existing Project, a string (treated as a project Key — every
+    // -Project consumer historically forwarded the string straight to either
+    // a /project/{key} URL or to Get-JiraProject -Project, both of which take
+    // keys), a numeric scalar (treated as a project ID), or a legacy
+    // PSCustomObject tagged as AtlassianPS.JiraPS.Project. The cmdlet body is
+    // responsible for picking Key vs ID based on what the underlying REST
+    // endpoint expects.
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class ProjectTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
+    {
+        public override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
+        {
+            return JiraTransform.TransformOrFanout(inputData, TransformOne);
+        }
+
+        private static object TransformOne(object inputData)
+        {
+            if (inputData == null) return null;
+
+            var pso = inputData as System.Management.Automation.PSObject;
+            object value = pso != null ? pso.BaseObject : inputData;
+
+            if (value is Project) return value;
+
+            // Numeric scalars are unambiguously project IDs (Jira project IDs
+            // are integral on the wire; project keys are uppercase letters).
+            if (value is int || value is long || value is short || value is byte
+                || value is uint || value is ulong || value is ushort || value is sbyte)
+            {
+                return new Project { ID = System.Convert.ToInt64(value).ToString(System.Globalization.CultureInfo.InvariantCulture) };
+            }
+
+            if (value is string str)
+            {
+                if (string.IsNullOrWhiteSpace(str))
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "Cannot bind an empty or whitespace string to a Project parameter.");
+                }
+                // Historic behaviour: every -Project consumer forwarded the raw
+                // string to either /project/{idOrKey} URLs or to Get-JiraProject
+                // -Project (which is documented as taking a key). Wrap as Key so
+                // the call sites continue to work without per-cmdlet branching
+                // on "did the user pass an ID or a key?".
+                return new Project { Key = str };
+            }
+
+            // Legacy PSCustomObject masquerading as a Project (PSTypeName trick).
+            if (pso != null && pso.TypeNames != null && (pso.TypeNames.Contains("AtlassianPS.JiraPS.Project") || pso.TypeNames.Contains("JiraPS.Project")))
+            {
+                var project = new Project();
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "ID": case "Id": case "id": project.ID = prop.Value as string ?? (prop.Value != null ? prop.Value.ToString() : null); break;
+                        case "Key": case "key": project.Key = prop.Value as string; break;
+                        case "Name": case "name": project.Name = prop.Value as string; break;
+                        case "Description": case "description": project.Description = prop.Value as string; break;
+                        case "Lead": case "lead":
+                            project.Lead = prop.Value as User; break;
+                        case "RestUrl": case "RestURL": case "self":
+                            project.RestUrl = prop.Value as string; break;
+                        case "Style": case "style":
+                            project.Style = prop.Value as string; break;
+                        case "ProjectTypeKey": case "projectTypeKey":
+                            project.ProjectTypeKey = prop.Value as string; break;
+                        case "Url": case "url":
+                            project.Url = prop.Value as string; break;
+                        case "Email": case "email":
+                            project.Email = prop.Value as string; break;
+                    }
+                }
+                return project;
+            }
+
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
+                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Project. Expected a project-key string, a numeric ID, or an existing AtlassianPS.JiraPS.Project object.",
+                value.GetType().FullName));
+        }
+    }
 }

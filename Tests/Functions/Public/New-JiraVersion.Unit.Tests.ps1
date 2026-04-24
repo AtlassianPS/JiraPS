@@ -112,7 +112,7 @@ InModuleScope JiraPS {
                     @{ parameter = 'Released'; type = 'Boolean' }
                     @{ parameter = 'ReleaseDate'; type = 'DateTime' }
                     @{ parameter = 'StartDate'; type = 'DateTime' }
-                    @{ parameter = 'Project'; type = 'Object' }
+                    @{ parameter = 'Project'; type = 'Project' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)

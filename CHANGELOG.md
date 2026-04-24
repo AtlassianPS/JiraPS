@@ -120,6 +120,15 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   - Empty or whitespace-only strings now fail at parameter binding (`"Cannot bind an empty or whitespace string to a Filter parameter."`) instead of silently passing through and producing an opaque server error.
   - The `if ('AtlassianPS.JiraPS.Filter' -in $object.PSObject.TypeNames) { $thisId = $object.ID } else { $thisId = $object.ToString() }` adapter block in `Get-JiraFilter` is gone — the typed parameter is always a real `Filter` instance, so the body reads `$object.ID` directly.
   - `Get-JiraIssue -Filter` no longer round-trips through `Get-JiraFilter -InputObject`; it calls `Get-JiraFilter -Id $Filter.ID` directly.
+- **BREAKING (soft)**: The four project-scoped cmdlets that previously accepted `-Project` as `[Object]`/`[Object[]]` (with a polymorphic `ValidateScript` accepting an `AtlassianPS.JiraPS.Project` PSTypeName, an `[Int]` ID, or a `[String]` project key) now declare a real typed parameter and use the new `[AtlassianPS.JiraPS.ProjectTransformation()]` attribute to coerce the bound value at parameter binding time. Affected cmdlets:
+  - `Get-JiraComponent` (`-Project` → `[AtlassianPS.JiraPS.Project[]]`)
+  - `Find-JiraFilter` (`-Project` → `[AtlassianPS.JiraPS.Project]`)
+  - `New-JiraVersion` (`-Project` → `[AtlassianPS.JiraPS.Project]`)
+  - `Set-JiraVersion` (`-Project` → `[AtlassianPS.JiraPS.Project]`)
+  - The transformer accepts: an existing `[AtlassianPS.JiraPS.Project]`; a numeric scalar (any integer width — Jira project IDs are integral on the wire, so the value is wrapped in a stub `Project` whose `ID` is set); a non-empty string (treated as a project key, matching the historic call-site contract that forwarded the raw value to `Get-JiraProject -Project` or to `/project/{idOrKey}` URLs); or a legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Project` (or, for backward compatibility with hand-rolled mocks, the historical `JiraPS.Project`) `PSTypeName`.
+  - Empty or whitespace-only strings now fail at parameter binding (`"Cannot bind an empty or whitespace string to a Project parameter."`) instead of silently passing through and producing an opaque server error.
+  - The internal `if ($Project.Id) { ... } else { Get-JiraProject -Project $Project }` adapter blocks in `Find-JiraFilter`, `New-JiraVersion`, and `Set-JiraVersion` are gone — the typed parameter is always a real `Project` instance, so the body reads `$Project.Id` / `$Project.Key` directly. `New-JiraVersion` and `Set-JiraVersion` prefer `projectId` (when the numeric ID is known) and fall back to the v2/v3 `project` field (which accepts the project key) when only the key is bound.
+  - `Get-JiraComponent -Project` reads `$_project.Key` (or `$_project.ID` when only an ID was bound) and inlines it into the `/project/{idOrKey}/components` URL — no separate `Get-JiraProject` round-trip.
 
 ### Added
 

@@ -19,27 +19,9 @@
         [string]$GroupName,
 
         [Parameter(ValueFromPipelineByPropertyName)]
-        [ValidateScript(
-            {
-                if (("AtlassianPS.JiraPS.Project" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraProject'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [AtlassianPS.JiraPS.Project] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.ProjectTransformation()]
+        [AtlassianPS.JiraPS.Project]
         $Project,
 
         [Validateset('description', 'favourite', 'favouritedCount', 'jql', 'owner', 'searchUrl', 'sharePermissions', 'subscriptions', 'viewUrl')]
@@ -84,8 +66,16 @@
             $parameter['GetParameter']['groupName'] = $GroupName
         }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Project')) {
-            $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
-            $parameter['GetParameter']['projectId'] = $projectObj.Id
+            if ($Project.Id) {
+                # Caller passed a Project that already had its numeric ID
+                # (either a real object or a numeric scalar coerced by the
+                # transformer); use it directly and skip the lookup.
+                $parameter['GetParameter']['projectId'] = $Project.Id
+            }
+            else {
+                $projectObj = Get-JiraProject -Project $Project.Key -Credential $Credential -ErrorAction Stop
+                $parameter['GetParameter']['projectId'] = $projectObj.Id
+            }
         }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Sort')) {
             $parameter['GetParameter']['orderBy'] = $Sort

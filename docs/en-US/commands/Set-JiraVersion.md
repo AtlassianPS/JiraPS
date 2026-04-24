@@ -17,7 +17,7 @@ Modifies an existing Version in JIRA
 ```powershell
 Set-JiraVersion [-Version] <Version[]> [[-Name] <string>] [[-Description] <string>]
  [[-Archived] <bool>] [[-Released] <bool>] [[-ReleaseDate] <datetime>] [[-StartDate] <datetime>]
- [[-Project] <Object>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-Project] <Project>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -158,7 +158,7 @@ The new Project where this version should be in.
 This can be the ID of the Project, or the Project Object
 
 ```yaml
-Type: Object
+Type: Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
