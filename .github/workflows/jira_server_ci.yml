@@ -2,9 +2,10 @@ name: Jira Server (Data Center) Integration Tests
 
 # DC track: lazy-bootstrapped Docker, ~5 min Jira boot + tests.
 # Mirrors integration_tests.yml (the Cloud track) but runs against a Dockerized
-# addono/jira-software-standalone:8.17.1 container instead of a live Cloud instance,
-# so it needs no secrets and exercises the Data Center code paths the Cloud track
-# cannot cover.
+# Jira Data Center booted from the addono/jira-software-standalone:latest image
+# (the Jira version itself is pinned in docker-compose.yml via the entrypoint
+# `--version` argument), so it needs no secrets and exercises the Data Center
+# code paths the Cloud track cannot cover.
 on:
   pull_request:
     branches:

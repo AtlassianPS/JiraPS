@@ -14,7 +14,7 @@ The integration suite has two deployment targets:
 | Track | Target | Auth | Trigger |
 |-------|--------|------|---------|
 | **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | `.github/workflows/integration_tests.yml` |
-| **Server** | A Dockerized Jira Data Center instance (`addono/jira-software-standalone:8.17.1`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` |
+| **Server** | A Dockerized Jira Data Center instance (`addono/jira-software-standalone:latest`, Jira version pinned to `8.17.1` via the entrypoint in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` |
 
 The `CI_JIRA_TYPE` environment variable selects the track.
 Setting `CI_JIRA_TYPE=Server` switches `Initialize-IntegrationEnvironment`, `Connect-JiraTestServer`, and the `TestIntegration` build task to the Server-track configuration; the default (`Cloud`) preserves existing behaviour.
