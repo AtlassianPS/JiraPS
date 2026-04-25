@@ -537,40 +537,106 @@ function New-TemporaryTestIssue {
         Description = "Temporary test issue created by JiraPS integration tests. Safe to delete."
     }
 
-    # Probe createmeta for fields that are required AND lack a server-side
-    # default. The Cloud track's default project usually has none, so this
-    # is a no-op there. The Server track's `jira-core-task-management`
-    # template tightens a handful of fields (Reporter, sometimes Priority
-    # or a custom field), and we have to supply them explicitly because
-    # New-JiraIssue's client-side validator will refuse to send the request
-    # otherwise.
-    $extraFields = @{}
+    $extras = Get-MinimumValidIssueParameter -Fixtures $Fixtures -IssueType $IssueType -SkipFieldId @('description')
+    if ($extras.Reporter) { $issueParams.Reporter = $extras.Reporter }
+    if ($extras.Fields -and $extras.Fields.Count -gt 0) { $issueParams.Fields = $extras.Fields }
+
+    $issue = New-JiraIssue @issueParams
+    Write-Verbose "Created temporary test issue: $($issue.Key)"
+    return $issue
+}
+
+function Get-MinimumValidIssueParameter {
+    <#
+    .SYNOPSIS
+        Resolves the project- and issuetype-specific extras that `New-JiraIssue`
+        needs in order to create an issue without tripping its client-side
+        required-field validator.
+
+    .DESCRIPTION
+        Probes `Get-JiraIssueCreateMetadata` for the project's chosen issue
+        type and computes minimal valid values for any field marked
+        `required: true` that does NOT carry `hasDefaultValue: true`. The
+        returned hashtable is splat-friendly: `-Reporter` is exposed at the
+        top level (matching `New-JiraIssue`'s native parameter), and any
+        other tightened fields land in a `-Fields` sub-hashtable.
+
+        This mirrors the logic the Atlassian REST docs document for
+        "minimum required payload": Project / IssueType / Summary plus
+        whatever extras the project's field configuration tightened. On
+        Cloud (and most Server installs) the default Task project has no
+        extras and this returns an empty result. On the moveworkforward
+        AMPS standalone image the `jira-core-task-management` template
+        marks Reporter (and occasionally Priority) as required with no
+        default value, so this helper supplies them.
+
+        Tests should call this BEFORE invoking `New-JiraIssue` so the
+        resulting cmdlet call exercises the cmdlet end-to-end without
+        flapping on cross-deployment field configuration drift.
+
+    .PARAMETER Fixtures
+        Test fixtures from `Get-TestFixture`. Provides `TestProject` and
+        `TestUser` (the latter is the candidate `Reporter` value).
+
+    .PARAMETER IssueType
+        The issue type to probe. Defaults to 'Task'.
+
+    .PARAMETER SkipFieldId
+        Field IDs that the caller will provide explicitly and that should
+        therefore be skipped from the required-no-default sweep (e.g. when
+        the caller already supplies `-Description`, pass `'description'`).
+
+    .OUTPUTS
+        Hashtable with the optional keys:
+        - Reporter: a string suitable for `New-JiraIssue -Reporter`
+        - Fields:   a hashtable suitable for `New-JiraIssue -Fields`
+
+    .EXAMPLE
+        $extras = Get-MinimumValidIssueParameter -Fixtures $fixtures
+        $params = @{ Project = $fixtures.TestProject; IssueType = 'Task'; Summary = 'foo' }
+        if ($extras.Reporter) { $params.Reporter = $extras.Reporter }
+        if ($extras.Fields)   { $params.Fields   = $extras.Fields }
+        $issue = New-JiraIssue @params
+    #>
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter()]
+        [hashtable]$Fixtures,
+
+        [Parameter()]
+        [string]$IssueType = 'Task',
+
+        [Parameter()]
+        [string[]]$SkipFieldId = @()
+    )
+
+    if (-not $Fixtures) { $Fixtures = Get-TestFixture }
+
+    $result = @{ Reporter = $null; Fields = @{} }
+
+    if ([string]::IsNullOrEmpty($Fixtures.TestProject)) { return $result }
+
     try {
         $createmeta = Get-JiraIssueCreateMetadata -Project $Fixtures.TestProject -IssueType $IssueType -ErrorAction Stop -Debug:$false
     }
     catch {
-        Write-Verbose "New-TemporaryTestIssue: createmeta probe failed ($($_.Exception.Message)); falling back to bare create payload."
-        $createmeta = @()
+        Write-Verbose "Get-MinimumValidIssueParameter: createmeta probe failed ($($_.Exception.Message)); returning empty extras."
+        return $result
     }
+
+    # Fields the New-JiraIssue parameter set already covers via top-level switches.
+    $alwaysProvidedById = @('project', 'issuetype', 'summary') + @($SkipFieldId | Where-Object { $_ })
 
     foreach ($field in @($createmeta)) {
         if (-not $field.Required) { continue }
         if ($field.HasDefaultValue) { continue }
-        # Project / issuetype / summary are always set above.
-        if ($field.Id -in @('project', 'issuetype', 'summary')) { continue }
-        # Description is set above.
-        if ($field.Id -eq 'description') { continue }
+        if ($field.Id -in $alwaysProvidedById) { continue }
 
         if ($field.Id -eq 'reporter') {
-            # Resolve to the current authenticated user. Wait-JiraServer.ps1
-            # provisions a normal `jira_user` on the Server track; on Cloud
-            # the test account is the only candidate. Either way the test
-            # session was opened as `$Fixtures.TestUser` (or the admin
-            # username when no separate normal user is configured), so use
-            # that as the reporter.
             $reporterCandidate = if ($Fixtures.TestUser) { $Fixtures.TestUser } else { $env:CI_JIRA_ADMIN }
             if ($reporterCandidate) {
-                $issueParams.Reporter = $reporterCandidate
+                $result.Reporter = $reporterCandidate
                 continue
             }
         }
@@ -578,30 +644,22 @@ function New-TemporaryTestIssue {
         $allowed = @($field.AllowedValues)
         if ($allowed.Count -gt 0) {
             $first = $allowed[0]
-            # Jira accepts either {"name": "..."} (priorities, statuses) or
-            # {"id": "..."} (most option fields). Prefer id since it is
-            # universally accepted and avoids name-collision surprises.
-            $extraFields[$field.Id] = if ($first.id) { @{ id = "$($first.id)" } } else { @{ name = "$($first.name)" } }
+            # Prefer {id:...} since it is universally accepted; fall back to {name:...}.
+            $result.Fields[$field.Id] = if ($first.id) { @{ id = "$($first.id)" } } else { @{ name = "$($first.name)" } }
             continue
         }
 
         switch -Regex ($field.Schema.type) {
-            '^string$' { $extraFields[$field.Id] = "JiraPS-IntTest default for $($field.Name)"; break }
-            '^number$' { $extraFields[$field.Id] = 0; break }
-            '^array$' { $extraFields[$field.Id] = @(); break }
+            '^string$' { $result.Fields[$field.Id] = "JiraPS-IntTest default for $($field.Name)"; break }
+            '^number$' { $result.Fields[$field.Id] = 0; break }
+            '^array$' { $result.Fields[$field.Id] = @(); break }
             default {
-                Write-Warning "New-TemporaryTestIssue: required field [$($field.Name)] (id=[$($field.Id)], type=[$($field.Schema.type)]) has no AllowedValues, no HasDefaultValue, and no schema-derived default; New-JiraIssue may still reject the create call. Pass a custom -Fields entry to fix the project-specific case."
+                Write-Warning "Get-MinimumValidIssueParameter: required field [$($field.Name)] (id=[$($field.Id)], type=[$($field.Schema.type)]) has no AllowedValues, no HasDefaultValue, and no schema-derived default; New-JiraIssue may still reject the create call."
             }
         }
     }
 
-    if ($extraFields.Count -gt 0) {
-        $issueParams.Fields = $extraFields
-    }
-
-    $issue = New-JiraIssue @issueParams
-    Write-Verbose "Created temporary test issue: $($issue.Key)"
-    return $issue
+    return $result
 }
 
 function Remove-StaleTestResource {
