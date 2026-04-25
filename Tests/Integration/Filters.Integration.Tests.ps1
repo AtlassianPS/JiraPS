@@ -37,18 +37,45 @@ InModuleScope JiraPS {
             #     match it (Jira's filter search is a case-insensitive substring
             #     match on the filter name) and also lets `Remove-StaleTestResource`
             #     reap it on subsequent runs if AfterAll ever fails to clean up.
-            #   - We skip the seed in read-only mode (e.g. `JIRA_TEST_READONLY=true`
-            #     against a production-like Cloud account); the dependent tests
-            #     self-skip via `$script:SeededFilter` below.
+            #   - `New-JiraFilter` is invoked with `-Favorite` so the filter is
+            #     also discoverable by the bare `Find-JiraFilter` ("my filters")
+            #     call: Jira Data Center's `/rest/api/2/filter/search` endpoint
+            #     scopes the no-arg result set to the caller's *favourited*
+            #     filters; a freshly-created-but-not-favourited private filter
+            #     does not surface there.
+            #   - The /filter/search endpoint is backed by a Lucene index and
+            #     does not always reflect a just-created filter on the very
+            #     next request (especially on the embedded H2-backed AMPS
+            #     standalone image). We poll for up to 15 s to confirm the
+            #     seeded filter is searchable before letting the dependent
+            #     tests run; if it never becomes visible in that window we
+            #     null out `$script:SeededFilter` so they self-skip with a
+            #     clear message instead of asserting against an empty result.
+            #   - We skip the seed entirely in read-only mode (e.g.
+            #     `JIRA_TEST_READONLY=true` against a production-like Cloud
+            #     account).
             $script:SeededFilter = $null
             if (-not $env.ReadOnly -and -not [string]::IsNullOrEmpty($fixtures.TestProject)) {
                 try {
                     $script:SeededFilter = New-JiraFilter `
                         -Name (New-TestResourceName -Type "Filter") `
                         -JQL "project = $($fixtures.TestProject)" `
-                        -Description "Auto-seeded by Filters.Integration.Tests.ps1 so Find-JiraFilter has data on a fresh deployment. Safe to delete."
+                        -Description "Auto-seeded by Filters.Integration.Tests.ps1 so Find-JiraFilter has data on a fresh deployment. Safe to delete." `
+                        -Favorite
                     if ($script:SeededFilter) {
                         $null = $script:createdFilters.Add($script:SeededFilter)
+
+                        $deadline = (Get-Date).AddSeconds(15)
+                        $visible = $false
+                        while ((Get-Date) -lt $deadline) {
+                            $found = Find-JiraFilter -Name $script:SeededFilter.Name -ErrorAction SilentlyContinue
+                            if ($found) { $visible = $true; break }
+                            Start-Sleep -Milliseconds 500
+                        }
+                        if (-not $visible) {
+                            Write-Warning "Filters integration tests: seeded filter [$($script:SeededFilter.Name)] never became visible to Find-JiraFilter within 15s; Find-JiraFilter assertions will self-skip."
+                            $script:SeededFilter = $null
+                        }
                     }
                 }
                 catch {

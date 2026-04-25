@@ -82,8 +82,17 @@ jobs:
     # Boot budget: pulling the ~1.2 GB image (~1 min on a warm runner), Maven
     # dependency verification (~3 min), Tomcat 10.1.44 startup + jira.war
     # extraction + plugin scan + first-time DB init (~5-10 min on cold boot).
-    # The 30 min cap leaves ~10-15 min for the actual Pester tests.
-    timeout-minutes: 30
+    # The full Server-tagged Pester suite (~150 tests across 25+ files, run via
+    # `Tests/Invoke-ParallelPester.ps1` with ThrottleLimit=4) currently takes
+    # ~15-20 min end-to-end against the H2-backed AMPS standalone image — most
+    # of that is the per-test issue/version provisioning round-trip latency,
+    # which is gated on Lucene reindex commits inside the embedded Jira and
+    # cannot meaningfully be parallelised further without sharding workers
+    # across multiple containers. The 60 min cap therefore leaves a comfortable
+    # ~40-45 min margin for the actual Pester run on cold-boot CI runs while
+    # still surfacing genuine hangs (the runner kills on its own well before
+    # the 6 hr GitHub Actions hard ceiling).
+    timeout-minutes: 60
     env:
       CI_JIRA_TYPE: Server
       CI_JIRA_URL: http://localhost:2990/jira

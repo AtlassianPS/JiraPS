@@ -13,10 +13,16 @@
     - A project with a workflow that has at least one available transition
     - Ability to create issues (JIRA_TEST_READONLY must be false)
 
-    The default Jira Cloud "Task" workflow typically includes:
-    - "To Do" -> "In Progress" (transition)
-    - "In Progress" -> "Done" (transition)
-    - "In Progress" -> "To Do" (transition back)
+    The tests do *not* hardcode transition or status names. Each `It` block
+    discovers the available transitions on its target issue at runtime
+    (via `Get-JiraIssue -Key $key | Select -ExpandProperty Transition`) and
+    selects a transition based on the destination state exposed via the
+    `ResultStatus.Name` property of the `JiraPS.Transition` object. This
+    keeps the suite green across the various workflows that ship with
+    different Jira flavours: the Cloud Software default ("To Do" -> "In
+    Progress" -> "Done"), the AMPS standalone bundle's jira-core template
+    ("Open" -> "In Progress" -> "Resolved"), and any custom workflow the
+    auto-provisioned fixture project might land on.
 #>
 
 BeforeDiscovery {
@@ -196,19 +202,30 @@ InModuleScope JiraPS {
                 }
 
                 $targetTransition = $availableTransitions[0]
-                $commentText = "Transition comment added at $(Get-Date)"
+                # Tag the comment with a unique marker so we can find it deterministically.
+                # `Get-JiraIssueComment` returns *all* comments on the issue and the prior
+                # transition tests in this Context share `$transitionIssue` and may have
+                # already added their own audit-log entries; relying on `Select -Last 1`
+                # is racy because Jira Server orders comments by `created` and identical
+                # timestamps can swap places between the API write and the read-back. The
+                # marker also rules out the possibility of a stale cached comment matching
+                # the previous incarnation of this test.
+                $marker = "TransitionMarker-{0}" -f ([guid]::NewGuid())
+                $commentText = "Transition comment $marker added at $(Get-Date)"
 
-                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition.Id -Comment $commentText } |
+                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition.Id -Comment $commentText -ErrorAction Stop } |
                     Should -Not -Throw
 
                 $comments = Get-JiraIssueComment -Issue $issue.Key
-                $latestComment = $comments | Select-Object -Last 1
-                $latestComment.Body | Should -Match "Transition comment"
+                $matchingComment = @($comments) | Where-Object {
+                    $_.Body -and ($_.Body -match [regex]::Escape($marker))
+                }
+                $matchingComment | Should -Not -BeNullOrEmpty -Because "the transition payload included an update.comment.add block carrying our marker [$marker]"
             }
         }
 
         Context "Transition Cycle" -Skip:$SkipWrite {
-            It "completes a full transition cycle (To Do -> In Progress -> To Do)" {
+            It "completes a transition cycle by picking transitions that change state" {
                 if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
                     Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                     return
@@ -217,27 +234,58 @@ InModuleScope JiraPS {
                 $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "TransitionCycle")
                 $null = $script:createdIssues.Add($issue.Key)
 
-                $initialStatus = $issue.Status.Name
                 $issue = Get-JiraIssue -Key $issue.Key
+                $initialStatus = $issue.Status.Name
                 $availableTransitions = $issue.Transition
 
-                if (-not $availableTransitions -or $availableTransitions.Count -eq 0) {
+                if (-not $availableTransitions) {
                     Set-ItResult -Skipped -Because "No transitions available for new issue"
                     return
                 }
 
-                $firstTransition = $availableTransitions[0]
-                Invoke-JiraIssueTransition -Issue $issue.Key -Transition $firstTransition.Id
+                # `JiraPS.Transition` exposes the destination state via `ResultStatus.Name`
+                # (populated by `ConvertTo-JiraTransition` from the `to` block of
+                # `/rest/api/2/issue/{id}/transitions`). A naive `[0]` pick races with the
+                # workflow definition: on the moveworkforward AMPS image the jira-core
+                # template's first available transition can be a self-loop or a guarded
+                # conditional that resolves to the current state on a freshly-created
+                # issue, which would silently no-op the assertion below. Filter to
+                # transitions whose destination differs from the current state so this
+                # test is workflow-agnostic.
+                $forwardTransitions = @($availableTransitions | Where-Object {
+                        $_.ResultStatus -and $_.ResultStatus.Name -and $_.ResultStatus.Name -ne $initialStatus
+                    })
+
+                if (-not $forwardTransitions) {
+                    Set-ItResult -Skipped -Because "No state-changing transitions available from initial status [$initialStatus]"
+                    return
+                }
+
+                $firstTransition = $forwardTransitions[0]
+                $expectedAfterFirst = $firstTransition.ResultStatus.Name
+                Invoke-JiraIssueTransition -Issue $issue.Key -Transition $firstTransition.Id -ErrorAction Stop
 
                 $afterFirst = Get-JiraIssue -Key $issue.Key
-                $afterFirst.Status.Name | Should -Not -Be $initialStatus
+                $afterFirst.Status.Name | Should -Be $expectedAfterFirst -Because "we picked transition [$($firstTransition.Name)] which targets [$expectedAfterFirst]"
 
-                $backTransitions = $afterFirst.Transition
-                if ($backTransitions -and $backTransitions.Count -gt 0) {
-                    Invoke-JiraIssueTransition -Issue $issue.Key -Transition $backTransitions[0].Id
+                # Try to cycle to *another* state. Prefer a transition that lands back on
+                # the original status (true round-trip) but accept any state-changing
+                # transition: many simplified workflows are linear (To Do -> In Progress
+                # -> Done with no direct backward edge) and the bidirectional capability
+                # is what we actually want to exercise on this code path.
+                $backCandidates = @($afterFirst.Transition | Where-Object {
+                        $_.ResultStatus -and $_.ResultStatus.Name -and $_.ResultStatus.Name -ne $afterFirst.Status.Name
+                    })
+
+                if ($backCandidates) {
+                    $preferred = $backCandidates | Where-Object { $_.ResultStatus.Name -eq $initialStatus } | Select-Object -First 1
+                    $secondTransition = if ($preferred) { $preferred } else { $backCandidates[0] }
+                    $expectedAfterSecond = $secondTransition.ResultStatus.Name
+
+                    Invoke-JiraIssueTransition -Issue $issue.Key -Transition $secondTransition.Id -ErrorAction Stop
 
                     $afterSecond = Get-JiraIssue -Key $issue.Key
-                    $afterSecond.Status.Name | Should -Not -Be $afterFirst.Status.Name
+                    $afterSecond.Status.Name | Should -Be $expectedAfterSecond -Because "we picked transition [$($secondTransition.Name)] which targets [$expectedAfterSecond]"
                 }
             }
         }
