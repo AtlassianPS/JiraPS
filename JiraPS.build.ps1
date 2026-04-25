@@ -19,7 +19,14 @@ param(
     # Integration test parameters
     [Parameter()]
     [ValidateRange(1, 16)]
-    [Int] $ThrottleLimit = 4
+    [Int] $ThrottleLimit = 4,
+
+    # Optional list of test files / directories to scope the TestIntegration task to.
+    # Defaults to ./Tests/Integration/ (the whole suite). The Server-track CI workflow
+    # uses this to restrict execution to the Server smoke suite while the AMPS standalone
+    # image cannot bootstrap a fixture project (see jira_server_ci.yml for the rationale).
+    [Parameter()]
+    [String[]] $IntegrationTestPath
 )
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force
@@ -590,6 +597,11 @@ See Tests/Integration/README.md for integration test configuration details.
         ThrottleLimit = $ThrottleLimit
         Output        = $PesterVerbosity
         OutputPath    = "IntegrationTests.xml"
+    }
+
+    if ($IntegrationTestPath) {
+        $runnerParams.Path = $IntegrationTestPath
+        Write-Build Gray "Restricting integration tests to: $($IntegrationTestPath -join ', ')"
     }
 
     # Default to Integration tag if no tag specified

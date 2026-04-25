@@ -21,6 +21,8 @@ The integration suite has two deployment targets:
 > **Apple Silicon — switch to the native arm64 build.** The default `jira-11` tag is the multi-arch amd64 build that CI uses; on Apple Silicon set `JIRA_IMAGE_TAG=jira-11-arm64` in your `.env` to pull the native arm64 build (~3 GB compressed) and avoid QEMU emulation overhead. Both tags ship the same SDK + Jira version.
 >
 > **Why this image and not `addono/jira-software-standalone`.** The older `addono` image's bundled Plugin SDK 8.2.8 (frozen since 2021) calls the retired `marketplace.atlassian.com/.../atlassian-plugin-sdk-rpm` endpoint at boot and dies before Jira starts; `moveworkforward` ships SDK 9.6.0 which talks to the still-live `packages.atlassian.com` Artifactory and actually boots end-to-end. `pycontribs/jira` hit the same `addono` wall — see their [PR #2376 "(server seems to be pretty hard tbh)"](https://github.com/pycontribs/jira/pull/2376) and the `ci: remove broken workflows` follow-up.
+>
+> **AMPS standalone limitation — no fixture project.** `atlas-run-standalone` boots a bare Jira platform without the `jira-software` or `jira-core` plugins activated, so `POST /rest/api/2/project` rejects every project type with `"projectType": "An invalid project type was specified..."`. `Tools/Wait-JiraServer.ps1` therefore treats project creation as best-effort: it logs the failure and exits 0. The Server CI workflow currently runs only the smoke suite (`Tests/Integration/Server.Integration.Tests.ps1`), which is purpose-built to skip its CRUD test when no fixture project exists. Enabling the broader `Server`-tagged suite needs either a Jira image that ships `jira-software` pre-activated, or an SQL/`dbconfig.xml` seeding step — tracked as a follow-up.
 
 The `CI_JIRA_TYPE` environment variable selects the track.
 Setting `CI_JIRA_TYPE=Server` switches `Initialize-IntegrationEnvironment`, `Connect-JiraTestServer`, and the `TestIntegration` build task to the Server-track configuration; the default (`Cloud`) preserves existing behaviour.
@@ -47,12 +49,18 @@ The Server track is fully self-contained — no secrets, no live Jira, just Dock
 ```powershell
 Invoke-Build -Task StartJiraDocker     # ~5 min on first run while image pulls + Jira boots
 $env:CI_JIRA_TYPE = 'Server'
-Invoke-Build -Task TestIntegration -Tag 'Server'
+
+# Smoke suite only (matches CI). This is the recommended Server-track invocation
+# until a fixture-project seeding strategy is in place.
+Invoke-Build -Task TestIntegration -IntegrationTestPath ./Tests/Integration/Server.Integration.Tests.ps1
+
 Invoke-Build -Task StopJiraDocker
 ```
 
 `StartJiraDocker` runs `docker compose up -d` against the repo-root `docker-compose.yml` and then invokes `Tools/Wait-JiraServer.ps1` to poll until Jira is reachable and to provision the regular test user (`jira_user/jira`).
 `StopJiraDocker` runs `docker compose down -v` to discard the container and its volumes.
+
+`Invoke-Build -Task TestIntegration -Tag 'Server'` (without `-IntegrationTestPath`) still works locally if you want to see how the broader Server-tagged tests behave against the standalone image — most will fail because they need the `TEST` fixture project that the AMPS standalone image cannot host. See the *AMPS standalone limitation* note above.
 
 ### CI scheduling
 
