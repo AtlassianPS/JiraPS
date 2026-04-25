@@ -60,15 +60,29 @@ InModuleScope JiraPS {
                 $rendered | Should -Be $original
             }
 
-            It "returns an empty string verbatim (does not wrap)" {
+            It "returns an empty string verbatim (text node cannot be empty)" {
                 $result = Resolve-JiraTextFieldPayload -Text '' -IsCloud $true
                 $result | Should -BeOfType [string]
                 $result | Should -Be ''
             }
 
-            It "returns a whitespace-only string verbatim (does not wrap)" {
-                $result = Resolve-JiraTextFieldPayload -Text "   `n  " -IsCloud $true
-                $result | Should -BeOfType [string]
+            It "wraps a whitespace-only string in a single ADF paragraph" {
+                $whitespace = "   `n  "
+                $result = Resolve-JiraTextFieldPayload -Text $whitespace -IsCloud $true
+
+                $result | Should -BeOfType [hashtable]
+                $result.type | Should -Be 'doc'
+                $result.version | Should -Be 1
+                $result.content.Count | Should -Be 1
+                $result.content[0].type | Should -Be 'paragraph'
+                $result.content[0].content[0].type | Should -Be 'text'
+                $result.content[0].content[0].text | Should -Be $whitespace
+            }
+
+            It "wraps a single space in an ADF paragraph (preserves caller intent)" {
+                $result = Resolve-JiraTextFieldPayload -Text ' ' -IsCloud $true
+                $result | Should -BeOfType [hashtable]
+                $result.content[0].content[0].text | Should -Be ' '
             }
 
             It "returns `$null verbatim" {
@@ -76,16 +90,40 @@ InModuleScope JiraPS {
                 $result | Should -BeNullOrEmpty
             }
 
-            It "warns when input looks like wiki-markup table syntax" {
+            It "warns when input contains a wiki-markup table header (||header||)" {
                 $warnings = $null
                 $null = Resolve-JiraTextFieldPayload -Text "||a||b||`n|1|2|" -IsCloud $true -WarningVariable warnings -WarningAction SilentlyContinue
                 $warnings | Should -Not -BeNullOrEmpty
                 ($warnings | Out-String) | Should -Match 'wiki-markup table'
             }
 
+            It "warns even when the wiki-table header is indented" {
+                $warnings = $null
+                $null = Resolve-JiraTextFieldPayload -Text "  ||a||b||`n  |1|2|" -IsCloud $true -WarningVariable warnings -WarningAction SilentlyContinue
+                $warnings | Should -Not -BeNullOrEmpty
+            }
+
             It "does not warn for valid Markdown tables" {
                 $warnings = $null
                 $null = Resolve-JiraTextFieldPayload -Text "| a | b |`n| --- | --- |`n| 1 | 2 |" -IsCloud $true -WarningVariable warnings -WarningAction SilentlyContinue
+                $warnings | Should -BeNullOrEmpty
+            }
+
+            It "does not warn for prose that contains a single pipe in the middle of a line" {
+                $warnings = $null
+                $null = Resolve-JiraTextFieldPayload -Text "use the | operator to pipe output" -IsCloud $true -WarningVariable warnings -WarningAction SilentlyContinue
+                $warnings | Should -BeNullOrEmpty
+            }
+
+            It "does not warn for a Markdown-style data row without a header / separator (no double-pipe)" {
+                # Single-pipe rows are ambiguous (could be a misformatted Markdown
+                # table or a wiki-markup data row). The tightened heuristic only
+                # fires on the unambiguous `||header||` form, so this passes
+                # through silently — the converter does the right thing for real
+                # Markdown tables and the worst case for malformed input is a
+                # paragraph that renders the literal pipes.
+                $warnings = $null
+                $null = Resolve-JiraTextFieldPayload -Text "|cell1|cell2|" -IsCloud $true -WarningVariable warnings -WarningAction SilentlyContinue
                 $warnings | Should -BeNullOrEmpty
             }
 
