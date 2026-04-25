@@ -575,6 +575,57 @@ if ($issue -and $issueTypeName) {
     }
 }
 
+# Wait for the Lucene index inside the AMPS-bundled Jira to commit the
+# seeded baseline issue before we hand control back to the test step. The
+# REST issue store accepts a POST to /rest/api/2/issue/ synchronously and
+# returns the key immediately, but JQL queries (e.g. `project = TEST`) are
+# served from a Lucene index that is updated asynchronously by the
+# IndexCopyService — typically <1s on a warm instance, but observed at
+# 1-3s on a freshly-booted AMPS H2 backend.
+#
+# Without this poll, the first JQL test that runs (currently the
+# "JQL Search :: Get-JiraIssue -Query :: Basic JQL Queries :: searches
+# for issues using JQL" case in Tests/Integration/Search.Integration.Tests.ps1)
+# can race the indexer and get an empty result set, then fail with
+# `Expected a value, but got $null or empty.` (CI run #24939216658,
+# Search.Integration.Tests.ps1:41 failed at 408ms while a sibling test
+# `key = TEST-1` succeeded ~1s later). Polling here moves the lag out
+# of the test path: by the time Wait-JiraServer.ps1 exits, the indexer
+# has already committed `key = TEST-1` to Lucene, so every downstream
+# JQL test sees a deterministic baseline.
+#
+# 60s deadline is generous (most boots converge in <2s) and keeps the
+# step total comfortably inside the 60 min job budget. If polling fails
+# we log + continue rather than `exit` — the affected tests already
+# self-skip when the search returns empty, and Cloud-track tests that
+# don't depend on Lucene still benefit from the project + issue being
+# in the issue store.
+if ($issue -and $issue.key) {
+    Write-Host "==> Waiting for Lucene to index baseline issue '$($issue.key)' (60s budget)"
+    $luceneDeadline = (Get-Date).AddSeconds(60)
+    $luceneReady = $false
+    while ((Get-Date) -lt $luceneDeadline) {
+        try {
+            $jqlBody = @{ jql = "key = $($issue.key)"; fields = @('summary'); maxResults = 1 } | ConvertTo-Json -Compress
+            $jqlResp = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/search" -Method Post -Headers $headers -ContentType 'application/json' -Body $jqlBody -TimeoutSec 30
+            if ($jqlResp.issues -and @($jqlResp.issues).Count -ge 1) {
+                $luceneReady = $true
+                $elapsed = [int]((Get-Date) - $luceneDeadline.AddSeconds(-60)).TotalSeconds
+                Write-Host "    Lucene returned the baseline issue after ~${elapsed}s"
+                break
+            }
+        }
+        catch {
+            # Transient — Tomcat may briefly 5xx during warmup. Just retry.
+            Write-Host "    JQL poll error (will retry): $($_.Exception.Message)"
+        }
+        Start-Sleep -Seconds 1
+    }
+    if (-not $luceneReady) {
+        Write-Host "    Lucene did not return '$($issue.key)' within 60s — tests that race the indexer may flake."
+    }
+}
+
 # Export the provisioned fixture identifiers to GITHUB_ENV so the next workflow
 # steps inherit them as JIRA_TEST_PROJECT / JIRA_TEST_ISSUE. This is what makes
 # the dynamic Server fixture visible to integration test files that gate on
