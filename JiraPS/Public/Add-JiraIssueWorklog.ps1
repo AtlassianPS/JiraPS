@@ -99,7 +99,7 @@
             }
         }
 
-        $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestURL -IsCloud $isCloud
+        $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
 
         $parameter = @{
             URI        = $resourceURi -f $issueRestUrl
