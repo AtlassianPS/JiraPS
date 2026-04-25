@@ -962,6 +962,17 @@ InModuleScope JiraPS {
                     $result.Attachment | Should -Not -BeNullOrEmpty
                     $result.Attachment[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Attachment'
                 }
+
+                It "converts status field to a JiraPS.Status object" {
+                    $result.Status | Should -Not -BeNullOrEmpty
+                    $result.Status.PSObject.TypeNames[0] | Should -Be 'JiraPS.Status'
+                    $result.Status.Name | Should -Be 'Open'
+                    $result.Status.Id | Should -Be 1
+                }
+
+                It "preserves the status name via ToString() so legacy '\$issue.Status' rendering keeps working" {
+                    "$($result.Status)" | Should -Be 'Open'
+                }
             }
 
             Context "Pipeline Support" {
