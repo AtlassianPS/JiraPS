@@ -390,20 +390,26 @@ InModuleScope JiraPS {
 
         Describe "Field catalogue" {
             It "fetches the field catalogue once per call regardless of how many keys -Fields contains" {
-                {
-                    Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
-                        customfield_12345 = 'foo'
-                        customfield_67890 = 'bar'
-                    }
-                } | Should -Not -Throw
+                # Direct call (not wrapped in `{ } | Should -Not -Throw`) so a
+                # regression that throws inside the cmdlet surfaces with the
+                # actual ErrorRecord and stack trace instead of a generic
+                # "expected nothing, got terminating error" message.
+                Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                    customfield_12345 = 'foo'
+                    customfield_67890 = 'bar'
+                }
 
-                # Refactored to mirror New-/Set-JiraIssue: pre-fetch the
-                # full catalogue and look each requested key up in an
-                # in-memory hashtable instead of per-key Get-JiraField
-                # round-trips.
+                # Two assertions, deliberately:
+                #   1. The catalogue is fetched exactly once (no -Field
+                #      filter), mirroring the New-/Set-JiraIssue pattern.
+                #   2. Get-JiraField is invoked exactly once IN TOTAL —
+                #      catches a regression where someone re-introduces
+                #      per-key `Get-JiraField -Field $name` lookups (those
+                #      would slip past the filtered assertion above).
                 Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                     -not $PSBoundParameters.ContainsKey('Field')
                 }
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
             }
         }
     }

@@ -987,11 +987,21 @@ InModuleScope JiraPS {
 
                 It "derives HttpUrl from each issue's own 'self' (not the whole batch)" {
                     # Regression: ConvertTo-JiraIssue used to compute HttpUrl
-                    # from $InputObject.self, which is the array's combined
-                    # member-access result when -InputObject is bound with
-                    # multiple issues. -split on the array silently produced a
-                    # garbled HttpUrl that mixed paths from sibling issues.
-                    # Fixed by reading $i.self (the current pipeline item).
+                    # from $InputObject.self, which broadcasts member-access
+                    # across the array when -InputObject is bound directly
+                    # with multiple issues (the path Get-JiraIssue uses for
+                    # ByJQL / ByFilter results from Invoke-JiraMethod).
+                    # `(@($a.self, $b.self) -split 'rest')[0]` returns only
+                    # the FIRST issue's prefix, so every issue in the batch
+                    # silently inherited issue[0]'s server URL — issue B's
+                    # HttpUrl became "http://A/browse/B-2".
+                    #
+                    # Pipeline binding (`@($a, $b) | ConvertTo-JiraIssue`)
+                    # does NOT trigger the bug because each item flows
+                    # through `process` individually, so $InputObject is a
+                    # single-element array on every call. Reproducing the
+                    # regression therefore requires direct -InputObject
+                    # array binding.
                     $other = ConvertFrom-Json -InputObject (
                         $sampleJson `
                             -replace '"self": "(.*?)/rest/api/2/issue/320391"', '"self": "https://other.example.com/rest/api/2/issue/999999"' `
@@ -999,7 +1009,7 @@ InModuleScope JiraPS {
                             -replace '"key": "JRA-37294"', '"key": "OTHER-1"'
                     )
 
-                    $result = @($sampleObject, $other) | ConvertTo-JiraIssue
+                    $result = ConvertTo-JiraIssue -InputObject @($sampleObject, $other)
 
                     $result | Should -HaveCount 2
                     $result[0].HttpUrl | Should -Be "$jiraServer/browse/JRA-37294"
