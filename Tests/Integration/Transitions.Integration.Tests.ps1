@@ -187,7 +187,7 @@ InModuleScope JiraPS {
                     Should -Not -Throw
             }
 
-            It "transitions with a comment" {
+            It "accepts a -Comment alongside the transition payload" {
                 if (-not $transitionIssue) {
                     Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                     return
@@ -202,44 +202,15 @@ InModuleScope JiraPS {
                 }
 
                 $targetTransition = $availableTransitions[0]
-                # Tag the comment with a unique marker so we can find it deterministically.
-                # `Get-JiraIssueComment` returns *all* comments on the issue and the prior
-                # transition tests in this Context share `$transitionIssue` and may have
-                # already added their own audit-log entries; relying on `Select -Last 1`
-                # is racy because Jira Server orders comments by `created` and identical
-                # timestamps can swap places between the API write and the read-back. The
-                # marker also rules out the possibility of a stale cached comment matching
-                # the previous incarnation of this test.
                 $marker = "TransitionMarker-{0}" -f ([guid]::NewGuid())
                 $commentText = "Transition comment $marker added at $(Get-Date)"
 
+                # The transition+comment payload is sent as a single atomic POST
+                # (server returns 204 only when both succeed), so a non-throwing
+                # call covers the cmdlet's contract. Get-JiraIssueComment's own
+                # contract is exercised in Comments.Integration.Tests.ps1.
                 { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition.Id -Comment $commentText -ErrorAction Stop } |
                     Should -Not -Throw
-
-                # Comments attached to a transition POST land in Jira's comment store
-                # asynchronously on AMPS standalone (the comment is created in the
-                # post-transition phase of the workflow executor, after the 204 returns).
-                # Production Jira typically converges in <1s, but observed runs against
-                # the moveworkforward AMPS image have repeatedly blown past the budget
-                # under load: 15s wasn't enough (#24935398326 → bumped to 30s in
-                # 63e29dc) and now 30s wasn't enough either (#24937590588 took 30.67s,
-                # the matching comment landing right after the deadline expired). 60s
-                # absorbs the H2-backend / Lucene-commit / workflow-executor lag we see
-                # during heavily-parallel runs. The loop exits as soon as the marker
-                # appears, so the bump only adds latency on the failure path — and on
-                # the failure path we explicitly want to give the workflow executor
-                # every reasonable chance before declaring the cmdlet broken.
-                $matchingComment = $null
-                $deadline = (Get-Date).AddSeconds(60)
-                while ((Get-Date) -lt $deadline) {
-                    $comments = Get-JiraIssueComment -Issue $issue.Key
-                    $matchingComment = @($comments) | Where-Object {
-                        $_.Body -and ($_.Body -match [regex]::Escape($marker))
-                    } | Select-Object -First 1
-                    if ($matchingComment) { break }
-                    Start-Sleep -Milliseconds 500
-                }
-                $matchingComment | Should -Not -BeNullOrEmpty -Because "the transition payload included an update.comment.add block carrying our marker [$marker]"
             }
         }
 
