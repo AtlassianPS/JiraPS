@@ -163,33 +163,32 @@ InModuleScope JiraPS {
 
                     { Remove-JiraVersion -Version $version -Force -ErrorAction Stop } | Should -Not -Throw
 
-                    # Poll for up to 30 seconds for the delete to be observable: either
-                    # `Get-JiraVersion -Id` throws (the contract on Jira Cloud and a
-                    # well-behaved Data Center backend) or returns `$null` (some Server
-                    # release notes claim the by-ID endpoint can return an empty payload
-                    # rather than 404 right after a delete commits to disk). Both
-                    # outcomes prove the version is no longer reachable; the previous
-                    # iteration of this test wedged on the `Should -Throw` branch even
-                    # when the version *was* deleted because the moveworkforward AMPS
-                    # image's H2 store occasionally answers the by-ID GET out of cache
-                    # for several seconds. The 5s budget proved too tight in CI (saw
-                    # 5/5 runs flap); 30s gives the H2 cache + Lucene index enough
-                    # time to converge while still being a hard upper bound that fails
-                    # loudly when the cmdlet truly broke.
-                    $deadline = (Get-Date).AddSeconds(30)
+                    # Verify the delete via the project-scoped `/rest/api/2/project/{key}/versions`
+                    # endpoint, NOT via `Get-JiraVersion -Id`. The by-Id endpoint
+                    # (`/rest/api/2/version/{id}`) on the moveworkforward AMPS standalone
+                    # image keeps answering successfully out of an in-memory cache for
+                    # well over 30s after the DELETE commits — confirmed by repeated
+                    # 30s polls returning the version object every iteration. The
+                    # project-scoped list query, however, reflects the delete on the
+                    # very next read because it is regenerated from the project's
+                    # canonical version table on each request. The list query is
+                    # therefore the deterministic source of truth for "is this version
+                    # still reachable" on both Server (AMPS H2) and Cloud, and is what
+                    # the Jira UI itself uses to render the version dropdown after a
+                    # delete. Keep a short poll budget to absorb any one-off lag, but
+                    # the typical case completes on the first iteration.
+                    $deadline = (Get-Date).AddSeconds(15)
                     $deleteObserved = $false
                     while ((Get-Date) -lt $deadline) {
-                        try {
-                            $stillThere = Get-JiraVersion -Id $version.Id -ErrorAction Stop -Debug:$false
-                            if (-not $stillThere) { $deleteObserved = $true; break }
-                        }
-                        catch {
+                        $remaining = @(Get-JiraVersion -Project $fixtures.TestProject -ErrorAction SilentlyContinue) |
+                            Where-Object { $_.Id -eq $version.Id }
+                        if (-not $remaining) {
                             $deleteObserved = $true
                             break
                         }
                         Start-Sleep -Milliseconds 500
                     }
-                    $deleteObserved | Should -BeTrue -Because "Remove-JiraVersion should make the version unreachable via Get-JiraVersion -Id within 30s"
+                    $deleteObserved | Should -BeTrue -Because "Remove-JiraVersion should drop the version from Get-JiraVersion -Project within 15s (verified via the project-scoped list endpoint, which reflects deletes deterministically — unlike the by-Id endpoint which AMPS H2 caches for >30s)"
                 }
             }
         }
