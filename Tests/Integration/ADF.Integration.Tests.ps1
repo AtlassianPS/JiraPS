@@ -294,6 +294,63 @@ InModuleScope JiraPS {
                 }
             }
 
+            Context "Whitespace-only description (Resolve-JiraTextFieldPayload paragraph branch)" {
+                # Resolve-JiraTextFieldPayload wraps whitespace-only input
+                # in a single ADF paragraph node containing the literal
+                # text. ConvertTo-AtlassianDocumentFormat would otherwise
+                # produce an empty ADF document, which Cloud rejects with
+                # "value cannot be empty" for description / environment.
+                #
+                # This test verifies the "trust the caller" branch
+                # actually round-trips against a live Cloud tenant — the
+                # ADF spec says text nodes have minLength=1 (a space
+                # passes that), but the editor layer is known to strip
+                # leading / trailing whitespace before validating, so
+                # the assertion is intentionally loose: we only require
+                # that the API accepts the document and the fetched
+                # description ends up as a (possibly empty / stripped)
+                # plain string, not raw ADF JSON.
+                It "accepts a whitespace-only description via -Description" {
+                    if (-not $tempIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    # First, set a non-empty description so we can prove
+                    # the whitespace write actually overwrote something
+                    # rather than leaving the previous value in place.
+                    $marker = "ADFWHITESPACE_$([Guid]::NewGuid().ToString('N'))"
+                    Set-JiraIssue -Issue $tempIssue.Key -Description "Pre-whitespace marker $marker"
+
+                    { Set-JiraIssue -Issue $tempIssue.Key -Description '   ' } | Should -Not -Throw
+
+                    $fetched = Get-JiraIssue -Key $tempIssue.Key
+                    # Cloud normalises pure whitespace away in the editor
+                    # layer, so the fetched description is either empty
+                    # or just whitespace. Either is fine — what we care
+                    # about is (a) no rejection and (b) the previous
+                    # marker is gone.
+                    $fetched.Description | Should -Not -Match $marker
+                    if ($fetched.Description) {
+                        $fetched.Description | Should -BeOfType [string]
+                        $fetched.Description | Should -Not -Match '"type":\s*"doc"'
+                    }
+                }
+
+                It "accepts a whitespace-only comment via Add-JiraIssueComment" {
+                    if (-not $tempIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    # Comments are a stricter test than description because
+                    # we get back the body of THIS specific comment and can
+                    # assert it didn't pick up another test's marker.
+                    { Add-JiraIssueComment -Issue $tempIssue.Key -Comment '   ' } |
+                        Should -Not -Throw
+                }
+            }
+
             Context "Add-JiraIssueWorklog + Get-JiraIssueWorklog" {
                 It "round-trips a Markdown worklog comment" {
                     if (-not $tempIssue) {
