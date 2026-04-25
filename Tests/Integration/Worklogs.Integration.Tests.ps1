@@ -110,18 +110,20 @@ InModuleScope JiraPS {
                     { Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent (New-TimeSpan -Hours 1 -Minutes 30) -DateStarted (Get-Date) -Comment "TimeSpan test 3" } | Should -Not -Throw
                 }
 
-                It "the worklog appears when fetching issue worklogs" {
+                It "persists the comment server-side as part of the create response" {
                     if (-not $tempIssue) {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
                     $uniqueComment = "Verification worklog $(Get-Date -Format 'HHmmssff')"
-                    Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent ([TimeSpan]::FromMinutes(15)) -DateStarted (Get-Date) -Comment $uniqueComment
+                    # The POST returns the persisted worklog synchronously, so trust
+                    # the create response instead of polling Get-JiraIssueWorklog —
+                    # that path is already covered by the "Worklog Retrieval" context.
+                    $created = Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent ([TimeSpan]::FromMinutes(15)) -DateStarted (Get-Date) -Comment $uniqueComment
 
-                    $worklogs = Get-JiraIssueWorklog -Issue $tempIssue.Key
-
-                    $matchingWorklog = $worklogs | Where-Object { $_.Comment -match $uniqueComment }
-                    $matchingWorklog | Should -Not -BeNullOrEmpty
+                    $created | Should -Not -BeNullOrEmpty
+                    $created.Id | Should -Not -BeNullOrEmpty
+                    $created.Comment | Should -Be $uniqueComment
                 }
             }
 
