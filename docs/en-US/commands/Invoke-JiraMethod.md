@@ -19,7 +19,7 @@ Invoke-JiraMethod [-URI] <uri> [[-Method] <WebRequestMethod>] [[-Body] <string>]
  [[-Headers] <hashtable>] [[-GetParameter] <hashtable>] [[-InFile] <string>] [[-OutFile] <string>]
  [[-OutputType] <string>] [[-Credential] <pscredential>] [[-Cmdlet] <PSCmdlet>]
  [[-CacheKey] <string>] [[-CacheExpiry] <timespan>] [-RawBody] [-Paging]
- [-StoreSession] [-BypassCache] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+ [-StoreSession] [-BypassCache] [-TimeoutSec <int>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
  [<CommonParameters>]
 ```
 
@@ -615,6 +615,33 @@ Instead of returning the response, it returns a `[JiraPS.Session]` which contain
 ```yaml
 Type: SwitchParameter
 DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -TimeoutSec
+
+Per-request HTTP timeout, in seconds.
+Defaults to `100` (matches the historical .NET `HttpClient` default).
+
+The previous behaviour was to omit the parameter entirely, which inherits `Invoke-WebRequest`'s per-host default — `Infinite` on PowerShell 7+ — and lets a hung Jira instance block the calling pipeline indefinitely.
+Bounding the request at 100 seconds surfaces a `WebException` that callers can retry or report instead of waiting forever.
+
+Set to `0` to disable the timeout (use sparingly; reserved for caller-driven long uploads such as large attachments).
+
+```yaml
+Type: Int32
+DefaultValue: 100
 SupportsWildcards: false
 Aliases: []
 ParameterSets:

@@ -41,6 +41,8 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Added `-PersonalAccessToken` parameter to `New-JiraSession` for Personal Access Token (PAT) authentication on Jira Data Center, with `-PAT` and `-BearerToken` aliases (#576)
 - Added `-ApiToken` and `-EmailAddress` parameters to `New-JiraSession` for API token authentication on Jira Cloud (#576)
 - Added `-CacheKey`, `-CacheExpiry` (as `[TimeSpan]`), and `-BypassCache` parameters to `Invoke-JiraMethod` for built-in response caching (#576)
+- Added `-TimeoutSec` parameter to `Invoke-JiraMethod` to bound each HTTP request (default `100` seconds, `0` disables).
+  Previously the cmdlet inherited `Invoke-WebRequest`'s per-host default — `Infinite` on PowerShell 7+ — so a hung Jira instance would block the calling pipeline indefinitely.
 - Added caching to `Get-JiraField`, `Get-JiraIssueType`, and `Get-JiraPriority` with a `-Force` parameter to bypass the cache (#576)
 - Added `Clear-JiraCache` public function to clear cached API responses by type (#576)
 - Added "Automation and CI/CD" section to authentication documentation with programmatic SecureString examples (#576)

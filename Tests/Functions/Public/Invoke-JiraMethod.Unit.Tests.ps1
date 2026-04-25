@@ -172,6 +172,7 @@ InModuleScope JiraPS {
                     @{ parameter = 'OutputType' }
                     @{ parameter = 'Credential' }
                     @{ parameter = 'CmdLet' }
+                    @{ parameter = 'TimeoutSec' }
                 ) {
                     param($parameter)
                     $command | Should -HaveParameter $parameter
@@ -375,6 +376,35 @@ InModuleScope JiraPS {
                     Scope           = 'It'
                 }
                 Should -Invoke @assertMockCalledSplat
+            }
+
+            It "forwards the default 100s -TimeoutSec to Invoke-WebRequest" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/get" -ErrorAction Stop
+
+                Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
+                    $TimeoutSec -eq 100
+                } -Exactly -Times 1 -Scope It
+            }
+
+            It "forwards an explicit -TimeoutSec to Invoke-WebRequest" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/get" -TimeoutSec 30 -ErrorAction Stop
+
+                Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
+                    $TimeoutSec -eq 30
+                } -Exactly -Times 1 -Scope It
+            }
+
+            It "omits TimeoutSec from the Invoke-WebRequest splat when -TimeoutSec is 0" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/get" -TimeoutSec 0 -ErrorAction Stop
+
+                Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
+                    -not $PSBoundParameters.ContainsKey('TimeoutSec')
+                } -Exactly -Times 1 -Scope It
+            }
+
+            It "rejects a negative -TimeoutSec via ValidateRange" {
+                { Invoke-JiraMethod -URI "https://postman-echo.com/get" -TimeoutSec -1 -ErrorAction Stop } |
+                    Should -Throw -ErrorId 'ParameterArgumentValidationError,Invoke-JiraMethod'
             }
 
             It "uses ConvertTo-JiraSession to store the Session" {
