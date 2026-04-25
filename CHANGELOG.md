@@ -109,6 +109,12 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Fixed
 
+- Fixed read-cmdlet integration tests that asserted `Should -BeOfType [PSCustomObject]` on results that legitimately come back `$null` against a freshly-provisioned Data Center deployment (the Cloud track has historically shielded these from view because the long-lived Cloud project always carries leftover data). Each affected `It` block now asserts that the call itself succeeds and only type-checks the payload when there is data to inspect; the dedicated typed-shape assertion in the sibling `It` block continues to cover the populated case (often via a Add+Get round-trip from the same file). Affected tests:
+  - `Tests/Integration/Comments.Integration.Tests.ps1` -> `Get-JiraIssueComment > Reading Comments > retrieves comments from an issue`.
+  - `Tests/Integration/Attachments.Integration.Tests.ps1` -> `Get-JiraIssueAttachment > Attachment Retrieval > retrieves attachments from an issue`.
+  - `Tests/Integration/Projects.Integration.Tests.ps1` -> `Get-JiraComponent > Project Components > retrieves components for a project`.
+  - `Tests/Integration/Versions.Integration.Tests.ps1` -> `Get-JiraVersion > Project Versions > retrieves versions for a project`.
+  - `Tests/Integration/Metadata.Integration.Tests.ps1` -> `Get-JiraField > Field Retrieval > includes custom fields` (now `Set-ItResult -Skipped` when the deployment has no customfields configured, which is the default state of the AMPS standalone Jira Software image).
 - Fixed two latent bugs in `Tests/Integration/IssueLinks.Integration.Tests.ps1` that were silently failing on every deployment (Cloud and Server alike):
   - The `link types have Id, Name, Inward, and Outward properties` test asserted on `InwardDescription` / `OutwardDescription`, but `ConvertTo-JiraIssueLinkType` exposes those labels as `InwardText` / `OutwardText`. The assertion always saw `$null` and only ever passed because Cloud surfaced the failure under a different cluster. Renamed both references to the actual property names; the unit test (`ConvertTo-JiraIssueLinkType.Unit.Tests.ps1`) is the canonical contract here.
   - The `retrieves a specific link type by ID` test passed `$firstType.Id` (a `[string]`) to `Get-JiraIssueLinkType -LinkType`, which only routes through `/rest/api/2/issueLinkType/{id}` when the argument is `[Int]`; strings fall into the by-name lookup and return `$null`. Coerced the argument to `[int]` so the test exercises the documented ID branch on both Cloud and Data Center.

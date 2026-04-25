@@ -37,9 +37,17 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
+                    # `Get-JiraIssueAttachment` returns `$null` when the issue has no
+                    # attachments (the default state of the auto-provisioned baseline issue
+                    # on Data Center). Assert the call succeeds and only type-check when
+                    # there is data; the "returns attachment objects with correct type"
+                    # test below already covers the populated case via Add+Get.
+                    { Get-JiraIssueAttachment -Issue $fixtures.TestIssue } | Should -Not -Throw
 
-                    $attachments | Should -BeOfType [PSCustomObject]
+                    $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
+                    if ($attachments) {
+                        @($attachments)[0] | Should -BeOfType [PSCustomObject]
+                    }
                 }
 
                 It "returns attachment objects with correct type" {
