@@ -635,7 +635,7 @@ Task StartJiraDocker {
     $composeFile = Join-Path $env:BHProjectPath 'docker-compose.yml'
     Assert-True (Test-Path $composeFile) "docker-compose.yml not found at $composeFile"
     Write-Build Gray "Starting Jira Data Center container via $composeFile (cold start: ~5 min)..."
-    exec { docker compose -f $composeFile up -d }
+    Invoke-BuildExec { docker compose -f $composeFile up -d }
     & (Join-Path $env:BHProjectPath 'Tools/Wait-JiraServer.ps1')
 }
 
@@ -647,7 +647,7 @@ Task StopJiraDocker {
     $composeFile = Join-Path $env:BHProjectPath 'docker-compose.yml'
     Assert-True (Test-Path $composeFile) "docker-compose.yml not found at $composeFile"
     Write-Build Gray "Stopping Jira Data Center container ($composeFile)..."
-    exec { docker compose -f $composeFile down -v }
+    Invoke-BuildExec { docker compose -f $composeFile down -v }
 }
 
 Task Publish SetVersion, SignCode, Package, {

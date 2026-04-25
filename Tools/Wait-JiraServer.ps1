@@ -71,6 +71,7 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Test infrastructure: provisions a known-secret test user against a local Docker container, not a real instance')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '', Justification = 'Defaults match the moveworkforward/atlas-run-standalone image used in CI; never used against a real instance')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeRestMethod', '', Justification = 'Test infrastructure runs before the JiraPS module is loaded; AGENTS.md documents this as the one allowed Invoke-RestMethod site')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Diagnostic CI script: this file runs in jira_server_ci.yml and StartJiraDocker where the operator (CI logs / interactive shell) is the consumer. Write-Host is the correct primitive for prompt-style status banners ("==> ...", "    attempt N: ..."). Write-Output would pollute the script''s return value; Write-Verbose/-Information would be hidden by default in CI logs and obscure the boot/probe progress that humans actively read.')]
 [CmdletBinding()]
 param(
     [Parameter()]
@@ -116,7 +117,7 @@ $issueApiUrl = "$baseUrl/rest/api/2/issue"
 $pair = "${AdminUser}:${AdminPassword}"
 $encoded = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
 $headers = @{
-    Authorization = "Basic $encoded"
+    Authorization       = "Basic $encoded"
     'X-Atlassian-Token' = 'no-check'
 }
 
@@ -226,7 +227,10 @@ try {
         if (-not $default) { $default = $ps | Select-Object -First 1 }
         if ($default) { $permissionScheme = [int]$default.id }
     }
-} catch { Write-Host "    (permissionscheme lookup skipped: $($_.Exception.Message))" }
+}
+catch {
+    Write-Host "    (permissionscheme lookup skipped: $($_.Exception.Message))"
+}
 
 try {
     $iss = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issuesecurityschemes" -Method Get -Headers $headers -TimeoutSec 30
@@ -236,7 +240,10 @@ try {
         if (-not $default) { $default = $list | Select-Object -First 1 }
         if ($default) { $issueSecurityScheme = [int]$default.id }
     }
-} catch { Write-Host "    (issuesecurityschemes lookup skipped: $($_.Exception.Message))" }
+}
+catch {
+    Write-Host "    (issuesecurityschemes lookup skipped: $($_.Exception.Message))"
+}
 
 try {
     $cats = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/projectCategory" -Method Get -Headers $headers -TimeoutSec 30
@@ -245,7 +252,10 @@ try {
         if (-not $default) { $default = $cats | Select-Object -First 1 }
         if ($default) { $projectCategory = [int]$default.id }
     }
-} catch { Write-Host "    (projectCategory lookup skipped: $($_.Exception.Message))" }
+}
+catch {
+    Write-Host "    (projectCategory lookup skipped: $($_.Exception.Message))"
+}
 
 Write-Host ("    Resolved schemes: permission={0} notification={1} security={2} category={3}" -f $permissionScheme, $notificationScheme, $issueSecurityScheme, $projectCategory)
 
@@ -256,7 +266,10 @@ try {
     if ($projectTypes) {
         Write-Host ("    Available project types: {0}" -f (($projectTypes | ForEach-Object { $_.key }) -join ', '))
     }
-} catch { Write-Host "    (project/type lookup failed: $($_.Exception.Message))" }
+}
+catch {
+    Write-Host "    (project/type lookup failed: $($_.Exception.Message))"
+}
 
 try {
     $rawTemplates = Invoke-RestMethod -Uri "$baseUrl/rest/project-templates/1.0/templates" -Method Get -Headers $headers -TimeoutSec 30
@@ -264,11 +277,14 @@ try {
     if ($rawTemplates -and $rawTemplates.projectTemplates) { $count = @($rawTemplates.projectTemplates).Count }
     Write-Host ("    /rest/project-templates/1.0/templates returned {0} entries (raw type={1})" -f $count, $rawTemplates.GetType().FullName)
     if ($count -eq 0) {
-        $body = $rawTemplates | ConvertTo-Json -Depth 5 -Compress
-        if ($body.Length -gt 600) { $body = $body.Substring(0, 600) + '...' }
-        Write-Host ("    raw body: {0}" -f $body)
+        $rawBody = $rawTemplates | ConvertTo-Json -Depth 5 -Compress
+        if ($rawBody.Length -gt 600) { $rawBody = $rawBody.Substring(0, 600) + '...' }
+        Write-Host ("    raw body: {0}" -f $rawBody)
     }
-} catch { Write-Host "    (project-templates lookup failed: $($_.Exception.Message))" }
+}
+catch {
+    Write-Host "    (project-templates lookup failed: $($_.Exception.Message))"
+}
 
 # Also check whether a project already exists (idempotent re-runs, or if the
 # image happens to ship one).
@@ -277,10 +293,14 @@ try {
     if ($existing) {
         $names = ($existing | ForEach-Object { "$($_.key) ($($_.projectTypeKey))" }) -join ', '
         Write-Host ("    Existing projects: {0}" -f $names)
-    } else {
+    }
+    else {
         Write-Host "    No existing projects."
     }
-} catch { Write-Host "    (project list failed: $($_.Exception.Message))" }
+}
+catch {
+    Write-Host "    (project list failed: $($_.Exception.Message))"
+}
 
 # 2. Candidate (projectTypeKey, projectTemplateKey) pairs. Order matters — first
 #    is the canonical Server Software template that pycontribs/jira uses.
@@ -307,9 +327,9 @@ foreach ($pair in $candidatePairs) {
         description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
         notificationScheme = $notificationScheme
     }
-    if ($permissionScheme)    { $payload['permissionScheme']    = $permissionScheme }
+    if ($permissionScheme) { $payload['permissionScheme'] = $permissionScheme }
     if ($issueSecurityScheme) { $payload['issueSecurityScheme'] = $issueSecurityScheme }
-    if ($projectCategory)     { $payload['categoryId']          = $projectCategory }
+    if ($projectCategory) { $payload['categoryId'] = $projectCategory }
 
     $body = $payload | ConvertTo-Json -Compress
 
@@ -367,9 +387,9 @@ Write-Host "==> Seeding baseline issue in project '$ProjectKey'"
 # already an issue we don't care, this is a baseline and tests create their own.
 $issueBody = @{
     fields = @{
-        project   = @{ key = $ProjectKey }
-        summary   = 'JiraPS-IntTest-Baseline'
-        issuetype = @{ name = 'Task' }
+        project     = @{ key = $ProjectKey }
+        summary     = 'JiraPS-IntTest-Baseline'
+        issuetype   = @{ name = 'Task' }
         description = 'Baseline issue created by Tools/Wait-JiraServer.ps1. Safe to delete.'
     }
 } | ConvertTo-Json -Depth 5 -Compress
