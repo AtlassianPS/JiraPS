@@ -83,8 +83,10 @@ jobs:
     # dependency verification (~3 min), Tomcat 10.1.44 startup + jira.war
     # extraction + plugin scan + first-time DB init (~5-10 min on cold boot).
     # The full Server-tagged Pester suite (~150 tests across 25+ files, run via
-    # `Tests/Invoke-ParallelPester.ps1` with ThrottleLimit=4) currently takes
-    # ~15-20 min end-to-end against the H2-backed AMPS standalone image — most
+    # `Tests/Invoke-ParallelPester.ps1` with ThrottleLimit=2 — see the per-step
+    # comment below for why it's halved from JiraPS.build.ps1's default of 4)
+    # currently takes ~15-20 min end-to-end against the H2-backed AMPS image —
+    # most
     # of that is the per-test issue/version provisioning round-trip latency,
     # which is gated on Lucene reindex commits inside the embedded Jira and
     # cannot meaningfully be parallelised further without sharding workers
@@ -143,8 +145,22 @@ jobs:
         # teardown steps below (which are gated on `if: always()`), and
         # surfaces real hangs in <30 min instead of ~1 hr.
         timeout-minutes: 25
+        # ThrottleLimit=2 (vs JiraPS.build.ps1's default of 4): the AMPS
+        # standalone image runs Jira against an embedded H2 DB + Lucene
+        # IndexCopyService that serializes write commits. Under 4-way
+        # parallelism, observed CI run #24939216658 saw the Worklogs
+        # file's POST /worklog hang past the 600s per-file orchestrator
+        # budget (entire file killed, 0/N reported), and the Versions
+        # delete + Transitions comment-after-transition tests blew past
+        # their 60s convergence polls (60.8s and 60.68s respectively —
+        # i.e. AMPS *did* converge, just slower than the budget). Halving
+        # the concurrency removes the hardest contention spikes from the
+        # H2 backend without seriously dragging the wall-clock (the
+        # full Server-tagged suite ran ~12 min at 4-way; estimated ~16-18
+        # min at 2-way). Cloud, which doesn't share this bottleneck,
+        # continues to use the default 4 in jira_cloud_ci.yml.
         run: |
-          Invoke-Build -Task TestIntegration -Tag 'Server' -PesterVerbosity Detailed
+          Invoke-Build -Task TestIntegration -Tag 'Server' -ThrottleLimit 2 -PesterVerbosity Detailed
         shell: pwsh
 
       - name: Upload integration test results
