@@ -529,6 +529,52 @@ if (-not $issue) {
     Write-Host "==> Continuing — tests that require an existing issue may skip."
 }
 
+# Diagnostic: dump the createmeta for the chosen project + issuetype so the CI
+# log records exactly which fields the running Jira marks `required: true` AND
+# `hasDefaultValue: false`. The integration test suite has to supply these
+# explicitly via -Reporter / -Fields when calling New-JiraIssue, and which
+# fields land in this category varies between Jira flavours (Cloud's "next-gen"
+# Task vs the Server `jira-core-task-management` template vs Software defaults).
+# Knowing the exact set after every fixture provisioning makes drift in the
+# upstream Docker image trivial to spot on the next CI cycle.
+if ($issue -and $issueTypeName) {
+    Write-Host ("==> Createmeta diagnostic for project '{0}' / issuetype '{1}':" -f $ProjectKey, $issueTypeName)
+    try {
+        $cmFields = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issue/createmeta?projectKeys=$ProjectKey&issuetypeNames=$([uri]::EscapeDataString($issueTypeName))&expand=projects.issuetypes.fields" -Method Get -Headers $headers -TimeoutSec 30
+        $proj = $cmFields.projects | Where-Object { $_.key -eq $ProjectKey } | Select-Object -First 1
+        $itype = if ($proj) { $proj.issuetypes | Where-Object { $_.name -eq $issueTypeName } | Select-Object -First 1 } else { $null }
+        if ($itype -and $itype.fields) {
+            $allFields = @()
+            foreach ($prop in $itype.fields.PSObject.Properties) {
+                $f = $prop.Value
+                $allFields += [PSCustomObject]@{
+                    Id              = $prop.Name
+                    Name            = $f.name
+                    Required        = [bool]$f.required
+                    HasDefaultValue = [bool]$f.hasDefaultValue
+                }
+            }
+            $required = $allFields | Where-Object { $_.Required }
+            $tightened = $required | Where-Object { -not $_.HasDefaultValue }
+            Write-Host ("    Total fields: {0}; required: {1}; required-no-default: {2}" -f $allFields.Count, $required.Count, $tightened.Count)
+            if ($tightened) {
+                foreach ($f in $tightened) {
+                    Write-Host ("    Required-no-default: id='{0}' name='{1}'" -f $f.Id, $f.Name)
+                }
+            }
+            else {
+                Write-Host "    No tightened (required-no-default) fields detected."
+            }
+        }
+        else {
+            Write-Host "    /createmeta did not return field metadata for the chosen project/issuetype."
+        }
+    }
+    catch {
+        Write-Host ("    (createmeta diagnostic failed: {0})" -f $_.Exception.Message)
+    }
+}
+
 # Export the provisioned fixture identifiers to GITHUB_ENV so the next workflow
 # steps inherit them as JIRA_TEST_PROJECT / JIRA_TEST_ISSUE. This is what makes
 # the dynamic Server fixture visible to integration test files that gate on
