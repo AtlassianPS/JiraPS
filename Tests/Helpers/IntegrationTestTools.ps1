@@ -198,6 +198,23 @@ function Initialize-IntegrationEnvironment {
     }
 
     if ($deploymentType -eq 'Server') {
+        # Server track fixture sourcing:
+        #   - Wait-JiraServer.ps1 (run by jira_server_ci.yml and the StartJiraDocker
+        #     build task) provisions a TEST project and a TEST-1 baseline issue
+        #     against the moveworkforward/atlas-run-standalone image, then exports
+        #     JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to $env:GITHUB_ENV.
+        #   - Honour those env vars here (same shape as the Cloud branch below) so
+        #     read-only smoke tests like `Get-JiraIssue $TestIssue` actually run
+        #     against the seeded baseline instead of self-skipping.
+        #   - Write tests that need a fresh issue (Add-JiraIssueAttachment,
+        #     Add-JiraIssueComment, Add-JiraIssueLink, Add-JiraIssueWorklog, ...)
+        #     create their own fixtures via New-TemporaryTestIssue and clean them
+        #     up in AfterAll, so they do not depend on these env vars.
+        #   - JIRA_TEST_FILTER and JIRA_TEST_VERSION are not provisioned by
+        #     Wait-JiraServer.ps1 yet (no per-image fixture for them), so they
+        #     stay null on a clean boot and the dependent tests self-skip with a
+        #     clear message — but if a follow-up commit teaches Wait-JiraServer.ps1
+        #     to seed them, this branch picks the values up automatically.
         $result = [PSCustomObject]@{
             DeploymentType = 'Server'
             IsCloud        = $false
@@ -208,15 +225,12 @@ function Initialize-IntegrationEnvironment {
             UsernameNormal = $env:CI_JIRA_USER
             PasswordNormal = $env:CI_JIRA_USER_PASSWORD
             HasNormalUser  = -not [string]::IsNullOrEmpty($env:CI_JIRA_USER)
-            # Server track creates fixtures dynamically; the bare moveworkforward image
-            # ships with no project, so most tests should fall back to creating their own
-            # resources (or skip with a clear message) rather than assuming a permanent fixture.
             TestProject    = if ($env:JIRA_TEST_PROJECT) { $env:JIRA_TEST_PROJECT } else { 'TEST' }
-            TestIssue      = $null
+            TestIssue      = $env:JIRA_TEST_ISSUE
             TestUser       = $env:CI_JIRA_USER
             TestGroup      = $env:JIRA_TEST_GROUP
-            TestFilter     = $null
-            TestVersion    = $null
+            TestFilter     = $env:JIRA_TEST_FILTER
+            TestVersion    = $env:JIRA_TEST_VERSION
             ReadOnly       = $env:JIRA_TEST_READONLY -eq 'true'
             VerboseOutput  = $env:JIRA_TEST_VERBOSE -eq 'true'
         }
