@@ -22,7 +22,7 @@ The integration suite has two deployment targets:
 >
 > **Why this image and not `addono/jira-software-standalone`.** The older `addono` image's bundled Plugin SDK 8.2.8 (frozen since 2021) calls the retired `marketplace.atlassian.com/.../atlassian-plugin-sdk-rpm` endpoint at boot and dies before Jira starts; `moveworkforward` ships SDK 9.6.0 which talks to the still-live `packages.atlassian.com` Artifactory and actually boots end-to-end. `pycontribs/jira` hit the same `addono` wall — see their [PR #2376 "(server seems to be pretty hard tbh)"](https://github.com/pycontribs/jira/pull/2376) and the `ci: remove broken workflows` follow-up.
 >
-> **AMPS standalone limitation — no fixture project.** `atlas-run-standalone` boots a bare Jira platform without the `jira-software` or `jira-core` plugins activated, so `POST /rest/api/2/project` rejects every project type with `"projectType": "An invalid project type was specified..."`. `Tools/Wait-JiraServer.ps1` therefore treats project creation as best-effort: it logs the failure and exits 0. The Server CI workflow currently runs only the smoke suite (`Tests/Integration/Server.Integration.Tests.ps1`), which is purpose-built to skip its CRUD test when no fixture project exists. Enabling the broader `Server`-tagged suite needs either a Jira image that ships `jira-software` pre-activated, or an SQL/`dbconfig.xml` seeding step — tracked as a follow-up.
+> **Project provisioning — discovered, not hardcoded.** `Tools/Wait-JiraServer.ps1` no longer trusts a hardcoded `(projectTypeKey, projectTemplateKey)` list — the AMPS standalone image only registers a single `business` project type and rejects every canonical Server template key. Instead the script queries `/rest/project-templates/1.0/templates` to discover the actual `(type, template)` pairs the running instance advertises, sorts them so templates whose key contains `task`/`software-development` come first (the `Task` issuetype that every Server-tagged test relies on), and tries them in order. After the project is created the script also queries `/rest/api/2/issue/createmeta?projectKeys=$ProjectKey` to discover an issuetype that the project actually accepts (jira-core projects don't always ship `Task`), seeds one baseline issue, and exports `JIRA_TEST_PROJECT` + `JIRA_TEST_ISSUE` to `$GITHUB_ENV` so downstream test steps see them.
 
 The `CI_JIRA_TYPE` environment variable selects the track.
 Setting `CI_JIRA_TYPE=Server` switches `Initialize-IntegrationEnvironment`, `Connect-JiraTestServer`, and the `TestIntegration` build task to the Server-track configuration; the default (`Cloud`) preserves existing behaviour.
@@ -50,17 +50,16 @@ The Server track is fully self-contained — no secrets, no live Jira, just Dock
 Invoke-Build -Task StartJiraDocker     # ~5 min on first run while image pulls + Jira boots
 $env:CI_JIRA_TYPE = 'Server'
 
-# Smoke suite only (matches CI). This is the recommended Server-track invocation
-# until a fixture-project seeding strategy is in place.
-Invoke-Build -Task TestIntegration -IntegrationTestPath ./Tests/Integration/Server.Integration.Tests.ps1
+# Full Server-tagged suite — the same set of files the jira_server_ci.yml workflow runs.
+Invoke-Build -Task TestIntegration -Tag 'Server'
 
 Invoke-Build -Task StopJiraDocker
 ```
 
-`StartJiraDocker` runs `docker compose up -d` against the repo-root `docker-compose.yml` and then invokes `Tools/Wait-JiraServer.ps1` to poll until Jira is reachable and to provision the regular test user (`jira_user/jira`).
+`StartJiraDocker` runs `docker compose up -d` against the repo-root `docker-compose.yml` and then invokes `Tools/Wait-JiraServer.ps1` to poll until Jira is reachable, provision the regular test user (`jira_user/jira`), discover and provision the fixture project (`TEST`), and seed one baseline issue.
 `StopJiraDocker` runs `docker compose down -v` to discard the container and its volumes.
 
-`Invoke-Build -Task TestIntegration -Tag 'Server'` (without `-IntegrationTestPath`) still works locally if you want to see how the broader Server-tagged tests behave against the standalone image — most will fail because they need the `TEST` fixture project that the AMPS standalone image cannot host. See the *AMPS standalone limitation* note above.
+Locally, `Wait-JiraServer.ps1` cannot write to `$GITHUB_ENV` (which only exists inside GitHub Actions runners), so set `JIRA_TEST_PROJECT` / `JIRA_TEST_ISSUE` in your `.env` (or `$env:` directly) if you want the issue-key-dependent tests (e.g. `Get-JiraIssue.Integration.Tests.ps1`) to run instead of self-skip — the script prints the values it would have exported in its final log line.
 
 ### CI scheduling
 

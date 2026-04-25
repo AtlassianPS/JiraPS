@@ -45,8 +45,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  server_smoke_tests:
-    name: Server Smoke Tests (Dockerized Jira DC)
+  server_integration_tests:
+    name: Server Integration Tests (Dockerized Jira DC)
     runs-on: ubuntu-latest
     # Skip on fork PRs and Dependabot PRs to stay consistent with the Cloud workflow.
     # The Server track does not need secrets (admin/admin is baked into the image),
@@ -78,31 +78,23 @@ jobs:
       - name: Wait for Jira to become reachable and provision the normal user
         run: pwsh ./Tools/Wait-JiraServer.ps1 -TimeoutSeconds 1200
 
-      - name: Run Server smoke test suite
-        # Scope: ONLY Tests/Integration/Server.Integration.Tests.ps1.
+      - name: Run full Server-tagged integration suite
+        # Scope: every test file with the 'Server' tag (Server smoke + the broader
+        # Server-tagged CRUD suites — Comments, Filters, Search, Versions,
+        # Worklogs, IssueLinks, Transitions, Metadata, Projects, etc.).
         #
-        # The other Server-tagged integration tests (Comments, Filters, Search,
-        # Versions, Worklogs, ...) all assume a fixture project keyed 'TEST'
-        # exists, but the moveworkforward/atlas-run-standalone image boots a
-        # bare Jira platform without the jira-software / jira-core plugins
-        # activated, so /rest/api/2/project rejects every projectType we send.
-        # Wait-JiraServer.ps1 logs the fact and exits 0; the smoke suite is
-        # purpose-built to skip its CRUD test in that case (see line 111 of
-        # Server.Integration.Tests.ps1) so this job stays green and proves the
-        # full DC plumbing - container boot, Basic-auth session, DC-style user
-        # lookup by `name`, deploymentType==Server - works end-to-end.
-        #
-        # We scope by file path rather than by tag because Pester 5 ORs tags,
-        # so a `-Tag 'Smoke'` filter would also pick up Smoke-tagged tests in
-        # New-JiraIssue.Integration.Tests.ps1 / Search.Integration.Tests.ps1
-        # which assume the fixture project exists.
-        #
-        # The broader Server-tagged suite is tracked as a follow-up: it needs a
-        # real project fixture, which means either bootstrapping a Jira instance
-        # with jira-software pre-installed, or seeding via SQL/dbconfig.xml. See
-        # the AMPS standalone limitation note in Tests/Integration/README.md.
+        # Wait-JiraServer.ps1 (previous step) discovers the actual
+        # (projectTypeKey, projectTemplateKey) pairs the running instance
+        # advertises via /rest/project-templates/1.0/templates and provisions
+        # the fixture project + a baseline issue, then exports
+        # JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to GITHUB_ENV so the env
+        # vars are visible to this step. Tests that need a fixture issue
+        # gate on `$testEnv.TestIssue` and self-skip when it is missing
+        # (see Get-JiraIssue.Integration.Tests.ps1 BeforeDiscovery for the
+        # canonical pattern), so the suite stays green even if the AMPS
+        # standalone image refuses to seed an issue for the chosen template.
         run: |
-          Invoke-Build -Task TestIntegration -IntegrationTestPath ./Tests/Integration/Server.Integration.Tests.ps1 -PesterVerbosity Detailed
+          Invoke-Build -Task TestIntegration -Tag 'Server' -PesterVerbosity Detailed
         shell: pwsh
 
       - name: Upload integration test results

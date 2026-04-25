@@ -2,13 +2,15 @@
 
 <#
 .SYNOPSIS
-    Polls a local Jira Data Center container until it is reachable, then provisions a regular (non-admin) test user.
+    Polls a local Jira Data Center container until it is reachable, then provisions the
+    test user, the fixture project, and a baseline issue used by the Server-tagged
+    integration suite.
 
 .DESCRIPTION
     Used by the Server-track integration tests (.github/workflows/jira_server_ci.yml and the
     StartJiraDocker build task) to bring up Atlassian Jira inside the moveworkforward/atlas-run-standalone
-    Docker container (Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1) and seed the user
-    account that JIRA-side tests authenticate as.
+    Docker container (Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1) and seed the
+    fixtures the integration test suite then exercises through the JiraPS module.
 
     The script:
 
@@ -21,6 +23,17 @@
        probe.
     2. Once reachable, POSTs to "/rest/api/2/user" with admin Basic auth to create a normal
        user account. If the user already exists, the call is treated as success (idempotent).
+    3. Discovers the (projectTypeKey, projectTemplateKey) pairs the running Jira advertises
+       via /rest/project-templates/1.0/templates, sorts them so 'task' / 'software-development'
+       templates come first (the Task issuetype the Server-tagged tests rely on), and POSTs
+       to /rest/api/2/project until one of the candidates is accepted. Hardcoded canonical
+       Server templates are tried as a last-resort fallback. This is necessary because the
+       AMPS standalone image only registers a single 'business' projectType and rejects every
+       canonical Jira Software template key.
+    4. Queries /rest/api/2/issue/createmeta?projectKeys=$ProjectKey to discover an issuetype
+       the just-created project actually accepts (jira-core projects don't always ship Task),
+       seeds one baseline issue, and exports JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to
+       $env:GITHUB_ENV so downstream test steps see them.
 
     AGENTS.md mandates that all HTTP traffic from the module flow through Invoke-JiraMethod.
     This script is the documented exception: it runs *before* the JiraPS module is imported
@@ -59,11 +72,17 @@
 
 .NOTES
     Exit codes:
-      0 - Jira reachable AND normal user provisioned. Project provisioning is best-effort
-          and a failure to create the fixture project does NOT change the exit code; tests
-          that require a project must self-skip via their BeforeDiscovery block.
+      0 - Jira reachable, normal user provisioned, fixture project '$ProjectKey' provisioned,
+          and (best-effort) one baseline issue seeded. JIRA_TEST_PROJECT (and JIRA_TEST_ISSUE
+          when the baseline seed succeeded) are written to $env:GITHUB_ENV so the next CI
+          step sees them. Tests that depend on JIRA_TEST_ISSUE self-skip when it is empty,
+          so a failed baseline seed does not turn the suite red.
       1 - Jira did not become reachable inside -TimeoutSeconds.
       2 - Normal user provisioning failed and the user did not already exist.
+      3 - Fixture project '$ProjectKey' could not be provisioned with any of the candidate
+          (projectTypeKey, projectTemplateKey) pairs (discovered via /rest/project-templates/1.0/templates
+          plus a hardcoded fallback list). This is a hard failure: downstream Server-tagged
+          tests cannot run without a project.
 
     Designed to run on Ubuntu PowerShell 7+ inside CI but stays PS 5.1-compatible so it can
     also be invoked from Windows desktops while iterating locally.
@@ -209,9 +228,13 @@ Write-Host "==> Provisioning test project '$ProjectKey' via $projectApiUrl"
 # `Jira.create_project()` (jira/client.py): they look up the default schemes by
 # name first, then POST to /rest/api/2/project with the full payload.
 #
-# Template name matters: `gh-simplified-*` are Cloud-only; for Jira Server/DC
-# the canonical Software template is
-# `com.pyxis.greenhopper.jira:basic-software-development-template`.
+# Hardcoded template keys do NOT work against the moveworkforward/atlas-run-standalone
+# image: it ships only the bundled `business` project type, and the canonical
+# template names (`com.pyxis.greenhopper.jira:basic-software-development-template`,
+# `jira-core-simplified-task-tracking`, etc.) are not registered. We therefore
+# query `/rest/project-templates/1.0/templates` first to discover the actual
+# (projectTypeKey, projectTemplateKey) pairs the running instance advertises,
+# fall back to the canonical Server pairs only if discovery returns nothing.
 
 # 1. Resolve default schemes (best-effort; missing values are fine, Jira will use
 #    its built-in defaults if we omit them).
@@ -271,19 +294,53 @@ catch {
     Write-Host "    (project/type lookup failed: $($_.Exception.Message))"
 }
 
+# 2a. Discover the (projectTypeKey, projectTemplateKey) pairs the running
+#     instance actually supports. Jira Server/DC exposes them via
+#     /rest/project-templates/1.0/templates — both flat (`projectTemplates`)
+#     and grouped (`projectTemplatesGroupedByType`) shapes; the AMPS standalone
+#     image returns ONLY the grouped shape with a single `business` group.
+$discoveredPairs = [System.Collections.Generic.List[hashtable]]::new()
 try {
     $rawTemplates = Invoke-RestMethod -Uri "$baseUrl/rest/project-templates/1.0/templates" -Method Get -Headers $headers -TimeoutSec 30
-    $count = 0
-    if ($rawTemplates -and $rawTemplates.projectTemplates) { $count = @($rawTemplates.projectTemplates).Count }
-    Write-Host ("    /rest/project-templates/1.0/templates returned {0} entries (raw type={1})" -f $count, $rawTemplates.GetType().FullName)
-    if ($count -eq 0) {
-        $rawBody = $rawTemplates | ConvertTo-Json -Depth 5 -Compress
-        if ($rawBody.Length -gt 600) { $rawBody = $rawBody.Substring(0, 600) + '...' }
-        Write-Host ("    raw body: {0}" -f $rawBody)
+
+    if ($rawTemplates.projectTemplates) {
+        foreach ($tpl in @($rawTemplates.projectTemplates)) {
+            $typeKey = $tpl.projectTypeKey
+            if (-not $typeKey -and $tpl.projectTypeBean) { $typeKey = $tpl.projectTypeBean.projectTypeKey }
+            $tplKey = $tpl.projectTemplateKey
+            if ($typeKey -and $tplKey) {
+                $discoveredPairs.Add(@{ ProjectTypeKey = $typeKey; ProjectTemplateKey = $tplKey; Source = 'flat' })
+            }
+        }
+    }
+
+    if ($rawTemplates.projectTemplatesGroupedByType) {
+        foreach ($group in @($rawTemplates.projectTemplatesGroupedByType)) {
+            $typeKey = if ($group.projectTypeBean) { $group.projectTypeBean.projectTypeKey } else { $null }
+            foreach ($tpl in @($group.projectTemplates)) {
+                $tplKey = $tpl.projectTemplateKey
+                if ($typeKey -and $tplKey) {
+                    $discoveredPairs.Add(@{ ProjectTypeKey = $typeKey; ProjectTemplateKey = $tplKey; Source = 'grouped' })
+                }
+            }
+        }
+    }
+
+    Write-Host ("    Discovered {0} (type, template) pair(s) from /rest/project-templates/1.0/templates:" -f $discoveredPairs.Count)
+    foreach ($p in $discoveredPairs) {
+        Write-Host ("        [{0}] {1} / {2}" -f $p.Source, $p.ProjectTypeKey, $p.ProjectTemplateKey)
+    }
+
+    if ($discoveredPairs.Count -eq 0) {
+        # Strip the base64 SVG icons before dumping so we can actually see structure.
+        $copy = $rawTemplates | Select-Object * -ExcludeProperty icon
+        $rawBody = $copy | ConvertTo-Json -Depth 6 -Compress
+        if ($rawBody.Length -gt 4000) { $rawBody = $rawBody.Substring(0, 4000) + '...' }
+        Write-Host ("    /rest/project-templates/1.0/templates returned no usable templates. Raw body (icons stripped): {0}" -f $rawBody)
     }
 }
 catch {
-    Write-Host "    (project-templates lookup failed: $($_.Exception.Message))"
+    Write-Host "    (project-templates discovery failed: $($_.Exception.Message))"
 }
 
 # Also check whether a project already exists (idempotent re-runs, or if the
@@ -302,17 +359,35 @@ catch {
     Write-Host "    (project list failed: $($_.Exception.Message))"
 }
 
-# 2. Candidate (projectTypeKey, projectTemplateKey) pairs. Order matters — first
-#    is the canonical Server Software template that pycontribs/jira uses.
-$candidatePairs = @(
+# 2b. Build the candidate list. Discovered pairs come first (they are guaranteed
+#     to exist on this instance); within the discovered set, prefer templates
+#     whose key contains 'task' or 'software-development' since those reliably
+#     ship the 'Task' issuetype that the Server-tagged integration tests assume
+#     (New-JiraIssue -IssueType 'Task'). The hardcoded canonical Server pairs
+#     only run if discovery returned nothing.
+$rankedDiscovered = @($discoveredPairs | Sort-Object -Property @{
+        Expression = {
+            $key = $_.ProjectTemplateKey
+            switch -Wildcard ($key) {
+                '*task-tracking*' { 0 }
+                '*basic-software-development*' { 1 }
+                '*task*' { 2 }
+                '*software*' { 3 }
+                '*project-management*' { 4 }
+                default { 5 }
+            }
+        }
+    })
+
+$fallbackPairs = @(
     @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:basic-software-development-template' }
-    @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-basic' }
-    @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-scrum-classic' }
-    @{ ProjectTypeKey = 'software'; ProjectTemplateKey = 'com.pyxis.greenhopper.jira:gh-simplified-kanban-classic' }
-    @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-process-control' }
     @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-task-tracking' }
+    @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-process-control' }
     @{ ProjectTypeKey = 'business'; ProjectTemplateKey = 'com.atlassian.jira-core-project-templates:jira-core-simplified-project-management' }
 )
+$candidatePairs = @()
+$candidatePairs += $rankedDiscovered
+$candidatePairs += $fallbackPairs
 
 $project = $null
 $lastError = $null
@@ -357,56 +432,102 @@ foreach ($pair in $candidatePairs) {
 }
 
 if (-not $project) {
-    # Project provisioning is best-effort and must not fail the readiness step.
+    # Provisioning failed for every candidate pair — this is now a hard failure.
     #
-    # The moveworkforward/atlas-run-standalone image boots a bare Jira platform
-    # via the Atlassian Plugin SDK; it does not activate the `jira-software` or
-    # `jira-core` plugins that own the `software` and `business` project types.
-    # Every POST to /rest/api/2/project therefore comes back with
-    # `"projectType": "An invalid project type was specified..."` no matter
-    # which (type, template) pair we send. There is no admin REST endpoint we
-    # can call from here to flip those plugins on after the fact - that would
-    # require manipulating bundled-plugin state inside the container.
+    # If /rest/project-templates/1.0/templates returned discovered pairs and
+    # they all rejected, something material has changed (image upgrade, plugin
+    # disabled, etc.) and downstream tests will be unable to run anyway. The
+    # readiness probe should fail loudly rather than silently degrade so the
+    # next CI run surfaces the regression instead of skipping.
     #
-    # The Server smoke suite (Tests/Integration/Server.Integration.Tests.ps1)
-    # is purpose-built to skip its CRUD test with an explicit message when no
-    # fixture project is present, so the broader CI step still passes. Tests
-    # that absolutely require a project should self-skip via their
-    # BeforeDiscovery block - see Get-JiraIssue.Integration.Tests.ps1 for the
-    # canonical pattern (`if ($testEnv.TestIssue) { ... } else { $script:Skip = $true }`).
-    Write-Warning "Project '$ProjectKey' was not provisioned: the AMPS standalone image does not expose any project types. Last error: $lastError"
-    Write-Warning "Continuing without a fixture project. Tests that need one will self-skip; the smoke suite will still validate connectivity, auth, and DC user identity."
-    Write-Host "==> Jira is ready and the test user is provisioned. No fixture project was created."
-    exit 0
+    # If discovery returned NO pairs AND every fallback also failed, the
+    # instance is so bare that integration tests cannot run; same conclusion.
+    Write-Error "Project '$ProjectKey' could not be provisioned with any of the $($candidatePairs.Count) candidate (type, template) pair(s). Last error: $lastError"
+    exit 3
 }
 
 Write-Host "==> Seeding baseline issue in project '$ProjectKey'"
 
-# Create one Task so read-only tests (Get-JiraIssue, JQL search, Get-JiraComment
-# fixture queries, etc.) have something to discover. Idempotency: if there's
-# already an issue we don't care, this is a baseline and tests create their own.
-$issueBody = @{
-    fields = @{
-        project     = @{ key = $ProjectKey }
-        summary     = 'JiraPS-IntTest-Baseline'
-        issuetype   = @{ name = 'Task' }
-        description = 'Baseline issue created by Tools/Wait-JiraServer.ps1. Safe to delete.'
-    }
-} | ConvertTo-Json -Depth 5 -Compress
-
+# Discover an issuetype that this project actually accepts (business projects
+# don't ship the Software 'Task' type by default). The /createmeta endpoint
+# returns the project's createable issuetypes; pick the first non-subtask one
+# and fall back to a hardcoded list of conventional names if discovery fails.
+$issueTypeName = $null
 try {
-    $issue = Invoke-RestMethod -Uri $issueApiUrl -Method Post -Headers $headers -ContentType 'application/json' -Body $issueBody -TimeoutSec 30
-    Write-Host ("==> Seeded baseline issue: key={0}" -f $issue.key)
+    $createMeta = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issue/createmeta?projectKeys=$ProjectKey" -Method Get -Headers $headers -TimeoutSec 30
+    if ($createMeta.projects) {
+        $proj = $createMeta.projects | Where-Object { $_.key -eq $ProjectKey } | Select-Object -First 1
+        if ($proj.issuetypes) {
+            $candidate = $proj.issuetypes | Where-Object { -not $_.subtask } | Select-Object -First 1
+            if (-not $candidate) { $candidate = $proj.issuetypes | Select-Object -First 1 }
+            if ($candidate) { $issueTypeName = $candidate.name }
+        }
+    }
+    if ($issueTypeName) {
+        Write-Host ("    Using discovered issuetype: '{0}'" -f $issueTypeName)
+    }
+    else {
+        Write-Host "    /createmeta returned no issuetypes for '$ProjectKey'; falling back to conventional names."
+    }
 }
 catch {
-    $issueStatus = $null
-    if ($_.Exception.Response) {
-        try { $issueStatus = [int]$_.Exception.Response.StatusCode } catch { $issueStatus = $null }
+    Write-Host "    (createmeta lookup failed: $($_.Exception.Message))"
+}
+
+$issueTypeCandidates = @()
+if ($issueTypeName) { $issueTypeCandidates += $issueTypeName }
+$issueTypeCandidates += @('Task', 'Story', 'Bug', 'New Feature')
+
+$issue = $null
+$lastIssueError = $null
+foreach ($itName in ($issueTypeCandidates | Select-Object -Unique)) {
+    $issueBody = @{
+        fields = @{
+            project     = @{ key = $ProjectKey }
+            summary     = 'JiraPS-IntTest-Baseline'
+            issuetype   = @{ name = $itName }
+            description = 'Baseline issue created by Tools/Wait-JiraServer.ps1. Safe to delete.'
+        }
+    } | ConvertTo-Json -Depth 5 -Compress
+
+    try {
+        $issue = Invoke-RestMethod -Uri $issueApiUrl -Method Post -Headers $headers -ContentType 'application/json' -Body $issueBody -TimeoutSec 30
+        Write-Host ("==> Seeded baseline issue: key={0} (issuetype='{1}')" -f $issue.key, $itName)
+        break
     }
-    $issueBodyText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
+    catch {
+        $issueStatus = $null
+        if ($_.Exception.Response) {
+            try { $issueStatus = [int]$_.Exception.Response.StatusCode } catch { $issueStatus = $null }
+        }
+        $issueBodyText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
+        $lastIssueError = "status=$issueStatus issuetype='$itName' message=$($_.Exception.Message) body=$issueBodyText"
+        Write-Host ("    issuetype '{0}' rejected: {1}" -f $itName, $lastIssueError)
+    }
+}
+
+if (-not $issue) {
     # Non-fatal — most tests create their own issues. Just log and continue.
-    Write-Host "==> Baseline issue creation failed (status=$issueStatus): $($_.Exception.Message)`n$issueBodyText"
+    Write-Host "==> Baseline issue creation failed for every candidate. Last error: $lastIssueError"
     Write-Host "==> Continuing — tests that require an existing issue may skip."
+}
+
+# Export the provisioned fixture identifiers to GITHUB_ENV so the next workflow
+# steps inherit them as JIRA_TEST_PROJECT / JIRA_TEST_ISSUE. This is what makes
+# the dynamic Server fixture visible to integration test files that gate on
+# `$testEnv.TestIssue` (e.g. Get-JiraIssue.Integration.Tests.ps1) — without it
+# those tests self-skip even though the project + baseline issue are present.
+# Locally ($env:GITHUB_ENV unset) this is a no-op; users seed the same vars in
+# their .env file.
+if ($env:GITHUB_ENV) {
+    $exports = @()
+    if ($project -and $project.key) { $exports += "JIRA_TEST_PROJECT=$($project.key)" }
+    if ($issue -and $issue.key) { $exports += "JIRA_TEST_ISSUE=$($issue.key)" }
+
+    if ($exports.Count -gt 0) {
+        Add-Content -Path $env:GITHUB_ENV -Value ($exports -join [Environment]::NewLine)
+        Write-Host ("==> Exported to GITHUB_ENV: {0}" -f ($exports -join '; '))
+    }
 }
 
 Write-Host "==> Jira is ready, the test user is provisioned, and the test project '$ProjectKey' is available."
