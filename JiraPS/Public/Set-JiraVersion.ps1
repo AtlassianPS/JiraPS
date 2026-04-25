@@ -3,28 +3,9 @@
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraVersion'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.VersionTransformation()]
+        [AtlassianPS.JiraPS.Version[]]
         $Version,
 
         [String]
@@ -45,27 +26,9 @@
         [DateTime]
         $StartDate,
 
-        [ValidateScript(
-            {
-                if (("JiraPS.Project" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraProject'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.ProjectTransformation()]
+        [AtlassianPS.JiraPS.Project]
         $Project,
 
         [Parameter()]
@@ -103,9 +66,16 @@
                 $requestBody["released"] = $Released
             }
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Project")) {
-                $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
-
-                $requestBody["projectId"] = $projectObj.Id
+                if ($Project.Id) {
+                    # Caller passed a Project that already carried its numeric
+                    # ID (real object or a numeric scalar coerced by the
+                    # transformer); skip the lookup.
+                    $requestBody["projectId"] = $Project.Id
+                }
+                else {
+                    $projectObj = Get-JiraProject -Project $Project.Key -Credential $Credential -ErrorAction Stop
+                    $requestBody["projectId"] = $projectObj.Id
+                }
             }
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("ReleaseDate")) {
                 $requestBody["releaseDate"] = $ReleaseDate.ToString('yyyy-MM-dd')

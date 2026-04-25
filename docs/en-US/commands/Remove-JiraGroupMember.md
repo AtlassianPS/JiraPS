@@ -15,7 +15,7 @@ Removes a user from a JIRA group
 ## SYNTAX
 
 ```powershell
-Remove-JiraGroupMember [-Group] <Object[]> [-User] <Object[]> [[-Credential] <pscredential>]
+Remove-JiraGroupMember [-Group] <Group[]> [-User] <User[]> [[-Credential] <pscredential>]
  [-PassThru] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -113,7 +113,7 @@ HelpMessage: ''
 Group Object or ID from which to remove the user(s).
 
 ```yaml
-Type: Object[]
+Type: Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -156,7 +156,7 @@ HelpMessage: ''
 Username or user object obtained from Get-JiraUser
 
 ```yaml
-Type: Object[]
+Type: User[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -209,7 +209,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 Group(s) from which users should be removed
 
-### JiraPS.User
+### AtlassianPS.JiraPS.User
 
 User(s) which to remove
 

@@ -8,6 +8,15 @@ if (!("System.Net.Http.HttpRequestException" -as [Type])) {
 if (!("System.Net.Http" -as [Type])) {
     Add-Type -Assembly System.Net.Http
 }
+
+# Strongly-typed POCOs for the most-used JiraPS domain objects.
+# Compiled once per session; the type-presence guard keeps re-imports cheap.
+if (-not ('AtlassianPS.JiraPS.Issue' -as [Type])) {
+    $typesPath = Join-Path $PSScriptRoot 'Types/AtlassianPS.JiraPS.cs'
+    if (Test-Path -LiteralPath $typesPath) {
+        Add-Type -TypeDefinition ([System.IO.File]::ReadAllText($typesPath)) -ErrorAction Stop
+    }
+}
 #endregion Dependencies
 
 #region Configuration

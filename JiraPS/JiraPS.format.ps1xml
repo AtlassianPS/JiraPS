@@ -4,7 +4,7 @@
     <View>
       <Name>JiraPS-Issue-TableView</Name>
       <ViewSelectedBy>
-        <TypeName>JiraPS.Issue</TypeName>
+        <TypeName>AtlassianPS.JiraPS.Issue</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -51,7 +51,7 @@
     <View>
       <Name>JiraPS-User-TableView</Name>
       <ViewSelectedBy>
-        <TypeName>JiraPS.User</TypeName>
+        <TypeName>AtlassianPS.JiraPS.User</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -89,43 +89,5 @@
       </TableControl>
     </View>
 
-    <!--<View>
-      <Name>JiraPS-Issue-ListView</Name>
-      <ViewSelectedBy>
-        <TypeName>JiraPS.Isuse</TypeName>
-      </ViewSelectedBy>
-      <ListControl>
-        <ListEntries>
-          <ListEntry>
-            <ListItems>
-              <ListItem>
-                <PropertyName>ID</PropertyName>
-              </ListItem>
-              <ListItem>
-                <PropertyName>Key</PropertyName>
-              </ListItem>
-              <ListItem>
-                <PropertyName>Summary</PropertyName>
-              </ListItem>
-              <ListItem>
-                <PropertyName>Description</PropertyName>
-              </ListItem>
-              <ListItem>
-                <PropertyName>Status</PropertyName>
-              </ListItem>
-              <ListItem>
-                <PropertyName>Project</PropertyName>
-              </ListItem>
-              <ListItem>
-                <PropertyName>IssueType</PropertyName>
-              </ListItem>
-              <ListItem>
-                <PropertyName>Assignee</PropertyName>
-              </ListItem>
-            </ListItems>
-          </ListEntry>
-        </ListEntries>
-      </ListControl>
-    </View>-->
   </ViewDefinitions>
 </Configuration>

@@ -4,7 +4,7 @@
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
-        [PSTypeName('JiraPS.Filter')]
+        [PSTypeName('AtlassianPS.JiraPS.Filter')]
         $InputObject,
 
         [Parameter()]

@@ -12,11 +12,10 @@
             Position = 0,
             ParameterSetName = "ByInputObject"
         )]
-        [Alias(
-            "Issue"
-        )]
-        [PSTypeName("JiraPS.Issue")]
-        [Object[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
+        [Alias("Issue")]
+        [AtlassianPS.JiraPS.Issue]
         $InputObject,
 
         # The issue's ID number or key.
@@ -63,24 +62,21 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        switch ($PsCmdlet.ParameterSetName) {
-            "ByInputObject" { $PrimaryIterator = $InputObject }
-            "ByIssueId" { $PrimaryIterator = $IssueID }
+        $issuesToRemove = switch ($PsCmdlet.ParameterSetName) {
+            "ByInputObject" { , $InputObject }
+            "ByIssueId" { $IssueID | ForEach-Object { Get-JiraIssue -Key $_ -Credential $Credential -ErrorAction Stop } }
         }
 
-        foreach ($issueItem in $PrimaryIterator) {
+        if ($IncludeSubTasks) {
+            $ActionText = "Remove issue and sub-tasks"
+        }
+        else {
+            $ActionText = "Remove issue"
+        }
 
-            if ($PsCmdlet.ParameterSetName -eq "ByIssueId") {
-                $_issue = Get-JiraIssue -Key $issueItem -Credential $Credential -ErrorAction Stop
-            }
-            else {
-                $_issue = $issueItem
-            }
-
+        foreach ($_issue in $issuesToRemove) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$issueItem [$_issue]"
-
-
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
 
             $parameter = @{
                 URI        = $resourceURi -f $_issue.Key, $IncludeSubTasks
@@ -89,21 +85,11 @@
                 Cmdlet     = $PsCmdlet
             }
 
-
-            if ($IncludeSubTasks) {
-                $ActionText = "Remove issue and sub-tasks"
-            }
-            else {
-                $ActionText = "Remove issue"
-            }
-
             if ($PSCmdlet.ShouldProcess($_issue.ToString(), $ActionText)) {
-
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod @parameter
             }
         }
-
     }
 
     end {

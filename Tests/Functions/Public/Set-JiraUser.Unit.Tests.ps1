@@ -42,7 +42,7 @@ InModuleScope JiraPS {
             Mock Get-JiraUser -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                 $object = ConvertFrom-Json $restResultGet
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                 return $object
             }
 
@@ -65,7 +65,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'User'; type = 'Object[]' }
+                    @{ parameter = 'User'; type = 'User' }
                     @{ parameter = 'DisplayName'; type = 'String' }
                     @{ parameter = 'EmailAddress'; type = 'String' }
                     @{ parameter = 'Active'; type = 'Boolean' }
@@ -90,7 +90,7 @@ InModuleScope JiraPS {
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
 
-            It "Accepts a JiraPS.User object to the -User parameter" {
+            It "Accepts a AtlassianPS.JiraPS.User object to the -User parameter" {
                 $user = Get-JiraUser -UserName $testUsername
                 { Set-JiraUser -User $user -DisplayName $testDisplayNameChanged } | Should -Not -Throw
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
@@ -116,7 +116,7 @@ InModuleScope JiraPS {
                 $output | Should -BeNullOrEmpty
             }
 
-            It "Outputs a JiraPS.User object if the -PassThru parameter is passed" {
+            It "Outputs a AtlassianPS.JiraPS.User object if the -PassThru parameter is passed" {
                 $output = Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged -PassThru
                 $output | Should -Not -BeNullOrEmpty
             }
@@ -138,7 +138,7 @@ InModuleScope JiraPS {
                     Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                     $object = ConvertFrom-Json $restResultGet
                     $object | Add-Member -MemberType NoteProperty -Name 'AccountId' -Value $testAccountId
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     return $object
                 }
 

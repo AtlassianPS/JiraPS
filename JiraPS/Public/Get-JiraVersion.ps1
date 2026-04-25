@@ -7,7 +7,9 @@
         $Id,
 
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputVersion' )]
-        [PSTypeName('JiraPS.Version')]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.VersionTransformation()]
+        [AtlassianPS.JiraPS.Version]
         $InputVersion,
 
         [Parameter( Position = 0, Mandatory , ParameterSetName = 'byProject' )]
@@ -16,7 +18,7 @@
         $Project,
 
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputProject' )]
-        [PSTypeName('JiraPS.Project')]
+        [PSTypeName('AtlassianPS.JiraPS.Project')]
         $InputProject,
 
         [Parameter( ParameterSetName = 'byProject' )]

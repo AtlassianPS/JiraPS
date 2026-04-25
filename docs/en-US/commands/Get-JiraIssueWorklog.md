@@ -16,7 +16,7 @@ Returns worklogs from an issue in JIRA.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueWorklog [-Issue] <Object> [[-Credential] <pscredential>] [<CommonParameters>]
+Get-JiraIssueWorklog [-Issue] <Issue> [[-Credential] <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -69,10 +69,10 @@ HelpMessage: ''
 
 JIRA issue to check for worklogs.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -98,7 +98,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue / String
+### AtlassianPS.JiraPS.Issue / String
 
 ## OUTPUTS
 

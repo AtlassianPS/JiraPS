@@ -23,7 +23,7 @@ Get-JiraFilter [-Id] <string[]> [-Credential <pscredential>] [<CommonParameters>
 ### ByInputObject
 
 ```powershell
-Get-JiraFilter -InputObject <Object[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraFilter -InputObject <Filter[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### MyFavorite
@@ -139,7 +139,7 @@ HelpMessage: ''
 Object of the filter to search for.
 
 ```yaml
-Type: Object[]
+Type: Filter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -164,14 +164,14 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Filter / String
+### AtlassianPS.JiraPS.Filter / String
 
 The filter to look up in JIRA.
-This can be a String (filter ID) or a JiraPS.Filter object.
+This can be a String (filter ID) or a AtlassianPS.JiraPS.Filter object.
 
 ## OUTPUTS
 
-### JiraPS.Filter
+### AtlassianPS.JiraPS.Filter
 
 ## NOTES
 

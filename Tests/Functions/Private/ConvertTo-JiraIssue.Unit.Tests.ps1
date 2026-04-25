@@ -890,8 +890,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Issue'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Issue'
+                It "adds custom type 'AtlassianPS.JiraPS.Issue'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
                 }
             }
 
@@ -939,18 +939,18 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "converts user fields to JiraPS.User objects" {
+                It "converts user fields to AtlassianPS.JiraPS.User objects" {
                     $userFields = @('Creator', 'Reporter') # Again, Assignee is another user field, but in this example it's unassigned
                     foreach ($f in $userFields) {
                         $value = $result.$f
                         $value | Should -Not -BeNullOrEmpty
-                        $value.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                        $value.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                     }
                 }
 
-                It "converts project field to JiraPS.Project object" {
+                It "converts project field to AtlassianPS.JiraPS.Project object" {
                     $result.Project | Should -Not -BeNullOrEmpty
-                    $result.Project.PSObject.TypeNames[0] | Should -Be 'JiraPS.Project'
+                    $result.Project.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Project'
                 }
 
                 It "converts transitions to JiraPS.Transition objects" {
@@ -962,6 +962,19 @@ InModuleScope JiraPS {
                     $result.Attachment | Should -Not -BeNullOrEmpty
                     $result.Attachment[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Attachment'
                 }
+
+                It "attaches unmapped customfield_* keys as PSObject NoteProperties" {
+                    # Sample fixture contains numerous customfield_* keys; pick one
+                    # of the populated ones to assert the historical
+                    # 'every API field is accessible by name' contract holds
+                    # alongside the new strong .NET typing.
+                    $result.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.Issue'
+                    $result.customfield_12531 | Should -Be 'Not Started'
+
+                    $noteProp = $result.PSObject.Properties['customfield_12531']
+                    $noteProp | Should -Not -BeNullOrEmpty
+                    $noteProp.MemberType | Should -Be 'NoteProperty'
+                }
             }
 
             Context "Pipeline Support" {
@@ -972,6 +985,23 @@ InModuleScope JiraPS {
                 It "processes multiple issues from pipeline" {
                     $result = @($sampleObject, $sampleObject) | ConvertTo-JiraIssue
                     $result | Should -HaveCount 2
+                }
+
+                It "derives HttpUrl per-item when converting multiple distinct issues" {
+                    # Regression guard: ConvertTo-JiraIssue used to read the
+                    # parent $InputObject.self instead of the loop variable
+                    # $i.self when building HttpUrl. With identical inputs the
+                    # bug was invisible (existing test above passes the same
+                    # object twice). This test feeds two issues with distinct
+                    # `self` URLs and asserts each result's HttpUrl is derived
+                    # from its own server prefix.
+                    $issueA = ConvertFrom-Json '{"id":"1","key":"AAA-1","self":"http://server-a.example.com/rest/api/2/issue/1","fields":{"summary":"A"}}'
+                    $issueB = ConvertFrom-Json '{"id":"2","key":"BBB-2","self":"http://server-b.example.com/rest/api/2/issue/2","fields":{"summary":"B"}}'
+
+                    $results = @($issueA, $issueB) | ConvertTo-JiraIssue
+
+                    $results[0].HttpUrl | Should -Be 'http://server-a.example.com/browse/AAA-1'
+                    $results[1].HttpUrl | Should -Be 'http://server-b.example.com/browse/BBB-2'
                 }
             }
         }

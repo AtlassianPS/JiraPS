@@ -17,8 +17,8 @@ Modifies an existing issue in JIRA
 ### AssignToUser (Default)
 
 ```powershell
-Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
- [-Assignee <Object>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
+Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+ [-Assignee <User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
@@ -26,7 +26,7 @@ Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-Fi
 ### Unassign
 
 ```powershell
-Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -35,7 +35,7 @@ Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-Fi
 ### UseDefaultAssignee
 
 ```powershell
-Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -144,7 +144,7 @@ Use `-UseDefaultAssignee` to set the project's default assignee.
 Empty strings and `$null` values are not accepted.
 
 ```yaml
-Type: Object
+Type: User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -274,10 +274,10 @@ HelpMessage: ''
 
 Issue to be changed.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object[]
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -460,11 +460,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue / String / Int
+### AtlassianPS.JiraPS.Issue / String / Int
 
 ## OUTPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 If the `-PassThru` parameter is provided,
 this function will provide a reference to the JIRA issue modified.

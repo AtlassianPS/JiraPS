@@ -17,15 +17,15 @@ Performs an issue transition on a JIRA issue changing it's status
 ### AssignToUser (Default)
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <Object> -Transition <Object> [-Fields <psobject>]
- [-Assignee <Object>] [-Comment <string>] [-Credential <pscredential>] [-Passthru]
+Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobject>]
+ [-Assignee <User>] [-Comment <string>] [-Credential <pscredential>] [-Passthru]
  [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <Object> -Transition <Object> [-Fields <psobject>] [-Unassign]
+Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobject>] [-Unassign]
  [-Comment <string>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
 
@@ -102,7 +102,7 @@ Empty strings and `$null` values are not accepted.
 Assignee field must be configured to appear on the transition screen to use this parameter.
 
 ```yaml
-Type: Object
+Type: User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -190,10 +190,10 @@ HelpMessage: ''
 
 The Issue Object or ID to transition.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -284,11 +284,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue / String / JiraPS.Transition
+### AtlassianPS.JiraPS.Issue / String / JiraPS.Transition
 
 ## OUTPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 When `-Passthru` is provided, the issue will be returned.
 

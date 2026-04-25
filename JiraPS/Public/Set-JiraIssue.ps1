@@ -3,29 +3,10 @@
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'AssignToUser' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssue'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
         [Alias('Key')]
-        [Object[]]
+        [AtlassianPS.JiraPS.Issue]
         $Issue,
 
         [String]
@@ -39,16 +20,9 @@
         $FixVersion,
 
         [Parameter( ParameterSetName = 'AssignToUser' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
-                    throw "The -Assignee value cannot be a whitespace-only string. Use -Unassign to remove the assignee, or -UseDefaultAssignee for the project default."
-                }
-                $true
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
+        [AtlassianPS.JiraPS.User]
         $Assignee,
 
         [Parameter( ParameterSetName = 'Unassign' )]
@@ -134,148 +108,146 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($_issue in $Issue) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
 
-            # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $_issue -Credential $Credential
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-            $issueProps = @{
-                'update' = @{}
-            }
+        $issueProps = @{
+            'update' = @{}
+        }
 
-            if ($Summary) {
-                # Update properties need to be passed to JIRA as arrays
-                $issueProps.update["summary"] = @(@{ 'set' = $Summary })
-            }
+        if ($Summary) {
+            # Update properties need to be passed to JIRA as arrays
+            $issueProps.update["summary"] = @(@{ 'set' = $Summary })
+        }
 
-            if ($Description) {
-                $issueProps.update["description"] = @(@{ 'set' = $Description })
-            }
+        if ($Description) {
+            $issueProps.update["description"] = @(@{ 'set' = $Description })
+        }
 
-            if ($FixVersion) {
-                $fixVersionSet = [System.Collections.Generic.List[hashtable]]::new()
-                $FixVersion.ForEach({ $null = $fixVersionSet.Add(@{ 'name' = $_ }) })
-                $issueProps.update["fixVersions"] = @( @{ set = $fixVersionSet } )
-            }
+        if ($FixVersion) {
+            $fixVersionSet = [System.Collections.Generic.List[hashtable]]::new()
+            $FixVersion.ForEach({ $null = $fixVersionSet.Add(@{ 'name' = $_ }) })
+            $issueProps.update["fixVersions"] = @( @{ set = $fixVersionSet } )
+        }
 
-            if ($AddComment) {
-                $issueProps.update["comment"] = @(
-                    @{
-                        'add' = @{
-                            'body' = $AddComment
-                        }
+        if ($AddComment) {
+            $issueProps.update["comment"] = @(
+                @{
+                    'add' = @{
+                        'body' = $AddComment
                     }
-                )
-            }
-
-
-            if ($Fields) {
-
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Enumerating fields defined on the server"
-
-                # Fetch all available fields ahead-of-time to avoid repeated API calls in the upcoming loop.
-                # Eventually, this may be better to extract from EditMeta.
-                $AvailableFields = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
-
-                $AvailableFieldsById = $AvailableFields | Group-Object -Property Id -AsHashTable -AsString
-                $AvailableFieldsByName = $AvailableFields | Group-Object -Property Name -AsHashTable -AsString
-
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
-                foreach ($_key in $Fields.Keys) {
-
-                    $name = $_key
-                    $value = $Fields.$_key
-
-                    # The Fields hashtable supports both name- and ID-based lookup for custom fields, so we have to search both.
-                    if ($AvailableFieldsById.ContainsKey($name)) {
-                        $field = $AvailableFieldsById[$name][0]
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
-                    }
-                    elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
-                        $field = $AvailableFieldsById["customfield_$name"][0]
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
-                    }
-                    elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
-                        $field = $AvailableFieldsByName[$name][0]
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
-                    }
-                    elseif ($AvailableFieldsByName.ContainsKey($name)) {
-                        # Jira does not prevent multiple custom fields with the same name, so we have to ensure
-                        # any name references are unambiguous.
-
-                        # More than one value in $AvailableFieldsByName (i.e. .Count -gt 1) indicates two duplicate custom fields.
-                        $exception = ([System.ArgumentException]"Ambiguously Referenced Parameter")
-                        $errorId = 'ParameterValue.AmbiguousParameter'
-                        $errorCategory = 'InvalidArgument'
-                        $errorTarget = $Fields
-                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                        $errorItem.ErrorDetails = "Field name [$name] in -Fields hashtable ambiguously refers to more than one field. Use Get-JiraField for more information, or specify the custom field by its ID."
-                        $PSCmdlet.ThrowTerminatingError($errorItem)
-                    }
-                    else {
-                        $exception = ([System.ArgumentException]"Invalid value for Parameter")
-                        $errorId = 'ParameterValue.InvalidFields'
-                        $errorCategory = 'InvalidArgument'
-                        $errorTarget = $Fields
-                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                        $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
-                        $PSCmdlet.ThrowTerminatingError($errorItem)
-                    }
-
-                    $id = [string]$field.Id
-                    $issueProps.update[$id] = @(@{ 'set' = $value })
                 }
-            }
+            )
+        }
 
-            $SkipNotificationParams = @{}
-            if ($SkipNotification) {
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Skipping notification for watchers"
-                $SkipNotificationParams = @{ notifyUsers = "false" }
-            }
 
-            if ( @($issueProps.update.Keys).Count -gt 0 ) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue fields"
+        if ($Fields) {
 
-                $parameter = @{
-                    URI          = $issueObj.RestUrl
-                    Method       = "PUT"
-                    Body         = ConvertTo-Json -InputObject $issueProps -Depth 10
-                    Credential   = $Credential
-                    GetParameter = $SkipNotificationParams
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Enumerating fields defined on the server"
+
+            # Fetch all available fields ahead-of-time to avoid repeated API calls in the upcoming loop.
+            # Eventually, this may be better to extract from EditMeta.
+            $AvailableFields = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
+
+            $AvailableFieldsById = $AvailableFields | Group-Object -Property Id -AsHashTable -AsString
+            $AvailableFieldsByName = $AvailableFields | Group-Object -Property Name -AsHashTable -AsString
+
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
+            foreach ($_key in $Fields.Keys) {
+
+                $name = $_key
+                $value = $Fields.$_key
+
+                # The Fields hashtable supports both name- and ID-based lookup for custom fields, so we have to search both.
+                if ($AvailableFieldsById.ContainsKey($name)) {
+                    $field = $AvailableFieldsById[$name][0]
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue")) {
-                    Invoke-JiraMethod @parameter
+                elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
+                    $field = $AvailableFieldsById["customfield_$name"][0]
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
                 }
-            }
-
-            if ($assigneeProps) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue assignee"
-                # Jira handles assignee differently; you can't change it from the default "edit issues" screen unless
-                # you customize the "Edit Issue" screen.
-
-                $parameter = @{
-                    URI          = "{0}/assignee" -f $issueObj.RestUrl
-                    Method       = "PUT"
-                    Body         = ConvertTo-Json -InputObject $assigneeProps
-                    Credential   = $Credential
-                    GetParameter = $SkipNotificationParams
+                elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
+                    $field = $AvailableFieldsByName[$name][0]
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue [Assignee] from JIRA")) {
-                    Invoke-JiraMethod @parameter
+                elseif ($AvailableFieldsByName.ContainsKey($name)) {
+                    # Jira does not prevent multiple custom fields with the same name, so we have to ensure
+                    # any name references are unambiguous.
+
+                    # More than one value in $AvailableFieldsByName (i.e. .Count -gt 1) indicates two duplicate custom fields.
+                    $exception = ([System.ArgumentException]"Ambiguously Referenced Parameter")
+                    $errorId = 'ParameterValue.AmbiguousParameter'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $Fields
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                    $errorItem.ErrorDetails = "Field name [$name] in -Fields hashtable ambiguously refers to more than one field. Use Get-JiraField for more information, or specify the custom field by its ID."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
-            }
+                else {
+                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
+                    $errorId = 'ParameterValue.InvalidFields'
+                    $errorCategory = 'InvalidArgument'
+                    $errorTarget = $Fields
+                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                    $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
+                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                }
 
-            if ($Label) {
-                Set-JiraIssueLabel -Issue $issueObj -Set $Label -Credential $Credential
+                $id = [string]$field.Id
+                $issueProps.update[$id] = @(@{ 'set' = $value })
             }
+        }
 
-            if ($PassThru) {
-                Get-JiraIssue -Key $issueObj.Key -Credential $Credential
+        $SkipNotificationParams = @{}
+        if ($SkipNotification) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Skipping notification for watchers"
+            $SkipNotificationParams = @{ notifyUsers = "false" }
+        }
+
+        if ( @($issueProps.update.Keys).Count -gt 0 ) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue fields"
+
+            $parameter = @{
+                URI          = $issueObj.RestUrl
+                Method       = "PUT"
+                Body         = ConvertTo-Json -InputObject $issueProps -Depth 10
+                Credential   = $Credential
+                GetParameter = $SkipNotificationParams
             }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue")) {
+                Invoke-JiraMethod @parameter
+            }
+        }
+
+        if ($assigneeProps) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue assignee"
+            # Jira handles assignee differently; you can't change it from the default "edit issues" screen unless
+            # you customize the "Edit Issue" screen.
+
+            $parameter = @{
+                URI          = "{0}/assignee" -f $issueObj.RestUrl
+                Method       = "PUT"
+                Body         = ConvertTo-Json -InputObject $assigneeProps
+                Credential   = $Credential
+                GetParameter = $SkipNotificationParams
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue [Assignee] from JIRA")) {
+                Invoke-JiraMethod @parameter
+            }
+        }
+
+        if ($Label) {
+            Set-JiraIssueLabel -Issue $issueObj -Set $Label -Credential $Credential
+        }
+
+        if ($PassThru) {
+            Get-JiraIssue -Key $issueObj.Key -Credential $Credential
         }
     }
 

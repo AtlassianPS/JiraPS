@@ -3,28 +3,9 @@
     [CmdletBinding( DefaultParameterSetName = 'ByAfter' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [Int]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraVersion'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [Int], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.VersionTransformation()]
+        [AtlassianPS.JiraPS.Version]
         $Version,
 
         [Parameter( Mandatory, ParameterSetName = 'ByPosition' )]
@@ -32,28 +13,9 @@
         [String]$Position,
 
         [Parameter( Mandatory, ParameterSetName = 'ByAfter' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [Int]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraVersion'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [Int], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.VersionTransformation()]
+        [AtlassianPS.JiraPS.Version]
         $After,
 
         [Parameter()]
@@ -78,28 +40,20 @@
                 $requestBody["position"] = $Position
             }
             'ByAfter' {
-                $afterSelfUri = ''
-                if ($After -is [Int]) {
-                    $versionObj = Get-JiraVersion -Id $After -Credential $Credential -ErrorAction Stop
-                    $afterSelfUri = $versionObj.RestUrl
+                if ($After.RestUrl) {
+                    $afterSelfUri = $After.RestUrl
                 }
                 else {
-                    $afterSelfUri = $After.RestUrl
+                    $versionObj = Get-JiraVersion -Id $After.Id -Credential $Credential -ErrorAction Stop
+                    $afterSelfUri = $versionObj.RestUrl
                 }
 
                 $requestBody["after"] = $afterSelfUri
             }
         }
 
-        if ($Version.Id) {
-            $versionId = $Version.Id
-        }
-        else {
-            $versionId = $Version
-        }
-
         $parameter = @{
-            URI        = $versionResourceUri -f $versionId
+            URI        = $versionResourceUri -f $Version.Id
             Method     = "POST"
             Body       = ConvertTo-Json $requestBody
             Credential = $Credential

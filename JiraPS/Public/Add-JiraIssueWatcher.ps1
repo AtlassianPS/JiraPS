@@ -7,33 +7,14 @@
         $Watcher,
         <#
           #ToDo:CustomClass
-          Once we have custom classes, this can also accept ValueFromPipeline
+          Now that we have custom classes, this can also accept ValueFromPipeline
         #>
 
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssue'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
         [Alias('Key')]
-        [Object]
+        [AtlassianPS.JiraPS.Issue]
         $Issue,
 
         [Parameter()]

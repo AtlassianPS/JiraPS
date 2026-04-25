@@ -71,7 +71,7 @@ InModuleScope JiraPS {
             Mock ConvertTo-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter' 'InputObject'
                 foreach ($i in $InputObject) {
-                    $i.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+                    $i.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
                     $i | Add-Member -MemberType AliasProperty -Name 'RestURL' -Value 'self'
                     $i
                 }
@@ -154,7 +154,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
                 }
 
-                It "Accepts a JiraPS.Filter object via pipeline" {
+                It "Accepts a AtlassianPS.JiraPS.Filter object via pipeline" {
                     { Get-JiraFilter 12345, 12345 | Remove-JiraFilter } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
@@ -184,7 +184,7 @@ InModuleScope JiraPS {
                     { Remove-JiraFilter -Id -1 } | Should -Throw -ExpectedMessage "*'Id'*"
                 }
 
-                It "fails if something other than [JiraPS.Filter] is provided" {
+                It "fails if something other than [AtlassianPS.JiraPS.Filter] is provided" {
                     { Get-Date | Remove-JiraFilter -ErrorAction Stop } | Should -Throw -ExpectedMessage "*input object*"
                     { Remove-JiraFilter "12345" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*'InputObject'*"
                 }

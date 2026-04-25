@@ -38,7 +38,7 @@ InModuleScope JiraPS {
                 It "returns group object with correct type" {
                     $group = Get-JiraGroup -GroupName $fixtures.TestGroup
 
-                    $group.PSObject.TypeNames[0] | Should -Be 'JiraPS.Group'
+                    $group.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Group'
                 }
 
                 It "includes group name" {
@@ -68,7 +68,7 @@ InModuleScope JiraPS {
                     $members = Get-JiraGroupMember -Group $fixtures.TestGroup
 
                     if ($members) {
-                        @($members)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                        @($members)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                     }
                 }
             }

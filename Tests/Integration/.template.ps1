@@ -145,7 +145,7 @@ InModuleScope JiraPS {
             It "returns objects with the correct type name" {
                 $result = Get-JiraIssue -Key $fixtures.TestIssue
 
-                $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Issue'
+                $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
             }
 
             It "returns objects with expected properties" {

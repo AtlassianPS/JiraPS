@@ -3,29 +3,10 @@
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ByNamedParameters' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraUser'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for User. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
         [Alias('UserName')]
-        [Object[]]
+        [AtlassianPS.JiraPS.User]
         $User,
 
         [Parameter( ParameterSetName = 'ByNamedParameters' )]
@@ -89,57 +70,52 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($_user in $User) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
+        $userObj = Resolve-JiraUser -InputObject $User -Exact -Credential $Credential -ErrorAction Stop
 
-            $userObj = Resolve-JiraUser -InputObject $_user -Exact -Credential $Credential -ErrorAction Stop
+        $requestBody = @{}
 
-            $requestBody = @{}
-
-            switch ($PSCmdlet.ParameterSetName) {
-                'ByNamedParameters' {
-                    if (-not ($DisplayName -or $EmailAddress -or $PSBoundParameters.ContainsKey('Active'))) {
-                        $errorMessage = @{
-                            Category         = "InvalidArgument"
-                            CategoryActivity = "Validating Arguments"
-                            Message          = "The parameters provided do not change the User. No action will be performed"
-                        }
-                        Write-Error @errorMessage
-                        return
+        switch ($PSCmdlet.ParameterSetName) {
+            'ByNamedParameters' {
+                if (-not ($DisplayName -or $EmailAddress -or $PSBoundParameters.ContainsKey('Active'))) {
+                    $errorMessage = @{
+                        Category         = "InvalidArgument"
+                        CategoryActivity = "Validating Arguments"
+                        Message          = "The parameters provided do not change the User. No action will be performed"
                     }
-
-                    if ($DisplayName) {
-                        $requestBody.displayName = $DisplayName
-                    }
-
-                    if ($EmailAddress) {
-                        $requestBody.emailAddress = $EmailAddress
-                    }
-
-                    if ($PSBoundParameters.ContainsKey('Active')) {
-                        $requestBody.active = $Active
-                    }
+                    Write-Error @errorMessage
+                    return
                 }
-                'ByHashtable' {
-                    $requestBody = $Property
+
+                if ($DisplayName) {
+                    $requestBody.displayName = $DisplayName
+                }
+
+                if ($EmailAddress) {
+                    $requestBody.emailAddress = $EmailAddress
+                }
+
+                if ($PSBoundParameters.ContainsKey('Active')) {
+                    $requestBody.active = $Active
                 }
             }
-
-            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
-            $parameter = @{
-                URI        = $resourceURi -f $userIdentifier
-                Method     = "PUT"
-                Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
-                Credential = $Credential
+            'ByHashtable' {
+                $requestBody = $Property
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($UserObj.DisplayName, "Updating user")) {
-                $result = Invoke-JiraMethod @parameter
+        }
 
-                if ($PassThru) {
-                    Write-Output (Get-JiraUser -InputObject $result)
-                }
+        $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
+        $parameter = @{
+            URI        = $resourceURi -f $userIdentifier
+            Method     = "PUT"
+            Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
+            Credential = $Credential
+        }
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        if ($PSCmdlet.ShouldProcess($UserObj.DisplayName, "Updating user")) {
+            $result = Invoke-JiraMethod @parameter
+
+            if ($PassThru) {
+                Write-Output (Get-JiraUser -InputObject $result)
             }
         }
     }

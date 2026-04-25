@@ -41,7 +41,7 @@ InModuleScope JiraPS {
                     Id  = $projectId
                     Key = "ABC"
                 }
-                $Project.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+                $Project.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 $Project
             }
             #endregion Mocks
@@ -57,8 +57,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Version'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Version'
+                It "adds custom type 'AtlassianPS.JiraPS.Version'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version'
                 }
             }
 
@@ -115,6 +115,19 @@ InModuleScope JiraPS {
 
                 It "converts Overdue to correct type" {
                     $result.Overdue | Should -BeOfType [bool]
+                }
+
+                It "converts Project to System.Int64 (long?)" {
+                    $result.Project | Should -BeOfType [long]
+                }
+
+                It "leaves Project null when projectId is missing from the payload" {
+                    $payloadWithoutProject = $sampleObject.PSObject.Copy()
+                    $payloadWithoutProject.PSObject.Properties.Remove('projectId')
+
+                    $defaulted = ConvertTo-JiraVersion -InputObject $payloadWithoutProject
+
+                    $defaulted.Project | Should -BeNullOrEmpty
                 }
             }
 

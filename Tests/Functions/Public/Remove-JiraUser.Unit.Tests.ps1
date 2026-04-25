@@ -43,7 +43,7 @@ InModuleScope JiraPS {
             Mock Get-JiraUser -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                 $object = ConvertFrom-Json $testJsonGet
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                 return $object
             }
 
@@ -70,7 +70,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'User'; type = 'Object[]' }
+                    @{ parameter = 'User'; type = 'AtlassianPS.JiraPS.User' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                     @{ parameter = 'Force'; type = 'Switch' }
                 ) {
@@ -91,7 +91,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
-                It "Accepts a JiraPS.User object to the -User parameter" {
+                It "Accepts a AtlassianPS.JiraPS.User object to the -User parameter" {
                     $user = Get-JiraUser -UserName $testUsername
                     { Remove-JiraUser -User $user -Force } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
@@ -129,7 +129,7 @@ InModuleScope JiraPS {
                     Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                     $object = ConvertFrom-Json $testJsonGet
                     $object | Add-Member -MemberType NoteProperty -Name 'AccountId' -Value $testAccountId
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     return $object
                 }
 

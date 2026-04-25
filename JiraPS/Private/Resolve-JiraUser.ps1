@@ -1,35 +1,16 @@
 ﻿function Resolve-JiraUser {
-    <#
-      #ToDo:CustomClass
-      Once we have custom classes, this will no longer be necessary
-    #>
     [CmdletBinding()]
+    [OutputType( [AtlassianPS.JiraPS.User] )]
     param(
-        [Parameter( ValueFromPipeline )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraUser'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for User. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object]
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
+        [AtlassianPS.JiraPS.User]
         $InputObject,
 
         [Switch]
         $Exact,
 
-        # Authentication credentials
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
@@ -41,22 +22,38 @@
     }
 
     process {
-        # As we are not able to use proper type casting in the parameters, this is a workaround
-        # to extract the data from a JiraPS.Issue object
-        # This shall be removed once we have custom classes for the module
-        if ("JiraPS.User" -in $InputObject.PSObject.TypeNames) {
+        if ($InputObject.RestUrl) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$InputObject as object"
             return $InputObject
         }
-        else {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve User to object"
 
-            if (($isCloud) -and ($InputObject -match '^[0-9a-f]{24}$')) {
-                return (Get-JiraUser -AccountId $InputObject -Exact:$Exact -Credential $Credential -ErrorAction Stop)
-            }
-            else {
-                return (Get-JiraUser -UserName $InputObject -Exact:$Exact -Credential $Credential -ErrorAction Stop)
-            }
+        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve User to object"
+
+        if ($isCloud -and $InputObject.AccountId) {
+            return (Get-JiraUser -AccountId $InputObject.AccountId -Exact:$Exact -Credential $Credential -ErrorAction Stop)
         }
+
+        # Legacy compatibility: if the caller handed us a stub user whose
+        # Name slot looks like a Cloud accountId (24 hex chars or the modern
+        # `<namespace>:<uuid>` shape), route through /accountId so the GET
+        # works without first pre-classifying the input string.
+        if ($isCloud -and $InputObject.Name -and (
+                $InputObject.Name -match '^[0-9a-f]{24}$' -or
+                $InputObject.Name -match '^[A-Za-z0-9]+:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$'
+            )) {
+            return (Get-JiraUser -AccountId $InputObject.Name -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+        }
+
+        if ($InputObject.Name) {
+            return (Get-JiraUser -UserName $InputObject.Name -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+        }
+
+        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord (
+            ([System.ArgumentException]"Cannot resolve user: neither AccountId nor Name is set."),
+            'ParameterValue.NotJiraUser',
+            [System.Management.Automation.ErrorCategory]::InvalidArgument,
+            $InputObject
+        )
+        $PSCmdlet.ThrowTerminatingError($errorItem)
     }
 }

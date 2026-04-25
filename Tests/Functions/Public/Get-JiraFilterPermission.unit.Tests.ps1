@@ -40,7 +40,7 @@ InModuleScope JiraPS {
                         Id      = $_id
                         RestUrl = "$jiraServer/rest/api/2/filter/$_id"
                     }
-                    $basicFilter.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+                    $basicFilter.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
                     $basicFilter
                 }
             }
