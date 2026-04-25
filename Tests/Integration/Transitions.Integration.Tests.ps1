@@ -219,10 +219,16 @@ InModuleScope JiraPS {
                 # Comments attached to a transition POST land in Jira's comment store
                 # asynchronously on AMPS standalone (the comment is created in the
                 # post-transition phase of the workflow executor, after the 204 returns).
-                # Poll for the marker to appear; production Jira typically converges in
-                # <1s so this loop usually exits on the first iteration.
+                # Production Jira typically converges in <1s, but observed runs against
+                # the moveworkforward AMPS image have shown the comment still missing
+                # after a 15s poll (#24935398326), so the budget is 30s here. The loop
+                # exits as soon as the marker appears, so the bump only adds latency
+                # on the failure path — and on the failure path we explicitly want to
+                # give the workflow executor every reasonable chance before declaring
+                # the cmdlet broken. The wider window also absorbs Lucene / db-commit
+                # lag during heavily-parallel runs against the H2 store.
                 $matchingComment = $null
-                $deadline = (Get-Date).AddSeconds(15)
+                $deadline = (Get-Date).AddSeconds(30)
                 while ((Get-Date) -lt $deadline) {
                     $comments = Get-JiraIssueComment -Issue $issue.Key
                     $matchingComment = @($comments) | Where-Object {
