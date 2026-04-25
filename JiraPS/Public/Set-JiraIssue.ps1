@@ -151,7 +151,11 @@
             }
 
             if ($Description) {
-                $issueProps.update["description"] = @(@{ 'set' = $Description })
+                $issueProps.update["description"] = @(
+                    @{
+                        'set' = Resolve-JiraTextFieldPayload -Text $Description -IsCloud $isCloud
+                    }
+                )
             }
 
             if ($FixVersion) {
@@ -164,7 +168,7 @@
                 $issueProps.update["comment"] = @(
                     @{
                         'add' = @{
-                            'body' = $AddComment
+                            'body' = Resolve-JiraTextFieldPayload -Text $AddComment -IsCloud $isCloud
                         }
                     }
                 )
@@ -225,6 +229,13 @@
                     }
 
                     $id = [string]$field.Id
+
+                    # `-Fields` values hit a raw assignment; wrap rich-text strings here
+                    # for parity with the named-parameter paths.
+                    if ($isCloud -and ($value -is [string]) -and (Test-JiraRichTextField -Field $field)) {
+                        $value = Resolve-JiraTextFieldPayload -Text $value -IsCloud $true
+                    }
+
                     $issueProps.update[$id] = @(@{ 'set' = $value })
                 }
             }
@@ -235,13 +246,15 @@
                 $SkipNotificationParams = @{ notifyUsers = "false" }
             }
 
+            $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
+
             if ( @($issueProps.update.Keys).Count -gt 0 ) {
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue fields"
 
                 $parameter = @{
-                    URI          = $issueObj.RestUrl
+                    URI          = $issueRestUrl
                     Method       = "PUT"
-                    Body         = ConvertTo-Json -InputObject $issueProps -Depth 10
+                    Body         = ConvertTo-Json -InputObject $issueProps -Depth 20
                     Credential   = $Credential
                     GetParameter = $SkipNotificationParams
                 }
@@ -257,7 +270,7 @@
                 # you customize the "Edit Issue" screen.
 
                 $parameter = @{
-                    URI          = "{0}/assignee" -f $issueObj.RestUrl
+                    URI          = "{0}/assignee" -f $issueRestUrl
                     Method       = "PUT"
                     Body         = ConvertTo-Json -InputObject $assigneeProps
                     Credential   = $Credential

@@ -962,6 +962,17 @@ InModuleScope JiraPS {
                     $result.Attachment | Should -Not -BeNullOrEmpty
                     $result.Attachment[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Attachment'
                 }
+
+                It "converts status field to a JiraPS.Status object" {
+                    $result.Status | Should -Not -BeNullOrEmpty
+                    $result.Status.PSObject.TypeNames[0] | Should -Be 'JiraPS.Status'
+                    $result.Status.Name | Should -Be 'Open'
+                    $result.Status.Id | Should -Be 1
+                }
+
+                It "preserves the status name via ToString() so legacy '\$issue.Status' rendering keeps working" {
+                    "$($result.Status)" | Should -Be 'Open'
+                }
             }
 
             Context "Pipeline Support" {
@@ -972,6 +983,37 @@ InModuleScope JiraPS {
                 It "processes multiple issues from pipeline" {
                     $result = @($sampleObject, $sampleObject) | ConvertTo-JiraIssue
                     $result | Should -HaveCount 2
+                }
+
+                It "derives HttpUrl from each issue's own 'self' (not the whole batch)" {
+                    # Regression: ConvertTo-JiraIssue used to compute HttpUrl
+                    # from $InputObject.self, which broadcasts member-access
+                    # across the array when -InputObject is bound directly
+                    # with multiple issues (the path Get-JiraIssue uses for
+                    # ByJQL / ByFilter results from Invoke-JiraMethod).
+                    # `(@($a.self, $b.self) -split 'rest')[0]` returns only
+                    # the FIRST issue's prefix, so every issue in the batch
+                    # silently inherited issue[0]'s server URL — issue B's
+                    # HttpUrl became "http://A/browse/B-2".
+                    #
+                    # Pipeline binding (`@($a, $b) | ConvertTo-JiraIssue`)
+                    # does NOT trigger the bug because each item flows
+                    # through `process` individually, so $InputObject is a
+                    # single-element array on every call. Reproducing the
+                    # regression therefore requires direct -InputObject
+                    # array binding.
+                    $other = ConvertFrom-Json -InputObject (
+                        $sampleJson `
+                            -replace '"self": "(.*?)/rest/api/2/issue/320391"', '"self": "https://other.example.com/rest/api/2/issue/999999"' `
+                            -replace '"id": "320391"', '"id": "999999"' `
+                            -replace '"key": "JRA-37294"', '"key": "OTHER-1"'
+                    )
+
+                    $result = ConvertTo-JiraIssue -InputObject @($sampleObject, $other)
+
+                    $result | Should -HaveCount 2
+                    $result[0].HttpUrl | Should -Be "$jiraServer/browse/JRA-37294"
+                    $result[1].HttpUrl | Should -Be "https://other.example.com/browse/OTHER-1"
                 }
             }
         }

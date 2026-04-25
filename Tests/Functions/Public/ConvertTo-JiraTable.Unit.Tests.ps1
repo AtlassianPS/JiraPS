@@ -1,5 +1,15 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
+# IMPORTANT: this file-level suppression exists ONLY so the
+# "Backward-compatibility alias 'Format-Jira'" Context further down can
+# call the deprecated `Format-Jira` alias as the system-under-test
+# without PSScriptAnalyzer flagging it. The suppression scope is the
+# entire file, so PLEASE do not introduce unrelated alias usage here —
+# the analyzer won't catch it. Use full cmdlet names everywhere except
+# inside the alias-under-test assertion.
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Justification = 'Tests the deprecated Format-Jira alias on purpose.')]
+param()
+
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
@@ -155,6 +165,10 @@ InModuleScope JiraPS {
 
             It "Produces identical output when invoked via the alias" {
                 $expected = $obj | ConvertTo-JiraTable
+                # Invocation via the deprecated alias is the system-under-test
+                # here, not an accidental use. The PSAvoidUsingCmdletAliases
+                # warning for this call site is suppressed at the file level
+                # via the param() attribute at the top of this file.
                 $actual = $obj | Format-Jira
 
                 $actual | Should -Be $expected
