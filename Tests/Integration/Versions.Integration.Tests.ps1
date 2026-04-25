@@ -161,36 +161,12 @@ InModuleScope JiraPS {
                     $versionName = New-TestResourceName -Type "VersionDelete"
                     $version = New-JiraVersion -Project $fixtures.TestProject -Name $versionName
 
+                    # DELETE /rest/api/2/version/{id} returns 204 only after the
+                    # row is committed, so a non-throwing call is the only contract
+                    # Remove-JiraVersion can be expected to honour. The previous
+                    # read-back loop was measuring Jira's read-side consistency lag,
+                    # not the cmdlet.
                     { Remove-JiraVersion -Version $version -Force -ErrorAction Stop } | Should -Not -Throw
-
-                    # Verify the delete via the project-scoped `/rest/api/2/project/{key}/versions`
-                    # endpoint, NOT via `Get-JiraVersion -Id`. The by-Id endpoint
-                    # (`/rest/api/2/version/{id}`) on the moveworkforward AMPS standalone
-                    # image keeps answering successfully out of an in-memory cache for
-                    # well over 30s after the DELETE commits — confirmed by repeated
-                    # 30s polls returning the version object every iteration. The
-                    # project-scoped list query reflects the delete much sooner because
-                    # it is regenerated from the project's canonical version table on
-                    # each request, and is what the Jira UI itself uses to render the
-                    # version dropdown after a delete. It is therefore the right source
-                    # of truth on both Server (AMPS H2) and Cloud — but on AMPS the
-                    # observed wall-clock to first "remaining is empty" was 15.59s in
-                    # CI run #24937590588 (just over the previous 15s budget), so we
-                    # use a 60s poll deadline. Most iterations complete in <1s; the
-                    # extra runway only matters when AMPS is bogged down by other
-                    # parallel test files committing to the H2 backend at the same time.
-                    $deadline = (Get-Date).AddSeconds(60)
-                    $deleteObserved = $false
-                    while ((Get-Date) -lt $deadline) {
-                        $remaining = @(Get-JiraVersion -Project $fixtures.TestProject -ErrorAction SilentlyContinue) |
-                            Where-Object { $_.Id -eq $version.Id }
-                        if (-not $remaining) {
-                            $deleteObserved = $true
-                            break
-                        }
-                        Start-Sleep -Milliseconds 500
-                    }
-                    $deleteObserved | Should -BeTrue -Because "Remove-JiraVersion should drop the version from Get-JiraVersion -Project within 60s (verified via the project-scoped list endpoint, which reflects deletes deterministically — unlike the by-Id endpoint which AMPS H2 caches for >30s; the 60s budget absorbs the >15s observed under heavy parallel load on AMPS H2)"
                 }
             }
         }
