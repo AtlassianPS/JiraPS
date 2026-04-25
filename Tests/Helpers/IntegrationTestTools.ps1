@@ -679,11 +679,11 @@ function Get-MinimumValidIssueParameter {
             continue
         }
 
-        switch -Regex ($field.Schema.type) {
-            '^string$' { $result.Fields[$field.Id] = "JiraPS-IntTest default for $($field.Name)"; break }
-            '^number$' { $result.Fields[$field.Id] = 0; break }
-            '^array$' { $result.Fields[$field.Id] = @(); break }
-            '^user$' {
+        switch ($field.Schema.type) {
+            'string' { $result.Fields[$field.Id] = "JiraPS-IntTest default for $($field.Name)"; break }
+            'number' { $result.Fields[$field.Id] = 0; break }
+            'array' { $result.Fields[$field.Id] = @(); break }
+            'user' {
                 # Generic catch-all for `user`-typed required fields beyond
                 # reporter/assignee (e.g. custom approver fields the project
                 # template might add). The `name` payload shape works on
