@@ -39,6 +39,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `New-JiraIssue -Reporter`    | No longer accepts `$null`, empty, or whitespace-only strings.           |
 | `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
 | `Invoke-JiraMethod -Uri`     | Relative endpoint paths are now first-class (`/rest/api/...`).          |
+| `JiraPS.Issue.Status`        | Now a `JiraPS.Status` object instead of the bare status name string.    |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -228,6 +229,32 @@ $comment = Get-Process powershell | ConvertTo-JiraTable
 `ConvertTo-JiraTable` produces Jira wiki markup, the native format for Jira Server / Data Center.
 On **Jira Cloud** REST v3 endpoints expect Atlassian Document Format (ADF) and render the resulting `||header||` / `|cell|` syntax as literal text rather than as a table.
 Wrapping the write-side text payloads (`Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `New-JiraIssue -Description`, etc.) in ADF on Cloud is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
+
+### `JiraPS.Issue.Status` is now a `JiraPS.Status` object
+
+Previously, `JiraPS.Issue.Status` was the bare status name string (e.g. `'Open'`).
+This made `$issue.Status.Name` evaluate to `$null` and prevented downstream code from inspecting the status category, icon, or REST URL — every other domain field on `JiraPS.Issue` was already strongly typed (`Project`, `Reporter`, `Assignee`, …) so this was a long-standing inconsistency.
+
+`Status` is now a `JiraPS.Status` `PSObject` with `Id`, `Name`, `Description`, `IconUrl`, and `RestUrl` properties.
+Its `ToString()` override renders the status name, so string interpolation (`"$($issue.Status)"`), `Write-Output $issue.Status`, and the default formatter continue to print the previous text and most scripts need no change.
+
+The breaking case is direct equality / pattern-match against the bare name:
+
+#### v2
+
+```powershell
+if ($issue.Status -eq 'Open') { ... }
+$issue.Status -match '^In '
+$issue.Status.Substring(0, 3)
+```
+
+#### v3
+
+```powershell
+if ($issue.Status.Name -eq 'Open') { ... }
+$issue.Status.Name -match '^In '
+$issue.Status.Name.Substring(0, 3)
+```
 
 ### Endpoint Paths in `Invoke-JiraMethod`
 
