@@ -333,6 +333,36 @@ InModuleScope JiraPS {
                     $URI -eq "$jiraServer/rest/api/3/issue/$issueID/transitions"
                 }
             }
+
+            It "wraps a rich-text field passed via -Fields into ADF on Cloud" {
+                # Cloud's v3 transition endpoint also rejects raw strings
+                # for rich-text fields supplied via -Fields. The cmdlet
+                # must inspect the field schema and wrap rich-text values
+                # via Resolve-JiraTextFieldPayload, matching -Comment.
+                Mock Get-JiraField -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraField' 'Field'
+                    $object = [PSCustomObject] @{
+                        Name   = $Field
+                        ID     = 'description'
+                        Schema = [PSCustomObject]@{ type = 'string'; system = 'description' }
+                    }
+                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                    $object
+                }
+
+                {
+                    Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                        description = 'transition desc'
+                    }
+                } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $set = $payload.update.description[0].set
+                    $set.type -eq 'doc' -and
+                    $set.content[0].content[0].text -eq 'transition desc'
+                }
+            }
         }
     }
 }

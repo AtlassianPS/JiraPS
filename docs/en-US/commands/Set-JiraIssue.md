@@ -237,6 +237,11 @@ Any additional fields that should be updated.
 
 Inspect [about_JiraPS_CustomFields](../../about/custom-fields.html) for more information.
 
+On **Jira Cloud**, string values supplied for rich-text fields (`description`, `environment`, and custom textarea fields with schema type `doc`) are interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, matching the behaviour of the explicit `-Description` parameter.
+Plain string fields, numeric fields, dates, etc. are forwarded as-is.
+Hashtable / object values are also forwarded as-is — pass a pre-built ADF document if you need full control.
+On **Jira Server / Data Center** the value is always forwarded verbatim.
+
 ```yaml
 Type: PSObject
 DefaultValue: ''

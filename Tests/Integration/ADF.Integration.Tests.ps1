@@ -319,6 +319,64 @@ InModuleScope JiraPS {
                     $matching.Comment | Should -Not -Match '"type":\s*"doc"'
                 }
             }
+
+            # Regression coverage for #602: passing a rich-text field via
+            # -Fields used to fail on Cloud with
+            # "Operation value must be an Atlassian Document" because the
+            # cmdlets routed to v3 but did not wrap the string. The
+            # -Fields loop now consults the field schema via
+            # Test-JiraRichTextField and wraps rich-text values in ADF.
+            Context "New-JiraIssue -Fields with rich-text fields (regression)" {
+                It "wraps a description supplied via -Fields into ADF on Cloud" {
+                    if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $marker = "ADFFIELDSCREATE_$(Get-Date -Format 'HHmmssff')"
+                    $description = "Description-via-fields $marker with **bold** prose."
+
+                    $summary = New-TestResourceName -Type "ADFFieldsCreateIssue"
+                    $created = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary -Fields @{
+                        description = $description
+                    }
+
+                    try {
+                        $created | Should -Not -BeNullOrEmpty
+
+                        $fetched = Get-JiraIssue -Key $created.Key
+                        $fetched.Description | Should -BeOfType [string]
+                        $fetched.Description | Should -Not -Match '"type":\s*"doc"'
+                        $fetched.Description | Should -Match $marker
+                        $fetched.Description | Should -Match 'bold'
+                    }
+                    finally {
+                        if ($created -and $created.Key) {
+                            Remove-JiraIssue -IssueId $created.Key -Force -ErrorAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+
+            Context "Set-JiraIssue -Fields with rich-text fields (regression)" {
+                It "wraps a description supplied via -Fields into ADF on Cloud" {
+                    if (-not $tempIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $marker = "ADFFIELDSEDIT_$(Get-Date -Format 'HHmmssff')"
+                    $description = "Edit-via-fields $marker with **bold** prose."
+
+                    Set-JiraIssue -Issue $tempIssue.Key -Fields @{ description = $description }
+
+                    $fetched = Get-JiraIssue -Key $tempIssue.Key
+                    $fetched.Description | Should -BeOfType [string]
+                    $fetched.Description | Should -Not -Match '"type":\s*"doc"'
+                    $fetched.Description | Should -Match $marker
+                    $fetched.Description | Should -Match 'bold'
+                }
+            }
         }
     }
 }

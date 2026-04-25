@@ -229,6 +229,13 @@
                     }
 
                     $id = [string]$field.Id
+
+                    # `-Fields` values hit a raw assignment; wrap rich-text strings here
+                    # for parity with the named-parameter paths.
+                    if ($isCloud -and ($value -is [string]) -and (Test-JiraRichTextField -Field $field)) {
+                        $value = Resolve-JiraTextFieldPayload -Text $value -IsCloud $true
+                    }
+
                     $issueProps.update[$id] = @(@{ 'set' = $value })
                 }
             }
