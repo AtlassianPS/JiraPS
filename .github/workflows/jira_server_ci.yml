@@ -14,20 +14,14 @@ name: Jira Server (Data Center) Integration Tests
 # resolves dependencies via the still-live packages.atlassian.com Artifactory
 # instead, so it actually boots end-to-end.
 on:
-  # Per-PR runs are intentionally NOT wired up. The full Server-tagged suite
-  # currently takes ~25 min on a cold-boot CI runner (image pull + Maven dep
-  # verification + Tomcat / jira.war first-time init + Lucene seeding + ~150
-  # tests across 25+ files at ThrottleLimit=2 against an embedded H2 DB) and
-  # only exercises Data Center API differences that the Cloud Smoke + Cloud
-  # Full Integration suites already cover for every cross-deployment cmdlet.
-  # That cost is fine on a nightly cadence (catches drift in the upstream
-  # moveworkforward/atlas-run-standalone image and in the Atlassian Plugin
-  # SDK's own dependency-resolution endpoints) and on explicit manual runs
-  # when working on a Server-track change, but is much too expensive to gate
-  # every PR on. PR-level Server coverage is provided by the Server-tagged
-  # subset of the existing per-OS unit suites (the JiraPS module itself runs
-  # on PS5/PS7 across Windows/Ubuntu/macOS in `ci.yml`) and by the Cloud
-  # Smoke job in `integration_tests.yml`.
+  # Per-PR runs are intentionally NOT wired up. The Server-tagged suite is
+  # ~25 min cold-boot (image pull + Maven dep verification + Tomcat /
+  # jira.war first-time init + Lucene seeding + the parallel Pester suite),
+  # which is fine on a nightly cadence (catches drift in the upstream
+  # moveworkforward image and the Atlassian Plugin SDK's dependency-
+  # resolution endpoints) and on explicit manual dispatch, but too expensive
+  # to gate every PR on. See AGENTS.md and Tests/Integration/README.md for
+  # how PR-level Server coverage is otherwise provided.
   schedule:
     # Offset from stale_cleanup (04:00 UTC) and integration_tests Cloud (06:00 UTC).
     - cron: "0 5 * * *"
@@ -46,17 +40,13 @@ jobs:
     # the test user, the TEST fixture project (via dynamic
     # /rest/project-templates/1.0/templates discovery), and the TEST-1
     # baseline issue, and the full Server-tagged Pester suite then runs
-    # against them. The latest scheduled run reported 147/169 passing.
+    # against them.
     #
-    # The remaining ~3 failures are AMPS-induced flakes (Versions delete
-    # propagation > 60s, Transitions comment-after-transition > 60s,
-    # Worklogs read-after-write hang) that don't reflect bugs in JiraPS
-    # itself — Cloud sees none of them. Because this workflow only runs
-    # nightly + on manual dispatch (see the `on:` block above for the
-    # rationale), it is intentionally NOT marked continue-on-error: a red
-    # nightly is a real signal that either the upstream image has drifted
-    # or one of the AMPS-flake tests has gotten worse, and we want that
-    # noise.
+    # Because this workflow only runs nightly + on manual dispatch (see the
+    # `on:` block above for the rationale), it is intentionally NOT marked
+    # continue-on-error: a red nightly is a real signal that either the
+    # upstream image has drifted or a Server-track regression has slipped
+    # in, and we want that noise.
     # Boot budget: pulling the ~1.2 GB image (~1 min on a warm runner), Maven
     # dependency verification (~3 min), Tomcat 10.1.44 startup + jira.war
     # extraction + plugin scan + first-time DB init (~5-10 min on cold boot).

@@ -288,7 +288,12 @@ Invoke-Build -Task TestIntegration                   # Integration tests (needs 
 Invoke-Build -Task TestIntegration -Tag 'Smoke'      # Smoke subset only
 ```
 
-The integration suite has two tracks: **Cloud** (the default, against a live Atlassian Cloud instance via `JIRA_CLOUD_*` secrets) and **Server** (Jira Data Center, booted on demand from the `moveworkforward/atlas-run-standalone:jira-11` Docker image — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, no secrets needed). Switch by setting `CI_JIRA_TYPE=Server` and filtering with `-Tag 'Server'`. Local Server-track quickstart: `Invoke-Build -Task StartJiraDocker; $env:CI_JIRA_TYPE='Server'; Invoke-Build -Task TestIntegration -Tag 'Server'; Invoke-Build -Task StopJiraDocker` (allocate ≥6 GiB to Docker Desktop first; on Apple Silicon set `JIRA_IMAGE_TAG=jira-11-arm64` for the native build). See [`Tests/Integration/README.md`](Tests/Integration/README.md) for the full track guide.
+The integration suite has two tracks:
+
+- **Cloud** (default) — runs against a live Atlassian Cloud instance via `JIRA_CLOUD_*` secrets.
+- **Server** — runs against a Dockerized Jira Data Center (`moveworkforward/atlas-run-standalone:jira-11`); no secrets needed. Switch tracks by setting `CI_JIRA_TYPE=Server` and filtering with `-Tag 'Server'`.
+
+See [`Tests/Integration/README.md`](Tests/Integration/README.md) for the local quickstart and full track guide.
 
 The `Publish` task (PowerShell Gallery upload) is reserved for release tags.
 
