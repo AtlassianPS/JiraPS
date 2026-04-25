@@ -220,15 +220,17 @@ InModuleScope JiraPS {
                 # asynchronously on AMPS standalone (the comment is created in the
                 # post-transition phase of the workflow executor, after the 204 returns).
                 # Production Jira typically converges in <1s, but observed runs against
-                # the moveworkforward AMPS image have shown the comment still missing
-                # after a 15s poll (#24935398326), so the budget is 30s here. The loop
-                # exits as soon as the marker appears, so the bump only adds latency
-                # on the failure path — and on the failure path we explicitly want to
-                # give the workflow executor every reasonable chance before declaring
-                # the cmdlet broken. The wider window also absorbs Lucene / db-commit
-                # lag during heavily-parallel runs against the H2 store.
+                # the moveworkforward AMPS image have repeatedly blown past the budget
+                # under load: 15s wasn't enough (#24935398326 → bumped to 30s in
+                # 63e29dc) and now 30s wasn't enough either (#24937590588 took 30.67s,
+                # the matching comment landing right after the deadline expired). 60s
+                # absorbs the H2-backend / Lucene-commit / workflow-executor lag we see
+                # during heavily-parallel runs. The loop exits as soon as the marker
+                # appears, so the bump only adds latency on the failure path — and on
+                # the failure path we explicitly want to give the workflow executor
+                # every reasonable chance before declaring the cmdlet broken.
                 $matchingComment = $null
-                $deadline = (Get-Date).AddSeconds(30)
+                $deadline = (Get-Date).AddSeconds(60)
                 while ((Get-Date) -lt $deadline) {
                     $comments = Get-JiraIssueComment -Issue $issue.Key
                     $matchingComment = @($comments) | Where-Object {
