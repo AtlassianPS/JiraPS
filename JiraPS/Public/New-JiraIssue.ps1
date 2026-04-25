@@ -271,7 +271,16 @@
                 continue
             }
 
-            $exception = ([System.ArgumentException]"Invalid or missing value Parameter")
+            # Embed the field name + id directly in the exception Message
+            # (not just ErrorDetails). Pester, Write-Error, and most logging
+            # surfaces print Exception.Message but skip ErrorRecord.ErrorDetails,
+            # so a generic "Invalid or missing value Parameter" message turns
+            # the cause into a guessing game. Including the field name lets
+            # the caller fix the problem (or pass `-Fields @{ <id> = '...' }`)
+            # without having to re-run with -ErrorVariable to inspect the
+            # ErrorRecord.
+            $missingFieldDescriptor = "field [$($c.Name)] (id=[$($c.Id)]) on project [$Project] / issuetype [$IssueType]"
+            $exception = ([System.ArgumentException]"Invalid or missing value for required $missingFieldDescriptor. The field is marked required by Jira's createmeta and has no server-side default; supply it via the matching parameter or via -Fields. Use Get-JiraIssueCreateMetadata for more information.")
             $errorId = 'ParameterValue.CreateMetaFailure'
             $errorCategory = 'InvalidArgument'
             $errorTarget = $Fields
