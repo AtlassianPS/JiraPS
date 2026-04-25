@@ -984,6 +984,27 @@ InModuleScope JiraPS {
                     $result = @($sampleObject, $sampleObject) | ConvertTo-JiraIssue
                     $result | Should -HaveCount 2
                 }
+
+                It "derives HttpUrl from each issue's own 'self' (not the whole batch)" {
+                    # Regression: ConvertTo-JiraIssue used to compute HttpUrl
+                    # from $InputObject.self, which is the array's combined
+                    # member-access result when -InputObject is bound with
+                    # multiple issues. -split on the array silently produced a
+                    # garbled HttpUrl that mixed paths from sibling issues.
+                    # Fixed by reading $i.self (the current pipeline item).
+                    $other = ConvertFrom-Json -InputObject (
+                        $sampleJson `
+                            -replace '"self": "(.*?)/rest/api/2/issue/320391"', '"self": "https://other.example.com/rest/api/2/issue/999999"' `
+                            -replace '"id": "320391"', '"id": "999999"' `
+                            -replace '"key": "JRA-37294"', '"key": "OTHER-1"'
+                    )
+
+                    $result = @($sampleObject, $other) | ConvertTo-JiraIssue
+
+                    $result | Should -HaveCount 2
+                    $result[0].HttpUrl | Should -Be "$jiraServer/browse/JRA-37294"
+                    $result[1].HttpUrl | Should -Be "https://other.example.com/browse/OTHER-1"
+                }
             }
         }
     }

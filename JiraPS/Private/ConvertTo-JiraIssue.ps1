@@ -24,7 +24,12 @@
             [void] $transitions.Clear()
             [void] $comments.Clear()
 
-            $http = "{0}browse/$($i.key)" -f ($InputObject.self -split 'rest')[0]
+            # Use $i.self (the current pipeline item), not $InputObject.self —
+            # when -InputObject is bound with an array, member access on the
+            # collection returns an array of `self` strings and the -split
+            # below silently produces a garbled HttpUrl that mixes paths from
+            # multiple issues.
+            $http = "{0}browse/$($i.key)" -f ($i.self -split 'rest')[0]
 
             $props = @{
                 'ID'          = $i.id
