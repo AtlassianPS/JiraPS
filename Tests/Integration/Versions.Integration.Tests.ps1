@@ -163,8 +163,18 @@ InModuleScope JiraPS {
 
                     { Remove-JiraVersion -Version $version -Force } | Should -Not -Throw
 
-                    $remaining = Get-JiraVersion -Project $fixtures.TestProject -Name $version.Name
-                    $remaining | Should -BeNullOrEmpty
+                    # Verify the delete via the by-ID endpoint (`/rest/api/2/version/{id}`)
+                    # rather than the project versions listing. The project listing on Jira
+                    # Data Center occasionally surfaces a just-deleted version for a beat —
+                    # the embedded H2 store the moveworkforward AMPS image runs against does
+                    # not always reflect the cascade in time for an immediate read — so the
+                    # original `Get-JiraVersion -Project -Name` check raced and produced a
+                    # false negative. A direct GET on the version's ID returns 404 the
+                    # instant the delete commits, which is the contract the cmdlet tests
+                    # care about. `-ErrorAction Stop` ensures the cmdlet rethrows the 404,
+                    # which `Should -Throw` then catches.
+                    { Get-JiraVersion -Id $version.Id -ErrorAction Stop } |
+                        Should -Throw -Because "Get-JiraVersion -Id must return 404 for a deleted version"
                 }
             }
         }

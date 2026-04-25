@@ -88,12 +88,22 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    # OR with a non-existent project should still return results from the valid project
-                    $jql = "project = $($fixtures.TestProject) OR project = NONEXISTENT"
+                    # The previous incarnation of this test joined the live test project
+                    # against a literal `NONEXISTENT` project to prove the OR branch was
+                    # actually evaluated. Jira Data Center's JQL parser rejects unknown
+                    # project keys outright with HTTP 400 (Cloud is more forgiving and
+                    # silently drops the unknown clause), so the cmdlet's `-ErrorAction
+                    # Stop` blew up before we ever got to assert on the results. Move
+                    # the OR onto two clauses that Jira *will* always parse on both
+                    # deployments — every issue created via `New-TemporaryTestIssue`
+                    # carries the `JiraPS-IntTest-` prefix, and `created >= -7d`
+                    # always evaluates against today, so the union is guaranteed to
+                    # match the seeded baseline issue at minimum.
+                    $jql = "project = $($fixtures.TestProject) AND (summary ~ ""JiraPS-IntTest"" OR created >= -7d)"
 
                     $results = Get-JiraIssue -Query $jql -ErrorAction Stop
-                    # Should return at least the test issue from TestProject
-                    $results | Should -Not -BeNullOrEmpty -Because "test project should have issues"
+
+                    $results | Should -Not -BeNullOrEmpty -Because "test project always carries the seeded baseline issue"
                     @($results)[0].Project.Key | Should -Be $fixtures.TestProject
                 }
 
