@@ -150,6 +150,57 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
             }
+
+            Context "Atlassian Document Format comment" {
+                It "renders an ADF comment payload back to plain text" {
+                    # Cloud worklog GET responses return 'comment' as an ADF doc,
+                    # not a string; ConvertTo-JiraWorklogitem must render it.
+                    $cloudJson = @"
+{
+    "id": "$worklogitemID",
+    "self": "$jiraServer/rest/api/3/issue/$issueID/worklog/$worklogitemID",
+    "comment": {
+        "version": 1,
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [
+                    { "type": "text", "text": "Cloud worklog comment." }
+                ]
+            }
+        ]
+    },
+    "created": "2015-05-01T16:24:38.000-0500",
+    "updated": "2015-05-01T16:24:38.000-0500",
+    "started": "2017-02-23T22:21:00.000-0500",
+    "timeSpent": "1h",
+    "timeSpentSeconds": "3600"
+}
+"@
+                    $cloudObject = ConvertFrom-Json -InputObject $cloudJson
+                    $rendered = ConvertTo-JiraWorklogitem -InputObject $cloudObject
+
+                    $rendered.Comment | Should -BeOfType [string]
+                    $rendered.Comment | Should -Be 'Cloud worklog comment.'
+                }
+
+                It "passes through `$null comment without error" {
+                    $jsonNoComment = @"
+{
+    "id": "$worklogitemID",
+    "self": "$jiraServer/rest/api/2/issue/$issueID/worklog/$worklogitemID",
+    "created": "2015-05-01T16:24:38.000-0500",
+    "started": "2017-02-23T22:21:00.000-0500",
+    "timeSpent": "1h",
+    "timeSpentSeconds": "3600"
+}
+"@
+                    $object = ConvertFrom-Json -InputObject $jsonNoComment
+                    { ConvertTo-JiraWorklogitem -InputObject $object } | Should -Not -Throw
+                    (ConvertTo-JiraWorklogitem -InputObject $object).Comment | Should -BeNullOrEmpty
+                }
+            }
         }
     }
 }

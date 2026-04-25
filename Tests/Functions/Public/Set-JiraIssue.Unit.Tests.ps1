@@ -465,6 +465,103 @@ InModuleScope JiraPS {
                     $Body -match "`"accountId`":\s*null"
                 }
             }
+
+            It "Wraps -Description into ADF on Cloud" {
+                { Set-JiraIssue -Issue "IT-3676" -Description "rewritten description" } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $set = $payload.update.description[0].set
+                    $set.type -eq 'doc' -and
+                    $set.version -eq 1 -and
+                    $set.content[0].type -eq 'paragraph' -and
+                    $set.content[0].content[0].text -eq 'rewritten description'
+                }
+            }
+
+            It "Wraps -AddComment into ADF on Cloud" {
+                { Set-JiraIssue -Issue "IT-3676" -AddComment "follow-up comment" } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $body = $payload.update.comment[0].add.body
+                    $body.type -eq 'doc' -and
+                    $body.version -eq 1 -and
+                    $body.content[0].type -eq 'paragraph' -and
+                    $body.content[0].content[0].text -eq 'follow-up comment'
+                }
+            }
+
+            It "uses the v3 issue endpoint on Cloud" {
+                { Set-JiraIssue -Issue "IT-3676" -Description "rewritten description" } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'Put' -and
+                    $URI -eq "$jiraServer/rest/api/3/issue/41701"
+                }
+            }
+
+            It "uses the v3 assignee endpoint on Cloud" {
+                { Set-JiraIssue -Issue "IT-3676" -Assignee "testUser" } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'Put' -and
+                    $URI -eq "$jiraServer/rest/api/3/issue/41701/assignee"
+                }
+            }
+
+            It "Wraps a rich-text field passed via -Fields into ADF on Cloud" {
+                # On Cloud, the v3 issue endpoint also rejects raw strings
+                # in rich-text fields supplied via -Fields. The cmdlet
+                # must use the field's schema (via Test-JiraRichTextField)
+                # to wrap the value in ADF, matching the behaviour of the
+                # explicit -Description parameter.
+                Mock Get-JiraField -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraField' 'Credential'
+                    @(
+                        [PSCustomObject]@{
+                            Id     = 'description'
+                            Name   = 'Description'
+                            Schema = [PSCustomObject]@{ type = 'string'; system = 'description' }
+                        }
+                    )
+                }
+
+                { Set-JiraIssue -Issue "IT-3676" -Fields @{ description = "via fields" } } |
+                    Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $set = $payload.update.description[0].set
+                    $set.type -eq 'doc' -and
+                    $set.content[0].content[0].text -eq 'via fields'
+                }
+            }
+
+            It "Leaves a non-rich-text field passed via -Fields verbatim on Cloud" {
+                Mock Get-JiraField -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraField' 'Credential'
+                    @(
+                        [PSCustomObject]@{
+                            Id     = 'customfield_10001'
+                            Name   = 'CustomField1'
+                            Schema = [PSCustomObject]@{
+                                type   = 'string'
+                                custom = 'com.atlassian.jira.plugin.system.customfieldtypes:textfield'
+                            }
+                        }
+                    )
+                }
+
+                { Set-JiraIssue -Issue "IT-3676" -Fields @{ customfield_10001 = "plain" } } |
+                    Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $set = $payload.update.customfield_10001[0].set
+                    $set -is [string] -and $set -eq 'plain'
+                }
+            }
         }
     }
 }

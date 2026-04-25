@@ -13,7 +13,7 @@
             $props = @{
                 'ID'         = [int64]$i.id
                 'Visibility' = $i.visibility
-                'Comment'    = $i.comment
+                'Comment'    = ConvertFrom-AtlassianDocumentFormat -InputObject $i.comment
                 'RestUrl'    = $i.self
             }
 

@@ -39,6 +39,9 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `New-JiraIssue -Reporter`    | No longer accepts `$null`, empty, or whitespace-only strings.           |
 | `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
 | `Invoke-JiraMethod -Uri`     | Relative endpoint paths are now first-class (`/rest/api/...`).          |
+| `JiraPS.Issue.Status`        | Now a `JiraPS.Status` object instead of the bare status name string.    |
+| Rich-text fields (read)      | On Cloud, returned as Markdown strings instead of ADF JSON trees.       |
+| Rich-text fields (write)     | On Cloud, plain strings / Markdown are accepted and wrapped in ADF (previously rejected). |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
 
 ## DEPRECATIONS (NON-BREAKING)
@@ -227,7 +230,106 @@ $comment = Get-Process powershell | ConvertTo-JiraTable
 
 `ConvertTo-JiraTable` produces Jira wiki markup, the native format for Jira Server / Data Center.
 On **Jira Cloud** REST v3 endpoints expect Atlassian Document Format (ADF) and render the resulting `||header||` / `|cell|` syntax as literal text rather than as a table.
-Wrapping the write-side text payloads (`Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `New-JiraIssue -Description`, etc.) in ADF on Cloud is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
+See the **Atlassian Document Format (ADF) on Jira Cloud** section below for the recommended Cloud workflow (use Markdown table syntax instead).
+
+### Atlassian Document Format (ADF) on Jira Cloud
+
+Jira Cloud's REST v3 endpoints return rich-text fields (descriptions, comments, worklog comments, environment, multi-line custom text-areas) as Atlassian Document Format (ADF) — a nested JSON document tree — and only accept ADF for those same fields on write.
+Jira Server / Data Center continues to use plain wiki-markup strings on both read and write.
+
+Across the cumulative v2 → v3 transition, JiraPS now bridges this difference transparently:
+
+- On **read**, ADF responses are converted to Markdown strings before they reach your script.
+- On **write**, plain strings (or Markdown) are wrapped in ADF and dispatched to Cloud's v3 endpoints; on Server / Data Center the value is sent verbatim against v2.
+
+The two subsections below cover the script-visible consequences.
+
+#### Reading rich-text fields
+
+In v2 (before 2.16) `$issue.Description` on Jira Cloud surfaced the raw ADF JSON tree as a deeply nested PSObject.
+In v3 it is a Markdown string.
+The same change applies to comment bodies (`$issue.Comment[].Body`, `(Get-JiraIssueComment).Body`) and worklog comments (`(Get-JiraIssueWorklog).Comment`).
+
+##### v2
+
+```powershell
+$issue = Get-JiraIssue TEST-1
+# $issue.Description was an ADF document object — the script had to walk the tree:
+$issue.Description.content[0].content[0].text
+```
+
+##### v3
+
+```powershell
+$issue = Get-JiraIssue TEST-1
+# $issue.Description is now a Markdown string:
+$issue.Description
+```
+
+If your script needs to inspect raw ADF — for example when fetching from an endpoint JiraPS does not wrap, or when round-tripping a payload — call `ConvertFrom-AtlassianDocumentFormat` directly on the JSON.
+
+#### Writing rich-text fields
+
+In v2, plain strings supplied to `-Description`, `-Comment`, `-AddComment`, etc. were sent verbatim against Cloud's v2 endpoint.
+Once Cloud completed its ADF migration, that endpoint started rejecting plain strings with `"Operation value must be an Atlassian Document"`, so any v2 script that wrote rich-text content to Cloud would fail.
+In v3 the same plain-string call works on both deployment types — JiraPS routes the request to v3 and wraps the body in ADF on Cloud, and to v2 verbatim on Server / Data Center.
+
+##### v2 (silently broken on Cloud)
+
+```powershell
+Add-JiraIssueComment -Issue TEST-1 -Comment 'Hello, **world**.'
+New-JiraIssue -Project TEST -IssueType Task -Summary 'x' -Description 'See above.'
+Set-JiraIssue -Issue TEST-1 -AddComment 'Reviewed.'
+Invoke-JiraIssueTransition -Issue TEST-1 -Transition 11 -Comment 'In review.'
+Add-JiraIssueWorklog -Issue TEST-1 -TimeSpent '1h' -Comment 'Looked into it.'
+```
+
+##### v3 (works on Cloud and Data Center)
+
+```powershell
+Add-JiraIssueComment -Issue TEST-1 -Comment 'Hello, **world**.'
+New-JiraIssue -Project TEST -IssueType Task -Summary 'x' -Description 'See above.'
+Set-JiraIssue -Issue TEST-1 -AddComment 'Reviewed.'
+Invoke-JiraIssueTransition -Issue TEST-1 -Transition 11 -Comment 'In review.'
+Add-JiraIssueWorklog -Issue TEST-1 -TimeSpent '1h' -Comment 'Looked into it.'
+```
+
+The string is interpreted as Markdown on Cloud — headings, bold/italic, lists, fenced code blocks, links, and Markdown tables render as rich text in the issue.
+On Server / Data Center the string is sent unchanged and continues to honour the legacy wiki-markup syntax.
+
+For full control over the ADF document (embedded media, mentions, status lozenges, custom panels), supply a pre-built ADF hashtable through the `-Fields` parameter — see the `-Fields` parameter help on `New-JiraIssue`, `Set-JiraIssue`, and `Invoke-JiraIssueTransition`.
+
+##### `ConvertTo-JiraTable` and Cloud
+
+Wiki-markup tables (`||header||`) emitted by `ConvertTo-JiraTable` render as literal text on Cloud — JiraPS warns when it sees that pattern in a Cloud write payload.
+Use Markdown table syntax instead; `ConvertTo-AtlassianDocumentFormat` translates it to a real ADF table.
+See the **Renaming — `Format-Jira` → `ConvertTo-JiraTable`** section above.
+
+### `JiraPS.Issue.Status` is now a `JiraPS.Status` object
+
+Previously, `JiraPS.Issue.Status` was the bare status name string (e.g. `'Open'`).
+This made `$issue.Status.Name` evaluate to `$null` and prevented downstream code from inspecting the status category, icon, or REST URL — every other domain field on `JiraPS.Issue` was already strongly typed (`Project`, `Reporter`, `Assignee`, …) so this was a long-standing inconsistency.
+
+`Status` is now a `JiraPS.Status` `PSObject` with `Id`, `Name`, `Description`, `IconUrl`, and `RestUrl` properties.
+Its `ToString()` override renders the status name, so string interpolation (`"$($issue.Status)"`), `Write-Output $issue.Status`, and the default formatter continue to print the previous text and most scripts need no change.
+
+The breaking case is direct equality / pattern-match against the bare name:
+
+#### v2
+
+```powershell
+if ($issue.Status -eq 'Open') { ... }
+$issue.Status -match '^In '
+$issue.Status.Substring(0, 3)
+```
+
+#### v3
+
+```powershell
+if ($issue.Status.Name -eq 'Open') { ... }
+$issue.Status.Name -match '^In '
+$issue.Status.Name.Substring(0, 3)
+```
 
 ### Endpoint Paths in `Invoke-JiraMethod`
 
