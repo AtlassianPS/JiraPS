@@ -15,7 +15,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Versions" -Tag 'Integration' -Skip:$Skip {
+    Describe "Versions" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
@@ -35,9 +35,17 @@ InModuleScope JiraPS {
         Describe "Get-JiraVersion" {
             Context "Project Versions" {
                 It "retrieves versions for a project" {
-                    $versions = Get-JiraVersion -Project $fixtures.TestProject
+                    # The auto-provisioned `TEST` project on Server CI starts without any
+                    # versions, and the Cloud track's external project may also legitimately
+                    # have none. Assert the call succeeds and only type-check the payload
+                    # when there is data; the populated-shape case is covered both by the
+                    # next `It` block and by the `New-JiraVersion` round-trip below.
+                    { Get-JiraVersion -Project $fixtures.TestProject } | Should -Not -Throw
 
-                    $versions | Should -BeOfType [PSCustomObject]
+                    $versions = Get-JiraVersion -Project $fixtures.TestProject
+                    if ($versions) {
+                        @($versions)[0] | Should -BeOfType [PSCustomObject]
+                    }
                 }
 
                 It "returns version objects with correct type" {
@@ -153,10 +161,36 @@ InModuleScope JiraPS {
                     $versionName = New-TestResourceName -Type "VersionDelete"
                     $version = New-JiraVersion -Project $fixtures.TestProject -Name $versionName
 
-                    { Remove-JiraVersion -Version $version -Force } | Should -Not -Throw
+                    { Remove-JiraVersion -Version $version -Force -ErrorAction Stop } | Should -Not -Throw
 
-                    $remaining = Get-JiraVersion -Project $fixtures.TestProject -Name $version.Name
-                    $remaining | Should -BeNullOrEmpty
+                    # Verify the delete via the project-scoped `/rest/api/2/project/{key}/versions`
+                    # endpoint, NOT via `Get-JiraVersion -Id`. The by-Id endpoint
+                    # (`/rest/api/2/version/{id}`) on the moveworkforward AMPS standalone
+                    # image keeps answering successfully out of an in-memory cache for
+                    # well over 30s after the DELETE commits — confirmed by repeated
+                    # 30s polls returning the version object every iteration. The
+                    # project-scoped list query reflects the delete much sooner because
+                    # it is regenerated from the project's canonical version table on
+                    # each request, and is what the Jira UI itself uses to render the
+                    # version dropdown after a delete. It is therefore the right source
+                    # of truth on both Server (AMPS H2) and Cloud — but on AMPS the
+                    # observed wall-clock to first "remaining is empty" was 15.59s in
+                    # CI run #24937590588 (just over the previous 15s budget), so we
+                    # use a 60s poll deadline. Most iterations complete in <1s; the
+                    # extra runway only matters when AMPS is bogged down by other
+                    # parallel test files committing to the H2 backend at the same time.
+                    $deadline = (Get-Date).AddSeconds(60)
+                    $deleteObserved = $false
+                    while ((Get-Date) -lt $deadline) {
+                        $remaining = @(Get-JiraVersion -Project $fixtures.TestProject -ErrorAction SilentlyContinue) |
+                            Where-Object { $_.Id -eq $version.Id }
+                        if (-not $remaining) {
+                            $deleteObserved = $true
+                            break
+                        }
+                        Start-Sleep -Milliseconds 500
+                    }
+                    $deleteObserved | Should -BeTrue -Because "Remove-JiraVersion should drop the version from Get-JiraVersion -Project within 60s (verified via the project-scoped list endpoint, which reflects deletes deterministically — unlike the by-Id endpoint which AMPS H2 caches for >30s; the 60s budget absorbs the >15s observed under heavy parallel load on AMPS H2)"
                 }
             }
         }

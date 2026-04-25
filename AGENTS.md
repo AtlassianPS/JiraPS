@@ -288,6 +288,8 @@ Invoke-Build -Task TestIntegration                   # Integration tests (needs 
 Invoke-Build -Task TestIntegration -Tag 'Smoke'      # Smoke subset only
 ```
 
+The integration suite has two tracks: **Cloud** (the default, against a live Atlassian Cloud instance via `JIRA_CLOUD_*` secrets) and **Server** (Jira Data Center, booted on demand from the `moveworkforward/atlas-run-standalone:jira-11` Docker image — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, no secrets needed). Switch by setting `CI_JIRA_TYPE=Server` and filtering with `-Tag 'Server'`. Local Server-track quickstart: `Invoke-Build -Task StartJiraDocker; $env:CI_JIRA_TYPE='Server'; Invoke-Build -Task TestIntegration -Tag 'Server'; Invoke-Build -Task StopJiraDocker` (allocate ≥6 GiB to Docker Desktop first; on Apple Silicon set `JIRA_IMAGE_TAG=jira-11-arm64` for the native build). See [`Tests/Integration/README.md`](Tests/Integration/README.md) for the full track guide.
+
 The `Publish` task (PowerShell Gallery upload) is reserved for release tags.
 
 See [`powershell-rules.md` → Running Tests](.github/ai-context/powershell-rules.md#running-tests) for the full task list and common mistakes.
@@ -468,6 +470,7 @@ Follow the [`powershell-rules.md` Review Checklist](.github/ai-context/powershel
 
 - `ci.yml` — runs on PR/push to `master`; pipeline is **Lint → Build → Test** (fail-fast). Lint = PSScriptAnalyzer + style checks (Ubuntu). Build compiles to `Release/` (Ubuntu). Test runs against the artifact on Windows PS 5.1, Windows PS 7, Ubuntu, and macOS. A `CI Result` sentinel job aggregates the pipeline result — branch protection should require **only that** check (so docs-only PRs that skip the pipeline can still merge).
 - `integration_tests.yml` — `Smoke`-tagged tests on every PR; full suite on schedule, `workflow_dispatch`, or PRs labeled `run-integration-tests` (requires Jira Cloud secrets). The `TestIntegration` build task validates required env vars and fails early if any are missing.
+- `jira_server_ci.yml` — `Server`-tagged suite against a Dockerized Jira Data Center (`moveworkforward/atlas-run-standalone:jira-11`), nightly (cron `0 5 * * *`) + `workflow_dispatch` only. **Never wired up to PRs**: the cold-boot cost (~25 min) is too expensive for per-PR feedback, and PR-level Server coverage is already provided by the Server-tagged unit suites in `ci.yml` and the Cloud Smoke job above. Use `gh workflow run "Jira Server (Data Center) Integration Tests" --ref <branch>` to trigger on demand when working on a Server-track change.
 - `release.yml` — runs on `v*` tags, downloads the `Release` artifact produced by `ci.yml` for the tagged commit, publishes to PSGallery, and creates a GitHub Release.
 - Workflow source: [`.github/workflows/`](.github/workflows/); shared setup: [`.github/actions/setup-powershell/`](.github/actions/setup-powershell/) (caller must run `actions/checkout` first).
 

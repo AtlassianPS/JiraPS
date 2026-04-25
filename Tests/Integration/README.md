@@ -1,10 +1,72 @@
 # JiraPS Integration Tests
 
-This directory contains integration tests that run against a live Jira Cloud instance.
+This directory contains integration tests that exercise JiraPS against a real Jira instance.
 
 ## Overview
 
-Integration tests verify that JiraPS functions work correctly with actual Jira APIs. Unlike unit tests that mock API calls, integration tests make real HTTP requests and validate real responses.
+Integration tests verify that JiraPS functions work correctly with actual Jira APIs.
+Unlike unit tests that mock API calls, integration tests make real HTTP requests and validate real responses.
+
+## Test Tracks
+
+The integration suite has two deployment targets:
+
+| Track | Target | Auth | Trigger |
+|-------|--------|------|---------|
+| **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | `.github/workflows/integration_tests.yml` (PR + scheduled) |
+| **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` (scheduled + manual `workflow_dispatch` only — the ~25 min cold-boot cost is too expensive to gate every PR on) |
+
+> **Local prerequisite — Docker memory.** The container asks for a 4 GiB Java heap and needs ~1 GiB of base overhead, so allocate **at least 6 GiB** to Docker Desktop in *Settings > Resources* before running locally. CI runners (~7 GiB) have enough headroom out of the box.
+>
+> **Apple Silicon — switch to the native arm64 build.** The default `jira-11` tag is the multi-arch amd64 build that CI uses; on Apple Silicon set `JIRA_IMAGE_TAG=jira-11-arm64` in your `.env` to pull the native arm64 build (~3 GB compressed) and avoid QEMU emulation overhead. Both tags ship the same SDK + Jira version.
+>
+> **Why this image and not `addono/jira-software-standalone`.** The older `addono` image's bundled Plugin SDK 8.2.8 (frozen since 2021) calls the retired `marketplace.atlassian.com/.../atlassian-plugin-sdk-rpm` endpoint at boot and dies before Jira starts; `moveworkforward` ships SDK 9.6.0 which talks to the still-live `packages.atlassian.com` Artifactory and actually boots end-to-end. `pycontribs/jira` hit the same `addono` wall — see their [PR #2376 "(server seems to be pretty hard tbh)"](https://github.com/pycontribs/jira/pull/2376) and the `ci: remove broken workflows` follow-up.
+>
+> **Project provisioning — discovered, not hardcoded.** `Tools/Wait-JiraServer.ps1` no longer trusts a hardcoded `(projectTypeKey, projectTemplateKey)` list — the AMPS standalone image only registers a single `business` project type and rejects every canonical Server template key. Instead the script queries `/rest/project-templates/1.0/templates` to discover the actual `(type, template)` pairs the running instance advertises, sorts them so templates whose key contains `task`/`software-development` come first (the `Task` issuetype that every Server-tagged test relies on), and tries them in order. After the project is created the script also queries `/rest/api/2/issue/createmeta?projectKeys=$ProjectKey` to discover an issuetype that the project actually accepts (jira-core projects don't always ship `Task`), seeds one baseline issue, and exports `JIRA_TEST_PROJECT` + `JIRA_TEST_ISSUE` to `$GITHUB_ENV` so downstream test steps see them.
+
+The `CI_JIRA_TYPE` environment variable selects the track.
+Setting `CI_JIRA_TYPE=Server` switches `Initialize-IntegrationEnvironment`, `Connect-JiraTestServer`, and the `TestIntegration` build task to the Server-track configuration; the default (`Cloud`) preserves existing behaviour.
+
+Tests route via Pester tags on each `Describe` block:
+
+- `'Integration', 'Server', 'Cloud'` — runs on both tracks (the default for new tests)
+- `'Integration', 'Cloud'` — Cloud-only (ADF v3, `accountId`-shaped fixtures, `/rest/api/3/*` endpoints)
+- `'Integration', 'Server'` — Server-only (DC-specific identity model, basic-auth-only flows)
+
+Inside a test, branch on the env config rather than hard-coding identity:
+
+```powershell
+$userIdParam = @{ ($env.UserIdProperty) = $userIdValue }
+Get-JiraUser @userIdParam
+```
+
+`$env.IsCloud` (`$true` / `$false`) and `$env.UserIdProperty` (`'accountId'` / `'name'`) are both surfaced by `Initialize-IntegrationEnvironment`.
+
+### Local quickstart for the Server track
+
+The Server track is fully self-contained — no secrets, no live Jira, just Docker:
+
+```powershell
+Invoke-Build -Task StartJiraDocker     # ~5 min on first run while image pulls + Jira boots
+$env:CI_JIRA_TYPE = 'Server'
+
+# Full Server-tagged suite — the same set of files the jira_server_ci.yml workflow runs.
+Invoke-Build -Task TestIntegration -Tag 'Server'
+
+Invoke-Build -Task StopJiraDocker
+```
+
+`StartJiraDocker` runs `docker compose up -d` against the repo-root `docker-compose.yml` and then invokes `Tools/Wait-JiraServer.ps1` to poll until Jira is reachable, provision the regular test user (`jira_user/jira`), discover and provision the fixture project (`TEST`), and seed one baseline issue.
+`StopJiraDocker` runs `docker compose down -v` to discard the container and its volumes.
+
+Locally, `Wait-JiraServer.ps1` cannot write to `$GITHUB_ENV` (which only exists inside GitHub Actions runners), so set `JIRA_TEST_PROJECT` / `JIRA_TEST_ISSUE` in your `.env` (or `$env:` directly) if you want the issue-key-dependent tests (e.g. `Get-JiraIssue.Integration.Tests.ps1`) to run instead of self-skip — the script prints the values it would have exported in its final log line.
+
+### CI scheduling
+
+| Workflow | Cron | Notes |
+|----------|------|-------|
+| `integration_tests.yml` (Cloud) | `0 6 * * *` | Smoke on every PR; full suite on label / schedule |
+| `jira_server_ci.yml` (Server) | `0 5 * * *` | Nightly + manual `workflow_dispatch` only — never on PRs (~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`). Single 25-minute job per run; Jira boot dominates wall time |
 
 ## Prerequisites
 

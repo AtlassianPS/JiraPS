@@ -155,7 +155,8 @@ InModuleScope JiraPS {
 
             It "Produces identical output when invoked via the alias" {
                 $expected = $obj | ConvertTo-JiraTable
-                $actual = $obj | Format-Jira
+                $formatJira = Get-Command -Name Format-Jira -ErrorAction Stop
+                $actual = $obj | & $formatJira
 
                 $actual | Should -Be $expected
             }

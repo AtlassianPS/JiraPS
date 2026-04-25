@@ -13,7 +13,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Authentication" -Tag 'Integration', 'Smoke' -Skip:$Skip {
+    Describe "Authentication" -Tag 'Integration', 'Smoke', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 

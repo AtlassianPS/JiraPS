@@ -14,7 +14,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Groups" -Tag 'Integration' -Skip:$Skip {
+    Describe "Groups" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 

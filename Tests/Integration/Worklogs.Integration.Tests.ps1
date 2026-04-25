@@ -14,7 +14,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Worklogs" -Tag 'Integration' -Skip:$Skip {
+    Describe "Worklogs" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
@@ -73,8 +73,7 @@ InModuleScope JiraPS {
                     $script:tempIssue = $null
                 }
                 else {
-                    $summary = New-TestResourceName -Type "WorklogIssue"
-                    $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "WorklogIssue")
                     $null = $script:createdIssues.Add($issue)
                     $script:tempIssue = $issue
                 }
