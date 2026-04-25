@@ -216,9 +216,20 @@ InModuleScope JiraPS {
                 { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition.Id -Comment $commentText -ErrorAction Stop } |
                     Should -Not -Throw
 
-                $comments = Get-JiraIssueComment -Issue $issue.Key
-                $matchingComment = @($comments) | Where-Object {
-                    $_.Body -and ($_.Body -match [regex]::Escape($marker))
+                # Comments attached to a transition POST land in Jira's comment store
+                # asynchronously on AMPS standalone (the comment is created in the
+                # post-transition phase of the workflow executor, after the 204 returns).
+                # Poll for the marker to appear; production Jira typically converges in
+                # <1s so this loop usually exits on the first iteration.
+                $matchingComment = $null
+                $deadline = (Get-Date).AddSeconds(15)
+                while ((Get-Date) -lt $deadline) {
+                    $comments = Get-JiraIssueComment -Issue $issue.Key
+                    $matchingComment = @($comments) | Where-Object {
+                        $_.Body -and ($_.Body -match [regex]::Escape($marker))
+                    } | Select-Object -First 1
+                    if ($matchingComment) { break }
+                    Start-Sleep -Milliseconds 500
                 }
                 $matchingComment | Should -Not -BeNullOrEmpty -Because "the transition payload included an update.comment.add block carrying our marker [$marker]"
             }
@@ -235,7 +246,13 @@ InModuleScope JiraPS {
                 $null = $script:createdIssues.Add($issue.Key)
 
                 $issue = Get-JiraIssue -Key $issue.Key
-                $initialStatus = $issue.Status.Name
+                # ConvertTo-JiraIssue flattens the issue's status to a plain string
+                # (the status name), not a status object. Compare strings to strings
+                # below; do NOT use `.Status.Name` on a `JiraPS.Issue`. The destination
+                # state of a `JiraPS.Transition`, however, IS exposed as a nested object
+                # with a `.Name` property (populated from the `to` block returned by
+                # `/rest/api/2/issue/{id}/transitions`).
+                $initialStatus = $issue.Status
                 $availableTransitions = $issue.Transition
 
                 if (-not $availableTransitions) {
@@ -243,15 +260,12 @@ InModuleScope JiraPS {
                     return
                 }
 
-                # `JiraPS.Transition` exposes the destination state via `ResultStatus.Name`
-                # (populated by `ConvertTo-JiraTransition` from the `to` block of
-                # `/rest/api/2/issue/{id}/transitions`). A naive `[0]` pick races with the
-                # workflow definition: on the moveworkforward AMPS image the jira-core
-                # template's first available transition can be a self-loop or a guarded
-                # conditional that resolves to the current state on a freshly-created
-                # issue, which would silently no-op the assertion below. Filter to
-                # transitions whose destination differs from the current state so this
-                # test is workflow-agnostic.
+                # A naive `[0]` pick races with the workflow definition: on the
+                # moveworkforward AMPS image the jira-core template's first available
+                # transition can be a self-loop or a guarded conditional that resolves
+                # to the current state on a freshly-created issue, which would silently
+                # no-op the assertion below. Filter to transitions whose destination
+                # differs from the current state so this test is workflow-agnostic.
                 $forwardTransitions = @($availableTransitions | Where-Object {
                         $_.ResultStatus -and $_.ResultStatus.Name -and $_.ResultStatus.Name -ne $initialStatus
                     })
@@ -265,8 +279,18 @@ InModuleScope JiraPS {
                 $expectedAfterFirst = $firstTransition.ResultStatus.Name
                 Invoke-JiraIssueTransition -Issue $issue.Key -Transition $firstTransition.Id -ErrorAction Stop
 
-                $afterFirst = Get-JiraIssue -Key $issue.Key
-                $afterFirst.Status.Name | Should -Be $expectedAfterFirst -Because "we picked transition [$($firstTransition.Name)] which targets [$expectedAfterFirst]"
+                # Poll for the new status: AMPS standalone (H2 store) sometimes serves
+                # a stale issue snapshot from cache for a beat after the transition
+                # POST returns 204. Up to 10s tolerance; production Jira typically
+                # converges in <1s so the loop usually exits on the first iteration.
+                $afterFirst = $null
+                $deadline = (Get-Date).AddSeconds(10)
+                while ((Get-Date) -lt $deadline) {
+                    $afterFirst = Get-JiraIssue -Key $issue.Key
+                    if ($afterFirst -and $afterFirst.Status -eq $expectedAfterFirst) { break }
+                    Start-Sleep -Milliseconds 500
+                }
+                $afterFirst.Status | Should -Be $expectedAfterFirst -Because "we picked transition [$($firstTransition.Name)] which targets [$expectedAfterFirst]"
 
                 # Try to cycle to *another* state. Prefer a transition that lands back on
                 # the original status (true round-trip) but accept any state-changing
@@ -274,7 +298,7 @@ InModuleScope JiraPS {
                 # -> Done with no direct backward edge) and the bidirectional capability
                 # is what we actually want to exercise on this code path.
                 $backCandidates = @($afterFirst.Transition | Where-Object {
-                        $_.ResultStatus -and $_.ResultStatus.Name -and $_.ResultStatus.Name -ne $afterFirst.Status.Name
+                        $_.ResultStatus -and $_.ResultStatus.Name -and $_.ResultStatus.Name -ne $afterFirst.Status
                     })
 
                 if ($backCandidates) {
@@ -284,8 +308,14 @@ InModuleScope JiraPS {
 
                     Invoke-JiraIssueTransition -Issue $issue.Key -Transition $secondTransition.Id -ErrorAction Stop
 
-                    $afterSecond = Get-JiraIssue -Key $issue.Key
-                    $afterSecond.Status.Name | Should -Be $expectedAfterSecond -Because "we picked transition [$($secondTransition.Name)] which targets [$expectedAfterSecond]"
+                    $afterSecond = $null
+                    $deadline = (Get-Date).AddSeconds(10)
+                    while ((Get-Date) -lt $deadline) {
+                        $afterSecond = Get-JiraIssue -Key $issue.Key
+                        if ($afterSecond -and $afterSecond.Status -eq $expectedAfterSecond) { break }
+                        Start-Sleep -Milliseconds 500
+                    }
+                    $afterSecond.Status | Should -Be $expectedAfterSecond -Because "we picked transition [$($secondTransition.Name)] which targets [$expectedAfterSecond]"
                 }
             }
         }
