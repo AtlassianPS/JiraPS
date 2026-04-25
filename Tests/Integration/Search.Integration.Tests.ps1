@@ -84,8 +84,8 @@ InModuleScope JiraPS {
                 }
 
                 It "supports OR operator" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                    if ([string]::IsNullOrEmpty($fixtures.TestProject) -or [string]::IsNullOrEmpty($fixtures.TestIssue)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
                         return
                     }
                     # The previous incarnation of this test joined the live test project
@@ -93,17 +93,23 @@ InModuleScope JiraPS {
                     # actually evaluated. Jira Data Center's JQL parser rejects unknown
                     # project keys outright with HTTP 400 (Cloud is more forgiving and
                     # silently drops the unknown clause), so the cmdlet's `-ErrorAction
-                    # Stop` blew up before we ever got to assert on the results. Move
-                    # the OR onto two clauses that Jira *will* always parse on both
-                    # deployments — every issue created via `New-TemporaryTestIssue`
-                    # carries the `JiraPS-IntTest-` prefix, and `created >= -7d`
-                    # always evaluates against today, so the union is guaranteed to
-                    # match the seeded baseline issue at minimum.
-                    $jql = "project = $($fixtures.TestProject) AND (summary ~ ""JiraPS-IntTest"" OR created >= -7d)"
+                    # Stop` blew up before we ever got to assert on the results. The
+                    # second iteration switched to `summary ~ "JiraPS-IntTest" OR
+                    # created >= -7d`, which works on Server (where Wait-JiraServer.ps1
+                    # seeds a baseline issue carrying the prefix) but flapped on Cloud
+                    # against the long-lived test project where no recent issues had
+                    # been created and no summary matched the prefix. Anchor one of the
+                    # OR branches to `key = $TestIssue` instead — `JIRA_TEST_ISSUE` is
+                    # always in `JIRA_TEST_PROJECT` on both tracks (Cloud sets the pair
+                    # statically; Wait-JiraServer.ps1 seeds them on Server), so the
+                    # union always matches at least the baseline issue. The second OR
+                    # branch (`created >= -90d`) lengthens the window enough to absorb
+                    # natural traffic on the Cloud project too, exercising both halves.
+                    $jql = "project = $($fixtures.TestProject) AND (key = $($fixtures.TestIssue) OR created >= -90d)"
 
                     $results = Get-JiraIssue -Query $jql -ErrorAction Stop
 
-                    $results | Should -Not -BeNullOrEmpty -Because "test project always carries the seeded baseline issue"
+                    $results | Should -Not -BeNullOrEmpty -Because "test project always carries JIRA_TEST_ISSUE"
                     @($results)[0].Project.Key | Should -Be $fixtures.TestProject
                 }
 
