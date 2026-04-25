@@ -75,7 +75,7 @@ InModuleScope JiraPS {
             It "returns a real [AtlassianPS.JiraPS.ServerInfo] fallback when Invoke-JiraMethod throws" {
                 # Override the success-case mock so the request fails and the
                 # catch{} branch builds the fallback object.
-                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/serverInfo" } {
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -eq "/rest/api/2/serverInfo" } {
                     throw 'simulated network failure'
                 }
 
