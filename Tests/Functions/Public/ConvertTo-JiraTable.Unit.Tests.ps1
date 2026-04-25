@@ -1,5 +1,12 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
+# IMPORTANT: this file-level suppression exists ONLY so the
+# "Backward-compatibility alias 'Format-Jira'" Context further down can
+# call the deprecated `Format-Jira` alias as the system-under-test
+# without PSScriptAnalyzer flagging it. The suppression scope is the
+# entire file, so PLEASE do not introduce unrelated alias usage here —
+# the analyzer won't catch it. Use full cmdlet names everywhere except
+# inside the alias-under-test assertion.
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Justification = 'Tests the deprecated Format-Jira alias on purpose.')]
 param()
 
