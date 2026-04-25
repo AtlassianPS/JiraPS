@@ -19,15 +19,18 @@
         On Jira Server / Data Center the v3 endpoints don't exist, so the
         URL is returned unchanged.
 
-        The substitution is intentionally narrow: it only replaces
-        "/rest/api/2/" so we don't accidentally rewrite agile, service-desk,
-        or other plugin URLs that happen to contain the string "/2/".
+        The substitution is anchored at the start of the URL's path
+        component (everything before the first `?` or `#`), so a query
+        string that happens to contain `/rest/api/2/` (e.g. a callback URL)
+        is left untouched. Only the first occurrence is rewritten — agile,
+        service-desk, or other plugin URLs that don't begin with
+        `/rest/api/2/` are unaffected.
 
     .OUTPUTS
         [string] The (possibly rewritten) URL.
 
     .EXAMPLE
-        $uri = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestURL -IsCloud $isCloud
+                $uri = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
 
         Returns "/rest/api/3/issue/12345" on Cloud and the original
         "/rest/api/2/issue/12345" on Server / DC.
@@ -54,5 +57,10 @@
         return $Url
     }
 
-    return $Url -replace '/rest/api/2/', '/rest/api/3/'
+    # Match only the first /rest/api/2/ segment that lives in the path
+    # component (i.e. before any query string or fragment). The non-greedy
+    # `[^?#]*?` ensures we land on the leftmost match — any later
+    # occurrences in the same path, or anything inside a `?...` query
+    # string / `#fragment`, are preserved verbatim.
+    return $Url -replace '^([^?#]*?)/rest/api/2/', '$1/rest/api/3/'
 }

@@ -35,13 +35,30 @@ InModuleScope JiraPS {
                 $result | Should -Be "/rest/api/3/issue"
             }
 
-            It "rewrites only the first /rest/api/2/ segment" {
-                # Pathological input: /rest/api/2/ as a substring of a query
-                # string. We accept this collateral damage because production
-                # URLs do not contain /rest/api/2/ outside of the API root.
-                $url = "https://acme.atlassian.net/rest/api/2/issue/12345"
+            It "rewrites the path /rest/api/2/ but leaves /rest/api/2/ inside the query string alone" {
+                # Pathological input: /rest/api/2/ appears both in the URL
+                # path and as the value of a query parameter. We must
+                # rewrite the path (so the API call lands on v3) but leave
+                # the query string verbatim, so callback URLs etc. survive
+                # the rewrite untouched.
+                $url = "https://x/rest/api/2/issue?cb=/rest/api/2/foo"
                 $result = ConvertTo-JiraRestApiV3Url -Url $url -IsCloud $true
-                $result | Should -Be "https://acme.atlassian.net/rest/api/3/issue/12345"
+                $result | Should -Be "https://x/rest/api/3/issue?cb=/rest/api/2/foo"
+            }
+
+            It "leaves /rest/api/2/ inside a fragment alone" {
+                $url = "https://x/rest/api/2/issue#/rest/api/2/foo"
+                $result = ConvertTo-JiraRestApiV3Url -Url $url -IsCloud $true
+                $result | Should -Be "https://x/rest/api/3/issue#/rest/api/2/foo"
+            }
+
+            It "rewrites only the first /rest/api/2/ segment in the path" {
+                # Defensive: a URL whose path embeds a second /rest/api/2/
+                # segment should still only have the first one rewritten,
+                # so nested-resource paths don't get double-mangled.
+                $url = "https://x/rest/api/2/foo/rest/api/2/bar"
+                $result = ConvertTo-JiraRestApiV3Url -Url $url -IsCloud $true
+                $result | Should -Be "https://x/rest/api/3/foo/rest/api/2/bar"
             }
 
             It "leaves agile / service-desk URLs alone" {
