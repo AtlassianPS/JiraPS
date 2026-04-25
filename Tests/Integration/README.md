@@ -14,7 +14,7 @@ The integration suite has two deployment targets:
 | Track | Target | Auth | Trigger |
 |-------|--------|------|---------|
 | **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | `.github/workflows/integration_tests.yml` (PR + scheduled) |
-| **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` (PR + scheduled) |
+| **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` (scheduled + manual `workflow_dispatch` only — the ~25 min cold-boot cost is too expensive to gate every PR on) |
 
 > **Local prerequisite — Docker memory.** The container asks for a 4 GiB Java heap and needs ~1 GiB of base overhead, so allocate **at least 6 GiB** to Docker Desktop in *Settings > Resources* before running locally. CI runners (~7 GiB) have enough headroom out of the box.
 >
@@ -66,7 +66,7 @@ Locally, `Wait-JiraServer.ps1` cannot write to `$GITHUB_ENV` (which only exists 
 | Workflow | Cron | Notes |
 |----------|------|-------|
 | `integration_tests.yml` (Cloud) | `0 6 * * *` | Smoke on every PR; full suite on label / schedule |
-| `jira_server_ci.yml` (Server) | `0 5 * * *` | Single 25-minute job per run; Jira boot dominates wall time |
+| `jira_server_ci.yml` (Server) | `0 5 * * *` | Nightly + manual `workflow_dispatch` only — never on PRs (~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`). Single 25-minute job per run; Jira boot dominates wall time |
 
 ## Prerequisites
 

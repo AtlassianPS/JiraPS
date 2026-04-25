@@ -11,12 +11,14 @@
 
     The bare image typically ships with no project, so the project-dependent CRUD
     test is allowed to skip with an explicit message. That is intentional - the
-    smoke test's job is to prove the wiring works, not to gate every PR on a DC
+    smoke test's job is to prove the wiring works, not to gate the suite on a DC
     fixture project being present.
 
 .NOTES
     Tagged 'Integration', 'Smoke', 'Server' - this IS the smoke test for the
-    Server track and is what jira_server_ci.yml runs on every PR.
+    Server track and is the first thing jira_server_ci.yml runs (nightly +
+    manual workflow_dispatch only; the Server workflow is not wired up to PRs
+    because the ~25 min cold-boot cost is too expensive to gate every PR on).
 #>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Integration tests against a local Docker container with known fixed credentials')]
