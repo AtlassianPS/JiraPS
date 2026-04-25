@@ -163,7 +163,7 @@ InModuleScope JiraPS {
 
                     { Remove-JiraVersion -Version $version -Force -ErrorAction Stop } | Should -Not -Throw
 
-                    # Poll for up to 5 seconds for the delete to be observable: either
+                    # Poll for up to 30 seconds for the delete to be observable: either
                     # `Get-JiraVersion -Id` throws (the contract on Jira Cloud and a
                     # well-behaved Data Center backend) or returns `$null` (some Server
                     # release notes claim the by-ID endpoint can return an empty payload
@@ -172,10 +172,11 @@ InModuleScope JiraPS {
                     # iteration of this test wedged on the `Should -Throw` branch even
                     # when the version *was* deleted because the moveworkforward AMPS
                     # image's H2 store occasionally answers the by-ID GET out of cache
-                    # for a beat, returning the now-stale object before the cascade
-                    # propagates. The poll-and-OR keeps the cmdlet contract assertion
-                    # honest without flapping on storage-layer eventual consistency.
-                    $deadline = (Get-Date).AddSeconds(5)
+                    # for several seconds. The 5s budget proved too tight in CI (saw
+                    # 5/5 runs flap); 30s gives the H2 cache + Lucene index enough
+                    # time to converge while still being a hard upper bound that fails
+                    # loudly when the cmdlet truly broke.
+                    $deadline = (Get-Date).AddSeconds(30)
                     $deleteObserved = $false
                     while ((Get-Date) -lt $deadline) {
                         try {
@@ -186,9 +187,9 @@ InModuleScope JiraPS {
                             $deleteObserved = $true
                             break
                         }
-                        Start-Sleep -Milliseconds 250
+                        Start-Sleep -Milliseconds 500
                     }
-                    $deleteObserved | Should -BeTrue -Because "Remove-JiraVersion should make the version unreachable via Get-JiraVersion -Id within 5s"
+                    $deleteObserved | Should -BeTrue -Because "Remove-JiraVersion should make the version unreachable via Get-JiraVersion -Id within 30s"
                 }
             }
         }
