@@ -303,11 +303,24 @@ $discoveredPairs = [System.Collections.Generic.List[hashtable]]::new()
 try {
     $rawTemplates = Invoke-RestMethod -Uri "$baseUrl/rest/project-templates/1.0/templates" -Method Get -Headers $headers -TimeoutSec 30
 
+    # Helper: extract the template's complete-key. The AMPS standalone image
+    # uses `projectTemplateModuleCompleteKey` (matched by `itemModuleCompleteKey`);
+    # older Jira responses sometimes use the shorter `projectTemplateKey` alias.
+    # Try them in priority order.
+    $extractTemplateKey = {
+        param($tpl)
+        foreach ($prop in 'projectTemplateModuleCompleteKey', 'itemModuleCompleteKey', 'projectTemplateKey') {
+            $val = $tpl.$prop
+            if ($val) { return $val }
+        }
+        return $null
+    }
+
     if ($rawTemplates.projectTemplates) {
         foreach ($tpl in @($rawTemplates.projectTemplates)) {
             $typeKey = $tpl.projectTypeKey
             if (-not $typeKey -and $tpl.projectTypeBean) { $typeKey = $tpl.projectTypeBean.projectTypeKey }
-            $tplKey = $tpl.projectTemplateKey
+            $tplKey = & $extractTemplateKey $tpl
             if ($typeKey -and $tplKey) {
                 $discoveredPairs.Add(@{ ProjectTypeKey = $typeKey; ProjectTemplateKey = $tplKey; Source = 'flat' })
             }
@@ -316,9 +329,13 @@ try {
 
     if ($rawTemplates.projectTemplatesGroupedByType) {
         foreach ($group in @($rawTemplates.projectTemplatesGroupedByType)) {
-            $typeKey = if ($group.projectTypeBean) { $group.projectTypeBean.projectTypeKey } else { $null }
+            $groupTypeKey = if ($group.projectTypeBean) { $group.projectTypeBean.projectTypeKey } else { $null }
             foreach ($tpl in @($group.projectTemplates)) {
-                $tplKey = $tpl.projectTemplateKey
+                # Prefer the per-template projectTypeKey when present (the
+                # moveworkforward image populates it); fall back to the group-level
+                # value from projectTypeBean.
+                $typeKey = if ($tpl.projectTypeKey) { $tpl.projectTypeKey } else { $groupTypeKey }
+                $tplKey = & $extractTemplateKey $tpl
                 if ($typeKey -and $tplKey) {
                     $discoveredPairs.Add(@{ ProjectTypeKey = $typeKey; ProjectTemplateKey = $tplKey; Source = 'grouped' })
                 }
