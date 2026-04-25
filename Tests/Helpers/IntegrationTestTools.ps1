@@ -621,8 +621,30 @@ function Get-MinimumValidIssueParameter {
         $createmeta = Get-JiraIssueCreateMetadata -Project $Fixtures.TestProject -IssueType $IssueType -ErrorAction Stop -Debug:$false
     }
     catch {
-        Write-Verbose "Get-MinimumValidIssueParameter: createmeta probe failed ($($_.Exception.Message)); returning empty extras."
+        # The createmeta endpoint can legitimately 404 on freshly-provisioned
+        # projects (the moveworkforward AMPS image takes a few seconds after
+        # project creation before the per-issuetype createmeta route is wired
+        # up). Surface it as a Warning rather than Verbose so a regression in
+        # the seeding pipeline shows up in the GitHub Actions log immediately
+        # instead of cascading into a swarm of opaque "Invalid or missing
+        # value Parameter" errors from `New-JiraIssue` further downstream.
+        Write-Warning "Get-MinimumValidIssueParameter: createmeta probe for project [$($Fixtures.TestProject)] / issuetype [$IssueType] failed ($($_.Exception.Message)); returning empty extras. New-JiraIssue may reject the create call if the project tightens any required-no-default field."
         return $result
+    }
+
+    # Determine the username we hand to user-typed required fields. Prefer the
+    # provisioned `jira_user` (created by Wait-JiraServer.ps1 with project Browse
+    # / Create Issue permissions), fall back to the admin so the helper still
+    # works when `Initialize-IntegrationEnvironment` is used by an ad-hoc setup
+    # that did not stand up a normal user.
+    $userCandidate = if ($Fixtures.TestUser) {
+        $Fixtures.TestUser
+    }
+    elseif ($env:CI_JIRA_USER) {
+        $env:CI_JIRA_USER
+    }
+    else {
+        $env:CI_JIRA_ADMIN
     }
 
     # Fields the New-JiraIssue parameter set already covers via top-level switches.
@@ -633,12 +655,20 @@ function Get-MinimumValidIssueParameter {
         if ($field.HasDefaultValue) { continue }
         if ($field.Id -in $alwaysProvidedById) { continue }
 
-        if ($field.Id -eq 'reporter') {
-            $reporterCandidate = if ($Fixtures.TestUser) { $Fixtures.TestUser } else { $env:CI_JIRA_ADMIN }
-            if ($reporterCandidate) {
-                $result.Reporter = $reporterCandidate
-                continue
-            }
+        # Reporter and Assignee both surface as `user`-typed required fields on
+        # the moveworkforward AMPS image's `jira-core-task-management` template
+        # (the field configuration ships with both flagged Required without a
+        # configured default). New-JiraIssue exposes a top-level -Reporter param
+        # (so we route via $result.Reporter), but it has no top-level -Assignee
+        # equivalent for the create path — we therefore drop assignee into
+        # $result.Fields so it ends up in the request payload.
+        if ($field.Id -eq 'reporter' -and $userCandidate) {
+            $result.Reporter = $userCandidate
+            continue
+        }
+        if ($field.Id -eq 'assignee' -and $userCandidate) {
+            $result.Fields['assignee'] = @{ name = "$userCandidate" }
+            continue
         }
 
         $allowed = @($field.AllowedValues)
@@ -653,8 +683,23 @@ function Get-MinimumValidIssueParameter {
             '^string$' { $result.Fields[$field.Id] = "JiraPS-IntTest default for $($field.Name)"; break }
             '^number$' { $result.Fields[$field.Id] = 0; break }
             '^array$' { $result.Fields[$field.Id] = @(); break }
+            '^user$' {
+                # Generic catch-all for `user`-typed required fields beyond
+                # reporter/assignee (e.g. custom approver fields the project
+                # template might add). The `name` payload shape works on
+                # Server / Data Center; on Cloud the helper stays silent for
+                # these fields since createmeta there does not surface them
+                # without `hasDefaultValue: true`.
+                if ($userCandidate) {
+                    $result.Fields[$field.Id] = @{ name = "$userCandidate" }
+                }
+                else {
+                    Write-Warning "Get-MinimumValidIssueParameter: required user field [$($field.Name)] (id=[$($field.Id)]) cannot be defaulted because no test user is configured."
+                }
+                break
+            }
             default {
-                Write-Warning "Get-MinimumValidIssueParameter: required field [$($field.Name)] (id=[$($field.Id)], type=[$($field.Schema.type)]) has no AllowedValues, no HasDefaultValue, and no schema-derived default; New-JiraIssue may still reject the create call."
+                Write-Warning "Get-MinimumValidIssueParameter: required field [$($field.Name)] (id=[$($field.Id)], type=[$($field.Schema.type)]) has no AllowedValues, no HasDefaultValue, and no schema-derived default; New-JiraIssue may still reject the create call. Extend Get-MinimumValidIssueParameter in Tests/Helpers/IntegrationTestTools.ps1 to handle this field type."
             }
         }
     }
