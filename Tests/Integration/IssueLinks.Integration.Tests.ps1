@@ -82,15 +82,24 @@ InModuleScope JiraPS {
 
                     $linkTypes[0].Id | Should -Not -BeNullOrEmpty
                     $linkTypes[0].Name | Should -Not -BeNullOrEmpty
-                    $linkTypes[0].InwardDescription | Should -Not -BeNullOrEmpty
-                    $linkTypes[0].OutwardDescription | Should -Not -BeNullOrEmpty
+                    # `ConvertTo-JiraIssueLinkType` projects the inward/outward labels as
+                    # `InwardText`/`OutwardText`. Earlier revisions of this test referenced
+                    # `InwardDescription`/`OutwardDescription`, which never existed on the
+                    # JiraPS object and silently returned `$null` against any deployment.
+                    $linkTypes[0].InwardText | Should -Not -BeNullOrEmpty
+                    $linkTypes[0].OutwardText | Should -Not -BeNullOrEmpty
                 }
 
                 It "retrieves a specific link type by ID" {
                     $allTypes = Get-JiraIssueLinkType
                     $firstType = $allTypes[0]
 
-                    $specificType = Get-JiraIssueLinkType -LinkType $firstType.Id
+                    # `Get-JiraIssueLinkType -LinkType` only follows the `/rest/api/2/issueLinkType/{id}`
+                    # path when the argument is `[Int]`. The converter exposes `Id` as `[string]`,
+                    # so passing it through untouched would fall into the by-name lookup and
+                    # return nothing. Coerce to int so this test exercises the ID branch on
+                    # both Cloud and Data Center.
+                    $specificType = Get-JiraIssueLinkType -LinkType ([int]$firstType.Id)
 
                     $specificType | Should -Not -BeNullOrEmpty
                     $specificType.Id | Should -Be $firstType.Id
