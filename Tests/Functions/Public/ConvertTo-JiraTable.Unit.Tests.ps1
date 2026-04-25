@@ -1,5 +1,8 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingCmdletAliases', '', Justification = 'Tests the deprecated Format-Jira alias on purpose.')]
+param()
+
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
@@ -155,6 +158,10 @@ InModuleScope JiraPS {
 
             It "Produces identical output when invoked via the alias" {
                 $expected = $obj | ConvertTo-JiraTable
+                # Invocation via the deprecated alias is the system-under-test
+                # here, not an accidental use. The PSAvoidUsingCmdletAliases
+                # warning for this call site is suppressed at the file level
+                # via the param() attribute at the top of this file.
                 $actual = $obj | Format-Jira
 
                 $actual | Should -Be $expected
