@@ -115,14 +115,12 @@ InModuleScope JiraPS {
                     $script:targetIssue = $null
                 }
                 else {
-                    $summary1 = New-TestResourceName -Type "LinkSource"
-                    $script:sourceIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary1
+                    $script:sourceIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "LinkSource")
                     if ($sourceIssue) {
                         $null = $script:createdIssues.Add($sourceIssue.Key)
                     }
 
-                    $summary2 = New-TestResourceName -Type "LinkTarget"
-                    $script:targetIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary2
+                    $script:targetIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "LinkTarget")
                     if ($targetIssue) {
                         $null = $script:createdIssues.Add($targetIssue.Key)
                     }
@@ -188,8 +186,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $summary = New-TestResourceName -Type "LinkPipeline"
-                    $pipelineIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $pipelineIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "LinkPipeline")
                     $null = $script:createdIssues.Add($pipelineIssue.Key)
 
                     $linkTypes = Get-JiraIssueLinkType
@@ -210,14 +207,12 @@ InModuleScope JiraPS {
                     $script:linkTestIssue = $null
                 }
                 else {
-                    $summary1 = New-TestResourceName -Type "GetLinkSource"
-                    $script:linkTestIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary1
+                    $script:linkTestIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "GetLinkSource")
                     if ($linkTestIssue) {
                         $null = $script:createdIssues.Add($linkTestIssue.Key)
                     }
 
-                    $summary2 = New-TestResourceName -Type "GetLinkTarget"
-                    $script:linkTestTarget = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary2
+                    $script:linkTestTarget = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "GetLinkTarget")
                     if ($linkTestTarget) {
                         $null = $script:createdIssues.Add($linkTestTarget.Key)
                     }
@@ -299,12 +294,10 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $summary1 = New-TestResourceName -Type "RemoveLinkSource"
-                    $removeSource = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary1
+                    $removeSource = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "RemoveLinkSource")
                     $null = $script:createdIssues.Add($removeSource.Key)
 
-                    $summary2 = New-TestResourceName -Type "RemoveLinkTarget"
-                    $removeTarget = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary2
+                    $removeTarget = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "RemoveLinkTarget")
                     $null = $script:createdIssues.Add($removeTarget.Key)
 
                     $linkTypes = Get-JiraIssueLinkType
@@ -330,12 +323,10 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $summary1 = New-TestResourceName -Type "RemovePipeSource"
-                    $pipeSource = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary1
+                    $pipeSource = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "RemovePipeSource")
                     $null = $script:createdIssues.Add($pipeSource.Key)
 
-                    $summary2 = New-TestResourceName -Type "RemovePipeTarget"
-                    $pipeTarget = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary2
+                    $pipeTarget = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "RemovePipeTarget")
                     $null = $script:createdIssues.Add($pipeTarget.Key)
 
                     $linkTypes = Get-JiraIssueLinkType

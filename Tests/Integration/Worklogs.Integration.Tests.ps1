@@ -73,8 +73,7 @@ InModuleScope JiraPS {
                     $script:tempIssue = $null
                 }
                 else {
-                    $summary = New-TestResourceName -Type "WorklogIssue"
-                    $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "WorklogIssue")
                     $null = $script:createdIssues.Add($issue)
                     $script:tempIssue = $issue
                 }

@@ -115,8 +115,7 @@ InModuleScope JiraPS {
                     $script:tempIssue = $null
                 }
                 else {
-                    $summary = New-TestResourceName -Type "CommentIssue"
-                    $script:tempIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "CommentIssue")
                 }
             }
 

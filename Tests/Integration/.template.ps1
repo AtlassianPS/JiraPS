@@ -175,10 +175,13 @@ InModuleScope JiraPS {
 
         Context "Write Operations" -Skip:$SkipWrite {
             It "creates a new resource" {
-                # Use prefixed name for cleanup discoverability
-                $summary = New-TestResourceName -Type "Issue"
-
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                # Use New-TemporaryTestIssue (in IntegrationTestTools.ps1)
+                # rather than calling New-JiraIssue directly: the helper
+                # probes createmeta and auto-supplies any required field
+                # the project's field configuration tightened (Reporter,
+                # custom fields, etc.). That keeps your test green on both
+                # the Cloud and the Server-tagged Dockerized DC tracks.
+                $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "Issue")
                 # Track for cleanup - Add() returns index, use $null to suppress
                 $null = $script:createdIssues.Add($issue.Key)
 
@@ -187,8 +190,7 @@ InModuleScope JiraPS {
             }
 
             It "updates an existing resource" {
-                $summary = New-TestResourceName -Type "UpdateTest"
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "UpdateTest")
                 $null = $script:createdIssues.Add($issue.Key)
 
                 $newSummary = New-TestResourceName -Type "Updated"

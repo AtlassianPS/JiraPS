@@ -457,11 +457,34 @@ function New-TemporaryTestIssue {
         testing create/update/delete operations. The issue should be
         cleaned up after the test using Remove-JiraIssue.
 
+        The helper is deployment-aware: it queries the project's createmeta
+        for the chosen issue type and auto-populates any required field
+        that the server cannot default for itself (project-tightened
+        custom fields without a configured default value, project-tightened
+        Reporter fields on Jira Data Center where the acting user's
+        Resolve-JiraUser response has to be passed explicitly, etc.).
+        That makes the helper safe to use against any project — including
+        the `jira-core-task-management` template the Server CI track
+        provisions, whose default field configuration is stricter than the
+        Cloud "next-gen" Task project most read-only tests assume.
+
+        Tests that need to assert default Jira behavior should still call
+        `New-JiraIssue` directly. Use this helper any time you just need
+        "an issue exists in the test project so we can hang assertions
+        off of it".
+
     .PARAMETER Summary
-        The summary/title for the test issue.
+        The summary/title for the test issue. Defaults to a prefixed
+        `JiraPS-IntTest-Issue-<timestamp>-<guid>` name so the cleanup
+        sweeper can discover it.
 
     .PARAMETER Fixtures
         The test fixtures hashtable from Get-TestFixture.
+
+    .PARAMETER IssueType
+        The issue type to create. Defaults to 'Task' (the only type guaranteed
+        to exist on both the Cloud and the Server `jira-core-task-management`
+        template).
 
     .OUTPUTS
         [PSCustomObject] The created issue object.
@@ -485,7 +508,10 @@ function New-TemporaryTestIssue {
         [string]$Summary,
 
         [Parameter()]
-        [hashtable]$Fixtures
+        [hashtable]$Fixtures,
+
+        [Parameter()]
+        [string]$IssueType = 'Task'
     )
 
     if (-not $Fixtures) {
@@ -496,16 +522,81 @@ function New-TemporaryTestIssue {
         throw "Cannot create test issues in read-only mode. Set JIRA_TEST_READONLY=false in .env"
     }
 
-    # Default to a prefixed name so Remove-StaleTestResource can discover it.
+    if ([string]::IsNullOrEmpty($Fixtures.TestProject)) {
+        throw "Cannot create test issue without a configured test project (Fixtures.TestProject is empty). Wait-JiraServer.ps1 should set JIRA_TEST_PROJECT for the Server track; for the Cloud track set JIRA_TEST_PROJECT in .env."
+    }
+
     if ([string]::IsNullOrEmpty($Summary)) {
         $Summary = New-TestResourceName -Type 'Issue'
     }
 
     $issueParams = @{
         Project     = $Fixtures.TestProject
-        IssueType   = 'Task'
+        IssueType   = $IssueType
         Summary     = $Summary
         Description = "Temporary test issue created by JiraPS integration tests. Safe to delete."
+    }
+
+    # Probe createmeta for fields that are required AND lack a server-side
+    # default. The Cloud track's default project usually has none, so this
+    # is a no-op there. The Server track's `jira-core-task-management`
+    # template tightens a handful of fields (Reporter, sometimes Priority
+    # or a custom field), and we have to supply them explicitly because
+    # New-JiraIssue's client-side validator will refuse to send the request
+    # otherwise.
+    $extraFields = @{}
+    try {
+        $createmeta = Get-JiraIssueCreateMetadata -Project $Fixtures.TestProject -IssueType $IssueType -ErrorAction Stop -Debug:$false
+    }
+    catch {
+        Write-Verbose "New-TemporaryTestIssue: createmeta probe failed ($($_.Exception.Message)); falling back to bare create payload."
+        $createmeta = @()
+    }
+
+    foreach ($field in @($createmeta)) {
+        if (-not $field.Required) { continue }
+        if ($field.HasDefaultValue) { continue }
+        # Project / issuetype / summary are always set above.
+        if ($field.Id -in @('project', 'issuetype', 'summary')) { continue }
+        # Description is set above.
+        if ($field.Id -eq 'description') { continue }
+
+        if ($field.Id -eq 'reporter') {
+            # Resolve to the current authenticated user. Wait-JiraServer.ps1
+            # provisions a normal `jira_user` on the Server track; on Cloud
+            # the test account is the only candidate. Either way the test
+            # session was opened as `$Fixtures.TestUser` (or the admin
+            # username when no separate normal user is configured), so use
+            # that as the reporter.
+            $reporterCandidate = if ($Fixtures.TestUser) { $Fixtures.TestUser } else { $env:CI_JIRA_ADMIN }
+            if ($reporterCandidate) {
+                $issueParams.Reporter = $reporterCandidate
+                continue
+            }
+        }
+
+        $allowed = @($field.AllowedValues)
+        if ($allowed.Count -gt 0) {
+            $first = $allowed[0]
+            # Jira accepts either {"name": "..."} (priorities, statuses) or
+            # {"id": "..."} (most option fields). Prefer id since it is
+            # universally accepted and avoids name-collision surprises.
+            $extraFields[$field.Id] = if ($first.id) { @{ id = "$($first.id)" } } else { @{ name = "$($first.name)" } }
+            continue
+        }
+
+        switch -Regex ($field.Schema.type) {
+            '^string$' { $extraFields[$field.Id] = "JiraPS-IntTest default for $($field.Name)"; break }
+            '^number$' { $extraFields[$field.Id] = 0; break }
+            '^array$' { $extraFields[$field.Id] = @(); break }
+            default {
+                Write-Warning "New-TemporaryTestIssue: required field [$($field.Name)] (id=[$($field.Id)], type=[$($field.Schema.type)]) has no AllowedValues, no HasDefaultValue, and no schema-derived default; New-JiraIssue may still reject the create call. Pass a custom -Fields entry to fix the project-specific case."
+            }
+        }
+    }
+
+    if ($extraFields.Count -gt 0) {
+        $issueParams.Fields = $extraFields
     }
 
     $issue = New-JiraIssue @issueParams

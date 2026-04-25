@@ -33,8 +33,7 @@ InModuleScope JiraPS {
                     Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                     return
                 }
-                $summary = New-TestResourceName -Type "DeleteKey"
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "DeleteKey")
 
                 { Remove-JiraIssue -IssueId $issue.Key -Force } | Should -Not -Throw
 
@@ -46,8 +45,7 @@ InModuleScope JiraPS {
                     Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                     return
                 }
-                $summary = New-TestResourceName -Type "DeletePipe"
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "DeletePipe")
 
                 { $issue | Remove-JiraIssue -Force } | Should -Not -Throw
 
@@ -59,8 +57,7 @@ InModuleScope JiraPS {
                     Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                     return
                 }
-                $summary = New-TestResourceName -Type "DeleteObj"
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "DeleteObj")
 
                 { Remove-JiraIssue -Issue $issue -Force } | Should -Not -Throw
 

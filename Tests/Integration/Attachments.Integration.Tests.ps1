@@ -73,8 +73,7 @@ InModuleScope JiraPS {
                     $script:testFilePath = $null
                 }
                 else {
-                    $summary = New-TestResourceName -Type "AttachIssue"
-                    $script:tempIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "AttachIssue")
 
                     $tempDir = [System.IO.Path]::GetTempPath()
                     $timestamp = Get-Date -Format 'yyyyMMddHHmmss'
@@ -151,8 +150,7 @@ InModuleScope JiraPS {
                     $script:deleteTestFile = $null
                 }
                 else {
-                    $summary = New-TestResourceName -Type "AttachDelete"
-                    $script:deleteTestIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $script:deleteTestIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "AttachDelete")
 
                     $tempDir = [System.IO.Path]::GetTempPath()
                     $timestamp = Get-Date -Format 'yyyyMMddHHmmss'

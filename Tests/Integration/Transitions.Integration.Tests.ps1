@@ -92,8 +92,7 @@ InModuleScope JiraPS {
                     $script:transitionIssue = $null
                 }
                 else {
-                    $summary = New-TestResourceName -Type "Transition"
-                    $script:transitionIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $script:transitionIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "Transition")
                     if ($transitionIssue) {
                         $null = $script:createdIssues.Add($transitionIssue.Key)
                     }
@@ -215,8 +214,7 @@ InModuleScope JiraPS {
                     return
                 }
 
-                $summary = New-TestResourceName -Type "TransitionCycle"
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "TransitionCycle")
                 $null = $script:createdIssues.Add($issue.Key)
 
                 $initialStatus = $issue.Status.Name

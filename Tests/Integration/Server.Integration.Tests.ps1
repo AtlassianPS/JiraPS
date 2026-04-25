@@ -113,7 +113,12 @@ InModuleScope JiraPS {
                 }
 
                 $summary = New-TestResourceName -Type 'ServerSmoke'
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                # Use the smart helper so the smoke test also covers the
+                # createmeta-required-field probe (the moveworkforward
+                # AMPS image's `jira-core-task-management` template
+                # tightens a few default fields, which trips a bare
+                # New-JiraIssue call).
+                $issue = New-TemporaryTestIssue -Fixtures (Get-TestFixture -Environment $env) -Summary $summary
                 $null = $script:createdIssues.Add($issue.Key)
 
                 $issue | Should -Not -BeNullOrEmpty
