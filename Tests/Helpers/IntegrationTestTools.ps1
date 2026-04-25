@@ -173,18 +173,25 @@ function Initialize-IntegrationEnvironment {
         return $null
     }
 
+    $usernameNormal = $env:JIRA_CLOUD_USERNAME_NORMAL
+    $passwordNormal = $env:JIRA_CLOUD_PASSWORD_NORMAL
+    $hasNormalUser = -not [string]::IsNullOrEmpty($usernameNormal) -and -not [string]::IsNullOrEmpty($passwordNormal)
+
     $result = [PSCustomObject]@{
-        CloudUrl      = $env:JIRA_CLOUD_URL.TrimEnd('/')
-        Username      = $env:JIRA_CLOUD_USERNAME
-        Password      = $env:JIRA_CLOUD_PASSWORD
-        TestProject   = $env:JIRA_TEST_PROJECT
-        TestIssue     = $env:JIRA_TEST_ISSUE
-        TestUser      = $env:JIRA_TEST_USER
-        TestGroup     = $env:JIRA_TEST_GROUP
-        TestFilter    = $env:JIRA_TEST_FILTER
-        TestVersion   = $env:JIRA_TEST_VERSION
-        ReadOnly      = $env:JIRA_TEST_READONLY -eq 'true'
-        VerboseOutput = $env:JIRA_TEST_VERBOSE -eq 'true'
+        CloudUrl       = $env:JIRA_CLOUD_URL.TrimEnd('/')
+        Username       = $env:JIRA_CLOUD_USERNAME
+        Password       = $env:JIRA_CLOUD_PASSWORD
+        UsernameNormal = $usernameNormal
+        PasswordNormal = $passwordNormal
+        HasNormalUser  = $hasNormalUser
+        TestProject    = $env:JIRA_TEST_PROJECT
+        TestIssue      = $env:JIRA_TEST_ISSUE
+        TestUser       = $env:JIRA_TEST_USER
+        TestGroup      = $env:JIRA_TEST_GROUP
+        TestFilter     = $env:JIRA_TEST_FILTER
+        TestVersion    = $env:JIRA_TEST_VERSION
+        ReadOnly       = $env:JIRA_TEST_READONLY -eq 'true'
+        VerboseOutput  = $env:JIRA_TEST_VERBOSE -eq 'true'
     }
 
     $script:_EnvLoaded = $true
@@ -263,6 +270,83 @@ function Connect-JiraTestServer {
             Write-Warning "Stale resource cleanup encountered an error (non-fatal): $_"
         }
     }
+
+    return $session
+}
+
+function Connect-JiraTestServerAsNormalUser {
+    <#
+    .SYNOPSIS
+        Establishes an authenticated session as a non-admin (normal) user.
+
+    .DESCRIPTION
+        This function configures the JiraPS module to connect to the test Jira Cloud
+        instance and creates an authenticated session using the normal-user credentials
+        from the environment configuration ($Environment.UsernameNormal /
+        $Environment.PasswordNormal).
+
+        The normal user is intentionally a separate, non-administrator account used to
+        exercise permission boundaries. This mirrors jira-python's `JiraTestManager.jira_normal`
+        pattern. Tests using this helper should call Remove-JiraSession before switching
+        back to the admin session via Connect-JiraTestServer.
+
+        Throws if the normal-user credentials are not configured (HasNormalUser is $false).
+        Unlike Connect-JiraTestServer, this helper does NOT call Remove-StaleTestResource;
+        the admin connect already performs that sweep, and the normal user typically lacks
+        the delete permissions it relies on.
+
+    .PARAMETER Environment
+        The environment configuration object from Initialize-IntegrationEnvironment.
+        Must have UsernameNormal and PasswordNormal populated (HasNormalUser is $true).
+        If not provided, will call Initialize-IntegrationEnvironment automatically.
+
+    .OUTPUTS
+        [PSCustomObject] The Jira session object for the normal user.
+
+    .EXAMPLE
+        BeforeAll {
+            . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
+            $script:env = Initialize-IntegrationEnvironment
+            $script:adminSession = Connect-JiraTestServer -Environment $env
+            Remove-JiraSession -ErrorAction SilentlyContinue
+            $script:normalSession = Connect-JiraTestServerAsNormalUser -Environment $env
+        }
+
+    .NOTES
+        Use only in tests that need to verify behavior under non-admin permissions.
+        For all other tests, the default Connect-JiraTestServer session is sufficient.
+    #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Test helper requires plaintext conversion for API token from environment')]
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter()]
+        [PSCustomObject]$Environment
+    )
+
+    if (-not $Environment) {
+        $Environment = Initialize-IntegrationEnvironment
+        if (-not $Environment) {
+            throw "Integration environment not configured. See .env.example for required variables."
+        }
+    }
+
+    if (-not $Environment.HasNormalUser) {
+        throw "Normal-user credentials not configured. Set JIRA_CLOUD_USERNAME_NORMAL and JIRA_CLOUD_PASSWORD_NORMAL in .env to enable permission-boundary tests."
+    }
+
+    $currentServer = Get-JiraConfigServer -ErrorAction SilentlyContinue
+    if (-not $currentServer -or $currentServer.ToString().TrimEnd('/') -ne $Environment.CloudUrl) {
+        Set-JiraConfigServer -Server $Environment.CloudUrl
+    }
+
+    $secureToken = ConvertTo-SecureString -String $Environment.PasswordNormal -AsPlainText -Force
+    $session = New-JiraSession -ApiToken $secureToken -EmailAddress $Environment.UsernameNormal
+    if (-not $session) {
+        throw "Failed to establish Jira session as normal user. Check JIRA_CLOUD_USERNAME_NORMAL / JIRA_CLOUD_PASSWORD_NORMAL. For Jira Cloud, JIRA_CLOUD_PASSWORD_NORMAL must be an API token (not your account password)."
+    }
+
+    Write-Verbose "Connected to Jira Cloud as normal user: $($Environment.UsernameNormal)"
 
     return $session
 }
@@ -348,6 +432,50 @@ function Skip-IntegrationTest {
 
     $config = Initialize-IntegrationEnvironment -ErrorAction SilentlyContinue
     return ($null -eq $config)
+}
+
+function Skip-IntegrationTestForNormalUser {
+    <#
+    .SYNOPSIS
+        Determines whether permission-boundary integration tests should be skipped.
+
+    .DESCRIPTION
+        Returns $true if either:
+          - The base integration environment is not configured (Skip-IntegrationTest is $true), OR
+          - Normal-user credentials are not configured (HasNormalUser is $false).
+
+        This allows permission-boundary tests in
+        Tests/Integration/Permissions.Integration.Tests.ps1 to skip silently when the
+        optional JIRA_CLOUD_USERNAME_NORMAL / JIRA_CLOUD_PASSWORD_NORMAL env vars are
+        absent, without failing the test run.
+
+    .OUTPUTS
+        [bool] $true if permission tests should be skipped, $false otherwise.
+
+    .EXAMPLE
+        BeforeDiscovery {
+            . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
+            $script:SkipNormal = Skip-IntegrationTestForNormalUser
+        }
+
+        Describe "Permissions" -Tag 'Integration' -Skip:$SkipNormal {
+            # Tests here
+        }
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param()
+
+    if (Skip-IntegrationTest) {
+        return $true
+    }
+
+    $config = Initialize-IntegrationEnvironment -ErrorAction SilentlyContinue
+    if (-not $config) {
+        return $true
+    }
+
+    return (-not $config.HasNormalUser)
 }
 
 function New-TemporaryTestIssue {
