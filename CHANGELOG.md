@@ -108,6 +108,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Fixed
 
+- Fixed `New-JiraIssue` rejecting valid create payloads when the project's createmeta marked a field as `required: true` while it also advertised `hasDefaultValue: true`. The Jira REST API guarantees the server populates such fields from their configured default when the caller omits them (this is what the Jira UI relies on for fields like Reporter -> acting user, Priority -> project default, etc.), so refusing to send the request was both wrong and made the cmdlet unusable on stricter project field configurations. The validator now only errors out for required fields that have no server-side default to fall back on, and the error message has been clarified to say so. Existing behavior for `Required = $true / HasDefaultValue = $false` is unchanged.
 - Fixed `Get-JiraIssue` prompting for input when piping JiraPS.Issue objects (added `ValueFromPipelineByPropertyName` to `-Key` parameter)
 - Fixed long-standing typo in `Invoke-JiraIssueTransition` where the transition-cast error path constructed its `ErrorRecord` against an undefined `$errorTargetError` variable instead of `$errorTarget`.
 - Fixed `ConvertTo-GetParameter` returning `'?'` for an empty hashtable; it now returns `''` again, matching its prior contract and preventing accidental trailing `?` in URLs.
