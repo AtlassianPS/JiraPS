@@ -27,13 +27,32 @@ InModuleScope JiraPS {
             }
 
             Mock Get-JiraField -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraField' 'Field'
-                $object = [PSCustomObject] @{
-                    'Name' = $Field
-                    'ID'   = $Field
-                }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
-                $object
+                Write-MockDebugInfo 'Get-JiraField' 'Field', 'Credential'
+                # The cmdlet pre-fetches the full field catalogue (no -Field
+                # filter) and looks each requested key up in an in-memory
+                # hashtable, so the mock must return everything the tests
+                # reference. Schema metadata mirrors what Jira Cloud
+                # actually returns (see Test-JiraRichTextField for why).
+                @(
+                    [PSCustomObject]@{
+                        Id     = 'customfield_12345'
+                        Name   = 'Custom Field 12345'
+                        Schema = [PSCustomObject]@{ type = 'string'; custom = 'com.atlassian.jira.plugin.system.customfieldtypes:textfield' }
+                    }
+                    [PSCustomObject]@{
+                        Id     = 'customfield_67890'
+                        Name   = 'Custom Field 67890'
+                        Schema = [PSCustomObject]@{ type = 'string'; custom = 'com.atlassian.jira.plugin.system.customfieldtypes:textfield' }
+                    }
+                    [PSCustomObject]@{
+                        Id     = 'description'
+                        Name   = 'Description'
+                        Schema = [PSCustomObject]@{ type = 'string'; system = 'description' }
+                    }
+                ).ForEach({
+                        $_.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                        $_
+                    })
             }
 
             Mock Get-JiraIssue -ModuleName JiraPS {
@@ -69,6 +88,16 @@ InModuleScope JiraPS {
             } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
                 # This should return a 204 status code, so no data should actually be returned
+            }
+
+            # Cloud equivalent: when Test-JiraCloudServer returns $true the
+            # cmdlet hits the v3 endpoint (so the API accepts ADF). The
+            # mocked response is the same — only the URI changes.
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Post' -and
+                $URI -eq "$jiraServer/rest/api/3/issue/$issueID/transitions"
+            } {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS {
@@ -285,7 +314,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
+                    $URI -like "*/rest/api/3/issue/$issueID/transitions" -and
                     $Body -like "*accountId*$testAccountId*"
                 }
             }
@@ -295,9 +324,91 @@ InModuleScope JiraPS {
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Post' -and
-                    $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
+                    $URI -like "*/rest/api/3/issue/$issueID/transitions" -and
                     $Body -match '"accountId":\s*null'
                 }
+            }
+
+            It "wraps -Comment into an ADF document on Cloud deployment" {
+                { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Comment 'transition note' } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $URI -like "*/rest/api/3/issue/$issueID/transitions" -and
+                    ($payload = $Body | ConvertFrom-Json) -and
+                    $payload.update.comment[0].add.body.type -eq 'doc' -and
+                    $payload.update.comment[0].add.body.version -eq 1 -and
+                    $payload.update.comment[0].add.body.content[0].type -eq 'paragraph' -and
+                    $payload.update.comment[0].add.body.content[0].content[0].text -eq 'transition note'
+                }
+            }
+
+            It "uses the v3 issue endpoint on Cloud" {
+                { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $URI -eq "$jiraServer/rest/api/3/issue/$issueID/transitions"
+                }
+            }
+
+            It "wraps a rich-text field passed via -Fields into ADF on Cloud" {
+                # Cloud's v3 transition endpoint also rejects raw strings
+                # for rich-text fields supplied via -Fields. The cmdlet
+                # must inspect the field schema and wrap rich-text values
+                # via Resolve-JiraTextFieldPayload, matching -Comment.
+                {
+                    Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                        description = 'transition desc'
+                    }
+                } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $set = $payload.update.description[0].set
+                    $set.type -eq 'doc' -and
+                    $set.content[0].content[0].text -eq 'transition desc'
+                }
+            }
+
+            It "leaves a non-rich-text field passed via -Fields as a plain string on Cloud" {
+                # Mirrors New-/Set-JiraIssue: a single-line custom textfield
+                # supplied via -Fields must NOT be ADF-wrapped on Cloud.
+                {
+                    Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                        customfield_12345 = 'plain'
+                    }
+                } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $payload.update.customfield_12345[0].set -eq 'plain'
+                }
+            }
+        }
+
+        Describe "Field catalogue" {
+            It "fetches the field catalogue once per call regardless of how many keys -Fields contains" {
+                # Direct call (not wrapped in `{ } | Should -Not -Throw`) so a
+                # regression that throws inside the cmdlet surfaces with the
+                # actual ErrorRecord and stack trace instead of a generic
+                # "expected nothing, got terminating error" message.
+                Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                    customfield_12345 = 'foo'
+                    customfield_67890 = 'bar'
+                }
+
+                # Two assertions, deliberately:
+                #   1. The catalogue is fetched exactly once (no -Field
+                #      filter), mirroring the New-/Set-JiraIssue pattern.
+                #   2. Get-JiraField is invoked exactly once IN TOTAL —
+                #      catches a regression where someone re-introduces
+                #      per-key `Get-JiraField -Field $name` lookups (those
+                #      would slip past the filtered assertion above).
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    -not $PSBoundParameters.ContainsKey('Field')
+                }
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
             }
         }
     }

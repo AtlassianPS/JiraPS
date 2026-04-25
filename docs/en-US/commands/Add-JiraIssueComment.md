@@ -24,6 +24,10 @@ Add-JiraIssueComment [-Comment] <string> [-Issue] <Issue> [[-VisibleRole] <strin
 This function adds a comment to an existing issue in JIRA.
 You can optionally set the visibility of the comment (All Users, Developers, or Administrators).
 
+On **Jira Cloud**, the `-Comment` text is interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, so familiar Markdown syntax (headings, bold/italic, lists, fenced code blocks, links, Markdown tables) renders as rich text in the issue.
+On **Jira Server / Data Center**, the text is sent verbatim and the legacy wiki-markup syntax (`*bold*`, `_italic_`, `||header||`, `{code}`) continues to apply.
+See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/) for the supported Markdown subset.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -63,7 +67,7 @@ Add-JiraIssueComment -Issue TEST-100 -Comment "My open issues:`n$summary"
 This example assembles a wiki-markup table of the caller's open issues and posts it as a comment on the parent ticket TEST-100 — a typical status-update or stand-up workflow.
 The JQL used here works on any Jira deployment (Core, Service Management, Software).
 `ConvertTo-JiraTable` is the canonical way to embed tabular data in a Jira **Server / Data Center** comment.
-On Jira **Cloud** the resulting `||header||` syntax renders as literal text rather than a table because Cloud REST v3 expects Atlassian Document Format (ADF); see [#602](https://github.com/AtlassianPS/JiraPS/issues/602) for the planned ADF wrapping.
+On Jira **Cloud** use a Markdown table instead (see Example 6) because `||header||` wiki-markup syntax does not survive the Markdown → ADF conversion and renders as literal text.
 
 ### EXAMPLE 5
 
@@ -73,6 +77,27 @@ Add-JiraIssueComment $comment -Issue TEST-003
 ```
 
 `ConvertTo-JiraTable` accepts any `PSObject` pipeline, so non-Jira data — here, the local process list — can also be tabulated and added to a comment.
+
+### EXAMPLE 6
+
+```powershell
+$body = @"
+## Deployment summary
+
+* Build: **1.2.3**
+* Status: _green_
+
+| Service | Version |
+| ------- | ------- |
+| api     | 1.2.3   |
+| web     | 1.2.3   |
+"@
+Add-JiraIssueComment -Issue TEST-100 -Comment $body
+```
+
+This example posts a richly-formatted Markdown comment to TEST-100.
+On Jira **Cloud** the heading, bold/italic emphasis, bullet list, and Markdown table are converted to ADF and render natively.
+On Jira **Server / Data Center** the text is posted verbatim — Markdown is not interpreted server-side, so use wiki-markup (`h2.`, `*bold*`, `||header||`, …) for the same effect there.
 
 ## PARAMETERS
 

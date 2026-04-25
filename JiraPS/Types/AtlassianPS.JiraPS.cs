@@ -132,7 +132,10 @@ namespace AtlassianPS.JiraPS
         public string RestUrl { get; set; }
         public string Summary { get; set; }
         public string Description { get; set; }
-        public string Status { get; set; }
+        // Status is a `JiraPS.Status` PSObject (returned by ConvertTo-JiraStatus),
+        // not a bare string. The PSObject's ToString() renders the status name so
+        // `"$($issue.Status)"` and the default formatter still display the name.
+        public object Status { get; set; }
         public object IssueLinks { get; set; }
         public object Attachment { get; set; }
         public Project Project { get; set; }

@@ -76,7 +76,7 @@
     process {
         $createmeta = Get-JiraIssueCreateMetadata -Project $Project -IssueType $IssueType -Credential $Credential -ErrorAction Stop -Debug:$false
 
-        $resourceURi = "/rest/api/2/issue"
+        $resourceURi = ConvertTo-JiraRestApiV3Url -Url "/rest/api/2/issue" -IsCloud $isCloud
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
@@ -104,7 +104,7 @@
         }
 
         if ($Description) {
-            $requestBody["description"] = $Description
+            $requestBody["description"] = Resolve-JiraTextFieldPayload -Text $Description -IsCloud $isCloud
         }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
@@ -223,6 +223,13 @@
                 }
 
                 $id = $field.Id
+
+                # `-Fields` values hit a raw assignment; wrap rich-text strings here
+                # for parity with the named-parameter paths.
+                if ($isCloud -and ($value -is [string]) -and (Test-JiraRichTextField -Field $field)) {
+                    $value = Resolve-JiraTextFieldPayload -Text $value -IsCloud $true
+                }
+
                 $requestBody["$id"] = $value
             }
         }
@@ -257,7 +264,7 @@
         $parameter = @{
             URI        = $resourceURi
             Method     = "POST"
-            Body       = (ConvertTo-Json -InputObject ([PSCustomObject]$hashtable) -Depth 7)
+            Body       = (ConvertTo-Json -InputObject ([PSCustomObject]$hashtable) -Depth 20)
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

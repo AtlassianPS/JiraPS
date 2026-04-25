@@ -42,7 +42,7 @@
                 RestUrl     = $i.self
                 Summary     = $i.fields.summary
                 Description = ConvertFrom-AtlassianDocumentFormat -InputObject $i.fields.description
-                Status      = $i.fields.status.name
+                Status      = ConvertTo-JiraStatus -InputObject $i.fields.status
             }
 
             if ($i.fields.issuelinks) {

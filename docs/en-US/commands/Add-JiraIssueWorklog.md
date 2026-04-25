@@ -25,6 +25,11 @@ Add-JiraIssueWorklog [-Comment] <string> [-Issue] <Issue> [-TimeSpent] <timespan
 This function adds a worklog item to an existing issue in JIRA.
 You can optionally set the visibility of the item (All Users, Developers, or Administrators).
 
+On **Jira Cloud**, the `-Comment` text is interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent.
+The reverse path is also handled: when worklogs are read back from Cloud, the ADF comment payload is rendered to plain text on the returned `JiraPS.Worklogitem` object.
+On **Jira Server / Data Center**, the comment is sent and read back verbatim and the legacy wiki-markup syntax continues to apply.
+See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/) for the supported Markdown subset.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -65,7 +70,7 @@ This example logs four hours of work against issue TEST-100 with a worklog comme
 A common pattern for end-of-day time tracking when several related tickets roll up into a single parent.
 
 > Wiki-markup tables render natively on Jira **Server / Data Center**.
-> On Jira **Cloud** the table syntax appears as literal text because Cloud REST v3 expects Atlassian Document Format (ADF); see [#602](https://github.com/AtlassianPS/JiraPS/issues/602) for the planned ADF wrapping.
+> On Jira **Cloud** use a Markdown table instead — the `||header||` wiki-markup syntax does not survive the Markdown → ADF conversion and renders as literal text.
 
 ### EXAMPLE 5
 
