@@ -127,6 +127,22 @@ jobs:
         # (see Get-JiraIssue.Integration.Tests.ps1 BeforeDiscovery for the
         # canonical pattern), so the suite stays green even if the AMPS
         # standalone image refuses to seed an issue for the chosen template.
+        #
+        # Per-step timeout (separate from the job-level `timeout-minutes: 60`):
+        # CI run #24935398326 saw all per-file Pester runs complete in ~7 min
+        # ("Tests Passed: 10, Failed: 1, Skipped: 1" at 16:37:44 was the last
+        # per-file line) but the orchestrator (`Tests/Invoke-ParallelPester.ps1`,
+        # `ForEach-Object -Parallel`) then hung for 53 min before GitHub
+        # Actions cancelled the job at 17:30:20 — long enough that NEITHER
+        # the orchestrator's "TEST SUMMARY" block NOR the merged-XML write
+        # block ran. Capping the step at 25 min gives an honest budget for
+        # the actual Pester work (boot is already done in the previous step,
+        # the suite reliably completes in <10 min) while killing the
+        # orchestrator promptly when ForEach-Object -Parallel refuses to
+        # wind down — that frees up CI minutes for the artifact-upload and
+        # teardown steps below (which are gated on `if: always()`), and
+        # surfaces real hangs in <30 min instead of ~1 hr.
+        timeout-minutes: 25
         run: |
           Invoke-Build -Task TestIntegration -Tag 'Server' -PesterVerbosity Detailed
         shell: pwsh
