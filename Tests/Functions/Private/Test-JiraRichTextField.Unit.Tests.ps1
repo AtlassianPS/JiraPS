@@ -98,5 +98,51 @@ InModuleScope JiraPS {
                 Test-JiraRichTextField -Field $field | Should -Be $false
             }
         }
+
+        Context "Realistic Cloud field metadata (matches what Get-JiraField actually returns)" {
+            # Cloud's /rest/api/3/field returns description / environment as
+            # `schema.type = 'string'` and `schema.system = 'description' /
+            # 'environment'`, NOT `schema.type = 'doc'`. The body still has
+            # to be sent as ADF, so the helper must detect them via the
+            # `system` field rather than the `type` field. These cases
+            # mirror the actual response shape so we don't regress to the
+            # historical bug of only matching `schema.type -eq 'doc'`.
+            It "detects the 'description' system field as Cloud actually returns it" {
+                $field = [PSCustomObject]@{
+                    Id     = 'description'
+                    Name   = 'Description'
+                    Schema = [PSCustomObject]@{
+                        type   = 'string'
+                        system = 'description'
+                    }
+                }
+                Test-JiraRichTextField -Field $field | Should -Be $true
+            }
+
+            It "detects the 'environment' system field as Cloud actually returns it" {
+                $field = [PSCustomObject]@{
+                    Id     = 'environment'
+                    Name   = 'Environment'
+                    Schema = [PSCustomObject]@{
+                        type   = 'string'
+                        system = 'environment'
+                    }
+                }
+                Test-JiraRichTextField -Field $field | Should -Be $true
+            }
+
+            It "detects a custom textarea field as Cloud actually returns it" {
+                $field = [PSCustomObject]@{
+                    Id     = 'customfield_10100'
+                    Name   = 'Steps to Reproduce'
+                    Schema = [PSCustomObject]@{
+                        type     = 'string'
+                        custom   = 'com.atlassian.jira.plugin.system.customfieldtypes:textarea'
+                        customId = 10100
+                    }
+                }
+                Test-JiraRichTextField -Field $field | Should -Be $true
+            }
+        }
     }
 }

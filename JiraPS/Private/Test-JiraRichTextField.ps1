@@ -18,10 +18,17 @@
         back to the original behaviour (passing the value through as-is).
 
         Recognised rich-text indicators:
-          * `schema.type` is `doc` (the ADF marker on Cloud v3)
-          * `schema.system` is `description` or `environment`
+          * `schema.system` is `description` or `environment` — this is
+            the primary indicator on real Cloud field metadata, where
+            `schema.type` is reported as `string` (not `doc`) for the
+            built-in description / environment fields. The body still has
+            to be sent as ADF, so we key off `system` to detect them.
           * `schema.custom` is the built-in textarea custom field type
             (`com.atlassian.jira.plugin.system.customfieldtypes:textarea`)
+          * `schema.type` is `doc` — a forward-looking guard so we keep
+            doing the right thing if Atlassian ever surfaces an explicit
+            ADF marker in the field schema, or for synthetic / tenant
+            metadata that already does so.
           * No schema info, but `Id` is `description` or `environment`
             (defensive fallback for older field metadata)
 
