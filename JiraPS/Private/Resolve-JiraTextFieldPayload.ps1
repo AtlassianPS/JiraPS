@@ -29,23 +29,19 @@
         converter without warning.
 
     .PARAMETER Text
-        The rich-text payload supplied by the user. The parameter is
-        statically typed as `[string]`, so non-string inputs are coerced
-        via `.ToString()`. Callers must not pass a pre-built ADF hashtable
-        here — wrapping it again would produce nonsense (a `text` node whose
-        `text` is `"System.Collections.Hashtable"`). Pass the raw Markdown /
-        wiki-markup string and let this helper do the wrapping.
+        Raw Markdown / wiki-markup string. Pre-built ADF hashtables are
+        not accepted here — guard the call site with `($value -is [string])`
+        as `Test-JiraRichTextField`'s example shows.
 
     .PARAMETER IsCloud
         `$true` when targeting Jira Cloud (ADF wrapping required).
         `$false` for Jira Server / Data Center (verbatim pass-through).
 
     .OUTPUTS
-        [string] on Server / Data Center, or for `$null` / empty input on
-        Cloud.
+        Server / Data Center: input returned verbatim (`[string]` or `$null`).
 
-        [hashtable] on Cloud for any non-empty input — an ADF document of
-        the form `@{ version = 1; type = 'doc'; content = @(...) }`.
+        Cloud: `[hashtable]` ADF document for non-empty input;
+        `$null` and empty strings pass through unchanged.
     #>
     [CmdletBinding()]
     [OutputType([string], [hashtable])]

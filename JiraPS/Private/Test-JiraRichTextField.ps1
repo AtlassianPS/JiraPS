@@ -7,30 +7,15 @@
     .DESCRIPTION
         Cloud's REST API v3 expects rich-text fields (description,
         environment, comment, custom textarea / wiki / doc fields) to be
-        sent as Atlassian Document Format (ADF) JSON documents. Plain
-        single-line "string" fields, numeric fields, dates, etc. continue
-        to accept their native JSON value.
+        sent as Atlassian Document Format (ADF). Plain single-line
+        "string" fields, numeric fields, dates, etc. continue to accept
+        their native JSON value.
 
-        This helper inspects the field's `Schema` property (returned by
-        `Get-JiraField`) to decide whether the value should be wrapped in
-        ADF before being placed in a request body. It is intentionally
-        conservative: when in doubt it returns $false so the cmdlet falls
-        back to the original behaviour (passing the value through as-is).
-
-        Recognised rich-text indicators:
-          * `schema.system` is `description` or `environment` — this is
-            the primary indicator on real Cloud field metadata, where
-            `schema.type` is reported as `string` (not `doc`) for the
-            built-in description / environment fields. The body still has
-            to be sent as ADF, so we key off `system` to detect them.
-          * `schema.custom` is the built-in textarea custom field type
-            (`com.atlassian.jira.plugin.system.customfieldtypes:textarea`)
-          * `schema.type` is `doc` — a forward-looking guard so we keep
-            doing the right thing if Atlassian ever surfaces an explicit
-            ADF marker in the field schema, or for synthetic / tenant
-            metadata that already does so.
-          * No schema info, but `Id` is `description` or `environment`
-            (defensive fallback for older field metadata)
+        This helper inspects `$Field.Schema` (returned by `Get-JiraField`)
+        to decide whether the value should be wrapped. It is intentionally
+        conservative: when in doubt it returns `$false` so the cmdlet
+        falls back to forwarding the value as-is. See the function body
+        for the exact predicate set.
 
     .PARAMETER Field
         A single JiraPS.Field object as returned by `Get-JiraField`.
@@ -41,7 +26,13 @@
 
     .EXAMPLE
         $field = Get-JiraField -Field 'description'
-        if (Test-JiraRichTextField -Field $field) {
+
+        # Guard with `($value -is [string])` so a caller who has already
+        # built an ADF hashtable (e.g. via ConvertTo-AtlassianDocumentFormat)
+        # is passed through verbatim instead of being double-wrapped — the
+        # Resolve helper expects raw Markdown / wiki-markup, not a pre-built
+        # document.
+        if (($value -is [string]) -and (Test-JiraRichTextField -Field $field)) {
             $value = Resolve-JiraTextFieldPayload -Text $value -IsCloud $true
         }
     #>
