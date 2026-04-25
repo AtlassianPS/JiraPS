@@ -27,13 +27,32 @@ InModuleScope JiraPS {
             }
 
             Mock Get-JiraField -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraField' 'Field'
-                $object = [PSCustomObject] @{
-                    'Name' = $Field
-                    'ID'   = $Field
-                }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
-                $object
+                Write-MockDebugInfo 'Get-JiraField' 'Field', 'Credential'
+                # The cmdlet pre-fetches the full field catalogue (no -Field
+                # filter) and looks each requested key up in an in-memory
+                # hashtable, so the mock must return everything the tests
+                # reference. Schema metadata mirrors what Jira Cloud
+                # actually returns (see Test-JiraRichTextField for why).
+                @(
+                    [PSCustomObject]@{
+                        Id     = 'customfield_12345'
+                        Name   = 'Custom Field 12345'
+                        Schema = [PSCustomObject]@{ type = 'string'; custom = 'com.atlassian.jira.plugin.system.customfieldtypes:textfield' }
+                    }
+                    [PSCustomObject]@{
+                        Id     = 'customfield_67890'
+                        Name   = 'Custom Field 67890'
+                        Schema = [PSCustomObject]@{ type = 'string'; custom = 'com.atlassian.jira.plugin.system.customfieldtypes:textfield' }
+                    }
+                    [PSCustomObject]@{
+                        Id     = 'description'
+                        Name   = 'Description'
+                        Schema = [PSCustomObject]@{ type = 'string'; system = 'description' }
+                    }
+                ).ForEach({
+                        $_.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                        $_
+                    })
             }
 
             Mock Get-JiraIssue -ModuleName JiraPS {
@@ -339,17 +358,6 @@ InModuleScope JiraPS {
                 # for rich-text fields supplied via -Fields. The cmdlet
                 # must inspect the field schema and wrap rich-text values
                 # via Resolve-JiraTextFieldPayload, matching -Comment.
-                Mock Get-JiraField -ModuleName JiraPS {
-                    Write-MockDebugInfo 'Get-JiraField' 'Field'
-                    $object = [PSCustomObject] @{
-                        Name   = $Field
-                        ID     = 'description'
-                        Schema = [PSCustomObject]@{ type = 'string'; system = 'description' }
-                    }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
-                    $object
-                }
-
                 {
                     Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
                         description = 'transition desc'
@@ -361,6 +369,40 @@ InModuleScope JiraPS {
                     $set = $payload.update.description[0].set
                     $set.type -eq 'doc' -and
                     $set.content[0].content[0].text -eq 'transition desc'
+                }
+            }
+
+            It "leaves a non-rich-text field passed via -Fields as a plain string on Cloud" {
+                # Mirrors New-/Set-JiraIssue: a single-line custom textfield
+                # supplied via -Fields must NOT be ADF-wrapped on Cloud.
+                {
+                    Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                        customfield_12345 = 'plain'
+                    }
+                } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $payload.update.customfield_12345[0].set -eq 'plain'
+                }
+            }
+        }
+
+        Describe "Field catalogue" {
+            It "fetches the field catalogue once per call regardless of how many keys -Fields contains" {
+                {
+                    Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                        customfield_12345 = 'foo'
+                        customfield_67890 = 'bar'
+                    }
+                } | Should -Not -Throw
+
+                # Refactored to mirror New-/Set-JiraIssue: pre-fetch the
+                # full catalogue and look each requested key up in an
+                # in-memory hashtable instead of per-key Get-JiraField
+                # round-trips.
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    -not $PSBoundParameters.ContainsKey('Field')
                 }
             }
         }
