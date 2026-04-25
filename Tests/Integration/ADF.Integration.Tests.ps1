@@ -203,7 +203,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $marker = "ADFCREATE_$(Get-Date -Format 'HHmmssff')"
+                    $marker = "ADFCREATE_$([Guid]::NewGuid().ToString('N'))"
                     $description = "# Heading $marker`n`nA paragraph with **bold**, _italic_, and ``inline code``."
 
                     $summary = New-TestResourceName -Type "ADFCreateIssue"
@@ -235,7 +235,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $marker = "ADFEDIT_$(Get-Date -Format 'HHmmssff')"
+                    $marker = "ADFEDIT_$([Guid]::NewGuid().ToString('N'))"
                     $description = "Edited description $marker with **bold** text."
 
                     Set-JiraIssue -Issue $tempIssue.Key -Description $description
@@ -255,7 +255,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $marker = "ADFCOMMENT_$(Get-Date -Format 'HHmmssff')"
+                    $marker = "ADFCOMMENT_$([Guid]::NewGuid().ToString('N'))"
                     $body = "## Heading $marker`n`nLine with **bold** and _italic_."
 
                     $added = Add-JiraIssueComment -Issue $tempIssue.Key -Comment $body
@@ -281,7 +281,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $marker = "ADFADDCOMMENT_$(Get-Date -Format 'HHmmssff')"
+                    $marker = "ADFADDCOMMENT_$([Guid]::NewGuid().ToString('N'))"
                     $body = "Edit-comment $marker with **bold**."
 
                     Set-JiraIssue -Issue $tempIssue.Key -AddComment $body
@@ -301,7 +301,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $marker = "ADFWORKLOG_$(Get-Date -Format 'HHmmssff')"
+                    $marker = "ADFWORKLOG_$([Guid]::NewGuid().ToString('N'))"
                     $body = "Worklog $marker with **bold** prose."
 
                     $added = Add-JiraIssueWorklog -Issue $tempIssue.Key -Comment $body -TimeSpent ([TimeSpan]::FromMinutes(1)) -DateStarted (Get-Date)
@@ -333,7 +333,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $marker = "ADFFIELDSCREATE_$(Get-Date -Format 'HHmmssff')"
+                    $marker = "ADFFIELDSCREATE_$([Guid]::NewGuid().ToString('N'))"
                     $description = "Description-via-fields $marker with **bold** prose."
 
                     $summary = New-TestResourceName -Type "ADFFieldsCreateIssue"
@@ -365,7 +365,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $marker = "ADFFIELDSEDIT_$(Get-Date -Format 'HHmmssff')"
+                    $marker = "ADFFIELDSEDIT_$([Guid]::NewGuid().ToString('N'))"
                     $description = "Edit-via-fields $marker with **bold** prose."
 
                     Set-JiraIssue -Issue $tempIssue.Key -Fields @{ description = $description }
