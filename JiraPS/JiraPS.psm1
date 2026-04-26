@@ -87,4 +87,11 @@ foreach ($file in @($PublicFunctions + $PrivateFunctions)) {
         throw $errorItem
     }
 }
+
+# Restrict exports to the Public/ surface even when the manifest carries the
+# default `FunctionsToExport = '*'` (the build task rewrites that to an
+# explicit list when packaging Release/, but source-mode imports rely on
+# this guard). Private/ functions stay reachable via InModuleScope, &-call
+# operator from within the module, etc.
+Export-ModuleMember -Function $PublicFunctions.BaseName
 #endregion LoadFunctions
