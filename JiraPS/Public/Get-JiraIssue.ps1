@@ -135,7 +135,7 @@
                     URI          = if ($isCloud) { $searchURi_v3 } else { $searchURi }
                     Method       = "GET"
                     GetParameter = @{
-                        jql           = (ConvertTo-URLEncoded $Query)
+                        jql           = $Query
                         validateQuery = $true
                         expand        = "transitions"
                         maxResults    = $PageSize
