@@ -250,6 +250,11 @@
             Invoke-JiraMethod @PSBoundParameters
             return
         }
+        if ($script:JiraResponseHeaderLogConfiguration) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Jira response headers"
+            try { Write-JiraResponseHeaderLog -InputObject $webResponse }
+            catch { Write-Debug "[$($MyInvocation.MyCommand.Name)] Failed to log response headers: $_" }
+        }
         #endregion Execute the actual query
     }
 
