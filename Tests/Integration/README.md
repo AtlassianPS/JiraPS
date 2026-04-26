@@ -13,8 +13,8 @@ The integration suite has two deployment targets:
 
 | Track | Target | Auth | Trigger |
 |-------|--------|------|---------|
-| **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | `.github/workflows/integration_tests.yml` (PR + scheduled) |
-| **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` (scheduled + manual `workflow_dispatch` only — the ~25 min cold-boot cost is too expensive to gate every PR on) |
+| **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | Smoke gated per-PR + push by `.github/workflows/ci.yml`; full suite by `.github/workflows/integration_tests.yml` (scheduled + manual) |
+| **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `server_integration_tests` job in `.github/workflows/integration_tests.yml` (scheduled + manual `workflow_dispatch` only — the ~25 min cold-boot cost is too expensive to gate every PR on) |
 
 > **Local prerequisite — Docker memory.** The container asks for a 4 GiB Java heap and needs ~1 GiB of base overhead, so allocate **at least 6 GiB** to Docker Desktop in *Settings > Resources* before running locally. CI runners (~7 GiB) have enough headroom out of the box.
 >
@@ -48,7 +48,7 @@ The Server track is fully self-contained — no secrets, no live Jira, just Dock
 Invoke-Build -Task StartJiraDocker     # ~5 min on first run while image pulls + Jira boots
 $env:CI_JIRA_TYPE = 'Server'
 
-# Full Server-tagged suite — the same set of files the jira_server_ci.yml workflow runs.
+# Full Server-tagged suite — the same set of files the server_integration_tests job runs.
 Invoke-Build -Task TestIntegration -Tag 'Server'
 
 Invoke-Build -Task StopJiraDocker
@@ -61,10 +61,11 @@ Locally, `Wait-JiraServer.ps1` cannot write to `$GITHUB_ENV` (which only exists 
 
 ### CI scheduling
 
-| Workflow | Cron | Notes |
-|----------|------|-------|
-| `integration_tests.yml` (Cloud) | `0 6 * * *` | Smoke on every PR; full suite on label / schedule |
-| `jira_server_ci.yml` (Server) | `0 5 * * *` | Nightly + manual `workflow_dispatch` only — never on PRs (~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`). Single 25-minute job per run; Jira boot dominates wall time |
+| Workflow / Job | Trigger | Notes |
+|----------------|---------|-------|
+| `ci.yml` → `smoke_tests` (Cloud) | every PR + every push to `master` | Skipped on fork / Dependabot PRs (no secrets); gates `release.yml` via the `CI Result` aggregator (`workflow_conclusion: success`) |
+| `integration_tests.yml` → `cloud_integration_tests` | `0 5 * * *` + manual `workflow_dispatch` | Full Cloud suite — scheduled + manual only; PR-level coverage is the smoke job above |
+| `integration_tests.yml` → `server_integration_tests` | `0 5 * * *` + manual `workflow_dispatch` | Never on PRs — ~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`. Jira boot dominates wall time |
 
 ## Prerequisites
 
@@ -390,15 +391,17 @@ Context "Write Operations" -Skip:($fixtures.ReadOnly) {
 
 ## CI/CD
 
-Integration tests have a dedicated workflow (`.github/workflows/integration_tests.yml`) separate from the unit test workflow.
+Cloud smoke runs as part of the standard `.github/workflows/ci.yml` pipeline; the full Cloud suite and the full Server (Data Center, Dockerized) suite share `.github/workflows/integration_tests.yml`, which fires on a nightly cron and on manual dispatch.
 
 ### Workflow Triggers
 
-| Trigger | Smoke Tests | Full Integration Tests |
-|---------|-------------|------------------------|
-| Pull Request | ✅ | ❌ (add `run-integration-tests` label) |
-| Nightly (6 AM UTC) | ✅ | ✅ |
-| Manual (`workflow_dispatch`) | ✅ | ✅ |
+| Trigger | Smoke (`ci.yml`) | Cloud full (`integration_tests.yml`) | Server full (`integration_tests.yml`) |
+|---------|------------------|--------------------------------------|---------------------------------------|
+| Pull Request (first-party) | ✅ | ❌ — use `workflow_dispatch` to opt in | ❌ — use `workflow_dispatch` to opt in |
+| Pull Request (fork / Dependabot) | ⚪ skipped (no secrets) | ❌ | ❌ |
+| Push to `master` | ✅ | ❌ | ❌ |
+| Nightly (5 AM UTC) | — | ✅ | ✅ |
+| Manual (`workflow_dispatch`) | re-run via Actions UI | ✅ — pass `track=cloud` (or `both`) | ✅ — pass `track=server` (or `both`) |
 
 ### Required Secrets
 
@@ -420,18 +423,23 @@ If secrets are not configured, integration tests are skipped automatically.
 
 ### Running Full Integration Tests on PRs
 
-To run full integration tests on a pull request:
+To run the full suite against an in-flight PR, dispatch the workflow manually:
 
-1. Add the label `run-integration-tests` to the PR
-2. The integration workflow will run automatically
-3. Remove the label after tests complete (optional)
+1. Open the **Actions** tab → **Integration Tests** workflow.
+2. Click **Run workflow**, pick the branch, and choose the `track` input (`cloud`, `server`, or `both`; default `both`).
+3. Inspect the run in the same workflow's history — results upload as the `Cloud-Integration-Tests` and/or `Server-Integration-Tests` artifacts.
+
+For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the branch appears in the **Run workflow** dropdown directly. For **fork PRs**, the dropdown only sees branches on `AtlassianPS/JiraPS`, so a maintainer needs to either:
+
+- Cherry-pick (or push) the fork's commits onto a maintainer-owned branch first and dispatch from there, or
+- Run `gh workflow run "Integration Tests" --ref <branch> -f track=<cloud|server|both>` from a clone that has a remote pointing at the fork (the dispatched run still uses `AtlassianPS/JiraPS`'s secrets, not the fork's).
 
 ### Workflow Features
 
-- **No build required**: Tests run directly against source for speed
-- **Parallel execution**: Uses `Invoke-Build -Task TestIntegration` with `ThrottleLimit=4`
-- **Concurrency control**: Cancels in-progress runs for the same branch
-- **NUnit results artifact**: Uploads `IntegrationTestResults.xml` as a workflow artifact for downstream inspection
+- **No build required**: tests run directly against source for speed.
+- **Parallel execution**: Cloud uses `ThrottleLimit=6`; Server uses `ThrottleLimit=2` (halved because the AMPS/H2 backend serialises Lucene write commits — see the inline comment on the `server_integration_tests` job for the contention details).
+- **Concurrency control**: nightly + dispatched runs share one concurrency group with `cancel-in-progress: false`, so an in-flight run is never killed by the next cron tick or a dispatch retry.
+- **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `IntegrationTests.xml`); the Server job additionally uploads `Server-Jira-Container-Logs` for post-mortem on failures.
 
 ## Troubleshooting
 

@@ -144,7 +144,8 @@ function Initialize-IntegrationEnvironment {
 
     # CI_JIRA_TYPE selects the deployment target for this test run. 'Cloud' is the
     # historical default and is what the Cloud workflow drives; 'Server' is set by
-    # the jira_server_ci.yml workflow (and locally by the StartJiraDocker task).
+    # the `server_integration_tests` job in integration_tests.yml (and locally by
+    # the StartJiraDocker task).
     $deploymentType = if ($env:CI_JIRA_TYPE) { $env:CI_JIRA_TYPE } else { 'Cloud' }
     if ($deploymentType -notin @('Cloud', 'Server')) {
         throw "Invalid CI_JIRA_TYPE '$deploymentType'. Must be 'Cloud' or 'Server'."
@@ -199,8 +200,8 @@ function Initialize-IntegrationEnvironment {
 
     if ($deploymentType -eq 'Server') {
         # Server track fixture sourcing:
-        #   - Wait-JiraServer.ps1 (run by jira_server_ci.yml and the StartJiraDocker
-        #     build task) provisions a TEST project and a TEST-1 baseline issue
+        #   - Wait-JiraServer.ps1 (run by the `server_integration_tests` job in
+        #     integration_tests.yml and by the StartJiraDocker build task) provisions a TEST project and a TEST-1 baseline issue
         #     against the moveworkforward/atlas-run-standalone image, then exports
         #     JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to $env:GITHUB_ENV.
         #   - Honour those env vars here (same shape as the Cloud branch below) so

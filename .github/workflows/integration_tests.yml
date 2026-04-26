@@ -1,84 +1,51 @@
 name: Integration Tests
 
+# Cloud track + Server (Data Center, Dockerized) track. The two jobs share
+# this workflow's nightly cron and dispatch but are otherwise independent:
+# Cloud runs against a live Jira Cloud instance via JIRA_CLOUD_* secrets,
+# Server boots moveworkforward/atlas-run-standalone:jira-11 with
+# docker-compose and provisions the fixture project + user from scratch.
+#
+# Per-PR Cloud coverage is the smoke_tests job in ci.yml; per-PR Server
+# coverage is the Server-tagged unit tests in ci.yml. The full suites here
+# only run on the cron and on explicit dispatch because the Cloud full
+# suite burns API quota and the Server cold boot is ~25 min.
 on:
-  pull_request:
-    branches:
-      - master
-    types: [ opened, synchronize, reopened, labeled ]
-    paths-ignore:
-      - "CHANGELOG.md"
-      - "LICENSE"
-      - "AGENTS.md"
-      - "CLAUDE.md"
-      - "GEMINI.md"
-      - ".cursor/**"
-      - ".github/copilot-instructions.md"
-      - ".github/ai-context/**"
-      - ".github/instructions/**"
-      - ".github/*.md"
-      - ".github/ISSUE_TEMPLATE/**"
-      - ".github/PULL_REQUEST_TEMPLATE/**"
-      - ".vscode/**"
-      - ".editorconfig"
-      - ".spelling"
-      - "docs-regenerated/**"
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "0 5 * * *"
   workflow_dispatch:
+    inputs:
+      track:
+        description: "Which track to run"
+        required: false
+        default: both
+        type: choice
+        options:
+          - cloud
+          - server
+          - both
 
 concurrency:
-  group: integration-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
-env:
-  JIRA_CLOUD_URL: ${{ secrets.JIRA_CLOUD_URL }}
-  JIRA_CLOUD_USERNAME: ${{ secrets.JIRA_CLOUD_USERNAME }}
-  JIRA_CLOUD_PASSWORD: ${{ secrets.JIRA_CLOUD_PASSWORD }}
-  JIRA_TEST_PROJECT: ${{ secrets.JIRA_TEST_PROJECT }}
-  JIRA_TEST_ISSUE: ${{ secrets.JIRA_TEST_ISSUE }}
-  JIRA_TEST_USER: ${{ secrets.JIRA_TEST_USER }}
-  JIRA_TEST_GROUP: ${{ secrets.JIRA_TEST_GROUP }}
-  JIRA_TEST_FILTER: ${{ secrets.JIRA_TEST_FILTER }}
-  JIRA_TEST_VERSION: ${{ secrets.JIRA_TEST_VERSION }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  smoke_tests:
-    name: Smoke Tests
+  cloud_integration_tests:
+    name: Full Integration Tests (Cloud)
+    if: github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (inputs.track == 'cloud' || inputs.track == 'both'))
     runs-on: ubuntu-latest
-    # Skip on fork PRs and Dependabot PRs - secrets are not available in
-    # those contexts and tests would fail. The TestIntegration build task
-    # validates required env vars and fails early with a clear error if any
-    # are missing.
-    if: github.event_name != 'pull_request' ||
-      (github.event.pull_request.head.repo.full_name == github.repository &&
-       github.actor != 'dependabot[bot]')
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-powershell
-
-      - run: |
-          Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed
-        shell: pwsh
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: Smoke-Tests
-          path: IntegrationTests.xml
-        if: always()
-
-  integration_tests:
-    name: Full Integration Tests
-    needs: smoke_tests
-    # Dependabot PRs are excluded because GitHub does not expose repo
-    # secrets to them, even when manually labeled.
-    if: |
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       github.actor != 'dependabot[bot]' &&
-       contains(github.event.pull_request.labels.*.name, 'run-integration-tests'))
-    runs-on: ubuntu-latest
+    env:
+      JIRA_CLOUD_URL: ${{ secrets.JIRA_CLOUD_URL }}
+      JIRA_CLOUD_USERNAME: ${{ secrets.JIRA_CLOUD_USERNAME }}
+      JIRA_CLOUD_PASSWORD: ${{ secrets.JIRA_CLOUD_PASSWORD }}
+      JIRA_TEST_PROJECT: ${{ secrets.JIRA_TEST_PROJECT }}
+      JIRA_TEST_ISSUE: ${{ secrets.JIRA_TEST_ISSUE }}
+      JIRA_TEST_USER: ${{ secrets.JIRA_TEST_USER }}
+      JIRA_TEST_GROUP: ${{ secrets.JIRA_TEST_GROUP }}
+      JIRA_TEST_FILTER: ${{ secrets.JIRA_TEST_FILTER }}
+      JIRA_TEST_VERSION: ${{ secrets.JIRA_TEST_VERSION }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-powershell
@@ -90,6 +57,129 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v7
         with:
-          name: Integration-Tests
+          name: Cloud-Integration-Tests
           path: IntegrationTests.xml
         if: always()
+
+  server_integration_tests:
+    name: Server Integration Tests (Dockerized Jira DC)
+    if: github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (inputs.track == 'server' || inputs.track == 'both'))
+    runs-on: ubuntu-latest
+    # The Server track is wired up end-to-end: docker-compose boots
+    # moveworkforward/atlas-run-standalone, Wait-JiraServer.ps1 provisions
+    # the test user, the TEST fixture project (via dynamic
+    # /rest/project-templates/1.0/templates discovery), and the TEST-1
+    # baseline issue, and the full Server-tagged Pester suite then runs
+    # against them.
+    #
+    # Because this workflow only runs on the cron + manual dispatch, the
+    # Server job is intentionally NOT marked continue-on-error: a red
+    # nightly is a real signal that either the upstream image has drifted
+    # or a Server-track regression has slipped in, and we want that noise.
+    # Boot budget: pulling the ~1.2 GB image (~1 min on a warm runner), Maven
+    # dependency verification (~3 min), Tomcat 10.1.44 startup + jira.war
+    # extraction + plugin scan + first-time DB init (~5-10 min on cold boot).
+    # The full Server-tagged Pester suite (~150 tests across 25+ files, run
+    # via `Tests/Invoke-ParallelPester.ps1` with ThrottleLimit=2 — see the
+    # per-step comment below for why it's halved from JiraPS.build.ps1's
+    # default of 4) currently takes ~15-20 min end-to-end against the
+    # H2-backed AMPS image; most of that is the per-test issue/version
+    # provisioning round-trip latency, which is gated on Lucene reindex
+    # commits inside the embedded Jira and cannot meaningfully be parallelised
+    # further without sharding workers across multiple containers. The 60 min
+    # cap therefore leaves a comfortable ~40-45 min margin for the actual
+    # Pester run on cold-boot CI runs while still surfacing genuine hangs
+    # (the runner kills on its own well before the 6 hr GitHub Actions hard
+    # ceiling).
+    timeout-minutes: 60
+    env:
+      CI_JIRA_TYPE: Server
+      CI_JIRA_URL: http://localhost:2990/jira
+      CI_JIRA_ADMIN: admin
+      CI_JIRA_ADMIN_PASSWORD: admin
+      CI_JIRA_USER: jira_user
+      CI_JIRA_USER_PASSWORD: jira
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Start Jira Data Center container
+        run: docker compose up -d
+        shell: bash
+
+      - uses: ./.github/actions/setup-powershell
+
+      - name: Wait for Jira to become reachable and provision the normal user
+        run: pwsh ./Tools/Wait-JiraServer.ps1 -TimeoutSeconds 1200
+
+      - name: Run full Server-tagged integration suite
+        # Scope: every test file with the 'Server' tag (Server smoke + the broader
+        # Server-tagged CRUD suites — Comments, Filters, Search, Versions,
+        # Worklogs, IssueLinks, Transitions, Metadata, Projects, etc.).
+        #
+        # Wait-JiraServer.ps1 (previous step) discovers the actual
+        # (projectTypeKey, projectTemplateKey) pairs the running instance
+        # advertises via /rest/project-templates/1.0/templates and provisions
+        # the fixture project + a baseline issue, then exports
+        # JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to GITHUB_ENV so the env
+        # vars are visible to this step. Tests that need a fixture issue
+        # gate on `$testEnv.TestIssue` and self-skip when it is missing
+        # (see Get-JiraIssue.Integration.Tests.ps1 BeforeDiscovery for the
+        # canonical pattern), so the suite stays green even if the AMPS
+        # standalone image refuses to seed an issue for the chosen template.
+        #
+        # Per-step timeout (separate from the job-level `timeout-minutes: 60`):
+        # the actual Pester work reliably completes in 12-18 min depending on
+        # ThrottleLimit and AMPS warmth (see the ThrottleLimit comment below).
+        # 25 min is comfortably above the worst observed run while still
+        # surfacing real hangs (e.g. an orchestrator regression in
+        # Tests/Invoke-ParallelPester.ps1 — historically a ForEach-Object
+        # -Parallel runspace-cleanup deadlock that took out CI run
+        # #24935398326 for 53 min before the original 25-min cap caught it,
+        # since fixed in 50afbc3 by switching the runner to Start-ThreadJob
+        # with per-file Wait-Job timeouts) before the artifact upload + log
+        # capture steps below (gated on `if: always()`) get starved.
+        timeout-minutes: 25
+        # ThrottleLimit=2 (vs JiraPS.build.ps1's default of 4): the AMPS
+        # standalone image runs Jira against an embedded H2 DB + Lucene
+        # IndexCopyService that serializes write commits. Under 4-way
+        # parallelism, observed CI run #24939216658 saw the Worklogs
+        # file's POST /worklog hang past the 600s per-file orchestrator
+        # budget (entire file killed, 0/N reported), and the Versions
+        # delete + Transitions comment-after-transition tests blew past
+        # their 60s convergence polls (60.8s and 60.68s respectively —
+        # i.e. AMPS *did* converge, just slower than the budget). Halving
+        # the concurrency removes the hardest contention spikes from the
+        # H2 backend without seriously dragging the wall-clock (the
+        # full Server-tagged suite ran ~12 min at 4-way; estimated ~16-18
+        # min at 2-way). Cloud, which doesn't share this bottleneck,
+        # continues to use ThrottleLimit=6 in the cloud_integration_tests
+        # job above.
+        run: |
+          Invoke-Build -Task TestIntegration -Tag 'Server' -ThrottleLimit 2 -PesterVerbosity Detailed
+        shell: pwsh
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Server-Integration-Tests
+          path: IntegrationTests.xml
+
+      - name: Capture Jira container logs for debugging
+        if: always()
+        run: docker compose logs jira > jira-container.log
+        shell: bash
+
+      - name: Upload Jira container logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Server-Jira-Container-Logs
+          path: jira-container.log
+
+      - name: Tear down Jira Data Center container
+        if: always()
+        run: docker compose down -v
+        shell: bash

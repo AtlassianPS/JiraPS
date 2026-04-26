@@ -24,7 +24,8 @@ param(
     # Optional list of test files / directories to scope the TestIntegration task to.
     # Defaults to ./Tests/Integration/ (the whole suite). The Server-track CI workflow
     # uses this to restrict execution to the Server smoke suite while the AMPS standalone
-    # image cannot bootstrap a fixture project (see jira_server_ci.yml for the rationale).
+    # image cannot bootstrap a fixture project (see the `server_integration_tests` job
+    # in integration_tests.yml for the rationale).
     [Parameter()]
     [String[]] $IntegrationTestPath
 )
@@ -545,8 +546,8 @@ Task Test {
 # Synopsis: Run integration tests against live Jira (Cloud or Data Center; no build required)
 Task TestIntegration {
     # Pick the required-env set based on deployment target. CI_JIRA_TYPE is set by the
-    # Server-track workflow (jira_server_ci.yml) and the StartJiraDocker task; it
-    # defaults to Cloud so legacy invocations stay unchanged.
+    # `server_integration_tests` job in integration_tests.yml and by the StartJiraDocker
+    # task; it defaults to Cloud so legacy invocations stay unchanged.
     $deploymentType = if ($env:CI_JIRA_TYPE) { $env:CI_JIRA_TYPE } else { 'Cloud' }
     if ($deploymentType -notin @('Cloud', 'Server')) {
         throw "Invalid CI_JIRA_TYPE '$deploymentType'. Must be 'Cloud' or 'Server'."
