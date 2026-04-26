@@ -46,6 +46,7 @@ $script:DefaultHeaders = @{
     "Accept-Charset" = "utf-8"
     "Accept"         = "application/json"
 }
+$script:JiraResponseHeaderLogConfiguration = $null
 $script:PagingContainers = @(
     "comments"
     "dashboards"

@@ -32,6 +32,10 @@ It handles the authentication, parses the response, handles exceptions from Jira
 When you pass a relative URI path, it must start with `/` and JiraPS resolves it against `Get-JiraConfigServer`.
 Absolute URIs are also accepted for compatibility with object properties like `RestURL`.
 
+Use `Set-JiraResponseHeaderLogConfiguration` to opt into response-header logging on the debug stream.
+This is useful when troubleshooting Jira Data Center diagnostic headers such as `X-AREQUESTID`, `X-ANODEID`, `X-ASESSIONID`, and `X-AUSERNAME`.
+Debug output can include diagnostic metadata such as Jira usernames, so review logs before sharing them.
+
 JiraPS does not support any third-party plugins on Jira.
 This cmdlet can be used to interact with REST Api enpoints which are not already coverted in JiraPS.
 It allows for anyone to use the same technics as JiraPS uses internally for creating their own functions or modules.

@@ -43,6 +43,8 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Added `-CacheKey`, `-CacheExpiry` (as `[TimeSpan]`), and `-BypassCache` parameters to `Invoke-JiraMethod` for built-in response caching (#576)
 - Added caching to `Get-JiraField`, `Get-JiraIssueType`, and `Get-JiraPriority` with a `-Force` parameter to bypass the cache (#576)
 - Added `Clear-JiraCache` public function to clear cached API responses by type (#576)
+- Added `Set-JiraResponseHeaderLogConfiguration` to opt into debug logging for selected Jira response headers, including Data Center diagnostic headers such as `X-AREQUESTID`, `X-ANODEID`, `X-ASESSIONID`, and `X-AUSERNAME` (#536)
+- Added `Get-JiraResponseHeaderLogConfiguration` to inspect the active response-header logging configuration (#536)
 - Added "Automation and CI/CD" section to authentication documentation with programmatic SecureString examples (#576)
 - Added `ConvertTo-JiraTable` as the descriptive replacement for `Format-Jira`.
   The new name reflects what the cmdlet actually does: it returns a `[String]` of Jira wiki-markup table syntax, not a host-only `Format-*` display object.
