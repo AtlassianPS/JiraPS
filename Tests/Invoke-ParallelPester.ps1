@@ -4,8 +4,9 @@
 
 .DESCRIPTION
     This script runs multiple Pester test files to support integration testing.
-    On PowerShell 7+, files run concurrently using ForEach-Object -Parallel.
-    On PowerShell 5.1, files run sequentially as a fallback.
+    On PowerShell 7+, files run concurrently as Start-ThreadJob jobs (one job per
+    test file, throttled by -ThrottleLimit). On PowerShell 5.1, files run
+    sequentially as a fallback.
 
     Each test file generates its own NUnit XML which is then merged into a single
     output file with full test-case details (names, durations, failure messages).
@@ -14,6 +15,17 @@
     -Parallel flag provides test-level parallelization within a single invocation.
     The file-level approach is used here for isolation between integration test
     files that may have conflicting global state or authentication sessions.
+
+    Why Start-ThreadJob and not ForEach-Object -Parallel: ForEach-Object -Parallel
+    cannot time-bound its wait for a child runspace to fully Close, so a single
+    runspace that holds non-foreground threads alive (e.g. .NET HttpClient
+    keep-alive connections from Invoke-WebRequest) can hang the whole orchestrator
+    long after the per-file Pester runs all completed — observed at ~53 min in
+    CI run #24937590588 before the GitHub Actions step timeout finally killed it.
+    Start-ThreadJob lets us Wait-Job -Timeout each file individually, Stop-Job +
+    Remove-Job -Force to tear down stuck runspaces deterministically, and proceed
+    to the merged-XML write block + a clean `exit` regardless of background
+    thread state.
 
 .PARAMETER Path
     Path to the directory containing test files, or an array of test file paths.
@@ -198,10 +210,124 @@ catch {
 '@
 
 if ($canParallel) {
-    $results = $testFiles | ForEach-Object -Parallel {
-        $sb = [scriptblock]::Create($using:runTestBodyText)
-        & $sb $_ $using:projectRoot $using:Tag $using:ExcludeTag $using:Output $using:tempResultsDir $using:generateXml $using:helpersPath
-    } -ThrottleLimit $ThrottleLimit
+    # Why Start-ThreadJob and not ForEach-Object -Parallel:
+    # CI run #24937590588 reproduced the same orchestrator hang seen in
+    # #24935398326 — every per-file Pester run completed and emitted its
+    # result object, but then `ForEach-Object -Parallel` blocked indefinitely
+    # while trying to mark the child runspaces as completed. The job-level
+    # `timeout-minutes: 25` on the `server_integration_tests` job's "Run full
+    # Server-tagged integration suite" step in integration_tests.yml is
+    # what eventually killed it.
+    #
+    # Root cause: integration tests call Invoke-WebRequest / New-JiraSession,
+    # which drives .NET's HttpClient → keeps idle TCP connections + their
+    # background ThreadPool continuations alive after the user code returns.
+    # PowerShell 7's ForEach-Object -Parallel waits for the runspace to be
+    # fully Closed (not just for the script block to finish) before exiting,
+    # and there is no public knob to time-bound that wait. So when even one
+    # runspace's background HTTP thread won't wind down, the whole pipeline
+    # stalls — for ~53 min in the observed run before GitHub's job timeout
+    # finally cancelled the step.
+    #
+    # Start-ThreadJob gives us explicit per-job control:
+    #   * Wait-Job -Timeout returns even if the runspace is still spinning,
+    #     so a single hung file can't take down the whole suite.
+    #   * Stop-Job + Remove-Job -Force tears down the runspace deterministically.
+    #   * -ThrottleLimit still bounds concurrency the same way as FE-O-P.
+    #   * -StreamingHost preserves the live Write-Host streaming we get from
+    #     FE-O-P today, so CI logs stay informative as files complete.
+    # When this script's final `exit` runs, any still-running background
+    # threads are reaped by the process tearing down — they are no longer
+    # the orchestrator's problem to drain cleanly.
+    #
+    # Per-file budget: 600s (10 min) is ~3x the slowest observed per-file
+    # duration (the broader CRUD suites land at ~3 min wall-clock against
+    # the AMPS H2 backend during heavily-parallel runs). A file that exceeds
+    # that is reported as a synthetic "Orchestrator timeout" failure rather
+    # than blocking the rest of the suite — the merged XML still gets the
+    # results from every file that did finish.
+    $perFileTimeoutSeconds = 600
+    $jobInfos = New-Object System.Collections.Generic.List[object]
+    foreach ($testFile in $testFiles) {
+        # NOTE: -StreamingHost streams Write-Host / Write-Information from
+        # the child runspace to the parent's host as it is produced, which
+        # keeps CI logs in the same shape FE-O-P produced. We pass $Host
+        # explicitly because $PSHost in a ThreadJob defaults to a default
+        # PSHost that does not write to the Actions runner stdout.
+        $job = Start-ThreadJob `
+            -ScriptBlock ([scriptblock]::Create($runTestBodyText)) `
+            -ArgumentList @($testFile, $projectRoot, $Tag, $ExcludeTag, $Output, $tempResultsDir, $generateXml, $helpersPath) `
+            -ThrottleLimit $ThrottleLimit `
+            -StreamingHost $Host `
+            -Name "Pester:$($testFile.BaseName)"
+        $jobInfos.Add(@{ File = $testFile; Job = $job })
+    }
+
+    foreach ($info in $jobInfos) {
+        $job = $info.Job
+        $file = $info.File
+
+        # Wait-Job with -Timeout returns the job if it finished, $null if
+        # the timeout elapsed first. This is the timeout that protects
+        # against the FE-O-P-style runspace-cleanup hang on a per-file basis.
+        $finished = Wait-Job -Job $job -Timeout $perFileTimeoutSeconds
+
+        if (-not $finished) {
+            Write-Warning "Test file [$($file.Name)] exceeded ${perFileTimeoutSeconds}s budget; stopping the runspace and recording an orchestrator timeout."
+            try { Stop-Job -Job $job -ErrorAction SilentlyContinue } catch { Write-Warning "Stop-Job [$($job.Name)] threw: $_" }
+            $results += [PSCustomObject]@{
+                File        = $file.Name
+                Passed      = 0
+                Failed      = 1
+                Skipped     = 0
+                Duration    = [TimeSpan]::FromSeconds($perFileTimeoutSeconds)
+                Success     = $false
+                Error       = "Per-file orchestrator timeout (${perFileTimeoutSeconds}s) — runspace stopped, see Wait-Job timeout warning above."
+                FailedTests = @([PSCustomObject]@{
+                        Name         = 'Orchestrator timeout'
+                        ErrorMessage = "Test file [$($file.Name)] did not produce a Pester result object within ${perFileTimeoutSeconds}s. The runspace was force-stopped to keep the rest of the suite running."
+                    })
+                XmlPath     = $null
+            }
+        }
+        else {
+            try {
+                # Redirect the Information stream (6>) to $null. The child
+                # already wrote everything to the parent's host live via
+                # -StreamingHost above; without this redirect Receive-Job
+                # re-emits the Information records and we get every Pester
+                # line printed twice (once streamed, once replayed) — see
+                # the duplicated "Starting discovery / Discovery found / Running
+                # tests / [+] file / Tests completed / Tests Passed" blocks
+                # that appear in a smoke test against two unit test files.
+                # Keeping Error (2>), Warning (3>), Verbose (4>), and Debug
+                # (5>) intact: those are not streamed by -StreamingHost and
+                # we do want them surfaced if Receive-Job hits a real problem.
+                $jobOutput = Receive-Job -Job $job -ErrorAction Stop 6> $null
+                if ($null -ne $jobOutput) { $results += $jobOutput }
+            }
+            catch {
+                Write-Warning "Receive-Job [$($job.Name)] threw: $_"
+                $results += [PSCustomObject]@{
+                    File        = $file.Name
+                    Passed      = 0
+                    Failed      = 1
+                    Skipped     = 0
+                    Duration    = [TimeSpan]::Zero
+                    Success     = $false
+                    Error       = "Receive-Job failed: $_"
+                    FailedTests = @([PSCustomObject]@{ Name = 'Receive-Job failure'; ErrorMessage = $_.Exception.Message })
+                    XmlPath     = $null
+                }
+            }
+        }
+
+        # Force-remove releases the runspace even if Stop-Job above didn't
+        # fully tear down a hung HTTP background thread. We don't care if
+        # this throws — any thread that survives here will be reaped when
+        # the script `exit`s below.
+        try { Remove-Job -Job $job -Force -ErrorAction SilentlyContinue } catch { Write-Warning "Remove-Job [$($job.Name)] threw: $_" }
+    }
 }
 else {
     $runTestFile = [scriptblock]::Create($runTestBodyText)

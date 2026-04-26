@@ -14,7 +14,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Issue Comments" -Tag 'Integration' -Skip:$Skip {
+    Describe "Issue Comments" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
@@ -37,9 +37,17 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    $comments = Get-JiraIssueComment -Issue $fixtures.TestIssue
+                    # `Get-JiraIssueComment` returns `$null` when the issue has no comments
+                    # (e.g. a freshly-provisioned baseline issue on Data Center). Assert that
+                    # the call succeeds and *only* type-check the payload when there is data
+                    # to inspect; the dedicated "returns comment objects with correct type"
+                    # test below still covers the populated-shape case.
+                    { Get-JiraIssueComment -Issue $fixtures.TestIssue } | Should -Not -Throw
 
-                    $comments | Should -BeOfType [PSCustomObject]
+                    $comments = Get-JiraIssueComment -Issue $fixtures.TestIssue
+                    if ($comments) {
+                        @($comments)[0] | Should -BeOfType [PSCustomObject]
+                    }
                 }
 
                 It "returns comment objects with correct type" {
@@ -115,8 +123,7 @@ InModuleScope JiraPS {
                     $script:tempIssue = $null
                 }
                 else {
-                    $summary = New-TestResourceName -Type "CommentIssue"
-                    $script:tempIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "CommentIssue")
                 }
             }
 

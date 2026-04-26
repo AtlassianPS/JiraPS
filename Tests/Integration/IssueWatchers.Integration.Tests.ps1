@@ -34,7 +34,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Issue Watchers" -Tag 'Integration' -Skip:$Skip {
+    Describe "Issue Watchers" -Tag 'Integration', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 

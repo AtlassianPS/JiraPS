@@ -67,7 +67,12 @@
 
         [Parameter()]
         [Switch]
-        $BypassCache
+        $BypassCache,
+
+        [Parameter()]
+        [ValidateRange(0, [int]::MaxValue)]
+        [Int]
+        $TimeoutSec = 100
     )
 
     begin {
@@ -182,6 +187,10 @@
             Credential      = $Credential
             ErrorAction     = "Stop"
             Verbose         = $false
+        }
+
+        if ($TimeoutSec -gt 0) {
+            $splatParameters["TimeoutSec"] = $TimeoutSec
         }
 
         if ($_headers.ContainsKey("Content-Type")) {

@@ -14,7 +14,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Atlassian Document Format (ADF)" -Tag 'Integration' -Skip:$Skip {
+    Describe "Atlassian Document Format (ADF)" -Tag 'Integration', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 

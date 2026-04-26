@@ -15,7 +15,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Filters" -Tag 'Integration' -Skip:$Skip {
+    Describe "Filters" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
@@ -23,6 +23,65 @@ InModuleScope JiraPS {
             $script:session = Connect-JiraTestServer -Environment $env
             $script:fixtures = Get-TestFixture -Environment $env
             $script:createdFilters = [System.Collections.ArrayList]::new()
+
+            # Seed one saved filter for the read-only `Find-JiraFilter` tests below.
+            # Reasoning:
+            #   - `Find-JiraFilter -Name "test"` and `Find-JiraFilter` ("my filters")
+            #     both used to assume the authenticated account had at least one
+            #     pre-existing filter. That holds for the long-lived Cloud test
+            #     account but breaks the moment we boot a fresh Data Center
+            #     container, where the admin account starts with zero filters.
+            #   - The seeded filter's name uses `New-TestResourceName -Type "Filter"`
+            #     so it carries the `JiraPS-IntTest-` prefix. That prefix contains
+            #     the substring "Test", which makes `Find-JiraFilter -Name "test"`
+            #     match it (Jira's filter search is a case-insensitive substring
+            #     match on the filter name) and also lets `Remove-StaleTestResource`
+            #     reap it on subsequent runs if AfterAll ever fails to clean up.
+            #   - `New-JiraFilter` is invoked with `-Favorite` so the filter is
+            #     also discoverable by the bare `Find-JiraFilter` ("my filters")
+            #     call: Jira Data Center's `/rest/api/2/filter/search` endpoint
+            #     scopes the no-arg result set to the caller's *favourited*
+            #     filters; a freshly-created-but-not-favourited private filter
+            #     does not surface there.
+            #   - The /filter/search endpoint is backed by a Lucene index and
+            #     does not always reflect a just-created filter on the very
+            #     next request (especially on the embedded H2-backed AMPS
+            #     standalone image). We poll for up to 15 s to confirm the
+            #     seeded filter is searchable before letting the dependent
+            #     tests run; if it never becomes visible in that window we
+            #     null out `$script:SeededFilter` so they self-skip with a
+            #     clear message instead of asserting against an empty result.
+            #   - We skip the seed entirely in read-only mode (e.g.
+            #     `JIRA_TEST_READONLY=true` against a production-like Cloud
+            #     account).
+            $script:SeededFilter = $null
+            if (-not $env.ReadOnly -and -not [string]::IsNullOrEmpty($fixtures.TestProject)) {
+                try {
+                    $script:SeededFilter = New-JiraFilter `
+                        -Name (New-TestResourceName -Type "Filter") `
+                        -JQL "project = $($fixtures.TestProject)" `
+                        -Description "Auto-seeded by Filters.Integration.Tests.ps1 so Find-JiraFilter has data on a fresh deployment. Safe to delete." `
+                        -Favorite
+                    if ($script:SeededFilter) {
+                        $null = $script:createdFilters.Add($script:SeededFilter)
+
+                        $deadline = (Get-Date).AddSeconds(15)
+                        $visible = $false
+                        while ((Get-Date) -lt $deadline) {
+                            $found = Find-JiraFilter -Name $script:SeededFilter.Name -ErrorAction SilentlyContinue
+                            if ($found) { $visible = $true; break }
+                            Start-Sleep -Milliseconds 500
+                        }
+                        if (-not $visible) {
+                            Write-Warning "Filters integration tests: seeded filter [$($script:SeededFilter.Name)] never became visible to Find-JiraFilter within 15s; Find-JiraFilter assertions will self-skip."
+                            $script:SeededFilter = $null
+                        }
+                    }
+                }
+                catch {
+                    Write-Warning "Filters integration tests: failed to seed a baseline filter ($($_.Exception.Message)). Find-JiraFilter assertions will self-skip."
+                }
+            }
         }
 
         AfterAll {
@@ -79,16 +138,30 @@ InModuleScope JiraPS {
         Describe "Find-JiraFilter" {
             Context "Filter Search" {
                 It "searches for filters by name" {
+                    if (-not $script:SeededFilter) {
+                        Set-ItResult -Skipped -Because "Could not seed a baseline filter (read-only mode or missing TestProject); see BeforeAll warning."
+                        return
+                    }
+                    # The seeded filter name carries the JiraPS-IntTest- prefix, so
+                    # searching for "test" finds it via case-insensitive substring
+                    # match (the prefix contains "Test").
                     $filters = Find-JiraFilter -Name "test"
 
-                    $filters | Should -BeOfType [PSCustomObject]
+                    $filters | Should -Not -BeNullOrEmpty -Because "the BeforeAll seeded a filter whose name contains 'Test'"
+                    @($filters)[0] | Should -BeOfType [PSCustomObject]
                 }
 
                 It "retrieves my filters" {
+                    if (-not $script:SeededFilter) {
+                        Set-ItResult -Skipped -Because "Could not seed a baseline filter (read-only mode or missing TestProject); see BeforeAll warning."
+                        return
+                    }
+                    # `Find-JiraFilter` (no args) returns filters owned by the
+                    # authenticated user. The seeded filter was created in this
+                    # session, so the account is guaranteed to own at least one.
                     $filters = Find-JiraFilter
 
-                    # The test account should have at least one filter
-                    $filters | Should -Not -BeNullOrEmpty -Because "test account should have at least one filter"
+                    $filters | Should -Not -BeNullOrEmpty -Because "the seeded filter is owned by the test account"
                     @($filters)[0] | Should -BeOfType [PSCustomObject]
                 }
             }

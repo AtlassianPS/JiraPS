@@ -1,0 +1,39 @@
+services:
+  jira:
+    # Boots Jira Software 11.0.1 via the Atlassian Plugin SDK 9.6.0 inside an
+    # `atlas-run-standalone` wrapper maintained by Move Work Forward (a commercial
+    # Atlassian-app vendor). It is the only third-party Jira-Server image we found
+    # that actually starts in 2026: AMPS 9.6.0 fetches dependencies from the
+    # current `packages.atlassian.com/artifactory/maven-atlassian-all/` endpoint,
+    # so it does NOT hit the retired `marketplace.atlassian.com/.../atlassian-plugin-sdk-rpm`
+    # URL that bricks the older `addono/jira-software-standalone` image.
+    #
+    # JIRA_IMAGE_TAG defaults to `jira-11` (the multi-arch amd64 build, ~1.2 GB
+    # compressed) which is what GitHub Actions Linux runners use. On Apple Silicon
+    # set `JIRA_IMAGE_TAG=jira-11-arm64` in your .env to get the native arm64
+    # build (~3 GB compressed) and avoid QEMU emulation overhead. Both tags ship
+    # the same SDK + Jira version and behave identically once booted.
+    #
+    # Memory: Jira asks for a 4 GiB heap and the container needs ~1 GiB of base
+    # overhead, so allocate at least 6 GiB to Docker Desktop before running
+    # locally. CI runners have ~7 GiB and are fine out of the box.
+    image: moveworkforward/atlas-run-standalone:${JIRA_IMAGE_TAG:-jira-11}
+    container_name: jiraps-jira-dc
+    ports:
+      - "2990:2990"
+    # CRITICAL — `tty: true` + `stdin_open: true` (the compose equivalent of
+    # `docker run -it`) keep the AMPS `mvn ... amps:run-standalone` process
+    # alive in detached containers. Without them the plugin prints
+    # "Type Ctrl-C to shutdown gracefully", instantly receives EOF on its
+    # closed stdin, treats that as the shutdown signal, and tears Jira back
+    # down ~1 second after Tomcat finishes starting — leaving the host port
+    # mapped but with nothing inside the container listening, so every
+    # `Wait-JiraServer.ps1` poll returns "Connection refused (localhost:2990)".
+    # `pycontribs/jira` runs the equivalent image with `docker run -dit` for
+    # the same reason; we replicate that here for `docker compose up -d`.
+    tty: true
+    stdin_open: true
+    # Readiness is owned by Tools/Wait-JiraServer.ps1 (it polls /serverInfo and
+    # provisions the normal test user). We deliberately omit a Docker healthcheck
+    # because the SDK image does not ship curl/wget and the PowerShell waiter
+    # gives richer diagnostics on a slow boot.

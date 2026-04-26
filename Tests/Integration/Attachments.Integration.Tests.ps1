@@ -14,7 +14,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Attachments" -Tag 'Integration' -Skip:$Skip {
+    Describe "Attachments" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
@@ -37,9 +37,17 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
+                    # `Get-JiraIssueAttachment` returns `$null` when the issue has no
+                    # attachments (the default state of the auto-provisioned baseline issue
+                    # on Data Center). Assert the call succeeds and only type-check when
+                    # there is data; the "returns attachment objects with correct type"
+                    # test below already covers the populated case via Add+Get.
+                    { Get-JiraIssueAttachment -Issue $fixtures.TestIssue } | Should -Not -Throw
 
-                    $attachments | Should -BeOfType [PSCustomObject]
+                    $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
+                    if ($attachments) {
+                        @($attachments)[0] | Should -BeOfType [PSCustomObject]
+                    }
                 }
 
                 It "returns attachment objects with correct type" {
@@ -73,8 +81,7 @@ InModuleScope JiraPS {
                     $script:testFilePath = $null
                 }
                 else {
-                    $summary = New-TestResourceName -Type "AttachIssue"
-                    $script:tempIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "AttachIssue")
 
                     $tempDir = [System.IO.Path]::GetTempPath()
                     $timestamp = Get-Date -Format 'yyyyMMddHHmmss'
@@ -151,8 +158,7 @@ InModuleScope JiraPS {
                     $script:deleteTestFile = $null
                 }
                 else {
-                    $summary = New-TestResourceName -Type "AttachDelete"
-                    $script:deleteTestIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                    $script:deleteTestIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "AttachDelete")
 
                     $tempDir = [System.IO.Path]::GetTempPath()
                     $timestamp = Get-Date -Format 'yyyyMMddHHmmss'
