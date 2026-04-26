@@ -55,7 +55,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $requestBody = @{}
-        Switch ($PSCmdlet.ParameterSetName) {
+        switch ($PSCmdlet.ParameterSetName) {
             'byObject' {
                 $requestBody["name"] = $InputObject.Name
                 $requestBody["description"] = $InputObject.Description
