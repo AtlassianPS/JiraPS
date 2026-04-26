@@ -1,4 +1,15 @@
 ﻿function ConvertTo-ParameterHash {
+    <#
+    .SYNOPSIS
+        Parse a query string (or [Uri].Query) into a hashtable.
+
+    .DESCRIPTION
+        Inverse of `ConvertTo-GetParameter`. Splits each pair on the FIRST '='
+        only, so values that legitimately contain '=' (e.g. base64 tokens,
+        JQL fragments such as 'project=TEST') are preserved. Both keys and
+        values are URL-decoded so the hashtable holds the raw values that
+        callers originally supplied.
+    #>
     [CmdletBinding( DefaultParameterSetName = 'ByString' )]
     param (
         # URI from which to use the query
@@ -21,8 +32,12 @@
 
         if ($Query -match "^\?.+") {
             $Query.TrimStart("?").Split("&") | ForEach-Object {
-                $key, $value = $_.Split("=")
-                $GetParameter.Add($key, $value)
+                $key, $value = $_.Split('=', 2)
+                if (-not [String]::IsNullOrEmpty($key)) {
+                    $decodedKey = [System.Web.HttpUtility]::UrlDecode($key)
+                    $decodedValue = if ($null -eq $value) { $null } else { [System.Web.HttpUtility]::UrlDecode($value) }
+                    $GetParameter[$decodedKey] = $decodedValue
+                }
             }
         }
 
