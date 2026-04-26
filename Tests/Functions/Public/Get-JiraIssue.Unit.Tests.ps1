@@ -14,7 +14,6 @@ InModuleScope JiraPS {
             #region Definitions
             $script:jiraServer = "https://jira.example.com"
             $script:jql = 'reporter in (testuser)'
-            $script:jqlEscaped = ConvertTo-URLEncoded $jql
             $script:response = @'
 {
     "expand": "schema,names",
@@ -70,7 +69,7 @@ InModuleScope JiraPS {
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Get' -and
                 $URI -like "/rest/api/*/search" -and
-                $GetParameter["jql"] -eq $jqlEscaped
+                $GetParameter["jql"] -eq $jql
             } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 ConvertFrom-Json $response
@@ -118,7 +117,7 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/*/search" -and
-                        $GetParameter["jql"] -eq $jqlEscaped
+                        $GetParameter["jql"] -eq $jql
                     }
                 }
 
@@ -128,7 +127,7 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/*/search" -and
-                        $GetParameter["jql"] -eq $jqlEscaped -and
+                        $GetParameter["jql"] -eq $jql -and
                         $Skip -eq 10 -and
                         $First -eq 50
                     }
@@ -140,7 +139,7 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "*/rest/api/*/search" -and
-                        $GetParameter["jql"] -eq $jqlEscaped -and
+                        $GetParameter["jql"] -eq $jql -and
                         $GetParameter["maxResults"] -eq 25
                     }
                 }
