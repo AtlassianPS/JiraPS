@@ -16,9 +16,10 @@
 
 .NOTES
     Tagged 'Integration', 'Smoke', 'Server' - this IS the smoke test for the
-    Server track and is the first thing jira_server_ci.yml runs (nightly +
-    manual workflow_dispatch only; the Server workflow is not wired up to PRs
-    because the ~25 min cold-boot cost is too expensive to gate every PR on).
+    Server track and is the first thing the `server_integration_tests` job in
+    integration_tests.yml runs (nightly + manual workflow_dispatch only; the
+    Server job is not wired up to PRs because the ~25 min cold-boot cost is
+    too expensive to gate every PR on).
 #>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Integration tests against a local Docker container with known fixed credentials')]

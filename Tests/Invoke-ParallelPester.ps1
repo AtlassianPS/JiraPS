@@ -215,8 +215,9 @@ if ($canParallel) {
     # #24935398326 — every per-file Pester run completed and emitted its
     # result object, but then `ForEach-Object -Parallel` blocked indefinitely
     # while trying to mark the child runspaces as completed. The job-level
-    # `timeout-minutes: 25` (added on jira_server_ci.yml step "Run full
-    # Server-tagged integration suite") is what eventually killed it.
+    # `timeout-minutes: 25` on the `server_integration_tests` job's "Run full
+    # Server-tagged integration suite" step in integration_tests.yml is
+    # what eventually killed it.
     #
     # Root cause: integration tests call Invoke-WebRequest / New-JiraSession,
     # which drives .NET's HttpClient → keeps idle TCP connections + their

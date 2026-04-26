@@ -7,8 +7,8 @@
     integration suite.
 
 .DESCRIPTION
-    Used by the Server-track integration tests (.github/workflows/jira_server_ci.yml and the
-    StartJiraDocker build task) to bring up Atlassian Jira inside the moveworkforward/atlas-run-standalone
+    Used by the Server-track integration tests (the `server_integration_tests` job in
+    .github/workflows/integration_tests.yml and the StartJiraDocker build task) to bring up Atlassian Jira inside the moveworkforward/atlas-run-standalone
     Docker container (Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1) and seed the
     fixtures the integration test suite then exercises through the JiraPS module.
 
@@ -90,7 +90,7 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Test infrastructure: provisions a known-secret test user against a local Docker container, not a real instance')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '', Justification = 'Defaults match the moveworkforward/atlas-run-standalone image used in CI; never used against a real instance')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingInvokeRestMethod', '', Justification = 'Test infrastructure runs before the JiraPS module is loaded; AGENTS.md documents this as the one allowed Invoke-RestMethod site')]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Diagnostic CI script: this file runs in jira_server_ci.yml and StartJiraDocker where the operator (CI logs / interactive shell) is the consumer. Write-Host is the correct primitive for prompt-style status banners ("==> ...", "    attempt N: ..."). Write-Output would pollute the script''s return value; Write-Verbose/-Information would be hidden by default in CI logs and obscure the boot/probe progress that humans actively read.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Diagnostic CI script: this file runs in the server_integration_tests job of integration_tests.yml and in StartJiraDocker where the operator (CI logs / interactive shell) is the consumer. Write-Host is the correct primitive for prompt-style status banners ("==> ...", "    attempt N: ..."). Write-Output would pollute the script''s return value; Write-Verbose/-Information would be hidden by default in CI logs and obscure the boot/probe progress that humans actively read.')]
 [CmdletBinding()]
 param(
     [Parameter()]

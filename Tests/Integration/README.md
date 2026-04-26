@@ -14,7 +14,7 @@ The integration suite has two deployment targets:
 | Track | Target | Auth | Trigger |
 |-------|--------|------|---------|
 | **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | Smoke gated per-PR + push by `.github/workflows/ci.yml`; full suite by `.github/workflows/integration_tests.yml` (scheduled + manual) |
-| **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` (scheduled + manual `workflow_dispatch` only — the ~25 min cold-boot cost is too expensive to gate every PR on) |
+| **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `server_integration_tests` job in `.github/workflows/integration_tests.yml` (scheduled + manual `workflow_dispatch` only — the ~25 min cold-boot cost is too expensive to gate every PR on) |
 
 > **Local prerequisite — Docker memory.** The container asks for a 4 GiB Java heap and needs ~1 GiB of base overhead, so allocate **at least 6 GiB** to Docker Desktop in *Settings > Resources* before running locally. CI runners (~7 GiB) have enough headroom out of the box.
 >
@@ -48,7 +48,7 @@ The Server track is fully self-contained — no secrets, no live Jira, just Dock
 Invoke-Build -Task StartJiraDocker     # ~5 min on first run while image pulls + Jira boots
 $env:CI_JIRA_TYPE = 'Server'
 
-# Full Server-tagged suite — the same set of files the jira_server_ci.yml workflow runs.
+# Full Server-tagged suite — the same set of files the server_integration_tests job runs.
 Invoke-Build -Task TestIntegration -Tag 'Server'
 
 Invoke-Build -Task StopJiraDocker
@@ -61,11 +61,11 @@ Locally, `Wait-JiraServer.ps1` cannot write to `$GITHUB_ENV` (which only exists 
 
 ### CI scheduling
 
-| Workflow | Trigger | Notes |
-|----------|---------|-------|
-| `ci.yml` smoke job (Cloud) | every PR + every push to `master` | Skipped on fork / Dependabot PRs (no secrets); gates `release.yml` via the `CI Result` aggregator (`workflow_conclusion: success`) |
-| `integration_tests.yml` (Cloud) | `0 6 * * *` + manual `workflow_dispatch` | Full Cloud suite — scheduled + manual only; PR-level coverage is the smoke job above |
-| `jira_server_ci.yml` (Server) | `0 5 * * *` + manual `workflow_dispatch` | Never on PRs — ~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`. Jira boot dominates wall time |
+| Workflow / Job | Trigger | Notes |
+|----------------|---------|-------|
+| `ci.yml` → `smoke_tests` (Cloud) | every PR + every push to `master` | Skipped on fork / Dependabot PRs (no secrets); gates `release.yml` via the `CI Result` aggregator (`workflow_conclusion: success`) |
+| `integration_tests.yml` → `cloud_integration_tests` | `0 5 * * *` + manual `workflow_dispatch` | Full Cloud suite — scheduled + manual only; PR-level coverage is the smoke job above |
+| `integration_tests.yml` → `server_integration_tests` | `0 5 * * *` + manual `workflow_dispatch` | Never on PRs — ~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`. Jira boot dominates wall time |
 
 ## Prerequisites
 
