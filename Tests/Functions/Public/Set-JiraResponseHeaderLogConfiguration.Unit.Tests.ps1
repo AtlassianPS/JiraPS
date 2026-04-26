@@ -34,22 +34,23 @@ InModuleScope JiraPS {
         }
 
         Describe "Wildcard Configuration" {
-            It "stores a matcher that respects Include and Exclude" {
+            It "stores precompiled Include and Exclude patterns" {
                 Set-JiraResponseHeaderLogConfiguration -Include 'X-A*' -Exclude 'X-Auth*'
 
-                $match = $script:JiraResponseHeaderLogConfiguration.Match
-                (& $match 'X-AREQUESTID') | Should -BeTrue
-                (& $match 'X-Auth-Token') | Should -BeFalse
-                (& $match 'Server') | Should -BeFalse
+                $config = $script:JiraResponseHeaderLogConfiguration
+                $config.Mode | Should -Be 'Wildcard'
+                Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-AREQUESTID' | Should -BeTrue
+                Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-Auth-Token' | Should -BeFalse
+                Test-JiraResponseHeaderMatch -Configuration $config -Name 'Server' | Should -BeFalse
             }
 
             It "accepts multiple Include patterns" {
                 Set-JiraResponseHeaderLogConfiguration -Include 'X-A*', 'X-Trace-*'
 
-                $match = $script:JiraResponseHeaderLogConfiguration.Match
-                (& $match 'X-AREQUESTID') | Should -BeTrue
-                (& $match 'X-Trace-Id') | Should -BeTrue
-                (& $match 'Server') | Should -BeFalse
+                $config = $script:JiraResponseHeaderLogConfiguration
+                Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-AREQUESTID' | Should -BeTrue
+                Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-Trace-Id' | Should -BeTrue
+                Test-JiraResponseHeaderMatch -Configuration $config -Name 'Server' | Should -BeFalse
             }
 
             It "warns when Include may log sensitive headers" {
@@ -72,12 +73,13 @@ InModuleScope JiraPS {
         }
 
         Describe "Regex Configuration" {
-            It "stores a case-insensitive matcher" {
+            It "stores a case-insensitive Regex configuration" {
                 Set-JiraResponseHeaderLogConfiguration -Pattern '^x-a(?!uth)'
 
-                $match = $script:JiraResponseHeaderLogConfiguration.Match
-                (& $match 'X-AREQUESTID') | Should -BeTrue
-                (& $match 'X-Auth-Token') | Should -BeFalse
+                $config = $script:JiraResponseHeaderLogConfiguration
+                $config.Mode | Should -Be 'Regex'
+                Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-AREQUESTID' | Should -BeTrue
+                Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-Auth-Token' | Should -BeFalse
             }
 
             It "warns when the pattern may log sensitive headers" {

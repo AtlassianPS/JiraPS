@@ -14,12 +14,11 @@ InModuleScope JiraPS {
 
         BeforeAll {
             Mock Write-DebugMessage -ModuleName 'JiraPS' {}
+            Mock Test-JiraResponseHeaderMatch -ModuleName 'JiraPS' { $true }
         }
 
         It "returns silently when InputObject is null" {
-            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{
-                Match = { param($name) $true }
-            }
+            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{ Mode = 'Wildcard' }
 
             { Write-JiraResponseHeaderLog -InputObject $null } | Should -Not -Throw
 
@@ -27,9 +26,7 @@ InModuleScope JiraPS {
         }
 
         It "returns silently when InputObject has no Headers property" {
-            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{
-                Match = { param($name) $true }
-            }
+            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{ Mode = 'Wildcard' }
             $response = [PSCustomObject]@{ StatusCode = 200 }
 
             { Write-JiraResponseHeaderLog -InputObject $response } | Should -Not -Throw
@@ -48,9 +45,9 @@ InModuleScope JiraPS {
         }
 
         It "writes a debug message containing matched headers" {
-            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{
-                Match = { param($name) $name -like 'X-A*' }
-            }
+            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{ Mode = 'Wildcard' }
+            Mock Test-JiraResponseHeaderMatch -ModuleName 'JiraPS' { $Name -like 'X-A*' }
+
             $response = [PSCustomObject]@{
                 Headers = @{
                     'X-AREQUESTID' = 'request-123'
@@ -67,9 +64,7 @@ InModuleScope JiraPS {
         }
 
         It "always suppresses cookie and authorization headers regardless of matcher" {
-            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{
-                Match = { param($name) $true }
-            }
+            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{ Mode = 'Wildcard' }
             $response = [PSCustomObject]@{
                 Headers = @{
                     'Set-Cookie'          = 'sid=cookie-secret'
@@ -92,9 +87,7 @@ InModuleScope JiraPS {
         }
 
         It "flattens IEnumerable[string] header values into a comma-separated list" {
-            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{
-                Match = { param($name) $true }
-            }
+            $script:JiraResponseHeaderLogConfiguration = [PSCustomObject]@{ Mode = 'Wildcard' }
             $response = [PSCustomObject]@{
                 Headers = @{
                     'X-AREQUESTID' = @('request-123', 'request-456')

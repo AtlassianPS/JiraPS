@@ -22,8 +22,8 @@ InModuleScope JiraPS {
             $config = Get-JiraResponseHeaderLogConfiguration
 
             $config | Should -Not -BeNullOrEmpty
-            $config.Match | Should -Not -BeNullOrEmpty
-            (& $config.Match 'X-AREQUESTID') | Should -BeTrue
+            $config.Mode | Should -Be 'Wildcard'
+            Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-AREQUESTID' | Should -BeTrue
         }
 
         It "returns null after Set-JiraResponseHeaderLogConfiguration -Disable" {

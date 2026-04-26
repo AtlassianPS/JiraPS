@@ -26,7 +26,7 @@ function Write-JiraResponseHeaderLog {
     $matched = @{}
     foreach ($key in @($InputObject.Headers.Keys)) {
         if ($key -in $script:AlwaysSuppressedResponseHeaders) { continue }
-        if (-not (& $config.Match $key)) { continue }
+        if (-not (Test-JiraResponseHeaderMatch -Configuration $config -Name $key)) { continue }
 
         $value = $InputObject.Headers[$key]
         if ($value -is [System.Collections.IEnumerable] -and $value -isnot [String]) {
