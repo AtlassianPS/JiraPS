@@ -26,14 +26,13 @@ on:
           - both
 
 concurrency:
-  group: integration-${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   cloud_integration_tests:
     name: Full Integration Tests (Cloud)
-    if: >-
-      github.event_name == 'schedule' ||
+    if: github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' &&
        (inputs.track == 'cloud' || inputs.track == 'both'))
     runs-on: ubuntu-latest
@@ -64,8 +63,7 @@ jobs:
 
   server_integration_tests:
     name: Server Integration Tests (Dockerized Jira DC)
-    if: >-
-      github.event_name == 'schedule' ||
+    if: github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' &&
        (inputs.track == 'server' || inputs.track == 'both'))
     runs-on: ubuntu-latest

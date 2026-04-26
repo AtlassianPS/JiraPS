@@ -54,7 +54,6 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Changed
 
-- Reorganised the integration test workflows. The Cloud `Smoke` job moved from `.github/workflows/integration_tests.yml` into the standard `ci.yml` pipeline, where it runs on every first-party PR and every push to `master` and (via the existing `CI Result` aggregator + `release.yml`'s `workflow_conclusion: success` requirement) gates publishing to PSGallery. The remaining full Cloud suite was merged with the new Server (Data Center) job into a single `integration_tests.yml` workflow with two parallel jobs (`cloud_integration_tests`, `server_integration_tests`) running on a shared nightly cron + manual dispatch (with an optional `track` input to dispatch one or both); the standalone `jira_server_ci.yml` was removed. The `run-integration-tests` PR label opt-in is retired — operators dispatch the full Cloud suite via the Actions tab's "Run workflow" button instead.
 - Renamed `Format-Jira` to `ConvertTo-JiraTable`.
   The old name is preserved as a deprecated exported alias for backward compatibility and will be removed in a future major version.
   Update scripts to call `ConvertTo-JiraTable` directly.
@@ -79,6 +78,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Internal
 
+- Reorganised the integration test workflows. The Cloud `Smoke` job moved from `.github/workflows/integration_tests.yml` into the standard `ci.yml` pipeline, where it runs on every first-party PR and every push to `master` and (via the existing `CI Result` aggregator + `release.yml`'s `workflow_conclusion: success` requirement) gates publishing to PSGallery. The remaining full Cloud suite was merged with the new Server (Data Center) job into a single `integration_tests.yml` workflow with two parallel jobs (`cloud_integration_tests`, `server_integration_tests`) running on a shared nightly cron + manual dispatch (with an optional `track` input to dispatch one or both); the standalone `jira_server_ci.yml` was removed. The `run-integration-tests` PR label opt-in is retired — operators dispatch the full Cloud suite via the Actions tab's "Run workflow" button instead.
 - Sped up `Invoke-Build -Task Test` by ~45% (~32 s → ~20 s on macOS, larger on Windows).
   `Initialize-TestEnvironment` (`Tests/Helpers/TestTools.ps1`) now caches the JiraPS module across Pester files via a source-tree fingerprint stored in the module's own scope, so a full run reimports once instead of once per file (~96 → 1).
   All ~117 test files migrated to the new contract.

@@ -391,17 +391,17 @@ Context "Write Operations" -Skip:($fixtures.ReadOnly) {
 
 ## CI/CD
 
-Cloud smoke runs as part of the standard `.github/workflows/ci.yml` pipeline; the full Cloud suite has its own `.github/workflows/integration_tests.yml` workflow on a nightly cron.
+Cloud smoke runs as part of the standard `.github/workflows/ci.yml` pipeline; the full Cloud suite and the full Server (Data Center, Dockerized) suite share `.github/workflows/integration_tests.yml`, which fires on a nightly cron and on manual dispatch.
 
 ### Workflow Triggers
 
-| Trigger | Smoke (`ci.yml`) | Full Integration (`integration_tests.yml`) |
-|---------|------------------|--------------------------------------------|
-| Pull Request (first-party) | ✅ | ❌ — use `workflow_dispatch` to opt in |
-| Pull Request (fork / Dependabot) | ⚪ skipped (no secrets) | ❌ |
-| Push to `master` | ✅ | ❌ |
-| Nightly (6 AM UTC) | — | ✅ (smoke is a subset of full, so covered) |
-| Manual (`workflow_dispatch`) | re-run via Actions UI | ✅ |
+| Trigger | Smoke (`ci.yml`) | Cloud full (`integration_tests.yml`) | Server full (`integration_tests.yml`) |
+|---------|------------------|--------------------------------------|---------------------------------------|
+| Pull Request (first-party) | ✅ | ❌ — use `workflow_dispatch` to opt in | ❌ — use `workflow_dispatch` to opt in |
+| Pull Request (fork / Dependabot) | ⚪ skipped (no secrets) | ❌ | ❌ |
+| Push to `master` | ✅ | ❌ | ❌ |
+| Nightly (5 AM UTC) | — | ✅ | ✅ |
+| Manual (`workflow_dispatch`) | re-run via Actions UI | ✅ — pass `track=cloud` (or `both`) | ✅ — pass `track=server` (or `both`) |
 
 ### Required Secrets
 
@@ -423,18 +423,23 @@ If secrets are not configured, integration tests are skipped automatically.
 
 ### Running Full Integration Tests on PRs
 
-To run the full Cloud suite against an in-flight PR, dispatch the workflow manually:
+To run the full suite against an in-flight PR, dispatch the workflow manually:
 
 1. Open the **Actions** tab → **Integration Tests** workflow.
-2. Click **Run workflow** and pick the PR's branch.
-3. Inspect the run in the same workflow's history — results upload as the `Integration-Tests` artifact.
+2. Click **Run workflow**, pick the branch, and choose the `track` input (`cloud`, `server`, or `both`; default `both`).
+3. Inspect the run in the same workflow's history — results upload as the `Cloud-Integration-Tests` and/or `Server-Integration-Tests` artifacts.
+
+For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the branch appears in the **Run workflow** dropdown directly. For **fork PRs**, the dropdown only sees branches on `AtlassianPS/JiraPS`, so a maintainer needs to either:
+
+- Cherry-pick (or push) the fork's commits onto a maintainer-owned branch first and dispatch from there, or
+- Run `gh workflow run "Integration Tests" --ref <branch> -f track=<cloud|server|both>` from a clone that has a remote pointing at the fork (the dispatched run still uses `AtlassianPS/JiraPS`'s secrets, not the fork's).
 
 ### Workflow Features
 
-- **No build required**: Tests run directly against source for speed
-- **Parallel execution**: Uses `Invoke-Build -Task TestIntegration` with `ThrottleLimit=4`
-- **Concurrency control**: Cancels in-progress runs for the same branch
-- **NUnit results artifact**: Uploads `IntegrationTestResults.xml` as a workflow artifact for downstream inspection
+- **No build required**: tests run directly against source for speed.
+- **Parallel execution**: Cloud uses `ThrottleLimit=6`; Server uses `ThrottleLimit=2` (halved because the AMPS/H2 backend serialises Lucene write commits — see the inline comment on the `server_integration_tests` job for the contention details).
+- **Concurrency control**: nightly + dispatched runs share one concurrency group with `cancel-in-progress: false`, so an in-flight run is never killed by the next cron tick or a dispatch retry.
+- **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `IntegrationTests.xml`); the Server job additionally uploads `Server-Jira-Container-Logs` for post-mortem on failures.
 
 ## Troubleshooting
 

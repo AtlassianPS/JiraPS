@@ -594,9 +594,9 @@ Invoke-Build -Task TestIntegration
 Cloud integration coverage is split across two workflows:
 
 - **Smoke tests** (`ci.yml`, `smoke_tests` job): Run on every first-party PR + every push to `master`. Skipped on fork / Dependabot PRs (no secrets). Gates `release.yml` via the `CI Result` sentinel.
-- **Full integration tests** (`integration_tests.yml`): Run on:
-  - Nightly schedule (6 AM UTC)
-  - Manual trigger (`workflow_dispatch`) — use this to run the full Cloud suite against an in-flight PR branch.
+- **Full integration tests** (`integration_tests.yml`): two parallel jobs — `cloud_integration_tests` and `server_integration_tests` (Dockerized Jira DC). Run on:
+  - Nightly schedule (5 AM UTC) — both jobs.
+  - Manual trigger (`workflow_dispatch`) — use this to run the full suite against an in-flight PR branch; pass `track=cloud`, `track=server`, or `track=both` (default `both`).
 
 Required GitHub Secrets:
 - `JIRA_CLOUD_URL`
