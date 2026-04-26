@@ -46,6 +46,12 @@ Set-JiraIssue -Issue <Object[]> [-Summary <string>] [-Description <string>] [-Fi
 This function modifies an existing issue in JIRA.
 This can include changing the issue's summary or description, or assigning the issue.
 
+On **Jira Cloud**, both the `-Description` and the `-AddComment` text are interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, so familiar Markdown syntax (headings, bold/italic, lists, fenced code blocks, links, Markdown tables) renders as rich text on the issue.
+On **Jira Server / Data Center**, both fields are sent verbatim and the legacy wiki-markup syntax continues to apply.
+See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/) for the supported Markdown subset.
+
+> Passing `-Description ''` is currently a no-op on both deployments — empty strings are filtered out before the request is built. To clear the description field today, set the field via `-Fields @{ description = $null }`. The semantics of `-Description ''` (clear vs. ignore) are tracked in the backlog.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -230,6 +236,11 @@ HelpMessage: ''
 Any additional fields that should be updated.
 
 Inspect [about_JiraPS_CustomFields](../../about/custom-fields.html) for more information.
+
+On **Jira Cloud**, string values supplied for rich-text fields (`description`, `environment`, and custom textarea fields with schema type `doc`) are interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, matching the behaviour of the explicit `-Description` parameter.
+Plain string fields, numeric fields, dates, etc. are forwarded as-is.
+Hashtable / object values are also forwarded as-is — pass a pre-built ADF document if you need full control.
+On **Jira Server / Data Center** the value is always forwarded verbatim.
 
 ```yaml
 Type: PSObject

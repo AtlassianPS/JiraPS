@@ -304,6 +304,128 @@ InModuleScope JiraPS {
                     $Body -match 'accountId'
                 }
             }
+
+            It "wraps -Description into an Atlassian Document Format document on Cloud" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $payload.fields.description.type -eq 'doc' -and
+                    $payload.fields.description.version -eq 1 -and
+                    $payload.fields.description.content[0].type -eq 'paragraph' -and
+                    $payload.fields.description.content[0].content[0].text -eq 'Test description'
+                }
+            }
+
+            It "targets the v3 create-issue endpoint on Cloud" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Post' -and $URI -eq '/rest/api/3/issue'
+                }
+            }
+
+            It "wraps a rich-text field passed via -Fields into ADF on Cloud" {
+                # On Cloud, the v3 endpoint also rejects raw strings in
+                # rich-text fields supplied via -Fields. The cmdlet must
+                # use the field's schema (via Test-JiraRichTextField) to
+                # wrap the value in ADF, matching the behaviour of the
+                # explicit -Description parameter.
+                Mock Get-JiraField -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraField'
+                    $object = [PSCustomObject]@{
+                        Id     = 'description'
+                        Schema = [PSCustomObject]@{ type = 'string'; system = 'description' }
+                    }
+                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                    $object
+                }
+
+                Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
+                    @(
+                        @{Name = 'Project'; ID = 'Project'; Required = $true }
+                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
+                        @{Name = 'Priority'; ID = 'Priority'; Required = $true }
+                        @{Name = 'Summary'; ID = 'Summary'; Required = $true }
+                        @{Name = 'Description'; ID = 'Description'; Required = $true }
+                        @{Name = 'Reporter'; ID = 'Reporter'; Required = $true }
+                    )
+                }
+
+                $paramsWithoutDescription = $newParams.Clone()
+                $paramsWithoutDescription.Remove('Description')
+
+                { New-JiraIssue @paramsWithoutDescription -Fields @{ description = 'Hello via Fields' } } |
+                    Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $payload.fields.description.type -eq 'doc' -and
+                    $payload.fields.description.content[0].content[0].text -eq 'Hello via Fields'
+                }
+            }
+
+            It "leaves a non-rich-text field passed via -Fields verbatim on Cloud" {
+                # Single-line / numeric / etc. fields still go to v3 as
+                # their native value — wrapping would be incorrect there.
+                Mock Get-JiraField -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraField'
+                    $object = [PSCustomObject]@{
+                        Id     = 'CustomField'
+                        Schema = [PSCustomObject]@{
+                            type   = 'string'
+                            custom = 'com.atlassian.jira.plugin.system.customfieldtypes:textfield'
+                        }
+                    }
+                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                    $object
+                }
+
+                Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
+                    @(
+                        @{Name = 'Project'; ID = 'Project'; Required = $true }
+                        @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
+                        @{Name = 'Priority'; ID = 'Priority'; Required = $true }
+                        @{Name = 'Summary'; ID = 'Summary'; Required = $true }
+                        @{Name = 'Description'; ID = 'Description'; Required = $true }
+                        @{Name = 'Reporter'; ID = 'Reporter'; Required = $true }
+                        @{Name = 'CustomField'; ID = 'CustomField'; Required = $false }
+                    )
+                }
+
+                { New-JiraIssue @newParams -Fields @{ CustomField = 'plain' } } |
+                    Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $payload.fields.CustomField -is [string] -and
+                    $payload.fields.CustomField -eq 'plain'
+                }
+            }
+        }
+
+        Describe "Description on Server / Data Center" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+            }
+
+            It "sends -Description verbatim as a plain string" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $payload.fields.description -is [string] -and
+                    $payload.fields.description -eq 'Test description'
+                }
+            }
+
+            It "targets the v2 create-issue endpoint on Server / DC" {
+                { New-JiraIssue @newParams } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Post' -and $URI -eq '/rest/api/2/issue'
+                }
+            }
         }
 
         Describe "Reporter resolution" {

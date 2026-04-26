@@ -40,6 +40,10 @@ For example, the "Start Progress" transition typically moves an issue from an Op
 To identify the transitions that an issue can perform, use `Get-JiraIssue` and check the Transition property of the issue obj ect returned.
 Attempting to perform a transition that does not apply to the issue (for example, trying to "start progress" on an issue in progress) will result in an exception.
 
+On **Jira Cloud**, the `-Comment` text is interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent.
+On **Jira Server / Data Center**, the comment is sent verbatim and the legacy wiki-markup syntax continues to apply.
+See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/) for the supported Markdown subset.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -168,6 +172,11 @@ HelpMessage: ''
 Any additional fields that should be updated.
 
 Fields must be configured to appear on the transition screen to use this parameter.
+
+On **Jira Cloud**, string values supplied for rich-text fields (`description`, `environment`, and custom textarea fields with schema type `doc`) are interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, matching the behaviour of the explicit `-Comment` parameter.
+Plain string fields, numeric fields, dates, etc. are forwarded as-is.
+Hashtable / object values are also forwarded as-is — pass a pre-built ADF document if you need full control.
+On **Jira Server / Data Center** the value is always forwarded verbatim.
 
 ```yaml
 Type: PSObject
