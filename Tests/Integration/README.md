@@ -439,7 +439,7 @@ For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the bran
 - **No build required**: tests run directly against source for speed.
 - **Parallel execution**: Cloud uses `ThrottleLimit=6`; Server uses `ThrottleLimit=2` (halved because the AMPS/H2 backend serialises Lucene write commits — see the inline comment on the `server_integration_tests` job for the contention details).
 - **Concurrency control**: nightly + dispatched runs share one concurrency group with `cancel-in-progress: false`, so an in-flight run is never killed by the next cron tick or a dispatch retry.
-- **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `IntegrationTests.xml`); the Server job additionally uploads `Server-Jira-Container-Logs` for post-mortem on failures.
+- **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `Test-Integration.xml`); the Server job additionally uploads `Server-Jira-Container-Logs` for post-mortem on failures.
 
 ## Troubleshooting
 
