@@ -23,7 +23,7 @@ Get-JiraComponent [-ComponentId] <int[]> [-Credential <pscredential>] [<CommonPa
 ### ByProject
 
 ```powershell
-Get-JiraComponent [-Project] <Object[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraComponent [-Project] <Project[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -118,7 +118,7 @@ HelpMessage: ''
 The ID or Key of the Project to search.
 
 ```yaml
-Type: Object[]
+Type: Project[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

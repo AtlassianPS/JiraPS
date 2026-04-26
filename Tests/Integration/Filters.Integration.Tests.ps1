@@ -110,7 +110,7 @@ InModuleScope JiraPS {
                     }
                     $filter = Get-JiraFilter -Id $fixtures.TestFilter
 
-                    $filter.PSObject.TypeNames[0] | Should -Be 'JiraPS.Filter'
+                    $filter.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Filter'
                 }
 
                 It "includes filter name" {
@@ -210,7 +210,7 @@ InModuleScope JiraPS {
                     $filter = New-JiraFilter -Name $filterName -JQL $jql
                     $null = $script:createdFilters.Add($filter)
 
-                    $filter.PSObject.TypeNames[0] | Should -Be 'JiraPS.Filter'
+                    $filter.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Filter'
                 }
             }
         }

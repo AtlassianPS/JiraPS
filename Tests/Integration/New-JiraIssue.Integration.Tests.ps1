@@ -107,7 +107,7 @@ InModuleScope JiraPS {
                 $issue = New-JiraIssue @params
                 $null = $script:createdIssues.Add($issue.Key)
 
-                $issue.PSObject.TypeNames[0] | Should -Be 'JiraPS.Issue'
+                $issue.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
             }
         }
 

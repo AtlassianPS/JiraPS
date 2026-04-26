@@ -8,7 +8,7 @@
         $Issue,
         <#
           #ToDo:CustomClass
-          Once we have custom classes, this should be a JiraPS.Issue
+          Now that we have custom classes, this could be typed as [AtlassianPS.JiraPS.Issue]
         #>
 
         [Parameter()]
@@ -31,7 +31,7 @@
             URI        = $resourceURi -f $Issue
             <#
               #ToDo:CustomClass
-              When the Input is typecasted to a JiraPS.Issue, the `self` of the issue can be used
+              When the Input is typecasted to a AtlassianPS.JiraPS.Issue, the `self` of the issue can be used
             #>
             Method     = "GET"
             Credential = $Credential

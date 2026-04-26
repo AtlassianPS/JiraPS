@@ -11,14 +11,18 @@ Describe "General project validation" -Tag Unit {
     BeforeDiscovery {
         $script:module = Get-Module 'JiraPS'
 
-        $manifestPath = $script:moduleToTest
         $script:testFiles = Get-ChildItem $PSScriptRoot -Include "*.Tests.ps1" -Recurse
 
         $script:publicFunctionFiles = (Get-ChildItem "$moduleRoot/JiraPS/Public/*.ps1").BaseName
         $script:privateFunctionFiles = (Get-ChildItem "$moduleRoot/JiraPS/Private/*.ps1").BaseName
 
-        $manifestData = Import-PowerShellDataFile -Path $manifestPath
-        $script:exportedFunctionNames = $manifestData.FunctionsToExport
+        # Use the loaded module's actual exported-function set instead of the
+        # static manifest. Source manifests carry `FunctionsToExport = '*'`
+        # (the build task rewrites that into an explicit list when packaging
+        # Release/), and PowerShell's module loader resolves the wildcard at
+        # import time — so .ExportedFunctions.Keys is correct against both
+        # source and built artifacts.
+        $script:exportedFunctionNames = @($script:module.ExportedFunctions.Keys)
     }
 
     Describe "Public functions" {

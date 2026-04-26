@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraSession {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Session])]
     param(
         [Parameter( Mandatory )]
         [Microsoft.PowerShell.Commands.WebRequestSession]
@@ -10,22 +11,16 @@
     )
 
     process {
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Building AtlassianPS.JiraPS.Session"
 
-        $props = @{
-            'WebSession' = $Session
+        $hash = @{
+            WebSession = $Session
         }
 
         if ($Username) {
-            $props.Username = $Username
+            $hash.Username = $Username
         }
 
-        $result = New-Object -TypeName PSObject -Property $props
-        $result.PSObject.TypeNames.Insert(0, 'JiraPS.Session')
-        $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-            Write-Output "JiraSession[JSessionID=$($this.JSessionID)]"
-        }
-
-        Write-Output $result
+        [AtlassianPS.JiraPS.Session]$hash
     }
 }

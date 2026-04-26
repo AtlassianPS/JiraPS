@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraFilter {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Filter])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -11,43 +12,35 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Filter"
 
-            $props = @{
-                'ID'                = $i.id
-                'Name'              = $i.name
-                'JQL'               = $i.jql
-                'RestUrl'           = $i.self
-                'ViewUrl'           = $i.viewUrl
-                'SearchUrl'         = $i.searchUrl
-                'Favourite'         = $i.favourite
-                'FilterPermissions' = @()
-
-                'SharePermission'   = $i.sharePermissions
-                'SharedUser'        = $i.sharedUsers
-                'Subscription'      = $i.subscriptions
-            }
-
-            if ($FilterPermissions) {
-                $props.FilterPermissions = @(ConvertTo-JiraFilterPermission ($FilterPermissions))
+            $hash = @{
+                ID                = $i.id
+                Name              = $i.name
+                JQL               = $i.jql
+                RestUrl           = $i.self
+                ViewUrl           = $i.viewUrl
+                SearchUrl         = $i.searchUrl
+                Favourite         = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) } else { $false }
+                FilterPermissions = if ($FilterPermissions) { @(ConvertTo-JiraFilterPermission ($FilterPermissions)) } else { @() }
+                SharePermission   = $i.sharePermissions
+                SharedUser        = $i.sharedUsers
+                Subscription      = $i.subscriptions
             }
 
             if ($i.description) {
-                $props.Description = $i.description
+                $hash.Description = $i.description
             }
 
             if ($i.owner) {
-                $props.Owner = ConvertTo-JiraUser -InputObject $i.owner
+                $hash.Owner = ConvertTo-JiraUser -InputObject $i.owner
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
-            $result | Add-Member -MemberType ScriptMethod -Name 'ToString' -Force -Value {
-                Write-Output "$($this.Name)"
-            }
-            $result | Add-Member -MemberType AliasProperty -Name 'Favorite' -Value 'Favourite'
+            $result = [AtlassianPS.JiraPS.Filter]$hash
 
-            Write-Output $result
+            $result | Add-Member -MemberType AliasProperty -Name 'Favorite' -Value 'Favourite' -Force
+
+            $result
         }
     }
 }

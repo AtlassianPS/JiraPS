@@ -42,7 +42,7 @@ InModuleScope JiraPS {
             }
 
             It "returns the correct type" {
-                $serverInfo.PSObject.TypeNames[0] | Should -Be 'JiraPS.ServerInfo'
+                $serverInfo.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.ServerInfo'
             }
 
             It "includes the base URL" {

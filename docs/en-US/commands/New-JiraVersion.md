@@ -17,14 +17,14 @@ Creates a new FixVersion in JIRA
 ### byObject (Default)
 
 ```powershell
-New-JiraVersion [-InputObject] <Object> [-Credential <pscredential>] [-WhatIf] [-Confirm]
+New-JiraVersion [-InputObject] <Version> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### byParameters
 
 ```powershell
-New-JiraVersion [-Name] <string> [-Project] <Object> [-Description <string>] [-Archived <bool>]
+New-JiraVersion [-Name] <string> [-Project] <Project> [-Description <string>] [-Archived <bool>]
  [-Released <bool>] [-ReleaseDate <datetime>] [-StartDate <datetime>] [-Credential <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
@@ -155,7 +155,7 @@ HelpMessage: ''
 Version object that should be created on the server.
 
 ```yaml
-Type: Object
+Type: Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -197,7 +197,7 @@ HelpMessage: ''
 The Project ID
 
 ```yaml
-Type: Object
+Type: Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -310,7 +310,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.Version
+### AtlassianPS.JiraPS.Version
 
 ## NOTES
 

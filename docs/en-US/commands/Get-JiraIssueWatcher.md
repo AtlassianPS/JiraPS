@@ -15,7 +15,7 @@ Returns watchers on an issue in JIRA.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueWatcher [-Issue] <Object> [[-Credential] <pscredential>] [<CommonParameters>]
+Get-JiraIssueWatcher [-Issue] <Issue> [[-Credential] <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -68,10 +68,10 @@ HelpMessage: ''
 
 JIRA issue to check for watchers.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -97,11 +97,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue / String
+### AtlassianPS.JiraPS.Issue / String
 
 ## OUTPUTS
 
-### JiraPS.User
+### AtlassianPS.JiraPS.User
 
 ## NOTES
 

@@ -13,7 +13,7 @@
 		Merges the hashtables contained in $Hash1 and $Hash2 into a single hashtable.
 #>
     [CmdletBinding()]
-    Param (
+    param (
         # The tables to merge.
         [Parameter( Mandatory, ValueFromPipeline )]
         [AllowNull()]

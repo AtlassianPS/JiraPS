@@ -8,31 +8,14 @@
         [String[]]
         $Key,
 
-        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssue'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object[]]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
+        [AtlassianPS.JiraPS.Issue]
         $InputObject,
         <#
           #ToDo:Deprecate
           This is not necessary if $Key uses ValueFromPipelineByPropertyName
-          #ToDo:CustomClass
-          Once we have custom classes, this check can be done with Type declaration
         #>
 
         [Parameter( Mandatory, ParameterSetName = 'ByJQL' )]
@@ -41,28 +24,9 @@
         $Query,
 
         [Parameter( Mandatory, ParameterSetName = 'ByFilter' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Filter" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraFilter'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Filter. Expected [JiraPS.Filter] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.FilterTransformation()]
+        [AtlassianPS.JiraPS.Filter]
         $Filter,
 
         [Parameter()]
@@ -123,12 +87,10 @@
             }
             'ByInputObject' {
                 # Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-InputObject' has been marked as deprecated."
-                foreach ($_issue in $InputObject) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$InputObject]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$InputObject [$InputObject]"
 
-                    Write-Output (Get-JiraIssue -Key $_issue.Key -Fields $Fields -Credential $Credential)
-                }
+                Write-Output (Get-JiraIssue -Key $InputObject.Key -Fields $Fields -Credential $Credential)
             }
             'ByJQL' {
                 $parameter = @{
@@ -156,11 +118,7 @@
                 Invoke-JiraMethod @parameter
             }
             'ByFilter' {
-                $filterObj = (Get-JiraFilter -InputObject $Filter -Credential $Credential -ErrorAction Stop).searchurl
-                <#
-                  #ToDo:CustomClass
-                  Once we have custom classes, this will no longer be necessary
-                #>
+                $filterObj = (Get-JiraFilter -Id $Filter.ID -Credential $Credential -ErrorAction Stop).SearchUrl
 
                 $parameter = @{
                     URI          = $filterObj

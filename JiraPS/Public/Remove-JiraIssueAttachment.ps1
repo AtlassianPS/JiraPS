@@ -8,30 +8,11 @@
         [Int[]]
         $AttachmentId,
 
-        [Parameter( Position = 0, Mandatory, ParameterSetName = 'byIssue' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssue'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
+        [Parameter( Mandatory, Position = 0, ValueFromPipelineByPropertyName, ParameterSetName = 'byIssue' )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
         [Alias('Key')]
-        [Object]
+        [AtlassianPS.JiraPS.Issue]
         $Issue,
 
         [Parameter( ParameterSetName = 'byIssue' )]
@@ -83,16 +64,6 @@
             "byIssue" {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
-
-                if (@($Issue).Count -ne 1) {
-                    $exception = ([System.ArgumentException]"invalid Issue provided")
-                    $errorId = 'ParameterValue.JiraIssue'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Only one Issue can be provided at a time."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
 
                 # Find the proper object for the Issue
                 $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential

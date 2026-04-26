@@ -71,6 +71,20 @@ InModuleScope JiraPS {
                 $thisAlias.ResolvedCommandName | Should -Be "Get-JiraServerInformation"
                 $thisAlias.ModuleName | Should -Be "JiraPS"
             }
+
+            It "returns a real [AtlassianPS.JiraPS.ServerInfo] fallback when Invoke-JiraMethod throws" {
+                # Override the success-case mock so the request fails and the
+                # catch{} branch builds the fallback object.
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -eq "/rest/api/2/serverInfo" } {
+                    throw 'simulated network failure'
+                }
+
+                $fallback = Get-JiraServerInformation -WarningAction SilentlyContinue
+
+                $fallback | Should -BeOfType [AtlassianPS.JiraPS.ServerInfo] -Because 'the catch branch must construct a real .NET instance, not a PSCustomObject with a PSTypeName tag'
+                $fallback.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.ServerInfo'
+                $fallback.DeploymentType | Should -Be 'Server'
+            }
         }
 
         Describe "Input Validation" {

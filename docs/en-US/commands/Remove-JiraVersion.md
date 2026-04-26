@@ -15,7 +15,7 @@ This function removes an existing version.
 ## SYNTAX
 
 ```powershell
-Remove-JiraVersion [-Version] <Object[]> [[-Credential] <pscredential>] [-Force] [-WhatIf]
+Remove-JiraVersion [-Version] <Version[]> [[-Credential] <pscredential>] [-Force] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
@@ -113,7 +113,7 @@ HelpMessage: ''
 Version Object or ID to delete.
 
 ```yaml
-Type: Object[]
+Type: Version[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -161,7 +161,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Version
+### AtlassianPS.JiraPS.Version
 
 
 ## OUTPUTS

@@ -2,37 +2,14 @@
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
-        [Parameter( Mandatory )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Issue" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssue'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
+        [Parameter( Mandatory, Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
         [Alias('Key')]
-        [Object]
+        [AtlassianPS.JiraPS.Issue]
         $Issue,
-        <#
-          #ToDo:CustomClass
-          Once we have custom classes, this can also accept ValueFromPipeline
-        #>
 
-        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [Parameter( Mandatory, Position = 1, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateScript(
             {
                 if (-not (Test-Path $_ -PathType Leaf)) {
@@ -72,18 +49,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if (@($Issue).Count -ne 1) {
-            $exception = ([System.ArgumentException]"invalid Issue provided")
-            $errorId = 'ParameterValue.JiraIssue'
-            $errorCategory = 'InvalidArgument'
-            $errorTarget = $_
-            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-            $errorItem.ErrorDetails = "Only one Issue can be provided at a time."
-            $PSCmdlet.ThrowTerminatingError($errorItem)
-        }
-
-        # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential -ErrorAction Stop
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
         foreach ($file in $FilePath) {
             $file = Resolve-FilePath -Path $file

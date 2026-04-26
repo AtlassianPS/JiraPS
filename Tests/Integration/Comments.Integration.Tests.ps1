@@ -58,7 +58,7 @@ InModuleScope JiraPS {
                     $comments = Get-JiraIssueComment -Issue $fixtures.TestIssue
 
                     if ($comments) {
-                        $comments[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Comment'
+                        $comments[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Comment'
                     }
                 }
 
@@ -150,7 +150,7 @@ InModuleScope JiraPS {
 
                     $result = Add-JiraIssueComment -Issue $tempIssue.Key -Comment $commentBody
 
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Comment'
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Comment'
                 }
 
                 It "accepts issue object via pipeline" {

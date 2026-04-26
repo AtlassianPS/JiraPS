@@ -91,7 +91,7 @@ HelpMessage: ''
 
 IssueLink to delete
 
-If a `JiraPS.Issue` is provided, all issueLinks will be deleted.
+If a `AtlassianPS.JiraPS.Issue` is provided, all issueLinks will be deleted.
 
 ```yaml
 Type: Object[]
@@ -142,7 +142,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 
 ## OUTPUTS

@@ -26,7 +26,7 @@ InModuleScope JiraPS {
                 $object = [PSCustomObject] @{
                     'Name' = 'username'
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                 return $object
             }
 

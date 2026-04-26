@@ -66,19 +66,18 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue'
-                $IssueObj = [PSCustomObject]@{
-                    ID         = $issueID
-                    Key        = $issueKey
-                    RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
-                    attachment = (ConvertFrom-Json -InputObject $attachments)
+                $IssueObj = [AtlassianPS.JiraPS.Issue]@{
+                    ID         = $script:issueID
+                    Key        = $script:issueKey
+                    RestUrl    = "$($script:jiraServer)/rest/api/2/issue/$($script:issueID)"
+                    Attachment = (ConvertFrom-Json -InputObject $script:attachments)
                 }
-                $IssueObj.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
                 $IssueObj
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
-                Get-JiraIssue -Key $Issue
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                Get-JiraIssue -Key $InputObject.Key
             }
 
             Mock ConvertTo-JiraAttachment -ModuleName JiraPS {
@@ -99,10 +98,11 @@ InModuleScope JiraPS {
                 $script:issueObject = Get-JiraIssue -Key $issueKey
             }
 
-            It 'only accepts String or JiraPS.Issue as input' {
-                { Get-JiraIssueAttachment -Issue (Get-Date) } | Should -Throw -ExpectedMessage "*Invalid Type*"
-                { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should -Throw -ExpectedMessage "*Invalid Type*"
-                { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should -Not -Throw
+            It 'only accepts String or AtlassianPS.JiraPS.Issue as input' {
+                { Get-JiraIssueAttachment -Issue (Get-Date) } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
+                { Get-JiraIssueAttachment -Issue (Get-ChildItem) } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
+                { Get-JiraIssueAttachment -Issue @('foo', 'bar') } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
+                { @('foo', 'bar') | Get-JiraIssueAttachment } | Should -Not -Throw
                 { Get-JiraIssueAttachment -Issue (Get-JiraIssue -Key "foo") } | Should -Not -Throw
             }
 

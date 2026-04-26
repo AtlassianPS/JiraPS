@@ -3,28 +3,9 @@
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'byObject' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byObject' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Version" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraVersion'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Version. Expected [JiraPS.Version] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.VersionTransformation()]
+        [AtlassianPS.JiraPS.Version]
         $InputObject,
 
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'byParameters' )]
@@ -32,31 +13,9 @@
         $Name,
 
         [Parameter( Position = 1, Mandatory, ParameterSetName = 'byParameters' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                $_input = $_
-
-                switch ($true) {
-                    { "JiraPS.Project" -in $_input.PSObject.TypeNames } { return $true }
-                    { $_input -is [String] } { return $true }
-                    Default {
-                        $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                        $errorId = 'ParameterType.NotJiraProject'
-                        $errorCategory = 'InvalidArgument'
-                        $errorTarget = $_input
-                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                        $errorItem.ErrorDetails = "Wrong object type provided for Project. Expected [JiraPS.Project] or [String], but was $($_input.GetType().Name)"
-                        $PSCmdlet.ThrowTerminatingError($errorItem)
-                        <#
-                          #ToDo:CustomClass
-                          Once we have custom classes, this check can be done with Type declaration
-                        #>
-                    }
-                }
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.ProjectTransformation()]
+        [AtlassianPS.JiraPS.Project]
         $Project,
 
         [Parameter( ParameterSetName = 'byParameters' )]
@@ -96,19 +55,20 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $requestBody = @{}
-        Switch ($PSCmdlet.ParameterSetName) {
+        switch ($PSCmdlet.ParameterSetName) {
             'byObject' {
                 $requestBody["name"] = $InputObject.Name
                 $requestBody["description"] = $InputObject.Description
                 $requestBody["archived"] = [bool]($InputObject.Archived)
                 $requestBody["released"] = [bool]($InputObject.Released)
-                $requestBody["releaseDate"] = $InputObject.ReleaseDate.ToString('yyyy-MM-dd')
-                $requestBody["startDate"] = $InputObject.StartDate.ToString('yyyy-MM-dd')
-                if ($InputObject.Project.Key) {
-                    $requestBody["project"] = $InputObject.Project.Key
+                if ($InputObject.ReleaseDate) {
+                    $requestBody["releaseDate"] = $InputObject.ReleaseDate.ToString('yyyy-MM-dd')
                 }
-                elseif ($InputObject.Project.Id) {
-                    $requestBody["projectId"] = $InputObject.Project.Id
+                if ($InputObject.StartDate) {
+                    $requestBody["startDate"] = $InputObject.StartDate.ToString('yyyy-MM-dd')
+                }
+                if ($InputObject.Project) {
+                    $requestBody["projectId"] = $InputObject.Project
                 }
             }
             'byParameters' {
@@ -129,16 +89,15 @@
                     $requestBody["startDate"] = Get-Date $StartDate -Format 'yyyy-MM-dd'
                 }
 
-                if ("JiraPS.Project" -in $Project.PSObject.TypeNames) {
-                    if ($Project.Id) {
-                        $requestBody["projectId"] = $Project.Id
-                    }
-                    elseif ($Project.Key) {
-                        $requestBody["project"] = $Project.Key
-                    }
+                # Prefer the numeric ID when the typed parameter has it (real
+                # Project object or a numeric scalar coerced by the transformer);
+                # otherwise fall back to the project key, which the v2/v3 create
+                # endpoint accepts under the "project" field.
+                if ($Project.Id) {
+                    $requestBody["projectId"] = $Project.Id
                 }
-                else {
-                    $requestBody["projectId"] = (Get-JiraProject $Project -Credential $Credential).Id
+                elseif ($Project.Key) {
+                    $requestBody["project"] = $Project.Key
                 }
             }
         }

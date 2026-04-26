@@ -3,33 +3,10 @@
     [CmdletBinding(DefaultParameterSetName = 'ByID')]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByProject' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.Project" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraProject'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Project] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.ProjectTransformation()]
+        [AtlassianPS.JiraPS.Project[]]
         $Project,
-        <#
-          #ToDo:CustomClass
-          Once we have custom classes, these two parameters can be one
-        #>
 
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByID' )]
         [Alias("Id")]
@@ -58,11 +35,13 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
-                    if ($_project -isnot [string]) {
-                        $_project = $_project.Key
-                    }
+                    # The /project/{projectIdOrKey}/components endpoint accepts
+                    # either a project key or a numeric ID, so we forward whichever
+                    # the typed parameter has populated.
+                    $projectIdent = if ($_project.Key) { $_project.Key } else { $_project.ID }
+
                     $parameter = @{
-                        URI        = $resourceURi -f "/project/$_project/components"
+                        URI        = $resourceURi -f "/project/$projectIdent/components"
                         Method     = "GET"
                         Credential = $Credential
                     }

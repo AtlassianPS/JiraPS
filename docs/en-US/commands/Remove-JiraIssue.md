@@ -17,7 +17,7 @@ Removes an existing issue from JIRA.
 ### ByInputObject (Default)
 
 ```powershell
-Remove-JiraIssue [-InputObject] <Issue[]> [-IncludeSubTasks] [-Credential <pscredential>] [-Force]
+Remove-JiraIssue [-InputObject] <Issue> [-IncludeSubTasks] [-Credential <pscredential>] [-Force]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -156,11 +156,11 @@ HelpMessage: ''
 
 ### -InputObject
 
-One or more issues to delete, specified as `JiraPS.Issue` objects (e.g.
+One or more issues to delete, specified as `AtlassianPS.JiraPS.Issue` objects (e.g.
 from `Get-JiraIssue`)
 
 ```yaml
-Type: JiraPS.Issue[]
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -237,7 +237,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue / String
+### AtlassianPS.JiraPS.Issue / String
 
 
 ## OUTPUTS

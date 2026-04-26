@@ -18,3 +18,4 @@ CHANGELOG.md merge=union
 *.clixml text eol=crlf
 *.xml text eol=crlf
 *.txt text eol=crlf
+*.cs text eol=crlf

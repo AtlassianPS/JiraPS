@@ -58,7 +58,7 @@ InModuleScope JiraPS {
                 It "defines '<property>' of type '<type>' with value '<value>'" -TestCases @(
                     @{ property = "Id"; type = [string]; value = '123' }
                     @{ property = "Name"; type = [string]; value = 'Example' }
-                    @{ property = "Author"; type = 'JiraPS.User'; value = 'JonDoe' }
+                    @{ property = "Author"; type = 'AtlassianPS.JiraPS.User'; value = 'JonDoe' }
                     @{ property = "Created"; type = [System.DateTime]; value = (Get-Date "2025-01-01T00:00:00.000Z") }
                 ) {
                     # Check value (if specified)

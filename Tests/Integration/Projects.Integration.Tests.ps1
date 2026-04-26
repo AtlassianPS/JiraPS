@@ -34,7 +34,7 @@ InModuleScope JiraPS {
                 It "returns project objects with correct type" {
                     $projects = Get-JiraProject
 
-                    @($projects)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Project'
+                    @($projects)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Project'
                 }
             }
 

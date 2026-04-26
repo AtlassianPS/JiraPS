@@ -38,7 +38,7 @@ InModuleScope JiraPS {
                 It "returns user object with correct type" {
                     $user = Get-JiraUser -AccountId $fixtures.TestUser
 
-                    $user.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                    $user.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                 }
 
                 It "includes display name" {
