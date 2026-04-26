@@ -157,7 +157,7 @@ Filter object to be deleted.
 Object can be retrieved with `Get-JiraFilter`
 
 ```yaml
-Type: JiraPS.Filter
+Type: AtlassianPS.JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -205,7 +205,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Filter
+### AtlassianPS.JiraPS.Filter
 
 
 ## OUTPUTS

@@ -81,7 +81,7 @@ InModuleScope JiraPS {
                     $watchers = Get-JiraIssueWatcher -Issue $fixtures.TestIssue
 
                     if ($watchers) {
-                        $watchers[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                        $watchers[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                     }
                 }
 

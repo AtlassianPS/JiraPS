@@ -15,9 +15,9 @@ Modifies an existing Version in JIRA
 ## SYNTAX
 
 ```powershell
-Set-JiraVersion [-Version] <Object[]> [[-Name] <string>] [[-Description] <string>]
+Set-JiraVersion [-Version] <Version[]> [[-Name] <string>] [[-Description] <string>]
  [[-Archived] <bool>] [[-Released] <bool>] [[-ReleaseDate] <datetime>] [[-StartDate] <datetime>]
- [[-Project] <Object>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-Project] <Project>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -158,7 +158,7 @@ The new Project where this version should be in.
 This can be the ID of the Project, or the Project Object
 
 ```yaml
-Type: Object
+Type: Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -242,7 +242,7 @@ HelpMessage: ''
 Version to be changed
 
 ```yaml
-Type: Object[]
+Type: Version[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -290,12 +290,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Version
+### AtlassianPS.JiraPS.Version
 
 
 ## OUTPUTS
 
-### JiraPS.Version
+### AtlassianPS.JiraPS.Version
 
 ## NOTES
 

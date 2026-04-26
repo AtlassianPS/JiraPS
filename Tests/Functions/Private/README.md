@@ -49,7 +49,7 @@ Use data-driven tests with `-TestCases` for comprehensive property validation.
 Verify special type handling:
 
 - DateTime fields are converted from ISO strings
-- Nested objects are converted to proper custom types (e.g., `JiraPS.User`)
+- Nested objects are converted to proper custom types (e.g., `AtlassianPS.JiraPS.User`)
 - Numeric values are properly typed
 
 ### 4. Pipeline Support

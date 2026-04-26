@@ -50,7 +50,7 @@ InModuleScope JiraPS {
 
                     $results = Get-JiraIssue -Query $jql
 
-                    @($results)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Issue'
+                    @($results)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
                 }
 
                 It "searches for specific issue by key" {

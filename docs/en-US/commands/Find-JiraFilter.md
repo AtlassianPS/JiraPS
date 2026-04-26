@@ -17,7 +17,7 @@ Find JIRA filter(s).
 ### ByAccountId (Default)
 
 ```powershell
-Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [-Project <Object>]
+Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [-Project <Project>]
  [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-IncludeTotalCount]
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
@@ -25,7 +25,7 @@ Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [
 ### ByOwner
 
 ```powershell
-Find-JiraFilter [-Name <string[]>] [-Owner <Object>] [-GroupName <string>] [-Project <Object>]
+Find-JiraFilter [-Name <string[]>] [-Owner <User>] [-GroupName <string>] [-Project <Project>]
  [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-IncludeTotalCount]
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
@@ -287,7 +287,7 @@ HelpMessage: ''
 User Object or user name used to return filters with the matching owner.accountId.
 
 ```yaml
-Type: Object
+Type: User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -309,7 +309,7 @@ HelpMessage: ''
 The ID or Key of the Project to search.
 
 ```yaml
-Type: Object
+Type: Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -394,7 +394,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.Filter
+### AtlassianPS.JiraPS.Filter
 
 ## NOTES
 

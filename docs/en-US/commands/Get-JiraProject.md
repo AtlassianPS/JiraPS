@@ -116,7 +116,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.Project
+### AtlassianPS.JiraPS.Project
 
 ## NOTES
 

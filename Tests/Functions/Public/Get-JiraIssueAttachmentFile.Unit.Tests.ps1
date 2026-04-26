@@ -87,15 +87,23 @@ InModuleScope JiraPS {
         }
 
         Describe "Input Validation" {
+            BeforeAll {
+                # Pester 5 strips ArgumentTransformationAttribute from mocked
+                # parameter signatures, so feeding the upstream mock a bare
+                # issue-key string trips the [AtlassianPS.JiraPS.Issue] cast.
+                # Build a real Issue instance once and reuse it.
+                $script:fooIssue = [AtlassianPS.JiraPS.Issue]@{ Key = 'Foo' }
+            }
+
             It 'only accepts JiraPS.Attachment as input' {
                 { Get-JiraIssueAttachmentFile -Attachment (Get-Date) } | Should -Throw -ExpectedMessage "*'Attachment'*"
                 { Get-JiraIssueAttachmentFile -Attachment (Get-ChildItem) } | Should -Throw -ExpectedMessage "*'Attachment'*"
                 { Get-JiraIssueAttachmentFile -Attachment @('foo', 'bar') } | Should -Throw -ExpectedMessage "*'Attachment'*"
-                { Get-JiraIssueAttachmentFile -Attachment (Get-JiraIssueAttachment -Issue "Foo") } | Should -Not -Throw
+                { Get-JiraIssueAttachmentFile -Attachment (Get-JiraIssueAttachment -Issue $fooIssue) } | Should -Not -Throw
             }
 
             It 'takes the issue input over the pipeline' {
-                { Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile } | Should -Not -Throw
+                { Get-JiraIssueAttachment -Issue $fooIssue | Get-JiraIssueAttachmentFile } | Should -Not -Throw
             }
         }
 
@@ -111,8 +119,10 @@ InModuleScope JiraPS {
 
         Describe "Behavior" {
             It 'uses Invoke-JiraMethod for saving to disk' {
-                Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile
-                Get-JiraIssueAttachment -Issue "Foo" | Get-JiraIssueAttachmentFile -Path "../"
+                $fooIssue = [AtlassianPS.JiraPS.Issue]@{ Key = 'Foo' }
+
+                Get-JiraIssueAttachment -Issue $fooIssue | Get-JiraIssueAttachmentFile
+                Get-JiraIssueAttachment -Issue $fooIssue | Get-JiraIssueAttachmentFile -Path "../"
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                     $OutFile -in @("foo.pdf", "bar.pdf")

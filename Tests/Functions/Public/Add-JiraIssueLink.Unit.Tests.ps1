@@ -29,19 +29,18 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue -ModuleName JiraPS -ParameterFilter { $Key -eq $issueKey } {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
-                $object = [PSCustomObject]@{
+                $object = [AtlassianPS.JiraPS.Issue]@{
                     Key = $issueKey
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
                 return $object
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
-                if ($Issue -eq "foo") {
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                if ($InputObject.Key -eq "foo") {
                     throw "Invalid Issue"
                 }
-                Get-JiraIssue -Key $Issue
+                Get-JiraIssue -Key $InputObject.Key
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
@@ -75,7 +74,7 @@ InModuleScope JiraPS {
                     $command | Should -HaveParameter $parameter
 
                     #ToDo:CustomClass
-                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
+                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')`
                     (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
                 }
             }
@@ -110,8 +109,8 @@ InModuleScope JiraPS {
             Context "Type Validation - Positive Cases" { }
 
             Context "Type Validation - Negative Cases" {
-                It 'pipeline input must be JiraPS.Issue or String' {
-                    { (Get-Date) | Add-JiraIssueLink -IssueLink $issueLink -ErrorAction SilentlyContinue } | Should -Throw -ErrorId 'ParameterType.NotJiraIssue,Add-JiraIssueLink'
+                It 'pipeline input must be AtlassianPS.JiraPS.Issue or String' {
+                    { (Get-Date) | Add-JiraIssueLink -IssueLink $issueLink -ErrorAction Stop } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
                 }
 
                 It "requires a specific object type for -IssueLink" {

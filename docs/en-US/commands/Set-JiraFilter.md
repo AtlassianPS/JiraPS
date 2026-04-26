@@ -158,7 +158,7 @@ Filter object to be changed.
 Object can be retrieved with `Get-JiraFilter`
 
 ```yaml
-Type: JiraPS.Filter
+Type: AtlassianPS.JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -250,11 +250,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Filter / String
+### AtlassianPS.JiraPS.Filter / String
 
 ## OUTPUTS
 
-### JiraPS.Filter
+### AtlassianPS.JiraPS.Filter
 
 ## NOTES
 

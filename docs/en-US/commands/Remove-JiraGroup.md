@@ -15,7 +15,7 @@ Removes an existing group from JIRA
 ## SYNTAX
 
 ```powershell
-Remove-JiraGroup [-Group] <Object[]> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
+Remove-JiraGroup [-Group] <Group[]> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
@@ -107,7 +107,7 @@ HelpMessage: ''
 Group Object or ID to delete.
 
 ```yaml
-Type: Object[]
+Type: Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

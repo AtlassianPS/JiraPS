@@ -30,8 +30,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Session'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Session'
+                It "adds custom type 'AtlassianPS.JiraPS.Session'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Session'
                 }
             }
 

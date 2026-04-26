@@ -79,7 +79,7 @@ New-JiraIssue -Project TEST -IssueType Task -Summary 'Triage me' -Assignee 'alic
 # Jira Cloud - assign by accountId
 New-JiraIssue -Project TEST -IssueType Task -Summary 'Triage me' -Assignee '5b10ac8d82e05b22cc7d4ef5'
 
-# Or pass a JiraPS.User object resolved beforehand
+# Or pass a AtlassianPS.JiraPS.User object resolved beforehand
 $user = Get-JiraUser -UserName 'alice'
 New-JiraIssue -Project TEST -IssueType Task -Summary 'Triage me' -Assignee $user
 ```

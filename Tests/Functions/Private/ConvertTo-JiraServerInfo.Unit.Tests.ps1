@@ -44,8 +44,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.ServerInfo'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.ServerInfo'
+                It "adds custom type 'AtlassianPS.JiraPS.ServerInfo'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.ServerInfo'
                 }
             }
 
@@ -157,6 +157,58 @@ InModuleScope JiraPS {
                 It "accepts pipeline input" {
                     $result = $sampleObject | ConvertTo-JiraServerInfo
                     $result | Should -Not -BeNullOrEmpty
+                }
+            }
+
+            Context "Cross-platform expansion fields" {
+                It "exposes 'VersionNumbers' as int[] when present" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://x","version":"9.17.0","versionNumbers":[9,17,0],"buildNumber":1}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    , $result.VersionNumbers | Should -BeOfType [int[]]
+                    $result.VersionNumbers | Should -Be @(9, 17, 0)
+                }
+
+                It "leaves 'VersionNumbers' null when the payload omits the field" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://x","version":"9.17.0","buildNumber":1}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    $result.VersionNumbers | Should -BeNullOrEmpty
+                }
+
+                It "exposes 'DisplayUrl' (DC-only) when the payload provides it" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://internal","version":"9.17.0","buildNumber":1,"displayUrl":"https://jira.example.com"}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    $result.DisplayUrl | Should -Be 'https://jira.example.com'
+                }
+
+                It "exposes the co-located product display URLs (DC-only)" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://internal","version":"9.17.0","buildNumber":1,"displayUrlConfluence":"https://wiki.example.com","displayUrlServicedeskHelpCenter":"https://help.example.com"}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    $result.DisplayUrlConfluence | Should -Be 'https://wiki.example.com'
+                    $result.DisplayUrlServicedeskHelpCenter | Should -Be 'https://help.example.com'
+                }
+
+                It "exposes 'BuildPartnerName' (DC-only OEM attribution)" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://x","version":"9.17.0","buildNumber":1,"buildPartnerName":"Marketplace App Vendor"}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    $result.BuildPartnerName | Should -Be 'Marketplace App Vendor'
+                }
+
+                It "passes through 'ServerTimeZone' and 'DefaultLocale' as opaque shapes" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://x","version":"9.17.0","buildNumber":1,"serverTimeZone":{"id":"Etc/UTC","displayName":"UTC"},"defaultLocale":{"locale":"en_UK"}}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    $result.ServerTimeZone.id | Should -Be 'Etc/UTC'
+                    $result.ServerTimeZone.displayName | Should -Be 'UTC'
+                    $result.DefaultLocale.locale | Should -Be 'en_UK'
+                }
+
+                It "leaves the DC-only fields null when the payload omits them" {
+                    $payload = ConvertFrom-Json '{"baseUrl":"https://x","version":"9.17.0","buildNumber":1}'
+                    $result = ConvertTo-JiraServerInfo -InputObject $payload
+                    $result.DisplayUrlConfluence | Should -BeNullOrEmpty
+                    $result.DisplayUrlServicedeskHelpCenter | Should -BeNullOrEmpty
+                    $result.BuildPartnerName | Should -BeNullOrEmpty
+                    $result.ServerTimeZone | Should -BeNullOrEmpty
+                    $result.DefaultLocale | Should -BeNullOrEmpty
                 }
             }
         }

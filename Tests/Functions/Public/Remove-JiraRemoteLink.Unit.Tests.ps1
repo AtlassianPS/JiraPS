@@ -48,17 +48,16 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
-                $object = [PSCustomObject] @{
-                    'RestURL' = 'https://jira.example.com/rest/api/2/issue/12345'
-                    'Key'     = $testIssueKey
+                $object = [AtlassianPS.JiraPS.Issue]@{
+                    RestURL = 'https://jira.example.com/rest/api/2/issue/12345'
+                    Key     = $testIssueKey
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
                 return $object
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
-                Get-JiraIssue -Key $Issue
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                Get-JiraIssue -Key $InputObject.Key
             }
 
             Mock Get-JiraRemoteLink {
@@ -88,7 +87,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Issue'; type = 'Object[]' }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
                     @{ parameter = 'LinkId'; type = 'Int32[]' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                     @{ parameter = 'Force'; type = 'Switch' }
@@ -110,7 +109,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
-                It "Accepts a JiraPS.Issue object to the -Issue parameter" {
+                It "Accepts a AtlassianPS.JiraPS.Issue object to the -Issue parameter" {
                     $Issue = Get-JiraIssue $testIssueKey
                     { Remove-JiraRemoteLink -Issue $Issue -LinkId 10000 -Force } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
@@ -122,8 +121,9 @@ InModuleScope JiraPS {
                 }
 
                 It "Accepts the output of Get-JiraRemoteLink" {
-                    $remoteLink = Get-JiraRemoteLink $testIssueKey
-                    { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId $remoteLink.id -Force } | Should -Not -Throw
+                    $issue = [AtlassianPS.JiraPS.Issue]@{ Key = $testIssueKey }
+                    $remoteLink = Get-JiraRemoteLink $issue
+                    { Remove-JiraRemoteLink -Issue $issue -LinkId $remoteLink.id -Force } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 

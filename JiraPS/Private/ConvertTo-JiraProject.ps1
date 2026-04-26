@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraProject {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Project])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,38 +9,30 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Project"
 
-            $props = @{
-                'ID'          = $i.id
-                'Key'         = $i.key
-                'Name'        = $i.name
-                'Description' = $i.description
-                'Lead'        = ConvertTo-JiraUser $i.lead
-                'IssueTypes'  = ConvertTo-JiraIssueType $i.issueTypes
-                'Roles'       = $i.roles
-                'RestUrl'     = $i.self
-                'Components'  = $i.components
-                'Style'       = $i.style
-            }
-
-            if ($i.projectCategory) {
-                $props.Category = $i.projectCategory
-            }
-            elseif ($i.Category) {
-                $props.Category = $i.Category
-            }
-            else {
-                $props.Category = $null
+            $hash = @{
+                ID             = $i.id
+                Key            = $i.key
+                Name           = $i.name
+                Description    = $i.description
+                Lead           = if ($i.lead) { ConvertTo-JiraUser $i.lead } else { $null }
+                IssueTypes     = if ($i.issueTypes) { ConvertTo-JiraIssueType $i.issueTypes } else { $null }
+                Roles          = $i.roles
+                RestUrl        = $i.self
+                Components     = $i.components
+                Style          = $i.style
+                Category       = if ($i.projectCategory) { $i.projectCategory } elseif ($i.Category) { $i.Category } else { $null }
+                ProjectTypeKey = $i.projectTypeKey
+                Url            = $i.url
+                Email          = $i.email
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
-            }
+            if ($null -ne $i.archived) { $hash.Archived = [System.Convert]::ToBoolean($i.archived) }
+            if ($null -ne $i.simplified) { $hash.Simplified = [System.Convert]::ToBoolean($i.simplified) }
+            if ($null -ne $i.isPrivate) { $hash.IsPrivate = [System.Convert]::ToBoolean($i.isPrivate) }
 
-            Write-Output $result
+            [AtlassianPS.JiraPS.Project]$hash
         }
     }
 }

@@ -44,7 +44,7 @@ Describe "Remove-JiraSession" -Tag 'Unit' {
 
     Describe "Behavior" {
         Context "Session Cleanup" {
-            It "Closes and removes the JiraPS.Session data from module PrivateData" {
+            It "Closes and removes the AtlassianPS.JiraPS.Session data from module PrivateData" {
                 (Get-Module JiraPS).PrivateData = @{ Session = $true }
                 (Get-Module JiraPS).PrivateData.Session | Should -Not -BeNullOrEmpty
 

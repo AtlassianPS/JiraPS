@@ -46,8 +46,12 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Group'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Group'
+                It "adds custom type 'AtlassianPS.JiraPS.Group'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Group'
+                }
+
+                It "is a real .NET AtlassianPS.JiraPS.Group instance" {
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.Group]
                 }
             }
 

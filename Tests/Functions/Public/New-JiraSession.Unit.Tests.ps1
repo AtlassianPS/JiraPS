@@ -35,24 +35,24 @@ InModuleScope JiraPS {
 
             Mock ConvertTo-JiraSession -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraSession'
-                # Return a JiraPS.Session object to simulate successful conversion
+                # Return a AtlassianPS.JiraPS.Session object to simulate successful conversion
                 $session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
                 $result = New-Object -TypeName PSObject -Property @{
                     'WebSession' = $session
                 }
-                $result.PSObject.TypeNames.Insert(0, 'JiraPS.Session')
+                $result.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Session')
                 $result
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $Uri -like "*/rest/api/*/myself" } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
                 # When StoreSession is true, Invoke-JiraMethod returns the result of ConvertTo-JiraSession
-                # So we need to return a JiraPS.Session object, not a WebRequestSession
+                # So we need to return a AtlassianPS.JiraPS.Session object, not a WebRequestSession
                 $session = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
                 $result = New-Object -TypeName PSObject -Property @{
                     'WebSession' = $session
                 }
-                $result.PSObject.TypeNames.Insert(0, 'JiraPS.Session')
+                $result.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Session')
                 $result
             }
 

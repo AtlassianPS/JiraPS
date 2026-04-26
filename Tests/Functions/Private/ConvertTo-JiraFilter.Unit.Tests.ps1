@@ -162,8 +162,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Filter'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Filter'
+                It "adds custom type 'AtlassianPS.JiraPS.Filter'" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Filter'
                 }
             }
 
@@ -203,6 +203,15 @@ InModuleScope JiraPS {
                 It "defines the 'Favorite' property as an alias of 'Favourite'" {
                     ($result | Get-Member -Name Favorite).MemberType | Should -Be "AliasProperty"
                 }
+
+                It "defaults 'Favourite' to `$false when the payload omits the field" {
+                    $payloadWithoutFavourite = $sampleObject.PSObject.Copy()
+                    $payloadWithoutFavourite.PSObject.Properties.Remove('favourite')
+                    $defaulted = ConvertTo-JiraFilter -InputObject $payloadWithoutFavourite -FilterPermission $samplePermission
+
+                    $defaulted.Favourite | Should -BeOfType [bool]
+                    $defaulted.Favourite | Should -BeFalse
+                }
             }
 
             Context "Type Conversion" {
@@ -210,9 +219,9 @@ InModuleScope JiraPS {
                     $script:result = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
                 }
 
-                It "converts Owner to JiraPS.User object" {
+                It "converts Owner to AtlassianPS.JiraPS.User object" {
                     $result.Owner | Should -Not -BeNullOrEmpty
-                    $result.Owner.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                    $result.Owner.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                 }
 
                 It "converts FilterPermissions to JiraPS.FilterPermission objects" {

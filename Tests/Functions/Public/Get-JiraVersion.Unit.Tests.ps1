@@ -101,7 +101,7 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject'
                 $json = ConvertFrom-Json $JiraProjectData
                 $object = $json | Where-Object { $_.Key -in $Project }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 return $object
             }
 
@@ -112,7 +112,7 @@ InModuleScope JiraPS {
                     Name    = $InputObject.name
                     Project = $InputObject.projectId
                 }
-                $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+                $result.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Version')
                 $result
             }
 

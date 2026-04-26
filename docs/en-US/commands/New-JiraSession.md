@@ -231,7 +231,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.Session
+### AtlassianPS.JiraPS.Session
 
 ## NOTES
 

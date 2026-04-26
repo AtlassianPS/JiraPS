@@ -113,7 +113,7 @@ HelpMessage: ''
 Filter object to which the permission should be applied
 
 ```yaml
-Type: JiraPS.Filter
+Type: AtlassianPS.JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -242,12 +242,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Filter
+### AtlassianPS.JiraPS.Filter
 
 
 ## OUTPUTS
 
-### JiraPS.Filter
+### AtlassianPS.JiraPS.Filter
 
 ## NOTES
 

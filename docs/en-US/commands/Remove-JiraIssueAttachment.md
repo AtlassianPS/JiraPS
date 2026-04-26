@@ -24,7 +24,7 @@ Remove-JiraIssueAttachment [-AttachmentId] <int[]> [-Credential <pscredential>] 
 ### byIssue
 
 ```powershell
-Remove-JiraIssueAttachment [-Issue] <Object> [-FileName <string[]>] [-Credential <pscredential>]
+Remove-JiraIssueAttachment [-Issue] <Issue> [-FileName <string[]>] [-Credential <pscredential>]
  [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -172,10 +172,10 @@ HelpMessage: ''
 
 Issue from which to delete on or more attachments.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -185,7 +185,7 @@ ParameterSets:
   Position: 0
   IsRequired: true
   ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
+  ValueFromPipelineByPropertyName: true
   ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
@@ -224,7 +224,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue / String / Int
+### AtlassianPS.JiraPS.Issue / String / Int
 
 
 ## OUTPUTS

@@ -57,17 +57,16 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
-                $Issue = [PSCustomObject]@{
+                $Issue = [AtlassianPS.JiraPS.Issue]@{
                     Key     = $issueKey
                     RestURL = "$jiraServer/rest/api/2/issue/$issueKey"
                 }
-                $Issue.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
                 $Issue
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
-                Get-JiraIssue -Key $Issue
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                Get-JiraIssue -Key $InputObject.Key
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" } {
@@ -99,7 +98,7 @@ InModuleScope JiraPS {
                     $command | Should -HaveParameter $parameter
 
                     #ToDo:CustomClass
-                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
+                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')`
                     (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
                 }
             }
@@ -178,11 +177,11 @@ InModuleScope JiraPS {
                 }
 
                 It "issue must be an Issue or a String" {
-                    { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath -Verbose } | Should -Throw -ExpectedMessage "*Invalid Type*"
+                    { Add-JiraIssueAttachment -Issue (Get-Date) -FilePath $filePath -Verbose } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
                 }
 
-                It "issue can't be an array" {
-                    { Add-JiraIssueAttachment -Issue $issueKey, $issueKey -FilePath $filePath } | Should -Throw -ExpectedMessage "*invalid Issue*"
+                It "issue can't be an array passed directly (use the pipeline instead)" {
+                    { Add-JiraIssueAttachment -Issue $issueKey, $issueKey -FilePath $filePath } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
                 }
 
                 It "file must exist" {

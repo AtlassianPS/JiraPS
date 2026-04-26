@@ -15,7 +15,7 @@ Removes an existing user from JIRA
 ## SYNTAX
 
 ```powershell
-Remove-JiraUser [-User] <Object[]> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
+Remove-JiraUser [-User] <User> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
@@ -108,7 +108,7 @@ HelpMessage: ''
 User Object or ID to delete.
 
 ```yaml
-Type: Object[]
+Type: User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -157,7 +157,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.User / String
+### AtlassianPS.JiraPS.User / String
 
 
 ## OUTPUTS

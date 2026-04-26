@@ -107,7 +107,7 @@ InModuleScope JiraPS {
             Mock ConvertTo-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
                 $i = New-Object -TypeName PSCustomObject
-                $i.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+                $i.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
                 $i
             }
 
@@ -125,7 +125,7 @@ InModuleScope JiraPS {
                         id      = $_id
                         RestUrl = "$jiraServer/rest/api/2/filter/$_id"
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
                     $object
                 }
             }
@@ -151,7 +151,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Filter"; type = "JiraPS.Filter" }
+                    @{ parameter = "Filter"; type = "AtlassianPS.JiraPS.Filter" }
                     @{ parameter = "Id"; type = "UInt32[]" }
                     @{ parameter = "Type"; type = "String" }
                     @{ parameter = "Value"; type = "String" }
@@ -161,7 +161,7 @@ InModuleScope JiraPS {
 
                     #ToDo:CustomClass
                     # This test is currently broken - can't validate type this way
-                    # can't use -Type with Should -HaveParameter as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
+                    # can't use -Type with Should -HaveParameter as long we are using `PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')`
                     (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
                 }
             }
@@ -231,7 +231,7 @@ InModuleScope JiraPS {
             }
 
             Context "Type Validation - Positive Cases" {
-                It "accepts JiraPS.Filter objects" {
+                It "accepts AtlassianPS.JiraPS.Filter objects" {
                     { Add-JiraFilterPermission -Filter (Get-JiraFilter -Id 1) -Type "Global" } | Should -Not -Throw
                 }
 
@@ -243,7 +243,7 @@ InModuleScope JiraPS {
             }
 
             Context "Pipeline Support" {
-                It "allows a JiraPS.Filter to be passed over the pipeline" {
+                It "allows a AtlassianPS.JiraPS.Filter to be passed over the pipeline" {
                     { Get-JiraFilter -Id 1 | Add-JiraFilterPermission -Type "Global" } | Should -Not -Throw
                 }
 

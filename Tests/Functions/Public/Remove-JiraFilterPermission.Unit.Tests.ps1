@@ -28,12 +28,12 @@ InModuleScope JiraPS {
                     $filterPermission2
                 )
             }
-            $fullFilter.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+            $fullFilter.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
             $script:basicFilter = New-Object -TypeName PSCustomObject -Property @{
                 Id      = 23456
                 RestUrl = "$jiraServer/rest/api/2/filter/23456"
             }
-            $basicFilter.PSObject.TypeNames.Insert(0, 'JiraPS.Filter')
+            $basicFilter.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
             #endregion Definitions
 
             #region Mocks

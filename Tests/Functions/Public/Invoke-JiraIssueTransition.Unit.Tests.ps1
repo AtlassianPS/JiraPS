@@ -68,19 +68,18 @@ InModuleScope JiraPS {
                 }
                 $t2.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
 
-                $object = [PSCustomObject] @{
+                $object = [AtlassianPS.JiraPS.Issue]@{
                     ID         = $issueID
                     Key        = $issueKey
                     RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
                     Transition = @($t1, $t2)
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
                 $object
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
-                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'Issue'
-                Get-JiraIssue -Key $Issue
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                Get-JiraIssue -Key $InputObject.Key
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
@@ -115,12 +114,12 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Issue"; type = "JiraPS.Issue" }
+                    @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
                     @{ parameter = "Transition"; type = "Object" }
                     @{ parameter = "Comment"; type = "String" }
-                    @{ parameter = "Assignee"; type = "String" }
+                    @{ parameter = "Assignee"; type = "User" }
                     @{ parameter = "Unassign"; type = "Switch" }
-                    @{ parameter = "Fields"; type = "Hashtable" }
+                    @{ parameter = "Fields"; type = "PSCustomObject" }
                     @{ parameter = "Passthru"; type = "Switch" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
@@ -240,7 +239,7 @@ InModuleScope JiraPS {
                 }
 
                 It "throws when -Assignee is given a whitespace-only string" {
-                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "   " } | Should -Throw -ExpectedMessage "*whitespace-only*"
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Assignee "   " } | Should -Throw -ExpectedMessage "*empty or whitespace*"
                 }
 
                 It "throws when -Assignee is given `$null" {
@@ -305,7 +304,7 @@ InModuleScope JiraPS {
                         'AccountId' = $testAccountId
                         'RestUrl'   = "$jiraServer/rest/api/2/user?username=$InputObject"
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     $object
                 }
             }

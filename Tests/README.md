@@ -222,7 +222,7 @@ InModuleScope JiraPS {
                 }
 
                 It "converts nested objects to proper types" {
-                    $result.author.PSObject.TypeNames[0] | Should -Be 'JiraPS.User'
+                    $result.author.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                 }
             }
 

@@ -44,7 +44,7 @@ InModuleScope JiraPS {
             Mock Get-JiraProject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project'
                 $Projects = ConvertFrom-Json $JiraProjectData
-                $Projects.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+                $Projects.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 $Projects | Where-Object { $_.Key -in $Project }
             }
 
@@ -60,7 +60,7 @@ InModuleScope JiraPS {
                         StartDate   = (Get-Date "2017-01-01")
                         RestUrl     = "$jiraServer/rest/api/2/version/$_Id"
                     }
-                    $Version.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+                    $Version.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Version')
                     $Version
                 }
             }
@@ -73,7 +73,7 @@ InModuleScope JiraPS {
                     Project = $InputObject.projectId
                     RestUrl = $InputObject.self
                 }
-                $result.PSObject.TypeNames.Insert(0, 'JiraPS.Version')
+                $result.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Version')
                 $result
             }
 
@@ -100,7 +100,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Version'; type = 'Object[]' }
+                    @{ parameter = 'Version'; type = 'AtlassianPS.JiraPS.Version[]' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                     @{ parameter = 'Force'; type = 'Switch' }
                 ) {

@@ -15,7 +15,7 @@ Adds a watcher to an existing JIRA issue
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueWatcher [-Watcher] <string[]> [-Issue] <Object> [[-Credential] <pscredential>]
+Add-JiraIssueWatcher [-Watcher] <string[]> [-Issue] <Issue> [[-Credential] <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -101,10 +101,10 @@ HelpMessage: ''
 
 Issue that should be watched.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -174,9 +174,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
-Pipe a JiraPS.Issue object to add a watcher to it.
+Pipe a AtlassianPS.JiraPS.Issue object to add a watcher to it.
 
 ## OUTPUTS
 

@@ -52,7 +52,7 @@ InModuleScope JiraPS {
                     $versions = Get-JiraVersion -Project $fixtures.TestProject
 
                     if ($versions) {
-                        @($versions)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Version'
+                        @($versions)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version'
                     }
                 }
             }
@@ -104,7 +104,7 @@ InModuleScope JiraPS {
                     $version = New-JiraVersion -Project $fixtures.TestProject -Name $versionName
                     $null = $script:createdVersions.Add($version)
 
-                    $version.PSObject.TypeNames[0] | Should -Be 'JiraPS.Version'
+                    $version.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version'
                 }
             }
 

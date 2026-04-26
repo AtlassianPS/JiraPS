@@ -101,7 +101,7 @@ HelpMessage: ''
 Object of the Filter from which to remove a permission.
 
 ```yaml
-Type: JiraPS.Filter
+Type: AtlassianPS.JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -192,9 +192,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Filter
+### AtlassianPS.JiraPS.Filter
 
-Pipe a JiraPS.Filter to remove all of its share permissions.
+Pipe a AtlassianPS.JiraPS.Filter to remove all of its share permissions.
 
 ## OUTPUTS
 

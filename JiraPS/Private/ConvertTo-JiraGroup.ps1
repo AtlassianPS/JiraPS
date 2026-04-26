@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraGroup {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Group])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,30 +9,29 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Group"
 
-            $props = @{
-                'Name'    = $i.name
-                'RestUrl' = $i.self
+            $hash = @{
+                Name    = $i.name
+                RestUrl = $i.self
             }
 
             if ($i.users) {
-                $props.Size = $i.users.size
+                if ($null -ne $i.users.size) {
+                    $size = 0
+                    if ([int]::TryParse([string]$i.users.size, [ref]$size)) {
+                        $hash.Size = $size
+                    }
+                }
 
                 if ($i.users.items) {
-                    $allUsers = [System.Collections.Generic.List[PSObject]]::new()
+                    $allUsers = [System.Collections.Generic.List[AtlassianPS.JiraPS.User]]::new()
                     $i.users.items.ForEach({ $allUsers.Add((ConvertTo-JiraUser -InputObject $_)) })
-                    $props.Member = $allUsers.ToArray()
+                    $hash.Member = $allUsers.ToArray()
                 }
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Group')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
-            }
-
-            Write-Output $result
+            [AtlassianPS.JiraPS.Group]$hash
         }
     }
 }

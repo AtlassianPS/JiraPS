@@ -58,7 +58,7 @@ InModuleScope JiraPS {
 
             It "returns the correct type" {
                 $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
-                $issue.PSObject.TypeNames[0] | Should -Be 'JiraPS.Issue'
+                $issue.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
             }
 
             It "includes the summary" {
@@ -110,7 +110,7 @@ InModuleScope JiraPS {
         }
 
         Context "Issue Object Input" {
-            It "accepts a JiraPS.Issue object via -InputObject" {
+            It "accepts a AtlassianPS.JiraPS.Issue object via -InputObject" {
                 $firstIssue = Get-JiraIssue -Key $fixtures["TestIssue"]
                 $refreshed = Get-JiraIssue -InputObject $firstIssue
                 $refreshed.Key | Should -Be $fixtures["TestIssue"]

@@ -96,7 +96,7 @@ InModuleScope JiraPS {
                     Name = 'Test Project'
                 }
                 Add-Member -InputObject $object -MemberType NoteProperty -Name "IssueTypes" -Value $issueObject
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Project')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 return $object
             }
         }

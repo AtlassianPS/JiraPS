@@ -29,7 +29,7 @@
                 }
             }
         )]
-        [PSTypeName('JiraPS.Filter')]
+        [PSTypeName('AtlassianPS.JiraPS.Filter')]
         $Filter,
 
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByFilterId' )]

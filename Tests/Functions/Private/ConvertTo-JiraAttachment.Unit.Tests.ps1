@@ -77,7 +77,7 @@ InModuleScope JiraPS {
                     @{ property = "Id"; type = [string]; value = '270709' }
                     @{ property = "FileName"; type = [string]; value = 'Nav2-HCF.PNG' }
                     @{ property = "self"; type = [string]; value = $null }
-                    @{ property = "Author"; type = 'JiraPS.User'; value = 'JonDoe' }
+                    @{ property = "Author"; type = 'AtlassianPS.JiraPS.User'; value = 'JonDoe' }
                     @{ property = "Created"; type = [System.DateTime]; value = (Get-Date "2017-05-30T13:20:34.0000000+02:00") }
                     @{ property = "Size"; type = [System.ValueType]; value = '366272' }
                     @{ property = "content"; type = [string]; value = $null }

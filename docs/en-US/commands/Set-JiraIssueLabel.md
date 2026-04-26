@@ -17,21 +17,21 @@ Modifies labels on an existing JIRA issue
 ### ReplaceLabels (Default)
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <Object[]> -Set <string[]> [-Credential <pscredential>] [-PassThru]
+Set-JiraIssueLabel [-Issue] <Issue> -Set <string[]> [-Credential <pscredential>] [-PassThru]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ModifyLabels
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <Object[]> [-Add <string[]>] [-Remove <string[]>]
+Set-JiraIssueLabel [-Issue] <Issue> [-Add <string[]>] [-Remove <string[]>]
  [-Credential <pscredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ClearLabels
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <Object[]> -Clear [-Credential <pscredential>] [-PassThru] [-WhatIf]
+Set-JiraIssueLabel [-Issue] <Issue> -Clear [-Credential <pscredential>] [-PassThru] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
@@ -164,10 +164,10 @@ HelpMessage: ''
 
 Issue of which the labels should be manipulated.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object[]
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -283,12 +283,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 
 ## OUTPUTS
 
-### JiraPS.Issue
+### AtlassianPS.JiraPS.Issue
 
 If the `-PassThru` parameter is provided, this function will provide a reference
 to the JIRA issue modified.

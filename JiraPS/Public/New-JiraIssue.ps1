@@ -23,29 +23,15 @@
         $Description,
 
         [Parameter( ValueFromPipelineByPropertyName )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
-                    throw "The -Reporter value cannot be a whitespace-only string. Omit the parameter to let Jira apply the default reporter."
-                }
-                $true
-            }
-        )]
-        [String]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
+        [AtlassianPS.JiraPS.User]
         $Reporter,
 
         [Parameter( ParameterSetName = 'AssignToUser', ValueFromPipelineByPropertyName )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if ($_ -is [string] -and [string]::IsNullOrWhiteSpace($_)) {
-                    throw "The -Assignee value cannot be a whitespace-only string. Use -Unassign to create the issue with no assignee, or omit -Assignee to let Jira apply the project default."
-                }
-                $true
-            }
-        )]
-        [Object]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
+        [AtlassianPS.JiraPS.User]
         $Assignee,
 
         [Parameter( ParameterSetName = 'Unassign' )]

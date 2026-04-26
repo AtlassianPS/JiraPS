@@ -49,23 +49,21 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key', 'Credential'
-                $object = [PSCustomObject] @{
-                    'id'      = $testJson.id
-                    'key'     = $testJson.key
-                    'restUrl' = $testJson.self
+                $object = [AtlassianPS.JiraPS.Issue]@{
+                    id      = $testJson.id
+                    key     = $testJson.key
+                    restUrl = $testJson.self
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
                 $object
             }
 
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject', 'Credential'
-                $object = [PSCustomObject] @{
-                    'id'      = $testJson.id
-                    'key'     = $testJson.key
-                    'restUrl' = $testJson.self
+                $object = [AtlassianPS.JiraPS.Issue]@{
+                    id      = $testJson.id
+                    key     = $testJson.key
+                    restUrl = $testJson.self
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Issue')
                 $object
             }
 
@@ -75,7 +73,7 @@ InModuleScope JiraPS {
                     'Name'    = $InputObject
                     'RestUrl' = "$jiraServer/rest/api/2/user?username=$InputObject"
                 }
-                $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                 $object
             }
 
@@ -130,10 +128,10 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Issue'; type = 'Object[]' }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
                     @{ parameter = 'Summary'; type = 'String' }
                     @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'Assignee'; type = 'Object' }
+                    @{ parameter = 'Assignee'; type = 'AtlassianPS.JiraPS.User' }
                     @{ parameter = 'Unassign'; type = 'Switch' }
                     @{ parameter = 'UseDefaultAssignee'; type = 'Switch' }
                     @{ parameter = 'Label'; type = 'String[]' }
@@ -275,7 +273,7 @@ InModuleScope JiraPS {
                 }
 
                 It "Throws when -Assignee is given a whitespace-only string" {
-                    { Set-JiraIssue -Issue "IT-3676" -Assignee "   " } | Should -Throw -ExpectedMessage "*whitespace-only*"
+                    { Set-JiraIssue -Issue "IT-3676" -Assignee "   " } | Should -Throw -ExpectedMessage "*empty or whitespace*"
                 }
 
                 It "Throws when -Assignee is given `$null" {
@@ -440,7 +438,7 @@ InModuleScope JiraPS {
                         'AccountId' = $testAccountId
                         'RestUrl'   = "$jiraServer/rest/api/2/user?username=$InputObject"
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     $object
                 }
             }

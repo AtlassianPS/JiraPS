@@ -9,7 +9,7 @@
                 $_input = $_
                 $propertyNames = $_input.PSObject.Properties.Name
                 switch ($true) {
-                    { ("JiraPS.Issue" -in $_input.PSObject.TypeNames) -and ("issueLinks" -in $propertyNames) } { return $true }
+                    { ("AtlassianPS.JiraPS.Issue" -in $_input.PSObject.TypeNames) -and ("issueLinks" -in $propertyNames) } { return $true }
                     { ("JiraPS.IssueLink" -in $_input.PSObject.TypeNames) -and ("Id" -in $propertyNames) } { return $true }
                     default {
                         $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
@@ -17,11 +17,11 @@
                         $errorCategory = 'InvalidArgument'
                         $errorTarget = $_input
                         $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                        $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($_input.GetType().Name)"
+                        $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [AtlassianPS.JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($_input.GetType().Name)"
                         $PSCmdlet.ThrowTerminatingError($errorItem)
                         <#
                           #ToDo:CustomClass
-                          Once we have custom classes, this check can be done with Type declaration
+                          Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
                         #>
                     }
                 }
@@ -47,10 +47,10 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         # As we are not able to use proper type casting in the parameters, this is a workaround
-        # to extract the data from a JiraPS.Issue object
+        # to extract the data from a AtlassianPS.JiraPS.Issue object
         <#
           #ToDo:CustomClass
-          Once we have custom classes, this will no longer be necessary
+          Now that we have custom classes, this Resolve-* shim could be replaced by a parameter set that takes [AtlassianPS.JiraPS.<Type>] directly
         #>
         if ($IssueLink.issueLinks) {
             $IssueLink = $IssueLink.issueLinks

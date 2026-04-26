@@ -3,29 +3,10 @@
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.User" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraUser'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for User. Expected [JiraPS.User] or [String], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Once we have custom classes, this check can be done with Type declaration
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
         [Alias('UserName')]
-        [Object[]]
+        [AtlassianPS.JiraPS.User]
         $User,
 
         [Parameter()]
@@ -60,22 +41,17 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        foreach ($_user in $User) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
+        $userObj = Resolve-JiraUser -InputObject $User -Credential $Credential -ErrorAction Stop
 
-            $userObj = Resolve-JiraUser -InputObject $_user -Credential $Credential -ErrorAction Stop
-
-            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
-            $parameter = @{
-                URI        = $resourceURi -f $userIdentifier
-                Method     = "DELETE"
-                Credential = $Credential
-            }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($userObj.DisplayName, 'Remove user')) {
-                Invoke-JiraMethod @parameter
-            }
+        $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
+        $parameter = @{
+            URI        = $resourceURi -f $userIdentifier
+            Method     = "DELETE"
+            Credential = $Credential
+        }
+        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        if ($PSCmdlet.ShouldProcess($userObj.DisplayName, 'Remove user')) {
+            Invoke-JiraMethod @parameter
         }
     }
 

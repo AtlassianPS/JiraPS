@@ -44,7 +44,7 @@ InModuleScope JiraPS {
                     $object = [PSCustomObject] @{
                         'Name' = "$user"
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                     Write-Output $object
                 }
             }
@@ -77,15 +77,15 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Group"; type = "Object" }
-                    @{ parameter = "UserName"; type = "Object" }
+                    @{ parameter = "Group"; type = "AtlassianPS.JiraPS.Group[]" }
+                    @{ parameter = "UserName"; type = "AtlassianPS.JiraPS.User[]" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                     @{ parameter = "Passthru"; type = "Switch" }
                 ) {
                     $command | Should -HaveParameter $parameter
 
                     #ToDo:CustomClass
-                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'JiraPS.Filter')`
+                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')`
                     (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
                 }
             }
@@ -199,7 +199,7 @@ InModuleScope JiraPS {
                             'Name'      = "$user"
                             'AccountId' = "abc123def456"
                         }
-                        $object.PSObject.TypeNames.Insert(0, 'JiraPS.User')
+                        $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                         Write-Output $object
                     }
                 }

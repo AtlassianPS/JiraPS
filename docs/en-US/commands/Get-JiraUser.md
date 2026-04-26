@@ -327,7 +327,7 @@ Username, name, or e-mail address
 
 ## OUTPUTS
 
-### JiraPS.User
+### AtlassianPS.JiraPS.User
 
 ## NOTES
 

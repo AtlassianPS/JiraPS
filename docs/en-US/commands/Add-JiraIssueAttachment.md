@@ -15,7 +15,7 @@ Adds a file attachment to an existing Jira Issue
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueAttachment [-Issue] <Object> [-FilePath] <string[]> [[-Credential] <pscredential>]
+Add-JiraIssueAttachment [-Issue] <Issue> [-FilePath] <string[]> [[-Credential] <pscredential>]
  [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -115,10 +115,10 @@ HelpMessage: ''
 
 Issue to which to attach the file.
 
-Can be a `JiraPS.Issue` object, issue key, or internal issue ID.
+Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Object
+Type: Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -127,8 +127,8 @@ ParameterSets:
 - Name: (All)
   Position: 0
   IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
   ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
