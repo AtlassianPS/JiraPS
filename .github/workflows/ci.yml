@@ -122,15 +122,57 @@ jobs:
           name: ${{ matrix.name }}-Unit-Tests
           path: Test*.xml
 
+  smoke_tests:
+    name: Smoke Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    # Skip on fork PRs and Dependabot PRs: the JIRA_CLOUD_* secrets are not
+    # exposed in those contexts and the smoke run would fail. The ci-required
+    # aggregator below treats skipped jobs as a pass, so fork PRs still get
+    # a green CI Result. First-party PRs and pushes to master gate on the
+    # smoke result, which in turn gates release.yml's artifact download
+    # (workflow_conclusion: success).
+    if: github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'dependabot[bot]')
+    env:
+      JIRA_CLOUD_URL: ${{ secrets.JIRA_CLOUD_URL }}
+      JIRA_CLOUD_USERNAME: ${{ secrets.JIRA_CLOUD_USERNAME }}
+      JIRA_CLOUD_PASSWORD: ${{ secrets.JIRA_CLOUD_PASSWORD }}
+      JIRA_TEST_PROJECT: ${{ secrets.JIRA_TEST_PROJECT }}
+      JIRA_TEST_ISSUE: ${{ secrets.JIRA_TEST_ISSUE }}
+      JIRA_TEST_USER: ${{ secrets.JIRA_TEST_USER }}
+      JIRA_TEST_GROUP: ${{ secrets.JIRA_TEST_GROUP }}
+      JIRA_TEST_FILTER: ${{ secrets.JIRA_TEST_FILTER }}
+      JIRA_TEST_VERSION: ${{ secrets.JIRA_TEST_VERSION }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-powershell
+
+      - run: |
+          Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed
+        shell: pwsh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Smoke-Tests
+          path: IntegrationTests.xml
+        if: always()
+
   # Sentinel job that always runs and aggregates the result of the pipeline.
   # Branch protection should require ONLY this check (`CI / CI Result`),
   # not the individual jobs. That way a docs-only PR (where lint/build/test
   # are skipped via paths-ignore) still produces a green required check
-  # and can be merged.
+  # and can be merged. Smoke tests are part of the gate: they run on
+  # first-party PRs and on every push to master, and skip (without failing
+  # the gate) on fork/Dependabot PRs where Jira Cloud secrets are not
+  # exposed. release.yml downloads the Release artifact with
+  # workflow_conclusion: success, so any smoke failure here blocks the
+  # release.
   ci-required:
     name: CI Result
     if: always()
-    needs: [lint, build, test_windows_ps5, test_pwsh]
+    needs: [lint, build, test_windows_ps5, test_pwsh, smoke_tests]
     runs-on: ubuntu-latest
     steps:
       - name: Aggregate job results

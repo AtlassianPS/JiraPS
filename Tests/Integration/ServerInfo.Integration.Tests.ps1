@@ -10,7 +10,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Server Information" -Tag 'Integration', 'Smoke' -Skip:$Skip {
+    Describe "Server Information" -Tag 'Integration', 'Smoke', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
@@ -53,8 +53,16 @@ InModuleScope JiraPS {
                 $serverInfo.Version | Should -Not -BeNullOrEmpty
             }
 
-            It "identifies as Cloud deployment" {
-                $serverInfo.DeploymentType | Should -Be 'Cloud'
+            It "identifies the correct deployment type" {
+                # `Get-JiraServerInformation` returns 'Cloud' when the underlying
+                # `/serverInfo` payload includes `deploymentType: Cloud` (Atlassian
+                # Cloud), and 'Server' for Data Center / on-prem. The Server-tagged
+                # CI run boots the moveworkforward AMPS image — which is on-prem
+                # Jira and therefore correctly reports 'Server'. Pick the expected
+                # value off the same `IsCloud` flag that `Initialize-IntegrationEnvironment`
+                # uses to drive the rest of the deployment-aware fixtures.
+                $expected = if ($fixtures.IsCloud) { 'Cloud' } else { 'Server' }
+                $serverInfo.DeploymentType | Should -Be $expected
             }
 
             It "includes build information" {

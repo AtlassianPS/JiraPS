@@ -21,7 +21,7 @@ BeforeDiscovery {
     $script:moduleToTest = Initialize-TestEnvironment
 }
 
-Describe "Integration Test Configuration" -Tag 'Integration', 'Smoke' {
+Describe "Integration Test Configuration" -Tag 'Integration', 'Smoke', 'Cloud' {
 
     BeforeAll {
         . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
