@@ -34,8 +34,8 @@
             $Query.TrimStart("?").Split("&") | ForEach-Object {
                 $key, $value = $_.Split('=', 2)
                 if (-not [String]::IsNullOrEmpty($key)) {
-                    $decodedKey = [System.Web.HttpUtility]::UrlDecode($key)
-                    $decodedValue = if ($null -eq $value) { $null } else { [System.Web.HttpUtility]::UrlDecode($value) }
+                    $decodedKey = ConvertFrom-URLEncoded $key
+                    $decodedValue = if ([String]::IsNullOrEmpty($value)) { $value } else { ConvertFrom-URLEncoded $value }
                     $GetParameter[$decodedKey] = $decodedValue
                 }
             }
