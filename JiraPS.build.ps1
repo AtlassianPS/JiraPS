@@ -597,7 +597,7 @@ See Tests/Integration/README.md for integration test configuration details.
     $runnerParams = @{
         ThrottleLimit = $ThrottleLimit
         Output        = $PesterVerbosity
-        OutputPath    = "IntegrationTests.xml"
+        OutputPath    = "Test-Integration.xml"
     }
 
     if ($IntegrationTestPath) {
