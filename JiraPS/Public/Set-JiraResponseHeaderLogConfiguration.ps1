@@ -39,11 +39,10 @@
         }
     }
     else {
-        $wildcardOptions = [System.Management.Automation.WildcardOptions]::IgnoreCase
         [PSCustomObject]@{
             Mode    = 'Wildcard'
-            Include = @($Include | ForEach-Object { [System.Management.Automation.WildcardPattern]::new($_, $wildcardOptions) })
-            Exclude = @($Exclude | ForEach-Object { [System.Management.Automation.WildcardPattern]::new($_, $wildcardOptions) })
+            Include = [String[]]$Include
+            Exclude = [String[]]$Exclude
         }
     }
 

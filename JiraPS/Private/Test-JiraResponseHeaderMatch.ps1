@@ -15,14 +15,21 @@
         return $Configuration.Pattern.IsMatch($Name)
     }
 
+    $wildcardOptions = [System.Management.Automation.WildcardOptions]::IgnoreCase
+
     $included = $false
     foreach ($p in $Configuration.Include) {
-        if ($p.IsMatch($Name)) { $included = $true; break }
+        if ([System.Management.Automation.WildcardPattern]::new($p, $wildcardOptions).IsMatch($Name)) {
+            $included = $true
+            break
+        }
     }
     if (-not $included) { return $false }
 
     foreach ($p in $Configuration.Exclude) {
-        if ($p.IsMatch($Name)) { return $false }
+        if ([System.Management.Automation.WildcardPattern]::new($p, $wildcardOptions).IsMatch($Name)) {
+            return $false
+        }
     }
 
     $true

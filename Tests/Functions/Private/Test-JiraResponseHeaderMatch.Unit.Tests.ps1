@@ -9,16 +9,10 @@ BeforeDiscovery {
 InModuleScope JiraPS {
     Describe "Test-JiraResponseHeaderMatch" -Tag 'Unit' {
         BeforeAll {
-            $wildcardOptions = [System.Management.Automation.WildcardOptions]::IgnoreCase
-
             $script:wildcardConfig = [PSCustomObject]@{
                 Mode    = 'Wildcard'
-                Include = @(
-                    [System.Management.Automation.WildcardPattern]::new('X-A*', $wildcardOptions)
-                )
-                Exclude = @(
-                    [System.Management.Automation.WildcardPattern]::new('X-Auth*', $wildcardOptions)
-                )
+                Include = @('X-A*')
+                Exclude = @('X-Auth*')
             }
 
             $script:regexConfig = [PSCustomObject]@{

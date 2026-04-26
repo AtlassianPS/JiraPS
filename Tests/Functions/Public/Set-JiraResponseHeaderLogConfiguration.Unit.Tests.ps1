@@ -34,7 +34,7 @@ InModuleScope JiraPS {
         }
 
         Describe "Wildcard Configuration" {
-            It "stores precompiled Include and Exclude patterns" {
+            It "stores Include and Exclude patterns that drive the matcher" {
                 Set-JiraResponseHeaderLogConfiguration -Include 'X-A*' -Exclude 'X-Auth*'
 
                 $config = $script:JiraResponseHeaderLogConfiguration
@@ -42,6 +42,14 @@ InModuleScope JiraPS {
                 Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-AREQUESTID' | Should -BeTrue
                 Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-Auth-Token' | Should -BeFalse
                 Test-JiraResponseHeaderMatch -Configuration $config -Name 'Server' | Should -BeFalse
+            }
+
+            It "exposes the original Include and Exclude strings on the configuration" {
+                Set-JiraResponseHeaderLogConfiguration -Include 'X-A*', 'X-Trace-*' -Exclude 'X-Auth*'
+
+                $config = $script:JiraResponseHeaderLogConfiguration
+                $config.Include | Should -Be @('X-A*', 'X-Trace-*')
+                $config.Exclude | Should -Be @('X-Auth*')
             }
 
             It "accepts multiple Include patterns" {
@@ -80,6 +88,13 @@ InModuleScope JiraPS {
                 $config.Mode | Should -Be 'Regex'
                 Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-AREQUESTID' | Should -BeTrue
                 Test-JiraResponseHeaderMatch -Configuration $config -Name 'X-Auth-Token' | Should -BeFalse
+            }
+
+            It "exposes the regex pattern on the configuration via ToString" {
+                Set-JiraResponseHeaderLogConfiguration -Pattern '^X-A'
+
+                $config = $script:JiraResponseHeaderLogConfiguration
+                $config.Pattern.ToString() | Should -Be '^X-A'
             }
 
             It "warns when the pattern may log sensitive headers" {
