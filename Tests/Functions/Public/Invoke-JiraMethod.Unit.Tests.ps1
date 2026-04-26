@@ -103,7 +103,8 @@ InModuleScope JiraPS {
                     [Parameter(Mandatory)][uri] $Uri,
                     [string] $Method,
                     $Body,
-                    [hashtable] $Headers
+                    [hashtable] $Headers,
+                    [hashtable] $ResponseHeaders = @{}
                 )
 
                 $statusCode = if ($Uri.AbsolutePath -match '/status/(\d+)') {
@@ -136,7 +137,7 @@ InModuleScope JiraPS {
                     StatusCode       = $statusCode
                     Content          = $json
                     RawContentStream = [System.IO.MemoryStream]::new($bytes)
-                    Headers          = $Headers
+                    Headers          = $ResponseHeaders
                 }
             }
 
@@ -172,6 +173,7 @@ InModuleScope JiraPS {
                     @{ parameter = 'OutputType' }
                     @{ parameter = 'Credential' }
                     @{ parameter = 'CmdLet' }
+                    @{ parameter = 'TimeoutSec' }
                 ) {
                     param($parameter)
                     $command | Should -HaveParameter $parameter
@@ -226,6 +228,98 @@ InModuleScope JiraPS {
                 Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
 
                 Should -Invoke -CommandName Resolve-DefaultParameterValue -ModuleName 'JiraPS' -Exactly -Times 1
+            }
+
+            It "does not log response headers before logging is configured" {
+                Mock Invoke-WebRequest -ModuleName 'JiraPS' {
+                    New-FakeEchoResponse -Uri $Uri -Method $Method -Body $Body -Headers $Headers -ResponseHeaders @{
+                        'X-AREQUESTID' = 'request-123'
+                    }
+                }
+                Mock Write-DebugMessage -ModuleName 'JiraPS' {}
+
+                $script:JiraResponseHeaderLogConfiguration = $null
+                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+
+                Should -Invoke -CommandName Write-DebugMessage -ModuleName 'JiraPS' -ParameterFilter {
+                    $Message -like '*Jira response headers*'
+                } -Exactly -Times 0
+            }
+
+            It "logs configured response headers from successful responses" {
+                Mock Invoke-WebRequest -ModuleName 'JiraPS' {
+                    New-FakeEchoResponse -Uri $Uri -Method $Method -Body $Body -Headers $Headers -ResponseHeaders @{
+                        'X-AREQUESTID' = 'request-123'
+                        'X-Auth-Token' = 'secret'
+                        'Set-Cookie'   = 'cookie=value'
+                    }
+                }
+                Mock Write-DebugMessage -ModuleName 'JiraPS' {}
+
+                Set-JiraResponseHeaderLogConfiguration -Include 'X-A*' -Exclude 'X-Auth*'
+                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+
+                Should -Invoke -CommandName Write-DebugMessage -ModuleName 'JiraPS' -ParameterFilter {
+                    $Message -like '*Jira response headers*'
+                } -Exactly -Times 1
+                Should -Invoke -CommandName Write-DebugMessage -ModuleName 'JiraPS' -ParameterFilter {
+                    $Message -like '*X-AREQUESTID*request-123*' -and
+                    $Message -notlike '*secret*' -and
+                    $Message -notlike '*cookie=value*'
+                } -Exactly -Times 1
+            }
+
+            It "logs configured response headers from terminal error responses" {
+                Mock Invoke-WebRequest -ModuleName 'JiraPS' {
+                    New-FakeEchoResponse -Uri ([Uri]'https://postman-echo.com/status/400') -Method $Method -Body $Body -Headers $Headers -ResponseHeaders @{
+                        'X-AREQUESTID' = 'failed-request-123'
+                    }
+                }
+                Mock Write-DebugMessage -ModuleName 'JiraPS' {}
+
+                Set-JiraResponseHeaderLogConfiguration -Pattern '^X-A(?!uth)'
+                Invoke-JiraMethod -URI "https://postman-echo.com/status/400" -ErrorAction Stop
+
+                Should -Invoke -CommandName Write-DebugMessage -ModuleName 'JiraPS' -ParameterFilter {
+                    $Message -like '*X-AREQUESTID*failed-request-123*'
+                } -Exactly -Times 1
+            }
+
+            It "always suppresses cookie and authorization response headers even when configured" {
+                Mock Invoke-WebRequest -ModuleName 'JiraPS' {
+                    New-FakeEchoResponse -Uri $Uri -Method $Method -Body $Body -Headers $Headers -ResponseHeaders @{
+                        'Set-Cookie'          = 'sid=cookie-secret'
+                        'Set-Cookie2'         = 'session=cookie2-secret'
+                        'Authorization'       = 'Bearer auth-secret'
+                        'Proxy-Authorization' = 'Basic proxy-secret'
+                        'X-ANODEID'           = 'node-1'
+                    }
+                }
+                Mock Write-DebugMessage -ModuleName 'JiraPS' {}
+
+                Set-JiraResponseHeaderLogConfiguration -Include '*'
+                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+
+                Should -Invoke -CommandName Write-DebugMessage -ModuleName 'JiraPS' -ParameterFilter {
+                    $Message -like '*X-ANODEID*node-1*' -and
+                    $Message -notlike '*cookie-secret*' -and
+                    $Message -notlike '*cookie2-secret*' -and
+                    $Message -notlike '*auth-secret*' -and
+                    $Message -notlike '*proxy-secret*'
+                } -Exactly -Times 1
+            }
+
+            It "does not derail the main flow when response-header logging fails" {
+                Mock Invoke-WebRequest -ModuleName 'JiraPS' {
+                    New-FakeEchoResponse -Uri $Uri -Method $Method -Body $Body -Headers $Headers -ResponseHeaders @{
+                        'X-ANODEID' = 'node-1'
+                    }
+                }
+                Mock Write-JiraResponseHeaderLog -ModuleName 'JiraPS' { throw 'boom' }
+
+                Set-JiraResponseHeaderLogConfiguration -Include '*'
+
+                { Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop } | Should -Not -Throw
             }
         }
 
@@ -375,6 +469,35 @@ InModuleScope JiraPS {
                     Scope           = 'It'
                 }
                 Should -Invoke @assertMockCalledSplat
+            }
+
+            It "forwards the default 100s -TimeoutSec to Invoke-WebRequest" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/get" -ErrorAction Stop
+
+                Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
+                    $TimeoutSec -eq 100
+                } -Exactly -Times 1 -Scope It
+            }
+
+            It "forwards an explicit -TimeoutSec to Invoke-WebRequest" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/get" -TimeoutSec 30 -ErrorAction Stop
+
+                Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
+                    $TimeoutSec -eq 30
+                } -Exactly -Times 1 -Scope It
+            }
+
+            It "omits TimeoutSec from the Invoke-WebRequest splat when -TimeoutSec is 0" {
+                Invoke-JiraMethod -URI "https://postman-echo.com/get" -TimeoutSec 0 -ErrorAction Stop
+
+                Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
+                    -not $PSBoundParameters.ContainsKey('TimeoutSec')
+                } -Exactly -Times 1 -Scope It
+            }
+
+            It "rejects a negative -TimeoutSec via ValidateRange" {
+                { Invoke-JiraMethod -URI "https://postman-echo.com/get" -TimeoutSec -1 -ErrorAction Stop } |
+                    Should -Throw -ErrorId 'ParameterArgumentValidationError,Invoke-JiraMethod'
             }
 
             It "uses ConvertTo-JiraSession to store the Session" {

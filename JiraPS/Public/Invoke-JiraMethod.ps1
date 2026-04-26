@@ -67,7 +67,12 @@
 
         [Parameter()]
         [Switch]
-        $BypassCache
+        $BypassCache,
+
+        [Parameter()]
+        [ValidateRange(0, [int]::MaxValue)]
+        [Int]
+        $TimeoutSec = 100
     )
 
     begin {
@@ -184,6 +189,10 @@
             Verbose         = $false
         }
 
+        if ($TimeoutSec -gt 0) {
+            $splatParameters["TimeoutSec"] = $TimeoutSec
+        }
+
         if ($_headers.ContainsKey("Content-Type")) {
             $splatParameters["ContentType"] = $_headers["Content-Type"]
             $splatParameters["Headers"].Remove("Content-Type")
@@ -249,6 +258,11 @@
             $PSBoundParameters['_RetryCount'] = $_RetryCount + 1
             Invoke-JiraMethod @PSBoundParameters
             return
+        }
+        if ($script:JiraResponseHeaderLogConfiguration) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Jira response headers"
+            try { Write-JiraResponseHeaderLog -InputObject $webResponse }
+            catch { Write-Debug "[$($MyInvocation.MyCommand.Name)] Failed to log response headers: $_" }
         }
         #endregion Execute the actual query
     }

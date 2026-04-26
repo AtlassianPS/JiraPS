@@ -14,7 +14,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "New-JiraIssue" -Tag 'Integration', 'Smoke' -Skip:$Skip {
+    Describe "New-JiraIssue" -Tag 'Integration', 'Smoke', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
@@ -46,14 +46,27 @@ InModuleScope JiraPS {
         }
 
         Context "Basic Issue Creation" -Skip:$SkipWrite {
+            # `Get-MinimumValidIssueParameter` adapts the create payload to the
+            # project's actual field configuration: a no-op against the Cloud
+            # Task project, but on the Server track's `jira-core-task-management`
+            # template it auto-supplies tightened `required: true,
+            # hasDefaultValue: false` fields (Reporter on the moveworkforward
+            # AMPS image, sometimes Priority). Without it these tests would
+            # throw `ParameterValue.CreateMetaFailure` from `New-JiraIssue`'s
+            # client-side validator before ever hitting the wire, even though
+            # the create itself is well-formed for the Cloud baseline.
             It "creates a new issue with required fields" {
                 if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
                     Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                     return
                 }
                 $summary = New-TestResourceName -Type "Issue"
+                $extras = Get-MinimumValidIssueParameter -Fixtures $fixtures
+                $params = @{ Project = $fixtures.TestProject; IssueType = 'Task'; Summary = $summary }
+                if ($extras.Reporter) { $params.Reporter = $extras.Reporter }
+                if ($extras.Fields -and $extras.Fields.Count -gt 0) { $params.Fields = $extras.Fields }
 
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                $issue = New-JiraIssue @params
                 $null = $script:createdIssues.Add($issue.Key)
 
                 $issue | Should -Not -BeNullOrEmpty
@@ -68,8 +81,12 @@ InModuleScope JiraPS {
                 }
                 $summary = New-TestResourceName -Type "IssueDesc"
                 $description = "This is a test description created by JiraPS integration tests."
+                $extras = Get-MinimumValidIssueParameter -Fixtures $fixtures -SkipFieldId @('description')
+                $params = @{ Project = $fixtures.TestProject; IssueType = 'Task'; Summary = $summary; Description = $description }
+                if ($extras.Reporter) { $params.Reporter = $extras.Reporter }
+                if ($extras.Fields -and $extras.Fields.Count -gt 0) { $params.Fields = $extras.Fields }
 
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary -Description $description
+                $issue = New-JiraIssue @params
                 $null = $script:createdIssues.Add($issue.Key)
 
                 $issue | Should -Not -BeNullOrEmpty
@@ -82,7 +99,12 @@ InModuleScope JiraPS {
                     return
                 }
                 $summary = New-TestResourceName -Type "IssueType"
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                $extras = Get-MinimumValidIssueParameter -Fixtures $fixtures
+                $params = @{ Project = $fixtures.TestProject; IssueType = 'Task'; Summary = $summary }
+                if ($extras.Reporter) { $params.Reporter = $extras.Reporter }
+                if ($extras.Fields -and $extras.Fields.Count -gt 0) { $params.Fields = $extras.Fields }
+
+                $issue = New-JiraIssue @params
                 $null = $script:createdIssues.Add($issue.Key)
 
                 $issue.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
@@ -96,7 +118,12 @@ InModuleScope JiraPS {
                     return
                 }
                 $summary = New-TestResourceName -Type "Task"
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
+                $extras = Get-MinimumValidIssueParameter -Fixtures $fixtures
+                $params = @{ Project = $fixtures.TestProject; IssueType = 'Task'; Summary = $summary }
+                if ($extras.Reporter) { $params.Reporter = $extras.Reporter }
+                if ($extras.Fields -and $extras.Fields.Count -gt 0) { $params.Fields = $extras.Fields }
+
+                $issue = New-JiraIssue @params
                 $null = $script:createdIssues.Add($issue.Key)
 
                 $issue.IssueType.Name | Should -Be 'Task'
@@ -113,8 +140,14 @@ InModuleScope JiraPS {
                 $fields = @{
                     description = "Description set via Fields parameter"
                 }
+                $extras = Get-MinimumValidIssueParameter -Fixtures $fixtures -SkipFieldId @('description')
+                if ($extras.Fields) {
+                    foreach ($k in $extras.Fields.Keys) { $fields[$k] = $extras.Fields[$k] }
+                }
+                $params = @{ Project = $fixtures.TestProject; IssueType = 'Task'; Summary = $summary; Fields = $fields }
+                if ($extras.Reporter) { $params.Reporter = $extras.Reporter }
 
-                $issue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary -Fields $fields
+                $issue = New-JiraIssue @params
                 $null = $script:createdIssues.Add($issue.Key)
 
                 $issue | Should -Not -BeNullOrEmpty

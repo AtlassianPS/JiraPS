@@ -20,7 +20,6 @@ InModuleScope JiraPS {
                 Name      = 'TUser1'
             }
             $script:group = 'groupA'
-            $script:groupEscaped = ConvertTo-URLEncoded $group
             $script:response = @'
 {
     'expand': 'schema,names',
@@ -144,7 +143,7 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like '*rest/api/*/filter/search*' -and
-                        $GetParameter['groupName'] -eq $groupEscaped
+                        $GetParameter['groupName'] -eq $group
                     } -Exactly 1
                 }
 
@@ -212,7 +211,7 @@ InModuleScope JiraPS {
                         $Method -eq 'Get' -and
                         $URI -like '*rest/api/*/filter/search*' -and
                         $GetParameter['accountId'] -eq $mockowner.AccountId -and
-                        $GetParameter['groupName'] -eq $groupEscaped -and
+                        $GetParameter['groupName'] -eq $group -and
                         $GetParameter['projectId'] -eq '1'
                     } -Exactly 1
                 }

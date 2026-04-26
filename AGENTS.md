@@ -303,6 +303,13 @@ Invoke-Build -Task TestIntegration                   # Integration tests (needs 
 Invoke-Build -Task TestIntegration -Tag 'Smoke'      # Smoke subset only
 ```
 
+The integration suite has two tracks:
+
+- **Cloud** (default) — runs against a live Atlassian Cloud instance via `JIRA_CLOUD_*` secrets.
+- **Server** — runs against a Dockerized Jira Data Center (`moveworkforward/atlas-run-standalone:jira-11`); no secrets needed. Switch tracks by setting `CI_JIRA_TYPE=Server` and filtering with `-Tag 'Server'`.
+
+See [`Tests/Integration/README.md`](Tests/Integration/README.md) for the local quickstart and full track guide.
+
 The `Publish` task (PowerShell Gallery upload) is reserved for release tags.
 
 See [`powershell-rules.md` → Running Tests](.github/ai-context/powershell-rules.md#running-tests) for the full task list and common mistakes.
@@ -481,8 +488,10 @@ Follow the [`powershell-rules.md` Review Checklist](.github/ai-context/powershel
 
 ## CI/CD & Workflows
 
-- `ci.yml` — runs on PR/push to `master`; pipeline is **Lint → Build → Test** (fail-fast). Lint = PSScriptAnalyzer + style checks (Ubuntu). Build compiles to `Release/` (Ubuntu). Test runs against the artifact on Windows PS 5.1, Windows PS 7, Ubuntu, and macOS. A `CI Result` sentinel job aggregates the pipeline result — branch protection should require **only that** check (so docs-only PRs that skip the pipeline can still merge).
-- `integration_tests.yml` — `Smoke`-tagged tests on every PR; full suite on schedule, `workflow_dispatch`, or PRs labeled `run-integration-tests` (requires Jira Cloud secrets). The `TestIntegration` build task validates required env vars and fails early if any are missing.
+- `ci.yml` — runs on PR/push to `master`; pipeline is **Lint → Build → Test** + **Smoke** (Cloud `Smoke`-tagged subset). Lint = PSScriptAnalyzer + style checks (Ubuntu). Build compiles to `Release/` (Ubuntu). Test runs against the artifact on Windows PS 5.1, Windows PS 7, Ubuntu, and macOS. Smoke runs in parallel after lint, against Jira Cloud; it skips (without failing the gate) on fork / Dependabot PRs where secrets are unavailable. A `CI Result` sentinel job aggregates the pipeline result — branch protection should require **only that** check, and `release.yml` consumes the same aggregator via `workflow_conclusion: success`, so a smoke failure also blocks releases.
+- `integration_tests.yml` — two parallel jobs that share a nightly cron (`0 5 * * *`) + manual `workflow_dispatch` (with an optional `track` input to dispatch one or both):
+  - `cloud_integration_tests` — full Cloud suite. Per-PR Cloud coverage is the Smoke job in `ci.yml`. The `TestIntegration` build task validates required env vars and fails early if any are missing.
+  - `server_integration_tests` — `Server`-tagged suite against a Dockerized Jira Data Center (`moveworkforward/atlas-run-standalone:jira-11`). **Never wired up to PRs**: the cold-boot cost (~25 min) is too expensive for per-PR feedback; PR-level Server coverage comes from the Server-tagged unit suites in `ci.yml`. Use `gh workflow run "Integration Tests" --ref <branch> -f track=server` to trigger on demand when working on a Server-track change.
 - `release.yml` — runs on `v*` tags, downloads the `Release` artifact produced by `ci.yml` for the tagged commit, publishes to PSGallery, and creates a GitHub Release.
 - Workflow source: [`.github/workflows/`](.github/workflows/); shared setup: [`.github/actions/setup-powershell/`](.github/actions/setup-powershell/) (caller must run `actions/checkout` first).
 
