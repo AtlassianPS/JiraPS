@@ -13,7 +13,7 @@ The integration suite has two deployment targets:
 
 | Track | Target | Auth | Trigger |
 |-------|--------|------|---------|
-| **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | `.github/workflows/integration_tests.yml` (PR + scheduled) |
+| **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | Smoke gated per-PR + push by `.github/workflows/ci.yml`; full suite by `.github/workflows/integration_tests.yml` (scheduled + manual) |
 | **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `.github/workflows/jira_server_ci.yml` (scheduled + manual `workflow_dispatch` only — the ~25 min cold-boot cost is too expensive to gate every PR on) |
 
 > **Local prerequisite — Docker memory.** The container asks for a 4 GiB Java heap and needs ~1 GiB of base overhead, so allocate **at least 6 GiB** to Docker Desktop in *Settings > Resources* before running locally. CI runners (~7 GiB) have enough headroom out of the box.
@@ -61,10 +61,11 @@ Locally, `Wait-JiraServer.ps1` cannot write to `$GITHUB_ENV` (which only exists 
 
 ### CI scheduling
 
-| Workflow | Cron | Notes |
-|----------|------|-------|
-| `integration_tests.yml` (Cloud) | `0 6 * * *` | Smoke on every PR; full suite on label / schedule |
-| `jira_server_ci.yml` (Server) | `0 5 * * *` | Nightly + manual `workflow_dispatch` only — never on PRs (~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`). Single 25-minute job per run; Jira boot dominates wall time |
+| Workflow | Trigger | Notes |
+|----------|---------|-------|
+| `ci.yml` smoke job (Cloud) | every PR + every push to `master` | Skipped on fork / Dependabot PRs (no secrets); gates `release.yml` via the `CI Result` aggregator (`workflow_conclusion: success`) |
+| `integration_tests.yml` (Cloud) | `0 6 * * *` + manual `workflow_dispatch` | Full Cloud suite — scheduled + manual only; PR-level coverage is the smoke job above |
+| `jira_server_ci.yml` (Server) | `0 5 * * *` + manual `workflow_dispatch` | Never on PRs — ~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`. Jira boot dominates wall time |
 
 ## Prerequisites
 
@@ -390,15 +391,17 @@ Context "Write Operations" -Skip:($fixtures.ReadOnly) {
 
 ## CI/CD
 
-Integration tests have a dedicated workflow (`.github/workflows/integration_tests.yml`) separate from the unit test workflow.
+Cloud smoke runs as part of the standard `.github/workflows/ci.yml` pipeline; the full Cloud suite has its own `.github/workflows/integration_tests.yml` workflow on a nightly cron.
 
 ### Workflow Triggers
 
-| Trigger | Smoke Tests | Full Integration Tests |
-|---------|-------------|------------------------|
-| Pull Request | ✅ | ❌ (add `run-integration-tests` label) |
-| Nightly (6 AM UTC) | ✅ | ✅ |
-| Manual (`workflow_dispatch`) | ✅ | ✅ |
+| Trigger | Smoke (`ci.yml`) | Full Integration (`integration_tests.yml`) |
+|---------|------------------|--------------------------------------------|
+| Pull Request (first-party) | ✅ | ❌ — use `workflow_dispatch` to opt in |
+| Pull Request (fork / Dependabot) | ⚪ skipped (no secrets) | ❌ |
+| Push to `master` | ✅ | ❌ |
+| Nightly (6 AM UTC) | — | ✅ (smoke is a subset of full, so covered) |
+| Manual (`workflow_dispatch`) | re-run via Actions UI | ✅ |
 
 ### Required Secrets
 
@@ -420,11 +423,11 @@ If secrets are not configured, integration tests are skipped automatically.
 
 ### Running Full Integration Tests on PRs
 
-To run full integration tests on a pull request:
+To run the full Cloud suite against an in-flight PR, dispatch the workflow manually:
 
-1. Add the label `run-integration-tests` to the PR
-2. The integration workflow will run automatically
-3. Remove the label after tests complete (optional)
+1. Open the **Actions** tab → **Integration Tests** workflow.
+2. Click **Run workflow** and pick the PR's branch.
+3. Inspect the run in the same workflow's history — results upload as the `Integration-Tests` artifact.
 
 ### Workflow Features
 
