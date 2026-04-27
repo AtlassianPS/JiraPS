@@ -69,8 +69,7 @@ GEMINI.md                           # Antigravity entry point
 ├── copilot-instructions.md         # Copilot Chat entry point
 ├── ai-context/                     # Shared context (tool-agnostic)
 │   ├── powershell-rules.md         # PowerShell + Cloud/DC rules
-│   ├── releasing.md                # Release procedure
-│   └── jira-api-implementation-gap.md  # Historical Cloud/DC audit
+│   └── releasing.md                # Release procedure
 └── instructions/                   # Copilot file-pattern rules
     └── *.instructions.md
 ```
