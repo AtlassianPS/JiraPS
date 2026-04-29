@@ -111,7 +111,6 @@ InModuleScope JiraPS {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 -PassThru } | Should -Not -Throw
 
-                Should -Invoke -CommandName Get-JiraGroup -Exactly -Times 2
                 Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 2
                 Should -Invoke -CommandName Get-JiraUser -Exactly -Times 2
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {

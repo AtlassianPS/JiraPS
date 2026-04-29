@@ -55,9 +55,6 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
-            # $groupMembers = (Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop).Name
-
             foreach ($_user in $User) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
@@ -66,19 +63,19 @@
 
                 $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
                 $parameter = @{
-                    URI        = $resourceURi -f $groupObj.Name, $userIdentifier
+                    URI        = $resourceURi -f $_group.Name, $userIdentifier
                     Method     = "DELETE"
                     Credential = $Credential
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove $($userObj.DisplayName) from group")) {
+                if ($PSCmdlet.ShouldProcess($_group.Name, "Remove $($userObj.DisplayName) from group")) {
                     Invoke-JiraMethod @parameter
                 }
                 # }
             }
 
             if ($PassThru) {
-                Write-Output (Get-JiraGroup -InputObject $groupObj -Credential $Credential)
+                Write-Output $_group
             }
         }
     }

@@ -10,7 +10,7 @@ BeforeDiscovery {
     if (-not $Skip) {
         $testEnv = Initialize-IntegrationEnvironment
         $script:SkipWrite = $testEnv.ReadOnly
-        $script:SkipVersionTests = [string]::IsNullOrEmpty($testEnv.TestVersion)
+        $script:SkipVersionTests = $testEnv.ReadOnly -and [string]::IsNullOrEmpty($testEnv.TestVersion)
     }
 }
 
@@ -23,11 +23,37 @@ InModuleScope JiraPS {
             $script:session = Connect-JiraTestServer -Environment $env
             $script:fixtures = Get-TestFixture -Environment $env
             $script:createdVersions = [System.Collections.ArrayList]::new()
+            $script:specificVersionName = $fixtures.TestVersion
+
+            if (-not $script:specificVersionName) {
+                if ($env.ReadOnly) {
+                    throw "Versions.Integration.Tests.ps1 requires either JIRA_TEST_VERSION or write access to provision a baseline version."
+                }
+
+                $script:specificVersionName = New-TestResourceName -Type "VersionBaseline"
+                $baselineVersion = New-JiraVersion -Project $fixtures.TestProject -Name $script:specificVersionName
+                $null = $script:createdVersions.Add($baselineVersion)
+            }
+            elseif (-not (Get-JiraVersion -Project $fixtures.TestProject -Name $script:specificVersionName -ErrorAction SilentlyContinue)) {
+                if ($env.ReadOnly) {
+                    throw "Configured JIRA_TEST_VERSION '$($script:specificVersionName)' could not be found in project '$($fixtures.TestProject)'."
+                }
+
+                $baselineVersion = New-JiraVersion -Project $fixtures.TestProject -Name $script:specificVersionName
+                $null = $script:createdVersions.Add($baselineVersion)
+            }
         }
 
         AfterAll {
             foreach ($version in $createdVersions) {
-                Remove-JiraVersion -Version $version -Force -ErrorAction SilentlyContinue
+                try {
+                    Remove-JiraVersion -Version $version -Force -ErrorAction Stop
+                }
+                catch {
+                    if ($_.Exception.Message -notlike "*Could not find version for id*") {
+                        throw
+                    }
+                }
             }
             Remove-JiraSession -ErrorAction SilentlyContinue
         }
@@ -59,10 +85,10 @@ InModuleScope JiraPS {
 
             Context "Specific Version" -Skip:$SkipVersionTests {
                 It "retrieves a version by name" {
-                    $version = Get-JiraVersion -Project $fixtures.TestProject -Name $fixtures.TestVersion
+                    $version = Get-JiraVersion -Project $fixtures.TestProject -Name $specificVersionName
 
                     $version | Should -Not -BeNullOrEmpty
-                    $version.Name | Should -Be $fixtures.TestVersion
+                    $version.Name | Should -Be $specificVersionName
                 }
             }
         }

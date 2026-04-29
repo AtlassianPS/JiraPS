@@ -23,6 +23,8 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $isCloud = Test-JiraCloudServer -Credential $Credential
+
         $resourceURi = "/rest/api/2/group/member"
 
         if ($PageSize -gt 50) {
@@ -34,25 +36,29 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $groupObj = Get-JiraGroup -GroupName $Group -Credential $Credential -ErrorAction Stop
-
-        foreach ($_group in $groupObj) {
+        foreach ($_group in $Group) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
+
+            $getParameter = @{ maxResults = $PageSize }
+            if ($isCloud -and $_group.Id) {
+                $getParameter['groupId'] = $_group.Id
+            }
+            else {
+                $getParameter['groupname'] = $_group.Name
+            }
+
+            if ($IncludeInactive) {
+                $getParameter['includeInactiveUsers'] = $true
+            }
 
             $parameter = @{
                 URI          = $resourceURi
                 Method       = "GET"
-                GetParameter = @{
-                    groupname  = $_group.Name
-                    maxResults = $PageSize
-                }
+                GetParameter = $getParameter
                 OutputType   = "JiraUser"
                 Paging       = $true
                 Credential   = $Credential
-            }
-            if ($IncludeInactive) {
-                $parameter["includeInactiveUsers"] = $true
             }
 
             # Paging

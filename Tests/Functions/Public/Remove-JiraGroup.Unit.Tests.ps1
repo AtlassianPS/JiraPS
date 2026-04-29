@@ -16,10 +16,12 @@ InModuleScope JiraPS {
             #region Definitions
             $script:jiraServer = 'http://jiraserver.example.com'
             $script:testGroupName = 'testGroup'
+            $script:testGroupId = '276f955c-63d7-42c8-9520-92d01dca0625'
 
             $script:testJson = @"
 {
     "name": "$testGroupName",
+    "groupId": "$testGroupId",
     "self": "$jiraServer/rest/api/2/group?groupname=$testGroupName",
     "users": {
         "size": 0,
@@ -34,6 +36,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 $jiraServer
@@ -105,6 +109,24 @@ InModuleScope JiraPS {
 
                 It "Provides no output" {
                     Remove-JiraGroup -Group $testGroupName -Force | Should -BeNullOrEmpty
+                }
+
+                It "uses groupId for deletion on Cloud" {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                        $Method -eq 'DELETE' -and $URI -like "/rest/api/*/group?groupId=$testGroupId"
+                    } {
+                        Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    }
+
+                    $group = Get-JiraGroup -GroupName $testGroupName
+
+                    { Remove-JiraGroup -Group $group -Force } | Should -Not -Throw
+
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'DELETE' -and $URI -like "/rest/api/*/group?groupId=$testGroupId"
+                    }
                 }
             }
         }

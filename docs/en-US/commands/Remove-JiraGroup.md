@@ -23,6 +23,11 @@ Remove-JiraGroup [-Group] <Group[]> [[-Credential] <pscredential>] [-Force] [-Wh
 
 This function removes an existing group from JIRA.
 
+On Jira Cloud, the cmdlet deletes by `Id` when the input group already includes one.
+Otherwise, it deletes by group name.
+On Jira Data Center, it uses the documented `groupname` deletion path.
+Passing the group name directly is usually more reliable than resolving the group first with `Get-JiraGroup`.
+
 > Deleting a group does not delete users from JIRA.
 
 ## EXAMPLES
@@ -104,7 +109,9 @@ HelpMessage: ''
 
 ### -Group
 
-Group Object or ID to delete.
+Group object or name to delete.
+On Jira Cloud, `Id` is used automatically when the input object already includes one.
+On Jira Data Center, passing the group name directly avoids depending on `Get-JiraGroup`.
 
 ```yaml
 Type: Group[]
@@ -166,6 +173,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.
 If neither are supplied, this function will run with anonymous access to JIRA.
+
+`Remove-JiraGroup` can still work on Jira Data Center even when `Get-JiraGroup` cannot resolve the same group.
 
 ## RELATED LINKS
 
