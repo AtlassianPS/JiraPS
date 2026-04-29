@@ -187,7 +187,7 @@ The Value differs per Type of the permission.
 Here is a table to know what Value to provide:
 |Type         |Value                |Source                                              |
 |-------------|---------------------|----------------------------------------------------|
-|Group        |Name of the Group    |Can be retrieved with `(Get-JiraGroup ...).Name`    |
+|Group        |Name of the Group    |Use the known group name directly; avoid relying on `Get-JiraGroup` for Data Center-only resolution.|
 |Project      |Id of the Project    |Can be retrieved with `(Get-JiraProject ...).Id`    |
 |ProjectRole  |Id of the ProjectRole|Can be retrieved with `(Get-JiraProjectRole ...).Id`|
 |Authenticated| **must be null**    |                                                    |

@@ -69,9 +69,9 @@ jobs:
     runs-on: ubuntu-latest
     # The Server track is wired up end-to-end: docker-compose boots
     # moveworkforward/atlas-run-standalone, Wait-JiraServer.ps1 provisions
-    # the test user, the TEST fixture project (via dynamic
-    # /rest/project-templates/1.0/templates discovery), and the TEST-1
-    # baseline issue, and the full Server-tagged Pester suite then runs
+    # the test user, a reusable TEST group fixture, the TEST fixture project
+    # (via dynamic /rest/project-templates/1.0/templates discovery), and the
+    # TEST-1 baseline issue, and the full Server-tagged Pester suite then runs
     # against them.
     #
     # Because this workflow only runs on the cron + manual dispatch, the
@@ -121,12 +121,12 @@ jobs:
         # Wait-JiraServer.ps1 (previous step) discovers the actual
         # (projectTypeKey, projectTemplateKey) pairs the running instance
         # advertises via /rest/project-templates/1.0/templates and provisions
-        # the fixture project + a baseline issue, then exports
-        # JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to GITHUB_ENV so the env
-        # vars are visible to this step. Tests that need a fixture issue
-        # gate on `$testEnv.TestIssue` and self-skip when it is missing
-        # (see Get-JiraIssue.Integration.Tests.ps1 BeforeDiscovery for the
-        # canonical pattern), so the suite stays green even if the AMPS
+        # the fixture project + a reusable group + a baseline issue, then
+        # exports JIRA_TEST_PROJECT / JIRA_TEST_GROUP / JIRA_TEST_ISSUE to
+        # GITHUB_ENV so the env vars are visible to this step. Tests that need
+        # a fixture issue gate on `$testEnv.TestIssue` and self-skip when it is
+        # missing (see Get-JiraIssue.Integration.Tests.ps1 BeforeDiscovery for
+        # the canonical pattern), so the suite stays green even if the AMPS
         # standalone image refuses to seed an issue for the chosen template.
         #
         # Per-step timeout (separate from the job-level `timeout-minutes: 60`):

@@ -11,9 +11,9 @@ Unlike unit tests that mock API calls, integration tests make real HTTP requests
 
 The integration suite has two deployment targets:
 
-| Track | Target | Auth | Trigger |
-|-------|--------|------|---------|
-| **Cloud** | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets | API token + email | Smoke gated per-PR + push by `.github/workflows/ci.yml`; full suite by `.github/workflows/integration_tests.yml` (scheduled + manual) |
+| Track      | Target                                                                                                                                                                                        | Auth                       | Trigger                                                                                                                                                                                     |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Cloud**  | A live Jira Cloud instance configured via `JIRA_CLOUD_*` secrets                                                                                                                              | API token + email          | Smoke gated per-PR + push by `.github/workflows/ci.yml`; full suite by `.github/workflows/integration_tests.yml` (scheduled + manual)                                                       |
 | **Server** | A Dockerized Jira Data Center instance (`moveworkforward/atlas-run-standalone:jira-11` — Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1, defined in `docker-compose.yml`) booted on demand | Basic auth (`admin/admin`) | `server_integration_tests` job in `.github/workflows/integration_tests.yml` (scheduled + manual `workflow_dispatch` only — the ~25 min cold-boot cost is too expensive to gate every PR on) |
 
 > **Local prerequisite — Docker memory.** The container asks for a 4 GiB Java heap and needs ~1 GiB of base overhead, so allocate **at least 6 GiB** to Docker Desktop in *Settings > Resources* before running locally. CI runners (~7 GiB) have enough headroom out of the box.
@@ -61,10 +61,10 @@ Locally, `Wait-JiraServer.ps1` cannot write to `$GITHUB_ENV` (which only exists 
 
 ### CI scheduling
 
-| Workflow / Job | Trigger | Notes |
-|----------------|---------|-------|
-| `ci.yml` → `smoke_tests` (Cloud) | every PR + every push to `master` | Skipped on fork / Dependabot PRs (no secrets); gates `release.yml` via the `CI Result` aggregator (`workflow_conclusion: success`) |
-| `integration_tests.yml` → `cloud_integration_tests` | `0 5 * * *` + manual `workflow_dispatch` | Full Cloud suite — scheduled + manual only; PR-level coverage is the smoke job above |
+| Workflow / Job                                       | Trigger                                  | Notes                                                                                                                                                                              |
+| ---------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml` → `smoke_tests` (Cloud)                     | every PR + every push to `master`        | Skipped on fork / Dependabot PRs (no secrets); gates `release.yml` via the `CI Result` aggregator (`workflow_conclusion: success`)                                                 |
+| `integration_tests.yml` → `cloud_integration_tests`  | `0 5 * * *` + manual `workflow_dispatch` | Full Cloud suite — scheduled + manual only; PR-level coverage is the smoke job above                                                                                               |
 | `integration_tests.yml` → `server_integration_tests` | `0 5 * * *` + manual `workflow_dispatch` | Never on PRs — ~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`. Jira boot dominates wall time |
 
 ## Prerequisites
@@ -101,12 +101,12 @@ JIRA_TEST_GROUP=jira-users
 
 Ensure the following exist in your Jira instance:
 
-| Fixture | Description |
-|---------|-------------|
-| Test Project | A project dedicated to testing (e.g., `TV`) |
-| Test Issue | A permanent issue for read tests (e.g., `TV-1`) |
-| Test User | Your account ID for user tests |
-| Test Group | A group for membership tests |
+| Fixture      | Description                                     |
+| ------------ | ----------------------------------------------- |
+| Test Project | A project dedicated to testing (e.g., `TV`)     |
+| Test Issue   | A permanent issue for read tests (e.g., `TV-1`) |
+| Test User    | Your account ID for user tests                  |
+| Test Group   | A group for membership tests                    |
 
 ### 3. Test the Connection
 
@@ -216,21 +216,21 @@ The `Invoke-ParallelPester.ps1` script uses PowerShell 7's `ForEach-Object -Para
 
 ### Parameters
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `-Path` | Directory or file paths | `./Tests/Integration/` |
-| `-ThrottleLimit` | Max concurrent tests | 4 |
-| `-Tag` | Filter by tag | (none) |
-| `-ExcludeTag` | Exclude by tag | (none) |
-| `-Output` | Verbosity level | Normal |
+| Parameter        | Description             | Default                |
+| ---------------- | ----------------------- | ---------------------- |
+| `-Path`          | Directory or file paths | `./Tests/Integration/` |
+| `-ThrottleLimit` | Max concurrent tests    | 4                      |
+| `-Tag`           | Filter by tag           | (none)                 |
+| `-ExcludeTag`    | Exclude by tag          | (none)                 |
+| `-Output`        | Verbosity level         | Normal                 |
 
 ### Performance
 
-| Mode | Time | Notes |
-|------|------|-------|
-| Sequential | ~10+ min | Single file at a time |
-| Parallel (4) | ~3.5 min | 3x faster |
-| Parallel (6) | ~2.5 min | Diminishing returns |
+| Mode         | Time     | Notes                 |
+| ------------ | -------- | --------------------- |
+| Sequential   | ~10+ min | Single file at a time |
+| Parallel (4) | ~3.5 min | 3x faster             |
+| Parallel (6) | ~2.5 min | Diminishing returns   |
 
 **Note:** Requires PowerShell 7+ for `ForEach-Object -Parallel` support.
 
@@ -283,16 +283,16 @@ InModuleScope JiraPS {
 
 The `IntegrationTestTools.ps1` module provides:
 
-| Function | Description |
-|----------|-------------|
-| `Initialize-IntegrationEnvironment` | Loads `.env` and returns config object |
-| `Connect-JiraTestServer` | Establishes authenticated session |
-| `Get-TestFixture` | Returns hashtable of test fixture references |
-| `Skip-IntegrationTest` | Returns `$true` if environment not configured |
-| `New-TemporaryTestIssue` | Creates a temporary issue for write tests |
-| `New-TestResourceName` | Generates prefixed name like `JiraPS-IntTest-Issue-20260412...` |
-| `Get-TestResourcePrefix` | Returns the prefix used for test resources |
-| `Remove-StaleTestResource` | Cleans up resources from failed test runs |
+| Function                            | Description                                                     |
+| ----------------------------------- | --------------------------------------------------------------- |
+| `Initialize-IntegrationEnvironment` | Loads `.env` and returns config object                          |
+| `Connect-JiraTestServer`            | Establishes authenticated session                               |
+| `Get-TestFixture`                   | Returns hashtable of test fixture references                    |
+| `Skip-IntegrationTest`              | Returns `$true` if environment not configured                   |
+| `New-TemporaryTestIssue`            | Creates a temporary issue for write tests                       |
+| `New-TestResourceName`              | Generates prefixed name like `JiraPS-IntTest-Issue-20260412...` |
+| `Get-TestResourcePrefix`            | Returns the prefix used for test resources                      |
+| `Remove-StaleTestResource`          | Cleans up resources from failed test runs                       |
 
 ## Cleanup Strategy
 
@@ -395,29 +395,29 @@ Cloud smoke runs as part of the standard `.github/workflows/ci.yml` pipeline; th
 
 ### Workflow Triggers
 
-| Trigger | Smoke (`ci.yml`) | Cloud full (`integration_tests.yml`) | Server full (`integration_tests.yml`) |
-|---------|------------------|--------------------------------------|---------------------------------------|
-| Pull Request (first-party) | ✅ | ❌ — use `workflow_dispatch` to opt in | ❌ — use `workflow_dispatch` to opt in |
-| Pull Request (fork / Dependabot) | ⚪ skipped (no secrets) | ❌ | ❌ |
-| Push to `master` | ✅ | ❌ | ❌ |
-| Nightly (5 AM UTC) | — | ✅ | ✅ |
-| Manual (`workflow_dispatch`) | re-run via Actions UI | ✅ — pass `track=cloud` (or `both`) | ✅ — pass `track=server` (or `both`) |
+| Trigger                          | Smoke (`ci.yml`)       | Cloud full (`integration_tests.yml`)  | Server full (`integration_tests.yml`) |
+| -------------------------------- | ---------------------- | ------------------------------------- | ------------------------------------- |
+| Pull Request (first-party)       | ✅                      | ❌ — use `workflow_dispatch` to opt in | ❌ — use `workflow_dispatch` to opt in |
+| Pull Request (fork / Dependabot) | ⚪ skipped (no secrets) | ❌                                     | ❌                                     |
+| Push to `master`                 | ✅                      | ❌                                     | ❌                                     |
+| Nightly (5 AM UTC)               | —                      | ✅                                     | ✅                                     |
+| Manual (`workflow_dispatch`)     | re-run via Actions UI  | ✅ — pass `track=cloud` (or `both`)    | ✅ — pass `track=server` (or `both`)   |
 
 ### Required Secrets
 
 Configure these in your repository settings:
 
-| Secret | Required | Description |
-|--------|----------|-------------|
-| `JIRA_CLOUD_URL` | ✅ | Jira Cloud instance URL |
-| `JIRA_CLOUD_USERNAME` | ✅ | Email address |
-| `JIRA_CLOUD_PASSWORD` | ✅ | API token |
-| `JIRA_TEST_PROJECT` | ✅ | Project key (e.g., `TV`) |
-| `JIRA_TEST_ISSUE` | ✅ | Existing issue key (e.g., `TV-1`) |
-| `JIRA_TEST_USER` | ⚪ | Account ID for user tests |
-| `JIRA_TEST_GROUP` | ⚪ | Group name for group tests |
-| `JIRA_TEST_FILTER` | ⚪ | Filter ID for filter tests |
-| `JIRA_TEST_VERSION` | ⚪ | Version name for version tests |
+| Secret                | Required | Description                       |
+| --------------------- | -------- | --------------------------------- |
+| `JIRA_CLOUD_URL`      | ✅        | Jira Cloud instance URL           |
+| `JIRA_CLOUD_USERNAME` | ✅        | Email address                     |
+| `JIRA_CLOUD_PASSWORD` | ✅        | API token                         |
+| `JIRA_TEST_PROJECT`   | ✅        | Project key (e.g., `TV`)          |
+| `JIRA_TEST_ISSUE`     | ✅        | Existing issue key (e.g., `TV-1`) |
+| `JIRA_TEST_USER`      | ⚪        | Account ID for user tests         |
+| `JIRA_TEST_GROUP`     | ⚪        | Group name for group tests        |
+| `JIRA_TEST_FILTER`    | ⚪        | Filter ID for filter tests        |
+| `JIRA_TEST_VERSION`   | ⚪        | Version name for version tests    |
 
 If secrets are not configured, integration tests are skipped automatically.
 

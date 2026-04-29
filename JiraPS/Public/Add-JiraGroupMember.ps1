@@ -29,7 +29,7 @@
 
         $isCloud = Test-JiraCloudServer -Credential $Credential
 
-        $resourceURi = "/rest/api/2/group/user?groupname={0}"
+        $resourceURi = "/rest/api/2/group/user"
     }
 
     process {
@@ -40,7 +40,6 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
             $existingMembers = @(Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop)
             $users = $UserName | Resolve-JiraUser -Exact -Credential $Credential
 
@@ -63,14 +62,22 @@
                     else {
                         $memberBody = @{ 'name' = $user.Name }
                     }
+                    if ($isCloud -and $_group.Id) {
+                        $getParameter = @{ groupId = $_group.Id }
+                    }
+                    else {
+                        $getParameter = @{ groupname = $_group.Name }
+                    }
+                    $target = if ($_group.Name) { $_group.Name } else { $_group.Id }
                     $parameter = @{
-                        URI        = $resourceURi -f $groupObj.Name
-                        Method     = "POST"
-                        Body       = ConvertTo-Json -InputObject $memberBody
-                        Credential = $Credential
+                        URI          = $resourceURi
+                        Method       = "POST"
+                        GetParameter = $getParameter
+                        Body         = ConvertTo-Json -InputObject $memberBody
+                        Credential   = $Credential
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    if ($PSCmdlet.ShouldProcess($GroupName, "Adding user '$userDisplayIdentifier'.")) {
+                    if ($PSCmdlet.ShouldProcess($target, "Adding user '$userDisplayIdentifier'.")) {
                         $result = Invoke-JiraMethod @parameter
                     }
                 }

@@ -300,18 +300,20 @@ namespace AtlassianPS.JiraPS
         }
     }
 
-    // Both REST API v2 (DC) and v3 (Cloud) describe a group as { name, self }
-    // with an optional { users: { size, items: [...] } } expansion. The shape
-    // is intentionally narrow on purpose — Jira does not expose any other
-    // Group properties.
+    // JiraPS treats Group as a narrow canonical domain object: a stable name,
+    // an optional Cloud-capable identifier, an optional REST URL, and optional
+    // member-expansion data. The underlying wire shapes now differ by product:
+    // Cloud canonical resolution comes from /group/bulk, while Data Center
+    // canonical resolution is adapted from /group/member.
     public class Group
     {
         public string Name { get; set; }
+        public string Id { get; set; }
+        public string GroupId { get { return Id; } set { Id = value; } }
         public string RestUrl { get; set; }
-        // Only populated when the GET request expanded the users sub-resource;
-        // remains 0 / null on the lightweight responses that come back from
-        // /group?groupname=... without an expand.
-        public int Size { get; set; }
+        // Null means "size not supplied by this payload shape"; 0 means the
+        // group is known to have zero members.
+        public int? Size { get; set; }
         public User[] Member { get; set; }
 
         public Group() { }
@@ -560,6 +562,8 @@ namespace AtlassianPS.JiraPS
                     switch (prop.Name)
                     {
                         case "Name": case "name": group.Name = prop.Value as string; break;
+                        case "GroupId": case "groupId": case "Id": case "id":
+                            group.Id = prop.Value as string; break;
                         case "RestUrl": case "RestURL": case "self":
                             group.RestUrl = prop.Value as string; break;
                         case "Size": case "size":

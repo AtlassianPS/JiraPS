@@ -38,9 +38,9 @@ InModuleScope JiraPS {
                 return $object
             }
 
-            Mock Get-JiraUser -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraUser' 'UserName'
-                foreach ($user in $UserName) {
+            Mock Resolve-JiraUser -ModuleName JiraPS {
+                Write-MockDebugInfo 'Resolve-JiraUser' 'InputObject'
+                foreach ($user in $InputObject) {
                     $object = [PSCustomObject] @{
                         'Name' = "$user"
                     }
@@ -111,11 +111,11 @@ InModuleScope JiraPS {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 -PassThru } | Should -Not -Throw
 
-                Should -Invoke -CommandName Get-JiraGroup -Exactly -Times 2
                 Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 2
-                Should -Invoke -CommandName Get-JiraUser -Exactly -Times 2
+                Should -Invoke -CommandName Resolve-JiraUser -Exactly -Times 2
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
-                    $URI -match $testGroupName
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 2
                 Should -Invoke -CommandName ConvertTo-JiraGroup -Exactly -Times 1
             }
@@ -125,7 +125,8 @@ InModuleScope JiraPS {
                 { Add-JiraGroupMember -Group $group -User $testUsername2 } | Should -Not -Throw
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
-                    $URI -match $testGroupName
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 1
             }
 
@@ -133,7 +134,8 @@ InModuleScope JiraPS {
                 { Get-JiraGroup -GroupName $testGroupName | Add-JiraGroupMember -User $testUsername2 } | Should -Not -Throw
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
-                    $URI -match $testGroupName
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 1
             }
         }
@@ -150,7 +152,10 @@ InModuleScope JiraPS {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
-                    $Method -eq 'POST' -and $URI -match $testGroupName -and $Body -match $testUsername2
+                    $Method -eq 'POST' -and
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupname'] -eq $testGroupName -and
+                    $Body -match $testUsername2
                 } -Exactly -Times 1
             }
 
@@ -162,7 +167,9 @@ InModuleScope JiraPS {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 } | Should -Not -Throw
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
-                    $Method -eq 'Post' -and $URI -match $testGroupName
+                    $Method -eq 'Post' -and
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 2
             }
         }
@@ -172,7 +179,9 @@ InModuleScope JiraPS {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 -ErrorAction SilentlyContinue } | Should -Not -Throw
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
-                    $Method -eq 'Post' -and $URI -match $testGroupName
+                    $Method -eq 'Post' -and
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 1
             }
         }
@@ -192,9 +201,9 @@ InModuleScope JiraPS {
                     @()
                 }
 
-                Mock Get-JiraUser -ModuleName JiraPS {
-                    Write-MockDebugInfo 'Get-JiraUser' 'UserName'
-                    foreach ($user in $UserName) {
+                Mock Resolve-JiraUser -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Resolve-JiraUser' 'InputObject'
+                    foreach ($user in $InputObject) {
                         $object = [PSCustomObject] @{
                             'Name'      = "$user"
                             'AccountId' = "abc123def456"
@@ -209,7 +218,26 @@ InModuleScope JiraPS {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $Method -eq 'Post' -and $Body -match 'accountId'
+                    $Method -eq 'Post' -and
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupname'] -eq $testGroupName -and
+                    $Body -match 'accountId'
+                }
+            }
+
+            It "uses groupId when a Cloud group object provides one" {
+                $group = [AtlassianPS.JiraPS.Group]@{
+                    Id = 'cloud-group-id'
+                }
+
+                { Add-JiraGroupMember -Group $group -User $testUsername2 } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupId'] -eq 'cloud-group-id' -and
+                    -not $GetParameter.ContainsKey('groupname') -and
+                    $Body -match 'accountId'
                 }
             }
         }
