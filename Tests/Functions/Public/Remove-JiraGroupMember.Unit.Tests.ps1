@@ -37,8 +37,8 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Get-JiraUser -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraUser' 'UserName', 'InputObject'
+            Mock Resolve-JiraUser -ModuleName JiraPS {
+                Write-MockDebugInfo 'Resolve-JiraUser' 'InputObject'
                 if ($InputObject) {
                     $obj = [PSCustomObject]@{
                         PSTypeName = "AtlassianPS.JiraPS.User"
@@ -48,7 +48,7 @@ InModuleScope JiraPS {
                 else {
                     $obj = [PSCustomObject]@{
                         PSTypeName = "AtlassianPS.JiraPS.User"
-                        Name       = "$UserName"
+                        Name       = ""
                     }
                 }
                 $obj | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
@@ -99,7 +99,7 @@ InModuleScope JiraPS {
                 It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to remove them" {
                     { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraGroup -ModuleName "JiraPS" -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -Exactly -Times 1
                 }
 
                 It "Removes a user from a JIRA group if the user is a member" {
@@ -107,7 +107,9 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq 'Delete' -and
-                        $URI -like "/rest/api/*/group/user?groupname=$testGroupName&username=$testUsername1"
+                        $URI -eq '/rest/api/2/group/user' -and
+                        $GetParameter['groupname'] -eq $testGroupName -and
+                        $GetParameter['username'] -eq $testUsername1
                     } -Exactly -Times 1
                 }
 
@@ -130,7 +132,9 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq 'Delete' -and
-                        $URI -like "/rest/api/*/group/user?groupname=$testGroupName&username=*"
+                        $URI -eq '/rest/api/2/group/user' -and
+                        $GetParameter['groupname'] -eq $testGroupName -and
+                        $GetParameter['username']
                     } -Exactly -Times 2
                 }
             }
@@ -143,9 +147,9 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq "Delete" -and
-                        $URI -like "*/rest/api/*/group/user*" -and
-                        $URI -match "groupname=$testGroupName" -and
-                        $URI -match "username=$testUsername1"
+                        $URI -eq '/rest/api/2/group/user' -and
+                        $GetParameter['groupname'] -eq $testGroupName -and
+                        $GetParameter['username'] -eq $testUsername1
                     } -Exactly -Times 1
                 }
 
@@ -157,9 +161,9 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq "Delete" -and
-                        $URI -like "*/rest/api/*/group/user*" -and
-                        $URI -match "groupname=$testGroupName" -and
-                        $URI -match "username=$testUsername1"
+                        $URI -eq '/rest/api/2/group/user' -and
+                        $GetParameter['groupname'] -eq $testGroupName -and
+                        $GetParameter['username'] -eq $testUsername1
                     } -Exactly -Times 1
                 }
 
@@ -168,23 +172,23 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq "Delete" -and
-                        $URI -like "*/rest/api/*/group/user*" -and
-                        $URI -match "groupname=$testGroupName" -and
-                        $URI -match "username=$testUsername1"
+                        $URI -eq '/rest/api/2/group/user' -and
+                        $GetParameter['groupname'] -eq $testGroupName -and
+                        $GetParameter['username'] -eq $testUsername1
                     } -Exactly -Times 1
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.User as input for -User parameter" {
                     {
-                        $user = Get-JiraUser -UserName $testUsername1
+                        $user = Resolve-JiraUser -InputObject $testUsername1
                         Remove-JiraGroupMember -Group $testGroupName -User $user -Force
                     } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -ParameterFilter {
                         $Method -eq "Delete" -and
-                        $URI -like "*/rest/api/*/group/user*" -and
-                        $URI -match "groupname=$testGroupName" -and
-                        $URI -match "username=$testUsername1"
+                        $URI -eq '/rest/api/2/group/user' -and
+                        $GetParameter['groupname'] -eq $testGroupName -and
+                        $GetParameter['username'] -eq $testUsername1
                     } -Exactly -Times 1
                 }
             }
@@ -209,11 +213,30 @@ InModuleScope JiraPS {
                 }
             }
 
-            It "uses accountId in the URI when removing a user on Cloud" {
+            It "uses accountId when removing a user on Cloud" {
                 { Remove-JiraGroupMember -Group $testGroupName -User 'testUser' -Force } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $Method -eq 'Delete' -and $URI -match 'accountId='
+                    $Method -eq 'Delete' -and
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupname'] -eq $testGroupName -and
+                    $GetParameter['accountId'] -eq 'abc123def456'
+                }
+            }
+
+            It "uses groupId when a Cloud group object provides one" {
+                $group = [AtlassianPS.JiraPS.Group]@{
+                    Id = 'cloud-group-id'
+                }
+
+                { Remove-JiraGroupMember -Group $group -User 'testUser' -Force } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    $Method -eq 'Delete' -and
+                    $URI -eq '/rest/api/2/group/user' -and
+                    $GetParameter['groupId'] -eq 'cloud-group-id' -and
+                    -not $GetParameter.ContainsKey('groupname') -and
+                    $GetParameter['accountId'] -eq 'abc123def456'
                 }
             }
         }

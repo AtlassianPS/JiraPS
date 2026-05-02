@@ -9,7 +9,9 @@ BeforeDiscovery {
     $script:Skip = Skip-IntegrationTest
     if (-not $Skip) {
         $script:envDiscovery = Initialize-IntegrationEnvironment
-        $script:SkipGroupTests = [string]::IsNullOrEmpty($envDiscovery.TestGroup)
+        if ([string]::IsNullOrEmpty($envDiscovery.TestGroup)) {
+            throw "Integration test fixture 'TestGroup' is required for Groups.Integration.Tests.ps1. Configure JIRA_TEST_GROUP for Cloud runs and ensure Wait-JiraServer.ps1 exports it for Server runs."
+        }
     }
 }
 
@@ -27,7 +29,7 @@ InModuleScope JiraPS {
             Remove-JiraSession -ErrorAction SilentlyContinue
         }
 
-        Describe "Get-JiraGroup" -Skip:$SkipGroupTests {
+        Describe "Get-JiraGroup" {
             Context "Group Retrieval" {
                 It "retrieves a group by name" {
                     $group = Get-JiraGroup -GroupName $fixtures.TestGroup
@@ -46,6 +48,12 @@ InModuleScope JiraPS {
 
                     $group.Name | Should -Be $fixtures.TestGroup
                 }
+
+                It "exposes Id on Jira Cloud" -Skip:(-not $env.IsCloud) {
+                    $group = Get-JiraGroup -GroupName $fixtures.TestGroup
+
+                    $group.Id | Should -Not -BeNullOrEmpty
+                }
             }
 
             Context "Error Handling" {
@@ -56,7 +64,7 @@ InModuleScope JiraPS {
             }
         }
 
-        Describe "Get-JiraGroupMember" -Skip:$SkipGroupTests {
+        Describe "Get-JiraGroupMember" {
             Context "Group Members" {
                 It "retrieves members of a group" {
                     $members = Get-JiraGroupMember -Group $fixtures.TestGroup
@@ -70,6 +78,18 @@ InModuleScope JiraPS {
                     if ($members) {
                         @($members)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                     }
+                }
+
+                It "retrieves members for a resolved group object on Jira Cloud" -Skip:(-not $env.IsCloud) {
+                    $group = Get-JiraGroup -GroupName $fixtures.TestGroup
+
+                    { Get-JiraGroupMember -Group $group } | Should -Not -Throw
+                }
+
+                It "retrieves members for a resolved group object on Server" -Skip:$env.IsCloud {
+                    $group = Get-JiraGroup -GroupName $fixtures.TestGroup
+
+                    { Get-JiraGroupMember -Group $group } | Should -Not -Throw
                 }
             }
         }

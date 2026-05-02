@@ -13,9 +13,12 @@ InModuleScope JiraPS {
 
             #region Definitions
             $script:jiraServer = 'https://jira.example.com'
+            $script:testGroupId = '276f955c-63d7-42c8-9520-92d01dca0625'
             #endregion Definitions
 
             #region Mocks
+            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
             Mock Get-JiraConfigServer -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraConfigServer'
                 $jiraServer
@@ -34,6 +37,7 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Get-JiraGroup'
                 $obj = [PSCustomObject] @{
                     'Name'    = 'testgroup'
+                    'Id'      = $testGroupId
                     'RestUrl' = "$jiraServer/rest/api/2/group?groupname=testgroup"
                     'Size'    = 2
                 }
@@ -128,9 +132,68 @@ InModuleScope JiraPS {
                     $GetParameter["groupname"] -eq "testgroup"
                 } -Exactly 1
 
-                # We called Get-JiraGroup once manually, and it should be
-                # called once by Get-JiraGroupMember.
-                Should -Invoke Get-JiraGroup -Exactly 2
+                Should -Invoke Get-JiraGroup -Exactly 1
+            }
+
+            It "uses groupId for Cloud-compatible group lookups when the input group includes an Id" {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $Method -eq 'Get' -and
+                    $URI -like '*/rest/api/*/group/member' -and
+                    $GetParameter['groupId'] -eq $testGroupId
+                } {
+                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'GetParameter'
+                    ConvertFrom-Json @'
+{
+  "isLast": true,
+  "maxResults": 50,
+  "startAt": 0,
+  "total": 1,
+  "values": [
+    {
+      "accountId": "abc123",
+      "name": "",
+      "displayName": "Test User",
+      "active": true,
+      "self": "https://jira.example.com/rest/api/2/user?accountId=abc123"
+    }
+  ]
+}
+'@
+                }
+
+                $group = Get-JiraGroup -GroupName testgroup
+
+                { Get-JiraGroupMember -Group $group } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                    $Method -eq 'Get' -and
+                    $URI -like '*/rest/api/*/group/member' -and
+                    $GetParameter['groupId'] -eq $testGroupId
+                } -Exactly 1
+            }
+
+            It "uses groupname when the group input does not include an Id" {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                    $Method -eq 'Get' -and
+                    $URI -like '*/rest/api/*/group/member' -and
+                    $GetParameter['groupname'] -eq 'testgroup'
+                } -Exactly 1
+            }
+
+            It "uses groupname for Server lookups" {
+                { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
+
+                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                    $Method -eq 'Get' -and
+                    $URI -like '*/rest/api/*/group/member' -and
+                    $GetParameter['groupname'] -eq 'testgroup'
+                } -Exactly 1
             }
         }
     }

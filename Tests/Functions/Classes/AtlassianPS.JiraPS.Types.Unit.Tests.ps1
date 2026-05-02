@@ -197,6 +197,7 @@ InModuleScope JiraPS {
 
                 $group | Should -BeOfType [AtlassianPS.JiraPS.Group]
                 $group.Name | Should -Be 'jira-users'
+                $group.Size | Should -BeNullOrEmpty
             }
 
             It "Filter('12345') stores the input in ID" {
