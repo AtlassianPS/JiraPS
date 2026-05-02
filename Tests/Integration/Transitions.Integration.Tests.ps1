@@ -196,7 +196,7 @@ InModuleScope JiraPS {
                 # Create a dedicated issue so this test does not race with
                 # the other transition tests that share $transitionIssue.
                 $localSummary = New-TestResourceName -Type "TransitionWithComment"
-                $localIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $localSummary
+                $localIssue = New-TemporaryTestIssue -Fixtures $fixtures -IssueType 'Task' -Summary $localSummary
                 if (-not $localIssue) {
                     Set-ItResult -Skipped -Because "Failed to create test issue"
                     return

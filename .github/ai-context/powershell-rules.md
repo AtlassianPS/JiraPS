@@ -96,15 +96,38 @@ Files in `JiraPS/Public/` rely **exclusively** on PlatyPS-generated external hel
 
 When updating a public function's signature, also update `docs/en-US/commands/<FunctionName>.md` (or regenerate it with PlatyPS) so the external help stays in sync.
 
+### Public Cmdlet Responsibilities
+
+Keep public cmdlets thin.
+They should usually own parameter-set routing, Cloud/DC endpoint selection, request construction, and cmdlet-specific result semantics.
+
+Cmdlet-specific result semantics means decisions like:
+- whether an empty result is acceptable and should simply emit no objects,
+- whether a lookup-style miss should write a non-terminating error and continue processing other inputs,
+- whether a response is ambiguous and therefore violates the cmdlet contract.
+
+Do not duplicate transport, retry, paging, or generic HTTP error parsing logic in public cmdlets.
+That belongs in shared helpers such as `Invoke-JiraMethod`, `Test-ServerResponse`, `Resolve-ErrorWebResponse`, `Invoke-PaginatedRequest`, `Expand-Result`, and `Convert-Result`.
+
+Do not hand-build typed output objects in public cmdlets.
+Return typed objects through `ConvertTo-*` functions.
+If an endpoint returns a different wire shape that must be adapted before conversion, prefer a private `Resolve-*` or `ConvertTo-*` helper over inline `PSCustomObject` normalization inside the public cmdlet.
+
 ### Error Handling
 
-```powershell
-try {
-    $result = Invoke-JiraMethod @params
-} catch {
-    $PSCmdlet.ThrowTerminatingError($_)
-}
-```
+Use `ThrowError` for terminating module errors.
+These are appropriate when the cmdlet cannot continue at all, such as invalid local preconditions, malformed URIs, impossible internal state, or other cases where continuing would be incorrect.
+
+Use `WriteError` for non-terminating cmdlet-level misses where PowerShell callers should still be able to opt into termination with `-ErrorAction Stop`.
+Lookup-style misses are the common case.
+This matches standard cmdlet behavior such as `Get-Item`, which writes an error by default but becomes terminating under `-ErrorAction Stop`.
+
+Let shared helpers surface transport and server failures.
+Do not wrap `Invoke-JiraMethod` in a blanket `try`/`catch` just to restate the same HTTP failure in the public cmdlet.
+Only catch in the public cmdlet when you are intentionally translating a lower-level failure into a different cmdlet-level contract.
+
+Prefer ordinary control flow over exceptions for expected misses.
+If a "not found" branch is part of normal lookup behavior, set the result or write the non-terminating error directly rather than using `throw`/`catch` as a control-flow shortcut.
 
 ## Testing Requirements
 

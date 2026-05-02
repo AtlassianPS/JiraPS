@@ -23,6 +23,12 @@ Get-JiraGroupMember [-Group] <Group[]> [[-PageSize] <uint>] [[-Credential] <pscr
 
 This function returns members of a provided group in JIRA.
 
+On Jira Cloud, the cmdlet uses the group's `Id` for member lookup when the input group already includes one.
+Otherwise, it uses the group name directly.
+On Jira Data Center, it uses the documented `groupname` lookup path.
+You can pass a group name directly.
+That is usually more reliable than resolving the group first with `Get-JiraGroup`, especially on Jira Data Center where canonical group lookup may fail while member lookup by name still works.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -36,11 +42,10 @@ This example returns all members of the JIRA group testGroup.
 ### EXAMPLE 2
 
 ```powershell
-Get-JiraGroup 'Developers' | Get-JiraGroupMember
+Get-JiraGroupMember -Group 'Developers'
 ```
 
-This example illustrates the use of the pipeline to return members of
-the Developers group in JIRA.
+This example returns the members of the Developers group without first resolving the group through `Get-JiraGroup`.
 
 ## PARAMETERS
 
@@ -90,6 +95,9 @@ HelpMessage: ''
 ### -Group
 
 Group object of which to display the members.
+
+If the group object includes `Id`, that identifier is used automatically on Jira Cloud.
+Passing a plain group name is supported and is the most portable option across Jira deployments.
 
 ```yaml
 Type: Group[]
@@ -229,6 +237,8 @@ You can also combine this with the `-Skip` parameter to "page" through results.
 
 This function does not return inactive users.
 This appears to be a limitation of JIRA's REST API.
+
+On Jira Data Center, prefer `Get-JiraGroupMember -Group '<name>'` over `Get-JiraGroup '<name>' | Get-JiraGroupMember` unless you already have a resolved group object.
 
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.

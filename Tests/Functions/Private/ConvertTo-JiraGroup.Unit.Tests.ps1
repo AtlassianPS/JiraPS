@@ -14,10 +14,12 @@ InModuleScope JiraPS {
             #region Definitions
             $script:jiraServer = 'http://jiraserver.example.com'
             $script:groupName = 'powershell-testgroup'
+            $script:groupId = '276f955c-63d7-42c8-9520-92d01dca0625'
 
             $script:sampleJson = @"
 {
     "self": "$jiraServer/rest/api/2/group?groupname=$groupName",
+    "groupId": "$groupId",
     "name": "$groupName",
     "users": {
         "size": 1,
@@ -30,6 +32,13 @@ InModuleScope JiraPS {
 }
 "@
             $script:sampleObject = ConvertFrom-Json -InputObject $sampleJson
+
+            $script:bulkSampleObject = ConvertFrom-Json @"
+{
+    "groupId": "$groupId",
+    "name": "$groupName"
+}
+"@
             #endregion Definitions
 
             #region Mocks
@@ -64,6 +73,14 @@ InModuleScope JiraPS {
                     $result.Name | Should -Be $groupName
                 }
 
+                It "defines 'Id' property with correct value" {
+                    $result.Id | Should -Be $groupId
+                }
+
+                It "preserves the legacy GroupId alias" {
+                    $result.GroupId | Should -Be $groupId
+                }
+
                 It "defines 'RestUrl' property with correct value" {
                     $result.RestUrl | Should -Be "$jiraServer/rest/api/2/group?groupname=$groupName"
                 }
@@ -88,6 +105,17 @@ InModuleScope JiraPS {
                 It "accepts pipeline input" {
                     $result = $sampleObject | ConvertTo-JiraGroup
                     $result | Should -Not -BeNullOrEmpty
+                }
+            }
+
+            Context "Bulk Payload Support" {
+                It "maps the modern /group/bulk payload shape" {
+                    $result = ConvertTo-JiraGroup -InputObject $bulkSampleObject
+
+                    $result.Name | Should -Be $groupName
+                    $result.Id | Should -Be $groupId
+                    $result.RestUrl | Should -BeNullOrEmpty
+                    $result.Size | Should -Be 0
                 }
             }
         }

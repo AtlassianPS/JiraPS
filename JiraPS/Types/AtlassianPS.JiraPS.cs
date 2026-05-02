@@ -307,6 +307,8 @@ namespace AtlassianPS.JiraPS
     public class Group
     {
         public string Name { get; set; }
+        public string Id { get; set; }
+        public string GroupId { get { return Id; } set { Id = value; } }
         public string RestUrl { get; set; }
         // Only populated when the GET request expanded the users sub-resource;
         // remains 0 / null on the lightweight responses that come back from
@@ -560,6 +562,8 @@ namespace AtlassianPS.JiraPS
                     switch (prop.Name)
                     {
                         case "Name": case "name": group.Name = prop.Value as string; break;
+                        case "GroupId": case "groupId": case "Id": case "id":
+                            group.Id = prop.Value as string; break;
                         case "RestUrl": case "RestURL": case "self":
                             group.RestUrl = prop.Value as string; break;
                         case "Size": case "size":

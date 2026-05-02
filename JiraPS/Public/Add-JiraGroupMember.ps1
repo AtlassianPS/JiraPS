@@ -40,7 +40,6 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
             $existingMembers = @(Get-JiraGroupMember -Group $_group -Credential $Credential -ErrorAction Stop)
             $users = $UserName | Resolve-JiraUser -Exact -Credential $Credential
 
@@ -64,13 +63,13 @@
                         $memberBody = @{ 'name' = $user.Name }
                     }
                     $parameter = @{
-                        URI        = $resourceURi -f $groupObj.Name
+                        URI        = $resourceURi -f $_group.Name
                         Method     = "POST"
                         Body       = ConvertTo-Json -InputObject $memberBody
                         Credential = $Credential
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    if ($PSCmdlet.ShouldProcess($GroupName, "Adding user '$userDisplayIdentifier'.")) {
+                    if ($PSCmdlet.ShouldProcess($_group.Name, "Adding user '$userDisplayIdentifier'.")) {
                         $result = Invoke-JiraMethod @parameter
                     }
                 }

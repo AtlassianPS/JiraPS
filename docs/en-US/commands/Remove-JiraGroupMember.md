@@ -22,6 +22,8 @@ Remove-JiraGroupMember [-Group] <Group[]> [-User] <User[]> [[-Credential] <pscre
 ## DESCRIPTION
 
 This function removes a JIRA user from a JIRA group.
+Pass the group name directly when you already know it.
+That avoids depending on `Get-JiraGroup`, whose canonical lookup path is less reliable on Jira Data Center.
 
 ## EXAMPLES
 
@@ -36,10 +38,10 @@ This example removes the user jsmith from the group testUsers.
 ### EXAMPLE 2
 
 ```powershell
-Get-JiraGroup 'Project Admins' | Remove-JiraGroupMember -User jsmith
+Remove-JiraGroupMember -Group 'Project Admins' -User jsmith
 ```
 
-This example illustrates the use of the pipeline to remove jsmith from the "Project Admins" group in JIRA.
+This example removes jsmith from the "Project Admins" group without first resolving the group through `Get-JiraGroup`.
 
 ## PARAMETERS
 
@@ -110,7 +112,8 @@ HelpMessage: ''
 
 ### -Group
 
-Group Object or ID from which to remove the user(s).
+Group Object or name from which to remove the user(s).
+Passing a group name is the most portable option across Jira Cloud and Jira Data Center.
 
 ```yaml
 Type: Group[]
@@ -225,6 +228,9 @@ Otherwise, this function does not provide output.
 This REST method is still marked Experimental in JIRA's REST API.
 That means that there is a high probability this will break in future versions of JIRA.
 The function will need to be re-written at that time.
+
+On Jira Data Center, do not treat `Get-JiraGroup` as a prerequisite for this cmdlet.
+If you already know the group name, pass it directly.
 
 This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
 See `New-JiraSession` for more details.

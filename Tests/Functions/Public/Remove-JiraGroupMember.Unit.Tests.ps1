@@ -99,7 +99,7 @@ InModuleScope JiraPS {
                 It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to remove them" {
                     { Remove-JiraGroupMember -Group $testGroupName -User $testUsername1 -Force } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraGroup -ModuleName "JiraPS" -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName "JiraPS" -Exactly -Times 1
                 }
 
                 It "Removes a user from a JIRA group if the user is a member" {

@@ -30,10 +30,12 @@
        Server templates are tried as a last-resort fallback. This is necessary because the
        AMPS standalone image only registers a single 'business' projectType and rejects every
        canonical Jira Software template key.
-    4. Queries /rest/api/2/issue/createmeta?projectKeys=$ProjectKey to discover an issuetype
-       the just-created project actually accepts (jira-core projects don't always ship Task),
-       seeds one baseline issue, and exports JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to
-       $env:GITHUB_ENV so downstream test steps see them.
+     4. Queries /rest/api/2/user?username=<NormalUser>&expand=groups to discover an existing
+         group the provisioned test user already belongs to, then exports it as JIRA_TEST_GROUP.
+     5. Queries /rest/api/2/issue/createmeta?projectKeys=$ProjectKey to discover an issuetype
+         the just-created project actually accepts (jira-core projects don't always ship Task),
+         seeds one baseline issue, and exports JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to
+         $env:GITHUB_ENV so downstream test steps see them.
 
     AGENTS.md mandates that all HTTP traffic from the module flow through Invoke-JiraMethod.
     This script is the documented exception: it runs *before* the JiraPS module is imported
@@ -72,11 +74,12 @@
 
 .NOTES
     Exit codes:
-      0 - Jira reachable, normal user provisioned, fixture project '$ProjectKey' provisioned,
-          and (best-effort) one baseline issue seeded. JIRA_TEST_PROJECT (and JIRA_TEST_ISSUE
-          when the baseline seed succeeded) are written to $env:GITHUB_ENV so the next CI
-          step sees them. Tests that depend on JIRA_TEST_ISSUE self-skip when it is empty,
-          so a failed baseline seed does not turn the suite red.
+          0 - Jira reachable, normal user provisioned, fixture project '$ProjectKey' provisioned,
+          a usable group fixture exported as JIRA_TEST_GROUP, and (best-effort) one baseline
+          issue seeded. JIRA_TEST_PROJECT / JIRA_TEST_GROUP (and JIRA_TEST_ISSUE when the
+          baseline seed succeeded) are written to $env:GITHUB_ENV so the next CI step sees
+          them. Tests that depend on JIRA_TEST_ISSUE self-skip when it is empty, so a failed
+          baseline seed does not turn the suite red.
       1 - Jira did not become reachable inside -TimeoutSeconds.
       2 - Normal user provisioning failed and the user did not already exist.
       3 - Fixture project '$ProjectKey' could not be provisioned with any of the candidate
@@ -217,6 +220,59 @@ catch {
 }
 
 Write-Host "==> Provisioning test project '$ProjectKey' via $projectApiUrl"
+
+$testGroup = if ($env:JIRA_TEST_GROUP) { $env:JIRA_TEST_GROUP } else { $null }
+if ($testGroup) {
+    Write-Host "==> Using preconfigured test group '$testGroup'"
+}
+else {
+    Write-Host "==> Discovering a reusable test group for '$NormalUser'"
+
+    try {
+        $userWithGroups = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/user?username=$([uri]::EscapeDataString($NormalUser))&expand=groups" -Method Get -Headers $headers -TimeoutSec 30
+        $groupItems = if ($userWithGroups.groups -and $userWithGroups.groups.items) { @($userWithGroups.groups.items) } else { @() }
+        $preferredGroup = $groupItems |
+            Sort-Object -Property @{
+                Expression = {
+                    switch -Wildcard ($_.name) {
+                        'jira-core-users' { 0 }
+                        'jira-software-users' { 1 }
+                        'jira-servicedesk-users' { 2 }
+                        '*-users' { 3 }
+                        default { 4 }
+                    }
+                }
+            } |
+            Select-Object -First 1
+
+        if ($preferredGroup -and $preferredGroup.name) {
+            $testGroup = $preferredGroup.name
+            Write-Host "==> Using discovered user group '$testGroup'"
+        }
+    }
+    catch {
+        Write-Host "    (user group discovery failed: $($_.Exception.Message))"
+    }
+
+    if (-not $testGroup) {
+        foreach ($candidateGroup in 'jira-core-users', 'jira-software-users', 'jira-servicedesk-users', 'jira-administrators', 'jira-users') {
+            try {
+                $null = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/group/member?groupname=$([uri]::EscapeDataString($candidateGroup))&maxResults=1" -Method Get -Headers $headers -TimeoutSec 30
+                $testGroup = $candidateGroup
+                Write-Host "==> Falling back to detected built-in group '$testGroup'"
+                break
+            }
+            catch {
+                continue
+            }
+        }
+    }
+
+    if (-not $testGroup) {
+        Write-Error "Could not discover or provision JIRA_TEST_GROUP for the Server integration track. Group integration tests must not be skipped."
+        exit 4
+    }
+}
 
 # The integration test suite expects a project with key 'TEST' (override via
 # JIRA_TEST_PROJECT). The moveworkforward image starts with no projects.
@@ -627,15 +683,17 @@ if ($issue -and $issue.key) {
 }
 
 # Export the provisioned fixture identifiers to GITHUB_ENV so the next workflow
-# steps inherit them as JIRA_TEST_PROJECT / JIRA_TEST_ISSUE. This is what makes
-# the dynamic Server fixture visible to integration test files that gate on
-# `$testEnv.TestIssue` (e.g. Get-JiraIssue.Integration.Tests.ps1) — without it
-# those tests self-skip even though the project + baseline issue are present.
+# steps inherit them as JIRA_TEST_PROJECT / JIRA_TEST_GROUP / JIRA_TEST_ISSUE.
+# This is what makes the dynamic Server fixture visible to integration test
+# files that gate on `$testEnv.TestIssue` or `$testEnv.TestGroup` — without it
+# those tests self-skip even though the project, group, and baseline issue are
+# present.
 # Locally ($env:GITHUB_ENV unset) this is a no-op; users seed the same vars in
 # their .env file.
 if ($env:GITHUB_ENV) {
     $exports = @()
     if ($project -and $project.key) { $exports += "JIRA_TEST_PROJECT=$($project.key)" }
+    if ($testGroup) { $exports += "JIRA_TEST_GROUP=$testGroup" }
     if ($issue -and $issue.key) { $exports += "JIRA_TEST_ISSUE=$($issue.key)" }
 
     if ($exports.Count -gt 0) {

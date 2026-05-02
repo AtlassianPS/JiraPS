@@ -21,7 +21,10 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $resourceURi = "/rest/api/2/group?groupname={0}"
+        $isCloud = Test-JiraCloudServer -Credential $Credential
+
+        $legacyResourceURi = "/rest/api/2/group?groupname={0}"
+        $cloudResourceUri = "/rest/api/2/group?groupId={0}"
 
         if ($Force) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -38,15 +41,22 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            $groupObj = Get-JiraGroup -GroupName $_group -Credential $Credential -ErrorAction Stop
+            if ($isCloud -and $_group.Id) {
+                $resourceUri = $cloudResourceUri -f $_group.Id
+            }
+            else {
+                $resourceUri = $legacyResourceURi -f $_group.Name
+            }
+
+            $target = if ($_.group.Name) { $_group.Name } else { $_group.Id }
 
             $parameter = @{
-                URI        = $resourceURi -f $groupObj.Name
+                URI        = $resourceUri
                 Method     = "DELETE"
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($groupObj.Name, "Remove group")) {
+            if ($PSCmdlet.ShouldProcess($target, "Remove group")) {
                 Invoke-JiraMethod @parameter
             }
         }
