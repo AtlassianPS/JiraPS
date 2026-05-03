@@ -235,6 +235,10 @@ HelpMessage: ''
 
 Any additional fields that should be updated.
 
+When you provide field names in `-Fields`, JiraPS first resolves them against edit metadata returned by `Get-JiraIssueEditMetadata` for the target issue.
+If a provided key is not present in that scoped metadata, JiraPS falls back to the global `Get-JiraField` catalogue.
+Using scoped metadata first avoids ambiguous name matching when duplicate custom-field display names exist across projects.
+
 Inspect [about_JiraPS_CustomFields](../../about/custom-fields.html) for more information.
 
 On **Jira Cloud**, string values supplied for rich-text fields (`description`, `environment`, and custom textarea fields with schema type `doc`) are interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, matching the behaviour of the explicit `-Description` parameter.

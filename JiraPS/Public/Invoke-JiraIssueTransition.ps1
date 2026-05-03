@@ -107,6 +107,8 @@
             $PSCmdlet.ThrowTerminatingError($errorItem)
         }
 
+        $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
+
         $requestBody = @{
             'transition' = @{
                 'id' = $transitionId
@@ -128,15 +130,54 @@
 
         if ($Fields) {
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Enumerating fields defined on the server"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields against transition screen metadata"
 
-            # Fetch all available fields ahead-of-time to avoid one
-            # Get-JiraField round-trip per supplied key. Mirrors the
-            # pattern already used by New-JiraIssue and Set-JiraIssue.
-            $AvailableFields = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
+            # Fetch this transition's screen fields: the authoritative source for which
+            # fields appear on a given transition screen. Falls back to the global field
+            # list for fields absent from the transition metadata (e.g. when the
+            # transition has no screen, or the transition metadata fetch fails).
+            $transitionMeta = $null
+            try {
+                $transitionMetaParam = @{
+                    URI          = "{0}/transitions" -f $issueRestUrl
+                    Method       = "GET"
+                    GetParameter = @{ expand = "transitions.fields"; transitionId = "$transitionId" }
+                    Credential   = $Credential
+                }
+                $transitionMeta = (Invoke-JiraMethod @transitionMetaParam -Debug:$false).transitions |
+                    Where-Object { "$($_.id)" -eq "$transitionId" } |
+                    Select-Object -First 1
+            }
+            catch {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Transition metadata unavailable for transition [$transitionId]: $_"
+            }
 
-            $AvailableFieldsById = $AvailableFields | Group-Object -Property Id -AsHashTable -AsString
-            $AvailableFieldsByName = $AvailableFields | Group-Object -Property Name -AsHashTable -AsString
+            $scopedMeta = if (
+                $transitionMeta -and
+                $transitionMeta.fields -and
+                $transitionMeta.fields.PSObject.Properties.Name.Count -gt 0
+            ) {
+                ConvertTo-JiraEditMetaField -InputObject $transitionMeta
+            }
+            else {
+                @()
+            }
+
+            $ScopedFieldsById = if ($scopedMeta) {
+                $scopedMeta | Group-Object -Property Id -AsHashTable -AsString
+            }
+            else {
+                @{}
+            }
+            $ScopedFieldsByName = if ($scopedMeta) {
+                $scopedMeta | Group-Object -Property Name -AsHashTable -AsString
+            }
+            else {
+                @{}
+            }
+
+            $FallbackFieldsById = $null
+            $FallbackFieldsByName = $null
 
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
             foreach ($_key in $Fields.Keys) {
@@ -145,41 +186,32 @@
                 $value = $Fields.$_key
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
 
-                # The Fields hashtable supports both name- and ID-based lookup for custom fields, so we have to search both.
-                if ($AvailableFieldsById.ContainsKey($name)) {
-                    $field = $AvailableFieldsById[$name][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
+                if (
+                    -not $ScopedFieldsById.ContainsKey($name) -and
+                    -not $ScopedFieldsById.ContainsKey("customfield_$name") -and
+                    -not $ScopedFieldsByName.ContainsKey($name) -and
+                    $null -eq $FallbackFieldsById
+                ) {
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] not in transition metadata; fetching global field list as fallback"
+                    $fb = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
+                    $FallbackFieldsById = if ($fb) { $fb | Group-Object -Property Id -AsHashTable -AsString } else { @{} }
+                    $FallbackFieldsByName = if ($fb) { $fb | Group-Object -Property Name -AsHashTable -AsString } else { @{} }
                 }
-                elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
-                    $field = $AvailableFieldsById["customfield_$name"][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
-                }
-                elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
-                    $field = $AvailableFieldsByName[$name][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
-                }
-                elseif ($AvailableFieldsByName.ContainsKey($name)) {
-                    # Jira does not prevent multiple custom fields with the same name, so we have to ensure
-                    # any name references are unambiguous.
 
-                    # More than one value in $AvailableFieldsByName (i.e. .Count -gt 1) indicates two duplicate custom fields.
-                    $exception = ([System.ArgumentException]"Ambiguously Referenced Parameter")
-                    $errorId = 'ParameterValue.AmbiguousParameter'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Fields
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Field name [$name] in -Fields hashtable ambiguously refers to more than one field. Use Get-JiraField for more information, or specify the custom field by its ID."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                $FallbackByIdForResolve = @{}
+                $FallbackByNameForResolve = @{}
+                if ($null -ne $FallbackFieldsById) {
+                    $FallbackByIdForResolve = $FallbackFieldsById
+                    $FallbackByNameForResolve = $FallbackFieldsByName
                 }
-                else {
-                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
-                    $errorId = 'ParameterValue.InvalidFields'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Fields
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
+
+                $field = Resolve-JiraField `
+                    -Name          $name `
+                    -ScopedById    $ScopedFieldsById `
+                    -ScopedByName  $ScopedFieldsByName `
+                    -FallbackById  $FallbackByIdForResolve `
+                    -FallbackByName $FallbackByNameForResolve `
+                    -CallerName    $MyInvocation.MyCommand.Name
 
                 # Force the id to a string — Get-JiraField historically
                 # surfaced numeric ids as hashtables in some metadata
@@ -188,7 +220,11 @@
 
                 # `-Fields` values hit a raw assignment; wrap rich-text strings here
                 # for parity with the named-parameter paths.
-                if ($isCloud -and ($value -is [string]) -and (Test-JiraRichTextField -Field $field)) {
+                if (
+                    $isCloud -and
+                    ($value -is [string]) -and
+                    (Test-JiraRichTextField -Field $field)
+                ) {
                     $value = Resolve-JiraTextFieldPayload -Text $value -IsCloud $true
                 }
 
@@ -206,8 +242,6 @@
                 }
             }
         }
-
-        $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
 
         $parameter = @{
             URI        = "{0}/transitions" -f $issueRestUrl

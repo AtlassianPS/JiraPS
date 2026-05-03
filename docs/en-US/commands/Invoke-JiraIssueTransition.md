@@ -171,6 +171,10 @@ HelpMessage: ''
 
 Any additional fields that should be updated.
 
+When you provide field names in `-Fields`, JiraPS first resolves them against transition-screen metadata for the selected transition.
+If a provided key is not present in that scoped metadata, JiraPS falls back to the global `Get-JiraField` catalogue.
+Using scoped metadata first avoids ambiguous name matching when duplicate custom-field display names exist across projects.
+
 Fields must be configured to appear on the transition screen to use this parameter.
 
 On **Jira Cloud**, string values supplied for rich-text fields (`description`, `environment`, and custom textarea fields with schema type `doc`) are interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, matching the behaviour of the explicit `-Comment` parameter.

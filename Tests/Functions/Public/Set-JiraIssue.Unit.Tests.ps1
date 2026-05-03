@@ -84,7 +84,22 @@ InModuleScope JiraPS {
                         Id   = 'customfield_10001'
                         Name = 'CustomField1'
                     }
+                    [PSCustomObject]@{
+                        Id   = 'customfield_99999'
+                        Name = 'FallbackField'
+                    }
                 )
+            }
+
+            Mock Get-JiraIssueEditMetadata -ModuleName JiraPS {
+                Write-MockDebugInfo 'Get-JiraIssueEditMetadata' 'Issue', 'Credential'
+                $field = [PSCustomObject]@{
+                    Id     = 'customfield_10001'
+                    Name   = 'CustomField1'
+                    Schema = [PSCustomObject]@{ type = 'string' }
+                }
+                $field.PSObject.TypeNames.Insert(0, 'JiraPS.EditMetaField')
+                $field
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
@@ -373,16 +388,44 @@ InModuleScope JiraPS {
             }
 
             Context "Custom Fields" {
-                It "Sets a custom field via the -Fields parameter" {
+                It "Sets a custom field via the -Fields parameter using edit metadata" {
                     {
                         $fields = @{ "customfield_10001" = "test value" }
                         Set-JiraIssue -Issue "IT-3676" -Fields $fields
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraField -ModuleName JiraPS -Exactly -Times 1
+                    # Field is in edit metadata — Get-JiraField should not be called
+                    Should -Invoke -CommandName Get-JiraField -ModuleName JiraPS -Exactly -Times 0
+                    Should -Invoke -CommandName Get-JiraIssueEditMetadata -ModuleName JiraPS -Exactly -Times 1
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Body -match '"customfield_10001":[\s\n]*\[[\s\n]*\{[\s\n]*"set":[\s\n]*"test value"'
                     }
+                }
+
+                It "falls back to Get-JiraField for fields not in edit metadata" {
+                    # Override edit metadata to return empty — customfield_99999
+                    # is only present in the Get-JiraField mock, so it should
+                    # trigger the fallback path.
+                    Mock Get-JiraIssueEditMetadata -ModuleName JiraPS { @() }
+
+                    {
+                        $fields = @{ "customfield_99999" = "fallback value" }
+                        Set-JiraIssue -Issue "IT-3676" -Fields $fields
+                    } | Should -Not -Throw
+
+                    Should -Invoke -CommandName Get-JiraField -ModuleName JiraPS -Exactly -Times 1
+                }
+
+                It "fetches edit metadata and the global list at most once across multiple -Fields keys" {
+                    # Override edit metadata so both keys fall back to Get-JiraField.
+                    Mock Get-JiraIssueEditMetadata -ModuleName JiraPS { @() }
+
+                    Set-JiraIssue -Issue "IT-3676" -Fields @{
+                        customfield_10001 = 'a'
+                        customfield_99999 = 'b'
+                    }
+
+                    Should -Invoke -CommandName Get-JiraField -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 

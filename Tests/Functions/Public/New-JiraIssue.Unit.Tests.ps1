@@ -685,5 +685,85 @@ InModuleScope JiraPS {
                 }
             }
         }
+
+        Describe "Field Resolution" {
+            BeforeAll {
+                Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
+
+                Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
+                    @(
+                        [PSCustomObject]@{ Id = 'Project'; Name = 'Project'; Required = $true }
+                        [PSCustomObject]@{ Id = 'IssueType'; Name = 'IssueType'; Required = $true }
+                        [PSCustomObject]@{ Id = 'Priority'; Name = 'Priority'; Required = $true }
+                        [PSCustomObject]@{ Id = 'Summary'; Name = 'Summary'; Required = $true }
+                        [PSCustomObject]@{ Id = 'Description'; Name = 'Description'; Required = $true }
+                        [PSCustomObject]@{ Id = 'Reporter'; Name = 'Reporter'; Required = $true }
+                        [PSCustomObject]@{
+                            Id       = 'customfield_10001'
+                            Name     = 'My Custom Field'
+                            Required = $false
+                            Schema   = [PSCustomObject]@{ type = 'string' }
+                        }
+                    ) | ForEach-Object {
+                        $_.PSObject.TypeNames.Insert(0, 'JiraPS.CreateMetaField')
+                        $_
+                    }
+                }
+            }
+
+            It "resolves a field via create metadata and does not call Get-JiraField" {
+                { New-JiraIssue @newParams -Fields @{ customfield_10001 = 'scoped value' } } |
+                    Should -Not -Throw
+
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 0
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Body -match '"customfield_10001"'
+                }
+            }
+
+            It "resolves a field by display name via create metadata" {
+                { New-JiraIssue @newParams -Fields @{ 'My Custom Field' = 'named value' } } |
+                    Should -Not -Throw
+
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 0
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Body -match '"customfield_10001"'
+                }
+            }
+
+            It "falls back to Get-JiraField for fields not present in create metadata" {
+                # 'CustomField' is returned by the default Get-JiraField mock but is
+                # not in the create metadata above, triggering the fallback path.
+                { New-JiraIssue @newParams -Fields @{ 'CustomField' = 'fallback value' } } |
+                    Should -Not -Throw
+
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
+            }
+
+            It "fetches the global field list at most once when multiple unscoped keys are present" {
+                Mock Get-JiraField -ModuleName JiraPS {
+                    @(
+                        [PSCustomObject]@{ Id = 'CustomField' }
+                        [PSCustomObject]@{ Id = 'AnotherCustomField' }
+                    ) | ForEach-Object {
+                        $_.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
+                        $_
+                    }
+                }
+
+                New-JiraIssue @newParams -Fields @{
+                    'CustomField'        = 'a'
+                    'AnotherCustomField' = 'b'
+                }
+
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
+            }
+
+            It "throws when a field cannot be resolved from create metadata or the global list" {
+                { New-JiraIssue @newParams -Fields @{ NonExistentField_XYZ = 'value' } } |
+                    Should -Throw
+            }
+        }
     }
 }

@@ -150,56 +150,77 @@
 
         if ($Fields) {
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Enumerating fields defined on the server"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields against edit metadata"
 
-            # Fetch all available fields ahead-of-time to avoid repeated API calls in the upcoming loop.
-            # Eventually, this may be better to extract from EditMeta.
-            $AvailableFields = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
+            # Fetch edit metadata to resolve field names/IDs in the context of this
+            # specific issue. Falls back to Get-JiraField when a field is not present
+            # in the scoped edit metadata (e.g. the field exists in Jira but is not
+            # on this issue's edit screen).
+            #
+            # Trade-off: this adds one unconditional API call per -Fields use.
+            # The benefit is unambiguous name-based resolution (scoped to the
+            # edit screen). If every key in -Fields is already a field ID the
+            # extra call is wasted; however, scoped metadata is also needed for
+            # ADF (rich-text) detection via Test-JiraRichTextField, so a lazy
+            # "only when name lookup fails" strategy would still need it for
+            # Cloud deployments. The extra call is therefore accepted.
+            $scopedMeta = try {
+                Get-JiraIssueEditMetadata -Issue $issueObj.Key -Credential $Credential -ErrorAction Stop -Debug:$false
+            }
+            catch {
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Edit metadata unavailable for $($issueObj.Key): $_"
+                @()
+            }
 
-            $AvailableFieldsById = $AvailableFields | Group-Object -Property Id -AsHashTable -AsString
-            $AvailableFieldsByName = $AvailableFields | Group-Object -Property Name -AsHashTable -AsString
+            $ScopedFieldsById = if ($scopedMeta) {
+                $scopedMeta | Group-Object -Property Id -AsHashTable -AsString
+            }
+            else {
+                @{}
+            }
+            $ScopedFieldsByName = if ($scopedMeta) {
+                $scopedMeta | Group-Object -Property Name -AsHashTable -AsString
+            }
+            else {
+                @{}
+            }
+
+            $FallbackFieldsById = $null
+            $FallbackFieldsByName = $null
 
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
             foreach ($_key in $Fields.Keys) {
 
                 $name = $_key
                 $value = $Fields.$_key
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
 
-                # The Fields hashtable supports both name- and ID-based lookup for custom fields, so we have to search both.
-                if ($AvailableFieldsById.ContainsKey($name)) {
-                    $field = $AvailableFieldsById[$name][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
+                if (
+                    -not $ScopedFieldsById.ContainsKey($name) -and
+                    -not $ScopedFieldsById.ContainsKey("customfield_$name") -and
+                    -not $ScopedFieldsByName.ContainsKey($name) -and
+                    $null -eq $FallbackFieldsById
+                ) {
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] not in edit metadata; fetching global field list as fallback"
+                    $fb = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
+                    $FallbackFieldsById = if ($fb) { $fb | Group-Object -Property Id -AsHashTable -AsString } else { @{} }
+                    $FallbackFieldsByName = if ($fb) { $fb | Group-Object -Property Name -AsHashTable -AsString } else { @{} }
                 }
-                elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
-                    $field = $AvailableFieldsById["customfield_$name"][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
-                }
-                elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
-                    $field = $AvailableFieldsByName[$name][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
-                }
-                elseif ($AvailableFieldsByName.ContainsKey($name)) {
-                    # Jira does not prevent multiple custom fields with the same name, so we have to ensure
-                    # any name references are unambiguous.
 
-                    # More than one value in $AvailableFieldsByName (i.e. .Count -gt 1) indicates two duplicate custom fields.
-                    $exception = ([System.ArgumentException]"Ambiguously Referenced Parameter")
-                    $errorId = 'ParameterValue.AmbiguousParameter'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Fields
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Field name [$name] in -Fields hashtable ambiguously refers to more than one field. Use Get-JiraField for more information, or specify the custom field by its ID."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                $FallbackByIdForResolve = @{}
+                $FallbackByNameForResolve = @{}
+                if ($null -ne $FallbackFieldsById) {
+                    $FallbackByIdForResolve = $FallbackFieldsById
+                    $FallbackByNameForResolve = $FallbackFieldsByName
                 }
-                else {
-                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
-                    $errorId = 'ParameterValue.InvalidFields'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Fields
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
+
+                $field = Resolve-JiraField `
+                    -Name          $name `
+                    -ScopedById    $ScopedFieldsById `
+                    -ScopedByName  $ScopedFieldsByName `
+                    -FallbackById  $FallbackByIdForResolve `
+                    -FallbackByName $FallbackByNameForResolve `
+                    -CallerName    $MyInvocation.MyCommand.Name
 
                 $id = [string]$field.Id
 

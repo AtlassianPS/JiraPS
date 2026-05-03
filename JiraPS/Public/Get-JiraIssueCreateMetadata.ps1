@@ -20,6 +20,7 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $isCloud = Test-JiraCloudServer -Credential $Credential
         $resourceURi = "/rest/api/2/issue/createmeta/{0}/issuetypes/{1}"
     }
 
@@ -40,7 +41,7 @@
         }
 
         $parameter = @{
-            URI          = $resourceURi -f $projectObj.Id, $issueTypeObj.Id
+            URI          = ConvertTo-JiraRestApiV3Url -Url ($resourceURi -f $projectObj.Id, $issueTypeObj.Id) -IsCloud $isCloud
             Method       = "GET"
             GetParameter = @{ maxResults = $script:DefaultPageSize }
             Paging       = $true

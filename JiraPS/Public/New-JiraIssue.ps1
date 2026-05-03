@@ -170,15 +170,28 @@
 
         if ($Fields) {
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Enumerating fields for server"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields against create metadata"
 
-            # Fetch all available fields ahead-of-time to avoid repeated API calls in the upcoming loop.
-            # Eventually, this may be better to extract from CreateMeta.
-            $AvailableFields = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
+            # Use the create metadata already fetched for required-field validation.
+            # This gives context-aware, unambiguous resolution for fields on this
+            # project/issue-type create screen and avoids a global Get-JiraField
+            # round-trip for the common case. Get-JiraField is only fetched as a
+            # fallback for fields not present in the scoped metadata.
+            $ScopedFieldsById = if ($createmeta) {
+                $createmeta | Group-Object -Property Id -AsHashTable -AsString
+            }
+            else {
+                @{}
+            }
+            $ScopedFieldsByName = if ($createmeta) {
+                $createmeta | Group-Object -Property Name -AsHashTable -AsString
+            }
+            else {
+                @{}
+            }
 
-            $AvailableFieldsById = $AvailableFields | Group-Object -Property Id -AsHashTable -AsString
-            $AvailableFieldsByName = $AvailableFields | Group-Object -Property Name -AsHashTable -AsString
-
+            $FallbackFieldsById = $null
+            $FallbackFieldsByName = $null
 
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
 
@@ -186,43 +199,36 @@
 
                 $name = $_key
                 $value = $Fields.$_key
-                # The Fields hashtable supports both name- and ID-based lookup for custom fields, so we have to search both.
-                if ($AvailableFieldsById.ContainsKey($name)) {
-                    $field = $AvailableFieldsById[$name][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a field ID"
-                }
-                elseif ($AvailableFieldsById.ContainsKey("customfield_$name")) {
-                    $field = $AvailableFieldsById["customfield_$name"][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a numerical field ID (customfield_$name)"
-                }
-                elseif ($AvailableFieldsByName.ContainsKey($name) -and $AvailableFieldsByName[$name].Count -eq 1) {
-                    $field = $AvailableFieldsByName[$name][0]
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] appears to be a human-readable field name ($($field.ID))"
-                }
-                elseif ($AvailableFieldsByName.ContainsKey($name)) {
-                    # Jira does not prevent multiple custom fields with the same name, so we have to ensure
-                    # any name references are unambiguous.
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
 
-                    # More than one value in $AvailableFieldsByName (i.e. .Count -gt 1) indicates two duplicate custom fields.
-                    $exception = ([System.ArgumentException]"Ambiguously Referenced Parameter")
-                    $errorId = 'ParameterValue.AmbiguousParameter'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Fields
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Field name [$name] in -Fields hashtable ambiguously refers to more than one field. Use Get-JiraField for more information, or specify the custom field by its ID."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-                else {
-                    $exception = ([System.ArgumentException]"Invalid value for Parameter")
-                    $errorId = 'ParameterValue.InvalidFields'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $Fields
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Unable to identify field [$name] from -Fields hashtable. Use Get-JiraField for more information."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
+                if (
+                    -not $ScopedFieldsById.ContainsKey($name) -and
+                    -not $ScopedFieldsById.ContainsKey("customfield_$name") -and
+                    -not $ScopedFieldsByName.ContainsKey($name) -and
+                    $null -eq $FallbackFieldsById
+                ) {
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] not in create metadata; fetching global field list as fallback"
+                    $fb = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
+                    $FallbackFieldsById = if ($fb) { $fb | Group-Object -Property Id -AsHashTable -AsString } else { @{} }
+                    $FallbackFieldsByName = if ($fb) { $fb | Group-Object -Property Name -AsHashTable -AsString } else { @{} }
                 }
 
-                $id = $field.Id
+                $FallbackByIdForResolve = @{}
+                $FallbackByNameForResolve = @{}
+                if ($null -ne $FallbackFieldsById) {
+                    $FallbackByIdForResolve = $FallbackFieldsById
+                    $FallbackByNameForResolve = $FallbackFieldsByName
+                }
+
+                $field = Resolve-JiraField `
+                    -Name          $name `
+                    -ScopedById    $ScopedFieldsById `
+                    -ScopedByName  $ScopedFieldsByName `
+                    -FallbackById  $FallbackByIdForResolve `
+                    -FallbackByName $FallbackByNameForResolve `
+                    -CallerName    $MyInvocation.MyCommand.Name
+
+                $id = "$($field.Id)"
 
                 # `-Fields` values hit a raw assignment; wrap rich-text strings here
                 # for parity with the named-parameter paths.

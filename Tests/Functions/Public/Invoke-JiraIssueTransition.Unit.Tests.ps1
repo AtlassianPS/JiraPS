@@ -83,6 +83,54 @@ InModuleScope JiraPS {
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                $Method -eq 'Get' -and
+                $URI -like "*issue/$issueID/transitions*"
+            } {
+                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                # Return transition metadata with screen fields so that
+                # -Fields resolution uses the scoped metadata path.
+                [PSCustomObject]@{
+                    transitions = @(
+                        [PSCustomObject]@{
+                            id     = '11'
+                            fields = [PSCustomObject]@{
+                                customfield_12345 = [PSCustomObject]@{
+                                    name            = 'Custom Field 12345'
+                                    hasDefaultValue = $false
+                                    required        = $false
+                                    schema          = [PSCustomObject]@{
+                                        type   = 'string'
+                                        custom = 'com.atlassian.jira.plugin.system.customfieldtypes:textfield'
+                                    }
+                                    operations      = @('set')
+                                }
+                                customfield_67890 = [PSCustomObject]@{
+                                    name            = 'Custom Field 67890'
+                                    hasDefaultValue = $false
+                                    required        = $false
+                                    schema          = [PSCustomObject]@{
+                                        type   = 'string'
+                                        custom = 'com.atlassian.jira.plugin.system.customfieldtypes:textfield'
+                                    }
+                                    operations      = @('set')
+                                }
+                                description       = [PSCustomObject]@{
+                                    name            = 'Description'
+                                    hasDefaultValue = $false
+                                    required        = $false
+                                    schema          = [PSCustomObject]@{
+                                        type   = 'string'
+                                        system = 'description'
+                                    }
+                                    operations      = @('set')
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Post' -and
                 $URI -eq "$jiraServer/rest/api/2/issue/$issueID/transitions"
             } {
@@ -364,8 +412,13 @@ InModuleScope JiraPS {
                 } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") {
+                        return $false
+                    }
+
                     $payload = $Body | ConvertFrom-Json
                     $set = $payload.update.description[0].set
+
                     $set.type -eq 'doc' -and
                     $set.content[0].content[0].text -eq 'transition desc'
                 }
@@ -381,34 +434,88 @@ InModuleScope JiraPS {
                 } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") {
+                        return $false
+                    }
+
                     $payload = $Body | ConvertFrom-Json
                     $payload.update.customfield_12345[0].set -eq 'plain'
                 }
             }
         }
 
-        Describe "Field catalogue" {
-            It "fetches the field catalogue once per call regardless of how many keys -Fields contains" {
-                # Direct call (not wrapped in `{ } | Should -Not -Throw`) so a
-                # regression that throws inside the cmdlet surfaces with the
-                # actual ErrorRecord and stack trace instead of a generic
-                # "expected nothing, got terminating error" message.
+        Describe "Field Resolution" {
+            It "resolves fields via transition screen metadata and does not call Get-JiraField" {
                 Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
                     customfield_12345 = 'foo'
                     customfield_67890 = 'bar'
                 }
 
-                # Two assertions, deliberately:
-                #   1. The catalogue is fetched exactly once (no -Field
-                #      filter), mirroring the New-/Set-JiraIssue pattern.
-                #   2. Get-JiraField is invoked exactly once IN TOTAL —
-                #      catches a regression where someone re-introduces
-                #      per-key `Get-JiraField -Field $name` lookups (those
-                #      would slip past the filtered assertion above).
-                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
-                    -not $PSBoundParameters.ContainsKey('Field')
+                # Fields are in the transition metadata — global catalogue not needed
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 0
+
+                # Transition metadata GET was made exactly once
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Get' -and $URI -like "*issue/$issueID/transitions*"
                 }
+            }
+
+            It "falls back to Get-JiraField for fields not present in transition metadata" {
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $Method -eq 'Get' -and $URI -like "*issue/$issueID/transitions*"
+                } {
+                    # Transition with an empty fields map — no scoped metadata
+                    [PSCustomObject]@{
+                        transitions = @([PSCustomObject]@{ id = '11'; fields = [PSCustomObject]@{} })
+                    }
+                }
+
+                Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                    customfield_12345 = 'foo'
+                }
+
                 Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
+            }
+
+            It "fetches the global field list at most once when multiple unscoped keys are present" {
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    $Method -eq 'Get' -and $URI -like "*issue/$issueID/transitions*"
+                } {
+                    [PSCustomObject]@{
+                        transitions = @([PSCustomObject]@{ id = '11'; fields = [PSCustomObject]@{} })
+                    }
+                }
+
+                Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                    customfield_12345 = 'foo'
+                    customfield_67890 = 'bar'
+                }
+
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
+            }
+
+            It "fetches transition metadata once per call regardless of how many -Fields keys are supplied" {
+                Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                    customfield_12345 = 'foo'
+                    customfield_67890 = 'bar'
+                }
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Get' -and $URI -like "*issue/$issueID/transitions*"
+                }
+            }
+
+            It "sends 'expand=transitions.fields' and the transition ID as query parameters when fetching transition metadata" {
+                Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Fields @{
+                    customfield_12345 = 'foo'
+                }
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Get' -and
+                    $URI -like "*issue/$issueID/transitions*" -and
+                    $GetParameter['expand'] -eq 'transitions.fields' -and
+                    $GetParameter['transitionId'] -eq '11'
+                }
             }
         }
     }

@@ -99,6 +99,11 @@ InModuleScope JiraPS {
                 $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 return $object
             }
+
+            Mock Test-JiraCloudServer -ModuleName JiraPS {
+                Write-MockDebugInfo 'Test-JiraCloudServer'
+                $false
+            }
         }
 
         Describe "Signature" {
@@ -143,6 +148,29 @@ InModuleScope JiraPS {
                         $URI -like "/rest/api/*/issue/createmeta/*/issuetypes/*" -and
                         $Paging -eq $true
                     } -Exactly -Times 1
+                }
+
+                It "Uses the REST API v2 endpoint on Data Center" {
+                    # Test-JiraCloudServer is already mocked to $false in BeforeAll.
+                    { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                        $Method -eq 'Get' -and $URI -like "/rest/api/2/issue/createmeta/*"
+                    } -Exactly -Times 1
+                }
+
+                It "Uses the REST API v3 endpoint on Jira Cloud" {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+
+                    { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                        $Method -eq 'Get' -and $URI -like "/rest/api/3/issue/createmeta/*"
+                    } -Exactly -Times 1
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                        $Method -eq 'Get' -and $URI -like "/rest/api/2/issue/createmeta/*"
+                    } -Exactly -Times 0
                 }
 
                 It "Streams each field through ConvertTo-JiraCreateMetaField" {
