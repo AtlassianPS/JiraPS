@@ -126,6 +126,7 @@ InModuleScope JiraPS {
                     @{ parameter = 'Description'; type = 'String' }
                     @{ parameter = 'Reporter'; type = 'User' }
                     @{ parameter = 'Label'; type = 'String[]' }
+                    @{ parameter = 'Components'; type = 'String[]' }
                     @{ parameter = 'Fields'; type = 'PSObject' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
@@ -133,6 +134,7 @@ InModuleScope JiraPS {
                     $command | Should -HaveParameter $parameter
                     $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
                 }
+
             }
 
             Context "Mandatory Parameters" {}
@@ -147,6 +149,28 @@ InModuleScope JiraPS {
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
                 Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/issue" }
+            }
+
+            It "populates components in the request body when -Components is supplied" {
+                { New-JiraIssue @newParams -Components '10001', '10002' } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $Body -match '"components"' -and
+                    $Body -match '10001' -and
+                    $Body -match '10002'
+                }
+            }
+
+            It "populates components in the request body when the -Component short form is supplied" {
+                { New-JiraIssue @newParams -Component '10003', '10004' } | Should -Not -Throw
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $Body -match '"components"' -and
+                    $Body -match '10003' -and
+                    $Body -match '10004'
+                }
             }
             It "Creates an issue in JIRA from pipeline" {
                 { $pipelineParams | New-JiraIssue } | Should -Not -Throw

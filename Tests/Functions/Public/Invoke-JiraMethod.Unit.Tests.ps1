@@ -421,11 +421,71 @@ InModuleScope JiraPS {
                 Should -Invoke @assertMockCalledSplat
             }
 
-            It "overwrites module default headers with global PSDefaultParameterValues" {}
+            It "overwrites module default headers with global PSDefaultParameterValues" {
+                # Mock Resolve-DefaultParameterValue so it returns a known Invoke-WebRequest header
+                # without mutating the live $global:PSDefaultParameterValues (which conflicts with
+                # Pester's mock infrastructure when the dict contains an 'Invoke-WebRequest:Headers' entry).
+                Mock Resolve-DefaultParameterValue -ModuleName 'JiraPS' {
+                    @{ 'Invoke-WebRequest:Headers' = @{ 'X-From-Default' = 'default-value' } }
+                }
+                Mock Join-Hashtable -ModuleName 'JiraPS' {
+                    $table = @{}
+                    foreach ($item in $Hashtable) {
+                        if ($null -ne $item) {
+                            foreach ($key in $item.Keys) { $table[$key] = $item[$key] }
+                        }
+                    }
+                    $table
+                }
 
-            It "overwrites global PSDefaultParameterValues with -Headers" {}
+                $null = Invoke-JiraMethod -Method 'Get' -URI 'https://postman-echo.com/headers' -ErrorAction SilentlyContinue
 
-            It "overwrites module default headers with -Headers" {}
+                Should -Invoke -CommandName 'Invoke-WebRequest' -ModuleName 'JiraPS' -Exactly -Times 1 -ParameterFilter {
+                    $Headers.ContainsKey('X-From-Default') -and $Headers['X-From-Default'] -eq 'default-value'
+                }
+            }
+
+            It "overwrites global PSDefaultParameterValues with -Header" {
+                Mock Join-Hashtable -ModuleName 'JiraPS' {
+                    $table = @{}
+                    foreach ($item in $Hashtable) {
+                        if ($null -ne $item) {
+                            foreach ($key in $item.Keys) { $table[$key] = $item[$key] }
+                        }
+                    }
+                    $table
+                }
+
+                $global:PSDefaultParameterValues['Invoke-WebRequest:Headers'] = @{ 'X-Precedence' = 'from-global' }
+                try {
+                    $null = Invoke-JiraMethod -Method 'Get' -URI 'https://postman-echo.com/headers' -Header @{ 'X-Precedence' = 'from-param' } -ErrorAction SilentlyContinue
+
+                    Should -Invoke -CommandName 'Invoke-WebRequest' -ModuleName 'JiraPS' -Exactly -Times 1 -ParameterFilter {
+                        $Headers['X-Precedence'] -eq 'from-param'
+                    }
+                }
+                finally {
+                    $global:PSDefaultParameterValues.Remove('Invoke-WebRequest:Headers')
+                }
+            }
+
+            It "overwrites module default headers with -Header" {
+                Mock Join-Hashtable -ModuleName 'JiraPS' {
+                    $table = @{}
+                    foreach ($item in $Hashtable) {
+                        if ($null -ne $item) {
+                            foreach ($key in $item.Keys) { $table[$key] = $item[$key] }
+                        }
+                    }
+                    $table
+                }
+
+                $null = Invoke-JiraMethod -Method 'Get' -URI 'https://postman-echo.com/headers' -Header @{ 'X-Override' = 'caller-value' } -ErrorAction SilentlyContinue
+
+                Should -Invoke -CommandName 'Invoke-WebRequest' -ModuleName 'JiraPS' -Exactly -Times 1 -ParameterFilter {
+                    $Headers.ContainsKey('X-Override') -and $Headers['X-Override'] -eq 'caller-value'
+                }
+            }
 
             It "overwrites get parameters in the URI with -GetParameter values" {}
 
