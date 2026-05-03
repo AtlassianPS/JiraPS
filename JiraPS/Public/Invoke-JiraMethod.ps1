@@ -182,7 +182,6 @@
             Uri             = $PaginatedUri
             Method          = $Method
             Headers         = $_headers
-            ContentType     = $script:DefaultContentType
             UseBasicParsing = $true
             Credential      = $Credential
             ErrorAction     = "Stop"
@@ -197,6 +196,9 @@
             $splatParameters["ContentType"] = $_headers["Content-Type"]
             $splatParameters["Headers"].Remove("Content-Type")
             $_headers.Remove("Content-Type")
+        }
+        elseif ($Body) {
+            $splatParameters["ContentType"] = $script:DefaultContentType
         }
 
         if ($Body) {

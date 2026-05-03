@@ -729,7 +729,7 @@ InModuleScope JiraPS {
                 Should -Invoke @assertMockCalledSplat
             }
 
-            It "removes and content-type from headers and uses Invoke-WebRequest's -ContentType" {
+            It "only defaults Invoke-WebRequest -ContentType when sending a body, and honors explicit Content-Type headers" {
                 Mock Join-Hashtable -ModuleName 'JiraPS' {
                     $table = @{ }
                     foreach ($item in $Hashtable) {
@@ -741,8 +741,9 @@ InModuleScope JiraPS {
                 }
 
                 $invokeJiraMethodSplat = @{
-                    Method      = 'Get'
-                    URI         = "https://postman-echo.com/headers"
+                    Method      = 'Post'
+                    URI         = "https://postman-echo.com/post"
+                    Body        = '{}'
                     ErrorAction = "Stop"
                 }
                 $null = Invoke-JiraMethod @invokeJiraMethodSplat
@@ -772,6 +773,15 @@ InModuleScope JiraPS {
                     $ContentType -eq "text/plain"
                 }
                 Should -Invoke @assertMockCalledSplat
+            }
+
+            It "omits Invoke-WebRequest -ContentType for file transfers unless explicitly requested" {
+                Invoke-JiraMethod -Method 'Post' -URI "https://postman-echo.com/post" -InFile "./file-does-not-exist.txt"
+                Invoke-JiraMethod -Method 'Get' -URI "https://postman-echo.com/get" -OutFile "./file-does-not-exist.txt"
+
+                Should -Invoke -CommandName "Invoke-WebRequest" -ModuleName 'JiraPS' -Exactly -Times 2 -Scope It -ParameterFilter {
+                    -not $PSBoundParameters.ContainsKey('ContentType')
+                }
             }
 
             It "can handle UTF-8 chars in the response" {

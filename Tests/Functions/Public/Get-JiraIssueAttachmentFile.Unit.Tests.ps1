@@ -132,6 +132,16 @@ InModuleScope JiraPS {
                     $OutFile -like "..*.pdf"
                 } -Exactly 2
             }
+
+            It 'does not force an Accept header for attachment downloads' {
+                $fooIssue = [AtlassianPS.JiraPS.Issue]@{ Key = 'Foo' }
+
+                Get-JiraIssueAttachment -Issue $fooIssue | Get-JiraIssueAttachmentFile
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    -not $PSBoundParameters.ContainsKey('Headers')
+                } -Exactly 2
+            }
         }
 
         Describe "Input Validation" {
