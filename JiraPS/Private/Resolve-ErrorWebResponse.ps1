@@ -65,11 +65,6 @@
                 }
 
                 foreach ($_error in $allErrors) {
-                    # $_error is a PSCustomObject - therefore can't be $false
-                    if ($_error -is [PSCustomObject]) {
-                        [String]$_error = ($_error | Out-String)
-                    }
-
                     $_error = (Out-String -InputObject $_error).Trim()
                     if (-not $_error) {
                         continue

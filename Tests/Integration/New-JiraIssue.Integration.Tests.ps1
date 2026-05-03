@@ -51,10 +51,10 @@ InModuleScope JiraPS {
             # Task project, but on the Server track's `jira-core-task-management`
             # template it auto-supplies tightened `required: true,
             # hasDefaultValue: false` fields (Reporter on the moveworkforward
-            # AMPS image, sometimes Priority). Without it these tests would
-            # throw `ParameterValue.CreateMetaFailure` from `New-JiraIssue`'s
-            # client-side validator before ever hitting the wire, even though
-            # the create itself is well-formed for the Cloud baseline.
+            # AMPS image, sometimes Priority). Without it these tests can fail
+            # with real Jira validation errors on deployments whose field
+            # configuration tightens create requirements beyond the Cloud
+            # baseline payload.
             It "creates a new issue with required fields" {
                 if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
                     Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"

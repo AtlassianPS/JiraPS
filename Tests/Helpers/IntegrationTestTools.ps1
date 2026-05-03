@@ -551,8 +551,8 @@ function Get-MinimumValidIssueParameter {
     <#
     .SYNOPSIS
         Resolves the project- and issuetype-specific extras that `New-JiraIssue`
-        needs in order to create an issue without tripping its client-side
-        required-field validator.
+        may need in order to create an issue successfully across different Jira
+        field configurations.
 
     .DESCRIPTION
         Probes `Get-JiraIssueCreateMetadata` for the project's chosen issue
@@ -627,9 +627,9 @@ function Get-MinimumValidIssueParameter {
         # project creation before the per-issuetype createmeta route is wired
         # up). Surface it as a Warning rather than Verbose so a regression in
         # the seeding pipeline shows up in the GitHub Actions log immediately
-        # instead of cascading into a swarm of opaque "Invalid or missing
-        # value Parameter" errors from `New-JiraIssue` further downstream.
-        Write-Warning "Get-MinimumValidIssueParameter: createmeta probe for project [$($Fixtures.TestProject)] / issuetype [$IssueType] failed ($($_.Exception.Message)); returning empty extras. New-JiraIssue may reject the create call if the project tightens any required-no-default field."
+        # instead of cascading into a swarm of less-local Jira create failures
+        # further downstream.
+        Write-Warning "Get-MinimumValidIssueParameter: createmeta probe for project [$($Fixtures.TestProject)] / issuetype [$IssueType] failed ($($_.Exception.Message)); returning empty extras. Jira may still reject the create call if the project tightens any required-no-default field."
         return $result
     }
 
