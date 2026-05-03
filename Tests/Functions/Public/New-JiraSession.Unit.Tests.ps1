@@ -81,12 +81,12 @@ InModuleScope JiraPS {
                     $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
                 }
 
-                It "supports '<alias>' as an alias for '-PersonalAccessToken'" -TestCases @(
-                    @{ alias = 'BearerToken' }
-                    @{ alias = 'PAT' }
+                It "supports '<alias>' as an alias for '-<parameter>'" -TestCases @(
+                    @{ parameter = 'PersonalAccessToken'; alias = 'BearerToken' }
+                    @{ parameter = 'PersonalAccessToken'; alias = 'PAT' }
                 ) {
-                    param($alias)
-                    $command.Parameters['PersonalAccessToken'].Aliases | Should -Contain $alias
+                    param($parameter, $alias)
+                    $command.Parameters[$parameter].Aliases | Should -Contain $alias
                 }
             }
 
