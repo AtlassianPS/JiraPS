@@ -79,6 +79,8 @@ InModuleScope JiraPS {
                 if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
                     $script:tempIssue = $null
                     $script:testFilePath = $null
+                    $script:testBinaryFilePath = $null
+                    $script:downloadDir = $null
                 }
                 else {
                     $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "AttachIssue")
@@ -87,12 +89,24 @@ InModuleScope JiraPS {
                     $timestamp = Get-Date -Format 'yyyyMMddHHmmss'
                     $script:testFilePath = Join-Path $tempDir "jiraps-test-$timestamp.txt"
                     "Test file content created at $(Get-Date)" | Set-Content -Path $testFilePath
+
+                    $script:testBinaryFilePath = Join-Path $tempDir "jiraps-résumé-$timestamp.bin"
+                    $script:downloadDir = Join-Path $tempDir "jiraps-download-$timestamp"
+                    $binaryContent = [byte[]](0..255) * 4
+                    [System.IO.Directory]::CreateDirectory($downloadDir) | Out-Null
+                    [System.IO.File]::WriteAllBytes($testBinaryFilePath, $binaryContent)
                 }
             }
 
             AfterAll {
                 if ($testFilePath -and (Test-Path $testFilePath)) {
                     Remove-Item $testFilePath -Force
+                }
+                if ($testBinaryFilePath -and (Test-Path $testBinaryFilePath)) {
+                    Remove-Item $testBinaryFilePath -Force
+                }
+                if ($downloadDir -and (Test-Path $downloadDir)) {
+                    Remove-Item $downloadDir -Recurse -Force
                 }
             }
 
@@ -127,6 +141,27 @@ InModuleScope JiraPS {
                     $attachments = Get-JiraIssueAttachment -Issue $tempIssue.Key
 
                     $attachments | Should -Not -BeNullOrEmpty
+                }
+
+                It "round-trips binary content and non-ASCII filenames" {
+                    if (-not $tempIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $attachment = Add-JiraIssueAttachment -Issue $tempIssue.Key -FilePath $testBinaryFilePath -PassThru
+                    $attachment | Should -Not -BeNullOrEmpty
+                    $attachment.Filename | Should -Be ([System.IO.Path]::GetFileName($testBinaryFilePath))
+
+                    $result = Get-JiraIssueAttachmentFile -Attachment $attachment -Path $downloadDir
+                    $result | Should -BeTrue
+
+                    $downloadedFilePath = Join-Path $downloadDir $attachment.Filename
+                    (Test-Path $downloadedFilePath) | Should -BeTrue
+
+                    $expectedBytes = [System.IO.File]::ReadAllBytes($testBinaryFilePath)
+                    $actualBytes = [System.IO.File]::ReadAllBytes($downloadedFilePath)
+                    $actualBytes | Should -Be $expectedBytes
                 }
             }
 

@@ -52,13 +52,12 @@
             $iwParameters = @{
                 Uri        = $_Attachment.Content
                 Method     = 'Get'
-                Headers    = @{"Accept" = $_Attachment.MimeType }
                 OutFile    = $filename
                 Credential = $Credential
             }
 
-            $result = Invoke-JiraMethod @iwParameters
-            (-not $result)
+            $null = Invoke-JiraMethod @iwParameters
+            Test-Path -LiteralPath $filename
         }
     }
 

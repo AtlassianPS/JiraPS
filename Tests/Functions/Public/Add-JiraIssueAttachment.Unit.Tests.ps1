@@ -131,6 +131,20 @@ InModuleScope JiraPS {
                 Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -ne 'Post' } -Exactly -Times 0
             }
 
+            It 'uploads attachments via Invoke-JiraMethod -InFile' {
+                $null = Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath
+
+                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                    $Method -eq 'Post' -and
+                    $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" -and
+                    $InFile -eq $filePath -and
+                    $Headers['X-Atlassian-Token'] -eq 'nocheck' -and
+                    -not $Headers.ContainsKey('Content-Type') -and
+                    -not $Body -and
+                    -not $RawBody
+                } -Exactly -Times 1
+            }
+
             It 'has no output by default' {
                 $result = Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath
                 $result | Should -BeNullOrEmpty

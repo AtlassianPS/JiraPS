@@ -38,6 +38,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Added
 
+- Refactored `Add-JiraIssueAttachment` to upload files through `Invoke-JiraMethod -InFile`, removing the cmdlet's hand-built multipart body assembly and preserving attachment filename handling for non-ASCII names. (#607)
 - Added `-Unassign` switch to `Set-JiraIssue` and `Invoke-JiraIssueTransition` as the explicit way to remove the assignee from an issue.
 - Added `-UseDefaultAssignee` switch to `Set-JiraIssue` as the explicit way to assign an issue to the project's default assignee, replacing the removed `-Assignee 'Default'` magic string.
 - Added first-class `-Assignee` and `-Unassign` parameters to `New-JiraIssue` (mutually exclusive parameter sets `AssignToUser` / `Unassign`). `-Assignee` accepts a username, an `accountId`, or a `JiraPS.User` object and uses the same Cloud / Data Center dispatch as `Set-JiraIssue`. There is intentionally no `-UseDefaultAssignee` switch on `New-JiraIssue`: omitting `-Assignee` already lets Jira's create endpoint apply the project default.
