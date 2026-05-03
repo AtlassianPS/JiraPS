@@ -152,8 +152,11 @@
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Transition metadata unavailable for transition [$transitionId]: $_"
             }
 
-            $scopedMeta = if ($transitionMeta -and $transitionMeta.fields -and
-                $transitionMeta.fields.PSObject.Properties.Name.Count -gt 0) {
+            $scopedMeta = if (
+                $transitionMeta -and
+                $transitionMeta.fields -and
+                $transitionMeta.fields.PSObject.Properties.Name.Count -gt 0
+            ) {
                 ConvertTo-JiraEditMetaField -InputObject $transitionMeta
             }
             else {
@@ -183,22 +186,31 @@
                 $value = $Fields.$_key
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
 
-                if (-not $ScopedFieldsById.ContainsKey($name) -and
+                if (
+                    -not $ScopedFieldsById.ContainsKey($name) -and
                     -not $ScopedFieldsById.ContainsKey("customfield_$name") -and
                     -not $ScopedFieldsByName.ContainsKey($name) -and
-                    $null -eq $FallbackFieldsById) {
+                    $null -eq $FallbackFieldsById
+                ) {
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] not in transition metadata; fetching global field list as fallback"
                     $fb = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
                     $FallbackFieldsById = if ($fb) { $fb | Group-Object -Property Id -AsHashTable -AsString } else { @{} }
                     $FallbackFieldsByName = if ($fb) { $fb | Group-Object -Property Name -AsHashTable -AsString } else { @{} }
                 }
 
+                $FallbackByIdForResolve = @{}
+                $FallbackByNameForResolve = @{}
+                if ($null -ne $FallbackFieldsById) {
+                    $FallbackByIdForResolve = $FallbackFieldsById
+                    $FallbackByNameForResolve = $FallbackFieldsByName
+                }
+
                 $field = Resolve-JiraField `
                     -Name          $name `
                     -ScopedById    $ScopedFieldsById `
                     -ScopedByName  $ScopedFieldsByName `
-                    -FallbackById  (if ($null -ne $FallbackFieldsById) { $FallbackFieldsById } else { @{} }) `
-                    -FallbackByName (if ($null -ne $FallbackFieldsByName) { $FallbackFieldsByName } else { @{} }) `
+                    -FallbackById  $FallbackByIdForResolve `
+                    -FallbackByName $FallbackByNameForResolve `
                     -CallerName    $MyInvocation.MyCommand.Name
 
                 # Force the id to a string — Get-JiraField historically
@@ -208,7 +220,11 @@
 
                 # `-Fields` values hit a raw assignment; wrap rich-text strings here
                 # for parity with the named-parameter paths.
-                if ($isCloud -and ($value -is [string]) -and (Test-JiraRichTextField -Field $field)) {
+                if (
+                    $isCloud -and
+                    ($value -is [string]) -and
+                    (Test-JiraRichTextField -Field $field)
+                ) {
                     $value = Resolve-JiraTextFieldPayload -Text $value -IsCloud $true
                 }
 

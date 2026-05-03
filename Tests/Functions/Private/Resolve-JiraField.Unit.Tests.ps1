@@ -90,7 +90,7 @@ InModuleScope JiraPS {
                         -ScopedById $emptyHt -ScopedByName $ambiguousByName `
                         -FallbackById $emptyHt -FallbackByName $emptyHt `
                         -ErrorAction Stop
-                } | Should -Throw -ExceptionType ([System.Management.Automation.ActionPreferenceStopException])
+                } | Should -Throw -ExceptionType ([System.ArgumentException])
             }
 
             It "4. Ambiguity error for scoped name has expected ErrorId" {
