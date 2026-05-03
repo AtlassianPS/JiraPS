@@ -4,6 +4,19 @@
 
 This release focuses on **authentication improvements** and **performance optimizations**.
 
+### Changed
+
+- `New-JiraIssue`, `Set-JiraIssue`, and `Invoke-JiraIssueTransition` now resolve `-Fields` entries
+  against scoped field metadata (create metadata, edit metadata, or transition screen metadata
+  respectively) before falling back to the global `Get-JiraField` catalogue.
+  This eliminates the ambiguity when duplicate custom-field display names exist in the same Jira
+  instance, because the scoped metadata is constrained to the fields actually on the relevant
+  screen, making name-based lookup unambiguous in the common case.
+  The fallback to `Get-JiraField` is preserved for fields not surfaced in the scoped metadata.
+- `Get-JiraIssueCreateMetadata` now uses the Jira REST API v3 endpoint on Jira Cloud (Cloud
+  previously used the v2 path, which is deprecated).
+  Data Center continues to use the v2 endpoint unchanged.
+
 **Authentication**: We've heard the feedback — authenticating with Jira has been painful, especially for CI/CD pipelines and automation scripts. `New-JiraSession` now has first-class support for modern authentication methods:
 
 - **Jira Cloud**: Use `-ApiToken` with `-EmailAddress` — no more manually constructing Basic auth headers
