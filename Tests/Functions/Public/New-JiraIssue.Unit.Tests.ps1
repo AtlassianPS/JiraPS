@@ -232,7 +232,7 @@ InModuleScope JiraPS {
                     { New-JiraIssue @newParams } | Should -Not -Throw
                 }
 
-                It "throws when a field name return multiple fields without a field has matching name and id" {
+                It "does not let mismatched createmeta reporter IDs block issue creation" {
                     Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
                         Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
                         @(
@@ -246,7 +246,7 @@ InModuleScope JiraPS {
                         )
                     }
 
-                    { New-JiraIssue @newParams } | Should -Throw -ExpectedMessage "*Invalid or missing value*"
+                    { New-JiraIssue @newParams } | Should -Not -Throw
                 }
             }
         }
