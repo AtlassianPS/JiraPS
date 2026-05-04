@@ -294,6 +294,7 @@ Private functions in `JiraPS/Private/` may use minimal comment-based help (`.SYN
 > You MUST build before running unit tests.
 >
 > Integration tests run directly against `JiraPS/JiraPS.psd1` (no build step) and require live Jira Cloud credentials.
+> macOS and Linux contributors cannot execute the Windows PowerShell 5.1 lane locally, so treat that CI lane as a required pre-merge gate.
 
 ```powershell
 ./Tools/setup.ps1
@@ -347,6 +348,7 @@ Invoke-Pester Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
 - `Style.Tests.ps1` (encoding, whitespace, line endings) runs with the full test suite
 
 **Before committing**: Run full `Invoke-Build -Task Build, Test`.
+**Before merging**: Ensure the Windows PowerShell 5.1 `Test` job in `ci.yml` is green.
 
 **VSCode Integration:**
 
@@ -493,6 +495,7 @@ Follow the [`powershell-rules.md` Review Checklist](.github/ai-context/powershel
   - `server_integration_tests` — `Server`-tagged suite against a Dockerized Jira Data Center (`moveworkforward/atlas-run-standalone:jira-11`). **Never wired up to PRs**: the cold-boot cost (~25 min) is too expensive for per-PR feedback; PR-level Server coverage comes from the Server-tagged unit suites in `ci.yml`. Use `gh workflow run "Integration Tests" --ref <branch> -f track=server` to trigger on demand when working on a Server-track change.
 - `release.yml` — runs on `v*` tags, downloads the `Release` artifact produced by `ci.yml` for the tagged commit, publishes to PSGallery, and creates a GitHub Release.
 - Workflow source: [`.github/workflows/`](.github/workflows/); shared setup: [`.github/actions/setup-powershell/`](.github/actions/setup-powershell/) (caller must run `actions/checkout` first).
+- CI triage runbook: [`.github/ai-context/ci-triage-runbook.md`](.github/ai-context/ci-triage-runbook.md).
 
 ## Dependencies
 

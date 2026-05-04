@@ -161,6 +161,9 @@ Invoke-Build -Task TestIntegration -Tag 'Smoke'         # Smoke subset only
 Invoke-Build -Task TestIntegration -ThrottleLimit 8     # More parallelism
 ```
 
+- macOS and Linux contributors cannot run the Windows PowerShell 5.1 lane locally.
+- Treat the Windows PowerShell 5.1 CI test job as a required merge gate for every code change.
+
 ### Available Build Tasks
 
 | Task | What it does |
@@ -179,6 +182,10 @@ Invoke-Build -Task TestIntegration -ThrottleLimit 8     # More parallelism
 - **Forgetting `./Tools/setup.ps1`** — Missing dependencies (Pester, InvokeBuild, etc.)
 - **Running `TestIntegration` without `.env`** — Will fail fast on missing credentials
 
+### CI Failure Triage Runbook
+
+Use [CI Triage Runbook](ci-triage-runbook.md) when lint or Windows PowerShell 5.1 jobs fail.
+
 ## Review Checklist
 
 When changing PowerShell files:
@@ -188,3 +195,6 @@ When changing PowerShell files:
 3. If text fields are read/written: is ADF conversion conditional on deployment type?
 4. Are tests written/updated?
 5. Do tests pass? (`Invoke-Build -Task Build && Invoke-Build -Task Test`)
+6. If transport/response internals changed: are edge paths covered (request context, session capture, cache branches, paging, and status fallback from exceptions)?
+7. If you developed on macOS/Linux: did the Windows PowerShell 5.1 CI lane pass before merge?
+8. If CI failed: did you follow the [CI Triage Runbook](ci-triage-runbook.md)?
