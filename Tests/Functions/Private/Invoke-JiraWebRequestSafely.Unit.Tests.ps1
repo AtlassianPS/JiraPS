@@ -15,7 +15,7 @@ InModuleScope JiraPS {
                 Add-Type -TypeDefinition @"
 namespace JiraPS.Tests {
     public class FakeWebRequestException : System.Exception {
-        public object Response { get; }
+        public object Response { get; private set; }
         public FakeWebRequestException(string message, object response) : base(message) {
             Response = response;
         }
