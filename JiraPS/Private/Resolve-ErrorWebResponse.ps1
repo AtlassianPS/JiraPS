@@ -44,19 +44,45 @@
             try {
                 $responseObject = ConvertFrom-Json -InputObject $responseBody -ErrorAction Stop
 
-                $allErrors = @()
+                $allErrors = [System.Collections.Generic.List[string]]::new()
                 if ($null -ne $responseObject.errorMessages) {
-                    $allErrors += @($responseObject.errorMessages)
+                    foreach ($_error in @($responseObject.errorMessages)) {
+                        $messageText = "$_error".Trim()
+                        if ($messageText) {
+                            $null = $allErrors.Add($messageText)
+                        }
+                    }
                 }
                 if ($null -ne $responseObject.message) {
-                    $allErrors += @($responseObject.message)
+                    $messageText = "$($responseObject.message)".Trim()
+                    if ($messageText) {
+                        $null = $allErrors.Add($messageText)
+                    }
                 }
                 if ($null -ne $responseObject.errors) {
                     if ($responseObject.errors -is [PSCustomObject]) {
-                        $allErrors += @($responseObject.errors.PSObject.Properties.Value)
+                        foreach ($property in $responseObject.errors.PSObject.Properties) {
+                            $messageText = "$($property.Value)".Trim()
+                            if (-not $messageText) {
+                                continue
+                            }
+
+                            $fieldName = "$($property.Name)".Trim()
+                            if ($fieldName) {
+                                $null = $allErrors.Add("${fieldName}: $messageText")
+                            }
+                            else {
+                                $null = $allErrors.Add($messageText)
+                            }
+                        }
                     }
                     else {
-                        $allErrors += @($responseObject.errors)
+                        foreach ($_error in @($responseObject.errors)) {
+                            $messageText = "$_error".Trim()
+                            if ($messageText) {
+                                $null = $allErrors.Add($messageText)
+                            }
+                        }
                     }
                 }
 
@@ -65,11 +91,6 @@
                 }
 
                 foreach ($_error in $allErrors) {
-                    $_error = (Out-String -InputObject $_error).Trim()
-                    if (-not $_error) {
-                        continue
-                    }
-
                     $writeErrorSplat = @{
                         Exception    = $exception
                         ErrorId      = $errorId

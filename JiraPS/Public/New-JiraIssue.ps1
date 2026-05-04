@@ -169,7 +169,16 @@
 
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields against create metadata"
 
-            # Use the create metadata already fetched for required-field validation.
+            # Fetch create metadata lazily so `-Fields` can resolve names against
+            # the current project/issue-type create screen without restoring the
+            # removed client-side required-field validation behavior.
+            $createmeta = Get-JiraIssueCreateMetadata `
+                -Project $Project `
+                -IssueType $IssueType `
+                -Credential $Credential `
+                -ErrorAction Stop `
+                -Debug:$false
+
             # This gives context-aware, unambiguous resolution for fields on this
             # project/issue-type create screen and avoids a global Get-JiraField
             # round-trip for the common case. Get-JiraField is only fetched as a
