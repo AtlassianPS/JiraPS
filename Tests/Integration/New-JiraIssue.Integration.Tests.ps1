@@ -51,10 +51,10 @@ InModuleScope JiraPS {
             # Task project, but on the Server track's `jira-core-task-management`
             # template it auto-supplies tightened `required: true,
             # hasDefaultValue: false` fields (Reporter on the moveworkforward
-            # AMPS image, sometimes Priority). Without it these tests would
-            # throw `ParameterValue.CreateMetaFailure` from `New-JiraIssue`'s
-            # client-side validator before ever hitting the wire, even though
-            # the create itself is well-formed for the Cloud baseline.
+            # AMPS image, sometimes Priority). Without it these tests can fail
+            # with real Jira validation errors on deployments whose field
+            # configuration tightens create requirements beyond the Cloud
+            # baseline payload.
             It "creates a new issue with required fields" {
                 if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
                     Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
@@ -169,13 +169,93 @@ InModuleScope JiraPS {
                     Should -Throw
             }
 
-            It "fails without required summary" {
+            It "surfaces Jira create-endpoint validation for invalid priority id" {
                 if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
                     Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                     return
                 }
-                { New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary '' -ErrorAction Stop } |
-                    Should -Throw
+
+                $summary = New-TestResourceName -Type "BadPriority"
+                $extras = Get-MinimumValidIssueParameter -Fixtures $fixtures -SkipFieldId @('priority')
+                $params = @{
+                    Project     = $fixtures.TestProject
+                    IssueType   = 'Task'
+                    Summary     = $summary
+                    Priority    = 2147483647
+                    ErrorAction = 'Stop'
+                }
+                if ($extras.Reporter) { $params.Reporter = $extras.Reporter }
+                if ($extras.Fields -and $extras.Fields.Count -gt 0) { $params.Fields = $extras.Fields }
+
+                $thrown = $null
+                try {
+                    New-JiraIssue @params
+                    throw "Expected New-JiraIssue to throw for an invalid priority id."
+                }
+                catch {
+                    $thrown = $_
+                }
+
+                $thrown | Should -Not -BeNullOrEmpty
+                $thrown.FullyQualifiedErrorId | Should -Match 'InvalidResponse.Status400'
+                $thrown.Exception.Message | Should -Match '(?i)priority'
+            }
+
+            It "defers required-no-default field enforcement to Jira when present in createmeta" {
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
+                    Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                    return
+                }
+
+                $createMeta = Get-JiraIssueCreateMetadata -Project $fixtures.TestProject -IssueType 'Task' -ErrorAction Stop -Debug:$false
+                $requiredNoDefault = @($createMeta | Where-Object {
+                        $_.Required -and
+                        -not $_.HasDefaultValue -and
+                        $_.Id -notin @('project', 'issuetype', 'summary')
+                    })
+
+                if ($requiredNoDefault.Count -eq 0) {
+                    Set-ItResult -Skipped -Because "No required-no-default create fields on this deployment for Task."
+                    return
+                }
+
+                $omittedField = $requiredNoDefault[0]
+                $summary = New-TestResourceName -Type "MissingRequired"
+                $extras = Get-MinimumValidIssueParameter -Fixtures $fixtures -SkipFieldId @($omittedField.Id)
+                $params = @{
+                    Project     = $fixtures.TestProject
+                    IssueType   = 'Task'
+                    Summary     = $summary
+                    ErrorAction = 'Stop'
+                }
+                if ($extras.Reporter) { $params.Reporter = $extras.Reporter }
+                if ($extras.Fields -and $extras.Fields.Count -gt 0) { $params.Fields = $extras.Fields }
+
+                $issue = $null
+                $thrown = $null
+                try {
+                    $issue = New-JiraIssue @params
+                }
+                catch {
+                    $thrown = $_
+                }
+
+                # This is the behavior change under test:
+                # no local CreateMetaFailure preflight. JiraPS either succeeds
+                # (if Jira accepts the payload) or returns Jira's server-side
+                # validation response.
+                if ($thrown) {
+                    $thrown.FullyQualifiedErrorId | Should -Not -Match 'CreateMetaFailure'
+                    $thrown.FullyQualifiedErrorId | Should -Match 'InvalidResponse.Status400'
+
+                    $namePattern = [regex]::Escape("$($omittedField.Name)")
+                    $idPattern = [regex]::Escape("$($omittedField.Id)")
+                    $thrown.Exception.Message | Should -Match "(?i)($namePattern|$idPattern)"
+                }
+                else {
+                    $issue | Should -Not -BeNullOrEmpty
+                    $null = $script:createdIssues.Add($issue.Key)
+                }
             }
         }
     }

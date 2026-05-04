@@ -38,7 +38,9 @@ This function creates a new issue in JIRA.
 
 Creating an issue requires a lot of data, and the exact data may be different from one instance of JIRA to the next.
 
-To identify what data is required for a given issue type and project, use the `Get-JiraIssueCreateMetadata` function provided in this module.
+To identify what data is available for a given issue type and project, use the `Get-JiraIssueCreateMetadata` function provided in this module.
+Jira's create metadata is informative, but the Jira create endpoint remains the source of truth for whether a field is actually required for API callers.
+`New-JiraIssue` therefore sends the request to Jira and surfaces any server-side field validation errors returned by the API, instead of pre-emptively rejecting the call based only on create metadata.
 
 Some JIRA instances may require additional custom fields specific to that instance of JIRA.
 In addition to the parameterized fields provided in this function, the Fields parameter accepts a hashtable of field names/IDs and values.

@@ -42,12 +42,46 @@ InModuleScope JiraPS {
                 $baselineVersion = New-JiraVersion -Project $fixtures.TestProject -Name $script:specificVersionName
                 $null = $script:createdVersions.Add($baselineVersion)
             }
+
+            $script:removeVersionEventually = {
+                param(
+                    [Parameter(Mandatory)]
+                    [object]$Version
+                )
+
+                $maxAttempts = 6
+                $retryDelayMs = 500
+
+                for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+                    try {
+                        Remove-JiraVersion -Version $Version -Force -ErrorAction Stop
+                        return
+                    }
+                    catch {
+                        $isMethodNotAllowed = (
+                            $_.FullyQualifiedErrorId -match 'InvalidResponse.Status405' -or
+                            $_.Exception.Message -like '*HTTP 405 Method Not Allowed*'
+                        )
+                        $isLastAttempt = ($attempt -eq $maxAttempts)
+                        if (-not $isMethodNotAllowed) {
+                            throw
+                        }
+
+                        if ($isLastAttempt) {
+                            Invoke-JiraMethod -Uri "/rest/api/2/version/$($Version.Id)/removeAndSwap" -Method 'POST' -Body '{}' -ErrorAction Stop
+                            return
+                        }
+
+                        Start-Sleep -Milliseconds $retryDelayMs
+                    }
+                }
+            }
         }
 
         AfterAll {
             foreach ($version in $createdVersions) {
                 try {
-                    Remove-JiraVersion -Version $version -Force -ErrorAction Stop
+                    & $script:removeVersionEventually -Version $version
                 }
                 catch {
                     if ($_.Exception.Message -notlike "*Could not find version for id*") {
@@ -192,7 +226,7 @@ InModuleScope JiraPS {
                     # Remove-JiraVersion can be expected to honour. The previous
                     # read-back loop was measuring Jira's read-side consistency lag,
                     # not the cmdlet.
-                    { Remove-JiraVersion -Version $version -Force -ErrorAction Stop } | Should -Not -Throw
+                    { & $script:removeVersionEventually -Version $version } | Should -Not -Throw
                 }
             }
         }

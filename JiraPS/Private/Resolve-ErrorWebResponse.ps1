@@ -44,13 +44,53 @@
             try {
                 $responseObject = ConvertFrom-Json -InputObject $responseBody -ErrorAction Stop
 
-                foreach ($_error in ($responseObject.errorMessages + $responseObject.errors)) {
-                    # $_error is a PSCustomObject - therefore can't be $false
-                    if ($_error -is [PSCustomObject]) {
-                        [String]$_error = ($_error | Out-String)
+                $allErrors = [System.Collections.Generic.List[string]]::new()
+                if ($null -ne $responseObject.errorMessages) {
+                    foreach ($_error in @($responseObject.errorMessages)) {
+                        $messageText = "$_error".Trim()
+                        if ($messageText) {
+                            $null = $allErrors.Add($messageText)
+                        }
                     }
-                    if (-not $_error) { throw "Unable to handle error" }
+                }
+                if ($null -ne $responseObject.message) {
+                    $messageText = "$($responseObject.message)".Trim()
+                    if ($messageText) {
+                        $null = $allErrors.Add($messageText)
+                    }
+                }
+                if ($null -ne $responseObject.errors) {
+                    if ($responseObject.errors -is [PSCustomObject]) {
+                        foreach ($property in $responseObject.errors.PSObject.Properties) {
+                            $messageText = "$($property.Value)".Trim()
+                            if (-not $messageText) {
+                                continue
+                            }
 
+                            $fieldName = "$($property.Name)".Trim()
+                            if ($fieldName) {
+                                $null = $allErrors.Add("${fieldName}: $messageText")
+                            }
+                            else {
+                                $null = $allErrors.Add($messageText)
+                            }
+                        }
+                    }
+                    else {
+                        foreach ($_error in @($responseObject.errors)) {
+                            $messageText = "$_error".Trim()
+                            if ($messageText) {
+                                $null = $allErrors.Add($messageText)
+                            }
+                        }
+                    }
+                }
+
+                if ($allErrors.Count -eq 0) {
+                    throw "Unable to handle error"
+                }
+
+                foreach ($_error in $allErrors) {
                     $writeErrorSplat = @{
                         Exception    = $exception
                         ErrorId      = $errorId
