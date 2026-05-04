@@ -172,65 +172,14 @@
                 @()
             }
 
-            $ScopedFieldsById = if ($scopedMeta) {
-                $scopedMeta | Group-Object -Property Id -AsHashTable -AsString
-            }
-            else {
-                @{}
-            }
-            $ScopedFieldsByName = if ($scopedMeta) {
-                $scopedMeta | Group-Object -Property Name -AsHashTable -AsString
-            }
-            else {
-                @{}
-            }
-
-            $FallbackFieldsById = $null
-            $FallbackFieldsByName = $null
-
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields"
-            foreach ($_key in $Fields.Keys) {
-
-                $name = $_key
-                $value = $Fields.$_key
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Attempting to identify field (name=[$name], value=[$value])"
-
-                if (
-                    -not $ScopedFieldsById.ContainsKey($name) -and
-                    -not $ScopedFieldsById.ContainsKey("customfield_$name") -and
-                    -not $ScopedFieldsByName.ContainsKey($name) -and
-                    $null -eq $FallbackFieldsById
-                ) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] [$name] not in edit metadata; fetching global field list as fallback"
-                    $fb = Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false
-                    $FallbackFieldsById = if ($fb) { $fb | Group-Object -Property Id -AsHashTable -AsString } else { @{} }
-                    $FallbackFieldsByName = if ($fb) { $fb | Group-Object -Property Name -AsHashTable -AsString } else { @{} }
-                }
-
-                $FallbackByIdForResolve = @{}
-                $FallbackByNameForResolve = @{}
-                if ($null -ne $FallbackFieldsById) {
-                    $FallbackByIdForResolve = $FallbackFieldsById
-                    $FallbackByNameForResolve = $FallbackFieldsByName
-                }
-
-                $field = Resolve-JiraField `
-                    -Name          $name `
-                    -ScopedById    $ScopedFieldsById `
-                    -ScopedByName  $ScopedFieldsByName `
-                    -FallbackById  $FallbackByIdForResolve `
-                    -FallbackByName $FallbackByNameForResolve `
-                    -CallerName    $MyInvocation.MyCommand.Name
-
-                $id = [string]$field.Id
-
-                # `-Fields` values hit a raw assignment; wrap rich-text strings here
-                # for parity with the named-parameter paths.
-                if ($isCloud -and ($value -is [string]) -and (Test-JiraRichTextField -Field $field)) {
-                    $value = Resolve-JiraTextFieldPayload -Text $value -IsCloud $true
-                }
-
-                $issueProps.update[$id] = @(@{ 'set' = $value })
+            foreach ($assignment in ConvertTo-JiraFieldAssignment `
+                    -Fields $Fields `
+                    -ScopedMeta $scopedMeta `
+                    -IsCloud $isCloud `
+                    -ScopedContext 'edit metadata' `
+                    -CallerName $MyInvocation.MyCommand.Name `
+                    -FallbackFieldFetcher { Get-JiraField -Credential $Credential -ErrorAction Stop -Debug:$false }) {
+                $issueProps.update[$assignment.Id] = @(@{ 'set' = $assignment.Value })
             }
         }
 
