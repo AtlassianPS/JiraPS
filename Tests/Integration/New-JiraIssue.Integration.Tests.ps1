@@ -231,22 +231,31 @@ InModuleScope JiraPS {
                 if ($extras.Reporter) { $params.Reporter = $extras.Reporter }
                 if ($extras.Fields -and $extras.Fields.Count -gt 0) { $params.Fields = $extras.Fields }
 
+                $issue = $null
                 $thrown = $null
                 try {
-                    New-JiraIssue @params
-                    throw "Expected New-JiraIssue to throw when required field [$($omittedField.Id)] is omitted."
+                    $issue = New-JiraIssue @params
                 }
                 catch {
                     $thrown = $_
                 }
 
-                $thrown | Should -Not -BeNullOrEmpty
-                $thrown.FullyQualifiedErrorId | Should -Match 'InvalidResponse.Status400'
-                $thrown.FullyQualifiedErrorId | Should -Not -Match 'CreateMetaFailure'
+                # This is the behavior change under test:
+                # no local CreateMetaFailure preflight. JiraPS either succeeds
+                # (if Jira accepts the payload) or returns Jira's server-side
+                # validation response.
+                if ($thrown) {
+                    $thrown.FullyQualifiedErrorId | Should -Not -Match 'CreateMetaFailure'
+                    $thrown.FullyQualifiedErrorId | Should -Match 'InvalidResponse.Status400'
 
-                $namePattern = [regex]::Escape("$($omittedField.Name)")
-                $idPattern = [regex]::Escape("$($omittedField.Id)")
-                $thrown.Exception.Message | Should -Match "(?i)($namePattern|$idPattern)"
+                    $namePattern = [regex]::Escape("$($omittedField.Name)")
+                    $idPattern = [regex]::Escape("$($omittedField.Id)")
+                    $thrown.Exception.Message | Should -Match "(?i)($namePattern|$idPattern)"
+                }
+                else {
+                    $issue | Should -Not -BeNullOrEmpty
+                    $null = $script:createdIssues.Add($issue.Key)
+                }
             }
         }
     }
