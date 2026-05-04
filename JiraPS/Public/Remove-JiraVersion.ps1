@@ -77,6 +77,7 @@
                     $swapParameter = @{
                         URI        = "/rest/api/2/version/$($versionObj.Id)/removeAndSwap"
                         Method     = "POST"
+                        Body       = "{}"
                         Credential = $Credential
                     }
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Falling back to removeAndSwap for version id [$($versionObj.Id)] after repeated HTTP 405 responses on DELETE."

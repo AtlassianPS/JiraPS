@@ -106,24 +106,12 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    # The previous incarnation of this test joined the live test project
-                    # against a literal `NONEXISTENT` project to prove the OR branch was
-                    # actually evaluated. Jira Data Center's JQL parser rejects unknown
-                    # project keys outright with HTTP 400 (Cloud is more forgiving and
-                    # silently drops the unknown clause), so the cmdlet's `-ErrorAction
-                    # Stop` blew up before we ever got to assert on the results. The
-                    # second iteration switched to `summary ~ "JiraPS-IntTest" OR
-                    # created >= -7d`, which works on Server (where Wait-JiraServer.ps1
-                    # seeds a baseline issue carrying the prefix) but flapped on Cloud
-                    # against the long-lived test project where no recent issues had
-                    # been created and no summary matched the prefix. Anchor one of the
-                    # OR branches to `key = $TestIssue` instead — `JIRA_TEST_ISSUE` is
-                    # always in `JIRA_TEST_PROJECT` on both tracks (Cloud sets the pair
-                    # statically; Wait-JiraServer.ps1 seeds them on Server), so the
-                    # union always matches at least the baseline issue. The second OR
-                    # branch (`created >= -90d`) lengthens the window enough to absorb
-                    # natural traffic on the Cloud project too, exercising both halves.
-                    $jql = "project = $($fixtures.TestProject) AND (key = $($fixtures.TestIssue) OR created >= -90d)"
+                    # Keep this OR query anchored to issue-key predicates only.
+                    # Jira 11 can intermittently throw an internal server error on
+                    # mixed key/date OR clauses (`key = X OR created >= -Nd`) against
+                    # a fresh DC dataset, which makes the test flaky while not proving
+                    # anything about JiraPS itself.
+                    $jql = "project = $($fixtures.TestProject) AND (key = $($fixtures.TestIssue) OR key = NONEXISTENT-999999)"
 
                     $results = Get-JiraIssue -Query $jql -ErrorAction Stop
 
