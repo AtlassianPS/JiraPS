@@ -34,11 +34,23 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    $jql = "project = $($fixtures.TestProject)"
+                    # Anchor the project query to the fixture issue when present.
+                    # Fresh Jira DC boots can briefly return an empty project-only
+                    # search while indexing catches up, even though JIRA_TEST_ISSUE
+                    # is already resolvable and belongs to the same project.
+                    $jql = if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
+                        "project = $($fixtures.TestProject)"
+                    }
+                    else {
+                        "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue)"
+                    }
 
                     $results = Get-JiraIssue -Query $jql
 
                     $results | Should -Not -BeNullOrEmpty
+                    if ($fixtures.TestIssue) {
+                        @($results).Key | Should -Contain $fixtures.TestIssue
+                    }
                 }
 
                 It "returns issue objects" {
@@ -46,10 +58,16 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    $jql = "project = $($fixtures.TestProject)"
+                    $jql = if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
+                        "project = $($fixtures.TestProject)"
+                    }
+                    else {
+                        "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue)"
+                    }
 
                     $results = Get-JiraIssue -Query $jql
 
+                    $results | Should -Not -BeNullOrEmpty
                     @($results)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
                 }
 
@@ -69,18 +87,18 @@ InModuleScope JiraPS {
 
             Context "JQL with Operators" {
                 It "supports AND operator" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                    if ([string]::IsNullOrEmpty($fixtures.TestProject) -or [string]::IsNullOrEmpty($fixtures.TestIssue)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    $jql = "project = $($fixtures.TestProject) AND status != Done"
+                    # Keep the AND predicate anchored to a known fixture issue to avoid
+                    # intermittent Jira 11 backend null-deref failures on some status
+                    # comparisons against freshly provisioned datasets.
+                    $jql = "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue)"
 
-                    # Verify the query executes and returns valid results (may be empty)
                     $results = Get-JiraIssue -Query $jql -ErrorAction Stop
-                    # Results should be null/empty or valid issue objects
-                    if ($results) {
-                        @($results)[0].Key | Should -Match '^\w+-\d+$'
-                    }
+                    $results | Should -Not -BeNullOrEmpty
+                    @($results).Key | Should -Contain $fixtures.TestIssue
                 }
 
                 It "supports OR operator" {
@@ -88,24 +106,12 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    # The previous incarnation of this test joined the live test project
-                    # against a literal `NONEXISTENT` project to prove the OR branch was
-                    # actually evaluated. Jira Data Center's JQL parser rejects unknown
-                    # project keys outright with HTTP 400 (Cloud is more forgiving and
-                    # silently drops the unknown clause), so the cmdlet's `-ErrorAction
-                    # Stop` blew up before we ever got to assert on the results. The
-                    # second iteration switched to `summary ~ "JiraPS-IntTest" OR
-                    # created >= -7d`, which works on Server (where Wait-JiraServer.ps1
-                    # seeds a baseline issue carrying the prefix) but flapped on Cloud
-                    # against the long-lived test project where no recent issues had
-                    # been created and no summary matched the prefix. Anchor one of the
-                    # OR branches to `key = $TestIssue` instead — `JIRA_TEST_ISSUE` is
-                    # always in `JIRA_TEST_PROJECT` on both tracks (Cloud sets the pair
-                    # statically; Wait-JiraServer.ps1 seeds them on Server), so the
-                    # union always matches at least the baseline issue. The second OR
-                    # branch (`created >= -90d`) lengthens the window enough to absorb
-                    # natural traffic on the Cloud project too, exercising both halves.
-                    $jql = "project = $($fixtures.TestProject) AND (key = $($fixtures.TestIssue) OR created >= -90d)"
+                    # Keep this OR query anchored to issue-key predicates only.
+                    # Jira 11 can intermittently throw an internal server error on
+                    # mixed key/date OR clauses (`key = X OR created >= -Nd`) against
+                    # a fresh DC dataset, which makes the test flaky while not proving
+                    # anything about JiraPS itself.
+                    $jql = "project = $($fixtures.TestProject) AND (key = $($fixtures.TestIssue) OR key = NONEXISTENT-999999)"
 
                     $results = Get-JiraIssue -Query $jql -ErrorAction Stop
 
