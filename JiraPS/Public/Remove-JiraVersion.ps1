@@ -40,16 +40,17 @@
 
             $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
 
-            $parameter = @{
+            $deleteParameter = @{
                 URI        = "/rest/api/2/version/$($versionObj.Id)"
                 Method     = "DELETE"
                 Credential = $Credential
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$deleteParameter"
             if ($PSCmdlet.ShouldProcess($versionObj.Name, "Removing Version")) {
+                $deleteHitMethodNotAllowed = $false
                 for ($attempt = 1; $attempt -le $maxDeleteAttempts; $attempt++) {
                     try {
-                        Invoke-JiraMethod @parameter
+                        Invoke-JiraMethod @deleteParameter
                         break
                     }
                     catch {
@@ -60,12 +61,26 @@
                         $isLastAttempt = ($attempt -eq $maxDeleteAttempts)
 
                         if (-not $isMethodNotAllowed -or $isLastAttempt) {
+                            if ($isMethodNotAllowed -and $isLastAttempt) {
+                                $deleteHitMethodNotAllowed = $true
+                                break
+                            }
                             throw
                         }
 
                         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Jira returned HTTP 405 while deleting version id [$($versionObj.Id)] (attempt $attempt/$maxDeleteAttempts). Retrying after $retryDelayMs ms."
                         Start-Sleep -Milliseconds $retryDelayMs
                     }
+                }
+
+                if ($deleteHitMethodNotAllowed) {
+                    $swapParameter = @{
+                        URI        = "/rest/api/2/version/$($versionObj.Id)/removeAndSwap"
+                        Method     = "POST"
+                        Credential = $Credential
+                    }
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Falling back to removeAndSwap for version id [$($versionObj.Id)] after repeated HTTP 405 responses on DELETE."
+                    Invoke-JiraMethod @swapParameter
                 }
             }
         }

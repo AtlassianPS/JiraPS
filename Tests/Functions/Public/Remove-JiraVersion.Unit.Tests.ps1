@@ -165,6 +165,17 @@ InModuleScope JiraPS {
                     { Remove-JiraVersion -Version $versionID1 -Force -ErrorAction Stop } | Should -Not -Throw
                     $script:deleteAttempts | Should -Be 3
                 }
+
+                It 'falls back to removeAndSwap after repeated HTTP 405 responses' {
+                    Mock Start-Sleep -ModuleName JiraPS {}
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" } {
+                        throw "HTTP 405 Method Not Allowed"
+                    }
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/2/version/$versionID1/removeAndSwap" } {}
+
+                    { Remove-JiraVersion -Version $versionID1 -Force -ErrorAction Stop } | Should -Not -Throw
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/2/version/$versionID1/removeAndSwap" }
+                }
             }
         }
 
