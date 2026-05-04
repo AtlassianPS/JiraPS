@@ -20,6 +20,9 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $maxDeleteAttempts = 6
+        $retryDelayMs = 500
+
         if ($Force) {
             Write-DebugMessage "[Remove-JiraVersion] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
             $oldConfirmPreference = $ConfirmPreference
@@ -38,13 +41,32 @@
             $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
 
             $parameter = @{
-                URI        = $versionObj.RestUrl
+                URI        = "/rest/api/2/version/$($versionObj.Id)"
                 Method     = "DELETE"
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($versionObj.Name, "Removing Version")) {
-                Invoke-JiraMethod @parameter
+                for ($attempt = 1; $attempt -le $maxDeleteAttempts; $attempt++) {
+                    try {
+                        Invoke-JiraMethod @parameter
+                        break
+                    }
+                    catch {
+                        $isMethodNotAllowed = (
+                            $_.FullyQualifiedErrorId -match 'InvalidResponse.Status405' -or
+                            $_.Exception.Message -match 'HTTP 405 Method Not Allowed'
+                        )
+                        $isLastAttempt = ($attempt -eq $maxDeleteAttempts)
+
+                        if (-not $isMethodNotAllowed -or $isLastAttempt) {
+                            throw
+                        }
+
+                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Jira returned HTTP 405 while deleting version id [$($versionObj.Id)] (attempt $attempt/$maxDeleteAttempts). Retrying after $retryDelayMs ms."
+                        Start-Sleep -Milliseconds $retryDelayMs
+                    }
+                }
             }
         }
     }
