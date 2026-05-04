@@ -41,9 +41,9 @@
             $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
 
             $deleteParameter = @{
-                URI        = "/rest/api/2/version/$($versionObj.Id)"
-                Method     = "DELETE"
-                Credential = $Credential
+                URI         = "/rest/api/2/version/$($versionObj.Id)"
+                Method      = "DELETE"
+                Credential  = $Credential
                 ErrorAction = "Stop"
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$deleteParameter"
@@ -76,10 +76,10 @@
 
                 if ($deleteHitMethodNotAllowed) {
                     $swapParameter = @{
-                        URI        = "/rest/api/2/version/$($versionObj.Id)/removeAndSwap"
-                        Method     = "POST"
-                        Body       = "{}"
-                        Credential = $Credential
+                        URI         = "/rest/api/2/version/$($versionObj.Id)/removeAndSwap"
+                        Method      = "POST"
+                        Body        = "{}"
+                        Credential  = $Credential
                         ErrorAction = "Stop"
                     }
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Falling back to removeAndSwap for version id [$($versionObj.Id)] after repeated HTTP 405 responses on DELETE."
