@@ -1,5 +1,10 @@
 ﻿function New-JiraWebRequestSplat {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSUseShouldProcessForStateChangingFunctions',
+        '',
+        Justification = 'Private helper used internally by Invoke-JiraMethod; it does not perform an external side-effectful action itself.'
+    )]
     param(
         [Parameter(Mandatory)]
         [Uri]

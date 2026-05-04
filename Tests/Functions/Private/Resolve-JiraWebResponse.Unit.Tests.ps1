@@ -82,7 +82,10 @@ InModuleScope JiraPS {
             }
 
             $response = New-FakeWebResponse -StatusCode 200
-            $credential = [pscredential]::new('user@example.com', (ConvertTo-SecureString 'pw' -AsPlainText -Force))
+            $securePassword = [System.Security.SecureString]::new()
+            'pw'.ToCharArray() | ForEach-Object { $securePassword.AppendChar($_) }
+            $securePassword.MakeReadOnly()
+            $credential = [pscredential]::new('user@example.com', $securePassword)
             $session = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
             $result = Invoke-ResolveJiraWebResponse -Remaining @{
                 WebResponse                 = $response

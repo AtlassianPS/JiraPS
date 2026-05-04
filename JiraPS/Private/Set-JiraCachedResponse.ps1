@@ -1,5 +1,10 @@
 ﻿function Set-JiraCachedResponse {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSUseShouldProcessForStateChangingFunctions',
+        '',
+        Justification = 'Private helper used internally by Invoke-JiraMethod to update an in-memory cache; no interactive ShouldProcess flow is expected.'
+    )]
     param(
         [String]
         $CacheKey,
