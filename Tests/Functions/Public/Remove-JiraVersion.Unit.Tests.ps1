@@ -77,11 +77,11 @@ InModuleScope JiraPS {
                 $result
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/*/version/$versionID1" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/*/version/$versionID1" -and $ErrorAction -eq 'Stop' } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/*/version/$versionID2" } {
+            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/*/version/$versionID2" -and $ErrorAction -eq 'Stop' } {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
             }
 
@@ -120,7 +120,7 @@ InModuleScope JiraPS {
                     { Remove-JiraVersion -Version $versionID1 -Force -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Get-JiraProject' -Times 1 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" }
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" -and $ErrorAction -eq 'Stop' }
                 }
 
                 It 'removes a Version using the Version Object' {
@@ -130,7 +130,7 @@ InModuleScope JiraPS {
                     } | Should -Not -Throw
                     Should -Invoke 'Get-JiraVersion' -Times 2 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Get-JiraProject' -Times 2 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" }
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" -and $ErrorAction -eq 'Stop' }
                 }
 
                 It 'removes a Version using several Version Objects' {
@@ -140,22 +140,22 @@ InModuleScope JiraPS {
                     } | Should -Not -Throw
                     Should -Invoke 'Get-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Get-JiraProject' -Times 4 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" }
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID2" }
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" -and $ErrorAction -eq 'Stop' }
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID2" -and $ErrorAction -eq 'Stop' }
                 }
 
                 It 'removes a Version using Version as input over the pipeline' {
                     { Get-JiraVersion -Id $versionID1, $versionID2 | Remove-JiraVersion -Force -ErrorAction Stop } | Should -Not -Throw
                     Should -Invoke 'Get-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Get-JiraProject' -Times 4 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" }
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID2" }
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" -and $ErrorAction -eq 'Stop' }
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID2" -and $ErrorAction -eq 'Stop' }
                 }
 
                 It 'retries transient HTTP 405 errors before succeeding' {
                     $script:deleteAttempts = 0
                     Mock Start-Sleep -ModuleName JiraPS {}
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" } {
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" -and $ErrorAction -eq 'Stop' } {
                         $script:deleteAttempts++
                         if ($script:deleteAttempts -lt 3) {
                             throw "HTTP 405 Method Not Allowed"
@@ -168,13 +168,24 @@ InModuleScope JiraPS {
 
                 It 'falls back to removeAndSwap after repeated HTTP 405 responses' {
                     Mock Start-Sleep -ModuleName JiraPS {}
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" } {
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" -and $ErrorAction -eq 'Stop' } {
                         throw "HTTP 405 Method Not Allowed"
                     }
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/2/version/$versionID1/removeAndSwap" } {}
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/2/version/$versionID1/removeAndSwap" -and $ErrorAction -eq 'Stop' } {}
 
                     { Remove-JiraVersion -Version $versionID1 -Force -ErrorAction Stop } | Should -Not -Throw
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/2/version/$versionID1/removeAndSwap" }
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/2/version/$versionID1/removeAndSwap" -and $ErrorAction -eq 'Stop' }
+                }
+
+                It 'falls back to removeAndSwap in default caller error mode' {
+                    Mock Start-Sleep -ModuleName JiraPS {}
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "*/rest/api/2/version/$versionID1" -and $ErrorAction -eq 'Stop' } {
+                        throw "HTTP 405 Method Not Allowed"
+                    }
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/2/version/$versionID1/removeAndSwap" -and $ErrorAction -eq 'Stop' } {}
+
+                    { Remove-JiraVersion -Version $versionID1 -Force } | Should -Not -Throw
+                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "*/rest/api/2/version/$versionID1/removeAndSwap" -and $ErrorAction -eq 'Stop' }
                 }
             }
         }

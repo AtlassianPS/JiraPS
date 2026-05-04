@@ -44,6 +44,7 @@
                 URI        = "/rest/api/2/version/$($versionObj.Id)"
                 Method     = "DELETE"
                 Credential = $Credential
+                ErrorAction = "Stop"
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$deleteParameter"
             if ($PSCmdlet.ShouldProcess($versionObj.Name, "Removing Version")) {
@@ -79,6 +80,7 @@
                         Method     = "POST"
                         Body       = "{}"
                         Credential = $Credential
+                        ErrorAction = "Stop"
                     }
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Falling back to removeAndSwap for version id [$($versionObj.Id)] after repeated HTTP 405 responses on DELETE."
                     Invoke-JiraMethod @swapParameter
