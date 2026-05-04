@@ -28,6 +28,8 @@
 - [ ] My code follows the code style of this project.
 - [ ] I have added Pester Tests that describe what my changes should do.
 - [ ] I have updated the documentation accordingly.
+- [ ] If I developed on macOS/Linux, I confirmed the Windows PowerShell 5.1 CI lane passed.
+- [ ] If I changed transport/response helper paths, I covered edge cases (request context, session, cache, paging, exception status fallback).
 
 ### Cloud / Data Center Compatibility
 
