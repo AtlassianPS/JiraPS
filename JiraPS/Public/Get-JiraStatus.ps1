@@ -1,10 +1,10 @@
-function Get-JiraStatus {
+﻿function Get-JiraStatus {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
-        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
         [String[]]
-        $IdOrName,
+        $Status,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -37,12 +37,12 @@ function Get-JiraStatus {
                 Write-Output (ConvertTo-JiraStatus -InputObject $result)
             }
             '_Search' {
-                foreach ($item in $IdOrName) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$item]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$item [$item]"
+                foreach ($_status in $Status) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_status]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_status [$_status]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f "/$item"
+                        URI        = $resourceURi -f "/$_status"
                         Method     = "GET"
                         Credential = $Credential
                     }
