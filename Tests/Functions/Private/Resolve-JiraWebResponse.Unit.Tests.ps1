@@ -145,7 +145,8 @@ InModuleScope JiraPS {
                     CacheExpiry = [TimeSpan]::FromMinutes(30)
                 } } | Should -Not -Throw
 
-            $script:result | Should -BeNullOrEmpty
+            # Result may be $null (PS7+) or @() (PS5.1), but should be empty in any case
+            @($script:result).Count | Should -Be 0
             Should -Invoke -CommandName Set-JiraCachedResponse -ModuleName 'JiraPS' -Exactly -Times 0 -Scope It
         }
 

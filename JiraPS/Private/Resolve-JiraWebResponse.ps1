@@ -72,8 +72,9 @@
 
     $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($WebResponse.RawContentStream.ToArray()))
 
-    # ConvertFrom-Json yields $null for an empty JSON array ("[]"); only cache when there is actual content.
-    if ($null -ne $response) {
+    # ConvertFrom-Json yields $null (PS7+) or @() (PS5.1) for an empty JSON array ("[]"); only cache when there is actual content.
+    # Check both null and empty collection to handle cross-version differences.
+    if ($null -ne $response -and @($response).Count -gt 0) {
         Set-JiraCachedResponse -CacheKey $CacheKey -Method $Method -Response $response -CacheExpiry $CacheExpiry -CommandName $CommandName
     }
 
