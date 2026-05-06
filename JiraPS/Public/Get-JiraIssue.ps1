@@ -45,7 +45,8 @@
         $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [Parameter()]
-        [Switch][Bool]$GetHistory
+        [Switch]
+        $GetHistory
     )
 
     begin {
@@ -70,8 +71,9 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
 
-                    $getParameter = @{ expand = "transitions" }
-                    if ($GetHistory -eq $true) { $getParameter = @{ expand = "transitions,changelog" }}
+                    $expandValue = "transitions"
+                    if ($GetHistory) { $expandValue = "transitions,changelog" }
+                    $getParameter = @{ expand = $expandValue }
                     if ($Fields) {
                         $getParameter["fields"] = $Fields
                     }
@@ -94,11 +96,11 @@
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$InputObject]"
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$InputObject [$InputObject]"
 
-                Write-Output (Get-JiraIssue -Key $InputObject.Key -Fields $Fields -Credential $Credential)
+                Write-Output (Get-JiraIssue -Key $InputObject.Key -Fields $Fields -Credential $Credential -GetHistory:$GetHistory)
             }
             'ByJQL' {
                 $expandValue = "transitions"
-                if ($GetHistory -eq $true) { $expandValue = "transitions,changelog" }
+                if ($GetHistory) { $expandValue = "transitions,changelog" }
                 $parameter = @{
                     URI          = if ($isCloud) { $searchURi_v3 } else { $searchURi }
                     Method       = "GET"
@@ -126,13 +128,13 @@
             'ByFilter' {
                 $filterObj = (Get-JiraFilter -Id $Filter.ID -Credential $Credential -ErrorAction Stop).SearchUrl
                 $expandValue = "transitions"
-                if ($GetHistory -eq $true) { $expandValue = "transitions,changelog" }
+                if ($GetHistory) { $expandValue = "transitions,changelog" }
                 $parameter = @{
                     URI          = $filterObj
                     Method       = "GET"
                     GetParameter = @{
                         validateQuery = $true
-                        expand        = $expandvalue
+                        expand        = $expandValue
                         maxResults    = $PageSize
                     }
                     OutputType   = "JiraIssue"

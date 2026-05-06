@@ -121,6 +121,52 @@ InModuleScope JiraPS {
                     }
                 }
 
+                It "adds changelog expansion for -Key when -GetHistory is supplied" {
+                    { Get-JiraIssue -Key TEST-001 -GetHistory } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'Get' -and
+                        $URI -like '*/rest/api/*/issue/TEST-001*' -and
+                        $GetParameter["expand"] -eq "transitions,changelog"
+                    }
+                }
+
+                It "adds changelog expansion for -Query when -GetHistory is supplied" {
+                    { Get-JiraIssue -Query $jql -GetHistory } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'Get' -and
+                        $URI -like "*/rest/api/*/search" -and
+                        $GetParameter["jql"] -eq $jql -and
+                        $GetParameter["expand"] -eq "transitions,changelog"
+                    }
+                }
+
+                It "adds changelog expansion for -Filter when -GetHistory is supplied" {
+                    { Get-JiraIssue -Filter "12345" -GetHistory } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'Get' -and
+                        $URI -like "*rest/api/*/filter/*" -and
+                        $GetParameter["expand"] -eq "transitions,changelog"
+                    }
+                }
+
+                It "propagates -GetHistory when called through -InputObject" {
+                    $issue = [AtlassianPS.JiraPS.Issue]@{
+                        Key = 'TEST-001'
+                        ID  = '12345'
+                    }
+
+                    { Get-JiraIssue -InputObject $issue -GetHistory } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'Get' -and
+                        $URI -like "*/rest/api/*/issue/TEST-001*" -and
+                        $GetParameter["expand"] -eq "transitions,changelog"
+                    }
+                }
+
                 It "Supports the -Skip and -First paging parameters to page through search results" {
                     { Get-JiraIssue -Query $jql -Skip 10 -First 50 } | Should -Not -Throw
 

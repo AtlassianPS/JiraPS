@@ -1,4 +1,4 @@
-function ConvertTo-JiraIssueHistoryEntry {
+﻿function ConvertTo-JiraIssueHistoryEntry {
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]
