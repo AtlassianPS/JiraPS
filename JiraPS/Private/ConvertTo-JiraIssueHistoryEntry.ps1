@@ -14,7 +14,7 @@
                 'ID'      = $i.id
                 'Author'  = ConvertTo-JiraUser $i.author
                 'Created' = Get-Date $i.created
-                'Items'    = $i.items
+                'Items'   = $i.items
             }
 
             $result = New-Object -TypeName PSObject -Property $props
