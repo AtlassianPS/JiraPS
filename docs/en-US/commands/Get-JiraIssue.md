@@ -17,28 +17,28 @@ Returns information about an issue in JIRA.
 ### ByIssueKey (Default)
 
 ```powershell
-Get-JiraIssue [-Key] <string[]> [-Fields <string[]>] [-Credential <pscredential>] [-GetHistory]
+Get-JiraIssue [-Key] <string[]> [-Fields <string[]>] [-Credential <pscredential>] [-IncludeHistory]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
-Get-JiraIssue [-InputObject] <Issue> [-Fields <string[]>] [-Credential <pscredential>] [-GetHistory]
+Get-JiraIssue [-InputObject] <Issue> [-Fields <string[]>] [-Credential <pscredential>] [-IncludeHistory]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByJQL
 
 ```powershell
-Get-JiraIssue -Query <string> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>] [-GetHistory]
+Get-JiraIssue -Query <string> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeHistory]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByFilter
 
 ```powershell
-Get-JiraIssue -Filter <Filter> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>] [-GetHistory]
+Get-JiraIssue -Filter <Filter> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeHistory]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
@@ -48,7 +48,7 @@ This function retrieves the data of a issue in JIRA.
 
 This function can be used to directly query JIRA for a specific issue key or internal issue ID.
 It can also be used to query JIRA for issues matching a specific criteria using JQL (Jira Query Language).
-Use `-GetHistory` to request changelog expansion and include issue history entries in the returned issue object.
+Use `-IncludeHistory` to request changelog expansion and include issue history entries in the returned issue object.
 
 > For more details on JQL syntax, see this article from Atlassian: [https://confluence.atlassian.com/display/JIRA/Advanced+Searching](https://confluence.atlassian.com/display/JIRA/Advanced+Searching)
 
@@ -204,7 +204,7 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -GetHistory
+### -IncludeHistory
 
 Requests changelog expansion when retrieving issues.
 When set, the returned issue object includes a `History` property with the issue history entries.
@@ -213,7 +213,8 @@ When set, the returned issue object includes a `History` property with the issue
 Type: SwitchParameter
 DefaultValue: False
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- GetHistory
 ParameterSets:
 - Name: (All)
   Position: Named

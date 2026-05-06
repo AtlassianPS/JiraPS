@@ -45,8 +45,9 @@
         $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [Parameter()]
+        [Alias('GetHistory')]
         [Switch]
-        $GetHistory
+        $IncludeHistory
     )
 
     begin {
@@ -72,7 +73,7 @@
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
 
                     $expandValue = "transitions"
-                    if ($GetHistory) { $expandValue = "transitions,changelog" }
+                    if ($IncludeHistory) { $expandValue = "transitions,changelog" }
                     $getParameter = @{ expand = $expandValue }
                     if ($Fields) {
                         $getParameter["fields"] = $Fields
@@ -96,11 +97,11 @@
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$InputObject]"
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$InputObject [$InputObject]"
 
-                Write-Output (Get-JiraIssue -Key $InputObject.Key -Fields $Fields -Credential $Credential -GetHistory:$GetHistory)
+                Write-Output (Get-JiraIssue -Key $InputObject.Key -Fields $Fields -Credential $Credential -IncludeHistory:$IncludeHistory)
             }
             'ByJQL' {
                 $expandValue = "transitions"
-                if ($GetHistory) { $expandValue = "transitions,changelog" }
+                if ($IncludeHistory) { $expandValue = "transitions,changelog" }
                 $parameter = @{
                     URI          = if ($isCloud) { $searchURi_v3 } else { $searchURi }
                     Method       = "GET"
@@ -128,7 +129,7 @@
             'ByFilter' {
                 $filterObj = (Get-JiraFilter -Id $Filter.ID -Credential $Credential -ErrorAction Stop).SearchUrl
                 $expandValue = "transitions"
-                if ($GetHistory) { $expandValue = "transitions,changelog" }
+                if ($IncludeHistory) { $expandValue = "transitions,changelog" }
                 $parameter = @{
                     URI          = $filterObj
                     Method       = "GET"

@@ -129,6 +129,18 @@ InModuleScope JiraPS {
                     $URI -eq "$jiraServer/rest/api/latest/status/1"
                 }
             }
+
+            It "accepts -IdOrName as an alias for -Status" {
+                $result = Get-JiraStatus -IdOrName Open
+
+                $result | Should -Not -BeNullOrEmpty
+                @($result) | Should -HaveCount 1
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    $Method -eq 'GET' -and
+                    $URI -eq "$jiraServer/rest/api/latest/status/Open"
+                }
+            }
         }
     }
 }
