@@ -128,6 +128,27 @@ InModuleScope JiraPS {
             $script:JiraCache.Count | Should -Be 0
         }
 
+        It "returns nothing and does not throw when response body is an empty JSON array" {
+            Mock Set-JiraCachedResponse -ModuleName 'JiraPS' {}
+
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes('[]')
+            $emptyArrayResponse = [PSCustomObject]@{
+                StatusCode       = [System.Net.HttpStatusCode]::OK
+                Content          = '[]'
+                RawContentStream = [System.IO.MemoryStream]::new($bytes)
+            }
+
+            { $script:result = Invoke-ResolveJiraWebResponse -Remaining @{
+                    WebResponse = $emptyArrayResponse
+                    CacheKey    = 'Components'
+                    Method      = 'GET'
+                    CacheExpiry = [TimeSpan]::FromMinutes(30)
+                } } | Should -Not -Throw
+
+            $script:result | Should -BeNullOrEmpty
+            Should -Invoke -CommandName Set-JiraCachedResponse -ModuleName 'JiraPS' -Exactly -Times 0 -Scope It
+        }
+
         It "returns nothing when successful response has no content" {
             $response = [PSCustomObject]@{
                 StatusCode       = [System.Net.HttpStatusCode]::OK

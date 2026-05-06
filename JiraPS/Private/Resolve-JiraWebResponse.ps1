@@ -72,7 +72,10 @@
 
     $response = ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($WebResponse.RawContentStream.ToArray()))
 
-    Set-JiraCachedResponse -CacheKey $CacheKey -Method $Method -Response $response -CacheExpiry $CacheExpiry -CommandName $CommandName
+    # ConvertFrom-Json yields $null for an empty JSON array ("[]"); only cache when there is actual content.
+    if ($null -ne $response) {
+        Set-JiraCachedResponse -CacheKey $CacheKey -Method $Method -Response $response -CacheExpiry $CacheExpiry -CommandName $CommandName
+    }
 
     if ($Paging) {
         Invoke-PaginatedRequest -Response $response @BoundParameters
