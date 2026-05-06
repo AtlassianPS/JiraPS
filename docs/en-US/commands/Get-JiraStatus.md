@@ -30,6 +30,7 @@ Get-JiraStatus [-Status] <string[]> [-Credential <pscredential>] [<CommonParamet
 
 This function returns Jira status objects.
 Use it to retrieve all available statuses or to query one or more statuses by id or name.
+`-IdOrName` is provided as an alias for `-Status`.
 
 ## EXAMPLES
 
@@ -90,7 +91,8 @@ Each value can be a status id (for example, `1`) or a status name (for example, 
 Type: String[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- IdOrName
 ParameterSets:
 - Name: _Search
   Position: 0

@@ -3,6 +3,7 @@
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
+        [Alias('IdOrName')]
         [String[]]
         $Status,
 
