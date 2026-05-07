@@ -50,8 +50,9 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Status'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Status'
+                It "returns AtlassianPS.JiraPS.Status" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Status'
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.Status]
                 }
             }
 
@@ -78,6 +79,11 @@ InModuleScope JiraPS {
 
                 It "defines 'RestUrl' property with correct value" {
                     $result.RestUrl | Should -Be "$jiraServer/rest/api/2/status/$statusId"
+                }
+
+                It "converts statusCategory to AtlassianPS.JiraPS.StatusCategory" {
+                    $result.StatusCategory | Should -BeOfType [AtlassianPS.JiraPS.StatusCategory]
+                    $result.StatusCategory.Key | Should -Be 'indeterminate'
                 }
             }
 

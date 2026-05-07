@@ -52,8 +52,9 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.IssueLink'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueLink'
+                It "returns AtlassianPS.JiraPS.IssueLink" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.IssueLink'
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.IssueLink]
                 }
             }
 

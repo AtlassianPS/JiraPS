@@ -58,7 +58,8 @@ InModuleScope JiraPS {
                 }
 
                 It "adds the custom type name 'JiraPS.Attachment'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Attachment'
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Attachment'
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.Attachment]
                 }
             }
 
@@ -76,13 +77,13 @@ InModuleScope JiraPS {
                 It "defines '<property>' of type '<type>' with value '<value>'" -TestCases @(
                     @{ property = "Id"; type = [string]; value = '270709' }
                     @{ property = "FileName"; type = [string]; value = 'Nav2-HCF.PNG' }
-                    @{ property = "self"; type = [string]; value = $null }
+                    @{ property = "self"; type = [uri]; value = $null }
                     @{ property = "Author"; type = 'AtlassianPS.JiraPS.User'; value = 'JonDoe' }
-                    @{ property = "Created"; type = [System.DateTime]; value = (Get-Date "2017-05-30T13:20:34.0000000+02:00") }
+                    @{ property = "Created"; type = [System.DateTimeOffset]; value = [System.DateTimeOffset](Get-Date "2017-05-30T13:20:34.0000000+02:00") }
                     @{ property = "Size"; type = [System.ValueType]; value = '366272' }
-                    @{ property = "content"; type = [string]; value = $null }
+                    @{ property = "content"; type = [uri]; value = $null }
                     @{ property = "mimeType"; type = [string]; value = 'image/png' }
-                    @{ property = "thumbnail"; type = [string]; value = $null }
+                    @{ property = "thumbnail"; type = [uri]; value = $null }
                 ) {
                     if ($value) { $result.$($property) | Should -Be $value }
                     else { $result.$($property) | Should -Not -BeNullOrEmpty }

@@ -52,13 +52,13 @@ function Initialize-TestEnvironment {
     $manifestPath = Resolve-ModuleSource
     $moduleDir = Split-Path $manifestPath -Parent
 
-    # Cheapest robust freshness signal: max LastWriteTimeUtc across all .ps*
+    # Cheapest robust freshness signal: max LastWriteTimeUtc across all module
     # files under the module directory (~8 ms warm, ~40 ms cold). Detects
-    # source edits in JiraPS/{Public,Private}/*.ps1 as well as CompileModule
+    # source edits in JiraPS/{Public,Private}/*.ps1, JiraPS/Types/*.cs, as well as CompileModule
     # rewriting Release/JiraPS/JiraPS.psm1 between Build runs.
     $fingerprint = (
         Get-ChildItem $moduleDir -Recurse -File -ErrorAction SilentlyContinue |
-            Where-Object { $_.Extension -in '.ps1', '.psm1', '.psd1' } |
+            Where-Object { $_.Extension -in '.ps1', '.psm1', '.psd1', '.cs' } |
             ForEach-Object { $_.LastWriteTimeUtc.Ticks } |
             Measure-Object -Maximum
     ).Maximum

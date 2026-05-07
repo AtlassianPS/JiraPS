@@ -79,8 +79,8 @@
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        if ("JiraPS.Transition" -in $Transition.PSObject.TypeNames) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Transition parameter is a JiraPS.Transition object"
+        if (($Transition -is [AtlassianPS.JiraPS.Transition]) -or ("AtlassianPS.JiraPS.Transition" -in $Transition.PSObject.TypeNames) -or ("JiraPS.Transition" -in $Transition.PSObject.TypeNames)) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Transition parameter is an AtlassianPS.JiraPS.Transition object"
             $transitionId = $Transition.Id
         }
         else {
@@ -94,7 +94,7 @@
                 $errorCategory = 'InvalidArgument'
                 $errorTarget = $Transition
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
+                $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [AtlassianPS.JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
                 $PSCmdlet.ThrowTerminatingError($errorItem)
             }
         }

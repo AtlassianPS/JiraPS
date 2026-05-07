@@ -35,7 +35,7 @@ InModuleScope JiraPS {
                 It "returns field objects with correct type" {
                     $fields = Get-JiraField
 
-                    @($fields)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Field'
+                    @($fields)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Field'
                 }
 
                 It "includes standard fields" {
@@ -76,7 +76,7 @@ InModuleScope JiraPS {
                 It "returns issue type objects with correct type" {
                     $types = Get-JiraIssueType
 
-                    @($types)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueType'
+                    @($types)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.IssueType'
                 }
 
                 It "includes standard issue types" {
@@ -111,7 +111,7 @@ InModuleScope JiraPS {
                 It "returns priority objects with correct type" {
                     $priorities = Get-JiraPriority
 
-                    @($priorities)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Priority'
+                    @($priorities)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Priority'
                 }
 
                 It "includes priority ID" {
@@ -139,7 +139,7 @@ InModuleScope JiraPS {
                 }
 
                 It "returns status objects with correct type" {
-                    @($allStatuses)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Status'
+                    @($allStatuses)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Status'
                 }
 
                 It "retrieves a status by id" {
@@ -182,7 +182,7 @@ InModuleScope JiraPS {
                 It "returns link type objects with correct type" {
                     $linkTypes = Get-JiraIssueLinkType
 
-                    @($linkTypes)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueLinkType'
+                    @($linkTypes)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.IssueLinkType'
                 }
 
                 It "includes inward and outward text" {
@@ -239,7 +239,7 @@ InModuleScope JiraPS {
                     }
                     $metadata = Get-JiraIssueEditMetadata -Issue $fixtures.TestIssue
 
-                    @($metadata)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.EditMetaField'
+                    @($metadata)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.EditMetaField'
                 }
             }
         }

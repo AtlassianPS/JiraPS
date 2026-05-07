@@ -51,7 +51,7 @@ InModuleScope JiraPS {
                     $worklogs = Get-JiraIssueWorklog -Issue $fixtures.TestIssue
 
                     if ($worklogs) {
-                        @($worklogs)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Worklogitem'
+                        @($worklogs)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Worklogitem'
                     }
                 }
 
@@ -97,7 +97,7 @@ InModuleScope JiraPS {
                     }
                     $worklog = Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent ([TimeSpan]::FromMinutes(30)) -DateStarted (Get-Date) -Comment "Type check test"
 
-                    $worklog.PSObject.TypeNames[0] | Should -Be 'JiraPS.Worklogitem'
+                    $worklog.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Worklogitem'
                 }
 
                 It "accepts various TimeSpan values" {

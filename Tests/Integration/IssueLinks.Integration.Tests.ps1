@@ -74,7 +74,7 @@ InModuleScope JiraPS {
                 It "link types have correct type name" {
                     $linkTypes = Get-JiraIssueLinkType
 
-                    $linkTypes[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueLinkType'
+                    $linkTypes[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.IssueLinkType'
                 }
 
                 It "link types have Id, Name, Inward, and Outward properties" {
@@ -272,7 +272,7 @@ InModuleScope JiraPS {
                     $linkId = $issue.issueLinks[0].Id
                     $link = Get-JiraIssueLink -Id $linkId
 
-                    $link.PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueLink'
+                    $link.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.IssueLink'
                 }
 
                 It "link includes type information" {

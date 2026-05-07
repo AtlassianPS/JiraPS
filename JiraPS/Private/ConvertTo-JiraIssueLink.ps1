@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraIssueLink {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.IssueLink])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,11 +9,11 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueLink"
 
             $props = @{
-                'Id'   = [int64]$i.id
-                'Type' = ConvertTo-JiraIssueLinkType $i.type
+                'Id'   = ConvertTo-JiraNullableInt64 $i.id
+                'Type' = if ($i.type) { ConvertTo-JiraIssueLinkType $i.type } else { $null }
             }
 
             if ($i.inwardIssue) {
@@ -23,13 +24,7 @@
                 $props['OutwardIssue'] = ConvertTo-JiraIssue $i.outwardIssue
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.IssueLink')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.ID)"
-            }
-
-            Write-Output $result
+            [AtlassianPS.JiraPS.IssueLink]$props
         }
     }
 }

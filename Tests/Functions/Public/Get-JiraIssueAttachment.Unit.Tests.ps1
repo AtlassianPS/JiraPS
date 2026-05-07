@@ -66,11 +66,22 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue'
+                $typedAttachments = foreach ($attachment in (ConvertFrom-Json -InputObject $script:attachments)) {
+                    [AtlassianPS.JiraPS.Attachment]@{
+                        ID       = $attachment.id
+                        Self     = [uri]$attachment.self
+                        FileName = $attachment.filename
+                        Created  = [System.DateTimeOffset](Get-Date $attachment.created)
+                        Size     = [int64]$attachment.size
+                        MimeType = $attachment.mimeType
+                        Content  = [uri]$attachment.content
+                    }
+                }
                 $IssueObj = [AtlassianPS.JiraPS.Issue]@{
                     ID         = $script:issueID
                     Key        = $script:issueKey
                     RestUrl    = "$($script:jiraServer)/rest/api/2/issue/$($script:issueID)"
-                    Attachment = (ConvertFrom-Json -InputObject $script:attachments)
+                    Attachment = [AtlassianPS.JiraPS.Attachment[]]@($typedAttachments)
                 }
                 $IssueObj
             }

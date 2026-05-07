@@ -46,7 +46,7 @@ InModuleScope JiraPS {
 
                     $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
                     if ($attachments) {
-                        @($attachments)[0] | Should -BeOfType [PSCustomObject]
+                        @($attachments)[0] | Should -BeOfType [AtlassianPS.JiraPS.Attachment]
                     }
                 }
 
@@ -58,7 +58,7 @@ InModuleScope JiraPS {
                     $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
 
                     if ($attachments) {
-                        @($attachments)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Attachment'
+                        @($attachments)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Attachment'
                     }
                 }
 
@@ -128,7 +128,7 @@ InModuleScope JiraPS {
                     }
                     $attachment = Add-JiraIssueAttachment -Issue $tempIssue.Key -FilePath $testFilePath -PassThru
 
-                    $attachment.PSObject.TypeNames[0] | Should -Be 'JiraPS.Attachment'
+                    $attachment.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Attachment'
                 }
 
                 It "the attachment appears when fetching issue attachments" {

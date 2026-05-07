@@ -75,7 +75,7 @@ InModuleScope JiraPS {
                 $issue = Get-JiraIssue -Key $fixtures.TestIssue
 
                 $issue.Transition | Should -Not -BeNullOrEmpty
-                $issue.Transition | Should -BeOfType [PSCustomObject]
+                $issue.Transition[0] | Should -BeOfType [AtlassianPS.JiraPS.Transition]
             }
 
             It "transitions have Id and Name properties" {

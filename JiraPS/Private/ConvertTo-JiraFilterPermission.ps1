@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraFilterPermission {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.FilterPermission])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,10 +9,10 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.FilterPermission"
 
             $props = @{
-                'ID'      = $i.id
+                'ID'      = ConvertTo-JiraNullableInt64 $i.id
                 'Type'    = $i.type
                 'Group'   = $null
                 'Project' = $null
@@ -27,13 +28,7 @@
                 $props["Role"] = ConvertTo-JiraProjectRole $i.role
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.FilterPermission')
-            $result | Add-Member -MemberType ScriptMethod -Name 'ToString' -Force -Value {
-                Write-Output "$($this.Type)"
-            }
-
-            Write-Output $result
+            [AtlassianPS.JiraPS.FilterPermission]$props
         }
     }
 }

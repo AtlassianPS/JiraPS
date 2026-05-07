@@ -83,7 +83,7 @@ InModuleScope JiraPS {
                     { Get-JiraComponent -Project $fixtures.TestProject } | Should -Not -Throw
 
                     if ($components) {
-                        @($components)[0] | Should -BeOfType [PSCustomObject]
+                        @($components)[0] | Should -BeOfType [AtlassianPS.JiraPS.Component]
                     }
                 }
 
@@ -92,7 +92,7 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "No components exist in test project"
                         return
                     }
-                    @($components)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Component'
+                    @($components)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Component'
                 }
             }
         }

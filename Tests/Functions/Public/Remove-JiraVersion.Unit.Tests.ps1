@@ -151,6 +151,13 @@ InModuleScope JiraPS {
                     Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$versionID1" }
                     Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$versionID2" }
                 }
+
+                It 'rejects a name-only Version stub where an ID is required' {
+                    { Remove-JiraVersion -Version ([AtlassianPS.JiraPS.Version]::new('My Version')) -Force -ErrorAction Stop } |
+                        Should -Throw '*version ID*'
+
+                    Should -Invoke 'Invoke-JiraMethod' -Times 0 -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' }
+                }
             }
         }
 

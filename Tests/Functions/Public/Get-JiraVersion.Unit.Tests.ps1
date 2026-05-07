@@ -204,6 +204,15 @@ InModuleScope JiraPS {
                 Should -Invoke ConvertTo-JiraVersion -ModuleName JiraPS -Exactly 4
             }
 
+            It "rejects a name-only Version stub where an ID is required" {
+                { [AtlassianPS.JiraPS.Version]::new('My Version') | Get-JiraVersion -ErrorAction Stop } |
+                    Should -Throw '*version ID*'
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 0 -ParameterFilter {
+                    $Method -eq 'Get' -and $URI -like '*/rest/api/*/version/*'
+                }
+            }
+
             It "gets all Versions using Project Parameter Set" {
                 $results = Get-JiraVersion -Project $projectKey
 

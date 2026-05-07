@@ -15,7 +15,7 @@
                 ID         = $i.id
                 Body       = ConvertFrom-AtlassianDocumentFormat -InputObject $i.body
                 Visibility = $i.visibility
-                RestUrl    = $i.self
+                RestUrl    = ConvertTo-JiraUriValue $i.self
             }
 
             if ($i.renderedBody) {
@@ -35,11 +35,11 @@
             }
 
             if ($i.created) {
-                $hash.Created = (Get-Date ($i.created))
+                $hash.Created = ConvertTo-JiraDateTimeOffsetValue $i.created
             }
 
             if ($i.updated) {
-                $hash.Updated = (Get-Date ($i.updated))
+                $hash.Updated = ConvertTo-JiraDateTimeOffsetValue $i.updated
             }
 
             [AtlassianPS.JiraPS.Comment]$hash

@@ -38,19 +38,19 @@
             $hash = @{
                 ID          = $i.id
                 Key         = $i.key
-                HttpUrl     = $http
-                RestUrl     = $i.self
+                HttpUrl     = ConvertTo-JiraUriValue $http
+                RestUrl     = ConvertTo-JiraUriValue $i.self
                 Summary     = $i.fields.summary
                 Description = ConvertFrom-AtlassianDocumentFormat -InputObject $i.fields.description
-                Status      = ConvertTo-JiraStatus -InputObject $i.fields.status
+                Status      = if ($i.fields.status) { ConvertTo-JiraStatus -InputObject $i.fields.status } else { $null }
             }
 
             if ($i.fields.issuelinks) {
-                $hash.IssueLinks = ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks
+                $hash.IssueLinks = ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.IssueLink]) -InputObject (ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks)
             }
 
             if ($i.fields.attachment) {
-                $hash.Attachment = ConvertTo-JiraAttachment $i.fields.attachment
+                $hash.Attachment = ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Attachment]) -InputObject (ConvertTo-JiraAttachment $i.fields.attachment)
             }
 
             if ($i.fields.project) {
@@ -78,20 +78,20 @@
 
             foreach ($field in @('Created', 'LastViewed', 'Updated')) {
                 if ($i.fields.$field) {
-                    $hash.$field = Get-Date -Date ($i.fields.$field)
+                    $hash.$field = ConvertTo-JiraDateTimeOffsetValue $i.fields.$field
                 }
             }
 
             if ($IncludeDebug) {
-                $hash.Fields = $i.fields
+                $hash.Fields = ConvertTo-Hashtable -InputObject $i.fields
                 $hash.Expand = $i.expand
             }
 
-            $transitions = @()
+            $transitions = [System.Collections.Generic.List[AtlassianPS.JiraPS.Transition]]::new()
             foreach ($t in $i.transitions) {
-                $transitions += ConvertTo-JiraTransition -InputObject $t
+                $transitions.Add((ConvertTo-JiraTransition -InputObject $t))
             }
-            $hash.Transition = $transitions
+            $hash.Transition = $transitions.ToArray()
 
             if ($i.fields.comment -and $i.fields.comment.comments) {
                 $comments = foreach ($c in $i.fields.comment.comments) {
@@ -99,7 +99,7 @@
                 }
                 # Explicit cast keeps the [Comment[]] slot bound when only one
                 # comment is present (PowerShell would otherwise unwrap to a scalar).
-                $hash.Comment = [AtlassianPS.JiraPS.Comment[]]@($comments)
+                $hash.Comment = ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Comment]) -InputObject $comments
             }
 
             # $hash is a fresh hashtable literal — cast straight to the class.
@@ -113,7 +113,22 @@
             # every API field is accessible by name on the returned object.
             $extraFields = $i.fields.PSObject.Properties | Where-Object -FilterScript { $_.Name -notin $nativeProperties }
             foreach ($f in $extraFields) {
-                $result | Add-Member -MemberType NoteProperty -Name $f.Name -Value $f.Value -Force
+                $value = switch ($f.Name) {
+                    'issuetype' { ConvertTo-JiraIssueType -InputObject $f.Value; break }
+                    'priority' { ConvertTo-JiraPriority -InputObject $f.Value; break }
+                    'resolution' { if ($f.Value) { ConvertTo-JiraResolution -InputObject $f.Value } else { $null }; break }
+                    'components' { ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Component]) -InputObject (ConvertTo-JiraComponent -InputObject $f.Value); break }
+                    'worklog' {
+                        if ($f.Value.worklogs) {
+                            ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Worklogitem]) -InputObject (ConvertTo-JiraWorklogitem -InputObject $f.Value.worklogs)
+                        }
+                        else { $f.Value }
+                        break
+                    }
+                    Default { $f.Value }
+                }
+
+                $result | Add-Member -MemberType NoteProperty -Name $f.Name -Value $value -Force
             }
 
             if ($i.changelog) {

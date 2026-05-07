@@ -930,12 +930,12 @@ InModuleScope JiraPS {
                     $script:result = ConvertTo-JiraIssue -InputObject $sampleObject
                 }
 
-                It "converts date fields to DateTime objects" {
+                It "converts date fields to DateTimeOffset objects" {
                     $dateFields = @('Created', 'Updated') # LastViewed should be in here too, but in this example issue from Atlassian, that value is null
                     foreach ($f in $dateFields) {
                         $value = $result.$f
                         $value | Should -Not -BeNullOrEmpty
-                        $value | Should -BeOfType [System.DateTime]
+                        $value | Should -BeOfType [System.DateTimeOffset]
                     }
                 }
 
@@ -953,14 +953,14 @@ InModuleScope JiraPS {
                     $result.Project.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Project'
                 }
 
-                It "converts transitions to JiraPS.Transition objects" {
+                It "converts transitions to AtlassianPS.JiraPS.Transition objects" {
                     $result.Transition | Should -Not -BeNullOrEmpty
-                    $result.Transition[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Transition'
+                    $result.Transition[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Transition'
                 }
 
-                It "converts attachments to JiraPS.Attachment objects" {
+                It "converts attachments to AtlassianPS.JiraPS.Attachment objects" {
                     $result.Attachment | Should -Not -BeNullOrEmpty
-                    $result.Attachment[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Attachment'
+                    $result.Attachment[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Attachment'
                 }
 
                 It "attaches unmapped customfield_* keys as PSObject NoteProperties" {
@@ -976,9 +976,9 @@ InModuleScope JiraPS {
                     $noteProp.MemberType | Should -Be 'NoteProperty'
                 }
 
-                It "converts status field to a JiraPS.Status object" {
+                It "converts status field to an AtlassianPS.JiraPS.Status object" {
                     $result.Status | Should -Not -BeNullOrEmpty
-                    $result.Status.PSObject.TypeNames[0] | Should -Be 'JiraPS.Status'
+                    $result.Status.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Status'
                     $result.Status.Name | Should -Be 'Open'
                     $result.Status.Id | Should -Be 1
                 }

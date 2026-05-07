@@ -112,11 +112,11 @@ InModuleScope JiraPS {
                     $result | Should -HaveCount 4
                 }
 
-                It "adds custom type 'JiraPS.FilterPermission' to each item" {
-                    $result[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
-                    $result[1].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
-                    $result[2].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
-                    $result[3].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
+                It "returns AtlassianPS.JiraPS.FilterPermission for each item" {
+                    $result[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.FilterPermission'
+                    $result[1].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.FilterPermission'
+                    $result[2].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.FilterPermission'
+                    $result[3].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.FilterPermission'
                 }
             }
 
@@ -168,7 +168,7 @@ InModuleScope JiraPS {
                 }
 
                 It "converts nested Role to 'JiraPS.ProjectRole' type" {
-                    $result[2].Role.PSObject.TypeNames[0] | Should -Be 'JiraPS.ProjectRole'
+                    $result[2].Role.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.ProjectRole'
                 }
 
                 It "converts nested Group to 'AtlassianPS.JiraPS.Group' type" {

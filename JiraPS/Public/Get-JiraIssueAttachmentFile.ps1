@@ -4,7 +4,22 @@
     [OutputType([Bool])]
     param (
         [Parameter( Mandatory, ValueFromPipeline )]
-        [PSTypeName('JiraPS.Attachment')]
+        [ValidateScript(
+            {
+                if (($_ -is [AtlassianPS.JiraPS.Attachment]) -or ('AtlassianPS.JiraPS.Attachment' -in $_.PSObject.TypeNames) -or ('JiraPS.Attachment' -in $_.PSObject.TypeNames)) {
+                    return $true
+                }
+
+                $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                    ([System.ArgumentException]"Invalid Type for Parameter 'Attachment'"),
+                    'ParameterType.NotJiraAttachment',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $_
+                )
+                $errorItem.ErrorDetails = "Wrong object type provided for Attachment. Expected [AtlassianPS.JiraPS.Attachment], [JiraPS.Attachment], or an object with a matching PSTypeName."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
+            }
+        )]
         $Attachment,
 
         [ValidateScript(

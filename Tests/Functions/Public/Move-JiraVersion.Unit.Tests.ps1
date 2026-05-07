@@ -174,6 +174,15 @@ InModuleScope JiraPS {
                         $Body -match '"position":\s*"First"'
                     }
                 }
+
+                It 'rejects a name-only Version stub where an ID is required' {
+                    { Move-JiraVersion -Version ([AtlassianPS.JiraPS.Version]::new('My Version')) -Position Last -ErrorAction Stop } |
+                        Should -Throw '*version ID*'
+
+                    Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 0 -ModuleName JiraPS -ParameterFilter {
+                        $Method -eq 'POST'
+                    }
+                }
             }
             Context "ByAfter behavior checking" {
                 It 'moves a Version using its ID and other Version ID' {
@@ -231,6 +240,15 @@ InModuleScope JiraPS {
                         $Method -eq 'POST' -and
                         $URI -like "/rest/api/2/version/$versionID1/move" -and
                         $Body -match """after"":\s*""$($version2.RestUrl)"""
+                    }
+                }
+
+                It 'rejects a name-only After version when RestUrl and ID are both absent' {
+                    { Move-JiraVersion -Version $versionID1 -After ([AtlassianPS.JiraPS.Version]::new('My Version')) -ErrorAction Stop } |
+                        Should -Throw '*version ID*'
+
+                    Should -Invoke -CommandName 'Invoke-JiraMethod' -Times 0 -ModuleName JiraPS -ParameterFilter {
+                        $Method -eq 'POST'
                     }
                 }
             }

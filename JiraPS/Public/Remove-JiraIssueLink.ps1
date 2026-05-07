@@ -9,8 +9,8 @@
                 $_input = $_
                 $propertyNames = $_input.PSObject.Properties.Name
                 switch ($true) {
-                    { ("AtlassianPS.JiraPS.Issue" -in $_input.PSObject.TypeNames) -and ("issueLinks" -in $propertyNames) } { return $true }
-                    { ("JiraPS.IssueLink" -in $_input.PSObject.TypeNames) -and ("Id" -in $propertyNames) } { return $true }
+                    { ($_input -is [AtlassianPS.JiraPS.Issue]) -or ("AtlassianPS.JiraPS.Issue" -in $_input.PSObject.TypeNames) } { return $true }
+                    { ($_input -is [AtlassianPS.JiraPS.IssueLink]) -or (("AtlassianPS.JiraPS.IssueLink" -in $_input.PSObject.TypeNames) -and ("Id" -in $propertyNames)) -or (("JiraPS.IssueLink" -in $_input.PSObject.TypeNames) -and ("Id" -in $propertyNames)) } { return $true }
                     default {
                         $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
                         $errorId = 'ParameterType.NotJiraIssue'
