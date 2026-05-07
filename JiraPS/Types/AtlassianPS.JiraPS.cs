@@ -10,10 +10,112 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace AtlassianPS.JiraPS
 {
-    public class User
+    internal static class JiraTypeIdentity
+    {
+        private sealed class ObjectOrderToken
+        {
+            public readonly int Value;
+
+            public ObjectOrderToken(int value)
+            {
+                Value = value;
+            }
+        }
+
+        private static readonly StringComparer Comparer = StringComparer.OrdinalIgnoreCase;
+        private static readonly ConditionalWeakTable<object, ObjectOrderToken> ObjectOrder = new ConditionalWeakTable<object, ObjectOrderToken>();
+        private static int NextObjectOrder;
+
+        public static bool Equals(string left, string right)
+        {
+            return Comparer.Equals(Normalize(left), Normalize(right));
+        }
+
+        public static int Compare(string left, string right)
+        {
+            return Comparer.Compare(Normalize(left), Normalize(right));
+        }
+
+        public static int CompareObjects(string left, string right, object leftObject, object rightObject)
+        {
+            var normalizedLeft = Normalize(left);
+            var normalizedRight = Normalize(right);
+            var leftHasIdentity = normalizedLeft.Length > 0;
+            var rightHasIdentity = normalizedRight.Length > 0;
+
+            if (leftHasIdentity && rightHasIdentity)
+            {
+                return Comparer.Compare(normalizedLeft, normalizedRight);
+            }
+
+            if (leftHasIdentity) { return 1; }
+            if (rightHasIdentity) { return -1; }
+            if (ReferenceEquals(leftObject, rightObject)) { return 0; }
+
+            return GetObjectOrder(leftObject).CompareTo(GetObjectOrder(rightObject));
+        }
+
+        public static bool IdentityEquals<T>(T leftObject, T rightObject, string leftIdentity, string rightIdentity)
+            where T : class
+        {
+            if (ReferenceEquals(rightObject, null)) { return false; }
+            if (ReferenceEquals(leftObject, rightObject)) { return true; }
+            if (string.IsNullOrEmpty(leftIdentity) || string.IsNullOrEmpty(rightIdentity)) { return false; }
+
+            return Equals(leftIdentity, rightIdentity);
+        }
+
+        public static int IdentityGetHashCode(string identity)
+        {
+            if (string.IsNullOrEmpty(identity)) { return 0; }
+            return GetHashCode(identity);
+        }
+
+        public static int IdentityCompare<T>(T leftObject, T rightObject, string leftIdentity, string rightIdentity)
+            where T : class
+        {
+            if (ReferenceEquals(rightObject, null)) { return 1; }
+            return CompareObjects(leftIdentity, rightIdentity, leftObject, rightObject);
+        }
+
+        public static int CompareToObject<T>(object value, Func<T, int> compare, string typeName)
+            where T : class
+        {
+            if (value == null) { return 1; }
+
+            var other = value as T;
+            if (other == null) { throw new ArgumentException("Object must be " + typeName + ".", "obj"); }
+
+            return compare(other);
+        }
+
+        public static int GetHashCode(string value)
+        {
+            return Comparer.GetHashCode(Normalize(value));
+        }
+
+        private static string Normalize(string value)
+        {
+            return value ?? string.Empty;
+        }
+
+        private static int GetObjectOrder(object value)
+        {
+            return ObjectOrder.GetValue(value, CreateObjectOrderToken).Value;
+        }
+
+        private static ObjectOrderToken CreateObjectOrderToken(object value)
+        {
+            return new ObjectOrderToken(Interlocked.Increment(ref NextObjectOrder));
+        }
+    }
+
+    public class User : IEquatable<User>, IComparable<User>, IComparable
     {
         public string Key { get; set; }
         public string AccountId { get; set; }
@@ -51,6 +153,38 @@ namespace AtlassianPS.JiraPS
             Name = identifier;
         }
 
+        private string GetIdentity()
+        {
+            if (!string.IsNullOrEmpty(AccountId)) { return AccountId; }
+            if (!string.IsNullOrEmpty(Name)) { return Name; }
+            return string.Empty;
+        }
+
+        public bool Equals(User other)
+        {
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as User);
+        }
+
+        public override int GetHashCode()
+        {
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
+        }
+
+        public int CompareTo(User other)
+        {
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        int IComparable.CompareTo(object obj)
+        {
+            return JiraTypeIdentity.CompareToObject<User>(obj, CompareTo, "AtlassianPS.JiraPS.User");
+        }
+
         public override string ToString()
         {
             if (!string.IsNullOrEmpty(Name)) { return Name; }
@@ -60,7 +194,7 @@ namespace AtlassianPS.JiraPS
         }
     }
 
-    public class Project
+    public class Project : IEquatable<Project>, IComparable<Project>, IComparable
     {
         public string ID { get; set; }
         public string Key { get; set; }
@@ -96,6 +230,36 @@ namespace AtlassianPS.JiraPS
             Key = key;
         }
 
+        private string GetIdentity()
+        {
+            return Key ?? string.Empty;
+        }
+
+        public bool Equals(Project other)
+        {
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Project);
+        }
+
+        public override int GetHashCode()
+        {
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
+        }
+
+        public int CompareTo(Project other)
+        {
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        int IComparable.CompareTo(object obj)
+        {
+            return JiraTypeIdentity.CompareToObject<Project>(obj, CompareTo, "AtlassianPS.JiraPS.Project");
+        }
+
         public override string ToString()
         {
             return Name ?? string.Empty;
@@ -118,13 +282,15 @@ namespace AtlassianPS.JiraPS
         public DateTime? Created { get; set; }
         public DateTime? Updated { get; set; }
 
+        public Comment() { }
+
         public override string ToString()
         {
             return Body ?? string.Empty;
         }
     }
 
-    public class Issue
+    public class Issue : IEquatable<Issue>, IComparable<Issue>, IComparable
     {
         public string ID { get; set; }
         public string Key { get; set; }
@@ -164,13 +330,43 @@ namespace AtlassianPS.JiraPS
             Key = key;
         }
 
+        private string GetIdentity()
+        {
+            return Key ?? string.Empty;
+        }
+
+        public bool Equals(Issue other)
+        {
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Issue);
+        }
+
+        public override int GetHashCode()
+        {
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
+        }
+
+        public int CompareTo(Issue other)
+        {
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        int IComparable.CompareTo(object obj)
+        {
+            return JiraTypeIdentity.CompareToObject<Issue>(obj, CompareTo, "AtlassianPS.JiraPS.Issue");
+        }
+
         public override string ToString()
         {
             return string.Format("[{0}] {1}", Key, Summary);
         }
     }
 
-    public class Version
+    public class Version : IEquatable<Version>, IComparable<Version>, IComparable
     {
         public string ID { get; set; }
         // Wire field is `projectId` (a long); kept under the legacy `Project`
@@ -207,13 +403,45 @@ namespace AtlassianPS.JiraPS
             }
         }
 
+        private string GetIdentity()
+        {
+            if (!string.IsNullOrEmpty(ID)) { return ID; }
+            if (!string.IsNullOrEmpty(Name)) { return Name; }
+            return string.Empty;
+        }
+
+        public bool Equals(Version other)
+        {
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Version);
+        }
+
+        public override int GetHashCode()
+        {
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
+        }
+
+        public int CompareTo(Version other)
+        {
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        int IComparable.CompareTo(object obj)
+        {
+            return JiraTypeIdentity.CompareToObject<Version>(obj, CompareTo, "AtlassianPS.JiraPS.Version");
+        }
+
         public override string ToString()
         {
             return Name ?? string.Empty;
         }
     }
 
-    public class Filter
+    public class Filter : IEquatable<Filter>, IComparable<Filter>, IComparable
     {
         public string ID { get; set; }
         public string Name { get; set; }
@@ -247,6 +475,36 @@ namespace AtlassianPS.JiraPS
             ID = id;
         }
 
+        private string GetIdentity()
+        {
+            return ID ?? string.Empty;
+        }
+
+        public bool Equals(Filter other)
+        {
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Filter);
+        }
+
+        public override int GetHashCode()
+        {
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
+        }
+
+        public int CompareTo(Filter other)
+        {
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        int IComparable.CompareTo(object obj)
+        {
+            return JiraTypeIdentity.CompareToObject<Filter>(obj, CompareTo, "AtlassianPS.JiraPS.Filter");
+        }
+
         public override string ToString()
         {
             return Name ?? string.Empty;
@@ -260,8 +518,11 @@ namespace AtlassianPS.JiraPS
         public string Username { get; set; }
         public string JSessionID { get; set; }
 
+        public Session() { }
+
         public override string ToString()
         {
+            if (string.IsNullOrEmpty(JSessionID)) { return "JiraSession"; }
             return string.Format("JiraSession[JSessionID={0}]", JSessionID);
         }
     }
@@ -294,9 +555,17 @@ namespace AtlassianPS.JiraPS
         public object ServerTimeZone { get; set; }
         public object DefaultLocale { get; set; }
 
+        public ServerInfo() { }
+
         public override string ToString()
         {
-            return string.Format("[{0}] {1}", DeploymentType, Version);
+            if (!string.IsNullOrEmpty(DeploymentType) && !string.IsNullOrEmpty(Version))
+            {
+                return string.Format("[{0}] {1}", DeploymentType, Version);
+            }
+            if (!string.IsNullOrEmpty(Version)) { return Version; }
+            if (!string.IsNullOrEmpty(DeploymentType)) { return DeploymentType; }
+            return string.Empty;
         }
     }
 
@@ -305,7 +574,7 @@ namespace AtlassianPS.JiraPS
     // member-expansion data. The underlying wire shapes now differ by product:
     // Cloud canonical resolution comes from /group/bulk, while Data Center
     // canonical resolution is adapted from /group/member.
-    public class Group
+    public class Group : IEquatable<Group>, IComparable<Group>, IComparable
     {
         public string Name { get; set; }
         public string Id { get; set; }
@@ -327,6 +596,36 @@ namespace AtlassianPS.JiraPS
                 throw new ArgumentException("name must not be null, empty, or whitespace.", "name");
             }
             Name = name;
+        }
+
+        private string GetIdentity()
+        {
+            return Name ?? string.Empty;
+        }
+
+        public bool Equals(Group other)
+        {
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Group);
+        }
+
+        public override int GetHashCode()
+        {
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
+        }
+
+        public int CompareTo(Group other)
+        {
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        int IComparable.CompareTo(object obj)
+        {
+            return JiraTypeIdentity.CompareToObject<Group>(obj, CompareTo, "AtlassianPS.JiraPS.Group");
         }
 
         public override string ToString()
@@ -354,6 +653,33 @@ namespace AtlassianPS.JiraPS
     // isolation and element coercion sees the right runtime type.
     internal static class JiraTransform
     {
+        public static bool IsJiraDomainObject(object value)
+        {
+            if (value == null) { return false; }
+
+            var pso = value as System.Management.Automation.PSObject;
+            if (pso != null)
+            {
+                if (pso.TypeNames != null)
+                {
+                    foreach (var typeName in pso.TypeNames)
+                    {
+                        if (!string.IsNullOrEmpty(typeName)
+                            && (typeName.StartsWith("AtlassianPS.JiraPS.", StringComparison.Ordinal)
+                                || typeName.StartsWith("JiraPS.", StringComparison.Ordinal)))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                value = pso.BaseObject;
+                if (value == null) { return false; }
+            }
+
+            var valueType = value.GetType();
+            return valueType != null && string.Equals(valueType.Namespace, "AtlassianPS.JiraPS", StringComparison.Ordinal);
+        }
+
         public static object TransformOrFanout(object inputData, Func<object, object> perItem)
         {
             if (inputData == null) return null;
@@ -388,9 +714,8 @@ namespace AtlassianPS.JiraPS
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     // Accepts an existing Issue, an issue-key string, or a legacy PSCustomObject
     // decorated with the AtlassianPS.JiraPS.Issue PSTypeName (the contract several
-    // test fixtures still construct). For everything else we throw a clear
-    // transformation error rather than letting PowerShell's stock coercion
-    // produce a less helpful "Cannot convert" message.
+    // test fixtures still construct). For everything else we return inputData
+    // unchanged so ValueFromPipeline parameter-set fallthrough can continue.
     public sealed class IssueTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
     {
         // No fan-out: every consumer of [IssueTransformation] declares the
@@ -445,6 +770,8 @@ namespace AtlassianPS.JiraPS
                 return issue;
             }
 
+            if (JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }
+
             throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
                 "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Issue. Expected an issue-key string or an existing AtlassianPS.JiraPS.Issue object.",
                 value.GetType().FullName));
@@ -455,8 +782,8 @@ namespace AtlassianPS.JiraPS
     // Accepts an existing User, a non-empty identifier string (a username on
     // DC, an accountId on Cloud — Resolve-JiraUser inspects the slot pattern
     // at call time and routes the GET accordingly), or a legacy PSCustomObject
-    // tagged as AtlassianPS.JiraPS.User. Anything else throws a transformer
-    // error so the caller sees an actionable message at parameter binding.
+    // tagged as AtlassianPS.JiraPS.User. Unrecognized values are returned
+    // unchanged so competing pipeline parameter sets can still bind.
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class UserTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
     {
@@ -511,6 +838,8 @@ namespace AtlassianPS.JiraPS
                 }
                 return user;
             }
+
+            if (JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }
 
             throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
                 "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.User. Expected a username/accountId string or an existing AtlassianPS.JiraPS.User object.",
@@ -579,6 +908,8 @@ namespace AtlassianPS.JiraPS
                 }
                 return group;
             }
+
+            if (JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }
 
             throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
                 "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Group. Expected a group-name string or an existing AtlassianPS.JiraPS.Group object.",
@@ -680,13 +1011,15 @@ namespace AtlassianPS.JiraPS
 
             // Get-JiraVersion has sister parameter sets that share ValueFromPipeline
             // (notably -InputProject [PSTypeName('AtlassianPS.JiraPS.Project')]).
-            // If a Project is piped, we want PowerShell's parameter binder to fall
-            // through to the matching Project set rather than fail here. Throwing
-            // an ArgumentTransformationMetadataException at this point is fatal
-            // for parameter set selection, so return the value untouched and let
-            // the binder's normal type coercion either succeed (for an alternate
-            // set) or fail with a stock "Cannot convert" message.
-            return inputData;
+            // If another JiraPS domain object is piped, we want PowerShell's
+            // parameter binder to fall through to the matching alternate set
+            // rather than fail here. Truly unrelated values should still produce
+            // a targeted transformation error.
+            if (JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }
+
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
+                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Version. Expected a version name/ID, a numeric Jira version ID, or an existing AtlassianPS.JiraPS.Version object.",
+                value.GetType().FullName));
         }
     }
 
@@ -767,8 +1100,10 @@ namespace AtlassianPS.JiraPS
                 return filter;
             }
 
+            if (JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }
+
             throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
-                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Filter. Expected a filter-ID string, a numeric ID, or an existing AtlassianPS.JiraPS.Filter object.",
+                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Filter. Expected a filter ID, a numeric Jira filter ID, or an existing AtlassianPS.JiraPS.Filter object.",
                 value.GetType().FullName));
         }
     }
@@ -851,8 +1186,10 @@ namespace AtlassianPS.JiraPS
                 return project;
             }
 
+            if (JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }
+
             throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
-                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Project. Expected a project-key string, a numeric ID, or an existing AtlassianPS.JiraPS.Project object.",
+                "Cannot convert value of type '{0}' to AtlassianPS.JiraPS.Project. Expected a project-key string, a numeric Jira project ID, or an existing AtlassianPS.JiraPS.Project object.",
                 value.GetType().FullName));
         }
     }

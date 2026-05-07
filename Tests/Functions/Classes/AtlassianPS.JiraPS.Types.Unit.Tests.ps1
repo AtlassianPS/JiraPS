@@ -83,10 +83,14 @@ InModuleScope JiraPS {
 
             It "ServerInfo formats as '[<DeploymentType>] <Version>'" {
                 ([AtlassianPS.JiraPS.ServerInfo]@{ DeploymentType = 'Cloud'; Version = '1001.0.0' }).ToString() | Should -Be '[Cloud] 1001.0.0'
+                ([AtlassianPS.JiraPS.ServerInfo]@{ Version = '1001.0.0' }).ToString() | Should -Be '1001.0.0'
+                ([AtlassianPS.JiraPS.ServerInfo]@{ DeploymentType = 'Cloud' }).ToString() | Should -Be 'Cloud'
+                ([AtlassianPS.JiraPS.ServerInfo]::new()).ToString() | Should -Be ''
             }
 
             It "Session formats as 'JiraSession[JSessionID=<id>]'" {
                 ([AtlassianPS.JiraPS.Session]@{ JSessionID = 'abc' }).ToString() | Should -Be 'JiraSession[JSessionID=abc]'
+                ([AtlassianPS.JiraPS.Session]::new()).ToString() | Should -Be 'JiraSession'
             }
         }
 
@@ -250,6 +254,15 @@ InModuleScope JiraPS {
                 }
             }
 
+            It "the parameterless ctor is preserved on Comment, Session, and ServerInfo" {
+                foreach ($typeName in 'AtlassianPS.JiraPS.Comment', 'AtlassianPS.JiraPS.Session', 'AtlassianPS.JiraPS.ServerInfo') {
+                    $type = $typeName -as [Type]
+                    $type | Should -Not -BeNullOrEmpty -Because "$typeName must be loaded"
+                    $type.GetConstructor([Type]::EmptyTypes) |
+                        Should -Not -BeNullOrEmpty -Because "$typeName must keep an explicit parameterless ctor"
+                }
+            }
+
             It "the hashtable-cast pattern still works after adding the parameterized ctor" {
                 # The 30+ existing [Class]@{ ... } call sites in the test
                 # suite would fail loudly if we lost the parameterless ctor
@@ -281,6 +294,281 @@ InModuleScope JiraPS {
                 $transformer = $transformerType::new()
                 $result = $transformer.Transform($null, $stub)
                 $result | Should -Be $stub
+            }
+        }
+
+        Context "Identifier-based equality and comparison" {
+            BeforeAll {
+                function Assert-IdentifierBehavior {
+                    param(
+                        [Parameter(Mandatory)]
+                        [object]$Primary,
+
+                        [Parameter(Mandatory)]
+                        [object]$Equivalent,
+
+                        [Parameter(Mandatory)]
+                        [object]$Different
+                    )
+
+                    ($Primary -eq $Equivalent) | Should -BeTrue
+                    ($Primary -eq $Different) | Should -BeFalse
+                    (@($Primary) -contains $Equivalent) | Should -BeTrue
+
+                    (@($Different, $Primary) | Sort-Object)[0] | Should -Be $Primary
+                    (@($Primary, $Equivalent, $Different) | Sort-Object -Unique).Count | Should -Be 2
+
+                    $groups = @($Primary, $Equivalent, $Different) | Group-Object -AsHashTable
+                    $groups.Count | Should -Be 2
+                    $groups[$Primary].Count | Should -Be 2
+
+                    $lookup = @{}
+                    $lookup[$Primary] = 'first'
+                    $lookup[$Equivalent] = 'second'
+                    $lookup[$Different] = 'third'
+
+                    $lookup.Count | Should -Be 2
+                    $lookup[$Primary] | Should -Be 'second'
+                }
+            }
+
+            It "Issue compares by Key" {
+                $primary = [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1'; Summary = 'first' }
+                $equivalent = [AtlassianPS.JiraPS.Issue]@{ Key = 'test-1'; Summary = 'second' }
+                $different = [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-2'; Summary = 'third' }
+
+                Assert-IdentifierBehavior -Primary $primary -Equivalent $equivalent -Different $different
+            }
+
+            It "Project compares by Key" {
+                $primary = [AtlassianPS.JiraPS.Project]@{ Key = 'ALPHA'; Name = 'Alpha' }
+                $equivalent = [AtlassianPS.JiraPS.Project]@{ Key = 'alpha'; Name = 'Alpha (clone)' }
+                $different = [AtlassianPS.JiraPS.Project]@{ Key = 'BETA'; Name = 'Beta' }
+
+                Assert-IdentifierBehavior -Primary $primary -Equivalent $equivalent -Different $different
+            }
+
+            It "Group compares by Name" {
+                $primary = [AtlassianPS.JiraPS.Group]@{ Name = 'jira-admins' }
+                $equivalent = [AtlassianPS.JiraPS.Group]@{ Name = 'JIRA-ADMINS' }
+                $different = [AtlassianPS.JiraPS.Group]@{ Name = 'jira-users' }
+
+                Assert-IdentifierBehavior -Primary $primary -Equivalent $equivalent -Different $different
+            }
+
+            It "Filter compares by ID" {
+                $primary = [AtlassianPS.JiraPS.Filter]@{ ID = '10001'; Name = '10001' }
+                $equivalent = [AtlassianPS.JiraPS.Filter]@{ ID = '10001'; Name = 'same-id-different-name' }
+                $different = [AtlassianPS.JiraPS.Filter]@{ ID = '20001'; Name = '20001' }
+
+                Assert-IdentifierBehavior -Primary $primary -Equivalent $equivalent -Different $different
+            }
+
+            It "Version compares by ID first, then Name" {
+                $primary = [AtlassianPS.JiraPS.Version]@{ ID = '10001'; Name = '1.0.0' }
+                $equivalent = [AtlassianPS.JiraPS.Version]@{ ID = '10001'; Name = '1.0.0-alt' }
+                $different = [AtlassianPS.JiraPS.Version]@{ ID = '20001'; Name = '2.0.0' }
+
+                Assert-IdentifierBehavior -Primary $primary -Equivalent $equivalent -Different $different
+            }
+
+            It "User compares by AccountId first, then Name" {
+                $primary = [AtlassianPS.JiraPS.User]@{ AccountId = 'abc-123'; Name = 'legacy-user-a' }
+                $equivalent = [AtlassianPS.JiraPS.User]@{ AccountId = 'ABC-123'; Name = 'legacy-user-b' }
+                $different = [AtlassianPS.JiraPS.User]@{ AccountId = 'def-456'; Name = 'legacy-user-a' }
+
+                Assert-IdentifierBehavior -Primary $primary -Equivalent $equivalent -Different $different
+            }
+
+            It "User falls back to Name when AccountId is absent" {
+                $primary = [AtlassianPS.JiraPS.User]@{ Name = 'asmith' }
+                $equivalent = [AtlassianPS.JiraPS.User]@{ Name = 'ASMITH'; DisplayName = 'Alice Smith' }
+                $different = [AtlassianPS.JiraPS.User]@{ Name = 'jdoe' }
+
+                Assert-IdentifierBehavior -Primary $primary -Equivalent $equivalent -Different $different
+            }
+
+            It "identifier-less objects do not deduplicate under Sort-Object -Unique" {
+                $cases = @(
+                    @{ Type = 'Issue'; Create = { [AtlassianPS.JiraPS.Issue]::new() } }
+                    @{ Type = 'Project'; Create = { [AtlassianPS.JiraPS.Project]::new() } }
+                    @{ Type = 'Group'; Create = { [AtlassianPS.JiraPS.Group]::new() } }
+                    @{ Type = 'Filter'; Create = { [AtlassianPS.JiraPS.Filter]::new() } }
+                    @{ Type = 'Version'; Create = { [AtlassianPS.JiraPS.Version]::new() } }
+                    @{ Type = 'User'; Create = { [AtlassianPS.JiraPS.User]::new() } }
+                )
+
+                foreach ($case in $cases) {
+                    $first = & $case.Create
+                    $second = & $case.Create
+
+                    ($first -eq $second) | Should -BeFalse -Because "$($case.Type) equality is identity-based only when an identifier exists"
+                    ($first.CompareTo($second)) | Should -Not -Be 0 -Because "$($case.Type) comparison must not collapse distinct identifier-less objects"
+                    (@($first, $second) | Sort-Object -Unique).Count | Should -Be 2 -Because "$($case.Type) identifier-less instances must stay distinct"
+                }
+            }
+
+            It "identifier-less objects still equal themselves" {
+                $cases = @(
+                    @{ Type = 'Issue'; Create = { [AtlassianPS.JiraPS.Issue]::new() } }
+                    @{ Type = 'Project'; Create = { [AtlassianPS.JiraPS.Project]::new() } }
+                    @{ Type = 'Group'; Create = { [AtlassianPS.JiraPS.Group]::new() } }
+                    @{ Type = 'Filter'; Create = { [AtlassianPS.JiraPS.Filter]::new() } }
+                    @{ Type = 'Version'; Create = { [AtlassianPS.JiraPS.Version]::new() } }
+                    @{ Type = 'User'; Create = { [AtlassianPS.JiraPS.User]::new() } }
+                )
+
+                foreach ($case in $cases) {
+                    $value = & $case.Create
+
+                    ($value.Equals($value)) | Should -BeTrue -Because "$($case.Type) must satisfy reflexive equality even before an identifier is populated"
+                    ($value.CompareTo($value)) | Should -Be 0 -Because "$($case.Type) compare-to-self must remain stable"
+                }
+            }
+        }
+
+        Context "Transformer fallthrough across competing parameter sets" {
+            BeforeAll {
+                function Invoke-IssuePreferredBinding {
+                    [CmdletBinding(DefaultParameterSetName = 'Issue')]
+                    param(
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Issue')]
+                        [AtlassianPS.JiraPS.IssueTransformation()]
+                        [AtlassianPS.JiraPS.Issue]$Issue,
+
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
+                        [AtlassianPS.JiraPS.ProjectTransformation()]
+                        [AtlassianPS.JiraPS.Project]$Project
+                    )
+                    process { $PSCmdlet.ParameterSetName }
+                }
+
+                function Invoke-UserPreferredBinding {
+                    [CmdletBinding(DefaultParameterSetName = 'User')]
+                    param(
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'User')]
+                        [AtlassianPS.JiraPS.UserTransformation()]
+                        [AtlassianPS.JiraPS.User]$User,
+
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Group')]
+                        [AtlassianPS.JiraPS.GroupTransformation()]
+                        [AtlassianPS.JiraPS.Group]$Group
+                    )
+                    process { $PSCmdlet.ParameterSetName }
+                }
+
+                function Invoke-GroupPreferredBinding {
+                    [CmdletBinding(DefaultParameterSetName = 'Group')]
+                    param(
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Group')]
+                        [AtlassianPS.JiraPS.GroupTransformation()]
+                        [AtlassianPS.JiraPS.Group]$Group,
+
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'User')]
+                        [AtlassianPS.JiraPS.UserTransformation()]
+                        [AtlassianPS.JiraPS.User]$User
+                    )
+                    process { $PSCmdlet.ParameterSetName }
+                }
+
+                function Invoke-VersionPreferredBinding {
+                    [CmdletBinding(DefaultParameterSetName = 'Version')]
+                    param(
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Version')]
+                        [AtlassianPS.JiraPS.VersionTransformation()]
+                        [AtlassianPS.JiraPS.Version]$Version,
+
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
+                        [AtlassianPS.JiraPS.ProjectTransformation()]
+                        [AtlassianPS.JiraPS.Project]$Project
+                    )
+                    process { $PSCmdlet.ParameterSetName }
+                }
+
+                function Invoke-FilterPreferredBinding {
+                    [CmdletBinding(DefaultParameterSetName = 'Filter')]
+                    param(
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Filter')]
+                        [AtlassianPS.JiraPS.FilterTransformation()]
+                        [AtlassianPS.JiraPS.Filter]$Filter,
+
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
+                        [AtlassianPS.JiraPS.ProjectTransformation()]
+                        [AtlassianPS.JiraPS.Project]$Project
+                    )
+                    process { $PSCmdlet.ParameterSetName }
+                }
+
+                function Invoke-ProjectPreferredBinding {
+                    [CmdletBinding(DefaultParameterSetName = 'Project')]
+                    param(
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
+                        [AtlassianPS.JiraPS.ProjectTransformation()]
+                        [AtlassianPS.JiraPS.Project]$Project,
+
+                        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Version')]
+                        [AtlassianPS.JiraPS.VersionTransformation()]
+                        [AtlassianPS.JiraPS.Version]$Version
+                    )
+                    process { $PSCmdlet.ParameterSetName }
+                }
+            }
+
+            It "IssueTransformation falls through to Project when Project is piped" {
+                [AtlassianPS.JiraPS.Project]::new('TEST') |
+                    Invoke-IssuePreferredBinding |
+                    Should -Be 'Project'
+            }
+
+            It "UserTransformation falls through to Group when Group is piped" {
+                [AtlassianPS.JiraPS.Group]::new('jira-users') |
+                    Invoke-UserPreferredBinding |
+                    Should -Be 'Group'
+            }
+
+            It "GroupTransformation falls through to User when User is piped" {
+                [AtlassianPS.JiraPS.User]::new('jdoe') |
+                    Invoke-GroupPreferredBinding |
+                    Should -Be 'User'
+            }
+
+            It "VersionTransformation falls through to Project when Project is piped" {
+                [AtlassianPS.JiraPS.Project]::new('TEST') |
+                    Invoke-VersionPreferredBinding |
+                    Should -Be 'Project'
+            }
+
+            It "FilterTransformation falls through to Project when Project is piped" {
+                [AtlassianPS.JiraPS.Project]::new('TEST') |
+                    Invoke-FilterPreferredBinding |
+                    Should -Be 'Project'
+            }
+
+            It "ProjectTransformation falls through to Version when Version is piped" {
+                [AtlassianPS.JiraPS.Version]::new('10001') |
+                    Invoke-ProjectPreferredBinding |
+                    Should -Be 'Version'
+            }
+
+            It "VersionTransformation still throws on unrelated values" {
+                $transformer = [AtlassianPS.JiraPS.VersionTransformationAttribute]::new()
+
+                { $transformer.Transform($null, [datetime]::UtcNow) } |
+                    Should -Throw '*AtlassianPS.JiraPS.Version*'
+            }
+
+            It "FilterTransformation reports Filter-specific errors on unrelated values" {
+                $transformer = [AtlassianPS.JiraPS.FilterTransformationAttribute]::new()
+
+                { $transformer.Transform($null, [datetime]::UtcNow) } |
+                    Should -Throw '*AtlassianPS.JiraPS.Filter*'
+            }
+
+            It "ProjectTransformation still throws on unrelated values" {
+                $transformer = [AtlassianPS.JiraPS.ProjectTransformationAttribute]::new()
+
+                { $transformer.Transform($null, [datetime]::UtcNow) } |
+                    Should -Throw '*AtlassianPS.JiraPS.Project*'
             }
         }
 
