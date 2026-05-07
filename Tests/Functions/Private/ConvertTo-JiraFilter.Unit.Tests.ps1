@@ -193,7 +193,7 @@ InModuleScope JiraPS {
                 }
 
                 It "maps 'SearchUrl' property correctly" {
-                    $result.SearchUrl | Should -Be 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
+                    $result.SearchUrl.AbsoluteUri | Should -Be 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
                 }
 
                 It "maps 'Favourite' property correctly" {
