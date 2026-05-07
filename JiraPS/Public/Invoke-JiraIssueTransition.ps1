@@ -28,6 +28,9 @@
         [String]
         $Comment,
 
+        [TimeSpan]
+        $TimeSpent,
+
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
@@ -181,6 +184,17 @@
             $requestBody.update.comment += , @{
                 'add' = @{
                     'body' = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
+                }
+            }
+        }
+
+        if ($PSBoundParameters.ContainsKey('TimeSpent')) {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding worklog"
+            $dateStarted = [DateTime]::new((Get-Date).Ticks, 'Local')
+            $requestBody.update.worklog += , @{
+                'add' = @{
+                    'started'          = $dateStarted.ToString("o") -replace "\.(\d{3})\d*([\+\-]\d{2}):", ".`$1`$2"
+                    'timeSpentSeconds' = $TimeSpent.TotalSeconds.ToString()
                 }
             }
         }

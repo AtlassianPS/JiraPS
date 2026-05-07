@@ -51,6 +51,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Added
 
+- Added `-TimeSpent` to `Invoke-JiraIssueTransition`, allowing a worklog entry to be recorded as part of an issue transition. (#343, [@alexsuslin])
 - Added `Get-JiraStatus` to retrieve Jira statuses by id or name, or list all statuses.
 - Added `-IncludeHistory` to `Get-JiraIssue` to request changelog expansion and include issue history entries in the returned issue object (`-GetHistory` alias retained for compatibility).
 - Added `-Unassign` switch to `Set-JiraIssue` and `Invoke-JiraIssueTransition` as the explicit way to remove the assignee from an issue.

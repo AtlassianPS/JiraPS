@@ -18,7 +18,7 @@ Performs an issue transition on a JIRA issue changing it's status
 
 ```powershell
 Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobject>]
- [-Assignee <User>] [-Comment <string>] [-Credential <pscredential>] [-Passthru]
+ [-Assignee <User>] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru]
  [<CommonParameters>]
 ```
 
@@ -26,7 +26,7 @@ Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobjec
 
 ```powershell
 Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobject>] [-Unassign]
- [-Comment <string>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
+ [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -57,11 +57,11 @@ Invokes transition ID 11 on issue TEST-01.
 ### EXAMPLE 2
 
 ```powershell
-Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition comment'
+Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition comment' -TimeSpent ([TimeSpan]::FromMinutes(15))
 ```
 
-Invokes transition ID 11 on issue TEST-01 with a comment.
-Requires the comment field to be configured visible for transition.
+Invokes transition ID 11 on issue TEST-01 with a comment and a 15-minute worklog.
+Requires the comment and worklog fields to be configured visible for transition.
 
 ### EXAMPLE 3
 
@@ -257,6 +257,29 @@ ParameterSets:
 - Name: (All)
   Position: Named
   IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -TimeSpent
+
+Time spent to record as a worklog during the transition.
+
+The worklog field must be configured to appear on the transition screen to use this parameter.
+
+```yaml
+Type: TimeSpan
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
