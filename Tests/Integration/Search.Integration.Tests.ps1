@@ -120,15 +120,18 @@ InModuleScope JiraPS {
                 }
 
                 It "supports ORDER BY" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                    if ([string]::IsNullOrEmpty($fixtures.TestProject) -or [string]::IsNullOrEmpty($fixtures.TestIssue)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    $jql = "project = $($fixtures.TestProject) ORDER BY created DESC"
+                    # Fresh Jira DC boots can briefly return an empty project-only search while
+                    # indexing catches up, so keep ORDER BY anchored to the known fixture issue.
+                    $jql = "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue) ORDER BY created DESC"
 
-                    $results = Get-JiraIssue -Query $jql
+                    $results = Get-JiraIssue -Query $jql -ErrorAction Stop
 
                     $results | Should -Not -BeNullOrEmpty
+                    @($results)[0].Key | Should -Be $fixtures.TestIssue
                 }
             }
 
@@ -221,13 +224,13 @@ InModuleScope JiraPS {
                 }
 
                 It "returns empty for JQL with no matches" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    $jql = "project = $($fixtures.TestProject) AND summary ~ 'NONEXISTENT_UNIQUE_STRING_12345'"
+                    $jql = "key = $($fixtures.TestIssue) AND key != $($fixtures.TestIssue)"
 
-                    $results = Get-JiraIssue -Query $jql
+                    $results = Get-JiraIssue -Query $jql -ErrorAction Stop
 
                     @($results).Count | Should -Be 0
                 }
