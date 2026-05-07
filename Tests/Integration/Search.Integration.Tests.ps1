@@ -228,9 +228,9 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    $jql = "project = $($fixtures.TestProject) AND summary ~ 'NONEXISTENT_UNIQUE_STRING_12345'"
+                    $jql = "project = $($fixtures.TestProject) AND key = $($fixtures.TestProject)-999999"
 
-                    $results = Get-JiraIssue -Query $jql
+                    $results = Get-JiraIssue -Query $jql -ErrorAction Stop
 
                     @($results).Count | Should -Be 0
                 }
