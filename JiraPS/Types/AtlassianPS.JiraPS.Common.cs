@@ -195,15 +195,16 @@ namespace AtlassianPS.JiraPS
     }
 
 
-    public abstract class JiraLeafTransformationAttribute<T> : System.Management.Automation.ArgumentTransformationAttribute
-        where T : class
+    public abstract class JiraLeafTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
     {
         public override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
         {
             return JiraTransform.TransformOrFanout(inputData, TransformOne);
         }
 
-        protected abstract T FromString(string value);
+        protected abstract Type TargetType { get; }
+
+        protected abstract object FromString(string value);
 
         private object TransformOne(object inputData)
         {
@@ -212,8 +213,8 @@ namespace AtlassianPS.JiraPS
             var pso = inputData as System.Management.Automation.PSObject;
             object value = pso != null ? pso.BaseObject : inputData;
 
-            var typed = value as T;
-            if (typed != null) return typed;
+            var targetType = TargetType;
+            if (targetType.IsInstanceOfType(value)) return value;
 
             var text = value as string;
             if (text != null)
@@ -221,7 +222,7 @@ namespace AtlassianPS.JiraPS
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     throw new System.Management.Automation.ArgumentTransformationMetadataException(
-                        "Cannot bind an empty or whitespace string to a " + typeof(T).FullName + " parameter.");
+                        "Cannot bind an empty or whitespace string to a " + targetType.FullName + " parameter.");
                 }
                 return FromString(text);
             }
@@ -231,7 +232,7 @@ namespace AtlassianPS.JiraPS
             throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
                 "Cannot convert value of type '{0}' to {1}. Expected a non-empty string or an existing {1} object.",
                 value.GetType().FullName,
-                typeof(T).FullName));
+                targetType.FullName));
         }
     }
 }

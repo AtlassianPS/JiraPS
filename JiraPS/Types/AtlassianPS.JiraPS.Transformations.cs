@@ -10,87 +10,101 @@ namespace AtlassianPS.JiraPS
 {
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class StatusTransformationAttribute : JiraLeafTransformationAttribute<Status>
+    public sealed class StatusTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override Status FromString(string value) { return new Status(value); }
+        protected override Type TargetType { get { return typeof(Status); } }
+        protected override object FromString(string value) { return new Status(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class PriorityTransformationAttribute : JiraLeafTransformationAttribute<Priority>
+    public sealed class PriorityTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override Priority FromString(string value) { return new Priority(value); }
+        protected override Type TargetType { get { return typeof(Priority); } }
+        protected override object FromString(string value) { return new Priority(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class ResolutionTransformationAttribute : JiraLeafTransformationAttribute<Resolution>
+    public sealed class ResolutionTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override Resolution FromString(string value) { return new Resolution(value); }
+        protected override Type TargetType { get { return typeof(Resolution); } }
+        protected override object FromString(string value) { return new Resolution(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class IssueTypeTransformationAttribute : JiraLeafTransformationAttribute<IssueType>
+    public sealed class IssueTypeTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override IssueType FromString(string value) { return new IssueType(value); }
+        protected override Type TargetType { get { return typeof(IssueType); } }
+        protected override object FromString(string value) { return new IssueType(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class ComponentTransformationAttribute : JiraLeafTransformationAttribute<Component>
+    public sealed class ComponentTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override Component FromString(string value) { return new Component(value); }
+        protected override Type TargetType { get { return typeof(Component); } }
+        protected override object FromString(string value) { return new Component(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class FieldTransformationAttribute : JiraLeafTransformationAttribute<Field>
+    public sealed class FieldTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override Field FromString(string value) { return new Field(value); }
+        protected override Type TargetType { get { return typeof(Field); } }
+        protected override object FromString(string value) { return new Field(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class IssueLinkTypeTransformationAttribute : JiraLeafTransformationAttribute<IssueLinkType>
+    public sealed class IssueLinkTypeTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override IssueLinkType FromString(string value) { return new IssueLinkType(value); }
+        protected override Type TargetType { get { return typeof(IssueLinkType); } }
+        protected override object FromString(string value) { return new IssueLinkType(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class IssueLinkTransformationAttribute : JiraLeafTransformationAttribute<IssueLink>
+    public sealed class IssueLinkTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override IssueLink FromString(string value) { return new IssueLink(value); }
+        protected override Type TargetType { get { return typeof(IssueLink); } }
+        protected override object FromString(string value) { return new IssueLink(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class AttachmentTransformationAttribute : JiraLeafTransformationAttribute<Attachment>
+    public sealed class AttachmentTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override Attachment FromString(string value) { return new Attachment(value); }
+        protected override Type TargetType { get { return typeof(Attachment); } }
+        protected override object FromString(string value) { return new Attachment(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class WorklogitemTransformationAttribute : JiraLeafTransformationAttribute<Worklogitem>
+    public sealed class WorklogitemTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override Worklogitem FromString(string value) { return new Worklogitem(value); }
+        protected override Type TargetType { get { return typeof(Worklogitem); } }
+        protected override object FromString(string value) { return new Worklogitem(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class TransitionTransformationAttribute : JiraLeafTransformationAttribute<Transition>
+    public sealed class TransitionTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override Transition FromString(string value) { return new Transition(value); }
+        protected override Type TargetType { get { return typeof(Transition); } }
+        protected override object FromString(string value) { return new Transition(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class LinkTransformationAttribute : JiraLeafTransformationAttribute<Link>
+    public sealed class LinkTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override Link FromString(string value) { return new Link(value); }
+        protected override Type TargetType { get { return typeof(Link); } }
+        protected override object FromString(string value) { return new Link(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class ProjectRoleTransformationAttribute : JiraLeafTransformationAttribute<ProjectRole>
+    public sealed class ProjectRoleTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override ProjectRole FromString(string value) { return new ProjectRole(value); }
+        protected override Type TargetType { get { return typeof(ProjectRole); } }
+        protected override object FromString(string value) { return new ProjectRole(value); }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class FilterPermissionTransformationAttribute : JiraLeafTransformationAttribute<FilterPermission>
+    public sealed class FilterPermissionTransformationAttribute : JiraLeafTransformationAttribute
     {
-        protected override FilterPermission FromString(string value) { return new FilterPermission(value); }
+        protected override Type TargetType { get { return typeof(FilterPermission); } }
+        protected override object FromString(string value) { return new FilterPermission(value); }
     }
 
     // ArgumentTransformationAttribute lets cmdlets type their parameters as
