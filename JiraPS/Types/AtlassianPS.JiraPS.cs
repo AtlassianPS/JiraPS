@@ -60,6 +60,40 @@ namespace AtlassianPS.JiraPS
             return GetObjectOrder(leftObject).CompareTo(GetObjectOrder(rightObject));
         }
 
+        public static bool IdentityEquals<T>(T leftObject, T rightObject, string leftIdentity, string rightIdentity)
+            where T : class
+        {
+            if (ReferenceEquals(rightObject, null)) { return false; }
+            if (ReferenceEquals(leftObject, rightObject)) { return true; }
+            if (string.IsNullOrEmpty(leftIdentity) || string.IsNullOrEmpty(rightIdentity)) { return false; }
+
+            return Equals(leftIdentity, rightIdentity);
+        }
+
+        public static int IdentityGetHashCode(string identity)
+        {
+            if (string.IsNullOrEmpty(identity)) { return 0; }
+            return GetHashCode(identity);
+        }
+
+        public static int IdentityCompare<T>(T leftObject, T rightObject, string leftIdentity, string rightIdentity)
+            where T : class
+        {
+            if (ReferenceEquals(rightObject, null)) { return 1; }
+            return CompareObjects(leftIdentity, rightIdentity, leftObject, rightObject);
+        }
+
+        public static int CompareToObject<T>(object value, Func<T, int> compare, string typeName)
+            where T : class
+        {
+            if (value == null) { return 1; }
+
+            var other = value as T;
+            if (other == null) { throw new ArgumentException("Object must be " + typeName + ".", "obj"); }
+
+            return compare(other);
+        }
+
         public static int GetHashCode(string value)
         {
             return Comparer.GetHashCode(Normalize(value));
@@ -128,14 +162,7 @@ namespace AtlassianPS.JiraPS
 
         public bool Equals(User other)
         {
-            if (ReferenceEquals(other, null)) { return false; }
-            if (ReferenceEquals(this, other)) { return true; }
-
-            var left = GetIdentity();
-            var right = other.GetIdentity();
-            if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right)) { return false; }
-
-            return JiraTypeIdentity.Equals(left, right);
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         public override bool Equals(object obj)
@@ -145,23 +172,17 @@ namespace AtlassianPS.JiraPS
 
         public override int GetHashCode()
         {
-            var id = GetIdentity();
-            if (string.IsNullOrEmpty(id)) { return 0; }
-            return JiraTypeIdentity.GetHashCode(id);
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
         }
 
         public int CompareTo(User other)
         {
-            if (ReferenceEquals(other, null)) { return 1; }
-            return JiraTypeIdentity.CompareObjects(GetIdentity(), other.GetIdentity(), this, other);
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         int IComparable.CompareTo(object obj)
         {
-            if (obj == null) { return 1; }
-            var other = obj as User;
-            if (other == null) { throw new ArgumentException("Object must be AtlassianPS.JiraPS.User.", "obj"); }
-            return CompareTo(other);
+            return JiraTypeIdentity.CompareToObject<User>(obj, CompareTo, "AtlassianPS.JiraPS.User");
         }
 
         public override string ToString()
@@ -216,14 +237,7 @@ namespace AtlassianPS.JiraPS
 
         public bool Equals(Project other)
         {
-            if (ReferenceEquals(other, null)) { return false; }
-            if (ReferenceEquals(this, other)) { return true; }
-
-            var left = GetIdentity();
-            var right = other.GetIdentity();
-            if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right)) { return false; }
-
-            return JiraTypeIdentity.Equals(left, right);
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         public override bool Equals(object obj)
@@ -233,23 +247,17 @@ namespace AtlassianPS.JiraPS
 
         public override int GetHashCode()
         {
-            var id = GetIdentity();
-            if (string.IsNullOrEmpty(id)) { return 0; }
-            return JiraTypeIdentity.GetHashCode(id);
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
         }
 
         public int CompareTo(Project other)
         {
-            if (ReferenceEquals(other, null)) { return 1; }
-            return JiraTypeIdentity.CompareObjects(GetIdentity(), other.GetIdentity(), this, other);
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         int IComparable.CompareTo(object obj)
         {
-            if (obj == null) { return 1; }
-            var other = obj as Project;
-            if (other == null) { throw new ArgumentException("Object must be AtlassianPS.JiraPS.Project.", "obj"); }
-            return CompareTo(other);
+            return JiraTypeIdentity.CompareToObject<Project>(obj, CompareTo, "AtlassianPS.JiraPS.Project");
         }
 
         public override string ToString()
@@ -329,14 +337,7 @@ namespace AtlassianPS.JiraPS
 
         public bool Equals(Issue other)
         {
-            if (ReferenceEquals(other, null)) { return false; }
-            if (ReferenceEquals(this, other)) { return true; }
-
-            var left = GetIdentity();
-            var right = other.GetIdentity();
-            if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right)) { return false; }
-
-            return JiraTypeIdentity.Equals(left, right);
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         public override bool Equals(object obj)
@@ -346,23 +347,17 @@ namespace AtlassianPS.JiraPS
 
         public override int GetHashCode()
         {
-            var id = GetIdentity();
-            if (string.IsNullOrEmpty(id)) { return 0; }
-            return JiraTypeIdentity.GetHashCode(id);
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
         }
 
         public int CompareTo(Issue other)
         {
-            if (ReferenceEquals(other, null)) { return 1; }
-            return JiraTypeIdentity.CompareObjects(GetIdentity(), other.GetIdentity(), this, other);
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         int IComparable.CompareTo(object obj)
         {
-            if (obj == null) { return 1; }
-            var other = obj as Issue;
-            if (other == null) { throw new ArgumentException("Object must be AtlassianPS.JiraPS.Issue.", "obj"); }
-            return CompareTo(other);
+            return JiraTypeIdentity.CompareToObject<Issue>(obj, CompareTo, "AtlassianPS.JiraPS.Issue");
         }
 
         public override string ToString()
@@ -417,14 +412,7 @@ namespace AtlassianPS.JiraPS
 
         public bool Equals(Version other)
         {
-            if (ReferenceEquals(other, null)) { return false; }
-            if (ReferenceEquals(this, other)) { return true; }
-
-            var left = GetIdentity();
-            var right = other.GetIdentity();
-            if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right)) { return false; }
-
-            return JiraTypeIdentity.Equals(left, right);
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         public override bool Equals(object obj)
@@ -434,23 +422,17 @@ namespace AtlassianPS.JiraPS
 
         public override int GetHashCode()
         {
-            var id = GetIdentity();
-            if (string.IsNullOrEmpty(id)) { return 0; }
-            return JiraTypeIdentity.GetHashCode(id);
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
         }
 
         public int CompareTo(Version other)
         {
-            if (ReferenceEquals(other, null)) { return 1; }
-            return JiraTypeIdentity.CompareObjects(GetIdentity(), other.GetIdentity(), this, other);
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         int IComparable.CompareTo(object obj)
         {
-            if (obj == null) { return 1; }
-            var other = obj as Version;
-            if (other == null) { throw new ArgumentException("Object must be AtlassianPS.JiraPS.Version.", "obj"); }
-            return CompareTo(other);
+            return JiraTypeIdentity.CompareToObject<Version>(obj, CompareTo, "AtlassianPS.JiraPS.Version");
         }
 
         public override string ToString()
@@ -500,14 +482,7 @@ namespace AtlassianPS.JiraPS
 
         public bool Equals(Filter other)
         {
-            if (ReferenceEquals(other, null)) { return false; }
-            if (ReferenceEquals(this, other)) { return true; }
-
-            var left = GetIdentity();
-            var right = other.GetIdentity();
-            if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right)) { return false; }
-
-            return JiraTypeIdentity.Equals(left, right);
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         public override bool Equals(object obj)
@@ -517,23 +492,17 @@ namespace AtlassianPS.JiraPS
 
         public override int GetHashCode()
         {
-            var id = GetIdentity();
-            if (string.IsNullOrEmpty(id)) { return 0; }
-            return JiraTypeIdentity.GetHashCode(id);
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
         }
 
         public int CompareTo(Filter other)
         {
-            if (ReferenceEquals(other, null)) { return 1; }
-            return JiraTypeIdentity.CompareObjects(GetIdentity(), other.GetIdentity(), this, other);
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         int IComparable.CompareTo(object obj)
         {
-            if (obj == null) { return 1; }
-            var other = obj as Filter;
-            if (other == null) { throw new ArgumentException("Object must be AtlassianPS.JiraPS.Filter.", "obj"); }
-            return CompareTo(other);
+            return JiraTypeIdentity.CompareToObject<Filter>(obj, CompareTo, "AtlassianPS.JiraPS.Filter");
         }
 
         public override string ToString()
@@ -636,14 +605,7 @@ namespace AtlassianPS.JiraPS
 
         public bool Equals(Group other)
         {
-            if (ReferenceEquals(other, null)) { return false; }
-            if (ReferenceEquals(this, other)) { return true; }
-
-            var left = GetIdentity();
-            var right = other.GetIdentity();
-            if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right)) { return false; }
-
-            return JiraTypeIdentity.Equals(left, right);
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         public override bool Equals(object obj)
@@ -653,23 +615,17 @@ namespace AtlassianPS.JiraPS
 
         public override int GetHashCode()
         {
-            var id = GetIdentity();
-            if (string.IsNullOrEmpty(id)) { return 0; }
-            return JiraTypeIdentity.GetHashCode(id);
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
         }
 
         public int CompareTo(Group other)
         {
-            if (ReferenceEquals(other, null)) { return 1; }
-            return JiraTypeIdentity.CompareObjects(GetIdentity(), other.GetIdentity(), this, other);
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
         int IComparable.CompareTo(object obj)
         {
-            if (obj == null) { return 1; }
-            var other = obj as Group;
-            if (other == null) { throw new ArgumentException("Object must be AtlassianPS.JiraPS.Group.", "obj"); }
-            return CompareTo(other);
+            return JiraTypeIdentity.CompareToObject<Group>(obj, CompareTo, "AtlassianPS.JiraPS.Group");
         }
 
         public override string ToString()
