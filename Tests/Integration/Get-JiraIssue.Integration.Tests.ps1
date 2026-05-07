@@ -123,6 +123,34 @@ InModuleScope JiraPS {
             }
         }
 
+        Context "History Expansion" {
+            It "adds History when -IncludeHistory is used with -Key" {
+                $issue = Get-JiraIssue -Key $fixtures["TestIssue"] -IncludeHistory
+
+                $issue | Should -Not -BeNullOrEmpty
+                $issue.PSObject.Properties.Name | Should -Contain 'History'
+                ($issue.History -is [Object[]]) | Should -BeTrue
+            }
+
+            It "supports the -GetHistory alias" {
+                $issue = Get-JiraIssue -Key $fixtures["TestIssue"] -GetHistory
+
+                $issue | Should -Not -BeNullOrEmpty
+                $issue.PSObject.Properties.Name | Should -Contain 'History'
+                ($issue.History -is [Object[]]) | Should -BeTrue
+            }
+
+            It "adds History when -IncludeHistory is used with -Query" {
+                $jql = "key = $($fixtures.TestIssue)"
+
+                $issues = Get-JiraIssue -Query $jql -IncludeHistory
+
+                @($issues).Count | Should -BeGreaterThan 0
+                @($issues)[0].PSObject.Properties.Name | Should -Contain 'History'
+                (@($issues)[0].History -is [Object[]]) | Should -BeTrue
+            }
+        }
+
         Context "Error Handling" {
             It "throws for non-existent issue" {
                 {

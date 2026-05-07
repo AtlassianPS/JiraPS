@@ -57,6 +57,14 @@
                 $hash.Project = ConvertTo-JiraProject -InputObject $i.fields.project
             }
 
+            if ($i.changelog) {
+                $history = [object[]]@(
+                    foreach ($entry in $i.changelog.histories) {
+                        ConvertTo-JiraIssueHistoryEntry -InputObject $entry
+                    }
+                )
+            }
+
             foreach ($field in @('Assignee', 'Creator', 'Reporter')) {
                 if ($i.fields.$field) {
                     $hash.$field = ConvertTo-JiraUser -InputObject $i.fields.$field
@@ -106,6 +114,10 @@
             $extraFields = $i.fields.PSObject.Properties | Where-Object -FilterScript { $_.Name -notin $nativeProperties }
             foreach ($f in $extraFields) {
                 $result | Add-Member -MemberType NoteProperty -Name $f.Name -Value $f.Value -Force
+            }
+
+            if ($i.changelog) {
+                $result | Add-Member -MemberType NoteProperty -Name History -Value $history -Force
             }
 
             $result
