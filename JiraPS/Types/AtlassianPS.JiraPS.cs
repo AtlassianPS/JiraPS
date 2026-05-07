@@ -129,6 +129,7 @@ namespace AtlassianPS.JiraPS
         public bool Equals(User other)
         {
             if (ReferenceEquals(other, null)) { return false; }
+            if (ReferenceEquals(this, other)) { return true; }
 
             var left = GetIdentity();
             var right = other.GetIdentity();
@@ -216,6 +217,7 @@ namespace AtlassianPS.JiraPS
         public bool Equals(Project other)
         {
             if (ReferenceEquals(other, null)) { return false; }
+            if (ReferenceEquals(this, other)) { return true; }
 
             var left = GetIdentity();
             var right = other.GetIdentity();
@@ -328,6 +330,7 @@ namespace AtlassianPS.JiraPS
         public bool Equals(Issue other)
         {
             if (ReferenceEquals(other, null)) { return false; }
+            if (ReferenceEquals(this, other)) { return true; }
 
             var left = GetIdentity();
             var right = other.GetIdentity();
@@ -415,6 +418,7 @@ namespace AtlassianPS.JiraPS
         public bool Equals(Version other)
         {
             if (ReferenceEquals(other, null)) { return false; }
+            if (ReferenceEquals(this, other)) { return true; }
 
             var left = GetIdentity();
             var right = other.GetIdentity();
@@ -497,6 +501,7 @@ namespace AtlassianPS.JiraPS
         public bool Equals(Filter other)
         {
             if (ReferenceEquals(other, null)) { return false; }
+            if (ReferenceEquals(this, other)) { return true; }
 
             var left = GetIdentity();
             var right = other.GetIdentity();
@@ -632,6 +637,7 @@ namespace AtlassianPS.JiraPS
         public bool Equals(Group other)
         {
             if (ReferenceEquals(other, null)) { return false; }
+            if (ReferenceEquals(this, other)) { return true; }
 
             var left = GetIdentity();
             var right = other.GetIdentity();

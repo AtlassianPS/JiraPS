@@ -407,6 +407,24 @@ InModuleScope JiraPS {
                     (@($first, $second) | Sort-Object -Unique).Count | Should -Be 2 -Because "$($case.Type) identifier-less instances must stay distinct"
                 }
             }
+
+            It "identifier-less objects still equal themselves" {
+                $cases = @(
+                    @{ Type = 'Issue'; Create = { [AtlassianPS.JiraPS.Issue]::new() } }
+                    @{ Type = 'Project'; Create = { [AtlassianPS.JiraPS.Project]::new() } }
+                    @{ Type = 'Group'; Create = { [AtlassianPS.JiraPS.Group]::new() } }
+                    @{ Type = 'Filter'; Create = { [AtlassianPS.JiraPS.Filter]::new() } }
+                    @{ Type = 'Version'; Create = { [AtlassianPS.JiraPS.Version]::new() } }
+                    @{ Type = 'User'; Create = { [AtlassianPS.JiraPS.User]::new() } }
+                )
+
+                foreach ($case in $cases) {
+                    $value = & $case.Create
+
+                    ($value.Equals($value)) | Should -BeTrue -Because "$($case.Type) must satisfy reflexive equality even before an identifier is populated"
+                    ($value.CompareTo($value)) | Should -Be 0 -Because "$($case.Type) compare-to-self must remain stable"
+                }
+            }
         }
 
         Context "Transformer fallthrough across competing parameter sets" {
