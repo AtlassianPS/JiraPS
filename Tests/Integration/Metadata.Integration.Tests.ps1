@@ -128,6 +128,49 @@ InModuleScope JiraPS {
             }
         }
 
+        Describe "Get-JiraStatus" {
+            Context "Status Retrieval" {
+                BeforeAll {
+                    $script:allStatuses = @(Get-JiraStatus)
+                }
+
+                It "retrieves all statuses" {
+                    $allStatuses | Should -Not -BeNullOrEmpty
+                }
+
+                It "returns status objects with correct type" {
+                    @($allStatuses)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.Status'
+                }
+
+                It "retrieves a status by id" {
+                    $target = @($allStatuses)[0]
+
+                    $statusById = @(Get-JiraStatus -Status $target.Id)
+
+                    $statusById | Should -Not -BeNullOrEmpty
+                    @($statusById | ForEach-Object { "$($_.Id)" }) | Should -Contain "$($target.Id)"
+                }
+
+                It "retrieves a status by name" {
+                    $target = @($allStatuses)[0]
+
+                    $statusByName = @(Get-JiraStatus -Status $target.Name)
+
+                    $statusByName | Should -Not -BeNullOrEmpty
+                    @($statusByName | ForEach-Object { "$($_.Name)" }) | Should -Contain "$($target.Name)"
+                }
+
+                It "supports -IdOrName alias for -Status" {
+                    $target = @($allStatuses)[0]
+
+                    $statusByAlias = @(Get-JiraStatus -IdOrName $target.Name)
+
+                    $statusByAlias | Should -Not -BeNullOrEmpty
+                    @($statusByAlias | ForEach-Object { "$($_.Name)" }) | Should -Contain "$($target.Name)"
+                }
+            }
+        }
+
         Describe "Get-JiraIssueLinkType" {
             Context "Link Type Retrieval" {
                 It "retrieves all issue link types" {

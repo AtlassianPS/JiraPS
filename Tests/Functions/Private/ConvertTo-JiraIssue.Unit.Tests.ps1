@@ -986,6 +986,70 @@ InModuleScope JiraPS {
                 It "preserves the status name via ToString() so legacy '`$issue.Status' rendering keeps working" {
                     "$($result.Status)" | Should -Be 'Open'
                 }
+
+                It "adds History as an array when changelog contains one entry" {
+                    $historyEntry = ConvertFrom-Json -InputObject @'
+{
+    "id": "10001",
+    "author": {
+        "name": "jdoe"
+    },
+    "created": "2020-01-01T12:00:00.000+0000",
+    "items": [
+        {
+            "field": "status",
+            "fromString": "To Do",
+            "toString": "In Progress"
+        }
+    ]
+}
+'@
+                    $issueWithOneHistory = ConvertFrom-Json -InputObject $sampleJson
+                    $issueWithOneHistory | Add-Member -MemberType NoteProperty -Name changelog -Value ([PSCustomObject]@{ histories = @($historyEntry) }) -Force
+
+                    $converted = ConvertTo-JiraIssue -InputObject $issueWithOneHistory
+
+                    $converted.PSObject.Properties.Name | Should -Contain 'History'
+                    ($converted.History -is [Object[]]) | Should -BeTrue
+                    @($converted.History) | Should -HaveCount 1
+                    @($converted.History)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueHistoryEntry'
+                }
+
+                It "adds History as an array when changelog contains multiple entries" {
+                    $historyEntry = ConvertFrom-Json -InputObject @'
+{
+    "id": "10001",
+    "author": {
+        "name": "jdoe"
+    },
+    "created": "2020-01-01T12:00:00.000+0000",
+    "items": [
+        {
+            "field": "status",
+            "fromString": "To Do",
+            "toString": "In Progress"
+        }
+    ]
+}
+'@
+                    $issueWithTwoHistories = ConvertFrom-Json -InputObject $sampleJson
+                    $issueWithTwoHistories | Add-Member -MemberType NoteProperty -Name changelog -Value ([PSCustomObject]@{ histories = @($historyEntry, $historyEntry) }) -Force
+
+                    $converted = ConvertTo-JiraIssue -InputObject $issueWithTwoHistories
+
+                    $converted.PSObject.Properties.Name | Should -Contain 'History'
+                    ($converted.History -is [Object[]]) | Should -BeTrue
+                    @($converted.History) | Should -HaveCount 2
+                }
+
+                It "omits History when changelog is absent" {
+                    $issueWithoutChangelog = ConvertFrom-Json -InputObject $sampleJson
+                    [void]$issueWithoutChangelog.PSObject.Properties.Remove('changelog')
+
+                    $converted = ConvertTo-JiraIssue -InputObject $issueWithoutChangelog
+
+                    $converted.PSObject.Properties.Name | Should -Not -Contain 'History'
+                }
             }
 
             Context "Pipeline Support" {

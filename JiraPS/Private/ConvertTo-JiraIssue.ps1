@@ -58,9 +58,11 @@
             }
 
             if ($i.changelog) {
-                $history = foreach ($entry in $i.changelog.histories) {
-                    ConvertTo-JiraIssueHistoryEntry -InputObject $entry
-                }
+                $history = [object[]]@(
+                    foreach ($entry in $i.changelog.histories) {
+                        ConvertTo-JiraIssueHistoryEntry -InputObject $entry
+                    }
+                )
             }
 
             foreach ($field in @('Assignee', 'Creator', 'Reporter')) {
