@@ -85,7 +85,7 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            foreach ($filter in $createdFilters) {
+            foreach ($filter in $script:createdFilters) {
                 Remove-JiraFilter -InputObject $filter -ErrorAction SilentlyContinue -Confirm:$false
             }
             Remove-JiraSession -ErrorAction SilentlyContinue
