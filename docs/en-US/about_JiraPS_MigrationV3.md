@@ -427,6 +427,29 @@ names), but if a test must keep the v2 hashtable shape, just rename the
 to bind correctly to `[PSTypeName('AtlassianPS.JiraPS.<Type>')]`
 parameter attributes.
 
+### Identifier-based equality on strong types
+
+`Issue`, `User`, `Project`, `Group`, `Filter`, and `Version` now implement
+identifier-based equality and comparison. This means `-eq`, `-contains`,
+`Sort-Object -Unique`, `Group-Object`, and hashtable-key lookups now dedupe
+instances by their canonical identifier instead of by object reference.
+
+Canonical identifier rules:
+
+- `Issue`: `Key`
+- `User`: `AccountId` when present, otherwise `Name`
+- `Project`: `Key`
+- `Group`: `Name`
+- `Filter`: `ID`
+- `Version`: `ID` when present, otherwise `Name`
+
+#### Cloud/Data Center note for `User`
+
+Because `User` now prefers `AccountId` over `Name`, scripts that cache or
+dedupe users across mixed DC/Cloud data can see different grouping behavior
+after migration. For stable cross-platform behavior, key persisted caches on
+`AccountId` when it is available.
+
 ### Class slot type tightening — `Filter`, `Version`
 
 The boolean and numeric properties on `AtlassianPS.JiraPS.Filter` and
