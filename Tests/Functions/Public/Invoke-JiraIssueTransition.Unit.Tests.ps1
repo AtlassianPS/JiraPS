@@ -165,6 +165,7 @@ InModuleScope JiraPS {
                     @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
                     @{ parameter = "Transition"; type = "Object" }
                     @{ parameter = "Comment"; type = "String" }
+                    @{ parameter = "TimeSpent"; type = "TimeSpan" }
                     @{ parameter = "Assignee"; type = "User" }
                     @{ parameter = "Unassign"; type = "Switch" }
                     @{ parameter = "Fields"; type = "PSCustomObject" }
@@ -305,6 +306,17 @@ InModuleScope JiraPS {
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
                         $Body -like '*body*test comment*'
+                    }
+                }
+
+                It "adds a worklog if provided to the -TimeSpent parameter" {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -TimeSpent ([TimeSpan]::FromMinutes(15)) } | Should -Not -Throw
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                        $Method -eq 'Post' -and
+                        $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
+                        $Body -like '*worklog*timeSpentSeconds*900*' -and
+                        $Body -match '"started":\s*"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[\+\-]\d{4}"'
                     }
                 }
             }
