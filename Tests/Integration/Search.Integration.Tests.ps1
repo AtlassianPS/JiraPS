@@ -224,11 +224,11 @@ InModuleScope JiraPS {
                 }
 
                 It "returns empty for JQL with no matches" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    $jql = "project = $($fixtures.TestProject) AND key = $($fixtures.TestProject)-999999"
+                    $jql = "key = $($fixtures.TestIssue) AND key != $($fixtures.TestIssue)"
 
                     $results = Get-JiraIssue -Query $jql -ErrorAction Stop
 
