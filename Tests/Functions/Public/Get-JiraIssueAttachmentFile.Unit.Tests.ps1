@@ -65,10 +65,7 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Get-JiraIssueAttachment -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssueAttachment'
-                $object = ConvertFrom-Json -InputObject $attachments
-                $object[0].PSObject.TypeNames.Insert(0, 'JiraPS.Attachment')
-                $object[1].PSObject.TypeNames.Insert(0, 'JiraPS.Attachment')
-                $object
+                ConvertFrom-Json -InputObject $attachments | ConvertTo-JiraAttachment
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
@@ -95,7 +92,7 @@ InModuleScope JiraPS {
                 $script:fooIssue = [AtlassianPS.JiraPS.Issue]@{ Key = 'Foo' }
             }
 
-            It 'only accepts JiraPS.Attachment as input' {
+            It 'only accepts AtlassianPS.JiraPS.Attachment as input' {
                 { Get-JiraIssueAttachmentFile -Attachment (Get-Date) } | Should -Throw -ExpectedMessage "*'Attachment'*"
                 { Get-JiraIssueAttachmentFile -Attachment (Get-ChildItem) } | Should -Throw -ExpectedMessage "*'Attachment'*"
                 { Get-JiraIssueAttachmentFile -Attachment @('foo', 'bar') } | Should -Throw -ExpectedMessage "*'Attachment'*"
@@ -109,7 +106,11 @@ InModuleScope JiraPS {
 
         Describe "Signature" {
             Context "Parameter Types" {
-                # TODO: Add parameter type validation tests
+                It 'types the Attachment parameter as AtlassianPS.JiraPS.Attachment[]' {
+                    $command = Get-Command -Name Get-JiraIssueAttachmentFile
+
+                    $command.Parameters['Attachment'].ParameterType.FullName | Should -Be 'AtlassianPS.JiraPS.Attachment[]'
+                }
             }
 
             Context "Mandatory Parameters" {}
