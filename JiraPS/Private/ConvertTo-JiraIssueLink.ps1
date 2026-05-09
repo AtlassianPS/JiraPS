@@ -12,8 +12,11 @@
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueLink"
 
             $props = @{
-                'Id'   = ConvertTo-JiraNullableInt64 $i.id
-                'Type' = if ($i.type) { ConvertTo-JiraIssueLinkType $i.type } else { $null }
+                'Id' = ConvertTo-JiraNullableInt64 $i.id
+            }
+
+            if ($i.type) {
+                $props.Type = ConvertTo-JiraIssueLinkType $i.type
             }
 
             if ($i.inwardIssue) {
