@@ -14,7 +14,7 @@ InModuleScope JiraPS {
         BeforeAll {
             . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
-            function New-JiraTestObject {
+            function Get-JiraTestObject {
                 param(
                     [Parameter(Mandatory)]
                     [string]$TypeName,
@@ -30,7 +30,7 @@ InModuleScope JiraPS {
                 $object
             }
 
-            function New-JiraTestObjectFromString {
+            function Get-JiraTestObjectFromString {
                 param(
                     [Parameter(Mandatory)]
                     [string]$TypeName,
@@ -115,7 +115,7 @@ InModuleScope JiraPS {
             ) {
                 param($typeName, $property, $expected)
 
-                (New-JiraTestObject -TypeName $typeName -Property $property).ToString() | Should -Be $expected
+                (Get-JiraTestObject -TypeName $typeName -Property $property).ToString() | Should -Be $expected
             }
         }
 
@@ -187,7 +187,7 @@ InModuleScope JiraPS {
             ) {
                 param($typeName, $inputValue, $expectedProperty, $expectedValue, $emptyProperty)
 
-                $value = New-JiraTestObjectFromString -TypeName $typeName -Value $inputValue
+                $value = Get-JiraTestObjectFromString -TypeName $typeName -Value $inputValue
 
                 $value | Should -BeOfType ($typeName -as [Type])
                 $value.$expectedProperty | Should -Be $expectedValue
@@ -211,7 +211,7 @@ InModuleScope JiraPS {
             ) {
                 param($typeName, $value)
 
-                { New-JiraTestObjectFromString -TypeName $typeName -Value $value } | Should -Throw
+                { Get-JiraTestObjectFromString -TypeName $typeName -Value $value } | Should -Throw
             }
 
             It "the parameterless ctor is preserved on <typeName>" -TestCases @(
@@ -312,46 +312,46 @@ InModuleScope JiraPS {
 
             It "<scenario>" -TestCases @(
                 @{
-                    scenario = 'Issue compares by Key'
-                    primary = { [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1'; Summary = 'first' } }
+                    scenario   = 'Issue compares by Key'
+                    primary    = { [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1'; Summary = 'first' } }
                     equivalent = { [AtlassianPS.JiraPS.Issue]@{ Key = 'test-1'; Summary = 'second' } }
-                    different = { [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-2'; Summary = 'third' } }
+                    different  = { [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-2'; Summary = 'third' } }
                 }
                 @{
-                    scenario = 'Project compares by Key'
-                    primary = { [AtlassianPS.JiraPS.Project]@{ Key = 'ALPHA'; Name = 'Alpha' } }
+                    scenario   = 'Project compares by Key'
+                    primary    = { [AtlassianPS.JiraPS.Project]@{ Key = 'ALPHA'; Name = 'Alpha' } }
                     equivalent = { [AtlassianPS.JiraPS.Project]@{ Key = 'alpha'; Name = 'Alpha (clone)' } }
-                    different = { [AtlassianPS.JiraPS.Project]@{ Key = 'BETA'; Name = 'Beta' } }
+                    different  = { [AtlassianPS.JiraPS.Project]@{ Key = 'BETA'; Name = 'Beta' } }
                 }
                 @{
-                    scenario = 'Group compares by Name'
-                    primary = { [AtlassianPS.JiraPS.Group]@{ Name = 'jira-admins' } }
+                    scenario   = 'Group compares by Name'
+                    primary    = { [AtlassianPS.JiraPS.Group]@{ Name = 'jira-admins' } }
                     equivalent = { [AtlassianPS.JiraPS.Group]@{ Name = 'JIRA-ADMINS' } }
-                    different = { [AtlassianPS.JiraPS.Group]@{ Name = 'jira-users' } }
+                    different  = { [AtlassianPS.JiraPS.Group]@{ Name = 'jira-users' } }
                 }
                 @{
-                    scenario = 'Filter compares by ID'
-                    primary = { [AtlassianPS.JiraPS.Filter]@{ ID = '10001'; Name = '10001' } }
+                    scenario   = 'Filter compares by ID'
+                    primary    = { [AtlassianPS.JiraPS.Filter]@{ ID = '10001'; Name = '10001' } }
                     equivalent = { [AtlassianPS.JiraPS.Filter]@{ ID = '10001'; Name = 'same-id-different-name' } }
-                    different = { [AtlassianPS.JiraPS.Filter]@{ ID = '20001'; Name = '20001' } }
+                    different  = { [AtlassianPS.JiraPS.Filter]@{ ID = '20001'; Name = '20001' } }
                 }
                 @{
-                    scenario = 'Version compares by ID first, then Name'
-                    primary = { [AtlassianPS.JiraPS.Version]@{ ID = '10001'; Name = '1.0.0' } }
+                    scenario   = 'Version compares by ID first, then Name'
+                    primary    = { [AtlassianPS.JiraPS.Version]@{ ID = '10001'; Name = '1.0.0' } }
                     equivalent = { [AtlassianPS.JiraPS.Version]@{ ID = '10001'; Name = '1.0.0-alt' } }
-                    different = { [AtlassianPS.JiraPS.Version]@{ ID = '20001'; Name = '2.0.0' } }
+                    different  = { [AtlassianPS.JiraPS.Version]@{ ID = '20001'; Name = '2.0.0' } }
                 }
                 @{
-                    scenario = 'User compares by AccountId first, then Name'
-                    primary = { [AtlassianPS.JiraPS.User]@{ AccountId = 'abc-123'; Name = 'legacy-user-a' } }
+                    scenario   = 'User compares by AccountId first, then Name'
+                    primary    = { [AtlassianPS.JiraPS.User]@{ AccountId = 'abc-123'; Name = 'legacy-user-a' } }
                     equivalent = { [AtlassianPS.JiraPS.User]@{ AccountId = 'ABC-123'; Name = 'legacy-user-b' } }
-                    different = { [AtlassianPS.JiraPS.User]@{ AccountId = 'def-456'; Name = 'legacy-user-a' } }
+                    different  = { [AtlassianPS.JiraPS.User]@{ AccountId = 'def-456'; Name = 'legacy-user-a' } }
                 }
                 @{
-                    scenario = 'User falls back to Name when AccountId is absent'
-                    primary = { [AtlassianPS.JiraPS.User]@{ Name = 'asmith' } }
+                    scenario   = 'User falls back to Name when AccountId is absent'
+                    primary    = { [AtlassianPS.JiraPS.User]@{ Name = 'asmith' } }
                     equivalent = { [AtlassianPS.JiraPS.User]@{ Name = 'ASMITH'; DisplayName = 'Alice Smith' } }
-                    different = { [AtlassianPS.JiraPS.User]@{ Name = 'jdoe' } }
+                    different  = { [AtlassianPS.JiraPS.User]@{ Name = 'jdoe' } }
                 }
             ) {
                 param($primary, $equivalent, $different)
@@ -483,39 +483,39 @@ InModuleScope JiraPS {
 
             It "<transformer> falls through to <expectedParameterSet> when competing input is piped" -TestCases @(
                 @{
-                    transformer = 'IssueTransformation'
-                    createInput = { [AtlassianPS.JiraPS.Project]::new('TEST') }
-                    invokeBinding = { param($value) $value | Invoke-IssuePreferredBinding }
+                    transformer          = 'IssueTransformation'
+                    createInput          = { [AtlassianPS.JiraPS.Project]::new('TEST') }
+                    invokeBinding        = { param($value) $value | Invoke-IssuePreferredBinding }
                     expectedParameterSet = 'Project'
                 }
                 @{
-                    transformer = 'UserTransformation'
-                    createInput = { [AtlassianPS.JiraPS.Group]::new('jira-users') }
-                    invokeBinding = { param($value) $value | Invoke-UserPreferredBinding }
+                    transformer          = 'UserTransformation'
+                    createInput          = { [AtlassianPS.JiraPS.Group]::new('jira-users') }
+                    invokeBinding        = { param($value) $value | Invoke-UserPreferredBinding }
                     expectedParameterSet = 'Group'
                 }
                 @{
-                    transformer = 'GroupTransformation'
-                    createInput = { [AtlassianPS.JiraPS.User]::new('jdoe') }
-                    invokeBinding = { param($value) $value | Invoke-GroupPreferredBinding }
+                    transformer          = 'GroupTransformation'
+                    createInput          = { [AtlassianPS.JiraPS.User]::new('jdoe') }
+                    invokeBinding        = { param($value) $value | Invoke-GroupPreferredBinding }
                     expectedParameterSet = 'User'
                 }
                 @{
-                    transformer = 'VersionTransformation'
-                    createInput = { [AtlassianPS.JiraPS.Project]::new('TEST') }
-                    invokeBinding = { param($value) $value | Invoke-VersionPreferredBinding }
+                    transformer          = 'VersionTransformation'
+                    createInput          = { [AtlassianPS.JiraPS.Project]::new('TEST') }
+                    invokeBinding        = { param($value) $value | Invoke-VersionPreferredBinding }
                     expectedParameterSet = 'Project'
                 }
                 @{
-                    transformer = 'FilterTransformation'
-                    createInput = { [AtlassianPS.JiraPS.Project]::new('TEST') }
-                    invokeBinding = { param($value) $value | Invoke-FilterPreferredBinding }
+                    transformer          = 'FilterTransformation'
+                    createInput          = { [AtlassianPS.JiraPS.Project]::new('TEST') }
+                    invokeBinding        = { param($value) $value | Invoke-FilterPreferredBinding }
                     expectedParameterSet = 'Project'
                 }
                 @{
-                    transformer = 'ProjectTransformation'
-                    createInput = { [AtlassianPS.JiraPS.Version]::new('10001') }
-                    invokeBinding = { param($value) $value | Invoke-ProjectPreferredBinding }
+                    transformer          = 'ProjectTransformation'
+                    createInput          = { [AtlassianPS.JiraPS.Version]::new('10001') }
+                    invokeBinding        = { param($value) $value | Invoke-ProjectPreferredBinding }
                     expectedParameterSet = 'Version'
                 }
             ) {
