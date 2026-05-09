@@ -24,10 +24,6 @@
                 $props.Lead = ConvertTo-JiraUser -InputObject $i.lead
                 $props.LeadDisplayName = $i.lead.displayName
             }
-            else {
-                $props.Lead = $null
-                $props.LeadDisplayName = $null
-            }
 
             if ($i.description) { $props.Description = $i.description }
             if ($i.assigneeType) { $props.AssigneeType = $i.assigneeType }
