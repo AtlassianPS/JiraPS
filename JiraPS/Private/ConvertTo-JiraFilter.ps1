@@ -26,6 +26,9 @@
                     ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.FilterPermission]) -InputObject (ConvertTo-JiraFilterPermission ($FilterPermissions))
                 }
                 elseif ($i.sharePermissions) {
+                    # Intentional: Jira's raw sharePermissions payload is kept
+                    # below for compatibility and also projected into the new
+                    # typed FilterPermissions slot.
                     ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.FilterPermission]) -InputObject (ConvertTo-JiraFilterPermission ($i.sharePermissions))
                 }
                 else {
