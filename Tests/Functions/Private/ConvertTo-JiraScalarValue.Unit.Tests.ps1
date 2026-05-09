@@ -60,37 +60,5 @@ InModuleScope JiraPS {
             }
         }
 
-        Context "ConvertTo-JiraTypedArray" {
-            It "returns an empty typed array for null input" {
-                $result = ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Attachment]) -InputObject $null
-
-                $result.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.Attachment[]'
-                $result | Should -HaveCount 0
-            }
-
-            It "preserves the requested element type for single and multiple inputs" {
-                $items = @(
-                    [AtlassianPS.JiraPS.Attachment]@{ ID = '1'; FileName = 'one.txt' }
-                    [AtlassianPS.JiraPS.Attachment]@{ ID = '2'; FileName = 'two.txt' }
-                )
-
-                $result = ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Attachment]) -InputObject $items
-
-                $result.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.Attachment[]'
-                $result | Should -HaveCount 2
-            }
-
-            It "accumulates pipeline input into one typed array" {
-                $items = @(
-                    [AtlassianPS.JiraPS.Attachment]@{ ID = '1'; FileName = 'one.txt' }
-                    [AtlassianPS.JiraPS.Attachment]@{ ID = '2'; FileName = 'two.txt' }
-                )
-
-                $result = $items | ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Attachment])
-
-                $result.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.Attachment[]'
-                $result | Should -HaveCount 2
-            }
-        }
     }
 }

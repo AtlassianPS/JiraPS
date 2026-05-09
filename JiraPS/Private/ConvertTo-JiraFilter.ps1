@@ -23,16 +23,16 @@
                 SearchUrl         = [uri]$i.searchUrl
                 Favourite         = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) } else { $false }
                 FilterPermissions = if ($FilterPermissions) {
-                    ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.FilterPermission]) -InputObject (ConvertTo-JiraFilterPermission ($FilterPermissions))
+                    [AtlassianPS.JiraPS.FilterPermission[]]@(ConvertTo-JiraFilterPermission ($FilterPermissions))
                 }
                 elseif ($i.sharePermissions) {
                     # Intentional: Jira's raw sharePermissions payload is kept
                     # below for compatibility and also projected into the new
                     # typed FilterPermissions slot.
-                    ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.FilterPermission]) -InputObject (ConvertTo-JiraFilterPermission ($i.sharePermissions))
+                    [AtlassianPS.JiraPS.FilterPermission[]]@(ConvertTo-JiraFilterPermission ($i.sharePermissions))
                 }
                 else {
-                    ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.FilterPermission]) -InputObject $null
+                    [AtlassianPS.JiraPS.FilterPermission[]]@()
                 }
                 SharePermission   = $i.sharePermissions
                 SharedUser        = $i.sharedUsers

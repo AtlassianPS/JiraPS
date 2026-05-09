@@ -46,11 +46,11 @@
             }
 
             if ($i.fields.issuelinks) {
-                $hash.IssueLinks = ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.IssueLink]) -InputObject (ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks)
+                $hash.IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks)
             }
 
             if ($i.fields.attachment) {
-                $hash.Attachment = ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Attachment]) -InputObject (ConvertTo-JiraAttachment $i.fields.attachment)
+                $hash.Attachment = [AtlassianPS.JiraPS.Attachment[]]@(ConvertTo-JiraAttachment $i.fields.attachment)
             }
 
             if ($i.fields.project) {
@@ -99,7 +99,7 @@
                 }
                 # Explicit cast keeps the [Comment[]] slot bound when only one
                 # comment is present (PowerShell would otherwise unwrap to a scalar).
-                $hash.Comment = ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Comment]) -InputObject $comments
+                $hash.Comment = [AtlassianPS.JiraPS.Comment[]]@($comments)
             }
 
             # $hash is a fresh hashtable literal — cast straight to the class.
@@ -117,10 +117,10 @@
                     'issuetype' { ConvertTo-JiraIssueType -InputObject $f.Value; break }
                     'priority' { ConvertTo-JiraPriority -InputObject $f.Value; break }
                     'resolution' { if ($f.Value) { ConvertTo-JiraResolution -InputObject $f.Value } else { $null }; break }
-                    'components' { ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Component]) -InputObject (ConvertTo-JiraComponent -InputObject $f.Value); break }
+                    'components' { [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent -InputObject $f.Value); break }
                     'worklog' {
                         if ($f.Value.worklogs) {
-                            ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Worklogitem]) -InputObject (ConvertTo-JiraWorklogitem -InputObject $f.Value.worklogs)
+                            [AtlassianPS.JiraPS.Worklogitem[]]@(ConvertTo-JiraWorklogitem -InputObject $f.Value.worklogs)
                         }
                         else { $f.Value }
                         break

@@ -17,10 +17,10 @@
                 Name           = $i.name
                 Description    = $i.description
                 Lead           = if ($i.lead) { ConvertTo-JiraUser $i.lead } else { $null }
-                IssueTypes     = if ($i.issueTypes) { ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.IssueType]) -InputObject (ConvertTo-JiraIssueType $i.issueTypes) } else { $null }
+                IssueTypes     = if ($i.issueTypes) { [AtlassianPS.JiraPS.IssueType[]]@(ConvertTo-JiraIssueType $i.issueTypes) } else { $null }
                 Roles          = $i.roles
                 RestUrl        = [uri]$i.self
-                Components     = if ($i.components) { ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.Component]) -InputObject (ConvertTo-JiraComponent $i.components) } else { $null }
+                Components     = if ($i.components) { [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent $i.components) } else { $null }
                 Style          = $i.style
                 Category       = if ($i.projectCategory) { $i.projectCategory } elseif ($i.Category) { $i.Category } else { $null }
                 ProjectTypeKey = $i.projectTypeKey
