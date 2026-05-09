@@ -15,16 +15,16 @@
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Filter"
 
             $hash = @{
-                ID                = $i.id
-                Name              = $i.name
-                JQL               = $i.jql
-                RestUrl           = [uri]$i.self
-                ViewUrl           = [uri]$i.viewUrl
-                SearchUrl         = [uri]$i.searchUrl
-                Favourite         = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) } else { $false }
-                SharePermission   = $i.sharePermissions
-                SharedUser        = $i.sharedUsers
-                Subscription      = $i.subscriptions
+                ID              = $i.id
+                Name            = $i.name
+                JQL             = $i.jql
+                RestUrl         = [uri]$i.self
+                ViewUrl         = [uri]$i.viewUrl
+                SearchUrl       = [uri]$i.searchUrl
+                Favourite       = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) } else { $false }
+                SharePermission = $i.sharePermissions
+                SharedUser      = $i.sharedUsers
+                Subscription    = $i.subscriptions
             }
 
             if ($FilterPermissions) {
