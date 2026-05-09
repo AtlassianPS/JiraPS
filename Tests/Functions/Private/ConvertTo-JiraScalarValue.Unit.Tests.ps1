@@ -8,26 +8,6 @@ BeforeDiscovery {
 
 InModuleScope JiraPS {
     Describe "Jira scalar conversion helpers" -Tag 'Unit' {
-        Context "ConvertTo-JiraUriValue" {
-            It "returns null for null or whitespace input" {
-                ConvertTo-JiraUriValue $null | Should -BeNullOrEmpty
-                ConvertTo-JiraUriValue '   ' | Should -BeNullOrEmpty
-            }
-
-            It "passes through existing Uri values" {
-                $uri = [uri]'https://example.atlassian.net/rest/api/2/issue/ABC-1'
-
-                [object]::ReferenceEquals((ConvertTo-JiraUriValue $uri), $uri) | Should -BeTrue
-            }
-
-            It "converts string input to Uri" {
-                $result = ConvertTo-JiraUriValue 'https://example.atlassian.net/rest/api/2/issue/ABC-1'
-
-                $result | Should -BeOfType [uri]
-                $result.OriginalString | Should -Be 'https://example.atlassian.net/rest/api/2/issue/ABC-1'
-            }
-        }
-
         Context "ConvertTo-JiraNullableInt64" {
             It "returns null for null or whitespace input" {
                 ConvertTo-JiraNullableInt64 $null | Should -BeNullOrEmpty

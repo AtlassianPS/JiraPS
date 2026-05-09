@@ -15,7 +15,7 @@
                 ID         = $i.id
                 Body       = ConvertFrom-AtlassianDocumentFormat -InputObject $i.body
                 Visibility = $i.visibility
-                RestUrl    = ConvertTo-JiraUriValue $i.self
+                RestUrl    = [uri]$i.self
             }
 
             if ($i.renderedBody) {

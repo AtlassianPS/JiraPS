@@ -25,7 +25,7 @@
             }
 
             if ($item.autoCompleteUrl) {
-                $props.AutoCompleteUrl = ConvertTo-JiraUriValue $item.autoCompleteUrl
+                $props.AutoCompleteUrl = [uri]$item.autoCompleteUrl
             }
 
             $extraProperties = @{}

@@ -18,14 +18,14 @@
 
             $props = @{
                 'ID'        = $i.id
-                'Self'      = ConvertTo-JiraUriValue $i.self
+                'Self'      = [uri]$i.self
                 'FileName'  = $i.FileName
                 'Author'    = ConvertTo-JiraUser -InputObject $i.Author
                 'Created'   = ConvertTo-JiraDateTimeOffsetValue $i.created
                 'Size'      = ConvertTo-JiraNullableInt64 $i.size
                 'MimeType'  = $i.mimeType
-                'Content'   = ConvertTo-JiraUriValue $i.content
-                'Thumbnail' = ConvertTo-JiraUriValue $i.thumbnail
+                'Content'   = [uri]$i.content
+                'Thumbnail' = [uri]$i.thumbnail
             }
 
             [AtlassianPS.JiraPS.Attachment]$props

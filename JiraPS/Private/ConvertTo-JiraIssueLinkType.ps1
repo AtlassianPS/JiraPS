@@ -16,7 +16,7 @@
                 'Name'        = $i.name
                 'InwardText'  = $i.inward
                 'OutwardText' = $i.outward
-                'RestUrl'     = ConvertTo-JiraUriValue $i.self
+                'RestUrl'     = [uri]$i.self
             }
 
             [AtlassianPS.JiraPS.IssueLinkType]$props

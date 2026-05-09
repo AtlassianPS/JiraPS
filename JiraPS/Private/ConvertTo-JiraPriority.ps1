@@ -16,8 +16,8 @@
                 'Name'        = $i.name
                 'Description' = $i.description
                 'StatusColor' = $i.statusColor
-                'IconUrl'     = ConvertTo-JiraUriValue $i.iconUrl
-                'RestUrl'     = ConvertTo-JiraUriValue $i.self
+                'IconUrl'     = [uri]$i.iconUrl
+                'RestUrl'     = [uri]$i.self
             }
 
             [AtlassianPS.JiraPS.Priority]$props

@@ -14,7 +14,7 @@
             $props = @{
                 'ID'          = $i.id
                 'Name'        = $i.name
-                'RestUrl'     = ConvertTo-JiraUriValue $i.self
+                'RestUrl'     = [uri]$i.self
                 'Lead'        = $null
                 'ProjectName' = $i.project
                 'ProjectId'   = $i.projectId

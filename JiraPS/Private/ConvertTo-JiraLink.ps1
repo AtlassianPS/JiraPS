@@ -13,7 +13,7 @@
 
             $props = @{
                 'Id'      = ConvertTo-JiraNullableInt64 $i.id
-                'RestUrl' = ConvertTo-JiraUriValue $i.self
+                'RestUrl' = [uri]$i.self
             }
 
             if ($i.globalId) {

@@ -38,8 +38,8 @@
             $hash = @{
                 ID          = $i.id
                 Key         = $i.key
-                HttpUrl     = ConvertTo-JiraUriValue $http
-                RestUrl     = ConvertTo-JiraUriValue $i.self
+                HttpUrl     = [uri]$http
+                RestUrl     = [uri]$i.self
                 Summary     = $i.fields.summary
                 Description = ConvertFrom-AtlassianDocumentFormat -InputObject $i.fields.description
                 Status      = if ($i.fields.status) { ConvertTo-JiraStatus -InputObject $i.fields.status } else { $null }

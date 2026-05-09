@@ -15,8 +15,8 @@
                 'Id'          = ConvertTo-JiraNullableInt64 $i.id
                 'Name'        = $i.name
                 'Description' = $i.description
-                'IconUrl'     = ConvertTo-JiraUriValue $i.iconUrl
-                'RestUrl'     = ConvertTo-JiraUriValue $i.self
+                'IconUrl'     = [uri]$i.iconUrl
+                'RestUrl'     = [uri]$i.self
                 'Subtask'     = if ($null -ne $i.subtask) { [System.Convert]::ToBoolean($i.subtask) } else { $false }
             }
 

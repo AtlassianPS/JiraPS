@@ -16,7 +16,7 @@
                 'Name'        = $i.name
                 'Description' = $i.description
                 'Actors'      = $i.actors
-                'RestUrl'     = ConvertTo-JiraUriValue $i.self
+                'RestUrl'     = [uri]$i.self
             }
 
             [AtlassianPS.JiraPS.ProjectRole]$props

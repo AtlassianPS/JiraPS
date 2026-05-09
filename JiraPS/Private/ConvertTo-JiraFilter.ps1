@@ -18,9 +18,9 @@
                 ID                = $i.id
                 Name              = $i.name
                 JQL               = $i.jql
-                RestUrl           = ConvertTo-JiraUriValue $i.self
-                ViewUrl           = ConvertTo-JiraUriValue $i.viewUrl
-                SearchUrl         = ConvertTo-JiraUriValue $i.searchUrl
+                RestUrl           = [uri]$i.self
+                ViewUrl           = [uri]$i.viewUrl
+                SearchUrl         = [uri]$i.searchUrl
                 Favourite         = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) } else { $false }
                 FilterPermissions = if ($FilterPermissions) {
                     ConvertTo-JiraTypedArray -Type ([AtlassianPS.JiraPS.FilterPermission]) -InputObject (ConvertTo-JiraFilterPermission ($FilterPermissions))

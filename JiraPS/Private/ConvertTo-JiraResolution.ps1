@@ -15,7 +15,7 @@
                 ID          = $i.id
                 Name        = $i.name
                 Description = $i.description
-                RestUrl     = ConvertTo-JiraUriValue $i.self
+                RestUrl     = [uri]$i.self
             }
 
             [AtlassianPS.JiraPS.Resolution]$props

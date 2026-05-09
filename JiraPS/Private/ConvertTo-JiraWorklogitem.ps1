@@ -15,7 +15,7 @@
                 'ID'         = ConvertTo-JiraNullableInt64 $i.id
                 'Visibility' = $i.visibility
                 'Comment'    = ConvertFrom-AtlassianDocumentFormat -InputObject $i.comment
-                'RestUrl'    = ConvertTo-JiraUriValue $i.self
+                'RestUrl'    = [uri]$i.self
             }
 
             if ($i.author) {

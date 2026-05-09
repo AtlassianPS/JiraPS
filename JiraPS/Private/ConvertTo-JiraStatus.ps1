@@ -15,8 +15,8 @@
                 'ID'          = ConvertTo-JiraNullableInt64 $i.id
                 'Name'        = $i.name
                 'Description' = $i.description
-                'IconUrl'     = ConvertTo-JiraUriValue $i.iconUrl
-                'RestUrl'     = ConvertTo-JiraUriValue $i.self
+                'IconUrl'     = [uri]$i.iconUrl
+                'RestUrl'     = [uri]$i.self
             }
 
             if ($i.statusCategory) {
@@ -25,7 +25,7 @@
                     Key       = $i.statusCategory.key
                     Name      = $i.statusCategory.name
                     ColorName = $i.statusCategory.colorName
-                    RestUrl   = ConvertTo-JiraUriValue $i.statusCategory.self
+                    RestUrl   = [uri]$i.statusCategory.self
                 }
             }
 
