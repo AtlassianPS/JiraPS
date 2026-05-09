@@ -54,6 +54,10 @@ InModuleScope JiraPS {
 
                 $result.ToString('o') | Should -Be '2017-09-26T00:00:00.0000000+02:00'
             }
+
+            It "throws for non-date, non-string input" {
+                { ConvertTo-JiraDateTimeOffsetValue $false } | Should -Throw -ExpectedMessage "*System.Boolean*"
+            }
         }
 
         Context "ConvertTo-JiraTypedArray" {

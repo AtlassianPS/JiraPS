@@ -9,7 +9,8 @@ This helper preserves DateTimeOffset values, casts DateTime values directly to
 avoid culture-sensitive string round-trips, and parses Jira timestamp strings
 with invariant culture so the wire offset is retained.
 
-Null and blank inputs are treated as absent optional timestamp fields.
+Null and blank string inputs are treated as absent optional timestamp fields.
+Other input types are rejected instead of being parsed through ToString().
 #>
 function ConvertTo-JiraDateTimeOffsetValue {
     [CmdletBinding()]
@@ -26,7 +27,13 @@ function ConvertTo-JiraDateTimeOffsetValue {
         if ($InputObject -is [DateTimeOffset]) { return $InputObject }
         if ($InputObject -is [DateTime]) { return [DateTimeOffset]$InputObject }
 
-        $text = $InputObject.ToString()
+        if ($InputObject -isnot [string]) {
+            throw [System.ArgumentException]::new(
+                "Cannot convert value of type '$($InputObject.GetType().FullName)' to System.DateTimeOffset. Expected a DateTimeOffset, DateTime, string, or null."
+            )
+        }
+
+        $text = $InputObject
         if ([string]::IsNullOrWhiteSpace($text)) { return $null }
 
         [DateTimeOffset]::Parse($text, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AllowWhiteSpaces)
