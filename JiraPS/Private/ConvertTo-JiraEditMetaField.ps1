@@ -25,13 +25,9 @@
                     'Operations'      = $item.operations
                 }
 
-                if ($item.allowedValues) {
-                    $props.AllowedValues = $item.allowedValues
-                }
+                if ($item.allowedValues) { $props.AllowedValues = $item.allowedValues }
 
-                if ($item.autoCompleteUrl) {
-                    $props.AutoCompleteUrl = [uri]$item.autoCompleteUrl
-                }
+                if ($item.autoCompleteUrl) { $props.AutoCompleteUrl = [uri]$item.autoCompleteUrl }
 
                 $extraProperties = @{}
                 # NoteProperty only: $item is a JSON-deserialized field spec

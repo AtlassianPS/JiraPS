@@ -40,13 +40,9 @@
                 $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@()
             }
 
-            if ($i.description) {
-                $hash.Description = $i.description
-            }
+            if ($i.description) { $hash.Description = $i.description }
 
-            if ($i.owner) {
-                $hash.Owner = ConvertTo-JiraUser -InputObject $i.owner
-            }
+            if ($i.owner) { $hash.Owner = ConvertTo-JiraUser -InputObject $i.owner }
 
             $result = [AtlassianPS.JiraPS.Filter]$hash
 

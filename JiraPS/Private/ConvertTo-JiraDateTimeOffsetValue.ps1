@@ -14,7 +14,7 @@
         Other input types are rejected instead of being parsed through ToString().
     #>
     [CmdletBinding()]
-    [OutputType( [System.Nullable[DateTimeOffset]] )]
+    [OutputType([System.Nullable[DateTimeOffset]])]
     param(
         [Parameter( ValueFromPipeline )]
         [AllowNull()]

@@ -42,8 +42,9 @@
                 RestUrl     = [uri]$i.self
                 Summary     = $i.fields.summary
                 Description = ConvertFrom-AtlassianDocumentFormat -InputObject $i.fields.description
-                Status      = if ($i.fields.status) { ConvertTo-JiraStatus -InputObject $i.fields.status } else { $null }
             }
+
+            if ($i.fields.status) { $hash.Status = ConvertTo-JiraStatus -InputObject $i.fields.status }
 
             if ($i.fields.issuelinks) {
                 $hash.IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks)

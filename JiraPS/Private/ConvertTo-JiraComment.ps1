@@ -18,29 +18,17 @@
                 RestUrl    = [uri]$i.self
             }
 
-            if ($i.renderedBody) {
-                $hash.RenderedBody = [string]$i.renderedBody
-            }
+            if ($i.renderedBody) { $hash.RenderedBody = [string]$i.renderedBody }
 
-            if ($i.properties) {
-                $hash.Properties = [object[]]@($i.properties)
-            }
+            if ($i.properties) { $hash.Properties = [object[]]@($i.properties) }
 
-            if ($i.author) {
-                $hash.Author = ConvertTo-JiraUser -InputObject $i.author
-            }
+            if ($i.author) { $hash.Author = ConvertTo-JiraUser -InputObject $i.author }
 
-            if ($i.updateAuthor) {
-                $hash.UpdateAuthor = ConvertTo-JiraUser -InputObject $i.updateAuthor
-            }
+            if ($i.updateAuthor) { $hash.UpdateAuthor = ConvertTo-JiraUser -InputObject $i.updateAuthor }
 
-            if ($i.created) {
-                $hash.Created = ConvertTo-JiraDateTimeOffsetValue $i.created
-            }
+            if ($i.created) { $hash.Created = ConvertTo-JiraDateTimeOffsetValue $i.created }
 
-            if ($i.updated) {
-                $hash.Updated = ConvertTo-JiraDateTimeOffsetValue $i.updated
-            }
+            if ($i.updated) { $hash.Updated = ConvertTo-JiraDateTimeOffsetValue $i.updated }
 
             [AtlassianPS.JiraPS.Comment]$hash
         }

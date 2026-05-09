@@ -18,15 +18,12 @@
                 'Project' = $null
                 'Role'    = $null
             }
-            if ($i.group) {
-                $props["Group"] = ConvertTo-JiraGroup $i.group
-            }
-            if ($i.project) {
-                $props["Project"] = ConvertTo-JiraProject $i.project
-            }
-            if ($i.role) {
-                $props["Role"] = ConvertTo-JiraProjectRole $i.role
-            }
+
+            if ($i.group) { $props["Group"] = ConvertTo-JiraGroup $i.group }
+
+            if ($i.project) { $props["Project"] = ConvertTo-JiraProject $i.project }
+
+            if ($i.role) { $props["Role"] = ConvertTo-JiraProjectRole $i.role }
 
             [AtlassianPS.JiraPS.FilterPermission]$props
         }
