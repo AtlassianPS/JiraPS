@@ -63,7 +63,7 @@
                 $errorTarget = $Assignee
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                 $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
-                $PSCmdlet.ThrowTerminatingError($errorItem)
+                ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
             }
         }
 
@@ -95,7 +95,7 @@
                 $errorTarget = $Transition
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                 $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [AtlassianPS.JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
-                $PSCmdlet.ThrowTerminatingError($errorItem)
+                ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
             }
         }
 
@@ -107,7 +107,7 @@
             $errorTarget = $Issue
             $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$transitionId]. Check the issue's Transition property and provide a transition valid for its current state."
-            $PSCmdlet.ThrowTerminatingError($errorItem)
+            ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
         }
 
         $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud

@@ -43,7 +43,7 @@
                     $_version
                 )
                 $errorItem.ErrorDetails = "Remove-JiraVersion requires a version ID. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
-                $PSCmdlet.ThrowTerminatingError($errorItem)
+                ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
             }
 
             $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop

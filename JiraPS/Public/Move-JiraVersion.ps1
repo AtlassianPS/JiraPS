@@ -42,7 +42,7 @@
                 $Version
             )
             $errorItem.ErrorDetails = "Move-JiraVersion requires a version ID for -Version. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
-            $PSCmdlet.ThrowTerminatingError($errorItem)
+            ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
         }
 
         $requestBody = @{ }
@@ -63,7 +63,7 @@
                             $After
                         )
                         $errorItem.ErrorDetails = "Move-JiraVersion requires a version ID or RestUrl for -After. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID or RestUrl."
-                        $PSCmdlet.ThrowTerminatingError($errorItem)
+                        ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
                     }
                     $versionObj = Get-JiraVersion -Id $After.Id -Credential $Credential -ErrorAction Stop
                     $afterSelfUri = $versionObj.RestUrl
