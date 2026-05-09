@@ -1,11 +1,11 @@
 ﻿function ConvertTo-Hashtable {
     <#
-        .SYNOPSIS
+    .SYNOPSIS
         Converts a PSCustomObject (or any PSObject-wrapped value) to a plain
         Hashtable so a subsequent `[Class](hashtable)` cast lands cleanly on
         Windows PowerShell 5.1.
 
-        .DESCRIPTION
+    .DESCRIPTION
         Casting a PSCustomObject directly to a custom .NET class throws
         PSInvalidCastException on Windows PowerShell 5.1, but casting from a
         Hashtable is fine. Round-tripping through this helper is the

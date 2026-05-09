@@ -385,11 +385,12 @@ There is no backward-compatibility alias.
 Scripts that inspect `PSObject.TypeNames` or hand-construct mock objects with
 the legacy `JiraPS.<Type>` name must be updated.
 
-The remaining 16 leaf types (`Group`, `Status`, `Priority`, `IssueType`,
-`IssueLink`, `IssueLinkType`, `Component`, `Attachment`, `Worklogitem`,
-`ProjectRole`, `Field`, `CreateMetaField`, `EditMetaField`, `Transition`,
-`Link`, `FilterPermission`) keep the legacy `JiraPS.<Type>` PSTypeName
-until a follow-up phase converts them too.
+Leaf return types such as `Status`, `Priority`, `IssueType`, `Component`,
+`Attachment`, `Worklogitem`, `Transition`, `IssueLink`, `ProjectRole`,
+`FilterPermission`, and metadata field objects are also promoted to
+`AtlassianPS.JiraPS.*` classes in this release. New code should prefer
+`$obj -is [AtlassianPS.JiraPS.<Type>]` checks over inspecting
+`PSObject.TypeNames`.
 
 #### Type-name inspection
 

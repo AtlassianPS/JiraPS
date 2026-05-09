@@ -58,8 +58,9 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Transition'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Transition'
+                It "returns AtlassianPS.JiraPS.Transition" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Transition'
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.Transition]
                 }
             }
 
@@ -93,7 +94,7 @@ InModuleScope JiraPS {
                 }
 
                 It "converts ResultStatus to JiraPS.Status type" {
-                    $result.ResultStatus.PSObject.TypeNames[0] | Should -Be 'JiraPS.Status'
+                    $result.ResultStatus.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Status'
                 }
             }
 

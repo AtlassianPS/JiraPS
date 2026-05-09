@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraStatus {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Status])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,23 +9,27 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Status"
 
             $props = @{
-                'ID'          = [int64]$i.id
+                'ID'          = ConvertTo-JiraNullableInt64 $i.id
                 'Name'        = $i.name
                 'Description' = $i.description
-                'IconUrl'     = $i.iconUrl
-                'RestUrl'     = $i.self
+                'IconUrl'     = [uri]$i.iconUrl
+                'RestUrl'     = [uri]$i.self
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Status')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
+            if ($i.statusCategory) {
+                $props.StatusCategory = [AtlassianPS.JiraPS.StatusCategory]@{
+                    ID        = ConvertTo-JiraNullableInt64 $i.statusCategory.id
+                    Key       = $i.statusCategory.key
+                    Name      = $i.statusCategory.name
+                    ColorName = $i.statusCategory.colorName
+                    RestUrl   = [uri]$i.statusCategory.self
+                }
             }
 
-            Write-Output $result
+            [AtlassianPS.JiraPS.Status]$props
         }
     }
 }

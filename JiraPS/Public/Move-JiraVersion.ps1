@@ -34,6 +34,17 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
+        if (-not $Version.Id) {
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                ([System.ArgumentException]"Version ID is required"),
+                'ParameterValue.VersionIdRequired',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $Version
+            )
+            $errorItem.ErrorDetails = "Move-JiraVersion requires a version ID for -Version. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
+            ThrowError -ErrorRecord $errorItem
+        }
+
         $requestBody = @{ }
         switch ($PsCmdlet.ParameterSetName) {
             'ByPosition' {
@@ -44,6 +55,16 @@
                     $afterSelfUri = $After.RestUrl
                 }
                 else {
+                    if (-not $After.Id) {
+                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                            ([System.ArgumentException]"Version ID is required"),
+                            'ParameterValue.VersionIdRequired',
+                            [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                            $After
+                        )
+                        $errorItem.ErrorDetails = "Move-JiraVersion requires a version ID or RestUrl for -After. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID or RestUrl."
+                        ThrowError -ErrorRecord $errorItem
+                    }
                     $versionObj = Get-JiraVersion -Id $After.Id -Credential $Credential -ErrorAction Stop
                     $afterSelfUri = $versionObj.RestUrl
                 }

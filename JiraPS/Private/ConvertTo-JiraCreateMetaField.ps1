@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraCreateMetaField {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.CreateMetaField])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,7 +9,7 @@
 
     process {
         foreach ($item in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.CreateMetaField"
 
             $props = @{
                 'Id'              = $item.fieldId
@@ -24,25 +25,25 @@
             }
 
             if ($item.autoCompleteUrl) {
-                $props.AutoCompleteUrl = $item.autoCompleteUrl
+                $props.AutoCompleteUrl = [uri]$item.autoCompleteUrl
             }
 
+            $extraProperties = @{}
             # NoteProperty only: $item is a JSON-deserialized field spec and
             # its data keys are NoteProperties. Synthetic Script/AliasProperty
             # would otherwise leak into the output object.
             foreach ($extraProperty in $item.PSObject.Properties.Where({ $_.MemberType -eq 'NoteProperty' }).Name) {
                 if ($null -eq $props.$extraProperty) {
-                    $props.$extraProperty = $item.$extraProperty
+                    $extraProperties.$extraProperty = $item.$extraProperty
                 }
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.CreateMetaField')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
+            $result = [AtlassianPS.JiraPS.CreateMetaField]$props
+            foreach ($extraProperty in $extraProperties.Keys) {
+                $result | Add-Member -MemberType NoteProperty -Name $extraProperty -Value $extraProperties.$extraProperty -Force
             }
 
-            Write-Output $result
+            $result
         }
     }
 }

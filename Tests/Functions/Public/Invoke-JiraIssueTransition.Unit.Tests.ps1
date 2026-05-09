@@ -57,16 +57,14 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
-                $t1 = [PSCustomObject] @{
+                $t1 = [AtlassianPS.JiraPS.Transition]@{
                     Name = 'Start Progress'
                     ID   = 11
                 }
-                $t1.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
-                $t2 = [PSCustomObject] @{
+                $t2 = [AtlassianPS.JiraPS.Transition]@{
                     Name = 'Resolve'
                     ID   = 81
                 }
-                $t2.PSObject.TypeNames.Insert(0, 'JiraPS.Transition')
 
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     ID         = $issueID

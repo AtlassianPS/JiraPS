@@ -36,8 +36,9 @@ InModuleScope JiraPS {
                     $result | Should -BeOfType [PSCustomObject]
                 }
 
-                It "adds custom type 'JiraPS.Component'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Component'
+                It "returns AtlassianPS.JiraPS.Component" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Component'
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.Component]
                 }
             }
 
@@ -55,7 +56,7 @@ InModuleScope JiraPS {
                 It "defines '<property>' of type '<type>' with value '<value>'" -TestCases @(
                     @{ property = "Id"; type = [string]; value = 11000 }
                     @{ property = "Name"; type = [string]; value = 'test component' }
-                    @{ property = "RestUrl"; type = [string]; value = $null }
+                    @{ property = "RestUrl"; type = [uri]; value = $null }
                 ) {
                     if ($value) { $result.$($property) | Should -Be $value }
                     else { $result.$($property) | Should -Not -BeNullOrEmpty }

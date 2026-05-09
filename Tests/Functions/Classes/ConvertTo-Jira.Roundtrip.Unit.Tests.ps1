@@ -153,6 +153,11 @@ InModuleScope JiraPS {
             It "promotes the author to a strong-typed User" {
                 $script:commentObj.Author.GetType().FullName | Should -Be 'AtlassianPS.JiraPS.User'
             }
+
+            It "parses timestamps into DateTimeOffset" {
+                $script:commentObj.Created | Should -BeOfType [System.DateTimeOffset]
+                $script:commentObj.Updated | Should -BeOfType [System.DateTimeOffset]
+            }
         }
 
         Context "ConvertTo-JiraFilter" {
@@ -260,7 +265,7 @@ InModuleScope JiraPS {
             }
 
             It "parses BuildDate into DateTime" {
-                $script:siObj.BuildDate | Should -BeOfType [System.DateTime]
+                $script:siObj.BuildDate | Should -BeOfType [System.DateTimeOffset]
             }
         }
     }

@@ -193,7 +193,7 @@ InModuleScope JiraPS {
                 }
 
                 It "maps 'SearchUrl' property correctly" {
-                    $result.SearchUrl | Should -Be 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
+                    $result.SearchUrl.AbsoluteUri | Should -Be 'https://jira.atlassian.com/rest/api/2/search?jql=project+%3D+10240+AND+issuetype+%3D+1+ORDER+BY+key+DESC'
                 }
 
                 It "maps 'Favourite' property correctly" {
@@ -207,7 +207,7 @@ InModuleScope JiraPS {
                 It "defaults 'Favourite' to `$false when the payload omits the field" {
                     $payloadWithoutFavourite = $sampleObject.PSObject.Copy()
                     $payloadWithoutFavourite.PSObject.Properties.Remove('favourite')
-                    $defaulted = ConvertTo-JiraFilter -InputObject $payloadWithoutFavourite -FilterPermission $samplePermission
+                    $defaulted = ConvertTo-JiraFilter -InputObject $payloadWithoutFavourite -FilterPermissions (ConvertFrom-Json -InputObject $script:samplePermission)
 
                     $defaulted.Favourite | Should -BeOfType [bool]
                     $defaulted.Favourite | Should -BeFalse
@@ -216,7 +216,7 @@ InModuleScope JiraPS {
 
             Context "Type Conversion" {
                 BeforeAll {
-                    $script:result = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
+                    $script:result = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermissions (ConvertFrom-Json -InputObject $script:samplePermission)
                 }
 
                 It "converts Owner to AtlassianPS.JiraPS.User object" {
@@ -224,19 +224,19 @@ InModuleScope JiraPS {
                     $result.Owner.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                 }
 
-                It "converts FilterPermissions to JiraPS.FilterPermission objects" {
-                    $result.FilterPermissions | Should -Not -BeNullOrEmpty
-                    $result.FilterPermissions[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.FilterPermission'
+                It "keeps FilterPermissions as an AtlassianPS.JiraPS.FilterPermission[] slot" {
+                    [AtlassianPS.JiraPS.Filter].GetProperty('FilterPermissions').PropertyType.FullName |
+                        Should -Be 'AtlassianPS.JiraPS.FilterPermission[]'
                 }
 
                 It "converts Id to string type (as returned from JSON)" {
-                    $result.Id | Should -BeOfType [String]
+                    $script:result.Id | Should -BeOfType [String]
                 }
             }
 
             Context "Pipeline Support" {
                 It "accepts pipeline input" {
-                    { $sampleObject | ConvertTo-JiraFilter -FilterPermission $samplePermission } | Should -Not -Throw
+                    { $sampleObject | ConvertTo-JiraFilter -FilterPermissions (ConvertFrom-Json -InputObject $script:samplePermission) } | Should -Not -Throw
                 }
 
                 It "processes multiple filters from pipeline" {

@@ -168,12 +168,12 @@ Release/                 # Build output (gitignored)
     - Configures default settings ($script:DefaultPageSize, headers, etc.)
 
 5. **Strong types (`AtlassianPS.JiraPS.*`)**:
-    - POCOs live in `JiraPS/Types/AtlassianPS.JiraPS.cs` and compile at first import via `Add-Type` in `JiraPS.psm1` (`#region Dependencies`). See **Compiled types at import** in `CHANGELOG.md` (`[Unreleased]`) for cold-start, host, and C# language constraints.
+    - POCOs live in the C# source files under `JiraPS/Types/*.cs` and compile at first import via `Add-Type` in `JiraPS.psm1` (`#region Dependencies`). See **Compiled types at import** in `CHANGELOG.md` (`[Unreleased]`) for cold-start, host, and C# language constraints.
     - `ConvertTo-Jira*` functions build a hashtable (or launder a wire `PSCustomObject` through `ConvertTo-Hashtable` on Windows PowerShell 5.1), then cast to the target class.
 
 ### Argument transformation attributes
 
-`ArgumentTransformationAttribute` subclasses in `AtlassianPS.JiraPS.cs` coerce issue keys, user identifiers, and similar inputs at parameter binding time.
+`ArgumentTransformationAttribute` subclasses in `JiraPS/Types/AtlassianPS.JiraPS.Transformations.cs` coerce issue keys, user identifiers, and similar inputs at parameter binding time.
 
 **Throw vs. pass-through (parameter-set fallthrough)**
 

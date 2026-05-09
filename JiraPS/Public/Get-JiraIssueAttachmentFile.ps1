@@ -4,7 +4,25 @@
     [OutputType([Bool])]
     param (
         [Parameter( Mandatory, ValueFromPipeline )]
-        [PSTypeName('JiraPS.Attachment')]
+        [AtlassianPS.JiraPS.Attachment[]]
+        [ValidateScript(
+            {
+                foreach ($item in @($_)) {
+                    if (($null -eq $item) -or [string]::IsNullOrWhiteSpace($item.FileName) -or ($null -eq $item.Content)) {
+                        $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                            ([System.ArgumentException]"Invalid 'Attachment' value"),
+                            'ParameterValue.InvalidJiraAttachment',
+                            [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                            $item
+                        )
+                        $errorItem.ErrorDetails = "Attachment values must be [AtlassianPS.JiraPS.Attachment] objects with FileName and Content populated."
+                        $PSCmdlet.ThrowTerminatingError($errorItem)
+                    }
+                }
+
+                return $true
+            }
+        )]
         $Attachment,
 
         [ValidateScript(

@@ -53,8 +53,9 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.ProjectRole'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.ProjectRole'
+                It "returns AtlassianPS.JiraPS.ProjectRole" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.ProjectRole'
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.ProjectRole]
                 }
             }
 

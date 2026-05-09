@@ -15,7 +15,7 @@ Save an attachment to disk.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueAttachmentFile [-Attachment] <Attachment> [[-Path] <string>]
+Get-JiraIssueAttachmentFile [-Attachment] <Attachment[]> [[-Path] <string>]
  [[-Credential] <pscredential>] [<CommonParameters>]
 ```
 
@@ -61,7 +61,7 @@ to a specific location.
 Attachment which will be downloaded.
 
 ```yaml
-Type: JiraPS.Attachment
+Type: Attachment[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -131,7 +131,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### JiraPS.Attachment
+### AtlassianPS.JiraPS.Attachment
 
 ## OUTPUTS
 

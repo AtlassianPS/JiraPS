@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraIssueType {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.IssueType])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,24 +9,22 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueType"
 
             $props = @{
-                'Id'          = [int64]$i.id
+                'Id'          = ConvertTo-JiraNullableInt64 $i.id
                 'Name'        = $i.name
                 'Description' = $i.description
-                'IconUrl'     = $i.iconUrl
-                'RestUrl'     = $i.self
-                'Subtask'     = [System.Convert]::ToBoolean($i.subtask)
+                'IconUrl'     = [uri]$i.iconUrl
+                'RestUrl'     = [uri]$i.self
+                'Subtask'     = if ($null -ne $i.subtask) { [System.Convert]::ToBoolean($i.subtask) } else { $false }
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.IssueType')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
-            }
+            if ($null -ne $i.avatarId) { $props.AvatarId = ConvertTo-JiraNullableInt64 $i.avatarId }
+            if ($null -ne $i.hierarchyLevel) { $props.HierarchyLevel = [int]$i.hierarchyLevel }
+            if ($i.scope) { $props.Scope = $i.scope }
 
-            Write-Output $result
+            [AtlassianPS.JiraPS.IssueType]$props
         }
     }
 }

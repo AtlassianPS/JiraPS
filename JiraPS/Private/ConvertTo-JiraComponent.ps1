@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraComponent {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Component])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,33 +9,28 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Component"
 
             $props = @{
                 'ID'          = $i.id
                 'Name'        = $i.name
-                'RestUrl'     = $i.self
-                'Lead'        = $i.lead
+                'RestUrl'     = [uri]$i.self
+                'Lead'        = $null
                 'ProjectName' = $i.project
                 'ProjectId'   = $i.projectId
             }
 
             if ($i.lead) {
-                $props.Lead = $i.lead
+                $props.Lead = ConvertTo-JiraUser -InputObject $i.lead
                 $props.LeadDisplayName = $i.lead.displayName
             }
-            else {
-                $props.Lead = $null
-                $props.LeadDisplayName = $null
-            }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Component')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
-            }
+            if ($i.description) { $props.Description = $i.description }
+            if ($i.assigneeType) { $props.AssigneeType = $i.assigneeType }
+            if ($i.realAssigneeType) { $props.RealAssigneeType = $i.realAssigneeType }
+            if ($null -ne $i.isAssigneeTypeValid) { $props.IsAssigneeTypeValid = [System.Convert]::ToBoolean($i.isAssigneeTypeValid) }
 
-            Write-Output $result
+            [AtlassianPS.JiraPS.Component]$props
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraLink {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Link])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,26 +9,26 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Link"
 
             $props = @{
-                'Id'      = [int64]$i.id
-                'RestUrl' = $i.self
+                'Id'      = ConvertTo-JiraNullableInt64 $i.id
+                'RestUrl' = [uri]$i.self
             }
 
             if ($i.globalId) {
-                $props.globalId = $i.globalId
+                $props.GlobalId = $i.globalId
             }
 
             if ($i.application) {
-                $props.application = New-Object PSObject -Prop @{
+                $props.Application = New-Object PSObject -Prop @{
                     type = $i.application.type
                     name = $i.application.name
                 }
             }
 
             if ($i.relationship) {
-                $props.relationship = $i.relationship
+                $props.Relationship = $i.relationship
             }
 
             if ($i.object) {
@@ -56,7 +57,7 @@
                 }
                 else { $status = $null }
 
-                $props.object = New-Object PSObject -Prop @{
+                $props.RemoteObject = New-Object PSObject -Prop @{
                     url     = $i.object.url
                     title   = $i.object.title
                     summary = $i.object.summary
@@ -65,13 +66,7 @@
                 }
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Link')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Id)"
-            }
-
-            Write-Output $result
+            [AtlassianPS.JiraPS.Link]$props
         }
     }
 }

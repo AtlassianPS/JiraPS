@@ -93,9 +93,9 @@ InModuleScope JiraPS {
                 It "defines '<property>' of type '<type>' with value '<value>'" -TestCases @(
                     @{ property = "Id"; type = [string]; value = 90730 }
                     @{ property = "Body"; type = [string]; value = 'Test comment' }
-                    @{ property = "RestUrl"; type = [string]; value = $null }
-                    @{ property = "Created"; type = [System.DateTime]; value = (Get-Date "2015-05-01T16:24:38.000-0500") }
-                    @{ property = "Updated"; type = [System.DateTime]; value = (Get-Date "2015-05-01T16:24:38.000-0500") }
+                    @{ property = "RestUrl"; type = [uri]; value = $null }
+                    @{ property = "Created"; type = [System.DateTimeOffset]; value = [System.DateTimeOffset](Get-Date "2015-05-01T16:24:38.000-0500") }
+                    @{ property = "Updated"; type = [System.DateTimeOffset]; value = [System.DateTimeOffset](Get-Date "2015-05-01T16:24:38.000-0500") }
                 ) {
                     if ($value) { $result.$($property) | Should -Be $value }
                     else { $result.$($property) | Should -Not -BeNullOrEmpty }

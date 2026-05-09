@@ -11,11 +11,25 @@ if (!("System.Net.Http" -as [Type])) {
 
 # Strongly-typed POCOs for the most-used JiraPS domain objects.
 # Compiled once per session; the type-presence guard keeps re-imports cheap.
-if (-not ('AtlassianPS.JiraPS.Issue' -as [Type])) {
-    $typesPath = Join-Path $PSScriptRoot 'Types/AtlassianPS.JiraPS.cs'
+$requiredJiraTypes = @(
+    'AtlassianPS.JiraPS.Attachment'
+    'AtlassianPS.JiraPS.Issue'
+    'AtlassianPS.JiraPS.Status'
+    'AtlassianPS.JiraPS.VersionTransformationAttribute'
+)
+$loadedJiraTypes = @($requiredJiraTypes | Where-Object { $_ -as [Type] })
+if ($loadedJiraTypes.Count -eq 0) {
+    $typesPath = Join-Path $PSScriptRoot 'Types'
     if (Test-Path -LiteralPath $typesPath) {
-        Add-Type -TypeDefinition ([System.IO.File]::ReadAllText($typesPath)) -ErrorAction Stop
+        $typeFiles = Get-ChildItem -Path $typesPath -Filter '*.cs' -File | Sort-Object -Property Name
+        if ($typeFiles) {
+            Add-Type -Path $typeFiles.FullName -ErrorAction Stop
+        }
     }
+}
+elseif ($loadedJiraTypes.Count -lt $requiredJiraTypes.Count) {
+    $missingJiraTypes = @($requiredJiraTypes | Where-Object { -not ($_ -as [Type]) })
+    throw "A previous JiraPS type assembly is already loaded in this PowerShell session and is missing required types: $($missingJiraTypes -join ', '). Start a fresh PowerShell session before importing this JiraPS version."
 }
 #endregion Dependencies
 

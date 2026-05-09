@@ -90,9 +90,9 @@ InModuleScope JiraPS {
                     $result | Should -HaveCount 2
                 }
 
-                It "adds custom type 'JiraPS.EditMetaField' to each item" {
-                    $result[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.EditMetaField'
-                    $result[1].PSObject.TypeNames[0] | Should -Be 'JiraPS.EditMetaField'
+                It "returns AtlassianPS.JiraPS.EditMetaField for each item" {
+                    $result[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.EditMetaField'
+                    $result[1].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.EditMetaField'
                 }
             }
 

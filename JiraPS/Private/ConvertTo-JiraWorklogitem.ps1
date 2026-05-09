@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraWorklogItem {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.Worklogitem])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,13 +9,13 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Worklogitem"
 
             $props = @{
-                'ID'         = [int64]$i.id
+                'ID'         = ConvertTo-JiraNullableInt64 $i.id
                 'Visibility' = $i.visibility
                 'Comment'    = ConvertFrom-AtlassianDocumentFormat -InputObject $i.comment
-                'RestUrl'    = $i.self
+                'RestUrl'    = [uri]$i.self
             }
 
             if ($i.author) {
@@ -26,15 +27,15 @@
             }
 
             if ($i.created) {
-                $props.Created = Get-Date ($i.created)
+                $props.Created = ConvertTo-JiraDateTimeOffsetValue $i.created
             }
 
             if ($i.updated) {
-                $props.Updated = Get-Date ($i.updated)
+                $props.Updated = ConvertTo-JiraDateTimeOffsetValue $i.updated
             }
 
             if ($i.started) {
-                $props.Started = Get-Date ($i.started)
+                $props.Started = ConvertTo-JiraDateTimeOffsetValue $i.started
             }
 
             if ($i.timeSpent) {
@@ -45,13 +46,7 @@
                 $props.TimeSpentSeconds = $i.timeSpentSeconds
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.Worklogitem')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Id)"
-            }
-
-            Write-Output $result
+            [AtlassianPS.JiraPS.Worklogitem]$props
         }
     }
 }

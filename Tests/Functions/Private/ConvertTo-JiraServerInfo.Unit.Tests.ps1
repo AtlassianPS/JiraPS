@@ -55,7 +55,8 @@ InModuleScope JiraPS {
                 }
 
                 It "defines 'BaseURL' property with correct value" {
-                    $result.BaseURL | Should -Be $jiraServer
+                    $result.BaseURL | Should -BeOfType [uri]
+                    $result.BaseURL.OriginalString | Should -Be $jiraServer
                 }
 
                 It "defines 'Version' property with correct value" {
@@ -71,11 +72,11 @@ InModuleScope JiraPS {
                 }
 
                 It "defines 'BuildDate' property with correct value" {
-                    $result.BuildDate | Should -Be (Get-Date '2017-09-26T00:00:00.000+0200')
+                    $result.BuildDate | Should -Be ([System.DateTimeOffset](Get-Date '2017-09-26T00:00:00.000+0200'))
                 }
 
                 It "defines 'ServerTime' property with correct value" {
-                    $result.ServerTime | Should -Be (Get-Date '2017-09-27T09:59:25.520+0200')
+                    $result.ServerTime | Should -Be ([System.DateTimeOffset](Get-Date '2017-09-27T09:59:25.520+0200'))
                 }
 
                 It "defines 'ScmInfo' property with correct value" {
@@ -102,11 +103,11 @@ InModuleScope JiraPS {
                 }
 
                 It "converts BuildDate to correct type" {
-                    $result.BuildDate | Should -BeOfType [DateTime]
+                    $result.BuildDate | Should -BeOfType [System.DateTimeOffset]
                 }
 
                 It "converts ServerTime to correct type" {
-                    $result.ServerTime | Should -BeOfType [DateTime]
+                    $result.ServerTime | Should -BeOfType [System.DateTimeOffset]
                 }
             }
 
@@ -142,7 +143,7 @@ InModuleScope JiraPS {
                 }
 
                 It "still converts other properties correctly" {
-                    $result.BaseURL | Should -Be "https://example.atlassian.net"
+                    $result.BaseURL.OriginalString | Should -Be "https://example.atlassian.net"
                     $result.Version | Should -Be "1001.0.0"
                     $result.DeploymentType | Should -Be "Cloud"
                     $result.BuildNumber | Should -Be 100100
@@ -177,14 +178,14 @@ InModuleScope JiraPS {
                 It "exposes 'DisplayUrl' (DC-only) when the payload provides it" {
                     $payload = ConvertFrom-Json '{"baseUrl":"https://internal","version":"9.17.0","buildNumber":1,"displayUrl":"https://jira.example.com"}'
                     $result = ConvertTo-JiraServerInfo -InputObject $payload
-                    $result.DisplayUrl | Should -Be 'https://jira.example.com'
+                    $result.DisplayUrl.OriginalString | Should -Be 'https://jira.example.com'
                 }
 
                 It "exposes the co-located product display URLs (DC-only)" {
                     $payload = ConvertFrom-Json '{"baseUrl":"https://internal","version":"9.17.0","buildNumber":1,"displayUrlConfluence":"https://wiki.example.com","displayUrlServicedeskHelpCenter":"https://help.example.com"}'
                     $result = ConvertTo-JiraServerInfo -InputObject $payload
-                    $result.DisplayUrlConfluence | Should -Be 'https://wiki.example.com'
-                    $result.DisplayUrlServicedeskHelpCenter | Should -Be 'https://help.example.com'
+                    $result.DisplayUrlConfluence.OriginalString | Should -Be 'https://wiki.example.com'
+                    $result.DisplayUrlServicedeskHelpCenter.OriginalString | Should -Be 'https://help.example.com'
                 }
 
                 It "exposes 'BuildPartnerName' (DC-only OEM attribution)" {

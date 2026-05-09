@@ -17,20 +17,20 @@
                 Name           = $i.name
                 Description    = $i.description
                 Lead           = if ($i.lead) { ConvertTo-JiraUser $i.lead } else { $null }
-                IssueTypes     = if ($i.issueTypes) { ConvertTo-JiraIssueType $i.issueTypes } else { $null }
                 Roles          = $i.roles
-                RestUrl        = $i.self
-                Components     = $i.components
+                RestUrl        = [uri]$i.self
                 Style          = $i.style
                 Category       = if ($i.projectCategory) { $i.projectCategory } elseif ($i.Category) { $i.Category } else { $null }
                 ProjectTypeKey = $i.projectTypeKey
-                Url            = $i.url
+                Url            = [uri]$i.url
                 Email          = $i.email
             }
 
             if ($null -ne $i.archived) { $hash.Archived = [System.Convert]::ToBoolean($i.archived) }
             if ($null -ne $i.simplified) { $hash.Simplified = [System.Convert]::ToBoolean($i.simplified) }
             if ($null -ne $i.isPrivate) { $hash.IsPrivate = [System.Convert]::ToBoolean($i.isPrivate) }
+            if ($i.issueTypes) { $hash.IssueTypes = [AtlassianPS.JiraPS.IssueType[]]@(ConvertTo-JiraIssueType $i.issueTypes) }
+            if ($i.components) { $hash.Components = [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent $i.components) }
 
             [AtlassianPS.JiraPS.Project]$hash
         }

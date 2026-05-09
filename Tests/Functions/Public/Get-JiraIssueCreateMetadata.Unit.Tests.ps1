@@ -187,12 +187,12 @@ InModuleScope JiraPS {
                     Should -Invoke ConvertTo-JiraCreateMetaField -ModuleName JiraPS -Exactly -Times 3
                 }
 
-                It "Emits JiraPS.CreateMetaField objects with mapped properties" {
+                It "Emits AtlassianPS.JiraPS.CreateMetaField objects with mapped properties" {
                     $result = Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2
 
                     $result | Should -HaveCount 3
                     foreach ($field in $result) {
-                        $field.PSObject.TypeNames | Should -Contain 'JiraPS.CreateMetaField'
+                        $field.PSObject.TypeNames | Should -Contain 'AtlassianPS.JiraPS.CreateMetaField'
                     }
 
                     $summary = $result | Where-Object { $_.Id -eq 'summary' }

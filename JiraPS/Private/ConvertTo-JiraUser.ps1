@@ -23,7 +23,7 @@
                 TimeZone     = $i.timeZone
                 Locale       = $i.locale
                 Groups       = if ($i.groups) { [string[]]@($i.groups.items.name) } else { $null }
-                RestUrl      = $i.self
+                RestUrl      = [uri]$i.self
             }
 
             if ($null -ne $i.deleted) {

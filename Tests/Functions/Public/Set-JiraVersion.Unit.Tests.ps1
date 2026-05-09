@@ -137,6 +137,13 @@ InModuleScope JiraPS {
                     Should -Invoke 'ConvertTo-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
                 }
+
+                It "rejects a name-only Version stub where an ID is required" {
+                    { Set-JiraVersion -Version ([AtlassianPS.JiraPS.Version]::new('My Version')) -Name 'NewName' -ErrorAction Stop } |
+                        Should -Throw '*version ID*'
+
+                    Should -Invoke 'Invoke-JiraMethod' -Times 0 -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' }
+                }
             }
         }
 

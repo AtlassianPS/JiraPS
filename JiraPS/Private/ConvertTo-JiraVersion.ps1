@@ -20,7 +20,7 @@
                 Archived    = if ($null -ne $i.archived) { [System.Convert]::ToBoolean($i.archived) } else { $false }
                 Released    = if ($null -ne $i.released) { [System.Convert]::ToBoolean($i.released) } else { $false }
                 Overdue     = if ($null -ne $i.overdue) { [System.Convert]::ToBoolean($i.overdue) } else { $false }
-                RestUrl     = $i.self
+                RestUrl     = [uri]$i.self
             }
 
             if ($null -ne $i.projectId) {

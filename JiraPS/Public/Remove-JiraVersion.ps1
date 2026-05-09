@@ -35,6 +35,17 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
 
+            if (-not $_version.Id) {
+                $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                    ([System.ArgumentException]"Version ID is required"),
+                    'ParameterValue.VersionIdRequired',
+                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                    $_version
+                )
+                $errorItem.ErrorDetails = "Remove-JiraVersion requires a version ID. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
+                ThrowError -ErrorRecord $errorItem
+            }
+
             $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
 
             $parameter = @{

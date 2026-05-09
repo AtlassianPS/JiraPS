@@ -7,17 +7,16 @@
         [ValidateScript(
             {
                 $_input = $_
-                $propertyNames = $_input.PSObject.Properties.Name
                 switch ($true) {
-                    { ("AtlassianPS.JiraPS.Issue" -in $_input.PSObject.TypeNames) -and ("issueLinks" -in $propertyNames) } { return $true }
-                    { ("JiraPS.IssueLink" -in $_input.PSObject.TypeNames) -and ("Id" -in $propertyNames) } { return $true }
+                    { $_input -is [AtlassianPS.JiraPS.Issue] } { return $true }
+                    { $_input -is [AtlassianPS.JiraPS.IssueLink] } { return $true }
                     default {
                         $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
                         $errorId = 'ParameterType.NotJiraIssue'
                         $errorCategory = 'InvalidArgument'
                         $errorTarget = $_input
                         $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                        $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [AtlassianPS.JiraPS.Issue], [JiraPS.IssueLink] or [String], but was $($_input.GetType().Name)"
+                        $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [AtlassianPS.JiraPS.Issue] or [AtlassianPS.JiraPS.IssueLink], but was $($_input.GetType().Name)"
                         $PSCmdlet.ThrowTerminatingError($errorItem)
                         <#
                           #ToDo:CustomClass

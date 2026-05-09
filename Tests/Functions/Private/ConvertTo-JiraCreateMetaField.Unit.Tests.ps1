@@ -94,9 +94,9 @@ InModuleScope JiraPS {
                     $result | Should -HaveCount 2
                 }
 
-                It "adds custom type 'JiraPS.CreateMetaField' to each item" {
-                    $result[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.CreateMetaField'
-                    $result[1].PSObject.TypeNames[0] | Should -Be 'JiraPS.CreateMetaField'
+                It "returns AtlassianPS.JiraPS.CreateMetaField for each item" {
+                    $result[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.CreateMetaField'
+                    $result[1].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.CreateMetaField'
                 }
             }
 

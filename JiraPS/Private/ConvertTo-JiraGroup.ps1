@@ -14,7 +14,7 @@
             $hash = @{
                 Name    = $i.name
                 Id      = if ($i.groupId) { $i.groupId } elseif ($i.id) { $i.id } else { $null }
-                RestUrl = $i.self
+                RestUrl = [uri]$i.self
             }
 
             if ($i.users) {

@@ -30,8 +30,9 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Field'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Field'
+                It "returns AtlassianPS.JiraPS.Field" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Field'
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.Field]
                 }
             }
 

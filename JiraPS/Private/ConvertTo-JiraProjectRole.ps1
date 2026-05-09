@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraProjectRole {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.ProjectRole])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,23 +9,17 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.ProjectRole"
 
             $props = @{
-                'ID'          = $i.id
+                'ID'          = ConvertTo-JiraNullableInt64 $i.id
                 'Name'        = $i.name
                 'Description' = $i.description
                 'Actors'      = $i.actors
-                'RestUrl'     = $i.self
+                'RestUrl'     = [uri]$i.self
             }
 
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.ProjectRole')
-            $result | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                Write-Output "$($this.Name)"
-            }
-
-            Write-Output $result
+            [AtlassianPS.JiraPS.ProjectRole]$props
         }
     }
 }

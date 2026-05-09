@@ -78,8 +78,9 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.WorklogItem'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.WorklogItem'
+                It "returns AtlassianPS.JiraPS.Worklogitem" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Worklogitem'
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.Worklogitem]
                 }
             }
 
@@ -101,15 +102,15 @@ InModuleScope JiraPS {
                 }
 
                 It "defines 'Created' property with correct value" {
-                    $result.Created | Should -Be (Get-Date '2015-05-01T16:24:38.000-0500')
+                    $result.Created | Should -Be ([System.DateTimeOffset](Get-Date '2015-05-01T16:24:38.000-0500'))
                 }
 
                 It "defines 'Updated' property with correct value" {
-                    $result.Updated | Should -Be (Get-Date '2015-05-01T16:24:38.000-0500')
+                    $result.Updated | Should -Be ([System.DateTimeOffset](Get-Date '2015-05-01T16:24:38.000-0500'))
                 }
 
                 It "defines 'Started' property with correct value" {
-                    $result.Started | Should -Be (Get-Date '2017-02-23T22:21:00.000-0500')
+                    $result.Started | Should -Be ([System.DateTimeOffset](Get-Date '2017-02-23T22:21:00.000-0500'))
                 }
 
                 It "defines 'TimeSpent' property with correct value" {
@@ -132,15 +133,15 @@ InModuleScope JiraPS {
                 }
 
                 It "converts Created to correct type" {
-                    $result.Created | Should -BeOfType [DateTime]
+                    $result.Created | Should -BeOfType [System.DateTimeOffset]
                 }
 
                 It "converts Updated to correct type" {
-                    $result.Updated | Should -BeOfType [DateTime]
+                    $result.Updated | Should -BeOfType [System.DateTimeOffset]
                 }
 
                 It "converts Started to correct type" {
-                    $result.Started | Should -BeOfType [DateTime]
+                    $result.Started | Should -BeOfType [System.DateTimeOffset]
                 }
             }
 

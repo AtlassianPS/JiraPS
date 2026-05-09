@@ -43,8 +43,9 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type 'JiraPS.Priority'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.Priority'
+                It "returns AtlassianPS.JiraPS.Priority" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Priority'
+                    $result | Should -BeOfType [AtlassianPS.JiraPS.Priority]
                 }
             }
 

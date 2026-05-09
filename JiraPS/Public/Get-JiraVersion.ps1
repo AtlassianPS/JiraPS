@@ -59,7 +59,20 @@
         $ParameterSetName = ''
         switch ($PsCmdlet.ParameterSetName) {
             'byInputProject' { $Project = $InputProject.Key; $ParameterSetName = 'byProject' }
-            'byInputVersion' { $Id = $InputVersion.Id; $ParameterSetName = 'byId' }
+            'byInputVersion' {
+                if (-not $InputVersion.Id) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Version ID is required"),
+                        'ParameterValue.VersionIdRequired',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $InputVersion
+                    )
+                    $errorItem.ErrorDetails = "Get-JiraVersion requires a version ID when -InputVersion is used. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
+                    ThrowError -ErrorRecord $errorItem
+                }
+                $Id = $InputVersion.Id
+                $ParameterSetName = 'byId'
+            }
             'byProject' { $ParameterSetName = 'byProject' }
             'byId' { $ParameterSetName = 'byId' }
         }
