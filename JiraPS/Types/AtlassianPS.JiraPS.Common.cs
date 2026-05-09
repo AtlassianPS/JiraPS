@@ -1,4 +1,5 @@
-﻿// Strongly-typed POCOs and argument transformers for JiraPS.
+﻿// Shared infrastructure for JiraPS domain types: identity comparison helpers,
+// transformation utilities, and the base ArgumentTransformationAttribute.
 // Loaded once at module import via Add-Type from JiraPS.psm1 (#region Dependencies).
 
 using System;
@@ -167,6 +168,12 @@ namespace AtlassianPS.JiraPS
             return new Uri(text, UriKind.RelativeOrAbsolute);
         }
 
+        public static bool IsNumericType(object value)
+        {
+            return value is int || value is long || value is short || value is byte
+                || value is uint || value is ulong || value is ushort || value is sbyte;
+        }
+
         public static object TransformOrFanout(object inputData, Func<object, object> perItem)
         {
             if (inputData == null) return null;
@@ -195,16 +202,69 @@ namespace AtlassianPS.JiraPS
     }
 
 
-    public abstract class JiraLeafTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
+    // CRTP base for domain objects that compare by a single string identity
+    // (Key, Name, AccountId, Id, etc.). Subclasses implement GetIdentity()
+    // and ToString(); the five interface methods are provided here once.
+    public abstract class JiraIdentityObject<TSelf> : IEquatable<TSelf>, IComparable<TSelf>, IComparable
+        where TSelf : JiraIdentityObject<TSelf>
     {
-        public override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
+        protected abstract string GetIdentity();
+
+        public bool Equals(TSelf other)
         {
-            return JiraTransform.TransformOrFanout(inputData, TransformOne);
+            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
         }
 
-        protected abstract Type TargetType { get; }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as TSelf);
+        }
 
+        public override int GetHashCode()
+        {
+            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
+        }
+
+        public int CompareTo(TSelf other)
+        {
+            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
+        }
+
+        int IComparable.CompareTo(object obj)
+        {
+            return JiraTypeIdentity.CompareToObject<TSelf>(obj, CompareTo, typeof(TSelf).FullName);
+        }
+    }
+
+    // Unified base for all JiraPS argument-transformation attributes.
+    // Leaf transformers override TargetType + FromString. Core transformers
+    // additionally override FromNumericScalar and/or MapLegacyObject to
+    // handle numeric IDs and v2 PSCustomObject shapes.
+    public abstract class JiraTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
+    {
+        protected abstract Type TargetType { get; }
         protected abstract object FromString(string value);
+
+        // Override to false for parameters that must not auto-iterate arrays
+        // (e.g. Issue, where callers pipeline-iterate instead).
+        protected virtual bool UseFanOut { get { return true; } }
+
+        // Override to accept bare int/long values as IDs (Version, Filter, Project).
+        protected virtual object FromNumericScalar(long value) { return null; }
+
+        // Legacy PSTypeName tags to recognize when mapping v2 PSCustomObjects.
+        // Return null (default) to skip legacy mapping entirely.
+        protected virtual string[] LegacyTypeNames { get { return null; } }
+
+        // Map properties from a legacy PSCustomObject to a new domain object.
+        // Only called when the PSObject's TypeNames contain one of LegacyTypeNames.
+        protected virtual object MapLegacyObject(System.Management.Automation.PSObject pso) { return null; }
+
+        public sealed override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
+        {
+            if (UseFanOut) return JiraTransform.TransformOrFanout(inputData, TransformOne);
+            return TransformOne(inputData);
+        }
 
         private object TransformOne(object inputData)
         {
@@ -216,6 +276,12 @@ namespace AtlassianPS.JiraPS
             var targetType = TargetType;
             if (targetType.IsInstanceOfType(value)) return value;
 
+            if (JiraTransform.IsNumericType(value))
+            {
+                var numeric = FromNumericScalar(System.Convert.ToInt64(value));
+                if (numeric != null) return numeric;
+            }
+
             var text = value as string;
             if (text != null)
             {
@@ -225,6 +291,18 @@ namespace AtlassianPS.JiraPS
                         "Cannot bind an empty or whitespace string to a " + targetType.FullName + " parameter.");
                 }
                 return FromString(text);
+            }
+
+            var legacyNames = LegacyTypeNames;
+            if (legacyNames != null && pso != null && pso.TypeNames != null)
+            {
+                foreach (var tag in legacyNames)
+                {
+                    if (pso.TypeNames.Contains(tag))
+                    {
+                        return MapLegacyObject(pso);
+                    }
+                }
             }
 
             if (JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }

@@ -1,17 +1,17 @@
-﻿// Strongly-typed POCOs and argument transformers for JiraPS.
-// Loaded once at module import via Add-Type from JiraPS.psm1 (#region Dependencies).
+﻿// Leaf Jira domain objects: Status, Priority, IssueType, Component, Attachment, etc.
+// These types are referenced by the core types but are not identity-comparable.
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace AtlassianPS.JiraPS
 {
 
+    // StatusCategory, CreateMetaField, and EditMetaField have convenience
+    // string constructors for direct PowerShell construction but are not
+    // used as cmdlet parameter types, so they have no transformation attribute.
     public class StatusCategory
     {
-        public long? ID { get; set; }
+        public long? Id { get; set; }
         public string Key { get; set; }
         public string Name { get; set; }
         public string ColorName { get; set; }
@@ -36,7 +36,7 @@ namespace AtlassianPS.JiraPS
 
     public class Status
     {
-        public long? ID { get; set; }
+        public long? Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public Uri IconUrl { get; set; }
@@ -62,7 +62,7 @@ namespace AtlassianPS.JiraPS
 
     public class Priority
     {
-        public long? ID { get; set; }
+        public long? Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string StatusColor { get; set; }
@@ -88,7 +88,7 @@ namespace AtlassianPS.JiraPS
 
     public class Resolution
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public Uri RestUrl { get; set; }
@@ -141,7 +141,7 @@ namespace AtlassianPS.JiraPS
 
     public class Component
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public Uri RestUrl { get; set; }
         public User Lead { get; set; }
@@ -172,7 +172,7 @@ namespace AtlassianPS.JiraPS
 
     public class Field
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public bool Custom { get; set; }
         public bool Orderable { get; set; }
@@ -189,7 +189,7 @@ namespace AtlassianPS.JiraPS
             {
                 throw new ArgumentException("idOrName must not be null, empty, or whitespace.", "idOrName");
             }
-            ID = idOrName;
+            Id = idOrName;
         }
 
         public override string ToString()
@@ -200,7 +200,7 @@ namespace AtlassianPS.JiraPS
 
     public class IssueLinkType
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string InwardText { get; set; }
         public string OutwardText { get; set; }
@@ -253,7 +253,7 @@ namespace AtlassianPS.JiraPS
 
     public class Attachment
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public Uri Self { get; set; }
         public string FileName { get; set; }
         public User Author { get; set; }
@@ -271,7 +271,7 @@ namespace AtlassianPS.JiraPS
             {
                 throw new ArgumentException("id must not be null, empty, or whitespace.", "id");
             }
-            ID = id;
+            Id = id;
         }
 
         public override string ToString()
@@ -282,7 +282,7 @@ namespace AtlassianPS.JiraPS
 
     public class Worklogitem
     {
-        public long? ID { get; set; }
+        public long? Id { get; set; }
         public object Visibility { get; set; }
         public string Comment { get; set; }
         public Uri RestUrl { get; set; }
@@ -305,19 +305,19 @@ namespace AtlassianPS.JiraPS
             long parsed;
             if (long.TryParse(id, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out parsed))
             {
-                ID = parsed;
+                Id = parsed;
             }
         }
 
         public override string ToString()
         {
-            return ID.HasValue ? ID.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : string.Empty;
+            return Id.HasValue ? Id.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : string.Empty;
         }
     }
 
     public class Transition
     {
-        public long? ID { get; set; }
+        public long? Id { get; set; }
         public string Name { get; set; }
         public Status ResultStatus { get; set; }
 
@@ -332,7 +332,7 @@ namespace AtlassianPS.JiraPS
             long parsed;
             if (long.TryParse(nameOrId, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out parsed))
             {
-                ID = parsed;
+                Id = parsed;
             }
             else
             {
@@ -353,7 +353,8 @@ namespace AtlassianPS.JiraPS
         public string GlobalId { get; set; }
         public object Application { get; set; }
         public string Relationship { get; set; }
-        public object Object { get; set; }
+        // Jira wire field `object`; renamed to avoid shadowing System.Object.
+        public object RemoteObject { get; set; }
 
         public Link() { }
 
@@ -378,7 +379,7 @@ namespace AtlassianPS.JiraPS
 
     public class ProjectRole
     {
-        public long? ID { get; set; }
+        public long? Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public object Actors { get; set; }
@@ -395,7 +396,7 @@ namespace AtlassianPS.JiraPS
             long parsed;
             if (long.TryParse(name, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out parsed))
             {
-                ID = parsed;
+                Id = parsed;
             }
             else
             {
@@ -411,7 +412,7 @@ namespace AtlassianPS.JiraPS
 
     public class FilterPermission
     {
-        public long? ID { get; set; }
+        public long? Id { get; set; }
         public string Type { get; set; }
         public Group Group { get; set; }
         public Project Project { get; set; }
@@ -428,7 +429,7 @@ namespace AtlassianPS.JiraPS
             long parsed;
             if (long.TryParse(id, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out parsed))
             {
-                ID = parsed;
+                Id = parsed;
             }
         }
 
@@ -466,6 +467,9 @@ namespace AtlassianPS.JiraPS
         }
     }
 
+    // Structurally identical to CreateMetaField; the subclass exists solely
+    // for type discrimination so callers can distinguish create-screen vs
+    // edit-screen metadata with `$field -is [EditMetaField]`.
     public class EditMetaField : CreateMetaField
     {
         public EditMetaField() { }

@@ -1,17 +1,25 @@
-﻿// Strongly-typed POCOs and argument transformers for JiraPS.
-// Loaded once at module import via Add-Type from JiraPS.psm1 (#region Dependencies).
+﻿// Core Jira domain objects: Issue, Project, User, Version, Filter, Group, etc.
+// These are the primary types exchanged between PowerShell cmdlets and the REST API.
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace AtlassianPS.JiraPS
 {
     // Slots typed `object` are intentional: they hold polymorphic values, opaque API payloads,
     // or runtime-specific objects whose concrete types differ across PowerShell editions.
+    //
+    // Id storage type convention:
+    //   string — when the PowerShell converters (ConvertTo-Jira*) and existing scripts
+    //            historically treated the Id as a string (e.g. $issue.Id was always a
+    //            string in v2). Keeps backward compat with user scripts that concatenate
+    //            or compare without casting.
+    //   long?  — when the Id is exclusively numeric on the wire AND no v2 script
+    //            compatibility constraint exists (e.g. leaf types introduced in v3).
+    //   Both forms are valid Jira IDs; prefer string for new core types unless there
+    //   is a compelling numeric-comparison need.
 
-    public class User : IEquatable<User>, IComparable<User>, IComparable
+    public class User : JiraIdentityObject<User>
     {
         public string Key { get; set; }
         public string AccountId { get; set; }
@@ -31,15 +39,8 @@ namespace AtlassianPS.JiraPS
         public DateTime? LastLoginTime { get; set; }
         public Uri RestUrl { get; set; }
 
-        // Parameterless ctor preserved explicitly: declaring the
-        // string-arg overload below removes C#'s implicit parameterless
-        // ctor, which the [Class]@{ ... } hashtable-cast pattern requires.
         public User() { }
 
-        // Convenience ctor for the common stub-from-an-identifier case.
-        // Matches UserTransformationAttribute's wire contract: the raw
-        // identifier lands in Name and Resolve-JiraUser routes to
-        // /accountId or /username at call time based on shape.
         public User(string identifier)
         {
             if (string.IsNullOrWhiteSpace(identifier))
@@ -49,36 +50,11 @@ namespace AtlassianPS.JiraPS
             Name = identifier;
         }
 
-        private string GetIdentity()
+        protected override string GetIdentity()
         {
             if (!string.IsNullOrEmpty(AccountId)) { return AccountId; }
             if (!string.IsNullOrEmpty(Name)) { return Name; }
             return string.Empty;
-        }
-
-        public bool Equals(User other)
-        {
-            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as User);
-        }
-
-        public override int GetHashCode()
-        {
-            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
-        }
-
-        public int CompareTo(User other)
-        {
-            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        int IComparable.CompareTo(object obj)
-        {
-            return JiraTypeIdentity.CompareToObject<User>(obj, CompareTo, "AtlassianPS.JiraPS.User");
         }
 
         public override string ToString()
@@ -90,9 +66,9 @@ namespace AtlassianPS.JiraPS
         }
     }
 
-    public class Project : IEquatable<Project>, IComparable<Project>, IComparable
+    public class Project : JiraIdentityObject<Project>
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Key { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
@@ -115,8 +91,6 @@ namespace AtlassianPS.JiraPS
 
         public Project() { }
 
-        // Stub-from-key ctor; matches ProjectTransformationAttribute's
-        // string-input contract (alphanumeric tokens are project keys).
         public Project(string key)
         {
             if (string.IsNullOrWhiteSpace(key))
@@ -126,34 +100,9 @@ namespace AtlassianPS.JiraPS
             Key = key;
         }
 
-        private string GetIdentity()
+        protected override string GetIdentity()
         {
             return Key ?? string.Empty;
-        }
-
-        public bool Equals(Project other)
-        {
-            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Project);
-        }
-
-        public override int GetHashCode()
-        {
-            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
-        }
-
-        public int CompareTo(Project other)
-        {
-            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        int IComparable.CompareTo(object obj)
-        {
-            return JiraTypeIdentity.CompareToObject<Project>(obj, CompareTo, "AtlassianPS.JiraPS.Project");
         }
 
         public override string ToString()
@@ -164,7 +113,7 @@ namespace AtlassianPS.JiraPS
 
     public class Comment
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Body { get; set; }
         // Server-side rendered HTML body; only populated when the request
         // included expand=renderedBody (DC v2; not available on Cloud v3).
@@ -186,17 +135,14 @@ namespace AtlassianPS.JiraPS
         }
     }
 
-    public class Issue : IEquatable<Issue>, IComparable<Issue>, IComparable
+    public class Issue : JiraIdentityObject<Issue>
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Key { get; set; }
         public Uri HttpUrl { get; set; }
         public Uri RestUrl { get; set; }
         public string Summary { get; set; }
         public string Description { get; set; }
-        // Status is a `JiraPS.Status` PSObject (returned by ConvertTo-JiraStatus),
-        // not a bare string. The PSObject's ToString() renders the status name so
-        // `"$($issue.Status)"` and the default formatter still display the name.
         public Status Status { get; set; }
         public IssueLink[] IssueLinks { get; set; }
         public Attachment[] Attachment { get; set; }
@@ -215,8 +161,6 @@ namespace AtlassianPS.JiraPS
 
         public Issue() { }
 
-        // Stub-from-key ctor; matches IssueTransformationAttribute's
-        // string-input contract.
         public Issue(string key)
         {
             if (string.IsNullOrWhiteSpace(key))
@@ -226,34 +170,9 @@ namespace AtlassianPS.JiraPS
             Key = key;
         }
 
-        private string GetIdentity()
+        protected override string GetIdentity()
         {
             return Key ?? string.Empty;
-        }
-
-        public bool Equals(Issue other)
-        {
-            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Issue);
-        }
-
-        public override int GetHashCode()
-        {
-            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
-        }
-
-        public int CompareTo(Issue other)
-        {
-            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        int IComparable.CompareTo(object obj)
-        {
-            return JiraTypeIdentity.CompareToObject<Issue>(obj, CompareTo, "AtlassianPS.JiraPS.Issue");
         }
 
         public override string ToString()
@@ -262,9 +181,9 @@ namespace AtlassianPS.JiraPS
         }
     }
 
-    public class Version : IEquatable<Version>, IComparable<Version>, IComparable
+    public class Version : JiraIdentityObject<Version>
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         // Wire field is `projectId` (a long); kept under the legacy `Project`
         // name for backward compatibility with v2 scripts.
         public long? Project { get; set; }
@@ -279,9 +198,6 @@ namespace AtlassianPS.JiraPS
 
         public Version() { }
 
-        // Stub-from-identifier ctor; matches VersionTransformationAttribute's
-        // string-input contract: a numeric token is the integer ID, anything
-        // else is the human-readable Name.
         public Version(string nameOrId)
         {
             if (string.IsNullOrWhiteSpace(nameOrId))
@@ -291,7 +207,7 @@ namespace AtlassianPS.JiraPS
             long parsed;
             if (long.TryParse(nameOrId, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out parsed))
             {
-                ID = parsed.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                Id = parsed.ToString(System.Globalization.CultureInfo.InvariantCulture);
             }
             else
             {
@@ -299,36 +215,11 @@ namespace AtlassianPS.JiraPS
             }
         }
 
-        private string GetIdentity()
+        protected override string GetIdentity()
         {
-            if (!string.IsNullOrEmpty(ID)) { return ID; }
+            if (!string.IsNullOrEmpty(Id)) { return Id; }
             if (!string.IsNullOrEmpty(Name)) { return Name; }
             return string.Empty;
-        }
-
-        public bool Equals(Version other)
-        {
-            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Version);
-        }
-
-        public override int GetHashCode()
-        {
-            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
-        }
-
-        public int CompareTo(Version other)
-        {
-            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        int IComparable.CompareTo(object obj)
-        {
-            return JiraTypeIdentity.CompareToObject<Version>(obj, CompareTo, "AtlassianPS.JiraPS.Version");
         }
 
         public override string ToString()
@@ -337,9 +228,9 @@ namespace AtlassianPS.JiraPS
         }
     }
 
-    public class Filter : IEquatable<Filter>, IComparable<Filter>, IComparable
+    public class Filter : JiraIdentityObject<Filter>
     {
-        public string ID { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string JQL { get; set; }
         public Uri RestUrl { get; set; }
@@ -353,52 +244,20 @@ namespace AtlassianPS.JiraPS
         public string Description { get; set; }
         public User Owner { get; set; }
 
-        // The PowerShell-side AliasProperty for the American spelling (`Favorite`)
-        // is added by ConvertTo-JiraFilter so historical assertions about the
-        // member type continue to hold.
-
         public Filter() { }
 
-        // Stub-from-id ctor; matches FilterTransformationAttribute's
-        // string-input contract (the historic Get-JiraFilter -InputObject
-        // [String] path always treated the value as an ID).
         public Filter(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentException("id must not be null, empty, or whitespace.", "id");
             }
-            ID = id;
+            Id = id;
         }
 
-        private string GetIdentity()
+        protected override string GetIdentity()
         {
-            return ID ?? string.Empty;
-        }
-
-        public bool Equals(Filter other)
-        {
-            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Filter);
-        }
-
-        public override int GetHashCode()
-        {
-            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
-        }
-
-        public int CompareTo(Filter other)
-        {
-            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        int IComparable.CompareTo(object obj)
-        {
-            return JiraTypeIdentity.CompareToObject<Filter>(obj, CompareTo, "AtlassianPS.JiraPS.Filter");
+            return Id ?? string.Empty;
         }
 
         public override string ToString()
@@ -470,7 +329,7 @@ namespace AtlassianPS.JiraPS
     // member-expansion data. The underlying wire shapes now differ by product:
     // Cloud canonical resolution comes from /group/bulk, while Data Center
     // canonical resolution is adapted from /group/member.
-    public class Group : IEquatable<Group>, IComparable<Group>, IComparable
+    public class Group : JiraIdentityObject<Group>
     {
         public string Name { get; set; }
         public string Id { get; set; }
@@ -483,8 +342,6 @@ namespace AtlassianPS.JiraPS
 
         public Group() { }
 
-        // Stub-from-name ctor; matches GroupTransformationAttribute's
-        // string-input contract.
         public Group(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -494,34 +351,9 @@ namespace AtlassianPS.JiraPS
             Name = name;
         }
 
-        private string GetIdentity()
+        protected override string GetIdentity()
         {
             return Name ?? string.Empty;
-        }
-
-        public bool Equals(Group other)
-        {
-            return JiraTypeIdentity.IdentityEquals(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Group);
-        }
-
-        public override int GetHashCode()
-        {
-            return JiraTypeIdentity.IdentityGetHashCode(GetIdentity());
-        }
-
-        public int CompareTo(Group other)
-        {
-            return JiraTypeIdentity.IdentityCompare(this, other, GetIdentity(), other != null ? other.GetIdentity() : string.Empty);
-        }
-
-        int IComparable.CompareTo(object obj)
-        {
-            return JiraTypeIdentity.CompareToObject<Group>(obj, CompareTo, "AtlassianPS.JiraPS.Group");
         }
 
         public override string ToString()

@@ -57,7 +57,7 @@
                 }
                 else { $status = $null }
 
-                $props.Object = New-Object PSObject -Prop @{
+                $props.RemoteObject = New-Object PSObject -Prop @{
                     url     = $i.object.url
                     title   = $i.object.title
                     summary = $i.object.summary
