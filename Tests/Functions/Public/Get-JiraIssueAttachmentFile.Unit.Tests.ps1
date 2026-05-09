@@ -16,56 +16,50 @@ InModuleScope JiraPS {
             $script:issueID = 41701
             $script:issueKey = 'IT-3676'
 
-            $script:attachments = @"
-[
-    {
-        "self": "$jiraServer/rest/api/2/attachment/10013",
-        "id": "10013",
-        "filename": "foo.pdf",
-        "author": {
-            "self": "$jiraServer/rest/api/2/user?username=admin",
-            "name": "admin",
-            "key": "admin",
-            "accountId": "000000:000000-0000-0000-0000-ab899c878d00",
-            "emailAddress": "admin@example.com",
-            "avatarUrls": { },
-            "displayName": "Admin",
-            "active": true,
-            "timeZone": "Europe/Berlin"
-        },
-        "created": "2017-10-16T10:06:29.399+0200",
-        "size": 60444,
-        "mimeType": "application/pdf",
-        "content": "$jiraServer/secure/attachment/10013/foo.pdf"
-    },
-    {
-        "self": "$jiraServer/rest/api/2/attachment/10010",
-        "id": "10010",
-        "filename": "bar.pdf",
-        "author": {
-            "self": "$jiraServer/rest/api/2/user?username=admin",
-            "name": "admin",
-            "key": "admin",
-            "accountId": "000000:000000-0000-0000-0000-ab899c878d00",
-            "emailAddress": "admin@example.com",
-            "avatarUrls": { },
-            "displayName": "Admin",
-            "active": true,
-            "timeZone": "Europe/Berlin"
-        },
-        "created": "2017-10-16T09:06:48.070+0200",
-        "size": 438098,
-        "mimeType": "'application/pdf'",
-        "content": "$jiraServer/secure/attachment/10010/bar.pdf"
-    }
-]
-"@
+            $script:attachmentFixtures = @(
+                [AtlassianPS.JiraPS.Attachment]@{
+                    ID       = '10013'
+                    Self     = [uri]"$jiraServer/rest/api/2/attachment/10013"
+                    FileName = 'foo.pdf'
+                    Author   = [AtlassianPS.JiraPS.User]@{
+                        Name         = 'admin'
+                        Key          = 'admin'
+                        AccountId    = '000000:000000-0000-0000-0000-ab899c878d00'
+                        EmailAddress = 'admin@example.com'
+                        DisplayName  = 'Admin'
+                        Active       = $true
+                        TimeZone     = 'Europe/Berlin'
+                    }
+                    Created  = [DateTimeOffset]'2017-10-16T10:06:29.399+02:00'
+                    Size     = 60444
+                    MimeType = 'application/pdf'
+                    Content  = [uri]"$jiraServer/secure/attachment/10013/foo.pdf"
+                }
+                [AtlassianPS.JiraPS.Attachment]@{
+                    ID       = '10010'
+                    Self     = [uri]"$jiraServer/rest/api/2/attachment/10010"
+                    FileName = 'bar.pdf'
+                    Author   = [AtlassianPS.JiraPS.User]@{
+                        Name         = 'admin'
+                        Key          = 'admin'
+                        AccountId    = '000000:000000-0000-0000-0000-ab899c878d00'
+                        EmailAddress = 'admin@example.com'
+                        DisplayName  = 'Admin'
+                        Active       = $true
+                        TimeZone     = 'Europe/Berlin'
+                    }
+                    Created  = [DateTimeOffset]'2017-10-16T09:06:48.070+02:00'
+                    Size     = 438098
+                    MimeType = 'application/pdf'
+                    Content  = [uri]"$jiraServer/secure/attachment/10010/bar.pdf"
+                }
+            )
             #endregion Definitions
 
             #region Mocks
             Mock Get-JiraIssueAttachment -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssueAttachment'
-                ConvertFrom-Json -InputObject $attachments | ConvertTo-JiraAttachment
+                $script:attachmentFixtures
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {

@@ -26,13 +26,9 @@ InModuleScope JiraPS {
 
             Mock Get-JiraIssueLink -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssueLink' 'Id'
-                $obj = [PSCustomObject]@{
-                    "id"          = $issueLinkId
-                    "type"        = "foo"
-                    "inwardIssue" = "bar"
+                [AtlassianPS.JiraPS.IssueLink]@{
+                    Id = $issueLinkId
                 }
-                $obj.PSObject.TypeNames.Insert(0, 'JiraPS.IssueLink')
-                return $obj
             }
 
             Mock Get-JiraIssue -ModuleName JiraPS -ParameterFilter { $Key -eq "TEST-01" } {
@@ -80,7 +76,7 @@ InModuleScope JiraPS {
 
         Describe "Behavior" {
             Context "Issue Link Deletion" {
-                It "Accepts generic object with the correct properties" {
+                It "Accepts typed Issue and IssueLink objects" {
                     $issueLink = Get-JiraIssueLink -Id 1234
                     $issue = Get-JiraIssue -Key TEST-01
                     { Remove-JiraIssueLink -IssueLink $issueLink } | Should -Not -Throw
@@ -93,7 +89,7 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
-                It "Accepts a JiraPS.IssueType over the pipeline" {
+                It "Accepts an AtlassianPS.JiraPS.IssueLink over the pipeline" {
                     { Get-JiraIssueLink -Id 1234 | Remove-JiraIssueLink } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }

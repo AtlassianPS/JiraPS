@@ -68,7 +68,7 @@
                         $InputVersion
                     )
                     $errorItem.ErrorDetails = "Get-JiraVersion requires a version ID when -InputVersion is used. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
-                    ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
+                    ThrowError -ErrorRecord $errorItem
                 }
                 $Id = $InputVersion.Id
                 $ParameterSetName = 'byId'

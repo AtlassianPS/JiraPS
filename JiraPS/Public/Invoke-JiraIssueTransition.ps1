@@ -63,7 +63,7 @@
                 $errorTarget = $Assignee
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                 $errorItem.ErrorDetails = "Unable to validate Jira user [$Assignee]. Use Get-JiraUser for more details."
-                ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
+                ThrowError -ErrorRecord $errorItem
             }
         }
 
@@ -79,7 +79,7 @@
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        if (($Transition -is [AtlassianPS.JiraPS.Transition]) -or ("AtlassianPS.JiraPS.Transition" -in $Transition.PSObject.TypeNames) -or ("JiraPS.Transition" -in $Transition.PSObject.TypeNames)) {
+        if ($Transition -is [AtlassianPS.JiraPS.Transition]) {
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Transition parameter is an AtlassianPS.JiraPS.Transition object"
             $transitionId = $Transition.Id
         }
@@ -95,7 +95,7 @@
                 $errorTarget = $Transition
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                 $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [AtlassianPS.JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
-                ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
+                ThrowError -ErrorRecord $errorItem
             }
         }
 
@@ -107,7 +107,7 @@
             $errorTarget = $Issue
             $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
             $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$transitionId]. Check the issue's Transition property and provide a transition valid for its current state."
-            ThrowError -Cmdlet $PSCmdlet -ErrorRecord $errorItem
+            ThrowError -ErrorRecord $errorItem
         }
 
         $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud

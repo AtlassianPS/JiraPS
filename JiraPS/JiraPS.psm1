@@ -12,9 +12,9 @@ if (!("System.Net.Http" -as [Type])) {
 # Strongly-typed POCOs for the most-used JiraPS domain objects.
 # Compiled once per session; the type-presence guard keeps re-imports cheap.
 $requiredJiraTypes = @(
+    'AtlassianPS.JiraPS.Attachment'
     'AtlassianPS.JiraPS.Issue'
     'AtlassianPS.JiraPS.Status'
-    'AtlassianPS.JiraPS.Attachment'
     'AtlassianPS.JiraPS.VersionTransformationAttribute'
 )
 $loadedJiraTypes = @($requiredJiraTypes | Where-Object { $_ -as [Type] })
