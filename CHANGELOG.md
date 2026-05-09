@@ -2,10 +2,31 @@
 
 ## [Unreleased]
 
-This release focuses on **authentication improvements** and **performance optimizations**.
+This release focuses on Cloud and Data Center compatibility, safer typing, and better automation ergonomics.
+
+### Highlights for users
+
+- JiraPS now works consistently across Jira Cloud and Jira Data Center, with deployment-aware behavior for user identity, rich text, and API version differences.
+- Authentication is easier in automation: `New-JiraSession` now supports Cloud API tokens (`-ApiToken` + `-EmailAddress`) and Data Center personal access tokens (`-PersonalAccessToken`/`-PAT`/`-BearerToken`).
+- High-traffic metadata calls are now cached (`Get-JiraField`, `Get-JiraIssueType`, `Get-JiraPriority`, and `Get-JiraServerInformation`) and can be invalidated with `-Force` or `Clear-JiraCache`.
+- Rich-text fields on Jira Cloud are now handled correctly through Atlassian Document Format conversion, while Data Center behavior remains plain-text compatible.
+- JiraPS domain outputs are now strongly typed under `AtlassianPS.JiraPS.*`, improving IntelliSense, type checks, and script reliability.
+- Retry behavior is more resilient for throttling and transient outages (HTTP 429 and HTTP 503) and includes safer backoff behavior.
+
+### Breaking changes to review first
+
+- Minimum supported PowerShell version is now 5.1.
+- The historic `JiraPS.<Type>` type names were replaced by `AtlassianPS.JiraPS.<Type>` for typed objects.
+- Deprecated paging parameters `-StartIndex`/`-MaxResults` were removed where modern `-Skip`/`-First` equivalents exist.
+- Magic-string assignee behaviors were removed in favor of explicit switches such as `-Unassign` and `-UseDefaultAssignee`.
+- Several cmdlet parameters now bind to strongly typed JiraPS objects via transformation attributes, which may change edge-case binding behavior in scripts that relied on loose `[object]` input.
+
+For the migration playbook and concrete before/after script examples, see [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migration-v3.html).
 
 ### Changed
 
+- Removed the custom `ConvertFrom-Json` override because PowerShell 5.1 native JSON handling is sufficient for JiraPS payload sizes.
+- Removed the legacy PowerShell 3-era `Accept` header workaround from module initialization.
 - Promoted the remaining JiraPS leaf return types to real .NET classes under the `AtlassianPS.JiraPS.*` namespace.
   Affected converter outputs include `Status`, `StatusCategory`, `Priority`, `Resolution`, `IssueType`, `Component`, `Field`, `IssueLink`, `IssueLinkType`, `Attachment`, `Worklogitem`, `Transition`, `Link`, `ProjectRole`, `FilterPermission`, `CreateMetaField`, and `EditMetaField`.
   Known issue and project leaf slots now materialize those classes instead of returning raw `PSCustomObject` leaves.
@@ -83,7 +104,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   The Server track boots the `moveworkforward/atlas-run-standalone:jira-11` Docker image (Atlassian Plugin SDK 9.6.0 + Jira Software 11.0.1), chosen because its SDK talks to the live `packages.atlassian.com` Artifactory rather than the retired `marketplace.atlassian.com` endpoint that bricks older standalone images.
   Both Cloud and Server jobs run nightly and on `workflow_dispatch` (with an optional `track` input to dispatch one or both); per-PR Cloud coverage is the `smoke_tests` job in `ci.yml`. See [`Tests/Integration/README.md`](Tests/Integration/README.md) for the local quickstart and full track guide.
 
-### Changed
+#### Additional changes
 
 - Refactored `Add-JiraIssueAttachment` to upload files through `Invoke-JiraMethod -InFile`, removing the cmdlet's hand-built multipart body assembly and preserving attachment filename handling for non-ASCII names. (#607)
 - `New-JiraIssue` no longer pre-validates required fields from `Get-JiraIssueCreateMetadata` before sending the create request. Jira's create endpoint is now treated as the source of truth for required-field enforcement, which avoids false negatives when create metadata marks UI-only fields such as `attachment` as required for interactive users but the REST API does not require them. `Resolve-ErrorWebResponse` now also surfaces field-level values from Jira's `errors` object so the resulting API validation failures are readable. (#336)
@@ -167,7 +188,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   - The internal `if ($Project.Id) { ... } else { Get-JiraProject -Project $Project }` adapter blocks in `Find-JiraFilter`, `New-JiraVersion`, and `Set-JiraVersion` are gone — the typed parameter is always a real `Project` instance, so the body reads `$Project.Id` / `$Project.Key` directly. `New-JiraVersion` and `Set-JiraVersion` prefer `projectId` (when the numeric ID is known) and fall back to the v2/v3 `project` field (which accepts the project key) when only the key is bound.
   - `Get-JiraComponent -Project` reads `$_project.Key` (or `$_project.ID` when only an ID was bound) and inlines it into the `/project/{idOrKey}/components` URL — no separate `Get-JiraProject` round-trip.
 
-### Added
+#### Additional additions
 
 - Added a single string-arg convenience constructor to the six identifier-driven `AtlassianPS.JiraPS.*` classes — `Issue(string key)`, `User(string identifier)`, `Project(string key)`, `Group(string name)`, `Filter(string id)`, and `Version(string nameOrId)` — for the recurring stub-from-an-identifier case (`[AtlassianPS.JiraPS.Issue]::new('TEST-1')` instead of `[AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }`).
   Each ctor's routing is identical to the matching `*TransformationAttribute` so a value built via `::new()` and a value bound via `-Parameter <string>` produce the same stub: the `User` ctor stores the input in `Name`, `Version` stores numeric tokens in `ID` and falls back to `Name` for the rest, etc. Null / empty / whitespace input throws an `ArgumentException` at construction, matching the transformers' "no silent garbage" contract.
@@ -288,14 +309,6 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   `Remove-JiraFilterPermission` had `### System.Object` from master that didn't reflect the actual `[PSTypeName('JiraPS.Filter')]` parameter; replaced with `### JiraPS.Filter`.
   A new Pester guard (`does not list Object[] / System.Object[] as a pipeline INPUT type`) prevents the most common PlatyPS-introspection noise from creeping back in.
   Bare `### System.Object` is still allowed for cmdlets like `ConvertFrom-AtlassianDocumentFormat` whose `[Object]` parameter genuinely accepts any object.
-
-## 3.0 - 2026-04-17
-
-### Changed
-
-- **BREAKING**: Minimum PowerShell version raised from 3.0 to 5.1. Windows PowerShell 3.x and 4.x are no longer supported.
-- Removed custom `ConvertFrom-Json` override (PS 5.1 native cmdlet has sufficient 2GB JSON limit)
-- Removed legacy PSv3 workaround for Accept header in module initialization
 
 ## 2.16 - 2026-04-13
 
