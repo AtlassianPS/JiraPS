@@ -115,8 +115,15 @@
             $result = Invoke-JiraMethod @parameter
 
             if ($PassThru) {
-                $typedUser = ConvertTo-JiraUser -InputObject $result
-                Write-Output (Get-JiraUser -InputObject $typedUser)
+                if ($isCloud -and $userObj.AccountId) {
+                    Write-Output (Get-JiraUser -AccountId $userObj.AccountId -Exact -Credential $Credential)
+                }
+                elseif ($userObj.Name) {
+                    Write-Output (Get-JiraUser -UserName $userObj.Name -Exact -Credential $Credential)
+                }
+                else {
+                    Write-Output (ConvertTo-JiraUser -InputObject $result)
+                }
             }
         }
     }
