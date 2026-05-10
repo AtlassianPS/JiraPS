@@ -84,6 +84,139 @@ namespace AtlassianPS.JiraPS
     {
         protected override Type TargetType { get { return typeof(IssueLink); } }
         protected override object FromString(string value) { return new IssueLink(value); }
+
+        // Accept loose PSCustomObject payloads used by Add-JiraIssueLink examples.
+        protected override string[] LegacyTypeNames { get { return new[] { "AtlassianPS.JiraPS.IssueLink", "JiraPS.IssueLink", "System.Management.Automation.PSCustomObject" }; } }
+
+        protected override object MapLegacyObject(System.Management.Automation.PSObject pso)
+        {
+            var issueLink = new IssueLink();
+            var hasKnownShape = false;
+
+            foreach (var prop in pso.Properties)
+            {
+                switch (prop.Name)
+                {
+                    case "ID":
+                    case "Id":
+                    case "id":
+                        if (prop.Value != null)
+                        {
+                            long parsedId;
+                            if (long.TryParse(prop.Value.ToString(), out parsedId)) { issueLink.Id = parsedId; }
+                        }
+                        hasKnownShape = true;
+                        break;
+                    case "Type":
+                    case "type":
+                        issueLink.Type = MapIssueLinkType(prop.Value);
+                        hasKnownShape = true;
+                        break;
+                    case "InwardIssue":
+                    case "inwardIssue":
+                        issueLink.InwardIssue = MapIssue(prop.Value);
+                        hasKnownShape = true;
+                        break;
+                    case "OutwardIssue":
+                    case "outwardIssue":
+                        issueLink.OutwardIssue = MapIssue(prop.Value);
+                        hasKnownShape = true;
+                        break;
+                }
+            }
+
+            if (!hasKnownShape)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "Cannot convert value to AtlassianPS.JiraPS.IssueLink. Expected an issue-link object shape with id, type, inwardIssue, or outwardIssue properties.");
+            }
+
+            return issueLink;
+        }
+
+        private static IssueLinkType MapIssueLinkType(object value)
+        {
+            if (value == null) { return null; }
+
+            var typed = value as IssueLinkType;
+            if (typed != null) { return typed; }
+
+            var text = value as string;
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                return new IssueLinkType(text);
+            }
+
+            var pso = value as System.Management.Automation.PSObject;
+            if (pso != null)
+            {
+                var mapped = new IssueLinkType();
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "ID":
+                        case "Id":
+                        case "id":
+                            mapped.Id = prop.Value != null ? prop.Value.ToString() : null;
+                            break;
+                        case "Name":
+                        case "name":
+                            mapped.Name = prop.Value as string;
+                            break;
+                        case "InwardText":
+                        case "inwardText":
+                            mapped.InwardText = prop.Value as string;
+                            break;
+                        case "OutwardText":
+                        case "outwardText":
+                            mapped.OutwardText = prop.Value as string;
+                            break;
+                    }
+                }
+                return mapped;
+            }
+
+            return null;
+        }
+
+        private static Issue MapIssue(object value)
+        {
+            if (value == null) { return null; }
+
+            var typed = value as Issue;
+            if (typed != null) { return typed; }
+
+            var text = value as string;
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                return new Issue(text);
+            }
+
+            var pso = value as System.Management.Automation.PSObject;
+            if (pso != null)
+            {
+                var mapped = new Issue();
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "ID":
+                        case "Id":
+                        case "id":
+                            mapped.Id = prop.Value != null ? prop.Value.ToString() : null;
+                            break;
+                        case "Key":
+                        case "key":
+                            mapped.Key = prop.Value as string;
+                            break;
+                    }
+                }
+                return mapped;
+            }
+
+            return null;
+        }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]

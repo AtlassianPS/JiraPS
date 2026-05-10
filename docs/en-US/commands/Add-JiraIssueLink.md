@@ -15,7 +15,7 @@ Adds a link between two Issues on Jira
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueLink [-Issue] <Issue> [-IssueLink] <Object[]> [[-Comment] <string>]
+Add-JiraIssueLink [-Issue] <Issue> [-IssueLink] <IssueLink[]> [[-Comment] <string>]
  [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -131,9 +131,10 @@ HelpMessage: ''
 ### -IssueLink
 
 Issue Link to be created.
+Accepts `AtlassianPS.JiraPS.IssueLink` values and compatible object payloads that include issue-link fields (`type`, `inwardIssue`, `outwardIssue`).
 
 ```yaml
-Type: Object[]
+Type: IssueLink[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

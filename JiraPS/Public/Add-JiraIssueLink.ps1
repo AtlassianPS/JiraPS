@@ -10,7 +10,9 @@
         $Issue,
 
         [Parameter( Mandatory )]
-        [Object[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueLinkTransformation()]
+        [AtlassianPS.JiraPS.IssueLink[]]
         $IssueLink,
 
         [String]
@@ -35,14 +37,12 @@
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential -ErrorAction Stop
 
-        foreach ($_issueLink in $IssueLink) {
-            $typedIssueLink = ConvertTo-JiraIssueLink -InputObject $_issueLink
-
+        foreach ($typedIssueLink in $IssueLink) {
             if (-not $typedIssueLink.Type -or (-not $typedIssueLink.InwardIssue -and -not $typedIssueLink.OutwardIssue)) {
                 $exception = ([System.ArgumentException]"Invalid Parameter")
                 $errorId = 'ParameterProperties.Incomplete'
                 $errorCategory = 'InvalidArgument'
-                $errorTarget = $_issueLink
+                $errorTarget = $typedIssueLink
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
                 $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed."
                 $PSCmdlet.ThrowTerminatingError($errorItem)
