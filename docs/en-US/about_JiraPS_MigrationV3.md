@@ -589,7 +589,7 @@ They map directly to the same identifier slots used by the transformers:
 | `[AtlassianPS.JiraPS.Group]::new(string)` | `Name` |
 
 Use the constructor when you only need one identifier, and use hashtable casts when you need to set multiple properties up front.
-For broader v3 usage guidance around these classes, see [about_JiraPS_Classes](about/classes.html).
+For broader v3 usage guidance around these classes, see [about_JiraPS_Classes](classes.html).
 
 ### Minimum PowerShell Version
 
@@ -631,7 +631,7 @@ Get-ChildItem -Recurse -Filter *.ps1 |
 - [New-JiraIssue](../commands/New-JiraIssue/)
 - [Get-JiraIssue](../commands/Get-JiraIssue/)
 - [Get-JiraGroupMember](../commands/Get-JiraGroupMember/)
-- [about_JiraPS_Classes](about/classes.html)
+- [about_JiraPS_Classes](classes.html)
 - [CHANGELOG](https://github.com/AtlassianPS/JiraPS/blob/master/CHANGELOG.md)
 
 # KEYWORDS

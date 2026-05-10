@@ -17,7 +17,7 @@ This topic explains how to use the `AtlassianPS.JiraPS.*` classes introduced and
 
 JiraPS v3 promotes core domain objects to real .NET classes under the `AtlassianPS.JiraPS` namespace.
 Those classes are used for converter output, parameter binding, and transformer-based input coercion across public cmdlets.
-For a migration-focused view of what changed from v2, see [about_JiraPS_MigrationV3](about/migration-v3.html).
+For a migration-focused view of what changed from v2, see [about_JiraPS_MigrationV3](migration-v3.html).
 
 ## The six identifier-driven classes
 
@@ -87,6 +87,6 @@ In practice, prefer explicit property access for stable fields and avoid relying
 
 # SEE ALSO
 
-- [about_JiraPS_MigrationV3](about/migration-v3.html)
+- [about_JiraPS_MigrationV3](migration-v3.html)
 - [Get-JiraIssue](../commands/Get-JiraIssue/)
 - [Set-JiraIssue](../commands/Set-JiraIssue/)
