@@ -45,7 +45,11 @@ InModuleScope JiraPS {
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
                 if ($InputObject.Key -eq 'TEST-01') {
-                    return (Get-JiraIssue -Key 'TEST-01')
+                    return [AtlassianPS.JiraPS.Issue]@{
+                        IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(
+                            [AtlassianPS.JiraPS.IssueLink]@{ Id = 1234 }
+                        )
+                    }
                 }
                 $InputObject
             }
