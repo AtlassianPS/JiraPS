@@ -94,8 +94,7 @@ namespace AtlassianPS.JiraPS
 
             return HasProperty(pso, "type")
                 || HasProperty(pso, "inwardIssue")
-                || HasProperty(pso, "outwardIssue")
-                || HasProperty(pso, "id");
+                || HasProperty(pso, "outwardIssue");
         }
 
         protected override object MapLegacyObject(System.Management.Automation.PSObject pso)

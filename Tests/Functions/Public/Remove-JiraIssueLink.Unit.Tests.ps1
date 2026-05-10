@@ -35,8 +35,9 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 # We don't care about the content of any field except for the id of the issuelinks
                 $issue = [AtlassianPS.JiraPS.Issue]@{
+                    Key        = 'TEST-01'
                     IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(
-                        [AtlassianPS.JiraPS.IssueLink]@{ Id = 1234 }
+                        [AtlassianPS.JiraPS.IssueLink]::new('1234')
                     )
                 }
                 return $issue
@@ -46,8 +47,9 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
                 if ($InputObject.Key -eq 'TEST-01') {
                     return [AtlassianPS.JiraPS.Issue]@{
+                        Key        = 'TEST-01'
                         IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(
-                            [AtlassianPS.JiraPS.IssueLink]@{ Id = 1234 }
+                            [AtlassianPS.JiraPS.IssueLink]::new('1234')
                         )
                     }
                 }
