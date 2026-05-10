@@ -111,6 +111,15 @@ Set-JiraIssue TEST-1 -Assignee $user.AccountId
 Searches for a user by name, then uses their account ID to assign an issue.
 This pattern is useful when migrating scripts from Data Center to Cloud.
 
+### EXAMPLE 8
+
+```powershell
+Get-JiraUser -UserName user1 | Get-JiraUser
+```
+
+Refreshes user objects by piping existing `AtlassianPS.JiraPS.User` output back through `Get-JiraUser`.
+Use `-UserName` / `-AccountId` for string-based lookups, and `-InputObject` when requerying existing user objects.
+
 ## PARAMETERS
 
 ### -AccountId
@@ -212,7 +221,9 @@ HelpMessage: ''
 
 ### -InputObject
 
-User Object of the user.
+User object(s) to refresh from Jira.
+Use this parameter when you already have `AtlassianPS.JiraPS.User` objects and want to requery the latest data.
+For string-based lookup, use `-UserName` (Data Center / generic) or `-AccountId` (Cloud).
 
 ```yaml
 Type: User[]
@@ -324,6 +335,10 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### String[]
 
 Username, name, or e-mail address
+
+### AtlassianPS.JiraPS.User[]
+
+Existing user object(s) to refresh from Jira via `-InputObject`.
 
 ## OUTPUTS
 
