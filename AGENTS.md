@@ -182,6 +182,16 @@ Release/                 # Build output (gitignored)
 
 When you add a new `*TransformationAttribute`, decide which rule applies before copying an existing implementation.
 
+**Transformer design guardrails (issue-611 lessons learned)**
+
+- Do **not** match generic `System.Management.Automation.PSCustomObject` by `TypeNames` in `LegacyTypeNames`; use explicit property-shape detection in `ShouldMapLegacyObject` instead.
+- Keep a strict split of responsibilities:
+  - **Transformers** handle coercion and shape validation.
+  - **Cmdlet bodies** handle business invariants.
+- For paired nested payload fields (for example `inwardIssue`/`outwardIssue`), validate both sides symmetrically and produce actionable transformation error messages.
+- When tightening parameter types, re-check `-PassThru` flows: prefer shared resolver helpers over ad-hoc branch logic and avoid passing raw REST payloads into newly typed parameters.
+- Keep unit-test mocks self-contained; mocks should not call other public cmdlets unless the test explicitly validates that integration path.
+
 ### Coding Standards
 
 #### PowerShell Style
