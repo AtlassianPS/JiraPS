@@ -10,31 +10,6 @@
         $Issue,
 
         [Parameter( Mandatory )]
-        [ValidateScript({
-                $propertyNames = $_.PSObject.Properties.Name
-                if (
-                    ($propertyNames -contains "type") -and
-                    (
-                        ($propertyNames -contains "outwardIssue") -or
-                        ($propertyNames -contains "inwardIssue")
-                    )
-                ) {
-                    return $true
-                }
-                else {
-                    $exception = ([System.ArgumentException]"Invalid Parameter")
-                    $errorId = 'ParameterProperties.Incomplete'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                    #>
-                }
-            })]
         [Object[]]
         $IssueLink,
 
@@ -61,22 +36,34 @@
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential -ErrorAction Stop
 
         foreach ($_issueLink in $IssueLink) {
-            if ($_issueLink.inwardIssue) {
-                $inwardIssue = @{ key = $_issueLink.inwardIssue.key }
+            $typedIssueLink = ConvertTo-JiraIssueLink -InputObject $_issueLink
+
+            if (-not $typedIssueLink.Type -or (-not $typedIssueLink.InwardIssue -and -not $typedIssueLink.OutwardIssue)) {
+                $exception = ([System.ArgumentException]"Invalid Parameter")
+                $errorId = 'ParameterProperties.Incomplete'
+                $errorCategory = 'InvalidArgument'
+                $errorTarget = $_issueLink
+                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+                $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed."
+                $PSCmdlet.ThrowTerminatingError($errorItem)
+            }
+
+            if ($typedIssueLink.InwardIssue) {
+                $inwardIssue = @{ key = $typedIssueLink.InwardIssue.Key }
             }
             else {
                 $inwardIssue = @{ key = $issueObj.key }
             }
 
-            if ($_issueLink.outwardIssue) {
-                $outwardIssue = @{ key = $_issueLink.outwardIssue.key }
+            if ($typedIssueLink.OutwardIssue) {
+                $outwardIssue = @{ key = $typedIssueLink.OutwardIssue.Key }
             }
             else {
                 $outwardIssue = @{ key = $issueObj.key }
             }
 
             $body = @{
-                type         = @{ name = $_issueLink.type.name }
+                type         = @{ name = $typedIssueLink.Type.Name }
                 inwardIssue  = $inwardIssue
                 outwardIssue = $outwardIssue
             }

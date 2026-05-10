@@ -64,7 +64,13 @@ InModuleScope JiraPS {
 
         Describe "Signature" {
             Context "Parameter Types" {
-                # TODO: Add parameter type validation tests
+                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
+                    @{ parameter = 'LinkType'; type = 'AtlassianPS.JiraPS.IssueLinkType' }
+                    @{ parameter = 'Credential'; type = 'PSCredential' }
+                ) {
+                    param($parameter, $type)
+                    (Get-Command -Name Get-JiraIssueLinkType) | Should -HaveParameter $parameter -Type $type
+                }
             }
 
             Context "Mandatory Parameters" {}
@@ -123,7 +129,11 @@ InModuleScope JiraPS {
         Describe "Input Validation" {
             Context "Type Validation - Positive Cases" {}
 
-            Context "Type Validation - Negative Cases" {}
+            Context "Type Validation - Negative Cases" {
+                It "uses transformer errors for invalid link type input" {
+                    { Get-JiraIssueLinkType -LinkType (Get-Date) -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Cannot convert value of type*IssueLinkType*"
+                }
+            }
         }
     }
 }

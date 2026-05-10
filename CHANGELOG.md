@@ -25,6 +25,10 @@ For the migration playbook and concrete before/after script examples, see [`abou
 
 ### Changed
 
+- `Get-JiraIssueLinkType -LinkType` now binds to `[AtlassianPS.JiraPS.IssueLinkType]` via `IssueLinkTypeTransformation`, and `Remove-JiraIssueLink` now uses typed parameter sets (`-IssueLink [AtlassianPS.JiraPS.IssueLink[]]` and `-Issue [AtlassianPS.JiraPS.Issue[]]`) instead of custom `ValidateScript` type checks.
+  Invalid values now fail with argument-transformation errors at bind time, and `Get-JiraIssueLinkType` still supports numeric ID lookups and name-based matches.
+- `Get-JiraUser -InputObject` now binds as `[AtlassianPS.JiraPS.User[]]` via `UserTransformation`, and `Set-JiraUser -PassThru` now reuses a typed user object before refreshing from Jira.
+  This removes stale `<Object>` help metadata for user input and keeps pass-through behavior compatible with the stricter input type.
 - Removed the custom `ConvertFrom-Json` override because PowerShell 5.1 native JSON handling is sufficient for JiraPS payload sizes.
 - Removed the legacy PowerShell 3-era `Accept` header workaround from module initialization.
 - Promoted the remaining JiraPS leaf return types to real .NET classes under the `AtlassianPS.JiraPS.*` namespace.

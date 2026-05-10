@@ -115,7 +115,8 @@
             $result = Invoke-JiraMethod @parameter
 
             if ($PassThru) {
-                Write-Output (Get-JiraUser -InputObject $result)
+                $typedUser = ConvertTo-JiraUser -InputObject $result
+                Write-Output (Get-JiraUser -InputObject $typedUser)
             }
         }
     }

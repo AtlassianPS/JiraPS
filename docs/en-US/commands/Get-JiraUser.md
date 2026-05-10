@@ -37,7 +37,7 @@ Get-JiraUser [-AccountId] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <u
 ### ByInputObject
 
 ```powershell
-Get-JiraUser [-InputObject] <Object[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>]
+Get-JiraUser [-InputObject] <User[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>]
  [<CommonParameters>]
 ```
 
@@ -215,7 +215,7 @@ HelpMessage: ''
 User Object of the user.
 
 ```yaml
-Type: Object[]
+Type: User[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

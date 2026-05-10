@@ -53,6 +53,30 @@ namespace AtlassianPS.JiraPS
     {
         protected override Type TargetType { get { return typeof(IssueLinkType); } }
         protected override object FromString(string value) { return new IssueLinkType(value); }
+        protected override object FromNumericScalar(long value)
+        {
+            return new IssueLinkType { Id = value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
+        }
+
+        protected override string[] LegacyTypeNames { get { return new[] { "AtlassianPS.JiraPS.IssueLinkType", "JiraPS.IssueLinkType" }; } }
+
+        protected override object MapLegacyObject(System.Management.Automation.PSObject pso)
+        {
+            var issueLinkType = new IssueLinkType();
+            foreach (var prop in pso.Properties)
+            {
+                switch (prop.Name)
+                {
+                    case "ID": case "Id": case "id": issueLinkType.Id = prop.Value as string ?? (prop.Value != null ? prop.Value.ToString() : null); break;
+                    case "Name": case "name": issueLinkType.Name = prop.Value as string; break;
+                    case "InwardText": case "inwardText": issueLinkType.InwardText = prop.Value as string; break;
+                    case "OutwardText": case "outwardText": issueLinkType.OutwardText = prop.Value as string; break;
+                    case "RestUrl": case "RestURL": case "self":
+                        issueLinkType.RestUrl = JiraTransform.ToUri(prop.Value); break;
+                }
+            }
+            return issueLinkType;
+        }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]

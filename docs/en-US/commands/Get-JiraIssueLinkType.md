@@ -23,7 +23,7 @@ Get-JiraIssueLinkType [-Credential <pscredential>] [<CommonParameters>]
 ### _Search
 
 ```powershell
-Get-JiraIssueLinkType [-LinkType] <Object> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraIssueLinkType [-LinkType] <IssueLinkType> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -80,7 +80,7 @@ HelpMessage: ''
 The Issue Type name or ID to search.
 
 ```yaml
-Type: Object
+Type: IssueLinkType
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

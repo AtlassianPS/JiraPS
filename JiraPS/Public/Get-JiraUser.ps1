@@ -14,7 +14,10 @@
         $AccountId,
 
         [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
-        [Object[]] $InputObject,
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
+        [AtlassianPS.JiraPS.User[]]
+        $InputObject,
 
         [Parameter( ParameterSetName = 'ByInputObject' )]
         [Parameter( ParameterSetName = 'ByUserName' )]
@@ -77,11 +80,12 @@
         switch ($PsCmdlet.ParameterSetName) {
             'ByInputObject' {
                 if ($isCloud) {
-                    $lookupValue = $InputObject.AccountId
-                    if (-not $lookupValue) { $lookupValue = $InputObject.Name }
+                    $lookupValue = foreach ($inputUser in $InputObject) {
+                        if ($inputUser.AccountId) { $inputUser.AccountId } else { $inputUser.Name }
+                    }
                 }
                 else {
-                    $lookupValue = $InputObject.Name
+                    $lookupValue = foreach ($inputUser in $InputObject) { $inputUser.Name }
                 }
                 $ParameterSetName = 'ByLookupValue'
                 $Exact = $true
