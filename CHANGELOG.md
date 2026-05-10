@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## 3.0 - 2026-05-10
+
 This release focuses on Cloud and Data Center compatibility, safer typing, and better automation ergonomics.
 
 ### Highlights for users
