@@ -85,8 +85,18 @@ namespace AtlassianPS.JiraPS
         protected override Type TargetType { get { return typeof(IssueLink); } }
         protected override object FromString(string value) { return new IssueLink(value); }
 
-        // Accept loose PSCustomObject payloads used by Add-JiraIssueLink examples.
-        protected override string[] LegacyTypeNames { get { return new[] { "AtlassianPS.JiraPS.IssueLink", "JiraPS.IssueLink", "System.Management.Automation.PSCustomObject" }; } }
+        protected override string[] LegacyTypeNames { get { return new[] { "AtlassianPS.JiraPS.IssueLink", "JiraPS.IssueLink" }; } }
+
+        protected override bool ShouldMapLegacyObject(System.Management.Automation.PSObject pso)
+        {
+            if (base.ShouldMapLegacyObject(pso)) { return true; }
+            if (pso == null || pso.Properties == null) { return false; }
+
+            return HasProperty(pso, "type")
+                || HasProperty(pso, "inwardIssue")
+                || HasProperty(pso, "outwardIssue")
+                || HasProperty(pso, "id");
+        }
 
         protected override object MapLegacyObject(System.Management.Automation.PSObject pso)
         {
@@ -109,17 +119,17 @@ namespace AtlassianPS.JiraPS
                         break;
                     case "Type":
                     case "type":
-                        issueLink.Type = MapIssueLinkType(prop.Value);
+                        issueLink.Type = MapIssueLinkType(prop.Value, prop.Name);
                         hasKnownShape = true;
                         break;
                     case "InwardIssue":
                     case "inwardIssue":
-                        issueLink.InwardIssue = MapIssue(prop.Value);
+                        issueLink.InwardIssue = MapIssue(prop.Value, prop.Name);
                         hasKnownShape = true;
                         break;
                     case "OutwardIssue":
                     case "outwardIssue":
-                        issueLink.OutwardIssue = MapIssue(prop.Value);
+                        issueLink.OutwardIssue = MapIssue(prop.Value, prop.Name);
                         hasKnownShape = true;
                         break;
                 }
@@ -134,9 +144,22 @@ namespace AtlassianPS.JiraPS
             return issueLink;
         }
 
-        private static IssueLinkType MapIssueLinkType(object value)
+        private static bool HasProperty(System.Management.Automation.PSObject pso, string name)
         {
-            if (value == null) { return null; }
+            foreach (var prop in pso.Properties)
+            {
+                if (string.Equals(prop.Name, name, StringComparison.OrdinalIgnoreCase)) { return true; }
+            }
+            return false;
+        }
+
+        private static IssueLinkType MapIssueLinkType(object value, string propertyName)
+        {
+            if (value == null)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "IssueLink property '" + propertyName + "' must not be null.");
+            }
 
             var typed = value as IssueLinkType;
             if (typed != null) { return typed; }
@@ -146,11 +169,18 @@ namespace AtlassianPS.JiraPS
             {
                 return new IssueLinkType(text);
             }
+            if (text != null)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "IssueLink property '" + propertyName + "' cannot be empty or whitespace.");
+            }
 
             var pso = value as System.Management.Automation.PSObject;
             if (pso != null)
             {
                 var mapped = new IssueLinkType();
+                var hasName = false;
+                var hasId = false;
                 foreach (var prop in pso.Properties)
                 {
                     switch (prop.Name)
@@ -159,10 +189,12 @@ namespace AtlassianPS.JiraPS
                         case "Id":
                         case "id":
                             mapped.Id = prop.Value != null ? prop.Value.ToString() : null;
+                            hasId = !string.IsNullOrWhiteSpace(mapped.Id);
                             break;
                         case "Name":
                         case "name":
                             mapped.Name = prop.Value as string;
+                            hasName = !string.IsNullOrWhiteSpace(mapped.Name);
                             break;
                         case "InwardText":
                         case "inwardText":
@@ -174,15 +206,26 @@ namespace AtlassianPS.JiraPS
                             break;
                     }
                 }
+
+                if (!hasName && !hasId)
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "IssueLink property '" + propertyName + "' must include either a non-empty 'name' or 'id'.");
+                }
                 return mapped;
             }
 
-            return null;
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                "IssueLink property '" + propertyName + "' must be a string, AtlassianPS.JiraPS.IssueLinkType, or object with 'name'/'id'.");
         }
 
-        private static Issue MapIssue(object value)
+        private static Issue MapIssue(object value, string propertyName)
         {
-            if (value == null) { return null; }
+            if (value == null)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "IssueLink property '" + propertyName + "' must not be null.");
+            }
 
             var typed = value as Issue;
             if (typed != null) { return typed; }
@@ -192,11 +235,18 @@ namespace AtlassianPS.JiraPS
             {
                 return new Issue(text);
             }
+            if (text != null)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "IssueLink property '" + propertyName + "' cannot be empty or whitespace.");
+            }
 
             var pso = value as System.Management.Automation.PSObject;
             if (pso != null)
             {
                 var mapped = new Issue();
+                var hasKey = false;
+                var hasId = false;
                 foreach (var prop in pso.Properties)
                 {
                     switch (prop.Name)
@@ -205,17 +255,26 @@ namespace AtlassianPS.JiraPS
                         case "Id":
                         case "id":
                             mapped.Id = prop.Value != null ? prop.Value.ToString() : null;
+                            hasId = !string.IsNullOrWhiteSpace(mapped.Id);
                             break;
                         case "Key":
                         case "key":
                             mapped.Key = prop.Value as string;
+                            hasKey = !string.IsNullOrWhiteSpace(mapped.Key);
                             break;
                     }
+                }
+
+                if (!hasKey && !hasId)
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "IssueLink property '" + propertyName + "' must include either a non-empty 'key' or 'id'.");
                 }
                 return mapped;
             }
 
-            return null;
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                "IssueLink property '" + propertyName + "' must be a string, AtlassianPS.JiraPS.Issue, or object with 'key'/'id'.");
         }
     }
 

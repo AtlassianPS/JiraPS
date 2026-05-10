@@ -116,6 +116,26 @@ InModuleScope JiraPS {
                     { Add-JiraIssueLink -Issue $issueKey -IssueLink $string } | Should -Throw -ErrorId 'ParameterProperties.Incomplete,Add-JiraIssueLink'
                     { Add-JiraIssueLink -Issue $issueKey -IssueLink $incompleteObject } | Should -Throw -ErrorId 'ParameterProperties.Incomplete,Add-JiraIssueLink'
                 }
+
+                It "rejects malformed type objects in -IssueLink payload" {
+                    $invalidTypeObject = [PSCustomObject]@{
+                        outwardIssue = [PSCustomObject]@{ key = "TEST-10" }
+                        type         = [PSCustomObject]@{ foo = "bar" }
+                    }
+
+                    { Add-JiraIssueLink -Issue $issueKey -IssueLink $invalidTypeObject -ErrorAction Stop } |
+                        Should -Throw -ExpectedMessage "*IssueLink property 'type' must include either a non-empty 'name' or 'id'.*"
+                }
+
+                It "rejects malformed inward/outward issue objects in -IssueLink payload" {
+                    $invalidIssueObject = [PSCustomObject]@{
+                        outwardIssue = [PSCustomObject]@{ foo = "bar" }
+                        type         = [PSCustomObject]@{ name = "Composition" }
+                    }
+
+                    { Add-JiraIssueLink -Issue $issueKey -IssueLink $invalidIssueObject -ErrorAction Stop } |
+                        Should -Throw -ExpectedMessage "*IssueLink property 'outwardIssue' must include either a non-empty 'key' or 'id'.*"
+                }
             }
         }
     }
