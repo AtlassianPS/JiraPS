@@ -223,6 +223,41 @@ namespace AtlassianPS.JiraPS
         }
     }
 
+    public class IssueLinkTypeRef
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+
+        public IssueLinkTypeRef() { }
+
+        public override string ToString()
+        {
+            return Name ?? Id ?? string.Empty;
+        }
+    }
+
+    public class LinkedIssueRef
+    {
+        public string Id { get; set; }
+        public string Key { get; set; }
+
+        public LinkedIssueRef() { }
+
+        public override string ToString()
+        {
+            return Key ?? Id ?? string.Empty;
+        }
+    }
+
+    public class IssueLinkCreateRequest
+    {
+        public IssueLinkTypeRef Type { get; set; }
+        public LinkedIssueRef InwardIssue { get; set; }
+        public LinkedIssueRef OutwardIssue { get; set; }
+
+        public IssueLinkCreateRequest() { }
+    }
+
     public class IssueLink
     {
         public long? Id { get; set; }

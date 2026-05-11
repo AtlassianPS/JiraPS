@@ -11,8 +11,8 @@
 
         [Parameter( Mandatory )]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueLinkTransformation()]
-        [AtlassianPS.JiraPS.IssueLink[]]
+        [AtlassianPS.JiraPS.IssueLinkCreateRequestTransformation()]
+        [AtlassianPS.JiraPS.IssueLinkCreateRequest[]]
         $IssueLink,
 
         [String]
@@ -48,22 +48,70 @@
                     -Cmdlet $PSCmdlet
             }
 
+            if (-not $typedIssueLink.Type.Name -and -not $typedIssueLink.Type.Id) {
+                ThrowError `
+                    -ExceptionType "System.ArgumentException" `
+                    -Message "The IssueLink type must include either a Name or an Id." `
+                    -ErrorId 'ParameterProperties.Incomplete' `
+                    -Category InvalidArgument `
+                    -TargetObject $typedIssueLink `
+                    -Cmdlet $PSCmdlet
+            }
+
+            if ($typedIssueLink.InwardIssue -and (-not $typedIssueLink.InwardIssue.Key -and -not $typedIssueLink.InwardIssue.Id)) {
+                ThrowError `
+                    -ExceptionType "System.ArgumentException" `
+                    -Message "The inwardIssue reference must include either a Key or an Id." `
+                    -ErrorId 'ParameterProperties.Incomplete' `
+                    -Category InvalidArgument `
+                    -TargetObject $typedIssueLink `
+                    -Cmdlet $PSCmdlet
+            }
+
+            if ($typedIssueLink.OutwardIssue -and (-not $typedIssueLink.OutwardIssue.Key -and -not $typedIssueLink.OutwardIssue.Id)) {
+                ThrowError `
+                    -ExceptionType "System.ArgumentException" `
+                    -Message "The outwardIssue reference must include either a Key or an Id." `
+                    -ErrorId 'ParameterProperties.Incomplete' `
+                    -Category InvalidArgument `
+                    -TargetObject $typedIssueLink `
+                    -Cmdlet $PSCmdlet
+            }
+
             if ($typedIssueLink.InwardIssue) {
-                $inwardIssue = @{ key = $typedIssueLink.InwardIssue.Key }
+                if ($typedIssueLink.InwardIssue.Key) {
+                    $inwardIssue = @{ key = $typedIssueLink.InwardIssue.Key }
+                }
+                else {
+                    $inwardIssue = @{ id = $typedIssueLink.InwardIssue.Id }
+                }
             }
             else {
                 $inwardIssue = @{ key = $issueObj.key }
             }
 
             if ($typedIssueLink.OutwardIssue) {
-                $outwardIssue = @{ key = $typedIssueLink.OutwardIssue.Key }
+                if ($typedIssueLink.OutwardIssue.Key) {
+                    $outwardIssue = @{ key = $typedIssueLink.OutwardIssue.Key }
+                }
+                else {
+                    $outwardIssue = @{ id = $typedIssueLink.OutwardIssue.Id }
+                }
             }
             else {
                 $outwardIssue = @{ key = $issueObj.key }
             }
 
+            $typePayload = @{}
+            if ($typedIssueLink.Type.Name) {
+                $typePayload.name = $typedIssueLink.Type.Name
+            }
+            if ($typedIssueLink.Type.Id) {
+                $typePayload.id = $typedIssueLink.Type.Id
+            }
+
             $body = @{
-                type         = @{ name = $typedIssueLink.Type.Name }
+                type         = $typePayload
                 inwardIssue  = $inwardIssue
                 outwardIssue = $outwardIssue
             }

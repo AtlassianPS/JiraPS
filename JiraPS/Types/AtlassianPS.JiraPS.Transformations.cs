@@ -278,6 +278,282 @@ namespace AtlassianPS.JiraPS
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class IssueLinkCreateRequestTransformationAttribute : JiraTransformationAttribute
+    {
+        protected override Type TargetType { get { return typeof(IssueLinkCreateRequest); } }
+
+        protected override object FromString(string value)
+        {
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                "Cannot convert a string to AtlassianPS.JiraPS.IssueLinkCreateRequest. Supply an AtlassianPS.JiraPS.IssueLinkCreateRequest object or an object with 'type', 'inwardIssue', or 'outwardIssue' properties.");
+        }
+
+        protected override string[] LegacyTypeNames { get { return new[] { "AtlassianPS.JiraPS.IssueLinkCreateRequest" }; } }
+
+        protected override bool ShouldMapLegacyObject(System.Management.Automation.PSObject pso)
+        {
+            if (base.ShouldMapLegacyObject(pso)) { return true; }
+            if (pso == null || pso.Properties == null) { return false; }
+
+            return HasProperty(pso, "type")
+                || HasProperty(pso, "inwardIssue")
+                || HasProperty(pso, "outwardIssue");
+        }
+
+        protected override object MapLegacyObject(System.Management.Automation.PSObject pso)
+        {
+            var request = new IssueLinkCreateRequest();
+            var hasKnownShape = false;
+
+            foreach (var prop in pso.Properties)
+            {
+                switch (prop.Name)
+                {
+                    case "Type":
+                    case "type":
+                        request.Type = MapIssueLinkTypeRef(prop.Value, prop.Name);
+                        hasKnownShape = true;
+                        break;
+                    case "InwardIssue":
+                    case "inwardIssue":
+                        request.InwardIssue = MapLinkedIssueRef(prop.Value, prop.Name);
+                        hasKnownShape = true;
+                        break;
+                    case "OutwardIssue":
+                    case "outwardIssue":
+                        request.OutwardIssue = MapLinkedIssueRef(prop.Value, prop.Name);
+                        hasKnownShape = true;
+                        break;
+                }
+            }
+
+            if (!hasKnownShape)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "Cannot convert value to AtlassianPS.JiraPS.IssueLinkCreateRequest. Expected an issue-link create object shape with type, inwardIssue, or outwardIssue properties.");
+            }
+
+            return request;
+        }
+
+        private static bool HasProperty(System.Management.Automation.PSObject pso, string name)
+        {
+            foreach (var prop in pso.Properties)
+            {
+                if (string.Equals(prop.Name, name, StringComparison.OrdinalIgnoreCase)) { return true; }
+            }
+            return false;
+        }
+
+        private static IssueLinkTypeRef MapIssueLinkTypeRef(object value, string propertyName)
+        {
+            if (value == null)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "IssueLinkCreateRequest property '" + propertyName + "' must not be null.");
+            }
+
+            var typed = value as IssueLinkTypeRef;
+            if (typed != null) { return typed; }
+
+            var legacyTyped = value as IssueLinkType;
+            if (legacyTyped != null)
+            {
+                return new IssueLinkTypeRef { Id = legacyTyped.Id, Name = legacyTyped.Name };
+            }
+
+            var text = value as string;
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                return new IssueLinkTypeRef { Name = text };
+            }
+            if (text != null)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "IssueLinkCreateRequest property '" + propertyName + "' cannot be empty or whitespace.");
+            }
+
+            var pso = value as System.Management.Automation.PSObject;
+            if (pso != null)
+            {
+                var mapped = new IssueLinkTypeRef();
+                var hasName = false;
+                var hasId = false;
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "ID":
+                        case "Id":
+                        case "id":
+                            mapped.Id = prop.Value != null ? prop.Value.ToString() : null;
+                            hasId = !string.IsNullOrWhiteSpace(mapped.Id);
+                            break;
+                        case "Name":
+                        case "name":
+                            mapped.Name = prop.Value as string;
+                            hasName = !string.IsNullOrWhiteSpace(mapped.Name);
+                            break;
+                    }
+                }
+
+                if (!hasName && !hasId)
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "IssueLinkCreateRequest property '" + propertyName + "' must include either a non-empty 'name' or 'id'.");
+                }
+                return mapped;
+            }
+
+            var dict = value as System.Collections.IDictionary;
+            if (dict != null)
+            {
+                var mapped = new IssueLinkTypeRef();
+                var hasName = false;
+                var hasId = false;
+                foreach (System.Collections.DictionaryEntry entry in dict)
+                {
+                    var key = entry.Key != null ? entry.Key.ToString() : string.Empty;
+                    switch (key)
+                    {
+                        case "ID":
+                        case "Id":
+                        case "id":
+                            mapped.Id = entry.Value != null ? entry.Value.ToString() : null;
+                            hasId = !string.IsNullOrWhiteSpace(mapped.Id);
+                            break;
+                        case "Name":
+                        case "name":
+                            mapped.Name = entry.Value != null ? entry.Value.ToString() : null;
+                            hasName = !string.IsNullOrWhiteSpace(mapped.Name);
+                            break;
+                    }
+                }
+
+                if (!hasName && !hasId)
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "IssueLinkCreateRequest property '" + propertyName + "' must include either a non-empty 'name' or 'id'.");
+                }
+                return mapped;
+            }
+
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                "IssueLinkCreateRequest property '" + propertyName + "' must be a string, AtlassianPS.JiraPS.IssueLinkTypeRef, or object with 'name'/'id'.");
+        }
+
+        private static LinkedIssueRef MapLinkedIssueRef(object value, string propertyName)
+        {
+            if (value == null)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "IssueLinkCreateRequest property '" + propertyName + "' must not be null.");
+            }
+
+            var typed = value as LinkedIssueRef;
+            if (typed != null) { return typed; }
+
+            var legacyIssue = value as Issue;
+            if (legacyIssue != null)
+            {
+                return new LinkedIssueRef { Id = legacyIssue.Id, Key = legacyIssue.Key };
+            }
+
+            var legacyIssueRef = value as IssueLink;
+            if (legacyIssueRef != null)
+            {
+                if (legacyIssueRef.OutwardIssue != null)
+                {
+                    return new LinkedIssueRef { Id = legacyIssueRef.OutwardIssue.Id, Key = legacyIssueRef.OutwardIssue.Key };
+                }
+                if (legacyIssueRef.InwardIssue != null)
+                {
+                    return new LinkedIssueRef { Id = legacyIssueRef.InwardIssue.Id, Key = legacyIssueRef.InwardIssue.Key };
+                }
+            }
+
+            var text = value as string;
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                return new LinkedIssueRef { Key = text };
+            }
+            if (text != null)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                    "IssueLinkCreateRequest property '" + propertyName + "' cannot be empty or whitespace.");
+            }
+
+            var pso = value as System.Management.Automation.PSObject;
+            if (pso != null)
+            {
+                var mapped = new LinkedIssueRef();
+                var hasKey = false;
+                var hasId = false;
+                foreach (var prop in pso.Properties)
+                {
+                    switch (prop.Name)
+                    {
+                        case "ID":
+                        case "Id":
+                        case "id":
+                            mapped.Id = prop.Value != null ? prop.Value.ToString() : null;
+                            hasId = !string.IsNullOrWhiteSpace(mapped.Id);
+                            break;
+                        case "Key":
+                        case "key":
+                            mapped.Key = prop.Value as string;
+                            hasKey = !string.IsNullOrWhiteSpace(mapped.Key);
+                            break;
+                    }
+                }
+
+                if (!hasKey && !hasId)
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "IssueLinkCreateRequest property '" + propertyName + "' must include either a non-empty 'key' or 'id'.");
+                }
+                return mapped;
+            }
+
+            var dict = value as System.Collections.IDictionary;
+            if (dict != null)
+            {
+                var mapped = new LinkedIssueRef();
+                var hasKey = false;
+                var hasId = false;
+                foreach (System.Collections.DictionaryEntry entry in dict)
+                {
+                    var key = entry.Key != null ? entry.Key.ToString() : string.Empty;
+                    switch (key)
+                    {
+                        case "ID":
+                        case "Id":
+                        case "id":
+                            mapped.Id = entry.Value != null ? entry.Value.ToString() : null;
+                            hasId = !string.IsNullOrWhiteSpace(mapped.Id);
+                            break;
+                        case "Key":
+                        case "key":
+                            mapped.Key = entry.Value != null ? entry.Value.ToString() : null;
+                            hasKey = !string.IsNullOrWhiteSpace(mapped.Key);
+                            break;
+                    }
+                }
+
+                if (!hasKey && !hasId)
+                {
+                    throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                        "IssueLinkCreateRequest property '" + propertyName + "' must include either a non-empty 'key' or 'id'.");
+                }
+                return mapped;
+            }
+
+            throw new System.Management.Automation.ArgumentTransformationMetadataException(
+                "IssueLinkCreateRequest property '" + propertyName + "' must be a string, AtlassianPS.JiraPS.LinkedIssueRef, or object with 'key'/'id'.");
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class AttachmentTransformationAttribute : JiraTransformationAttribute
     {
         protected override Type TargetType { get { return typeof(Attachment); } }

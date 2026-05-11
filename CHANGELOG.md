@@ -29,8 +29,9 @@ For the migration playbook and concrete before/after script examples, see [`abou
 
 - `Get-JiraIssueLinkType -LinkType` now binds to `[AtlassianPS.JiraPS.IssueLinkType]` via `IssueLinkTypeTransformation`, and `Remove-JiraIssueLink` now uses typed parameter sets (`-IssueLink [AtlassianPS.JiraPS.IssueLink[]]` and `-Issue [AtlassianPS.JiraPS.Issue[]]`) instead of custom `ValidateScript` type checks.
   Invalid values now fail with argument-transformation errors at bind time, and `Get-JiraIssueLinkType` still supports numeric ID lookups and name-based matches.
-- `Add-JiraIssueLink -IssueLink` now binds to `[AtlassianPS.JiraPS.IssueLink[]]` via `IssueLinkTransformation`.
-  The transformation accepts existing issue-link objects and compatible loose payload shapes, while business validation for required link fields remains in the cmdlet.
+- **BREAKING**: `Add-JiraIssueLink -IssueLink` now binds to `[AtlassianPS.JiraPS.IssueLinkCreateRequest[]]` via `IssueLinkCreateRequestTransformation` instead of reusing the response/domain `IssueLink` model.
+  Create payloads now use dedicated request DTOs (`IssueLinkCreateRequest`, `IssueLinkTypeRef`, `LinkedIssueRef`), while `IssueLink` remains the response type for read operations.
+  The transformation accepts compatible loose payload objects and rejects malformed nested `type`/issue refs with clear argument-transformation errors before cmdlet execution.
 - `Get-JiraUser -InputObject` now binds as `[AtlassianPS.JiraPS.User[]]` via `UserTransformation`, and `Set-JiraUser -PassThru` now reuses a typed user object before refreshing from Jira.
   This removes stale `<Object>` help metadata for user input and keeps pass-through behavior compatible with the stricter input type.
 - Removed the custom `ConvertFrom-Json` override because PowerShell 5.1 native JSON handling is sufficient for JiraPS payload sizes.
