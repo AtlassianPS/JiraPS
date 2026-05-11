@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Stabilized the Server integration `Search.Integration.Tests.ps1` OR-operator case by replacing the non-existent-key branch with a deterministic project-scoped OR predicate (`key = <fixture> OR key != <fixture>`), avoiding an intermittent Jira 11 backend null-deref (`issueObject` null) that failed nightly `integration_tests.yml` runs even when JiraPS behavior was correct.
+
 ## 3.0 - 2026-05-10
 
 This release focuses on Cloud and Data Center compatibility, safer typing, and better automation ergonomics.
