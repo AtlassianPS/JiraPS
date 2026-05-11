@@ -7,7 +7,7 @@ $psScriptAnalyzerSettingsUri = 'https://raw.githubusercontent.com/AtlassianPS/.g
 $psScriptAnalyzerSettingsSha256 = '89207270e49dd58895d146c7182e661c55c4092f3d3cdc280a4de26f407daa6e'
 $psScriptAnalyzerSettingsPath = Join-Path $PSScriptRoot '..' 'PSScriptAnalyzerSettings.psd1'
 
-function Sync-PSScriptAnalyzerSettings {
+function Sync-PSScriptAnalyzerSetting {
     [CmdletBinding()]
     param()
 
@@ -72,7 +72,7 @@ if ((Get-Module PowershellGet -ListAvailable)[0].Version -lt [version]"1.6.0") {
     Install-Module PowershellGet -Scope CurrentUser -Force
 }
 
-Sync-PSScriptAnalyzerSettings
+Sync-PSScriptAnalyzerSetting
 
 Write-Output "Installing Dependencies"
 Import-Module "$PSScriptRoot/BuildTools.psm1" -Force
