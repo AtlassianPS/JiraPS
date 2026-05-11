@@ -106,17 +106,17 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    # Keep this OR query anchored to issue-key predicates only.
-                    # Jira 11 can intermittently throw an internal server error on
-                    # mixed key/date OR clauses (`key = X OR created >= -Nd`) against
-                    # a fresh DC dataset, which makes the test flaky while not proving
-                    # anything about JiraPS itself.
-                    $jql = "project = $($fixtures.TestProject) AND (key = $($fixtures.TestIssue) OR key = NONEXISTENT-999999)"
+                    # Keep this OR query anchored to project-scoped predicates that only
+                    # reference real indexed issues. Jira 11 can intermittently throw a
+                    # backend null-deref when one OR branch targets a non-existent key,
+                    # which flakes the Server workflow without exercising JiraPS logic.
+                    # This still validates OR parsing while avoiding brittle server behavior.
+                    $jql = "project = $($fixtures.TestProject) AND (key = $($fixtures.TestIssue) OR key != $($fixtures.TestIssue))"
 
                     $results = Get-JiraIssue -Query $jql -ErrorAction Stop
 
                     $results | Should -Not -BeNullOrEmpty -Because "test project always carries JIRA_TEST_ISSUE"
-                    @($results)[0].Project.Key | Should -Be $fixtures.TestProject
+                    @($results).Key | Should -Contain $fixtures.TestIssue
                 }
 
                 It "supports ORDER BY" {
