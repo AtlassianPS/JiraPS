@@ -2,13 +2,6 @@
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( SupportsShouldProcess )]
     param(
-        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueTransformation()]
-        [Alias('Key')]
-        [AtlassianPS.JiraPS.Issue]
-        $Issue,
-
         [Parameter( Mandatory )]
         [ValidateNotNull()]
         [AtlassianPS.JiraPS.IssueLinkCreateRequestTransformation()]
@@ -34,14 +27,11 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential -ErrorAction Stop
-
         foreach ($typedIssueLink in $IssueLink) {
-            if (-not $typedIssueLink.Type -or (-not $typedIssueLink.InwardIssue -and -not $typedIssueLink.OutwardIssue)) {
+            if (-not $typedIssueLink.Type -or -not $typedIssueLink.InwardIssue -or -not $typedIssueLink.OutwardIssue) {
                 ThrowError `
                     -ExceptionType "System.ArgumentException" `
-                    -Message "The IssueLink provided does not contain the information needed." `
+                    -Message "The IssueLink provided does not contain the information needed. Type, InwardIssue, and OutwardIssue are all required." `
                     -ErrorId 'ParameterProperties.Incomplete' `
                     -Category InvalidArgument `
                     -TargetObject $typedIssueLink `
@@ -58,7 +48,7 @@
                     -Cmdlet $PSCmdlet
             }
 
-            if ($typedIssueLink.InwardIssue -and (-not $typedIssueLink.InwardIssue.Key -and -not $typedIssueLink.InwardIssue.Id)) {
+            if (-not $typedIssueLink.InwardIssue.Key -and -not $typedIssueLink.InwardIssue.Id) {
                 ThrowError `
                     -ExceptionType "System.ArgumentException" `
                     -Message "The inwardIssue reference must include either a Key or an Id." `
@@ -68,7 +58,7 @@
                     -Cmdlet $PSCmdlet
             }
 
-            if ($typedIssueLink.OutwardIssue -and (-not $typedIssueLink.OutwardIssue.Key -and -not $typedIssueLink.OutwardIssue.Id)) {
+            if (-not $typedIssueLink.OutwardIssue.Key -and -not $typedIssueLink.OutwardIssue.Id) {
                 ThrowError `
                     -ExceptionType "System.ArgumentException" `
                     -Message "The outwardIssue reference must include either a Key or an Id." `
@@ -78,29 +68,13 @@
                     -Cmdlet $PSCmdlet
             }
 
-            if ($typedIssueLink.InwardIssue) {
-                if ($typedIssueLink.InwardIssue.Key) {
-                    $inwardIssue = @{ key = $typedIssueLink.InwardIssue.Key }
-                }
-                else {
-                    $inwardIssue = @{ id = $typedIssueLink.InwardIssue.Id }
-                }
-            }
-            else {
-                $inwardIssue = @{ key = $issueObj.key }
-            }
+            $inwardTarget = if ($typedIssueLink.InwardIssue.Key) { $typedIssueLink.InwardIssue.Key } else { $typedIssueLink.InwardIssue.Id }
+            $inwardField = if ($typedIssueLink.InwardIssue.Key) { "key" } else { "id" }
+            $inwardIssue = @{ $inwardField = $inwardTarget }
 
-            if ($typedIssueLink.OutwardIssue) {
-                if ($typedIssueLink.OutwardIssue.Key) {
-                    $outwardIssue = @{ key = $typedIssueLink.OutwardIssue.Key }
-                }
-                else {
-                    $outwardIssue = @{ id = $typedIssueLink.OutwardIssue.Id }
-                }
-            }
-            else {
-                $outwardIssue = @{ key = $issueObj.key }
-            }
+            $outwardTarget = if ($typedIssueLink.OutwardIssue.Key) { $typedIssueLink.OutwardIssue.Key } else { $typedIssueLink.OutwardIssue.Id }
+            $outwardField = if ($typedIssueLink.OutwardIssue.Key) { "key" } else { "id" }
+            $outwardIssue = @{ $outwardField = $outwardTarget }
 
             $typePayload = @{}
             if ($typedIssueLink.Type.Name) {
@@ -127,7 +101,9 @@
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
+            $typeTarget = if ($typedIssueLink.Type.Name) { $typedIssueLink.Type.Name } else { $typedIssueLink.Type.Id }
+            $whatIfTarget = "$inwardTarget -[$typeTarget]-> $outwardTarget"
+            if ($PSCmdlet.ShouldProcess($whatIfTarget)) {
                 Invoke-JiraMethod @parameter
             }
         }

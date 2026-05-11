@@ -150,15 +150,16 @@ InModuleScope JiraPS {
                     }
 
                     $issueLink = [PSCustomObject]@{
+                        inwardIssue  = @{ key = $sourceIssue.Key }
                         type         = @{ name = $relatesType.Name }
                         outwardIssue = @{ key = $targetIssue.Key }
                     }
 
-                    { Add-JiraIssueLink -Issue $sourceIssue.Key -IssueLink $issueLink } |
+                    { Add-JiraIssueLink -IssueLink $issueLink } |
                         Should -Not -Throw
                 }
 
-                It "creates an issue link with inward direction" {
+                It "creates a directional issue link and retrieves it with expected relation data" {
                     if (-not $sourceIssue -or -not $targetIssue) {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
@@ -171,12 +172,23 @@ InModuleScope JiraPS {
                     }
 
                     $issueLink = [PSCustomObject]@{
-                        type        = @{ name = $blocksType.Name }
-                        inwardIssue = @{ key = $targetIssue.Key }
+                        type         = @{ name = $blocksType.Name }
+                        inwardIssue  = @{ key = $sourceIssue.Key }
+                        outwardIssue = @{ key = $targetIssue.Key }
                     }
 
-                    { Add-JiraIssueLink -Issue $sourceIssue.Key -IssueLink $issueLink } |
+                    { Add-JiraIssueLink -IssueLink $issueLink } |
                         Should -Not -Throw
+
+                    $sourceAfterCreate = Get-JiraIssue -Key $sourceIssue.Key
+                    $matchingTypeLinks = @($sourceAfterCreate.issueLinks | Where-Object { $_.Type.Name -eq $blocksType.Name })
+                    $matchingTypeLinks | Should -Not -BeNullOrEmpty
+
+                    $linksToTarget = @($matchingTypeLinks | Where-Object {
+                            ($_.OutwardIssue -and $_.OutwardIssue.Key -eq $targetIssue.Key) -or
+                            ($_.InwardIssue -and $_.InwardIssue.Key -eq $targetIssue.Key)
+                        })
+                    $linksToTarget | Should -Not -BeNullOrEmpty
                 }
 
                 It "created links appear on the issue" {
@@ -189,22 +201,16 @@ InModuleScope JiraPS {
                     $issue.issueLinks | Should -Not -BeNullOrEmpty
                 }
 
-                It "accepts issue via pipeline" {
+                It "accepts issue-link requests built by helper cmdlet" {
                     if (-not $sourceIssue -or -not $targetIssue) {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
 
-                    $pipelineIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "LinkPipeline")
-                    $null = $script:createdIssues.Add($pipelineIssue.Key)
-
                     $linkTypes = Get-JiraIssueLinkType
-                    $issueLink = [PSCustomObject]@{
-                        type         = @{ name = $linkTypes[0].Name }
-                        outwardIssue = @{ key = $targetIssue.Key }
-                    }
+                    $issueLink = New-JiraIssueLinkRequest -LinkType $linkTypes[0].Name -FromIssue $sourceIssue.Key -ToIssue $targetIssue.Key
 
-                    { $pipelineIssue | Add-JiraIssueLink -IssueLink $issueLink } |
+                    { Add-JiraIssueLink -IssueLink $issueLink } |
                         Should -Not -Throw
                 }
 
@@ -216,11 +222,38 @@ InModuleScope JiraPS {
 
                     $linkTypes = Get-JiraIssueLinkType
                     $issueLink = [AtlassianPS.JiraPS.IssueLinkCreateRequest]@{
+                        inwardIssue  = [AtlassianPS.JiraPS.LinkedIssueRef]@{ key = $sourceIssue.Key }
                         type         = [AtlassianPS.JiraPS.IssueLinkTypeRef]@{ name = $linkTypes[0].Name }
                         outwardIssue = [AtlassianPS.JiraPS.LinkedIssueRef]@{ key = $targetIssue.Key }
                     }
 
-                    { Add-JiraIssueLink -Issue $sourceIssue.Key -IssueLink $issueLink } |
+                    { Add-JiraIssueLink -IssueLink $issueLink } |
+                        Should -Not -Throw
+                }
+
+                It "accepts id-based issue-link create request payloads" {
+                    if (-not $sourceIssue -or -not $targetIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $linkTypes = Get-JiraIssueLinkType
+                    $sourceIssueFull = Get-JiraIssue -Key $sourceIssue.Key
+                    $targetIssueFull = Get-JiraIssue -Key $targetIssue.Key
+                    $linkTypeId = $linkTypes[0].Id
+
+                    if (-not $linkTypeId -or -not $sourceIssueFull.Id -or -not $targetIssueFull.Id) {
+                        Set-ItResult -Skipped -Because "Link type or issue id fixtures are not available"
+                        return
+                    }
+
+                    $issueLink = [AtlassianPS.JiraPS.IssueLinkCreateRequest]@{
+                        type         = [AtlassianPS.JiraPS.IssueLinkTypeRef]@{ id = $linkTypeId }
+                        inwardIssue  = [AtlassianPS.JiraPS.LinkedIssueRef]@{ id = $sourceIssueFull.Id }
+                        outwardIssue = [AtlassianPS.JiraPS.LinkedIssueRef]@{ id = $targetIssueFull.Id }
+                    }
+
+                    { Add-JiraIssueLink -IssueLink $issueLink } |
                         Should -Not -Throw
                 }
             }
@@ -245,10 +278,11 @@ InModuleScope JiraPS {
                     if ($linkTestIssue -and $linkTestTarget) {
                         $linkTypes = Get-JiraIssueLinkType
                         $issueLink = [PSCustomObject]@{
+                            inwardIssue  = @{ key = $linkTestIssue.Key }
                             type         = @{ name = $linkTypes[0].Name }
                             outwardIssue = @{ key = $linkTestTarget.Key }
                         }
-                        Add-JiraIssueLink -Issue $linkTestIssue.Key -IssueLink $issueLink
+                        Add-JiraIssueLink -IssueLink $issueLink
                     }
                 }
             }
@@ -327,10 +361,11 @@ InModuleScope JiraPS {
 
                     $linkTypes = Get-JiraIssueLinkType
                     $issueLink = [PSCustomObject]@{
+                        inwardIssue  = @{ key = $removeSource.Key }
                         type         = @{ name = $linkTypes[0].Name }
                         outwardIssue = @{ key = $removeTarget.Key }
                     }
-                    Add-JiraIssueLink -Issue $removeSource.Key -IssueLink $issueLink
+                    Add-JiraIssueLink -IssueLink $issueLink
 
                     $issue = Get-JiraIssue -Key $removeSource.Key
                     $linkToRemove = $issue.issueLinks[0]
@@ -356,10 +391,11 @@ InModuleScope JiraPS {
 
                     $linkTypes = Get-JiraIssueLinkType
                     $issueLink = [PSCustomObject]@{
+                        inwardIssue  = @{ key = $pipeSource.Key }
                         type         = @{ name = $linkTypes[0].Name }
                         outwardIssue = @{ key = $pipeTarget.Key }
                     }
-                    Add-JiraIssueLink -Issue $pipeSource.Key -IssueLink $issueLink
+                    Add-JiraIssueLink -IssueLink $issueLink
 
                     $issue = Get-JiraIssue -Key $pipeSource.Key
 
