@@ -15,22 +15,22 @@ Adds a link between two Issues on Jira
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueLink [-Issue] <Issue> [-IssueLink] <Object[]> [[-Comment] <string>]
+Add-JiraIssueLink [-Issue] <Issue> [-IssueLink] <IssueLinkCreateRequest[]> [[-Comment] <string>]
  [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Creates a new link of the specified type between two Issue.
+Creates a new link of the specified type between two issues.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 
 ```powershell
-$_issueLink = [PSCustomObject]@{
-    outwardIssue = [PSCustomObject]@{key = "TEST-10"}
-    type = [PSCustomObject]@{name = "Composition"}
+$_issueLink = [AtlassianPS.JiraPS.IssueLinkCreateRequest]@{
+    outwardIssue = [AtlassianPS.JiraPS.LinkedIssueRef]@{ key = "TEST-10" }
+    type = [AtlassianPS.JiraPS.IssueLinkTypeRef]@{ name = "Composition" }
 }
 Add-JiraIssueLink -Issue TEST-01 -IssueLink $_issueLink
 ```
@@ -131,9 +131,12 @@ HelpMessage: ''
 ### -IssueLink
 
 Issue Link to be created.
+Accepts `AtlassianPS.JiraPS.IssueLinkCreateRequest` values and compatible payload objects that include issue-link create fields (`type`, `inwardIssue`, `outwardIssue`).
+The nested `type` object must include `name` or `id`.
+The nested issue references must include `key` or `id`.
 
 ```yaml
-Type: Object[]
+Type: IssueLinkCreateRequest[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -183,8 +186,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### AtlassianPS.JiraPS.Issue
 
-The JIRA issue that should be linked
-The JIRA issue link that should be used
+The Jira issue that should be linked.
+
+### AtlassianPS.JiraPS.IssueLinkCreateRequest
+
+The issue-link create request payload that should be used.
 
 ## OUTPUTS
 

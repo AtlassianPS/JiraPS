@@ -207,6 +207,22 @@ InModuleScope JiraPS {
                     { $pipelineIssue | Add-JiraIssueLink -IssueLink $issueLink } |
                         Should -Not -Throw
                 }
+
+                It "accepts typed issue-link create request payloads" {
+                    if (-not $sourceIssue -or -not $targetIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+
+                    $linkTypes = Get-JiraIssueLinkType
+                    $issueLink = [AtlassianPS.JiraPS.IssueLinkCreateRequest]@{
+                        type         = [AtlassianPS.JiraPS.IssueLinkTypeRef]@{ name = $linkTypes[0].Name }
+                        outwardIssue = [AtlassianPS.JiraPS.LinkedIssueRef]@{ key = $targetIssue.Key }
+                    }
+
+                    { Add-JiraIssueLink -Issue $sourceIssue.Key -IssueLink $issueLink } |
+                        Should -Not -Throw
+                }
             }
         }
 

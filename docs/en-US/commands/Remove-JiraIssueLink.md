@@ -14,8 +14,17 @@ Removes a issue link from a JIRA issue
 
 ## SYNTAX
 
+### ByIssueLink (Default)
+
 ```powershell
-Remove-JiraIssueLink [-IssueLink] <Object[]> [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
+Remove-JiraIssueLink [-IssueLink] <IssueLink[]> [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
+```
+
+### ByIssue
+
+```powershell
+Remove-JiraIssueLink [-Issue] <Issue[]> [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
@@ -91,15 +100,34 @@ HelpMessage: ''
 
 IssueLink to delete
 
-If a `AtlassianPS.JiraPS.Issue` is provided, all issueLinks will be deleted.
-
 ```yaml
-Type: Object[]
+Type: IssueLink[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
+- Name: ByIssueLink
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Issue
+
+Issue whose links should all be removed.
+
+```yaml
+Type: Issue[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: ByIssue
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
@@ -143,6 +171,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## INPUTS
 
 ### AtlassianPS.JiraPS.Issue
+
+### AtlassianPS.JiraPS.IssueLink
 
 
 ## OUTPUTS

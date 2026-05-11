@@ -4,27 +4,8 @@
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = '_Search' )]
         [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (("JiraPS.IssueLinkType" -notin $_.PSObject.TypeNames) -and (($_ -isnot [String])) -and (($_ -isnot [Int]))) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                    $errorId = 'ParameterType.NotJiraIssueLinkType'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Wrong object type provided for IssueLinkType. Expected [JiraPS.IssueLinkType], [String] or [Int], but was $($_.GetType().Name)"
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                    #>
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [Object]
+        [AtlassianPS.JiraPS.IssueLinkTypeTransformation()]
+        [AtlassianPS.JiraPS.IssueLinkType]
         $LinkType,
 
         [Parameter()]
@@ -43,10 +24,9 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($LinkType -is [Int]) {
-            # If the link type provided is an int, we can assume it's an ID number.
+        if ($LinkType -and $LinkType.Id) {
             $parameter = @{
-                URI        = $resourceURi -f "/$LinkType"
+                URI        = $resourceURi -f "/$($LinkType.Id)"
                 Method     = "GET"
                 Credential = $Credential
             }
@@ -56,7 +36,6 @@
             Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
         }
         else {
-            # If it's a String, it's probably a name, though, and there isn't an API call to look up a link type by name.
             $parameter = @{
                 URI        = $resourceURi -f ""
                 Method     = "GET"
@@ -67,7 +46,7 @@
             $allLinkTypes = ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes
 
             if ($LinkType) {
-                Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType })
+                Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType.Name })
             }
             else {
                 Write-Output $allLinkTypes

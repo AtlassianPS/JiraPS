@@ -1,33 +1,18 @@
 ﻿function Remove-JiraIssueLink {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'Medium' )]
+    [CmdletBinding( SupportsShouldProcess, ConfirmImpact = 'Medium', DefaultParameterSetName = 'ByIssueLink' )]
     param(
-        [Parameter( Mandatory, ValueFromPipeline )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                $_input = $_
-                switch ($true) {
-                    { $_input -is [AtlassianPS.JiraPS.Issue] } { return $true }
-                    { $_input -is [AtlassianPS.JiraPS.IssueLink] } { return $true }
-                    default {
-                        $exception = ([System.ArgumentException]"Invalid Type for Parameter") #fix code highlighting]
-                        $errorId = 'ParameterType.NotJiraIssue'
-                        $errorCategory = 'InvalidArgument'
-                        $errorTarget = $_input
-                        $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                        $errorItem.ErrorDetails = "Wrong object type provided for Issue. Expected [AtlassianPS.JiraPS.Issue] or [AtlassianPS.JiraPS.IssueLink], but was $($_input.GetType().Name)"
-                        $PSCmdlet.ThrowTerminatingError($errorItem)
-                        <#
-                          #ToDo:CustomClass
-                          Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                        #>
-                    }
-                }
-            }
-        )]
-        [Object[]]
+        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByIssueLink' )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueLinkTransformation()]
+        [AtlassianPS.JiraPS.IssueLink[]]
         $IssueLink,
+
+        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByIssue' )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
+        [AtlassianPS.JiraPS.Issue[]]
+        $Issue,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -45,17 +30,27 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        # As we are not able to use proper type casting in the parameters, this is a workaround
-        # to extract the data from a AtlassianPS.JiraPS.Issue object
-        <#
-          #ToDo:CustomClass
-          Now that we have custom classes, this Resolve-* shim could be replaced by a parameter set that takes [AtlassianPS.JiraPS.<Type>] directly
-        #>
-        if ($IssueLink.issueLinks) {
-            $IssueLink = $IssueLink.issueLinks
+        $linksToRemove = switch ($PSCmdlet.ParameterSetName) {
+            'ByIssue' {
+                foreach ($currentIssue in $Issue) {
+                    $resolvedIssue = $currentIssue
+                    if (-not $resolvedIssue.IssueLinks) {
+                        $resolvedIssue = Resolve-JiraIssueObject -InputObject $currentIssue -Credential $Credential -ErrorAction Stop
+                    }
+
+                    foreach ($link in @($resolvedIssue.IssueLinks)) {
+                        if ($link) {
+                            $link
+                        }
+                    }
+                }
+            }
+            default {
+                $IssueLink
+            }
         }
 
-        foreach ($link in $IssueLink) {
+        foreach ($link in $linksToRemove) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$link]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$link [$link]"
 

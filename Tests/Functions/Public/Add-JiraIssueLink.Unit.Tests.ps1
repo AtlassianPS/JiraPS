@@ -66,16 +66,12 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Issue"; type = "Object[]" }
-                    @{ parameter = "IssueLink"; type = "Object[]" }
+                    @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
+                    @{ parameter = "IssueLink"; type = "AtlassianPS.JiraPS.IssueLinkCreateRequest[]" }
                     @{ parameter = "Comment"; type = "String" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
-                    $command | Should -HaveParameter $parameter
-
-                    #ToDo:CustomClass
-                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')`
-                    (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
+                    $command | Should -HaveParameter $parameter -Type $type
                 }
             }
 
@@ -103,6 +99,40 @@ InModuleScope JiraPS {
 
                 Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
+
+            It "maps loose object payloads to key-based request JSON" {
+                $linkPayload = [PSCustomObject]@{
+                    outwardIssue = [PSCustomObject]@{ key = "TEST-10" }
+                    type         = [PSCustomObject]@{ name = "Composition" }
+                }
+
+                Add-JiraIssueLink -Issue $issueKey -IssueLink $linkPayload
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $parsed = $Body | ConvertFrom-Json
+                    $parsed.type.name -eq "Composition" -and
+                    $parsed.outwardIssue.key -eq "TEST-10" -and
+                    -not $parsed.type.id -and
+                    -not $parsed.outwardIssue.id
+                }
+            }
+
+            It "maps id-based refs to id-based request JSON" {
+                $linkPayload = [PSCustomObject]@{
+                    outwardIssue = [PSCustomObject]@{ id = "10001" }
+                    type         = [PSCustomObject]@{ id = "10000" }
+                }
+
+                Add-JiraIssueLink -Issue $issueKey -IssueLink $linkPayload
+
+                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $parsed = $Body | ConvertFrom-Json
+                    $parsed.type.id -eq "10000" -and
+                    $parsed.outwardIssue.id -eq "10001" -and
+                    -not $parsed.type.name -and
+                    -not $parsed.outwardIssue.key
+                }
+            }
         }
 
         Describe "Input Validation" {
@@ -117,8 +147,28 @@ InModuleScope JiraPS {
                     $string = "invalid-object"
                     $incompleteObject = [PSCustomObject]@{ type = "foo" }
 
-                    { Add-JiraIssueLink -Issue $issueKey -IssueLink $string } | Should -Throw -ErrorId 'ParameterProperties.Incomplete,Add-JiraIssueLink'
+                    { Add-JiraIssueLink -Issue $issueKey -IssueLink $string -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Cannot convert a string to AtlassianPS.JiraPS.IssueLinkCreateRequest*"
                     { Add-JiraIssueLink -Issue $issueKey -IssueLink $incompleteObject } | Should -Throw -ErrorId 'ParameterProperties.Incomplete,Add-JiraIssueLink'
+                }
+
+                It "rejects malformed type objects in -IssueLink payload" {
+                    $invalidTypeObject = [PSCustomObject]@{
+                        outwardIssue = [PSCustomObject]@{ key = "TEST-10" }
+                        type         = [PSCustomObject]@{ foo = "bar" }
+                    }
+
+                    { Add-JiraIssueLink -Issue $issueKey -IssueLink $invalidTypeObject -ErrorAction Stop } |
+                        Should -Throw -ExpectedMessage "*IssueLinkCreateRequest property 'type' must include either a non-empty 'name' or 'id'.*"
+                }
+
+                It "rejects malformed inward/outward issue objects in -IssueLink payload" {
+                    $invalidIssueObject = [PSCustomObject]@{
+                        outwardIssue = [PSCustomObject]@{ foo = "bar" }
+                        type         = [PSCustomObject]@{ name = "Composition" }
+                    }
+
+                    { Add-JiraIssueLink -Issue $issueKey -IssueLink $invalidIssueObject -ErrorAction Stop } |
+                        Should -Throw -ExpectedMessage "*IssueLinkCreateRequest property 'outwardIssue' must include either a non-empty 'key' or 'id'.*"
                 }
             }
         }

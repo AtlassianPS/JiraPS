@@ -10,32 +10,9 @@
         $Issue,
 
         [Parameter( Mandatory )]
-        [ValidateScript({
-                $propertyNames = $_.PSObject.Properties.Name
-                if (
-                    ($propertyNames -contains "type") -and
-                    (
-                        ($propertyNames -contains "outwardIssue") -or
-                        ($propertyNames -contains "inwardIssue")
-                    )
-                ) {
-                    return $true
-                }
-                else {
-                    $exception = ([System.ArgumentException]"Invalid Parameter")
-                    $errorId = 'ParameterProperties.Incomplete'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "The IssueLink provided does not contain the information needed."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                    <#
-                      #ToDo:CustomClass
-                      Now that we have custom classes, this polymorphic ValidateScript could be split into a parameter set with [AtlassianPS.JiraPS.<Type>] strong typing
-                    #>
-                }
-            })]
-        [Object[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueLinkCreateRequestTransformation()]
+        [AtlassianPS.JiraPS.IssueLinkCreateRequest[]]
         $IssueLink,
 
         [String]
@@ -60,23 +37,81 @@
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential -ErrorAction Stop
 
-        foreach ($_issueLink in $IssueLink) {
-            if ($_issueLink.inwardIssue) {
-                $inwardIssue = @{ key = $_issueLink.inwardIssue.key }
+        foreach ($typedIssueLink in $IssueLink) {
+            if (-not $typedIssueLink.Type -or (-not $typedIssueLink.InwardIssue -and -not $typedIssueLink.OutwardIssue)) {
+                ThrowError `
+                    -ExceptionType "System.ArgumentException" `
+                    -Message "The IssueLink provided does not contain the information needed." `
+                    -ErrorId 'ParameterProperties.Incomplete' `
+                    -Category InvalidArgument `
+                    -TargetObject $typedIssueLink `
+                    -Cmdlet $PSCmdlet
+            }
+
+            if (-not $typedIssueLink.Type.Name -and -not $typedIssueLink.Type.Id) {
+                ThrowError `
+                    -ExceptionType "System.ArgumentException" `
+                    -Message "The IssueLink type must include either a Name or an Id." `
+                    -ErrorId 'ParameterProperties.Incomplete' `
+                    -Category InvalidArgument `
+                    -TargetObject $typedIssueLink `
+                    -Cmdlet $PSCmdlet
+            }
+
+            if ($typedIssueLink.InwardIssue -and (-not $typedIssueLink.InwardIssue.Key -and -not $typedIssueLink.InwardIssue.Id)) {
+                ThrowError `
+                    -ExceptionType "System.ArgumentException" `
+                    -Message "The inwardIssue reference must include either a Key or an Id." `
+                    -ErrorId 'ParameterProperties.Incomplete' `
+                    -Category InvalidArgument `
+                    -TargetObject $typedIssueLink `
+                    -Cmdlet $PSCmdlet
+            }
+
+            if ($typedIssueLink.OutwardIssue -and (-not $typedIssueLink.OutwardIssue.Key -and -not $typedIssueLink.OutwardIssue.Id)) {
+                ThrowError `
+                    -ExceptionType "System.ArgumentException" `
+                    -Message "The outwardIssue reference must include either a Key or an Id." `
+                    -ErrorId 'ParameterProperties.Incomplete' `
+                    -Category InvalidArgument `
+                    -TargetObject $typedIssueLink `
+                    -Cmdlet $PSCmdlet
+            }
+
+            if ($typedIssueLink.InwardIssue) {
+                if ($typedIssueLink.InwardIssue.Key) {
+                    $inwardIssue = @{ key = $typedIssueLink.InwardIssue.Key }
+                }
+                else {
+                    $inwardIssue = @{ id = $typedIssueLink.InwardIssue.Id }
+                }
             }
             else {
                 $inwardIssue = @{ key = $issueObj.key }
             }
 
-            if ($_issueLink.outwardIssue) {
-                $outwardIssue = @{ key = $_issueLink.outwardIssue.key }
+            if ($typedIssueLink.OutwardIssue) {
+                if ($typedIssueLink.OutwardIssue.Key) {
+                    $outwardIssue = @{ key = $typedIssueLink.OutwardIssue.Key }
+                }
+                else {
+                    $outwardIssue = @{ id = $typedIssueLink.OutwardIssue.Id }
+                }
             }
             else {
                 $outwardIssue = @{ key = $issueObj.key }
             }
 
+            $typePayload = @{}
+            if ($typedIssueLink.Type.Name) {
+                $typePayload.name = $typedIssueLink.Type.Name
+            }
+            if ($typedIssueLink.Type.Id) {
+                $typePayload.id = $typedIssueLink.Type.Id
+            }
+
             $body = @{
-                type         = @{ name = $_issueLink.type.name }
+                type         = $typePayload
                 inwardIssue  = $inwardIssue
                 outwardIssue = $outwardIssue
             }

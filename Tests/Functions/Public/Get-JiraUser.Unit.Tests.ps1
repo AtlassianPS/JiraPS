@@ -68,7 +68,17 @@ InModuleScope JiraPS {
 
             Mock ConvertTo-JiraUser -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraUser'
-                $InputObject
+                $user = [AtlassianPS.JiraPS.User]@{
+                    Name         = $InputObject.name
+                    AccountId    = $InputObject.accountId
+                    DisplayName  = $InputObject.displayName
+                    EmailAddress = $InputObject.emailAddress
+                    Active       = $InputObject.active
+                    RestUrl      = $InputObject.self
+                }
+                $user | Add-Member -NotePropertyName self -NotePropertyValue $InputObject.self -Force
+                $user | Add-Member -NotePropertyName groups -NotePropertyValue $InputObject.groups -Force
+                $user
             }
 
             # Return information of the current user
@@ -109,7 +119,15 @@ InModuleScope JiraPS {
 
         Describe "Signature" {
             Context "Parameter Types" {
-                # TODO: Add parameter type validation tests
+                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
+                    @{ parameter = 'InputObject'; type = 'AtlassianPS.JiraPS.User[]' }
+                    @{ parameter = 'UserName'; type = 'String[]' }
+                    @{ parameter = 'AccountId'; type = 'String[]' }
+                    @{ parameter = 'Credential'; type = 'PSCredential' }
+                ) {
+                    param($parameter, $type)
+                    (Get-Command -Name Get-JiraUser) | Should -HaveParameter $parameter -Type $type
+                }
             }
 
             Context "Mandatory Parameters" {}

@@ -257,8 +257,23 @@ namespace AtlassianPS.JiraPS
         protected virtual string[] LegacyTypeNames { get { return null; } }
 
         // Map properties from a legacy PSCustomObject to a new domain object.
-        // Only called when the PSObject's TypeNames contain one of LegacyTypeNames.
+        // Called when ShouldMapLegacyObject(...) returns true.
         protected virtual object MapLegacyObject(System.Management.Automation.PSObject pso) { return null; }
+
+        // Override for transformers that support property-shape detection in
+        // addition to (or instead of) PSTypeName matching.
+        protected virtual bool ShouldMapLegacyObject(System.Management.Automation.PSObject pso)
+        {
+            var legacyNames = LegacyTypeNames;
+            if (legacyNames == null || pso == null || pso.TypeNames == null) { return false; }
+
+            foreach (var tag in legacyNames)
+            {
+                if (pso.TypeNames.Contains(tag)) { return true; }
+            }
+
+            return false;
+        }
 
         public sealed override object Transform(System.Management.Automation.EngineIntrinsics engineIntrinsics, object inputData)
         {
@@ -293,16 +308,9 @@ namespace AtlassianPS.JiraPS
                 return FromString(text);
             }
 
-            var legacyNames = LegacyTypeNames;
-            if (legacyNames != null && pso != null && pso.TypeNames != null)
+            if (ShouldMapLegacyObject(pso))
             {
-                foreach (var tag in legacyNames)
-                {
-                    if (pso.TypeNames.Contains(tag))
-                    {
-                        return MapLegacyObject(pso);
-                    }
-                }
+                return MapLegacyObject(pso);
             }
 
             if (JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }

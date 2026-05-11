@@ -35,11 +35,25 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 # We don't care about the content of any field except for the id of the issuelinks
                 $issue = [AtlassianPS.JiraPS.Issue]@{
+                    Key        = 'TEST-01'
                     IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(
-                        [AtlassianPS.JiraPS.IssueLink]@{ Id = 1234 }
+                        [AtlassianPS.JiraPS.IssueLink]::new('1234')
                     )
                 }
                 return $issue
+            }
+
+            Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject'
+                if ($InputObject.Key -eq 'TEST-01') {
+                    return [AtlassianPS.JiraPS.Issue]@{
+                        Key        = 'TEST-01'
+                        IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(
+                            [AtlassianPS.JiraPS.IssueLink]::new('1234')
+                        )
+                    }
+                }
+                $InputObject
             }
 
             Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "/rest/api/*/issueLink/1234" } {
@@ -61,7 +75,8 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'IssueLink'; type = 'Object[]' }
+                    @{ parameter = 'IssueLink'; type = 'AtlassianPS.JiraPS.IssueLink[]' }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue[]' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
@@ -80,12 +95,18 @@ InModuleScope JiraPS {
                     $issueLink = Get-JiraIssueLink -Id 1234
                     $issue = Get-JiraIssue -Key TEST-01
                     { Remove-JiraIssueLink -IssueLink $issueLink } | Should -Not -Throw
-                    { Remove-JiraIssueLink -IssueLink $issue } | Should -Not -Throw
+                    { Remove-JiraIssueLink -Issue $issue } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 2
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.Issue object over the pipeline" {
                     { Get-JiraIssue -Key TEST-01 | Remove-JiraIssueLink } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                }
+
+                It "Resolves string stubs passed to -Issue" {
+                    { Remove-JiraIssueLink -Issue 'TEST-01' } | Should -Not -Throw
+                    Should -Invoke -CommandName Resolve-JiraIssueObject -Exactly -Times 1 -ParameterFilter { $InputObject.Key -eq 'TEST-01' }
                     Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
                 }
 
@@ -103,7 +124,7 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "Validates pipeline input" {
-                    { @{id = 1 } | Remove-JiraIssueLink -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Invalid Type*"
+                    { @{ id = 1 } | Remove-JiraIssueLink -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Cannot convert value of type*IssueLink*"
                 }
             }
         }

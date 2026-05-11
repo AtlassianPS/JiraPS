@@ -115,7 +115,16 @@
             $result = Invoke-JiraMethod @parameter
 
             if ($PassThru) {
-                Write-Output (Get-JiraUser -InputObject $result)
+                if ($userObj.AccountId -or $userObj.Name) {
+                    $refreshUser = [AtlassianPS.JiraPS.User]@{
+                        AccountId = $userObj.AccountId
+                        Name      = $userObj.Name
+                    }
+                    Write-Output (Resolve-JiraUser -InputObject $refreshUser -Exact -Credential $Credential -ErrorAction Stop)
+                }
+                else {
+                    Write-Output (ConvertTo-JiraUser -InputObject $result)
+                }
             }
         }
     }
