@@ -531,7 +531,65 @@ Most scripts can keep passing strings, while newer scripts can pass real `Atlass
 | User | `-User`, `-UserName`, `-Owner`, `-Assignee`, `-Reporter` | `[AtlassianPS.JiraPS.User]` | `AccountId` on Cloud, otherwise `Name` |
 | Group | `-Group` | `[AtlassianPS.JiraPS.Group]` | `Name` |
 
+Anything else throws an `ArgumentTransformationMetadataException` at parameter
+binding time with an actionable message, instead of failing later inside the
+cmdlet body with a generic `Cannot convert ...` error.
+
+#### Affected cmdlets
+
+`Add-JiraIssueAttachment`, `Add-JiraIssueComment`,
+`Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`, `Get-JiraIssue`
+(`-InputObject`), `Get-JiraIssueAttachment`, `Get-JiraIssueComment`,
+`Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraRemoteLink`,
+`Invoke-JiraIssueTransition`, `Remove-JiraIssue` (`-InputObject`),
+`Remove-JiraIssueAttachment`, `Remove-JiraIssueWatcher`,
+`Remove-JiraRemoteLink`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+#### `Add-JiraIssueLink` now uses explicit relationship endpoints
+
+`Add-JiraIssueLink` no longer accepts the historical single-issue anchor
+parameter `-Issue`.
+Each create request must now include both relationship endpoints
+(`inwardIssue` and `outwardIssue`) together with the link `type`.
+
+##### v2
+
+```powershell
+$issueLink = [PSCustomObject]@{
+    type         = @{ name = "Blocks" }
+    outwardIssue = @{ key = "TEST-10" }
+}
+Add-JiraIssueLink -Issue TEST-01 -IssueLink $issueLink
+```
+
+##### v3
+
+```powershell
+$issueLink = [PSCustomObject]@{
+    type         = @{ name = "Blocks" }
+    inwardIssue  = @{ key = "TEST-01" }
+    outwardIssue = @{ key = "TEST-10" }
+}
+Add-JiraIssueLink -IssueLink $issueLink
+```
+
+For a simpler authoring experience, use `New-JiraIssueLinkRequest`:
+
+```powershell
+$issueLink = New-JiraIssueLinkRequest -Type "Blocks" -FromIssue "TEST-01" -ToIssue "TEST-10"
+Add-JiraIssueLink -IssueLink $issueLink
+```
+
+#### Pipelines and arrays now iterate
+
+The "single Issue only" runtime guardrail was removed from cmdlets where
+pipeline iteration is the obviously-correct behaviour. The cmdlet's `process`
+block now runs once per piped (or array-bound) issue, matching the rest of
+PowerShell.
+
 #### One example per family
+
+##### v2
 
 ```powershell
 # Issue

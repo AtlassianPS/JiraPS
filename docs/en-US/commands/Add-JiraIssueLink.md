@@ -15,8 +15,8 @@ Adds a link between two Issues on Jira
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueLink [-Issue] <Issue> [-IssueLink] <IssueLinkCreateRequest[]> [[-Comment] <string>]
- [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Add-JiraIssueLink [-IssueLink] <IssueLinkCreateRequest[]> [[-Comment] <string>] [[-Credential] <pscredential>]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -29,13 +29,23 @@ Creates a new link of the specified type between two issues.
 
 ```powershell
 $_issueLink = [AtlassianPS.JiraPS.IssueLinkCreateRequest]@{
+    inwardIssue = [AtlassianPS.JiraPS.LinkedIssueRef]@{ key = "TEST-01" }
     outwardIssue = [AtlassianPS.JiraPS.LinkedIssueRef]@{ key = "TEST-10" }
     type = [AtlassianPS.JiraPS.IssueLinkTypeRef]@{ name = "Composition" }
 }
-Add-JiraIssueLink -Issue TEST-01 -IssueLink $_issueLink
+Add-JiraIssueLink -IssueLink $_issueLink
 ```
 
 Creates a link "is part of" between TEST-01 and TEST-10
+
+### EXAMPLE 2
+
+```powershell
+$_issueLink = New-JiraIssueLinkRequest -Type "Blocks" -FromIssue "TEST-01" -ToIssue "TEST-10"
+Add-JiraIssueLink -IssueLink $_issueLink
+```
+
+Creates a link using the helper cmdlet's simple `-Type` / `-FromIssue` / `-ToIssue` signature.
 
 ## PARAMETERS
 
@@ -50,7 +60,7 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 2
+  Position: 1
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -94,7 +104,7 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 3
+  Position: 2
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -104,36 +114,13 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Issue
-
-Issue which should be linked.
-
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
-
-```yaml
-Type: Issue
-DefaultValue: ''
-SupportsWildcards: false
-Aliases:
-- Key
-ParameterSets:
-- Name: (All)
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: true
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -IssueLink
 
 Issue Link to be created.
-Accepts `AtlassianPS.JiraPS.IssueLinkCreateRequest` values and compatible payload objects that include issue-link create fields (`type`, `inwardIssue`, `outwardIssue`).
+Accepts `AtlassianPS.JiraPS.IssueLinkCreateRequest` values and compatible payload objects that include `type`, `inwardIssue`, and `outwardIssue`.
 The nested `type` object must include `name` or `id`.
 The nested issue references must include `key` or `id`.
+Both `inwardIssue` and `outwardIssue` are required.
 
 ```yaml
 Type: IssueLinkCreateRequest[]
@@ -142,7 +129,7 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 1
+  Position: 0
   IsRequired: true
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -184,10 +171,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue
-
-The Jira issue that should be linked.
-
 ### AtlassianPS.JiraPS.IssueLinkCreateRequest
 
 The issue-link create request payload that should be used.
@@ -207,5 +190,7 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 [Get-JiraIssueLink](../Get-JiraIssueLink/)
 
 [Get-JiraIssueLinkType](../Get-JiraIssueLinkType/)
+
+[New-JiraIssueLinkRequest](../New-JiraIssueLinkRequest/)
 
 [Remove-JiraIssueLink](../Remove-JiraIssueLink/)
