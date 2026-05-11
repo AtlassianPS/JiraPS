@@ -3,7 +3,7 @@
 [CmdletBinding()]
 param()
 
-$psScriptAnalyzerSettingsUri = 'https://raw.githubusercontent.com/AtlassianPS/.github/master/standards/PSScriptAnalyzerSettings.psd1'
+$psScriptAnalyzerSettingsUri = 'https://raw.githubusercontent.com/AtlassianPS/.github/83e062b260346c4577d3b41974f0f8aafcc5e7e5/standards/PSScriptAnalyzerSettings.psd1'
 $psScriptAnalyzerSettingsSha256 = '89207270e49dd58895d146c7182e661c55c4092f3d3cdc280a4de26f407daa6e'
 $psScriptAnalyzerSettingsPath = Join-Path $PSScriptRoot '..' 'PSScriptAnalyzerSettings.psd1'
 
@@ -32,20 +32,27 @@ function Sync-PSScriptAnalyzerSetting {
             throw "Downloaded PSScriptAnalyzer settings hash mismatch. Expected '$psScriptAnalyzerSettingsSha256' but received '$downloadHash'."
         }
 
-        Move-Item -Path $tempPath -Destination $psScriptAnalyzerSettingsPath -Force
-    }
-    catch {
-        if (Test-Path -Path $tempPath) {
-            Remove-Item -Path $tempPath -Force -ErrorAction SilentlyContinue
-        }
-
-        if (Test-Path -Path $psScriptAnalyzerSettingsPath) {
-            Write-Warning "Unable to refresh PSScriptAnalyzer settings from pinned source. Using existing local file at '$psScriptAnalyzerSettingsPath'."
-            Write-Warning $_
+        if ($env:ATLASSIANPS_PSSA_UPDATE_LOCAL -ne '1') {
+            Write-Output "Pinned PSScriptAnalyzer settings validated."
             return
         }
 
-        throw
+        # Keep repo-consistent line endings while still pinning source payload hash.
+        $settingsContent = [System.IO.File]::ReadAllText($tempPath)
+        $settingsWithCrLf = $settingsContent -replace "`r?`n", "`r`n"
+        [System.IO.File]::WriteAllText(
+            $psScriptAnalyzerSettingsPath,
+            $settingsWithCrLf,
+            [System.Text.UTF8Encoding]::new($false)
+        )
+    }
+    catch {
+        throw "Unable to refresh pinned PSScriptAnalyzer settings from '$psScriptAnalyzerSettingsUri'. $($_.Exception.Message)"
+    }
+    finally {
+        if (Test-Path -Path $tempPath) {
+            Remove-Item -Path $tempPath -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
