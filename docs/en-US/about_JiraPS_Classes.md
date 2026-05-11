@@ -80,7 +80,7 @@ This lets v2-style scripts keep passing plain strings while v3 scripts can pass 
 
 Resolved objects returned by cmdlets are real class instances, so they work naturally with type checks and tab completion.
 `ToString()` returns the canonical identifier for user-friendly output in pipelines, logs, and interpolation.
-Identifier-based equality and comparisons deduplicate correctly (`-eq`, `Sort-Object -Unique`, hashtable keys) once the PR1 type-system changes are present in your installed v3 build.
+Identifier-based equality and comparisons deduplicate correctly (`-eq`, `Sort-Object -Unique`, hashtable keys) in JiraPS v3.
 
 When you need properties that are not modeled on a given class, query the relevant endpoint/cmdlet that surfaces that data and inspect the returned payload shape before building assumptions into script logic.
 In practice, prefer explicit property access for stable fields and avoid relying on display formatting as data.

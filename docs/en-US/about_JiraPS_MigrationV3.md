@@ -560,6 +560,21 @@ Get-JiraGroupMember -Group 'jira-users'
 - Pipelines now behave more naturally in the affected cmdlets because typed inputs are transformed before `process` executes.
 - `Get-JiraVersion` keeps parameter-set fallthrough behavior when pipeline input belongs to a competing parameter set (for example, project pipelines).
 
+#### Practical migration checks by family
+
+- Issue:
+  remove "single issue only" assumptions in scripts that now pipeline or array-bind multiple issues, and add explicit count guards if your script intentionally supports only one item.
+- Version:
+  stop comparing or passing missing date values as `''`, and use `$null` checks for `StartDate` and `ReleaseDate` instead.
+- Filter:
+  keep treating identifiers as filter IDs, and update any tests that asserted legacy `ValidateScript` wording to assert transformer errors instead.
+- Project:
+  prefer passing project keys or typed `Project` objects directly, and remove helper code that re-queries `Get-JiraProject` only to recover an ID before the real call.
+- User:
+  for Cloud and mixed Cloud/DC scripts, use `AccountId` as the stable identity key when persisting or deduplicating users.
+- Group:
+  update mocks and type checks from `JiraPS.Group` to `AtlassianPS.JiraPS.Group`, and use the new typed object checks in tests.
+
 #### Hashtable cast still works
 
 The v2-style hashtable cast remains supported for all six identifier-driven classes because each class still exposes a parameterless constructor.
