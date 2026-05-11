@@ -43,6 +43,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | PSTypeName rename            | Eight core types moved from `JiraPS.<Type>` to `AtlassianPS.JiraPS.<Type>`. |
 | Class slot type tightening   | Boolean / numeric slots on `Filter` and `Version` are now strongly typed; missing flags surface as `$false` instead of `$null`. |
 | `Version.StartDate` / `Version.ReleaseDate` | Empty-string sentinel for missing dates dropped; the slots are now `[DateTime?]` and `$null` when absent. |
+| Identifier equality on core classes | `Issue`, `User`, `Project`, `Group`, `Filter`, and `Version` now compare by canonical identifier instead of object reference. |
 | Issue-scoped cmdlets         | `-Issue` (and `-InputObject` on `Get-JiraIssue` / `Remove-JiraIssue`) is now `[AtlassianPS.JiraPS.Issue]` with a custom transformer; arrays / pipelines iterate the `process` block per item instead of throwing. |
 | User-scoped cmdlets          | `-User` / `-UserName` / `-Owner` on `Set-JiraUser`, `Remove-JiraUser`, `Add-JiraGroupMember`, `Remove-JiraGroupMember`, and `Find-JiraFilter` are now strongly-typed `[AtlassianPS.JiraPS.User]` / `[AtlassianPS.JiraPS.User[]]` with a custom transformer. |
 | Group promoted to .NET class | `Group` joins the eight original `AtlassianPS.JiraPS.*` types. `ConvertTo-JiraGroup` returns `[AtlassianPS.JiraPS.Group]`; `PSObject.TypeNames[0]` is `AtlassianPS.JiraPS.Group` (was `JiraPS.Group`). |
@@ -513,484 +514,97 @@ if ($v.StartDate)          { $v.StartDate.AddDays(7) } # works on both v2 and v3
 
 Equality comparisons against `''` are the only thing that needs updating.
 
-### Strongly-typed `-Issue` parameter on issue-scoped cmdlets
+### Strongly-typed object parameters
 
-In v2, every cmdlet that took a `-Issue` parameter declared it as `[Object]`
-with a `[ValidateScript]` block that hand-rolled the "is this a string or a
-`JiraPS.Issue` `PSCustomObject`?" check. After binding succeeded, each cmdlet
-also asserted `if (@($Issue).Count -ne 1) { throw }` to refuse arrays.
+JiraPS v3 replaces the old `[Object]` + `ValidateScript` parameter pattern with typed class parameters and transformation attributes.
+In practice, this means each cmdlet family now accepts the same input shapes, but conversion happens centrally at parameter binding time, with clearer errors and less cmdlet-specific adapter code.
+Most scripts can keep passing strings, while newer scripts can pass real `AtlassianPS.JiraPS.*` instances directly.
 
-In v3 the parameter is declared `[AtlassianPS.JiraPS.Issue]` and decorated with
-the new `[AtlassianPS.JiraPS.IssueTransformation()]` attribute. The transformer
-runs at parameter binding time and accepts:
+#### Cmdlet family summary
 
-- An existing `[AtlassianPS.JiraPS.Issue]` instance (returned as-is).
-- A non-empty issue-key string — wrapped in a stub `Issue` whose `Key` is set;
-  the cmdlet's own `Resolve-JiraIssueObject` call then performs the GET as
-  before.
-- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Issue`
-  `PSTypeName` — its scalar slots are mapped to a real `Issue` instance so
-  hand-rolled v2 mocks keep working without changes.
+| Family | Representative parameters | v3 class | Canonical identifier slot |
+| ------ | ------------------------- | -------- | ------------------------- |
+| Issue | `-Issue`, `-InputObject` | `[AtlassianPS.JiraPS.Issue]` | `Key` |
+| Version | `-Version`, `-After`, `-InputVersion`, `-InputObject` | `[AtlassianPS.JiraPS.Version]` | `ID` (fallback `Name`) |
+| Filter | `-Filter`, `-InputObject` | `[AtlassianPS.JiraPS.Filter]` | `ID` |
+| Project | `-Project` | `[AtlassianPS.JiraPS.Project]` | `Key` (or `ID`) |
+| User | `-User`, `-UserName`, `-Owner`, `-Assignee`, `-Reporter` | `[AtlassianPS.JiraPS.User]` | `AccountId` on Cloud, otherwise `Name` |
+| Group | `-Group` | `[AtlassianPS.JiraPS.Group]` | `Name` |
 
-Anything else throws an `ArgumentTransformationMetadataException` at parameter
-binding time with an actionable message, instead of failing later inside the
-cmdlet body with a generic `Cannot convert ...` error.
-
-#### Affected cmdlets
-
-`Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueLink`,
-`Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`, `Get-JiraIssue`
-(`-InputObject`), `Get-JiraIssueAttachment`, `Get-JiraIssueComment`,
-`Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraRemoteLink`,
-`Invoke-JiraIssueTransition`, `Remove-JiraIssue` (`-InputObject`),
-`Remove-JiraIssueAttachment`, `Remove-JiraIssueWatcher`,
-`Remove-JiraRemoteLink`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
-
-#### Pipelines and arrays now iterate
-
-The "single Issue only" runtime guardrail was removed from cmdlets where
-pipeline iteration is the obviously-correct behaviour. The cmdlet's `process`
-block now runs once per piped (or array-bound) issue, matching the rest of
-PowerShell.
-
-##### v2
+#### One example per family
 
 ```powershell
-# Pipeline iteration: throws "Only one issue at a time"
-Get-JiraIssue -Query 'project = TEST' | Add-JiraIssueComment -Comment 'reviewed'
+# Issue
+Add-JiraIssueComment -Issue 'TEST-1' -Comment 'reviewed'
 
-# Array bind: same throw
-Add-JiraIssueComment -Issue @($issueA, $issueB) -Comment 'reviewed'
+# Version
+Set-JiraVersion -Version 10200 -Released
+
+# Filter
+Get-JiraIssue -Filter 12345
+
+# Project
+Get-JiraComponent -Project 'TEST'
+
+# User
+Set-JiraIssue -Issue 'TEST-1' -Assignee 'alice'
+
+# Group
+Get-JiraGroupMember -Group 'jira-users'
 ```
 
-##### v3
+#### Shared behavior changes
+
+- Binding failures now happen in one place with consistent messages (for example, empty or whitespace-only strings now fail during transformation).
+- Cmdlet bodies no longer need per-parameter adapter loops to coerce strings, IDs, and legacy objects.
+- Pipelines now behave more naturally in the affected cmdlets because typed inputs are transformed before `process` executes.
+- `Get-JiraVersion` keeps parameter-set fallthrough behavior when pipeline input belongs to a competing parameter set (for example, project pipelines).
+
+#### Practical migration checks by family
+
+- Issue:
+  remove "single issue only" assumptions in scripts that now pipeline or array-bind multiple issues, and add explicit count guards if your script intentionally supports only one item.
+- Version:
+  stop comparing or passing missing date values as `''`, and use `$null` checks for `StartDate` and `ReleaseDate` instead.
+- Filter:
+  keep treating identifiers as filter IDs, and update any tests that asserted legacy `ValidateScript` wording to assert transformer errors instead.
+- Project:
+  prefer passing project keys or typed `Project` objects directly, and remove helper code that re-queries `Get-JiraProject` only to recover an ID before the real call.
+- User:
+  for Cloud and mixed Cloud/DC scripts, use `AccountId` as the stable identity key when persisting or deduplicating users.
+- Group:
+  update mocks and type checks from `JiraPS.Group` to `AtlassianPS.JiraPS.Group`, and use the new typed object checks in tests.
+
+#### Hashtable cast still works
+
+The v2-style hashtable cast remains supported for all six identifier-driven classes because each class still exposes a parameterless constructor.
+That keeps mock/test setup and explicit property construction viable in v3:
 
 ```powershell
-# Pipeline iteration: comments each issue once
-Get-JiraIssue -Query 'project = TEST' | Add-JiraIssueComment -Comment 'reviewed'
-
-# Array bind: comments each issue once
-Add-JiraIssueComment -Issue @($issueA, $issueB) -Comment 'reviewed'
+[AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }
+[AtlassianPS.JiraPS.Version]@{ ID = 10200 }
+[AtlassianPS.JiraPS.Filter]@{ ID = 12345 }
+[AtlassianPS.JiraPS.Project]@{ Key = 'TEST' }
+[AtlassianPS.JiraPS.User]@{ Name = 'alice' }
+[AtlassianPS.JiraPS.Group]@{ Name = 'jira-users' }
 ```
-
-If your script previously *relied* on the old guardrail to surface "you passed
-too many issues" mistakes, replace it with an explicit check before the call:
-
-```powershell
-if (@($Issue).Count -gt 1) {
-    throw "This script only supports one issue at a time"
-}
-Add-JiraIssueComment -Issue $Issue -Comment 'reviewed'
-```
-
-#### `Remove-JiraIssueAttachment` pipeline binding
-
-`-Issue` on `Remove-JiraIssueAttachment` no longer accepts `ValueFromPipeline`
-(it still accepts `ValueFromPipelineByPropertyName`). This lets the obvious
-pipeline shape work for the first time:
-
-```powershell
-# v3 — binds the attachment's Id to -AttachmentId via property name
-Get-JiraIssueAttachment -Issue TEST-1 | Remove-JiraIssueAttachment
-```
-
-In v2 the same call mis-bound the attachment object to `-Issue` and surfaced a
-type-conversion error.
-
-### Strongly-typed `-User` parameter on user-scoped cmdlets
-
-The public cmdlets that previously accepted `-User` / `-UserName` / `-Owner` /
-`-Assignee` / `-Reporter` as `[Object]` (or `[String]`) with a polymorphic
-`[ValidateScript]` block now declare a real typed parameter and use the new
-`[AtlassianPS.JiraPS.UserTransformation()]` attribute to coerce the bound value
-at parameter binding time:
-
-| Cmdlet                       | Parameter   | v2 declaration                | v3 declaration                |
-| ---------------------------- | ----------- | ----------------------------- | ----------------------------- |
-| `Add-JiraGroupMember`        | `-UserName` | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.User[]]` |
-| `Find-JiraFilter`            | `-Owner`    | `[Object]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
-| `Invoke-JiraIssueTransition` | `-Assignee` | `[Object]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
-| `New-JiraIssue`              | `-Assignee` | `[Object]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
-| `New-JiraIssue`              | `-Reporter` | `[String]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
-| `Remove-JiraGroupMember`     | `-User`     | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.User[]]` |
-| `Remove-JiraUser`            | `-User`     | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.User]`   |
-| `Set-JiraIssue`              | `-Assignee` | `[Object]`  + ValidateScript  | `[AtlassianPS.JiraPS.User]`   |
-| `Set-JiraUser`               | `-User`     | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.User]`   |
-
-The transformer accepts:
-
-- An existing `[AtlassianPS.JiraPS.User]` instance (returned as-is).
-- A non-empty identifier string — wrapped in a stub `User` whose `Name` slot
-  holds the raw identifier; `Resolve-JiraUser` inspects it at call time and
-  dispatches to `/accountId` or `/username` based on the detected platform
-  (Cloud vs Data Center).
-- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.User`
-  `PSTypeName` — its scalar slots are mapped to a real `User` instance so
-  hand-rolled v2 mocks keep working without changes.
-
-Anything else throws an `ArgumentTransformationMetadataException` at parameter
-binding time with an actionable message.
-
-#### Pipeline iteration replaces internal fan-out
-
-`Set-JiraUser` and `Remove-JiraUser` previously had an internal
-`foreach ($_user in $User) { ... }` loop. With a single typed `[User]`
-parameter and `ValueFromPipeline`, PowerShell already iterates the `process`
-block once per piped item, so the inner loop is gone:
-
-##### v2 / v3 — both behave identically
-
-```powershell
-Get-JiraGroupMember -Group dev | Remove-JiraUser -Force
-'alice', 'bob' | Set-JiraUser -DisplayName 'New Name'
-```
-
-`Remove-JiraGroupMember` keeps the `-User` array fan-out because each user has
-to be paired against every `-Group` in the cross-product:
-
-```powershell
-Remove-JiraGroupMember -Group 'dev', 'qa' -User 'alice', 'bob' -Force
-```
-
-#### `Find-JiraFilter -Owner` resolution
-
-`Find-JiraFilter -Owner` now resolves the user through `Resolve-JiraUser`
-(which handles the Cloud-vs-DC `accountId`/`username` dispatch consistently)
-instead of calling `Get-JiraUser -InputObject` directly. The public surface
-is unchanged for callers; the only observable difference is that an unknown
-owner is now rejected with the standard `Resolve-JiraUser` error message.
-
-#### Whitespace error message on issue-scoped `-Assignee` / `-Reporter`
-
-`Set-JiraIssue -Assignee`, `Invoke-JiraIssueTransition -Assignee`, and
-`New-JiraIssue -Assignee`/`-Reporter` previously rejected empty-or-whitespace
-strings with cmdlet-specific `ValidateScript` messages such as
-*"The -Assignee value cannot be a whitespace-only string. Use -Unassign…"*.
-The contract is unchanged — empty/whitespace strings still fail at parameter
-binding — but the wording now comes from the shared transformer:
-
-```
-Cannot bind an empty or whitespace string to a User parameter.
-```
-
-Scripts that asserted on the old wording (e.g.
-`Should -Throw -ExpectedMessage '*whitespace-only string*'`) need to be
-relaxed to `*empty or whitespace*`.
-
-### Strongly-typed `-Group` parameter on group-scoped cmdlets
-
-`Group` joined the `AtlassianPS.JiraPS.*` namespace as a real .NET class,
-exposing `Name [string]`, `RestUrl [string]`, `Size [int]`, and
-`Member [AtlassianPS.JiraPS.User[]]`. `ConvertTo-JiraGroup` now returns
-`[AtlassianPS.JiraPS.Group]` instances directly, so:
-
-- `GetType().FullName` is `AtlassianPS.JiraPS.Group` (was `System.Management.Automation.PSCustomObject`).
-- `PSObject.TypeNames[0]` is `AtlassianPS.JiraPS.Group` (was `JiraPS.Group`).
-- The format-data engine still picks up the type because the `.format.ps1xml`
-  selector was updated alongside the rename.
-
-The four group-scoped public cmdlets that previously declared `-Group` as
-`[Object[]]` with a polymorphic `[ValidateScript]` block now use the new
-`[AtlassianPS.JiraPS.GroupTransformation()]` attribute against a real typed
-parameter:
-
-| Cmdlet                   | v2 declaration                | v3 declaration                  |
-| ------------------------ | ----------------------------- | ------------------------------- |
-| `Add-JiraGroupMember`    | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.Group[]]`  |
-| `Get-JiraGroupMember`    | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.Group[]]`  |
-| `Remove-JiraGroup`       | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.Group[]]`  |
-| `Remove-JiraGroupMember` | `[Object[]]` + ValidateScript | `[AtlassianPS.JiraPS.Group[]]`  |
-
-The transformer accepts:
-
-- An existing `[AtlassianPS.JiraPS.Group]` instance (returned as-is).
-- A non-empty group-name string — wrapped in a stub `Group` whose `Name` slot
-  holds the raw identifier.
-- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Group`
-  `PSTypeName` (or, for backward compatibility with hand-rolled v2 mocks, the
-  historical `JiraPS.Group` `PSTypeName`) — its scalar slots are mapped to a
-  real `Group` instance.
-
-Anything else throws an `ArgumentTransformationMetadataException` at parameter
-binding time. Empty or whitespace-only strings, which previously slipped
-through `ValidateScript` and produced opaque server errors, now fail at
-binding with:
-
-```
-Cannot bind an empty or whitespace string to a Group parameter.
-```
-
-#### Updating mocks and TypeName checks
-
-```powershell
-# v2
-[PSCustomObject]@{ PSTypeName = 'JiraPS.Group'; Name = 'dev' }
-if ('JiraPS.Group' -in $g.PSObject.TypeNames) { ... }
-
-# v3
-[AtlassianPS.JiraPS.Group]@{ Name = 'dev' }
-if ($g -is [AtlassianPS.JiraPS.Group]) { ... }
-# (or the equivalent `'AtlassianPS.JiraPS.Group' -in $g.PSObject.TypeNames`)
-```
-
-### Strongly-typed `-Version` parameter on version-scoped cmdlets
-
-The five version-scoped public cmdlets that previously declared `-Version` /
-`-After` / `-InputObject` / `-InputVersion` as `[Object]` (or `[Object[]]`) with
-a polymorphic `[ValidateScript]` block (accepting an `AtlassianPS.JiraPS.Version`
-`PSTypeName`, an `[Int]` ID, or a `[String]` Version name) now declare a real
-typed parameter and use the new `[AtlassianPS.JiraPS.VersionTransformation()]`
-attribute against it:
-
-| Cmdlet              | Parameter      | v2 declaration                  | v3 declaration                    |
-| ------------------- | -------------- | ------------------------------- | --------------------------------- |
-| `Get-JiraVersion`   | `-InputVersion`| `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Version]`    |
-| `Move-JiraVersion`  | `-Version`     | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Version]`    |
-| `Move-JiraVersion`  | `-After`       | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Version]`    |
-| `New-JiraVersion`   | `-InputObject` | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Version]`    |
-| `Remove-JiraVersion`| `-Version`     | `[Object[]]` + ValidateScript   | `[AtlassianPS.JiraPS.Version[]]`  |
-| `Set-JiraVersion`   | `-Version`     | `[Object[]]` + ValidateScript   | `[AtlassianPS.JiraPS.Version[]]`  |
-
-The transformer accepts:
-
-- An existing `[AtlassianPS.JiraPS.Version]` instance (returned as-is).
-- A numeric scalar (any integer width — Jira version IDs are integral) — wrapped
-  in a stub `Version` whose `ID` is set; the cmdlet's body uses the ID directly.
-- A non-empty string — parsed as a version ID when it looks numeric, otherwise
-  stored in `Name` for the `New-JiraVersion -InputObject 'My Version'` shape
-  that fell out of the previous `[Object]` parameter.
-- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Version`
-  `PSTypeName` (or the historical `JiraPS.Version` for hand-rolled v2 mocks) —
-  its scalar slots are mapped to a real `Version` instance.
-
-Empty or whitespace-only strings now fail at parameter binding with:
-
-```
-Cannot bind an empty or whitespace string to a Version parameter.
-```
-
-#### Parameter-set fallthrough on `Get-JiraVersion`
-
-Unlike the Issue / User / Group transformers, `VersionTransformation` returns
-the input unchanged (rather than throwing) when the value is not one of the
-recognized shapes. `Get-JiraVersion` has sister `ValueFromPipeline` parameter
-sets — notably `-InputProject [PSTypeName('AtlassianPS.JiraPS.Project')]` — and
-a hard transformer throw would block PowerShell's parameter-set fallthrough.
-Returning the value untouched lets the binder reject it cleanly and try the next
-set, preserving the well-known `Get-JiraProject ... | Get-JiraVersion` pipeline.
-
-#### Internal adapter blocks removed
-
-The adapter pattern that every Version-mutating cmdlet used to massage `[Object]`
-input into an ID is gone:
-
-##### v2
-
-```powershell
-foreach ($_version in $Version) {
-    if ($_version.Id) { $versionId = $_version.Id }
-    else              { $versionId = $_version }
-    # …call Invoke-JiraMethod with $versionId…
-}
-```
-
-##### v3
-
-```powershell
-foreach ($_version in $Version) {
-    # $_version is always a real [AtlassianPS.JiraPS.Version]
-    Invoke-JiraMethod -URI ".../version/$($_version.Id)" …
-}
-```
-
-Scripts that already passed `Get-JiraVersion … | Set-JiraVersion …`-style
-pipelines or real `[AtlassianPS.JiraPS.Version]` objects need no changes.
-
-#### `New-JiraVersion -InputObject` body fixes
-
-The transformer move uncovered two bugs in `New-JiraVersion -InputObject` that
-were masked by the `[Object]` parameter:
-
-- The request body now skips `releaseDate` / `startDate` when the slot is
-  `$null` instead of calling `.ToString('yyyy-MM-dd')` on a `$null` and emitting
-  a malformed payload.
-- The project ID is read from the new strongly-typed `Version.Project [long?]`
-  slot instead of the legacy `Project.Key`/`Project.Id` PSObject lookup.
-
-### Strongly-typed `-Filter` / `-InputObject` parameter on filter-scoped cmdlets
-
-The two filter-scoped public cmdlets that previously declared `-InputObject` /
-`-Filter` as `[Object]`/`[Object[]]` with a polymorphic `[ValidateScript]` block
-(accepting an `AtlassianPS.JiraPS.Filter` `PSTypeName` or a `[String]` filter
-ID) now declare a real typed parameter and use the new
-`[AtlassianPS.JiraPS.FilterTransformation()]` attribute against it:
-
-| Cmdlet            | Parameter      | v2 declaration                  | v3 declaration                    |
-| ----------------- | -------------- | ------------------------------- | --------------------------------- |
-| `Get-JiraFilter`  | `-InputObject` | `[Object[]]` + ValidateScript   | `[AtlassianPS.JiraPS.Filter[]]`   |
-| `Get-JiraIssue`   | `-Filter`      | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Filter]`     |
-
-The transformer accepts:
-
-- An existing `[AtlassianPS.JiraPS.Filter]` instance (returned as-is).
-- A numeric scalar (any integer width — Jira filter IDs are integral) — wrapped
-  in a stub `Filter` whose `ID` is set.
-- A non-empty string — treated as a filter ID, matching the historic
-  `Get-JiraFilter -InputObject [String]` shape that always called `.ToString()`
-  on the value and forwarded it to `-Id`.
-- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Filter`
-  `PSTypeName` (or the historical `JiraPS.Filter` for hand-rolled v2 mocks).
-
-Empty or whitespace-only strings now fail at parameter binding with:
-
-```
-Cannot bind an empty or whitespace string to a Filter parameter.
-```
-
-#### Adapter blocks removed
-
-`Get-JiraFilter`'s body used to massage `[Object]` input into an ID:
-
-##### v2
-
-```powershell
-foreach ($object in $InputObject) {
-    if ('AtlassianPS.JiraPS.Filter' -in $object.PSObject.TypeNames) {
-        $thisId = $object.ID
-    }
-    else {
-        $thisId = $object.ToString()
-    }
-    Get-JiraFilter -Id $thisId
-}
-```
-
-##### v3
-
-```powershell
-foreach ($object in $InputObject) {
-    # $object is always a real [AtlassianPS.JiraPS.Filter]
-    Get-JiraFilter -Id $object.ID
-}
-```
-
-`Get-JiraIssue -Filter` no longer round-trips through `Get-JiraFilter
--InputObject` either; it calls `Get-JiraFilter -Id $Filter.ID` directly,
-removing one layer of indirection.
-
-### Strongly-typed `-Project` parameter on project-scoped cmdlets
-
-The four project-scoped public cmdlets that previously declared `-Project` as
-`[Object]`/`[Object[]]` with a polymorphic `[ValidateScript]` block (accepting
-an `AtlassianPS.JiraPS.Project` `PSTypeName`, an `[Int]` ID, or a `[String]`
-key) now declare a real typed parameter and use the new
-`[AtlassianPS.JiraPS.ProjectTransformation()]` attribute against it:
-
-| Cmdlet            | Parameter   | v2 declaration                  | v3 declaration                    |
-| ----------------- | ----------- | ------------------------------- | --------------------------------- |
-| `Get-JiraComponent` | `-Project` | `[Object[]]` + ValidateScript   | `[AtlassianPS.JiraPS.Project[]]`  |
-| `Find-JiraFilter`   | `-Project` | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Project]`    |
-| `New-JiraVersion`   | `-Project` | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Project]`    |
-| `Set-JiraVersion`   | `-Project` | `[Object]`   + ValidateScript   | `[AtlassianPS.JiraPS.Project]`    |
-
-The transformer accepts:
-
-- An existing `[AtlassianPS.JiraPS.Project]` instance (returned as-is).
-- A numeric scalar (any integer width — Jira project IDs are integral on the
-  wire) — wrapped in a stub `Project` whose `ID` is set.
-- A non-empty string — treated as a project key, matching the historic call-
-  site contract that forwarded the raw value to `Get-JiraProject -Project` or
-  to `/project/{idOrKey}` URLs (project keys are uppercase letters; numeric IDs
-  go through the integer overload above).
-- A legacy `PSCustomObject` decorated with the `AtlassianPS.JiraPS.Project`
-  `PSTypeName` (or the historical `JiraPS.Project` for hand-rolled v2 mocks).
-
-Empty or whitespace-only strings now fail at parameter binding with:
-
-```
-Cannot bind an empty or whitespace string to a Project parameter.
-```
-
-#### Adapter blocks removed
-
-`Find-JiraFilter`, `New-JiraVersion`, and `Set-JiraVersion` used to massage
-`[Object]` input into a project ID by re-querying the server:
-
-##### v2
-
-```powershell
-if ($Project.Id) {
-    $projectId = $Project.Id
-}
-else {
-    $projectObj = Get-JiraProject -Project $Project
-    $projectId  = $projectObj.Id
-}
-$requestBody["projectId"] = $projectId
-```
-
-##### v3
-
-```powershell
-# $Project is always a real [AtlassianPS.JiraPS.Project]
-if ($Project.Id) {
-    $requestBody["projectId"] = $Project.Id
-}
-elseif ($Project.Key) {
-    # Cloud v3 / DC v2 create endpoints accept the key under "project"
-    $requestBody["project"] = $Project.Key
-}
-```
-
-`Get-JiraComponent -Project` reads `$_project.Key` (or `$_project.ID` when only
-an ID was bound) and inlines it into the `/project/{idOrKey}/components` URL —
-no separate `Get-JiraProject` round-trip.
 
 ### Convenience constructors on the `AtlassianPS.JiraPS.*` classes
 
-The six identifier-driven classes — `Issue`, `User`, `Project`, `Group`,
-`Filter`, and `Version` — each ship a single string-arg constructor that
-covers the recurring "build a stub from one identifier" case. The routing
-mirrors the matching `*TransformationAttribute` so that a value built via
-`::new()` and a value bound via `-Parameter <string>` produce the exact
-same stub:
+For the common "single identifier" case, v3 also adds string constructors to the same six classes.
+They map directly to the same identifier slots used by the transformers:
 
-| Constructor                                  | Stores into                                           |
-| -------------------------------------------- | ----------------------------------------------------- |
-| `[AtlassianPS.JiraPS.Issue]::new(string)`    | `Key`                                                 |
-| `[AtlassianPS.JiraPS.User]::new(string)`     | `Name` (Resolve-JiraUser routes by shape at call time)|
-| `[AtlassianPS.JiraPS.Project]::new(string)`  | `Key`                                                 |
-| `[AtlassianPS.JiraPS.Group]::new(string)`    | `Name`                                                |
-| `[AtlassianPS.JiraPS.Filter]::new(string)`   | `ID`                                                  |
-| `[AtlassianPS.JiraPS.Version]::new(string)`  | `ID` if the input parses as an integer, else `Name`   |
+| Constructor | Stores into |
+| ----------- | ----------- |
+| `[AtlassianPS.JiraPS.Issue]::new(string)` | `Key` |
+| `[AtlassianPS.JiraPS.Version]::new(string)` | `ID` when numeric, otherwise `Name` |
+| `[AtlassianPS.JiraPS.Filter]::new(string)` | `ID` |
+| `[AtlassianPS.JiraPS.Project]::new(string)` | `Key` |
+| `[AtlassianPS.JiraPS.User]::new(string)` | `Name` |
+| `[AtlassianPS.JiraPS.Group]::new(string)` | `Name` |
 
-Null, empty, or whitespace-only input throws `ArgumentException`.
-
-#### v2 — hashtable cast
-
-The hashtable cast still works in v3 (we keep an explicit parameterless
-ctor on every class for exactly this reason), but it is verbose for the
-common single-identifier case and does not surface in IntelliSense:
-
-```powershell
-'TEST-1','TEST-2','TEST-3' |
-    ForEach-Object { [AtlassianPS.JiraPS.Issue]@{ Key = $_ } } |
-    Add-JiraIssueComment -Comment 'reviewed'
-```
-
-#### v3 — convenience ctor
-
-```powershell
-'TEST-1','TEST-2','TEST-3' |
-    ForEach-Object { [AtlassianPS.JiraPS.Issue]::new($_) } |
-    Add-JiraIssueComment -Comment 'reviewed'
-```
-
-`Comment`, `Session`, and `ServerInfo` are intentionally not extended with
-string-arg ctors — they are never stub-constructed by user scripts in
-practice and a string-arg ctor would suggest a contract (e.g., "comment
-body string") that does not match the multi-field, server-populated shape
-of the type.
+Use the constructor when you only need one identifier, and use hashtable casts when you need to set multiple properties up front.
+For broader v3 usage guidance around these classes, see [about_JiraPS_Classes](classes.html).
 
 ### Minimum PowerShell Version
 
@@ -1032,6 +646,7 @@ Get-ChildItem -Recurse -Filter *.ps1 |
 - [New-JiraIssue](../commands/New-JiraIssue/)
 - [Get-JiraIssue](../commands/Get-JiraIssue/)
 - [Get-JiraGroupMember](../commands/Get-JiraGroupMember/)
+- [about_JiraPS_Classes](classes.html)
 - [CHANGELOG](https://github.com/AtlassianPS/JiraPS/blob/master/CHANGELOG.md)
 
 # KEYWORDS
