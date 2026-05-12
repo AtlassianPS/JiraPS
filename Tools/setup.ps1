@@ -25,18 +25,14 @@ function Sync-PSScriptAnalyzerSetting {
         $response = Invoke-WebRequest @invokeWebRequestParams
         $settingsContent = $response.Content
 
-        if ($env:ATLASSIANPS_PSSA_UPDATE_LOCAL -ne '1') {
-            Write-Output "Pinned PSScriptAnalyzer settings download succeeded."
-            return
-        }
-
-        # Keep repo-consistent line endings while still pinning source payload hash.
+        # Persist the pinned settings locally so build/lint always use the exact same config.
         $settingsWithCrLf = $settingsContent -replace "`r?`n", "`r`n"
         [System.IO.File]::WriteAllText(
             $psScriptAnalyzerSettingsPath,
             $settingsWithCrLf,
             [System.Text.UTF8Encoding]::new($false)
         )
+        Write-Output "Pinned PSScriptAnalyzer settings synchronized to '$psScriptAnalyzerSettingsPath'."
     }
     catch {
         throw "Unable to download pinned PSScriptAnalyzer settings from '$psScriptAnalyzerSettingsUri'. $($_.Exception.Message)"
