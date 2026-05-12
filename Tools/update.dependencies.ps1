@@ -35,14 +35,11 @@ function Update-PinnedPSScriptAnalyzerSettingsUri {
         $response = Invoke-RestMethod -Uri $commitApiUri -Method Get -ErrorAction Stop
     }
     catch {
-        Write-Warning "Unable to query latest commit for shared PSScriptAnalyzer settings."
-        Write-Warning $_
-        return
+        throw "Unable to query latest commit for shared PSScriptAnalyzer settings. $($_.Exception.Message)"
     }
 
     if (-not $response -or -not $response[0] -or -not $response[0].sha) {
-        Write-Warning "No commit data returned for shared PSScriptAnalyzer settings; skipping setup.ps1 pin update."
-        return
+        throw "No commit data returned for shared PSScriptAnalyzer settings."
     }
 
     $latestCommit = $response[0].sha

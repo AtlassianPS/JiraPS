@@ -39,8 +39,7 @@ function Sync-PSScriptAnalyzerSetting {
         )
     }
     catch {
-        Write-Warning "Unable to download pinned PSScriptAnalyzer settings from '$psScriptAnalyzerSettingsUri'. Continuing with local settings."
-        Write-Warning $_
+        throw "Unable to download pinned PSScriptAnalyzer settings from '$psScriptAnalyzerSettingsUri'. $($_.Exception.Message)"
     }
 }
 
