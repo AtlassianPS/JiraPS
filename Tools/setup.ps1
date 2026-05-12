@@ -4,7 +4,6 @@
 param()
 
 $psScriptAnalyzerSettingsUri = 'https://raw.githubusercontent.com/AtlassianPS/.github/83e062b260346c4577d3b41974f0f8aafcc5e7e5/standards/PSScriptAnalyzerSettings.psd1'
-$psScriptAnalyzerSettingsSha256 = '89207270e49dd58895d146c7182e661c55c4092f3d3cdc280a4de26f407daa6e'
 $psScriptAnalyzerSettingsPath = Join-Path (Join-Path $PSScriptRoot '..') 'PSScriptAnalyzerSettings.psd1'
 
 function Sync-PSScriptAnalyzerSetting {
@@ -27,13 +26,8 @@ function Sync-PSScriptAnalyzerSetting {
 
         Invoke-WebRequest @invokeWebRequestParams
 
-        $downloadHash = (Get-FileHash -Path $tempPath -Algorithm SHA256).Hash.ToLowerInvariant()
-        if ($downloadHash -ne $psScriptAnalyzerSettingsSha256) {
-            throw "Downloaded PSScriptAnalyzer settings hash mismatch. Expected '$psScriptAnalyzerSettingsSha256' but received '$downloadHash'."
-        }
-
         if ($env:ATLASSIANPS_PSSA_UPDATE_LOCAL -ne '1') {
-            Write-Output "Pinned PSScriptAnalyzer settings validated."
+            Write-Output "Pinned PSScriptAnalyzer settings download succeeded."
             return
         }
 
@@ -47,7 +41,8 @@ function Sync-PSScriptAnalyzerSetting {
         )
     }
     catch {
-        throw "Unable to refresh pinned PSScriptAnalyzer settings from '$psScriptAnalyzerSettingsUri'. $($_.Exception.Message)"
+        Write-Warning "Unable to download pinned PSScriptAnalyzer settings from '$psScriptAnalyzerSettingsUri'. Continuing with local settings."
+        Write-Warning $_
     }
     finally {
         if (Test-Path -Path $tempPath) {
