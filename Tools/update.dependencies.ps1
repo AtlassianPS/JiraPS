@@ -23,7 +23,7 @@ $output += ")`n"
 Set-Content -Value $output -Path "$PSScriptRoot/build.requirements.psd1" -Force
 
 function Update-PinnedPSScriptAnalyzerSettingsUri {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess = $true)]
     param()
 
     $settingsFilePath = 'standards/PSScriptAnalyzerSettings.psd1'
@@ -62,9 +62,11 @@ function Update-PinnedPSScriptAnalyzerSettingsUri {
         return
     }
 
-    $updatedContent = $updatedContent -replace "`r?`n", "`r`n"
-    [System.IO.File]::WriteAllText($setupScriptPath, $updatedContent, [System.Text.UTF8Encoding]::new($true))
-    Write-Output "Updated pinned PSScriptAnalyzer URI to commit $latestCommit"
+    if ($PSCmdlet.ShouldProcess($setupScriptPath, "Update pinned PSScriptAnalyzer settings URI")) {
+        $updatedContent = $updatedContent -replace "`r?`n", "`r`n"
+        [System.IO.File]::WriteAllText($setupScriptPath, $updatedContent, [System.Text.UTF8Encoding]::new($true))
+        Write-Output "Updated pinned PSScriptAnalyzer URI to commit $latestCommit"
+    }
 }
 
 Update-PinnedPSScriptAnalyzerSettingsUri
