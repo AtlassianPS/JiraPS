@@ -1,4 +1,6 @@
-﻿[CmdletBinding()]
+﻿#requires -Modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.2'; MaximumVersion = '0.1.2' }
+
+[CmdletBinding()]
 param(
     [ValidateSet('None', 'Normal' , 'Detailed', 'Diagnostic')]
     [String] $PesterVerbosity = 'Normal',
@@ -32,83 +34,17 @@ param(
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force
 
-Remove-Item -Path env:\BH* -ErrorAction SilentlyContinue
-
 $ProjectName = 'JiraPS'
-$env:BHProjectName = $ProjectName
-$env:BHProjectPath = $PSScriptRoot
-$env:BHModulePath = Join-Path $PSScriptRoot $ProjectName
-$env:BHPSModulePath = $env:BHModulePath
-$env:BHPSModuleManifest = Join-Path $env:BHModulePath "$ProjectName.psd1"
-$env:BHBuildOutput = Join-Path $PSScriptRoot 'Release'
+$script:BuildInfo = Initialize-AtlassianPSBuildEnvironment `
+    -ProjectName $ProjectName `
+    -ProjectPath $PSScriptRoot `
+    -VersionToPublish $VersionToPublish `
+    -ResetBuildEnvironmentVariables
 
-# Populates the dynamic BH* env vars (branch, commit hash, build number,
-# build system). Kept out of the top-level so the git introspection only
-# runs when ShowDebugInfo actually needs the values.
-function Initialize-BuildEnvironmentInfo {
-    if ($env:GITHUB_ACTIONS) {
-        $env:BHBuildSystem = 'GitHub Actions'
-        # On PR builds GITHUB_REF_NAME is `<pr>/merge`; the source branch lives in GITHUB_HEAD_REF.
-        $env:BHBranchName = if ($env:GITHUB_HEAD_REF) { $env:GITHUB_HEAD_REF } else { $env:GITHUB_REF_NAME }
-        $env:BHCommitHash = $env:GITHUB_SHA
-        $env:BHBuildNumber = $env:GITHUB_RUN_NUMBER
-    }
-    else {
-        $env:BHBuildSystem = 'Unknown'
-        $env:BHBranchName = git -C $env:BHProjectPath rev-parse --abbrev-ref HEAD 2>$null
-        $env:BHCommitHash = git -C $env:BHProjectPath rev-parse HEAD 2>$null
-        $env:BHBuildNumber = '0'
-    }
-    $env:BHCommitMessage = (git -C $env:BHProjectPath log -1 --pretty=%B 2>$null) -join "`n"
-}
-
-#region HarmonizeVariables
-switch ($true) {
-    { $IsWindows } {
-        $OS = "Windows"
-        if (-not ($IsCoreCLR)) {
-            $OSVersion = $PSVersionTable.BuildVersion.ToString()
-        }
-    }
-    { $IsLinux } {
-        $OS = "Linux"
-    }
-    { $IsMacOs } {
-        $OS = "OSX"
-    }
-    { $IsCoreCLR } {
-        $OSVersion = $PSVersionTable.OS
-    }
-}
-#endregion HarmonizeVariables
-
-if ($VersionToPublish) {
-    $VersionToPublish = $VersionToPublish.TrimStart('v')
-}
-$builtManifestPath = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psd1"
+$builtManifestPath = $script:BuildInfo.BuiltManifestPath
 
 Task ShowDebugInfo {
-    Initialize-BuildEnvironmentInfo
-    Write-Build Gray
-    Write-Build Gray ('BHBuildSystem:              {0}' -f $env:BHBuildSystem)
-    Write-Build Gray '-------------------------------------------------------'
-    Write-Build Gray ('BHProjectName               {0}' -f $env:BHProjectName)
-    Write-Build Gray ('BHProjectPath:              {0}' -f $env:BHProjectPath)
-    Write-Build Gray ('BHModulePath:               {0}' -f $env:BHModulePath)
-    Write-Build Gray ('BHPSModuleManifest:         {0}' -f $env:BHPSModuleManifest)
-    Write-Build Gray ('BHBuildOutput:              {0}' -f $env:BHBuildOutput)
-    Write-Build Gray ('builtManifestPath:          {0}' -f $builtManifestPath)
-    Write-Build Gray '-------------------------------------------------------'
-    Write-Build Gray ('BHBranchName:               {0}' -f $env:BHBranchName)
-    Write-Build Gray ('BHCommitHash:               {0}' -f $env:BHCommitHash)
-    Write-Build Gray ('BHCommitMessage:            {0}' -f $env:BHCommitMessage)
-    Write-Build Gray ('BHBuildNumber               {0}' -f $env:BHBuildNumber)
-    Write-Build Gray ('VersionToPublish            {0}' -f $VersionToPublish)
-    Write-Build Gray '-------------------------------------------------------'
-    Write-Build Gray ('PowerShell version:         {0}' -f $PSVersionTable.PSVersion.ToString())
-    Write-Build Gray ('OS:                         {0}' -f $OS)
-    Write-Build Gray ('OS Version:                 {0}' -f $OSVersion)
-    Write-Build Gray
+    Write-AtlassianPSBuildInfo -BuildInfo $script:BuildInfo
 }
 
 # Synopsis: Run style checks and PSScriptAnalyzer. Collects both result sets
@@ -116,33 +52,6 @@ Task ShowDebugInfo {
 # workflow commands when running under CI so violations appear as inline
 # annotations on the PR diff.
 Task Lint {
-    $isGitHubActions = [bool]$env:GITHUB_ACTIONS
-    $failures = [System.Collections.Generic.List[String]]::new()
-
-    Write-Build Gray "Running style tests..."
-
-    $pesterConfigHash = @{
-        Run    = @{
-            PassThru = $true
-            Path     = "$env:BHProjectPath/Tests/Style.Tests.ps1"
-        }
-        Output = @{
-            Verbosity = $PesterVerbosity
-        }
-    }
-
-    $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
-    $testResults = Invoke-Pester -Configuration $pesterConfig
-    if ($testResults.FailedCount -gt 0) {
-        $failures.Add("$($testResults.FailedCount) style test(s) failed.")
-    }
-    else {
-        Write-Build Green "Style tests: passed."
-    }
-
-    Write-Build Gray "Running PSScriptAnalyzer..."
-
-    # Explicit source roots so PSSA does not recurse into Release/.
     $analyzerPaths = @(
         "$env:BHProjectPath/JiraPS"
         "$env:BHProjectPath/Tests"
@@ -150,43 +59,15 @@ Task Lint {
         "$env:BHProjectPath/JiraPS.build.ps1"
     )
 
-    $analyzerParams = @{
-        Settings = "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1"
-        Severity = @('Error', 'Warning')
-        Recurse  = $true
-    }
-
-    # -Path is single-valued, so invoke per root and concatenate.
-    $results = @(
-        foreach ($path in $analyzerPaths) {
-            Invoke-ScriptAnalyzer -Path $path @analyzerParams
-        }
-    )
-
-    if ($results.Count -gt 0) {
-        foreach ($result in $results) {
-            $color = if ($result.Severity -eq 'Error') { 'Red' } else { 'Yellow' }
-            $location = if ($result.ScriptName) { $result.ScriptName } else { '<unknown>' }
-            Write-Build $color "[$($result.Severity)] ${location}:$($result.Line) - $($result.RuleName): $($result.Message)"
-
-            if ($isGitHubActions -and $result.ScriptPath) {
-                $level = if ($result.Severity -eq 'Error') { 'error' } else { 'warning' }
-                $relPath = [System.IO.Path]::GetRelativePath($env:BHProjectPath, $result.ScriptPath)
-                # Workflow command escaping per
-                # https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions
-                $msg = ($result.Message -replace '%', '%25' -replace "`r", '%0D' -replace "`n", '%0A')
-                Write-WorkflowCommand "::${level} file=$relPath,line=$($result.Line),col=$($result.Column),title=$($result.RuleName)::$msg"
-            }
-        }
-        $failures.Add("$($results.Count) PSScriptAnalyzer issue(s) found.")
-    }
-    else {
-        Write-Build Green "PSScriptAnalyzer: no issues found."
-    }
-
-    if ($failures.Count -gt 0) {
-        throw ("Lint failed:`n  - " + ($failures -join "`n  - "))
-    }
+    $null = Invoke-AtlassianPSLint `
+        -ProjectPath $env:BHProjectPath `
+        -ModulePath $env:BHModulePath `
+        -BuildScriptPath "$env:BHProjectPath/JiraPS.build.ps1" `
+        -StyleTestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
+        -AnalyzerSettingsPath "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" `
+        -AnalyzerPaths $analyzerPaths `
+        -PesterVerbosity $PesterVerbosity `
+        -Severity @('Error', 'Warning')
 }
 
 Task Clean {
@@ -247,52 +128,27 @@ Task RemoveOrphanedExternalHelp {
 
 # Synopsis: Generate ./Release structure
 Task CopyModuleFiles {
-    Copy-Item -Path "$env:BHModulePath/*" -Destination "$env:BHBuildOutput/$env:BHProjectName" -Recurse -Force
-    Copy-Item -Path @(
-        "$env:BHProjectPath/CHANGELOG.md"
-        "$env:BHProjectPath/LICENSE"
-        "$env:BHProjectPath/README.md"
-    ) -Destination "$env:BHBuildOutput/$env:BHProjectName" -Force
+    $additionalFiles = @(
+        'CHANGELOG.md'
+        'LICENSE'
+        'README.md'
+    )
 
-    $null = New-Item -Path "$env:BHBuildOutput/Tests" -ItemType Directory -ErrorAction SilentlyContinue
-    Copy-Item -Path "$env:BHProjectPath/Tests" -Destination $env:BHBuildOutput -Recurse -Force
+    $null = Copy-AtlassianPSModuleArtifacts `
+        -ProjectPath $env:BHProjectPath `
+        -ModuleName $env:BHProjectName `
+        -BuildOutputPath $env:BHBuildOutput `
+        -AdditionalFiles $additionalFiles `
+        -IncludeTests
+
     Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
 }
 
 # Synopsis: Compile all functions into the .psm1 file
 Task CompileModule {
-    $regionsToKeep = @('Dependencies', 'Configuration')
-
-    $targetFile = "$env:BHBuildOutput/$env:BHProjectName/$env:BHProjectName.psm1"
-    $content = Get-Content -Encoding UTF8 -LiteralPath $targetFile
-    $capture = $false
-    $compiled = ""
-
-    foreach ($line in $content) {
-        if ($line -match "^#region ($($regionsToKeep -join "|"))$") {
-            $capture = $true
-        }
-        if (($capture -eq $true) -and ($line -match "^#endregion")) {
-            $capture = $false
-        }
-
-        if ($capture) {
-            $compiled += "$line`r`n"
-        }
-    }
-
-    $PublicFunctions = @( Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Public/*.ps1" -ErrorAction SilentlyContinue )
-    $PrivateFunctions = @( Get-ChildItem -Path "$env:BHBuildOutput/$env:BHProjectName/Private/*.ps1" -ErrorAction SilentlyContinue )
-
-    foreach ($function in @($PublicFunctions + $PrivateFunctions)) {
-        $compiled += (Get-Content -Path $function.FullName -Raw)
-        $compiled += "`r`n"
-    }
-
-    $utf8Bom = [System.Text.UTF8Encoding]::new($true)
-    [System.IO.File]::WriteAllText($targetFile, $compiled, $utf8Bom)
-
-    "Private", "Public" | ForEach-Object { Remove-Item -Path "$env:BHBuildOutput/$env:BHProjectName/$_" -Recurse -Force }
+    $null = Join-AtlassianPSModuleSource `
+        -ReleaseModulePath "$env:BHBuildOutput/$env:BHProjectName" `
+        -RegionsToKeep @('Dependencies', 'Configuration')
 }
 
 # Synopsis: Use PlatyPS to generate External-Help
@@ -446,43 +302,18 @@ Task GenerateExternalHelp -Inputs {
 
 # Synopsis: Update the manifest of the module
 Task UpdateManifest {
-    Remove-Module $env:BHProjectName -ErrorAction SilentlyContinue
-    Import-Module $env:BHPSModuleManifest -Force
-
-    $moduleFunctions = (Get-ChildItem "$env:BHModulePath/Public/*.ps1").BaseName
-    Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "FunctionsToExport" -Value @($moduleFunctions)
-
-    Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "AliasesToExport" -Value ''
-    $moduleAlias = Get-Alias | Where-Object { $_.ModuleName -eq "$env:BHProjectName" }
-    if ($moduleAlias) {
-        Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "AliasesToExport" -Value @($moduleAlias.Name)
-    }
+    $null = Update-AtlassianPSModuleManifestExports `
+        -SourceModulePath $env:BHModulePath `
+        -BuiltManifestPath $builtManifestPath `
+        -ModuleName $env:BHProjectName
 }
 
 Task SetVersion {
-    [System.Management.Automation.SemanticVersion]$versionToPublish = $VersionToPublish
-
-    $published = Find-Module -Name $env:BHProjectName -ErrorAction SilentlyContinue
-    if ($published) {
-        [System.Management.Automation.SemanticVersion]$latestPublished = $published.Version
-        Write-Build Gray "Latest published version: $latestPublished"
-        Assert-True { $versionToPublish -gt $latestPublished } "Version must be greater than latest published version: $latestPublished"
-    }
-    else {
-        Write-Build Gray "No published version found in PSGallery; skipping version guard"
-    }
-
-    $versionString = "{0}.{1}.{2}" -f $versionToPublish.Major, $versionToPublish.Minor, $versionToPublish.Patch
-    Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "ModuleVersion" -Value $versionString
-
-    if ($versionToPublish.PreReleaseLabel) {
-        Write-Build Gray "Setting Prerelease label: $($versionToPublish.PreReleaseLabel)"
-        Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "Prerelease" -Value $versionToPublish.PreReleaseLabel
-    }
-    else {
-        Write-Build Gray "Removing Prerelease label (stable release)"
-        Metadata\Update-Metadata -Path $builtManifestPath -PropertyName "Prerelease" -Value ''
-    }
+    $versionString = Set-AtlassianPSModuleManifestVersion `
+        -BuiltManifestPath $builtManifestPath `
+        -ModuleName $env:BHProjectName `
+        -VersionToPublish $VersionToPublish
+    Write-Build Gray "Resolved release version: $versionString"
 }
 
 Task Test {
@@ -491,56 +322,14 @@ Task Test {
     # secrets are missing). Use TestIntegration task to run them.
     $integrationPath = Join-Path $env:BHBuildOutput 'Tests/Integration'
 
-    $pesterConfigHash = @{
-        Run        = @{
-            PassThru    = $true
-            Path        = "$env:BHBuildOutput/Tests"
-            ExcludePath = @($integrationPath)
-        }
-        TestResult = @{
-            Enabled      = $true
-            OutputFormat = 'NUnitXml'
-            OutputPath   = "Test-$OS-$($PSVersionTable.PSVersion.ToString()).xml"
-        }
-        Output     = @{
-            Verbosity = $PesterVerbosity
-        }
-        Filter     = @{
-            # Also exclude by tag, in case any integration-tagged tests live
-            # outside Tests/Integration. In Pester 5, ExcludeTag takes
-            # precedence over Tag, so the -Tag handling below has to remove
-            # user-requested tags from this list (and clear ExcludePath) for
-            # `Invoke-Build -Task Test -Tag 'Integration'` to do anything.
-            ExcludeTag = @('Integration')
-        }
-        <# CodeCoverage = @{
-            Path = $codeCoverageFiles
-        } #>
-    }
-
-    if ($Tag) {
-        $pesterConfigHash.Filter.Tag = $Tag
-        $pesterConfigHash.Filter.ExcludeTag = @($pesterConfigHash.Filter.ExcludeTag | Where-Object { $_ -notin $Tag })
-        if ('Integration' -in $Tag) {
-            $pesterConfigHash.Run.ExcludePath = @()
-        }
-        Write-Build Gray "Filtering tests by tag(s): $($Tag -join ', ')"
-    }
-
-    if ($ExcludeTag) {
-        # Merge with default exclusions, then re-apply the Tag intersection
-        # so an explicit -Tag still wins over the default ExcludeTag entry.
-        $merged = @($pesterConfigHash.Filter.ExcludeTag) + @($ExcludeTag) | Select-Object -Unique
-        if ($Tag) {
-            $merged = @($merged | Where-Object { $_ -notin $Tag })
-        }
-        $pesterConfigHash.Filter.ExcludeTag = $merged
-        Write-Build Gray "Excluding tests by tag(s): $($pesterConfigHash.Filter.ExcludeTag -join ', ')"
-    }
-
-    $pesterConfig = New-PesterConfiguration -Hashtable $pesterConfigHash
-    $testResults = Invoke-Pester -Configuration $pesterConfig
-    Assert-True ($testResults.FailedCount -eq 0) "$($testResults.FailedCount) Pester test(s) failed."
+    $null = Invoke-AtlassianPSModuleTests `
+        -TestPath "$env:BHBuildOutput/Tests" `
+        -PesterVerbosity $PesterVerbosity `
+        -Tag $Tag `
+        -ExcludeTag $ExcludeTag `
+        -DefaultExcludeTag @('Integration') `
+        -ExcludePath @($integrationPath) `
+        -MinimumPesterVersion ([Version]'5.7.0')
 }
 
 # Synopsis: Run integration tests against live Jira (Cloud or Data Center; no build required)
@@ -653,8 +442,7 @@ Task StopJiraDocker {
 
 Task Publish SetVersion, SignCode, Package, {
     Assert-True (-not [String]::IsNullOrEmpty($PSGalleryAPIKey)) "No key for the PSGallery"
-
-    Publish-Module -Path "$env:BHBuildOutput/$env:BHProjectName" -NuGetApiKey $PSGalleryAPIKey
+    Publish-AtlassianPSModuleRelease -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName -ApiKey $PSGalleryAPIKey
 }, UpdateHomepage
 
 Task UpdateHomepage {
@@ -665,13 +453,7 @@ Task SignCode {
 }
 
 Task Package {
-    $source = "$env:BHBuildOutput\$env:BHProjectName"
-    $destination = "$env:BHBuildOutput\$env:BHProjectName.zip"
-
-    Assert-True { Test-Path $source } "Missing files to package"
-
-    Remove-Item $destination -ErrorAction SilentlyContinue
-    $null = Compress-Archive -Path $source -DestinationPath $destination
+    $null = New-AtlassianPSModulePackage -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName
 }
 
 Task . Clean, Build, Test

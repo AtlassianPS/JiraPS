@@ -4,29 +4,53 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag to release (for manual reruns)"
+        required: true
+        type: string
 
 jobs:
   release:
     name: "Release"
     runs-on: "ubuntu-latest"
     permissions:
+      actions: read
       contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+
+      - name: Resolve release ref
+        id: release_ref
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            release_tag="${{ inputs.release_tag }}"
+          else
+            release_tag="${{ github.ref_name }}"
+          fi
+
+          release_sha="$(git rev-list -n 1 "$release_tag")"
+          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
+          echo "release_sha=$release_sha" >> "$GITHUB_OUTPUT"
 
       - name: Download artifact from commit that got tagged
         uses: dawidd6/action-download-artifact@v21
         with:
           workflow: ci.yml
           workflow_conclusion: success
-          commit: ${{ github.sha }}
+          commit: ${{ steps.release_ref.outputs.release_sha }}
           name: Release
           path: ./Release/
           if_no_artifact_found: fail
 
-      - uses: ./.github/actions/setup-powershell
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@v0.1.2
 
-      - run: Invoke-Build -Task Publish -VersionToPublish ${{ github.ref_name }}
+      - run: Invoke-Build -Task Publish -VersionToPublish ${{ steps.release_ref.outputs.release_tag }}
           -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
         shell: pwsh
 
@@ -34,7 +58,7 @@ jobs:
         id: changelog
         uses: MatteoCampinoti94/changelog-to-release@v1.0.6
         with:
-          version-name: ${{ github.ref_name }}
+          version-name: ${{ steps.release_ref.outputs.release_tag }}
           configuration: ./.github/changelog.configuration.json
         if: ${{ hashFiles('CHANGELOG.md') != '' }}
 
@@ -45,17 +69,19 @@ jobs:
           files: ./Release/JiraPS.zip
           fail_on_unmatched_files: true
           draft: false
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name,
-            'beta') || contains(github.ref_name, 'rc') }}
+          tag_name: ${{ steps.release_ref.outputs.release_tag }}
+          name: ${{ steps.release_ref.outputs.release_tag }}
+          prerelease: ${{ contains(steps.release_ref.outputs.release_tag, 'alpha') || contains(steps.release_ref.outputs.release_tag,
+            'beta') || contains(steps.release_ref.outputs.release_tag, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify homepage to update submodule
-        if: ${{ !contains(github.ref_name, 'alpha') && !contains(github.ref_name,
-          'beta') && !contains(github.ref_name, 'rc') }}
+        if: ${{ !contains(steps.release_ref.outputs.release_tag, 'alpha') && !contains(steps.release_ref.outputs.release_tag,
+          'beta') && !contains(steps.release_ref.outputs.release_tag, 'rc') }}
         uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.HOMEPAGE_PAT }}
           repository: AtlassianPS/AtlassianPS.github.io
           event-type: module-release
-          client-payload: "{\"module\": \"JiraPS\", \"version\": \"${{ github.ref_name }}\"}"
+          client-payload: "{\"module\": \"JiraPS\", \"version\": \"${{ steps.release_ref.outputs.release_tag }}\"}"
