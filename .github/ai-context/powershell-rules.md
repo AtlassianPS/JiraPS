@@ -141,24 +141,20 @@ If a "not found" branch is part of normal lookup behavior, set the result or wri
 
 ## Running Tests
 
-**IMPORTANT**: Unit tests run against the *built* module in `Release/`, not source files.
-You MUST build before running unit tests. Integration tests load the source manifest directly (no build required) but need live Jira Cloud credentials in `.env`.
+**IMPORTANT**: Use `Invoke-Pester` directly for focused single unit-test loops.
+Use `Invoke-Build -Task Build, Test` as the full-suite validation gate before commit.
+Integration tests load the source manifest directly (no build required) but need live Jira Cloud credentials in `.env`.
 
 ```powershell
 # First time setup (install dependencies)
 ./Tools/setup.ps1
 
-# Unit tests (standard workflow)
+# Focused unit test loop
+Invoke-Pester Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1
+Invoke-Pester Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1
+
+# Full suite validation (pre-commit gate)
 Invoke-Build -Task Build, Test
-
-# Or separately:
-Invoke-Build -Task Build    # Compiles module into Release/
-Invoke-Build -Task Test     # Runs unit tests against Release/ (excludes Integration)
-
-# Focused unit test loop (same Release/ module as CI)
-Invoke-Build -Task Build
-Invoke-Pester ./Release/Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1
-Invoke-Pester ./Release/Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1
 
 # Integration tests (no build needed, requires .env)
 Invoke-Build -Task TestIntegration
@@ -182,8 +178,8 @@ Invoke-Build -Task TestIntegration -ThrottleLimit 8     # More parallelism
 
 ### Common Mistakes
 
-- **Running `Invoke-Pester Tests/...` for final unit-test validation** — bypasses `Release/` and can miss build/packaging regressions
-- **Running `Invoke-Build -Task Test` without building** — Tests will fail or use stale code
+- **Skipping full-suite validation** — always run `Invoke-Build -Task Build, Test` before commit
+- **Treating focused `Invoke-Pester` as final validation** — local loops are faster, but full suite is still required
 - **Forgetting `./Tools/setup.ps1`** — Missing dependencies (Pester, InvokeBuild, etc.)
 - **Running `TestIntegration` without `.env`** — Will fail fast on missing credentials
 

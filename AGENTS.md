@@ -37,7 +37,8 @@
 ./Tools/setup.ps1
 Invoke-Build -Task Build, Test
 ```
-Tests run against the built module in `Release/` — you must build before testing.
+Use `Invoke-Build -Task Build, Test` as the full-suite validation gate.
+For single unit-test iteration, run `Invoke-Pester` directly against `Tests/...`.
 
 ### Backlog Handling
 - **Out-of-scope ideas go on the board, not into the current PR.**
@@ -300,8 +301,8 @@ Private functions in `JiraPS/Private/` may use minimal comment-based help (`.SYN
 
 ### Build Process
 
-> **IMPORTANT**: Unit tests run against the *built* module in `Release/`, not the source files.
-> You MUST build before running unit tests.
+> **IMPORTANT**: Use `Invoke-Pester` directly for focused single unit-test loops.
+> Use `Invoke-Build -Task Build, Test` as the full-suite validation gate before commit.
 >
 > Integration tests run directly against `JiraPS/JiraPS.psd1` (no build step) and require live Jira Cloud credentials.
 > macOS and Linux contributors cannot execute the Windows PowerShell 5.1 lane locally, so treat that CI lane as a required pre-merge gate.
@@ -331,28 +332,25 @@ See [`powershell-rules.md` → Running Tests](.github/ai-context/powershell-rule
 | What you changed | Test command |
 |------------------|--------------|
 | **Any code file** (`.ps1`, `.psm1`) | `Invoke-Build -Task Lint` |
-| **Function** in `JiraPS/Public/` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1` |
-| **Function** in `JiraPS/Private/` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1` |
-| **Test file** in `Tests/` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/<path-under-Tests>` |
-| **Documentation** in `docs/**` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/Help.Tests.ps1` |
+| **Function** in `JiraPS/Public/` | `Invoke-Pester Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1` |
+| **Function** in `JiraPS/Private/` | `Invoke-Pester Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1` |
+| **Test file** in `Tests/` | `Invoke-Pester <path-to-that-test-file>` |
+| **Documentation** in `docs/**` | `Invoke-Pester Tests/Help.Tests.ps1` |
 
 **Examples:**
 
 ```powershell
 # After editing JiraPS/Public/Get-JiraIssue.ps1
 Invoke-Build -Task Lint
-Invoke-Build -Task Build
-Invoke-Pester ./Release/Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
+Invoke-Pester Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
 
 # After editing docs/en-US/commands/Get-JiraIssue.md
 Invoke-Build -Task Lint
-Invoke-Build -Task Build
-Invoke-Pester ./Release/Tests/Help.Tests.ps1
+Invoke-Pester Tests/Help.Tests.ps1
 
 # After editing a test file
 Invoke-Build -Task Lint
-Invoke-Build -Task Build
-Invoke-Pester ./Release/Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
+Invoke-Pester Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
 ```
 
 **Why localized tests?**

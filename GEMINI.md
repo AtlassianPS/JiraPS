@@ -13,20 +13,19 @@ Antigravity reads this file (named `GEMINI.md` by convention) as its preferred e
 3. **User Identity** — `accountId` for Cloud, `username`/`name` for DC
 4. **REST calls** — always go through `Invoke-JiraMethod`
 5. **Tests required** — every function needs `.Unit.Tests.ps1`
-6. **Build before test** — `Invoke-Build -Task Build, Test` (tests run against `Release/`, not source)
+6. **Full-suite validation** — `Invoke-Build -Task Build, Test` before commit
 
 ## Testing During Development
 
 Run the appropriate tests after every change.
-Unit tests should run against `Release/Tests/`, not source paths.
 
 | What you changed | Test command |
 |------------------|--------------|
 | **Any code file** | `Invoke-Build -Task Lint` |
-| **Function** in `JiraPS/Public/` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1` |
-| **Function** in `JiraPS/Private/` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1` |
-| **Test file** | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/<path-under-Tests>` |
-| **Docs** in `docs/**` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/Help.Tests.ps1` |
+| **Function** in `JiraPS/Public/` | `Invoke-Pester Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1` |
+| **Function** in `JiraPS/Private/` | `Invoke-Pester Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1` |
+| **Test file** | `Invoke-Pester <path-to-that-test-file>` |
+| **Docs** in `docs/**` | `Invoke-Pester Tests/Help.Tests.ps1` |
 
 **Before committing**: Run full `Invoke-Build -Task Build, Test`.
 
