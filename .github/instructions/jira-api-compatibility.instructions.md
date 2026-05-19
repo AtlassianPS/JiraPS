@@ -15,5 +15,6 @@ This file applies to all `.ps1` files. It references shared rules.
 3. **ADF** — only use `ConvertTo-ADF`/`ConvertFrom-ADF` for Cloud
 4. **REST calls** — always go through `Invoke-JiraMethod`
 5. **Tests required** — every function needs `.Unit.Tests.ps1`
+6. **Build before unit tests** — run `Invoke-Build -Task Build` and execute unit tests from `./Release/Tests/**`
 
 For full rules, read `.github/ai-context/powershell-rules.md`.

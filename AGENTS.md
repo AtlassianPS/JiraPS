@@ -331,29 +331,32 @@ See [`powershell-rules.md` → Running Tests](.github/ai-context/powershell-rule
 | What you changed | Test command |
 |------------------|--------------|
 | **Any code file** (`.ps1`, `.psm1`) | `Invoke-Build -Task Lint` |
-| **Function** in `JiraPS/Public/` | `Invoke-Pester Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1` |
-| **Function** in `JiraPS/Private/` | `Invoke-Pester Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1` |
-| **Test file** in `Tests/` | `Invoke-Pester <path-to-that-test-file>` |
-| **Documentation** in `docs/**` | `Invoke-Pester Tests/Help.Tests.ps1` |
+| **Function** in `JiraPS/Public/` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1` |
+| **Function** in `JiraPS/Private/` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1` |
+| **Test file** in `Tests/` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/<path-under-Tests>` |
+| **Documentation** in `docs/**` | `Invoke-Build -Task Build; Invoke-Pester ./Release/Tests/Help.Tests.ps1` |
 
 **Examples:**
 
 ```powershell
 # After editing JiraPS/Public/Get-JiraIssue.ps1
 Invoke-Build -Task Lint
-Invoke-Pester Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
+Invoke-Build -Task Build
+Invoke-Pester ./Release/Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
 
 # After editing docs/en-US/commands/Get-JiraIssue.md
 Invoke-Build -Task Lint
-Invoke-Pester Tests/Help.Tests.ps1
+Invoke-Build -Task Build
+Invoke-Pester ./Release/Tests/Help.Tests.ps1
 
 # After editing a test file
 Invoke-Build -Task Lint
-Invoke-Pester Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
+Invoke-Build -Task Build
+Invoke-Pester ./Release/Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
 ```
 
 **Why localized tests?**
-- Faster feedback loop — no need to build the entire module for linting or docs
+- Faster feedback loop than running the full `Invoke-Build -Task Build, Test` suite every time
 - `Invoke-Build -Task Lint` runs PSScriptAnalyzer to catch code issues early
 - `Style.Tests.ps1` (encoding, whitespace, line endings) runs with the full test suite
 
