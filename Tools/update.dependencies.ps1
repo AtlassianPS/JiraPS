@@ -44,9 +44,6 @@ if ($isWindowsPowerShell) {
         Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction Stop
     }
 }
-elseif (-not (Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
-    Register-PSRepository -Default -ErrorAction Stop
-}
 
 Install-Module -Name 'AtlassianPS.Standards' `
     -RequiredVersion $standardsVersion `
