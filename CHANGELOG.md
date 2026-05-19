@@ -5,6 +5,7 @@
 ### Changed
 
 - Stabilized the Server integration `Search.Integration.Tests.ps1` OR-operator case by replacing the non-existent-key branch with a deterministic project-scoped OR predicate (`key = <fixture> OR key != <fixture>`), avoiding an intermittent Jira 11 backend null-deref (`issueObject` null) that failed nightly `integration_tests.yml` runs even when JiraPS behavior was correct.
+- Updated JiraPS shared standards dependency pins to `AtlassianPS.Standards` `0.1.6` (`Tools/build.requirements.psd1`, `Tools/setup.ps1`, `JiraPS.build.ps1`) and moved CI/release/copilot/integration setup action references to `AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@v0.1.6`.
 
 ## 3.0 - 2026-05-10
 

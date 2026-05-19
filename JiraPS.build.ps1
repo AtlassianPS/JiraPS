@@ -1,4 +1,4 @@
-﻿#requires -Modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.2'; MaximumVersion = '0.1.2' }
+﻿#requires -Modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.6'; MaximumVersion = '0.1.6' }
 
 [CmdletBinding()]
 param(
