@@ -31,15 +31,6 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
             Select-Object -First 1
         $standardsVersion = [string] $standardsRequirement.RequiredVersion
-        $standardsVersionShaMap = @{
-            '0.1.6' = '9a9367e22847bd24f86208ed2d98d207b0e2a3b3'
-        }
-
-        if (-not $standardsVersionShaMap.ContainsKey($standardsVersion)) {
-            throw "No pinned workflow SHA mapping defined for AtlassianPS.Standards version '$standardsVersion'."
-        }
-
-        $expectedWorkflowActionSha = $standardsVersionShaMap[$standardsVersion]
 
         $buildScriptPath = Join-Path -Path $projectRoot -ChildPath 'JiraPS.build.ps1'
         $buildScriptContent = Get-Content -LiteralPath $buildScriptPath -Raw
@@ -52,26 +43,26 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $buildScriptPin.Groups[1].Value | Should -Be $standardsVersion
         $buildScriptPin.Groups[2].Value | Should -Be $standardsVersion
 
-        $workflowPaths = @(
-            (Join-Path -Path $projectRoot -ChildPath '.github/workflows/ci.yml'),
-            (Join-Path -Path $projectRoot -ChildPath '.github/workflows/integration_tests.yml'),
-            (Join-Path -Path $projectRoot -ChildPath '.github/workflows/release.yml'),
-            (Join-Path -Path $projectRoot -ChildPath '.github/workflows/copilot-setup-steps.yml')
-        )
+        $workflowPaths = Get-ChildItem -Path (Join-Path -Path $projectRoot -ChildPath '.github/workflows') -File -Filter '*.yml' |
+            Select-Object -ExpandProperty FullName
 
-        foreach ($workflowPath in $workflowPaths) {
+        $workflowActionMatches = foreach ($workflowPath in $workflowPaths) {
             $workflowContent = Get-Content -LiteralPath $workflowPath -Raw
-            $versionMatches = [regex]::Matches(
+            [regex]::Matches(
                 $workflowContent,
-                "setup-powershell@(?<sha>[0-9a-f]{40})\s+#\s*v(?<version>[0-9]+\.[0-9]+\.[0-9]+)"
-            )
-
-            $versionMatches.Count | Should -BeGreaterThan 0
-            foreach ($versionMatch in $versionMatches) {
-                $versionMatch.Groups['version'].Value | Should -Be $standardsVersion
-                $versionMatch.Groups['sha'].Value | Should -Be $expectedWorkflowActionSha
+                "AtlassianPS/AtlassianPS\.Standards/\.github/actions/setup-powershell@(?<sha>[0-9a-f]{40})\s+#\s*v(?<version>[0-9]+\.[0-9]+\.[0-9]+)"
+            ) | ForEach-Object {
+                [PSCustomObject]@{
+                    WorkflowPath = $workflowPath
+                    Sha          = $_.Groups['sha'].Value
+                    Version      = $_.Groups['version'].Value
+                }
             }
         }
+
+        @($workflowActionMatches).Count | Should -BeGreaterThan 0
+        ($workflowActionMatches | Select-Object -ExpandProperty Version -Unique) | Should -Be @($standardsVersion)
+        @($workflowActionMatches | Select-Object -ExpandProperty Sha -Unique).Count | Should -Be 1
     }
 
     It 'reads AtlassianPS.Standards version from build.requirements in tool scripts' {

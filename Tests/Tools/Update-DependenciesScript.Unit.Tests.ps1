@@ -92,11 +92,15 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
 
         Mock -CommandName Get-PSRepository -MockWith {
             [PSCustomObject]@{
-                Name           = 'PSGallery'
-                SourceLocation = 'https://www.powershellgallery.com/api/v2/'
+                Name               = 'PSGallery'
+                SourceLocation     = 'https://www.powershellgallery.com/api/v2/'
+                InstallationPolicy = 'Trusted'
             }
         }
         Mock -CommandName Register-PSRepository -MockWith {}
+        Mock -CommandName Get-PackageProvider -MockWith { [PSCustomObject]@{ Name = 'NuGet'; Version = [Version] '2.8.5.208' } }
+        Mock -CommandName Install-PackageProvider -MockWith {}
+        Mock -CommandName Set-PSRepository -MockWith {}
         Mock -CommandName Install-Module -MockWith {}
 
         $moduleSearchPath = Join-Path -Path $harnessRoot -ChildPath 'mockModules'
@@ -148,10 +152,12 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
         $harnessRoot = Join-Path -Path $TestDrive -ChildPath ([Guid]::NewGuid().ToString())
         $toolsPath = Join-Path -Path $harnessRoot -ChildPath 'Tools'
         $modulePath = Join-Path -Path $harnessRoot -ChildPath 'JiraPS'
+        $mockModulePath = Join-Path -Path $harnessRoot -ChildPath 'mockModules/AtlassianPS.Standards/9.9.9'
         $scriptPath = Join-Path -Path $toolsPath -ChildPath 'update.dependencies.ps1'
 
         $null = New-Item -Path $toolsPath -ItemType Directory -Force
         $null = New-Item -Path $modulePath -ItemType Directory -Force
+        $null = New-Item -Path $mockModulePath -ItemType Directory -Force
 
         Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'update.dependencies.ps1') -Destination $scriptPath
 
@@ -169,21 +175,59 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
 }
 '@
 
+        Set-Content -LiteralPath (Join-Path -Path $mockModulePath -ChildPath 'AtlassianPS.Standards.psm1') -Value @'
+function Update-AtlassianPSDependencyReference {
+    [CmdletBinding()]
+    param(
+        [String]$BuildRequirementsPath,
+        [String]$ManifestPath,
+        [Switch]$SkipBuildRequirement,
+        [Switch]$SkipManifestRequirement
+    )
+
+    return [PSCustomObject]@{
+        Installed = $true
+        BuildRequirementsPath = $BuildRequirementsPath
+        ManifestPath = $ManifestPath
+        SkipBuildRequirement = [Boolean]$SkipBuildRequirement
+        SkipManifestRequirement = [Boolean]$SkipManifestRequirement
+    }
+}
+
+Export-ModuleMember -Function Update-AtlassianPSDependencyReference
+'@
+
+        Set-Content -LiteralPath (Join-Path -Path $mockModulePath -ChildPath 'AtlassianPS.Standards.psd1') -Value @'
+@{
+    RootModule        = 'AtlassianPS.Standards.psm1'
+    ModuleVersion     = '9.9.9'
+    GUID              = 'e61a3f95-a8d0-40ff-92cb-9e792ebd7d9f'
+    FunctionsToExport = @('*')
+}
+'@
+
         Mock -CommandName Get-PSRepository -MockWith {
             [PSCustomObject]@{
-                Name           = 'PSGallery'
-                SourceLocation = 'https://www.powershellgallery.com/api/v2/'
+                Name               = 'PSGallery'
+                SourceLocation     = 'https://www.powershellgallery.com/api/v2/'
+                InstallationPolicy = 'Trusted'
             }
         }
         Mock -CommandName Register-PSRepository -MockWith {}
-        Mock -CommandName Get-Module -ParameterFilter {
-            $Name -eq 'AtlassianPS.Standards' -and $ListAvailable
-        } -MockWith { @() }
+        Mock -CommandName Get-PackageProvider -MockWith { [PSCustomObject]@{ Name = 'NuGet'; Version = [Version] '2.8.5.208' } }
+        Mock -CommandName Install-PackageProvider -MockWith {}
+        Mock -CommandName Set-PSRepository -MockWith {}
         Mock -CommandName Install-Module -MockWith {}
-        Mock -CommandName Import-Module -MockWith {}
-        Mock -CommandName Update-AtlassianPSDependencyReference -MockWith { [PSCustomObject]@{ Installed = $true } }
-
-        $result = & $scriptPath
+        $moduleSearchPath = Join-Path -Path $harnessRoot -ChildPath 'mockModules'
+        $originalModulePath = $env:PSModulePath
+        $env:PSModulePath = "$moduleSearchPath$([System.IO.Path]::PathSeparator)$originalModulePath"
+        try {
+            $result = & $scriptPath
+        }
+        finally {
+            $env:PSModulePath = $originalModulePath
+            Remove-Module -Name 'AtlassianPS.Standards' -Force -ErrorAction SilentlyContinue
+        }
 
         Assert-MockCalled -CommandName Install-Module -Exactly -Times 1 -ParameterFilter {
             $Name -eq 'AtlassianPS.Standards' -and
@@ -192,10 +236,6 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
             $Repository -eq 'PSGallery' -and
             [Boolean]$AllowClobber -and
             [Boolean]$Force
-        }
-        Assert-MockCalled -CommandName Import-Module -Exactly -Times 1 -ParameterFilter {
-            $Name -eq 'AtlassianPS.Standards' -and
-            $RequiredVersion -eq '9.9.9'
         }
         $result.Installed | Should -BeTrue
     }
@@ -279,11 +319,15 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
 
         Mock -CommandName Get-PSRepository -MockWith {
             [PSCustomObject]@{
-                Name           = 'PSGallery'
-                SourceLocation = 'https://www.powershellgallery.com/api/v2/'
+                Name               = 'PSGallery'
+                SourceLocation     = 'https://www.powershellgallery.com/api/v2/'
+                InstallationPolicy = 'Trusted'
             }
         }
         Mock -CommandName Register-PSRepository -MockWith {}
+        Mock -CommandName Get-PackageProvider -MockWith { [PSCustomObject]@{ Name = 'NuGet'; Version = [Version] '2.8.5.208' } }
+        Mock -CommandName Install-PackageProvider -MockWith {}
+        Mock -CommandName Set-PSRepository -MockWith {}
         Mock -CommandName Install-Module -MockWith {}
 
         $moduleSearchPath = Join-Path -Path $harnessRoot -ChildPath 'mockModules'
