@@ -1,69 +1,30 @@
-﻿#requires -modules Metadata
+﻿#requires -Module PowerShellGet
 
-Import-Module $PSScriptRoot/BuildTools.psm1 -Force
-Import-Module Metadata -Force
+[CmdletBinding(SupportsShouldProcess = $true)]
+param(
+    [Parameter()]
+    [Switch]$SkipBuildRequirement,
 
-$modules = Get-Dependency
-$output = "@(`n"
+    [Parameter()]
+    [Switch]$SkipManifestRequirement
+)
 
-foreach ($module in $modules) {
-    Write-Output "Checking for module: $($module.Name)"
-    $source = Find-Module $module.Name -Repository PSGallery -ErrorAction SilentlyContinue
+$ErrorActionPreference = 'Stop'
 
-    if ($source.version -gt $module.RequiredVersion) {
-        Write-Output "updating $($module.Name): v$($module.RequiredVersion) --> $($source.Version)"
-        $output += "    @{ ModuleName = `"$($module.Name)`"; RequiredVersion = `"$($source.Version)`" }`n"
-    }
-    else {
-        $output += "    @{ ModuleName = `"$($module.Name)`"; RequiredVersion = `"$($module.RequiredVersion)`" }`n"
-    }
-}
-$output += ")`n"
+$projectRoot = (Resolve-Path -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath '..')).ProviderPath
+$buildRequirementsPath = Join-Path -Path $projectRoot -ChildPath 'Tools/build.requirements.psd1'
+$manifestPath = Join-Path -Path $projectRoot -ChildPath 'JiraPS/JiraPS.psd1'
 
-Set-Content -Value $output -Path "$PSScriptRoot/build.requirements.psd1" -Force
+. (Join-Path -Path $PSScriptRoot -ChildPath 'SharedStandards.ps1')
 
-function Update-PinnedPSScriptAnalyzerSettingsUri {
-    [CmdletBinding(SupportsShouldProcess = $true)]
-    param()
+$standardsVersion = Get-AtlassianPSStandardsRequiredVersion -BuildRequirementsPath $buildRequirementsPath
+Import-AtlassianPSStandardsModule -RequiredVersion $standardsVersion
 
-    $settingsFilePath = 'standards/PSScriptAnalyzerSettings.psd1'
-    $setupScriptPath = Join-Path $PSScriptRoot 'setup.ps1'
-    $commitApiUri = "https://api.github.com/repos/AtlassianPS/.github/commits?path=$settingsFilePath&sha=master&per_page=1"
+$result = Update-AtlassianPSDependencyReference `
+    -BuildRequirementsPath $buildRequirementsPath `
+    -ManifestPath $manifestPath `
+    -SkipBuildRequirement:$SkipBuildRequirement `
+    -SkipManifestRequirement:$SkipManifestRequirement `
+    -ErrorAction Stop
 
-    Write-Output "Checking pinned .github commit for $settingsFilePath"
-    try {
-        $response = Invoke-RestMethod -Uri $commitApiUri -Method Get -ErrorAction Stop
-    }
-    catch {
-        throw "Unable to query latest commit for shared PSScriptAnalyzer settings. $($_.Exception.Message)"
-    }
-
-    if (-not $response -or -not $response[0] -or -not $response[0].sha) {
-        throw "No commit data returned for shared PSScriptAnalyzer settings."
-    }
-
-    $latestCommit = $response[0].sha
-    $newUri = "https://raw.githubusercontent.com/AtlassianPS/.github/$latestCommit/$settingsFilePath"
-    $setupContent = [System.IO.File]::ReadAllText($setupScriptPath)
-    $oldUriPattern = "(?m)^\$psScriptAnalyzerSettingsUri = 'https://raw\.githubusercontent\.com/AtlassianPS/\.github/[^']+/standards/PSScriptAnalyzerSettings\.psd1'$"
-    $newUriLine = "`$psScriptAnalyzerSettingsUri = '$newUri'"
-
-    if ($setupContent -notmatch $oldUriPattern) {
-        Write-Warning "Unable to locate pinned PSScriptAnalyzer URI in setup.ps1; skipping."
-        return
-    }
-
-    $updatedContent = [System.Text.RegularExpressions.Regex]::Replace($setupContent, $oldUriPattern, $newUriLine, [System.Text.RegularExpressions.RegexOptions]::Multiline)
-    if ($updatedContent -eq $setupContent) {
-        Write-Output "Pinned PSScriptAnalyzer URI already up to date."
-        return
-    }
-
-    if ($PSCmdlet.ShouldProcess($setupScriptPath, "Update pinned PSScriptAnalyzer settings URI")) {
-        $updatedContent = $updatedContent -replace "`r?`n", "`r`n"
-        [System.IO.File]::WriteAllText($setupScriptPath, $updatedContent, [System.Text.UTF8Encoding]::new($true))
-        Write-Output "Updated pinned PSScriptAnalyzer URI to commit $latestCommit"
-    }
-}
-
-Update-PinnedPSScriptAnalyzerSettingsUri
+$result

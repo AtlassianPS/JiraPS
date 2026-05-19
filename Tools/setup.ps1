@@ -3,51 +3,25 @@
 [CmdletBinding()]
 param()
 
-$psScriptAnalyzerSettingsPath = Join-Path (Join-Path $PSScriptRoot '..') 'PSScriptAnalyzerSettings.psd1'
+$ErrorActionPreference = 'Stop'
 
-function Sync-PSScriptAnalyzerSetting {
-    [CmdletBinding()]
-    param()
+$projectRoot = (Resolve-Path -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath '..')).ProviderPath
+$buildRequirementsPath = Join-Path -Path $projectRoot -ChildPath 'Tools/build.requirements.psd1'
+$manifestPath = Join-Path -Path $projectRoot -ChildPath 'JiraPS/JiraPS.psd1'
+$psScriptAnalyzerSettingsPath = Join-Path -Path $projectRoot -ChildPath 'PSScriptAnalyzerSettings.psd1'
 
-    Write-Output "Syncing PSScriptAnalyzer settings from AtlassianPS.Standards"
+. (Join-Path -Path $PSScriptRoot -ChildPath 'SharedStandards.ps1')
 
-    try {
-        Import-Module AtlassianPS.Standards -RequiredVersion '0.1.6' -Force -ErrorAction Stop
-        $resolvedSettingsPath = Sync-AtlassianPSScriptAnalyzerSettings `
-            -DestinationPath $psScriptAnalyzerSettingsPath `
-            -ErrorAction Stop
-        Write-Output "Shared PSScriptAnalyzer settings synchronized to '$resolvedSettingsPath'."
-    }
-    catch {
-        throw "Unable to materialize shared PSScriptAnalyzer settings from AtlassianPS.Standards. $($_.Exception.Message)"
-    }
-}
+$standardsVersion = Get-AtlassianPSStandardsRequiredVersion -BuildRequirementsPath $buildRequirementsPath
+Import-AtlassianPSStandardsModule -RequiredVersion $standardsVersion
 
-# Ensure NuGet provider is installed
-Write-Output "Installing PackageProvider NuGet"
-$null = Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -ErrorAction SilentlyContinue
+$null = Install-AtlassianPSDependencyRequirement `
+    -BuildRequirementsPath $buildRequirementsPath `
+    -ManifestPath $manifestPath `
+    -ErrorAction Stop
 
-# Ensure PSGallery repository is registered and available
-if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
-    Write-Output "Registering PSGallery repository"
-    Register-PSRepository -Default -ErrorAction SilentlyContinue
-}
+$resolvedSettingsPath = Sync-AtlassianPSScriptAnalyzerSettings `
+    -DestinationPath $psScriptAnalyzerSettingsPath `
+    -ErrorAction Stop
 
-# Set PSGallery to Trusted to avoid prompts in CI
-$psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
-if ($psGallery -and $psGallery.InstallationPolicy -ne 'Trusted') {
-    Write-Output "Setting PSGallery to Trusted"
-    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-}
-
-# Update PowerShellGet if needed
-if ((Get-Module PowershellGet -ListAvailable)[0].Version -lt [version]"1.6.0") {
-    Write-Output "Updating PowershellGet"
-    Install-Module PowershellGet -Scope CurrentUser -Force
-}
-
-Write-Output "Installing Dependencies"
-Import-Module "$PSScriptRoot/BuildTools.psm1" -Force
-Install-Dependency
-
-Sync-PSScriptAnalyzerSetting
+Write-Output "Shared PSScriptAnalyzer settings synchronized to '$resolvedSettingsPath'."
