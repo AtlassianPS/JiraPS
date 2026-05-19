@@ -25,21 +25,27 @@ if (-not $standardsRequirement -or -not $standardsRequirement.RequiredVersion) {
 }
 
 $standardsVersion = [string] $standardsRequirement.RequiredVersion
-$nuGetProvider = Get-PackageProvider -Name 'NuGet' -ListAvailable -ErrorAction SilentlyContinue |
-    Sort-Object -Property Version -Descending |
-    Select-Object -First 1
+$isWindowsPowerShell = $PSVersionTable.PSEdition -eq 'Desktop'
+if ($isWindowsPowerShell) {
+    $nuGetProvider = Get-PackageProvider -Name 'NuGet' -ListAvailable -ErrorAction SilentlyContinue |
+        Sort-Object -Property Version -Descending |
+        Select-Object -First 1
 
-if (-not $nuGetProvider -or $nuGetProvider.Version -lt [Version] '2.8.5.201') {
-    Install-PackageProvider -Name 'NuGet' -MinimumVersion '2.8.5.201' -Scope CurrentUser -Force -ErrorAction Stop
+    if (-not $nuGetProvider -or $nuGetProvider.Version -lt [Version] '2.8.5.201') {
+        Install-PackageProvider -Name 'NuGet' -MinimumVersion '2.8.5.201' -Scope CurrentUser -Force -ErrorAction Stop
+    }
+
+    if (-not (Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
+        Register-PSRepository -Default -ErrorAction Stop
+    }
+
+    $psGalleryRepository = Get-PSRepository -Name 'PSGallery' -ErrorAction Stop
+    if ($psGalleryRepository.InstallationPolicy -ne 'Trusted') {
+        Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction Stop
+    }
 }
-
-if (-not (Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
+elseif (-not (Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
     Register-PSRepository -Default -ErrorAction Stop
-}
-
-$psGalleryRepository = Get-PSRepository -Name 'PSGallery' -ErrorAction Stop
-if ($psGalleryRepository.InstallationPolicy -ne 'Trusted') {
-    Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction Stop
 }
 
 Install-Module -Name 'AtlassianPS.Standards' `
