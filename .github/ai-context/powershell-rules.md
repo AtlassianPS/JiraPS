@@ -141,19 +141,20 @@ If a "not found" branch is part of normal lookup behavior, set the result or wri
 
 ## Running Tests
 
-**IMPORTANT**: Unit tests run against the *built* module in `Release/`, not source files.
-You MUST build before running unit tests. Integration tests load the source manifest directly (no build required) but need live Jira Cloud credentials in `.env`.
+**IMPORTANT**: Use `Invoke-Pester` directly for focused single unit-test loops.
+Use `Invoke-Build -Task Build, Test` as the full-suite validation gate before commit.
+Integration tests load the source manifest directly (no build required) but need live Jira Cloud credentials in `.env`.
 
 ```powershell
 # First time setup (install dependencies)
 ./Tools/setup.ps1
 
-# Unit tests (standard workflow)
-Invoke-Build -Task Build, Test
+# Focused unit test loop
+Invoke-Pester Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1
+Invoke-Pester Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1
 
-# Or separately:
-Invoke-Build -Task Build    # Compiles module into Release/
-Invoke-Build -Task Test     # Runs unit tests against Release/ (excludes Integration)
+# Full suite validation (pre-commit gate)
+Invoke-Build -Task Build, Test
 
 # Integration tests (no build needed, requires .env)
 Invoke-Build -Task TestIntegration
@@ -177,8 +178,8 @@ Invoke-Build -Task TestIntegration -ThrottleLimit 8     # More parallelism
 
 ### Common Mistakes
 
-- **Running `Invoke-Pester` directly** — Won't work for unit tests; they expect the compiled module
-- **Running `Invoke-Build -Task Test` without building** — Tests will fail or use stale code
+- **Skipping full-suite validation** — always run `Invoke-Build -Task Build, Test` before commit
+- **Treating focused `Invoke-Pester` as final validation** — local loops are faster, but full suite is still required
 - **Forgetting `./Tools/setup.ps1`** — Missing dependencies (Pester, InvokeBuild, etc.)
 - **Running `TestIntegration` without `.env`** — Will fail fast on missing credentials
 
@@ -194,7 +195,7 @@ When changing PowerShell files:
 2. If user identity is involved: is `accountId` used for Cloud and `username`/`name` for DC?
 3. If text fields are read/written: is ADF conversion conditional on deployment type?
 4. Are tests written/updated?
-5. Do tests pass? (`Invoke-Build -Task Build && Invoke-Build -Task Test`)
+5. Do tests pass? (`Invoke-Build -Task Build, Test`)
 6. If transport/response internals changed: are edge paths covered (request context, session capture, cache branches, paging, and status fallback from exceptions)?
 7. If you developed on macOS/Linux: did the Windows PowerShell 5.1 CI lane pass before merge?
 8. If CI failed: did you follow the [CI Triage Runbook](ci-triage-runbook.md)?

@@ -14,11 +14,11 @@ GitHub Copilot reads this file as its repository-level instructions.
 3. **User Identity** — `accountId` for Cloud, `username`/`name` for DC
 4. **REST calls** — always go through `Invoke-JiraMethod`
 5. **Tests required** — every function needs `.Unit.Tests.ps1`
-6. **Build before test** — `Invoke-Build -Task Build, Test` (tests run against `Release/`, not source)
+6. **Full-suite validation** — `Invoke-Build -Task Build, Test` before commit
 
 ## Testing During Development
 
-Run the appropriate tests after every change:
+Run the appropriate tests after every change.
 
 | What you changed | Test command |
 |------------------|--------------|

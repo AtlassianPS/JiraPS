@@ -37,7 +37,8 @@
 ./Tools/setup.ps1
 Invoke-Build -Task Build, Test
 ```
-Tests run against the built module in `Release/` — you must build before testing.
+Use `Invoke-Build -Task Build, Test` as the full-suite validation gate.
+For single unit-test iteration, run `Invoke-Pester` directly against `Tests/...`.
 
 ### Backlog Handling
 - **Out-of-scope ideas go on the board, not into the current PR.**
@@ -300,8 +301,8 @@ Private functions in `JiraPS/Private/` may use minimal comment-based help (`.SYN
 
 ### Build Process
 
-> **IMPORTANT**: Unit tests run against the *built* module in `Release/`, not the source files.
-> You MUST build before running unit tests.
+> **IMPORTANT**: Use `Invoke-Pester` directly for focused single unit-test loops.
+> Use `Invoke-Build -Task Build, Test` as the full-suite validation gate before commit.
 >
 > Integration tests run directly against `JiraPS/JiraPS.psd1` (no build step) and require live Jira Cloud credentials.
 > macOS and Linux contributors cannot execute the Windows PowerShell 5.1 lane locally, so treat that CI lane as a required pre-merge gate.
@@ -353,7 +354,7 @@ Invoke-Pester Tests/Functions/Public/Get-JiraIssue.Unit.Tests.ps1
 ```
 
 **Why localized tests?**
-- Faster feedback loop — no need to build the entire module for linting or docs
+- Faster feedback loop than running the full `Invoke-Build -Task Build, Test` suite every time
 - `Invoke-Build -Task Lint` runs PSScriptAnalyzer to catch code issues early
 - `Style.Tests.ps1` (encoding, whitespace, line endings) runs with the full test suite
 
