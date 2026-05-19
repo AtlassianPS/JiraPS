@@ -93,7 +93,12 @@ Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement, Sync-Atl
 }
 '@
 
-        Mock -CommandName Get-PSRepository -MockWith { [PSCustomObject]@{ Name = 'PSGallery' } }
+        Mock -CommandName Get-PSRepository -MockWith {
+            [PSCustomObject]@{
+                Name           = 'PSGallery'
+                SourceLocation = 'https://www.powershellgallery.com/api/v2/'
+            }
+        }
         Mock -CommandName Register-PSRepository -MockWith {}
         Mock -CommandName Install-Module -MockWith {}
 
@@ -114,6 +119,86 @@ Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement, Sync-Atl
         $capturedInstall.BuildRequirementsPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'Tools/build.requirements.psd1')
         $capturedInstall.ManifestPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'JiraPS/JiraPS.psd1')
         $capturedSyncPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'PSScriptAnalyzerSettings.psd1')
+    }
+
+    It 'installs the required standards version from build.requirements when not present locally' {
+        $projectRoot = if (
+            $env:BHProjectPath -and
+            (Test-Path -LiteralPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CODEOWNERS'))
+        ) {
+            (Resolve-Path -LiteralPath $env:BHProjectPath).ProviderPath
+        }
+        else {
+            $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
+            while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
+                    break
+                }
+
+                $candidate = Split-Path -Path $candidate -Parent
+            }
+
+            if (-not $candidate -or -not (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS'))) {
+                throw "Could not resolve repository root from '$PSScriptRoot'."
+            }
+
+            $candidate
+        }
+
+        $sourceToolsPath = Join-Path -Path $projectRoot -ChildPath 'Tools'
+        $harnessRoot = Join-Path -Path $TestDrive -ChildPath ([Guid]::NewGuid().ToString())
+        $toolsPath = Join-Path -Path $harnessRoot -ChildPath 'Tools'
+        $modulePath = Join-Path -Path $harnessRoot -ChildPath 'JiraPS'
+        $scriptPath = Join-Path -Path $toolsPath -ChildPath 'setup.ps1'
+
+        $null = New-Item -Path $toolsPath -ItemType Directory -Force
+        $null = New-Item -Path $modulePath -ItemType Directory -Force
+
+        Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'setup.ps1') -Destination $scriptPath
+
+        Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
+@(
+    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "9.9.9" }
+)
+'@
+
+        Set-Content -LiteralPath (Join-Path -Path $modulePath -ChildPath 'JiraPS.psd1') -Value @'
+@{
+    RootModule      = 'JiraPS.psm1'
+    ModuleVersion   = '3.0'
+    RequiredModules = @()
+}
+'@
+
+        Mock -CommandName Get-PSRepository -MockWith {
+            [PSCustomObject]@{
+                Name           = 'PSGallery'
+                SourceLocation = 'https://www.powershellgallery.com/api/v2/'
+            }
+        }
+        Mock -CommandName Register-PSRepository -MockWith {}
+        Mock -CommandName Get-Module -ParameterFilter {
+            $Name -eq 'AtlassianPS.Standards' -and $ListAvailable
+        } -MockWith { @() }
+        Mock -CommandName Install-Module -MockWith {}
+        Mock -CommandName Import-Module -MockWith {}
+        Mock -CommandName Install-AtlassianPSDependencyRequirement -MockWith {}
+        Mock -CommandName Sync-AtlassianPSScriptAnalyzerSettings -MockWith { param([String]$DestinationPath) $DestinationPath }
+
+        & $scriptPath | Out-Null
+
+        Assert-MockCalled -CommandName Install-Module -Exactly -Times 1 -ParameterFilter {
+            $Name -eq 'AtlassianPS.Standards' -and
+            $RequiredVersion -eq '9.9.9' -and
+            $Scope -eq 'CurrentUser' -and
+            $Repository -eq 'PSGallery' -and
+            [Boolean]$AllowClobber -and
+            [Boolean]$Force
+        }
+        Assert-MockCalled -CommandName Import-Module -Exactly -Times 1 -ParameterFilter {
+            $Name -eq 'AtlassianPS.Standards' -and
+            $RequiredVersion -eq '9.9.9'
+        }
     }
 
     It 'fails fast when shared installer emits a non-terminating error' {
@@ -200,7 +285,12 @@ Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement, Sync-Atl
 }
 '@
 
-        Mock -CommandName Get-PSRepository -MockWith { [PSCustomObject]@{ Name = 'PSGallery' } }
+        Mock -CommandName Get-PSRepository -MockWith {
+            [PSCustomObject]@{
+                Name           = 'PSGallery'
+                SourceLocation = 'https://www.powershellgallery.com/api/v2/'
+            }
+        }
         Mock -CommandName Register-PSRepository -MockWith {}
         Mock -CommandName Install-Module -MockWith {}
 

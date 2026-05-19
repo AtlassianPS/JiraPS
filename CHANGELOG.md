@@ -5,8 +5,9 @@
 ### Changed
 
 - Stabilized the Server integration `Search.Integration.Tests.ps1` OR-operator case by replacing the non-existent-key branch with a deterministic project-scoped OR predicate (`key = <fixture> OR key != <fixture>`), avoiding an intermittent Jira 11 backend null-deref (`issueObject` null) that failed nightly `integration_tests.yml` runs even when JiraPS behavior was correct.
-- Updated JiraPS shared standards dependency pins to `AtlassianPS.Standards` `0.1.6` (`Tools/build.requirements.psd1`, `Tools/setup.ps1`, `JiraPS.build.ps1`), and refactored `Tools/setup.ps1` / `Tools/update.dependencies.ps1` to bootstrap `AtlassianPS.Standards` directly via `Install-Module`/`Import-Module` before delegating dependency setup and update behavior to shared commands.
+- Updated JiraPS shared standards dependency pins to `AtlassianPS.Standards` `0.1.6` (`Tools/build.requirements.psd1`, `Tools/setup.ps1`, `JiraPS.build.ps1`), with `Tools/setup.ps1` / `Tools/update.dependencies.ps1` now resolving the required standards version from `build.requirements`, validating the PSGallery source location, and only calling `Install-Module` when the pinned version is not already available before delegating to shared commands.
 - Pinned JiraPS `setup-powershell` GitHub Action references to the `AtlassianPS.Standards` `v0.1.6` commit SHA, with inline version comments for readability.
+- Set `JiraPS/JiraPS.psd1` `RequiredModules` to explicit `@()` to keep shared dependency updater behavior deterministic.
 
 ## 3.0 - 2026-05-10
 
