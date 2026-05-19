@@ -39,7 +39,6 @@ Describe 'Tools/update.dependencies.ps1' -Tag Unit {
         $null = New-Item -Path $mockModulePath -ItemType Directory -Force
 
         Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'update.dependencies.ps1') -Destination $scriptPath
-        Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'SharedStandards.ps1') -Destination (Join-Path -Path $toolsPath -ChildPath 'SharedStandards.ps1')
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
@@ -152,7 +151,6 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
         $null = New-Item -Path $mockModulePath -ItemType Directory -Force
 
         Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'update.dependencies.ps1') -Destination $scriptPath
-        Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'SharedStandards.ps1') -Destination (Join-Path -Path $toolsPath -ChildPath 'SharedStandards.ps1')
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
