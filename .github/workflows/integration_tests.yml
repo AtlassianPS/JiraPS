@@ -2,7 +2,7 @@ name: Integration Tests
 
 # Cloud track + Server (Data Center, Dockerized) track. The two jobs share
 # this workflow's nightly cron and dispatch but are otherwise independent:
-# Cloud runs against a live Jira Cloud instance via JIRA_CLOUD_* secrets,
+# Cloud runs against a live Jira Cloud instance via shared org credentials,
 # Server boots moveworkforward/atlas-run-standalone:jira-11 with
 # docker-compose and provisions the fixture project + user from scratch.
 #
@@ -37,15 +37,15 @@ jobs:
        (inputs.track == 'cloud' || inputs.track == 'both'))
     runs-on: ubuntu-latest
     env:
-      JIRA_CLOUD_URL: ${{ secrets.JIRA_CLOUD_URL }}
-      JIRA_CLOUD_USERNAME: ${{ secrets.JIRA_CLOUD_USERNAME }}
-      JIRA_CLOUD_PASSWORD: ${{ secrets.JIRA_CLOUD_PASSWORD }}
-      JIRA_TEST_PROJECT: ${{ secrets.JIRA_TEST_PROJECT }}
-      JIRA_TEST_ISSUE: ${{ secrets.JIRA_TEST_ISSUE }}
-      JIRA_TEST_USER: ${{ secrets.JIRA_TEST_USER }}
-      JIRA_TEST_GROUP: ${{ secrets.JIRA_TEST_GROUP }}
-      JIRA_TEST_FILTER: ${{ secrets.JIRA_TEST_FILTER }}
-      JIRA_TEST_VERSION: ${{ secrets.JIRA_TEST_VERSION }}
+      JIRA_CLOUD_URL: ${{ vars.JIRA_CLOUD_URL }}
+      JIRA_CLOUD_USERNAME: ${{ vars.ATLASSIAN_CLOUD_USER }}
+      JIRA_CLOUD_PASSWORD: ${{ secrets.ATLASSIAN_CLOUD_PAT }}
+      JIRA_TEST_PROJECT: ${{ vars.JIRA_TEST_PROJECT }}
+      JIRA_TEST_ISSUE: ${{ vars.JIRA_TEST_ISSUE }}
+      JIRA_TEST_USER: ${{ vars.JIRA_TEST_USER }}
+      JIRA_TEST_GROUP: ${{ vars.JIRA_TEST_GROUP }}
+      JIRA_TEST_FILTER: ${{ vars.JIRA_TEST_FILTER }}
+      JIRA_TEST_VERSION: ${{ vars.JIRA_TEST_VERSION }}
     steps:
       - uses: actions/checkout@v6
       - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@v0.1.2

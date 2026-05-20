@@ -126,7 +126,7 @@ jobs:
     name: Smoke Tests
     needs: lint
     runs-on: ubuntu-latest
-    # Skip on fork PRs and Dependabot PRs: the JIRA_CLOUD_* secrets are not
+    # Skip on fork PRs and Dependabot PRs: the shared cloud PAT secret is not
     # exposed in those contexts and the smoke run would fail. The ci-required
     # aggregator below treats skipped jobs as a pass, so fork PRs still get
     # a green CI Result. First-party PRs and pushes to master gate on the
@@ -136,15 +136,15 @@ jobs:
       (github.event.pull_request.head.repo.full_name == github.repository &&
        github.actor != 'dependabot[bot]')
     env:
-      JIRA_CLOUD_URL: ${{ secrets.JIRA_CLOUD_URL }}
-      JIRA_CLOUD_USERNAME: ${{ secrets.JIRA_CLOUD_USERNAME }}
-      JIRA_CLOUD_PASSWORD: ${{ secrets.JIRA_CLOUD_PASSWORD }}
-      JIRA_TEST_PROJECT: ${{ secrets.JIRA_TEST_PROJECT }}
-      JIRA_TEST_ISSUE: ${{ secrets.JIRA_TEST_ISSUE }}
-      JIRA_TEST_USER: ${{ secrets.JIRA_TEST_USER }}
-      JIRA_TEST_GROUP: ${{ secrets.JIRA_TEST_GROUP }}
-      JIRA_TEST_FILTER: ${{ secrets.JIRA_TEST_FILTER }}
-      JIRA_TEST_VERSION: ${{ secrets.JIRA_TEST_VERSION }}
+      JIRA_CLOUD_URL: ${{ vars.JIRA_CLOUD_URL }}
+      JIRA_CLOUD_USERNAME: ${{ vars.ATLASSIAN_CLOUD_USER }}
+      JIRA_CLOUD_PASSWORD: ${{ secrets.ATLASSIAN_CLOUD_PAT }}
+      JIRA_TEST_PROJECT: ${{ vars.JIRA_TEST_PROJECT }}
+      JIRA_TEST_ISSUE: ${{ vars.JIRA_TEST_ISSUE }}
+      JIRA_TEST_USER: ${{ vars.JIRA_TEST_USER }}
+      JIRA_TEST_GROUP: ${{ vars.JIRA_TEST_GROUP }}
+      JIRA_TEST_FILTER: ${{ vars.JIRA_TEST_FILTER }}
+      JIRA_TEST_VERSION: ${{ vars.JIRA_TEST_VERSION }}
     steps:
       - uses: actions/checkout@v6
       - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@v0.1.2
