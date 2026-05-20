@@ -26,17 +26,21 @@ InModuleScope JiraPS {
 
             # Seed one saved filter for the read-only `Find-JiraFilter` tests below.
             # Reasoning:
-            #   - `Find-JiraFilter -Name "test"` and `Find-JiraFilter` ("my filters")
+            #   - `Find-JiraFilter -Name <seeded-name>` and `Find-JiraFilter`
+            #     ("my filters")
             #     both used to assume the authenticated account had at least one
             #     pre-existing filter. That holds for the long-lived Cloud test
             #     account but breaks the moment we boot a fresh Data Center
             #     container, where the admin account starts with zero filters.
-            #   - The seeded filter's name uses `New-TestResourceName -Type "Filter"`
-            #     so it carries the `JiraPS-IntTest-` prefix. That prefix contains
-            #     the substring "Test", which makes `Find-JiraFilter -Name "test"`
-            #     match it (Jira's filter search is a case-insensitive substring
-            #     match on the filter name) and also lets `Remove-StaleTestResource`
-            #     reap it on subsequent runs if AfterAll ever fails to clean up.
+            #   - We query `Find-JiraFilter` with the exact seeded name instead of
+            #     relying on fuzzy `-Name "test"` matching, because Cloud/DC
+            #     deployments can differ in how broadly filter-name search matches.
+            #   - The seeded filter intentionally does NOT use the shared
+            #     `JiraPS-IntTest-` prefix. Parallel runspaces call
+            #     `Remove-StaleTestResource`, which removes prefixed filters
+            #     immediately and can race this test's freshly seeded filter.
+            #     This test tracks the seed in `$script:createdFilters` and removes
+            #     it in AfterAll.
             #   - `New-JiraFilter` is invoked with `-Favorite` so the filter is
             #     also discoverable by the bare `Find-JiraFilter` ("my filters")
             #     call: Jira Data Center's `/rest/api/2/filter/search` endpoint
@@ -57,8 +61,9 @@ InModuleScope JiraPS {
             $script:SeededFilter = $null
             if (-not $env.ReadOnly -and -not [string]::IsNullOrEmpty($fixtures.TestProject)) {
                 try {
+                    $seedName = "JiraPS-FindFilterSeed-$(Get-Date -Format 'yyyyMMddHHmmss')-$([Guid]::NewGuid().ToString('N').Substring(0, 6))"
                     $script:SeededFilter = New-JiraFilter `
-                        -Name (New-TestResourceName -Type "Filter") `
+                        -Name $seedName `
                         -JQL "project = $($fixtures.TestProject)" `
                         -Description "Auto-seeded by Filters.Integration.Tests.ps1 so Find-JiraFilter has data on a fresh deployment. Safe to delete." `
                         -Favorite
@@ -142,12 +147,12 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "Could not seed a baseline filter (read-only mode or missing TestProject); see BeforeAll warning."
                         return
                     }
-                    # The seeded filter name carries the JiraPS-IntTest- prefix, so
-                    # searching for "test" finds it via case-insensitive substring
-                    # match (the prefix contains "Test").
-                    $filters = Find-JiraFilter -Name "test"
+                    # Query by the exact seeded name so this assertion is stable
+                    # across Jira variants that apply different fuzzy-search rules.
+                    $filters = Find-JiraFilter -Name $script:SeededFilter.Name
 
-                    $filters | Should -Not -BeNullOrEmpty -Because "the BeforeAll seeded a filter whose name contains 'Test'"
+                    $filters | Should -Not -BeNullOrEmpty -Because "the BeforeAll seeded a filter and confirmed it is searchable by name"
+                    @($filters | Select-Object -ExpandProperty Id) | Should -Contain $script:SeededFilter.Id -Because "Find-JiraFilter -Name should return the seeded filter"
                     @($filters)[0] | Should -BeOfType [PSCustomObject]
                 }
 
