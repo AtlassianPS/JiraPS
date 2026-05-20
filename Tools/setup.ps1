@@ -1,53 +1,86 @@
 ﻿#requires -Module PowerShellGet
 
 [CmdletBinding()]
-param()
+param(
+    [Parameter(DontShow = $true)]
+    [ValidateSet('Desktop', 'Core')]
+    [String]$RuntimePSEdition = $PSVersionTable.PSEdition,
 
-$psScriptAnalyzerSettingsPath = Join-Path (Join-Path $PSScriptRoot '..') 'PSScriptAnalyzerSettings.psd1'
+    [Parameter(DontShow = $true)]
+    [Switch]$ForceDesktopBootstrapRemediation
+)
 
-function Sync-PSScriptAnalyzerSetting {
-    [CmdletBinding()]
-    param()
+$ErrorActionPreference = 'Stop'
 
-    Write-Output "Syncing PSScriptAnalyzer settings from AtlassianPS.Standards"
+$projectRoot = (Resolve-Path -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath '..')).ProviderPath
+$buildRequirementsPath = Join-Path -Path $projectRoot -ChildPath 'Tools/build.requirements.psd1'
+$manifestPath = Join-Path -Path $projectRoot -ChildPath 'JiraPS/JiraPS.psd1'
+$psScriptAnalyzerSettingsPath = Join-Path -Path $projectRoot -ChildPath 'PSScriptAnalyzerSettings.psd1'
 
+$buildRequirements = Import-PowerShellDataFile -Path $buildRequirementsPath
+$standardsRequirement = $buildRequirements |
+    Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
+    Select-Object -First 1
+
+if (-not $standardsRequirement -or -not $standardsRequirement.RequiredVersion) {
+    throw "Could not resolve AtlassianPS.Standards required version from '$buildRequirementsPath'."
+}
+
+$standardsVersion = [string] $standardsRequirement.RequiredVersion
+$isWindowsPowerShell = $RuntimePSEdition -eq 'Desktop'
+if ($isWindowsPowerShell) {
+    $nuGetProvider = Get-PackageProvider -Name 'NuGet' -ListAvailable -ErrorAction SilentlyContinue |
+        Sort-Object -Property Version -Descending |
+        Select-Object -First 1
+
+    $requiresNuGetBootstrap = (
+        $ForceDesktopBootstrapRemediation -or
+        (-not $nuGetProvider -or $nuGetProvider.Version -lt [Version] '2.8.5.201')
+    )
+
+    if ($requiresNuGetBootstrap) {
+        Install-PackageProvider -Name 'NuGet' -MinimumVersion '2.8.5.201' -Scope CurrentUser -Force -ErrorAction Stop
+    }
+
+}
+
+$psGalleryRepository = Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue
+if (-not $psGalleryRepository) {
     try {
-        Import-Module AtlassianPS.Standards -RequiredVersion '0.1.2' -Force -ErrorAction Stop
-        $resolvedSettingsPath = Sync-AtlassianPSScriptAnalyzerSettings `
-            -DestinationPath $psScriptAnalyzerSettingsPath `
-            -ErrorAction Stop
-        Write-Output "Shared PSScriptAnalyzer settings synchronized to '$resolvedSettingsPath'."
+        Register-PSRepository -Default -ErrorAction Stop
     }
     catch {
-        throw "Unable to materialize shared PSScriptAnalyzer settings from AtlassianPS.Standards. $($_.Exception.Message)"
+        throw "PSGallery repository is unavailable. Register PSGallery or configure repository access, then rerun '$($MyInvocation.MyCommand.Path)'."
     }
+
+    $psGalleryRepository = Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue
 }
 
-# Ensure NuGet provider is installed
-Write-Output "Installing PackageProvider NuGet"
-$null = Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -ErrorAction SilentlyContinue
-
-# Ensure PSGallery repository is registered and available
-if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
-    Write-Output "Registering PSGallery repository"
-    Register-PSRepository -Default -ErrorAction SilentlyContinue
+if (-not $psGalleryRepository) {
+    throw "PSGallery repository is unavailable. Register PSGallery or configure repository access, then rerun '$($MyInvocation.MyCommand.Path)'."
 }
 
-# Set PSGallery to Trusted to avoid prompts in CI
-$psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
-if ($psGallery -and $psGallery.InstallationPolicy -ne 'Trusted') {
-    Write-Output "Setting PSGallery to Trusted"
-    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+if ($isWindowsPowerShell -and ($ForceDesktopBootstrapRemediation -or $psGalleryRepository.InstallationPolicy -ne 'Trusted')) {
+    Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction Stop
 }
 
-# Update PowerShellGet if needed
-if ((Get-Module PowershellGet -ListAvailable)[0].Version -lt [version]"1.6.0") {
-    Write-Output "Updating PowershellGet"
-    Install-Module PowershellGet -Scope CurrentUser -Force
-}
+Install-Module -Name 'AtlassianPS.Standards' `
+    -RequiredVersion $standardsVersion `
+    -Scope CurrentUser `
+    -Repository 'PSGallery' `
+    -AllowClobber `
+    -Force `
+    -ErrorAction Stop
 
-Write-Output "Installing Dependencies"
-Import-Module "$PSScriptRoot/BuildTools.psm1" -Force
-Install-Dependency
+Import-Module -Name 'AtlassianPS.Standards' -RequiredVersion $standardsVersion -Force -ErrorAction Stop
 
-Sync-PSScriptAnalyzerSetting
+$null = Install-AtlassianPSDependencyRequirement `
+    -BuildRequirementsPath $buildRequirementsPath `
+    -ManifestPath $manifestPath `
+    -ErrorAction Stop
+
+$resolvedSettingsPath = Sync-AtlassianPSScriptAnalyzerSettings `
+    -DestinationPath $psScriptAnalyzerSettingsPath `
+    -ErrorAction Stop
+
+Write-Output "Shared PSScriptAnalyzer settings synchronized to '$resolvedSettingsPath'."

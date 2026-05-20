@@ -1,69 +1,100 @@
-﻿#requires -modules Metadata
+﻿#requires -Module PowerShellGet
 
-Import-Module $PSScriptRoot/BuildTools.psm1 -Force
-Import-Module Metadata -Force
+[CmdletBinding(SupportsShouldProcess = $true)]
+param(
+    [Parameter()]
+    [Switch]$SkipBuildRequirement,
 
-$modules = Get-Dependency
-$output = "@(`n"
+    [Parameter()]
+    [Switch]$SkipManifestRequirement,
 
-foreach ($module in $modules) {
-    Write-Output "Checking for module: $($module.Name)"
-    $source = Find-Module $module.Name -Repository PSGallery -ErrorAction SilentlyContinue
+    [Parameter(DontShow = $true)]
+    [ValidateSet('Desktop', 'Core')]
+    [String]$RuntimePSEdition = $PSVersionTable.PSEdition,
 
-    if ($source.version -gt $module.RequiredVersion) {
-        Write-Output "updating $($module.Name): v$($module.RequiredVersion) --> $($source.Version)"
-        $output += "    @{ ModuleName = `"$($module.Name)`"; RequiredVersion = `"$($source.Version)`" }`n"
-    }
-    else {
-        $output += "    @{ ModuleName = `"$($module.Name)`"; RequiredVersion = `"$($module.RequiredVersion)`" }`n"
+    [Parameter(DontShow = $true)]
+    [Switch]$ForceDesktopBootstrapRemediation
+)
+
+$ErrorActionPreference = 'Stop'
+
+$projectRoot = (Resolve-Path -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath '..')).ProviderPath
+$buildRequirementsPath = Join-Path -Path $projectRoot -ChildPath 'Tools/build.requirements.psd1'
+$manifestPath = Join-Path -Path $projectRoot -ChildPath 'JiraPS/JiraPS.psd1'
+
+$buildRequirements = Import-PowerShellDataFile -Path $buildRequirementsPath
+$standardsRequirement = $buildRequirements |
+    Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
+    Select-Object -First 1
+
+if (-not $standardsRequirement -or -not $standardsRequirement.RequiredVersion) {
+    throw "Could not resolve AtlassianPS.Standards required version from '$buildRequirementsPath'."
+}
+
+$standardsVersion = [string] $standardsRequirement.RequiredVersion
+
+if (-not $PSCmdlet.ShouldProcess($manifestPath, 'Update AtlassianPS dependency references')) {
+    return [PSCustomObject]@{
+        Skipped                 = $true
+        BuildRequirementsPath   = $buildRequirementsPath
+        ManifestPath            = $manifestPath
+        SkipBuildRequirement    = [Boolean] $SkipBuildRequirement
+        SkipManifestRequirement = [Boolean] $SkipManifestRequirement
     }
 }
-$output += ")`n"
 
-Set-Content -Value $output -Path "$PSScriptRoot/build.requirements.psd1" -Force
+$isWindowsPowerShell = $RuntimePSEdition -eq 'Desktop'
+if ($isWindowsPowerShell) {
+    $nuGetProvider = Get-PackageProvider -Name 'NuGet' -ListAvailable -ErrorAction SilentlyContinue |
+        Sort-Object -Property Version -Descending |
+        Select-Object -First 1
 
-function Update-PinnedPSScriptAnalyzerSettingsUri {
-    [CmdletBinding(SupportsShouldProcess = $true)]
-    param()
+    $requiresNuGetBootstrap = (
+        $ForceDesktopBootstrapRemediation -or
+        (-not $nuGetProvider -or $nuGetProvider.Version -lt [Version] '2.8.5.201')
+    )
 
-    $settingsFilePath = 'standards/PSScriptAnalyzerSettings.psd1'
-    $setupScriptPath = Join-Path $PSScriptRoot 'setup.ps1'
-    $commitApiUri = "https://api.github.com/repos/AtlassianPS/.github/commits?path=$settingsFilePath&sha=master&per_page=1"
+    if ($requiresNuGetBootstrap) {
+        Install-PackageProvider -Name 'NuGet' -MinimumVersion '2.8.5.201' -Scope CurrentUser -Force -ErrorAction Stop
+    }
 
-    Write-Output "Checking pinned .github commit for $settingsFilePath"
+}
+
+$psGalleryRepository = Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue
+if (-not $psGalleryRepository) {
     try {
-        $response = Invoke-RestMethod -Uri $commitApiUri -Method Get -ErrorAction Stop
+        Register-PSRepository -Default -ErrorAction Stop
     }
     catch {
-        throw "Unable to query latest commit for shared PSScriptAnalyzer settings. $($_.Exception.Message)"
+        throw "PSGallery repository is unavailable. Register PSGallery or configure repository access, then rerun '$($MyInvocation.MyCommand.Path)'."
     }
 
-    if (-not $response -or -not $response[0] -or -not $response[0].sha) {
-        throw "No commit data returned for shared PSScriptAnalyzer settings."
-    }
-
-    $latestCommit = $response[0].sha
-    $newUri = "https://raw.githubusercontent.com/AtlassianPS/.github/$latestCommit/$settingsFilePath"
-    $setupContent = [System.IO.File]::ReadAllText($setupScriptPath)
-    $oldUriPattern = "(?m)^\$psScriptAnalyzerSettingsUri = 'https://raw\.githubusercontent\.com/AtlassianPS/\.github/[^']+/standards/PSScriptAnalyzerSettings\.psd1'$"
-    $newUriLine = "`$psScriptAnalyzerSettingsUri = '$newUri'"
-
-    if ($setupContent -notmatch $oldUriPattern) {
-        Write-Warning "Unable to locate pinned PSScriptAnalyzer URI in setup.ps1; skipping."
-        return
-    }
-
-    $updatedContent = [System.Text.RegularExpressions.Regex]::Replace($setupContent, $oldUriPattern, $newUriLine, [System.Text.RegularExpressions.RegexOptions]::Multiline)
-    if ($updatedContent -eq $setupContent) {
-        Write-Output "Pinned PSScriptAnalyzer URI already up to date."
-        return
-    }
-
-    if ($PSCmdlet.ShouldProcess($setupScriptPath, "Update pinned PSScriptAnalyzer settings URI")) {
-        $updatedContent = $updatedContent -replace "`r?`n", "`r`n"
-        [System.IO.File]::WriteAllText($setupScriptPath, $updatedContent, [System.Text.UTF8Encoding]::new($true))
-        Write-Output "Updated pinned PSScriptAnalyzer URI to commit $latestCommit"
-    }
+    $psGalleryRepository = Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue
 }
 
-Update-PinnedPSScriptAnalyzerSettingsUri
+if (-not $psGalleryRepository) {
+    throw "PSGallery repository is unavailable. Register PSGallery or configure repository access, then rerun '$($MyInvocation.MyCommand.Path)'."
+}
+
+if ($isWindowsPowerShell -and ($ForceDesktopBootstrapRemediation -or $psGalleryRepository.InstallationPolicy -ne 'Trusted')) {
+    Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction Stop
+}
+
+Install-Module -Name 'AtlassianPS.Standards' `
+    -RequiredVersion $standardsVersion `
+    -Scope CurrentUser `
+    -Repository 'PSGallery' `
+    -AllowClobber `
+    -Force `
+    -ErrorAction Stop
+
+Import-Module -Name 'AtlassianPS.Standards' -RequiredVersion $standardsVersion -Force -ErrorAction Stop
+
+$result = Update-AtlassianPSDependencyReference `
+    -BuildRequirementsPath $buildRequirementsPath `
+    -ManifestPath $manifestPath `
+    -SkipBuildRequirement:$SkipBuildRequirement `
+    -SkipManifestRequirement:$SkipManifestRequirement `
+    -ErrorAction Stop
+
+$result

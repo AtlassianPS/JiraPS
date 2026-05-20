@@ -48,7 +48,7 @@ jobs:
       JIRA_TEST_VERSION: ${{ vars.JIRA_TEST_VERSION }}
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@v0.1.2
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
 
       - run: |
           Invoke-Build -Task TestIntegration -ThrottleLimit 6 -PesterVerbosity Detailed
@@ -108,7 +108,7 @@ jobs:
         run: docker compose up -d
         shell: bash
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@v0.1.2
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
 
       - name: Wait for Jira to become reachable and provision the normal user
         run: pwsh ./Tools/Wait-JiraServer.ps1 -TimeoutSeconds 1200
