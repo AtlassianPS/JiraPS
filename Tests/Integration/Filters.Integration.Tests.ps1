@@ -35,9 +35,12 @@ InModuleScope JiraPS {
             #   - We query `Find-JiraFilter` with the exact seeded name instead of
             #     relying on fuzzy `-Name "test"` matching, because Cloud/DC
             #     deployments can differ in how broadly filter-name search matches.
-            #     The seeded filter name still uses `New-TestResourceName -Type
-            #     "Filter"` so `Remove-StaleTestResource` can reap leftovers on
-            #     subsequent runs if AfterAll ever fails to clean up.
+            #   - The seeded filter intentionally does NOT use the shared
+            #     `JiraPS-IntTest-` prefix. Parallel runspaces call
+            #     `Remove-StaleTestResource`, which removes prefixed filters
+            #     immediately and can race this test's freshly seeded filter.
+            #     This test tracks the seed in `$script:createdFilters` and removes
+            #     it in AfterAll.
             #   - `New-JiraFilter` is invoked with `-Favorite` so the filter is
             #     also discoverable by the bare `Find-JiraFilter` ("my filters")
             #     call: Jira Data Center's `/rest/api/2/filter/search` endpoint
@@ -58,8 +61,9 @@ InModuleScope JiraPS {
             $script:SeededFilter = $null
             if (-not $env.ReadOnly -and -not [string]::IsNullOrEmpty($fixtures.TestProject)) {
                 try {
+                    $seedName = "JiraPS-FindFilterSeed-$(Get-Date -Format 'yyyyMMddHHmmss')-$([Guid]::NewGuid().ToString('N').Substring(0, 6))"
                     $script:SeededFilter = New-JiraFilter `
-                        -Name (New-TestResourceName -Type "Filter") `
+                        -Name $seedName `
                         -JQL "project = $($fixtures.TestProject)" `
                         -Description "Auto-seeded by Filters.Integration.Tests.ps1 so Find-JiraFilter has data on a fresh deployment. Safe to delete." `
                         -Favorite
