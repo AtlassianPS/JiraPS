@@ -1,7 +1,14 @@
 ﻿#requires -Module PowerShellGet
 
 [CmdletBinding()]
-param()
+param(
+    [Parameter(DontShow = $true)]
+    [ValidateSet('Desktop', 'Core')]
+    [String]$RuntimePSEdition = $PSVersionTable.PSEdition,
+
+    [Parameter(DontShow = $true)]
+    [Switch]$ForceDesktopBootstrapRemediation
+)
 
 $ErrorActionPreference = 'Stop'
 
@@ -20,24 +27,41 @@ if (-not $standardsRequirement -or -not $standardsRequirement.RequiredVersion) {
 }
 
 $standardsVersion = [string] $standardsRequirement.RequiredVersion
-$isWindowsPowerShell = $PSVersionTable.PSEdition -eq 'Desktop'
+$isWindowsPowerShell = $RuntimePSEdition -eq 'Desktop'
 if ($isWindowsPowerShell) {
     $nuGetProvider = Get-PackageProvider -Name 'NuGet' -ListAvailable -ErrorAction SilentlyContinue |
         Sort-Object -Property Version -Descending |
         Select-Object -First 1
 
-    if (-not $nuGetProvider -or $nuGetProvider.Version -lt [Version] '2.8.5.201') {
+    $requiresNuGetBootstrap = (
+        $ForceDesktopBootstrapRemediation -or
+        (-not $nuGetProvider -or $nuGetProvider.Version -lt [Version] '2.8.5.201')
+    )
+
+    if ($requiresNuGetBootstrap) {
         Install-PackageProvider -Name 'NuGet' -MinimumVersion '2.8.5.201' -Scope CurrentUser -Force -ErrorAction Stop
     }
 
-    if (-not (Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
+}
+
+$psGalleryRepository = Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue
+if (-not $psGalleryRepository) {
+    try {
         Register-PSRepository -Default -ErrorAction Stop
     }
-
-    $psGalleryRepository = Get-PSRepository -Name 'PSGallery' -ErrorAction Stop
-    if ($psGalleryRepository.InstallationPolicy -ne 'Trusted') {
-        Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction Stop
+    catch {
+        throw "PSGallery repository is unavailable. Register PSGallery or configure repository access, then rerun '$($MyInvocation.MyCommand.Path)'."
     }
+
+    $psGalleryRepository = Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue
+}
+
+if (-not $psGalleryRepository) {
+    throw "PSGallery repository is unavailable. Register PSGallery or configure repository access, then rerun '$($MyInvocation.MyCommand.Path)'."
+}
+
+if ($isWindowsPowerShell -and ($ForceDesktopBootstrapRemediation -or $psGalleryRepository.InstallationPolicy -ne 'Trusted')) {
+    Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction Stop
 }
 
 Install-Module -Name 'AtlassianPS.Standards' `

@@ -99,5 +99,6 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $updateScriptContent | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
         $updateScriptContent | Should -Not -Match '\$standardsVersion\s*=\s*'''
         $updateScriptContent | Should -Match '-RequiredVersion\s+\$standardsVersion'
+        $updateScriptContent | Should -Match '\$PSCmdlet\.ShouldProcess\('
     }
 }
