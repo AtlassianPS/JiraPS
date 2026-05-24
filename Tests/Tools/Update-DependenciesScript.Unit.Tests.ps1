@@ -250,7 +250,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
 
         Test-Path -LiteralPath $installPackageProviderCapturePath | Should -BeTrue
         Test-Path -LiteralPath $setPSRepositoryCapturePath | Should -BeTrue
-        Assert-MockCalled -CommandName Install-Module -Exactly -Times 1 -ParameterFilter {
+        Should -Invoke -CommandName Install-Module -Exactly -Times 1 -ParameterFilter {
             $Name -eq 'AtlassianPS.Standards' -and
             $RequiredVersion -eq '9.9.9' -and
             $Scope -eq 'CurrentUser' -and
@@ -323,7 +323,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
 
         $result = & $scriptPath -WhatIf
 
-        Assert-MockCalled -CommandName Install-Module -Exactly -Times 0
+        Should -Invoke -CommandName Install-Module -Exactly -Times 0
         $result.Skipped | Should -BeTrue
     }
 

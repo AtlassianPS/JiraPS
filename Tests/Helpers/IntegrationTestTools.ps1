@@ -4,6 +4,25 @@ $script:TestResourcePrefix = 'JiraPS-IntTest-'
 $script:_CachedIntegrationEnv = $null
 $script:_EnvLoaded = $false
 $script:_CleanupInProgress = $false
+$script:ServerDotEnvFixtureExclusions = @(
+    'JIRA_TEST_PROJECT'
+    'JIRA_TEST_ISSUE'
+    'JIRA_TEST_GROUP'
+    'JIRA_TEST_FILTER'
+    'JIRA_TEST_VERSION'
+)
+
+function Get-DotEnvExcludedName {
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param()
+
+    if ($env:CI_JIRA_TYPE -eq 'Server') {
+        return $script:ServerDotEnvFixtureExclusions
+    }
+
+    return @()
+}
 
 function Read-DotEnvFile {
     <#
@@ -36,7 +55,10 @@ function Read-DotEnvFile {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$Path
+        [string]$Path,
+
+        [Parameter()]
+        [string[]]$ExcludeName = @()
     )
 
     if (-not (Test-Path -LiteralPath $Path)) {
@@ -50,6 +72,7 @@ function Read-DotEnvFile {
 
         $name = $matches[1].Trim()
         if ([string]::IsNullOrEmpty($name)) { return }
+        if ($name -in $ExcludeName) { return }
 
         $rawValue = $matches[2].TrimStart()
 
@@ -138,7 +161,7 @@ function Initialize-IntegrationEnvironment {
 
     $envFile = Join-Path $projectRoot '.env'
     if (Test-Path $envFile) {
-        Read-DotEnvFile -Path $envFile
+        Read-DotEnvFile -Path $envFile -ExcludeName (Get-DotEnvExcludedName)
         Write-Verbose "Loaded environment from: $envFile"
     }
 
@@ -201,9 +224,9 @@ function Initialize-IntegrationEnvironment {
     if ($deploymentType -eq 'Server') {
         # Server track fixture sourcing:
         #   - Wait-JiraServer.ps1 (run by the `server_integration_tests` job in
-        #     integration_tests.yml and by the StartJiraDocker build task) provisions a TEST project and a TEST-1 baseline issue
-        #     against the moveworkforward/atlas-run-standalone image, then exports
-        #     JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to $env:GITHUB_ENV.
+        #     integration_tests.yml and by the StartJiraDocker build task) provisions
+        #     a TEST project and a TEST-1 baseline issue, then exports the fixtures
+        #     to the current process and to $env:GITHUB_ENV in CI.
         #   - Honour those env vars here (same shape as the Cloud branch below) so
         #     read-only smoke tests like `Get-JiraIssue $TestIssue` actually run
         #     against the seeded baseline instead of self-skipping.

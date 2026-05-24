@@ -24,6 +24,9 @@ This document covers the release process for JiraPS.
 ```powershell
 # ALWAYS run before pushing release commits
 Invoke-Build -Task Build, Test
+
+# Optional local release packaging preflight; CI runs this in the build job
+Invoke-Build -Task TestPublish
 ```
 
 ## Release Workflow
@@ -54,7 +57,8 @@ git push origin master --tags
 - **Tags use `v` prefix**, changelog headers omit it
 - **Minor releases**: 2-part version (e.g. `v2.17`) — PSGallery normalizes to `2.17.0`
 - **Patch releases**: 3-part version (e.g. `v2.17.1`) — use when fixing bugs in a released version
-- **Release workflow triggers on**: `v*` tags
+- **Release workflow triggers on**: `v*` annotated tags
+- **Release workflow verifies**: the tag is annotated and points to a commit reachable from `origin/master`
 
 ## Common Mistakes
 

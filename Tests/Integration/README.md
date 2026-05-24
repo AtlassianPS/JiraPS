@@ -45,8 +45,14 @@ Get-JiraUser @userIdParam
 The Server track is fully self-contained — no secrets, no live Jira, just Docker:
 
 ```powershell
+# Start Jira, run the Server-tagged suite, and stop the container.
+Invoke-Build -Task TestIntegrationServer
+```
+
+For manual loops where you want to keep the container running between test runs:
+
+```powershell
 Invoke-Build -Task StartJiraDocker     # ~5 min on first run while image pulls + Jira boots
-$env:CI_JIRA_TYPE = 'Server'
 
 # Full Server-tagged suite — the same set of files the server_integration_tests job runs.
 Invoke-Build -Task TestIntegration -Tag 'Server'
@@ -54,10 +60,12 @@ Invoke-Build -Task TestIntegration -Tag 'Server'
 Invoke-Build -Task StopJiraDocker
 ```
 
-`StartJiraDocker` runs `docker compose up -d` against the repo-root `docker-compose.yml` and then invokes `Tools/Wait-JiraServer.ps1` to poll until Jira is reachable, provision the regular test user (`jira_user/jira`), discover and provision the fixture project (`TEST`), and seed one baseline issue.
+`StartJiraDocker` sets the Server-track environment defaults (`CI_JIRA_TYPE=Server`, local Jira URL, admin/user credentials, and `JIRA_TEST_PROJECT=TEST`), clears Cloud-only optional fixture vars, runs `docker compose up -d` against the repo-root `docker-compose.yml`, and then invokes `Tools/Wait-JiraServer.ps1` to poll until Jira is reachable, provision the regular test user (`jira_user/jira`), discover and provision the fixture project (`TEST`), and seed one baseline issue.
 `StopJiraDocker` runs `docker compose down -v` to discard the container and its volumes.
 
-Locally, `Wait-JiraServer.ps1` cannot write to `$GITHUB_ENV` (which only exists inside GitHub Actions runners), so set `JIRA_TEST_PROJECT` / `JIRA_TEST_ISSUE` in your `.env` (or `$env:` directly) if you want the issue-key-dependent tests (e.g. `Get-JiraIssue.Integration.Tests.ps1`) to run instead of self-skip — the script prints the values it would have exported in its final log line.
+`Wait-JiraServer.ps1` writes provisioned fixture values into the current process and, in GitHub Actions, into `$GITHUB_ENV` for downstream steps.
+Server runs intentionally ignore Cloud fixture values such as `JIRA_TEST_ISSUE`, `JIRA_TEST_FILTER`, and `JIRA_TEST_VERSION` from local `.env` files so a Cloud test profile cannot point the Docker suite at non-existent Server data.
+If `TestIntegrationServer` fails before teardown, it captures `jira-container.log` for post-mortem diagnostics.
 
 ### CI scheduling
 
@@ -193,7 +201,8 @@ Invoke-Build -Task Test -Tag 'Integration'
 
 ## Parallel Test Runner
 
-The `Invoke-ParallelPester.ps1` script uses PowerShell 7's `ForEach-Object -Parallel` to run test files concurrently.
+The `Invoke-ParallelPester.ps1` script uses PowerShell 7 thread jobs to run test files concurrently.
+Its console summary always includes the skipped-test count; when any tests skip, it also prints a `SKIPPED TESTS` section with each test name and Pester skip reason so a green integration run cannot hide lost coverage.
 
 ### Usage
 
@@ -232,7 +241,7 @@ The `Invoke-ParallelPester.ps1` script uses PowerShell 7's `ForEach-Object -Para
 | Parallel (4) | ~3.5 min | 3x faster             |
 | Parallel (6) | ~2.5 min | Diminishing returns   |
 
-**Note:** Requires PowerShell 7+ for `ForEach-Object -Parallel` support.
+**Note:** Requires PowerShell 7+ for parallel thread-job execution.
 
 ## Test Structure
 

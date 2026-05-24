@@ -86,7 +86,7 @@ Describe "Style rules" -Tag "Unit" {
         $badFiles = @(
             foreach ($file in $codeFiles) {
                 $string = [System.IO.File]::ReadAllText($file.FullName)
-                if ($string.Length -gt 0 -and $string -notmatch "\r\n$") {
+                if ($string.Length -gt 0 -and $string -match "(?<!`r)`n|`r(?!`n)") {
                     $file.FullName
                 }
             }
@@ -97,11 +97,11 @@ Describe "Style rules" -Tag "Unit" {
         }
     }
 
-    It "uses LF as newline character in documentation files" {
+    It "uses CRLF as newline character in documentation files" {
         $badFiles = @(
             foreach ($file in $docFiles) {
                 $string = [System.IO.File]::ReadAllText($file.FullName)
-                if ($string.Length -gt 0 -and $string -notmatch "\n$") {
+                if ($string.Length -gt 0 -and $string -match "(?<!`r)`n|`r(?!`n)") {
                     $file.FullName
                 }
             }

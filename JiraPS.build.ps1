@@ -43,6 +43,23 @@ $script:BuildInfo = Initialize-AtlassianPSBuildEnvironment `
 
 $builtManifestPath = $script:BuildInfo.BuiltManifestPath
 
+function Initialize-JiraDockerEnvironment {
+    [CmdletBinding()]
+    param()
+
+    $env:CI_JIRA_TYPE = 'Server'
+    $env:CI_JIRA_URL = if ($env:CI_JIRA_URL) { $env:CI_JIRA_URL } else { 'http://localhost:2990/jira' }
+    $env:CI_JIRA_ADMIN = if ($env:CI_JIRA_ADMIN) { $env:CI_JIRA_ADMIN } else { 'admin' }
+    $env:CI_JIRA_ADMIN_PASSWORD = if ($env:CI_JIRA_ADMIN_PASSWORD) { $env:CI_JIRA_ADMIN_PASSWORD } else { 'admin' }
+    $env:CI_JIRA_USER = if ($env:CI_JIRA_USER) { $env:CI_JIRA_USER } else { 'jira_user' }
+    $env:CI_JIRA_USER_PASSWORD = if ($env:CI_JIRA_USER_PASSWORD) { $env:CI_JIRA_USER_PASSWORD } else { 'jira' }
+    $env:JIRA_TEST_PROJECT = 'TEST'
+    $env:JIRA_TEST_ISSUE = $null
+    $env:JIRA_TEST_GROUP = $null
+    $env:JIRA_TEST_FILTER = $null
+    $env:JIRA_TEST_VERSION = $null
+}
+
 Task ShowDebugInfo {
     Write-AtlassianPSBuildInfo -BuildInfo $script:BuildInfo
 }
@@ -64,7 +81,6 @@ Task Lint {
         -ModulePath $env:BHModulePath `
         -BuildScriptPath "$env:BHProjectPath/JiraPS.build.ps1" `
         -StyleTestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
-        -AnalyzerSettingsPath "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" `
         -AnalyzerPaths $analyzerPaths `
         -PesterVerbosity $PesterVerbosity `
         -Severity @('Error', 'Warning')
@@ -141,7 +157,6 @@ Task CopyModuleFiles {
         -AdditionalFiles $additionalFiles `
         -IncludeTests
 
-    Copy-Item -Path "$env:BHProjectPath/PSScriptAnalyzerSettings.psd1" -Destination $env:BHBuildOutput -Force
 }
 
 # Synopsis: Compile all functions into the .psm1 file
@@ -334,6 +349,12 @@ Task Test {
 
 # Synopsis: Run integration tests against live Jira (Cloud or Data Center; no build required)
 Task TestIntegration {
+    $helpersPath = Join-Path $env:BHProjectPath 'Tests/Helpers/IntegrationTestTools.ps1'
+    if (Test-Path $helpersPath) {
+        . $helpersPath
+        Read-DotEnvFile -Path (Join-Path $env:BHProjectPath '.env') -ExcludeName (Get-DotEnvExcludedName)
+    }
+
     # Pick the required-env set based on deployment target. CI_JIRA_TYPE is set by the
     # `server_integration_tests` job in integration_tests.yml and by the StartJiraDocker
     # task; it defaults to Cloud so legacy invocations stay unchanged.
@@ -417,8 +438,13 @@ See Tests/Integration/README.md for integration test configuration details.
     Assert-True ($LASTEXITCODE -eq 0) "Integration tests failed with exit code $LASTEXITCODE"
 }
 
+# Synopsis: Configure environment variables for the local Jira Data Center Docker track
+Task SetJiraDockerEnvironment {
+    Initialize-JiraDockerEnvironment
+}
+
 # Synopsis: Start the local Jira Data Center Docker container (for Server-track integration tests)
-Task StartJiraDocker {
+Task StartJiraDocker SetJiraDockerEnvironment, {
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
         throw "Docker is required for the Jira Server track. See https://docs.docker.com/get-docker/."
     }
@@ -427,6 +453,50 @@ Task StartJiraDocker {
     Write-Build Gray "Starting Jira Data Center container via $composeFile (cold start: ~5 min)..."
     Invoke-BuildExec { docker compose -f $composeFile up -d }
     & (Join-Path $env:BHProjectPath 'Tools/Wait-JiraServer.ps1')
+}
+
+# Synopsis: Start local Jira Data Center, run Server-tagged integration tests, then stop the container
+Task TestIntegrationServer {
+    if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+        throw "Docker is required for the Jira Server track. See https://docs.docker.com/get-docker/."
+    }
+
+    $composeFile = Join-Path $env:BHProjectPath 'docker-compose.yml'
+    Assert-True (Test-Path $composeFile) "docker-compose.yml not found at $composeFile"
+    $containerLogPath = Join-Path $env:BHProjectPath 'jira-container.log'
+
+    $runnerPath = "$env:BHProjectPath/Tests/Invoke-ParallelPester.ps1"
+    Assert-True (Test-Path $runnerPath) "Integration test runner not found: $runnerPath"
+
+    Initialize-JiraDockerEnvironment
+
+    try {
+        Write-Build Gray "Starting Jira Data Center container via $composeFile (cold start: ~5 min)..."
+        Invoke-BuildExec { docker compose -f $composeFile up -d }
+        & (Join-Path $env:BHProjectPath 'Tools/Wait-JiraServer.ps1')
+
+        & $runnerPath `
+            -ThrottleLimit 2 `
+            -Output $PesterVerbosity `
+            -OutputPath 'Test-Integration.xml' `
+            -Tag 'Server'
+
+        Assert-True ($LASTEXITCODE -eq 0) "Server integration tests failed with exit code $LASTEXITCODE"
+    }
+    catch {
+        Write-Build Yellow "Capturing Jira Data Center container logs to $containerLogPath before teardown..."
+        try {
+            docker compose -f $composeFile logs jira > $containerLogPath
+        }
+        catch {
+            Write-Build Yellow "Failed to capture Jira Data Center container logs: $_"
+        }
+        throw
+    }
+    finally {
+        Write-Build Gray "Stopping Jira Data Center container ($composeFile)..."
+        Invoke-BuildExec { docker compose -f $composeFile down -v }
+    }
 }
 
 # Synopsis: Stop the local Jira Data Center Docker container
@@ -440,20 +510,38 @@ Task StopJiraDocker {
     Invoke-BuildExec { docker compose -f $composeFile down -v }
 }
 
-Task Publish SetVersion, SignCode, Package, {
+Task Publish SetVersion, Package, {
     Assert-True (-not [String]::IsNullOrEmpty($PSGalleryAPIKey)) "No key for the PSGallery"
     Publish-AtlassianPSModuleRelease -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName -ApiKey $PSGalleryAPIKey
-}, UpdateHomepage
-
-Task UpdateHomepage {
-    # TODO:
 }
+
 Task SignCode {
-    # TODO: waiting for certificates
+    throw "Code signing is not configured yet. Add certificate provisioning before wiring this task into Publish."
 }
 
 Task Package {
-    $null = New-AtlassianPSModulePackage -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName
+    $script:PackagePath = New-AtlassianPSModulePackage -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName
+}
+
+Task TestPublish Build, Package, {
+    $releaseModulePath = Join-Path $env:BHBuildOutput $env:BHProjectName
+    $releaseManifestPath = Join-Path $releaseModulePath "$env:BHProjectName.psd1"
+    $packagePath = if ($script:PackagePath) {
+        $script:PackagePath
+    }
+    else {
+        Join-Path $env:BHBuildOutput "$env:BHProjectName.zip"
+    }
+
+    Assert-True (Test-Path $releaseModulePath -PathType Container) "Release module directory was not created: $releaseModulePath"
+    Assert-True (Test-Path $releaseManifestPath -PathType Leaf) "Release manifest was not created: $releaseManifestPath"
+    Assert-True (Test-Path $packagePath -PathType Leaf) "Release package was not created: $packagePath"
+
+    $manifest = Test-ModuleManifest -Path $releaseManifestPath -ErrorAction Stop
+    Assert-True ($manifest.Name -eq $env:BHProjectName) "Release manifest name '$($manifest.Name)' does not match '$env:BHProjectName'."
+    Assert-True ($manifest.Version -ne $null) "Release manifest version could not be resolved."
+
+    Write-Build Green "Publish dry-run passed: $packagePath"
 }
 
 Task . Clean, Build, Test

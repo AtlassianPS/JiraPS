@@ -26,8 +26,11 @@
 <!-- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
 
 - [ ] My code follows the code style of this project.
+- [ ] I ran `Invoke-Build -Task Build, Test` locally, or this change is docs/instructions only.
+- [ ] If I changed build, release, packaging, or manifest behavior, I ran `Invoke-Build -Task TestPublish`.
 - [ ] I have added Pester Tests that describe what my changes should do.
 - [ ] I have updated the documentation accordingly.
+- [ ] The required `CI Result` check is green.
 - [ ] If I developed on macOS/Linux, I confirmed the Windows PowerShell 5.1 CI lane passed.
 - [ ] If I changed transport/response helper paths, I covered edge cases (request context, session, cache, paging, exception status fallback).
 
