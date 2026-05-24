@@ -81,10 +81,12 @@ And once installed, you will be prompted to "Reopen in Container".
 
 ## Tested on
 
-* Windows Powershell v5.1
-* Powershell Core (latest) on Windows
-* Powershell Core (latest) on Ubuntu
-* Powershell Core (latest) on MacOS
+| Configuration | Status |
+| ------------- | ------ |
+| Windows PowerShell v5.1 | [CI workflow](https://github.com/AtlassianPS/JiraPS/actions/workflows/ci.yml) |
+| PowerShell 7 on Windows | [CI workflow](https://github.com/AtlassianPS/JiraPS/actions/workflows/ci.yml) |
+| PowerShell 7 on Ubuntu | [CI workflow](https://github.com/AtlassianPS/JiraPS/actions/workflows/ci.yml) |
+| PowerShell 7 on macOS | [CI workflow](https://github.com/AtlassianPS/JiraPS/actions/workflows/ci.yml) |
 
 ## Acknowledgements
 
@@ -113,4 +115,4 @@ Hopefully this is obvious, but:
   [Submit an Issue]: https://github.com/AtlassianPS/JiraPS/issues/new
   [replicaJunction]: https://github.com/replicaJunction
   [MIT license]: https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE
-  [Contributing]: http://atlassianps.org/docs/Contributing
+  [Contributing]: https://atlassianps.org/docs/Contributing/
