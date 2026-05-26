@@ -1,4 +1,4 @@
-﻿#requires -Modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.9'; MaximumVersion = '0.1.9' }
+﻿#requires -Modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.10'; MaximumVersion = '0.1.10' }
 
 [CmdletBinding()]
 param(
@@ -38,7 +38,7 @@ function Import-JiraPSStandard {
     [CmdletBinding()]
     param()
 
-    Import-Module AtlassianPS.Standards -RequiredVersion '0.1.9' -Force -ErrorAction Stop
+    Import-Module AtlassianPS.Standards -RequiredVersion '0.1.10' -Force -ErrorAction Stop
 }
 
 $ProjectName = 'JiraPS'
@@ -212,7 +212,7 @@ Task Test {
 
     foreach ($testPath in $testPaths) {
         $resultName = (Split-Path -Path $testPath -Leaf) -replace '[^A-Za-z0-9._-]', '-'
-        Import-Module AtlassianPS.Standards -RequiredVersion '0.1.9' -Force -ErrorAction Stop
+        Import-Module AtlassianPS.Standards -RequiredVersion '0.1.10' -Force -ErrorAction Stop
         $null = Invoke-AtlassianPSModuleTests `
             -TestPath $testPath `
             -PesterVerbosity $PesterVerbosity `

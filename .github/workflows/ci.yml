@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@82847d50f95eab28b18de250fa8eef0a2e74511d # v0.1.9
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
 
       - run: Invoke-Build -Task Lint
         shell: pwsh
@@ -88,7 +88,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@82847d50f95eab28b18de250fa8eef0a2e74511d # v0.1.9
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
 
       - run: Invoke-Build -Task Clean, TestPublish
         shell: pwsh
@@ -140,7 +140,7 @@ jobs:
           - { os: macos-latest, name: "macOS" }
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@82847d50f95eab28b18de250fa8eef0a2e74511d # v0.1.9
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
 
       - uses: actions/download-artifact@v8
         with:
@@ -182,7 +182,7 @@ jobs:
       JIRA_TEST_VERSION: ${{ vars.JIRA_TEST_VERSION }}
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@82847d50f95eab28b18de250fa8eef0a2e74511d # v0.1.9
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
 
       - run: |
           Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed

@@ -13,4 +13,4 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@82847d50f95eab28b18de250fa8eef0a2e74511d # v0.1.9
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10

@@ -73,7 +73,7 @@ jobs:
           path: ./Release/
           if_no_artifact_found: fail
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@82847d50f95eab28b18de250fa8eef0a2e74511d # v0.1.9
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
 
       - run: Invoke-Build -Task Publish -VersionToPublish ${{ steps.release_ref.outputs.release_tag }}
           -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}

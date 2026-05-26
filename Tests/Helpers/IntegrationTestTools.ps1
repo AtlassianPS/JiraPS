@@ -1,6 +1,6 @@
 ﻿. "$PSScriptRoot/TestTools.ps1"
 
-Import-Module AtlassianPS.Standards -RequiredVersion '0.1.9' -Force -ErrorAction Stop
+Import-Module AtlassianPS.Standards -RequiredVersion '0.1.10' -Force -ErrorAction Stop
 
 $script:TestResourcePrefix = 'JiraPS-IntTest-'
 $script:_CachedIntegrationEnv = $null
