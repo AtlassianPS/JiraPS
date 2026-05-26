@@ -105,12 +105,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@82847d50f95eab28b18de250fa8eef0a2e74511d # v0.1.9
-        with:
-          ps-version: "5"
-          # Setup is run below in the powershell (PS 5.1) shell instead of pwsh,
-          # so the Windows PowerShell module path is populated.
-          skip-setup: "true"
 
       - uses: actions/download-artifact@v8
         with:
