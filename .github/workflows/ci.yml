@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@33ce7f14ed861071a5549cb1f25db016b3ddd73e # v0.1.7
 
       - run: Invoke-Build -Task Lint
         shell: pwsh
@@ -88,7 +88,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@33ce7f14ed861071a5549cb1f25db016b3ddd73e # v0.1.7
 
       - run: Invoke-Build -Task Clean, TestPublish
         shell: pwsh
@@ -105,7 +105,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@33ce7f14ed861071a5549cb1f25db016b3ddd73e # v0.1.7
         with:
           ps-version: "5"
           # Setup is run below in the powershell (PS 5.1) shell instead of pwsh,
@@ -146,7 +146,7 @@ jobs:
           - { os: macos-latest, name: "macOS" }
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@33ce7f14ed861071a5549cb1f25db016b3ddd73e # v0.1.7
 
       - uses: actions/download-artifact@v8
         with:
@@ -188,7 +188,7 @@ jobs:
       JIRA_TEST_VERSION: ${{ vars.JIRA_TEST_VERSION }}
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@33ce7f14ed861071a5549cb1f25db016b3ddd73e # v0.1.7
 
       - run: |
           Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed

@@ -1,5 +1,7 @@
 ﻿. "$PSScriptRoot/TestTools.ps1"
 
+Import-Module AtlassianPS.Standards -RequiredVersion '0.1.7' -Force -ErrorAction Stop
+
 $script:TestResourcePrefix = 'JiraPS-IntTest-'
 $script:_CachedIntegrationEnv = $null
 $script:_EnvLoaded = $false
@@ -30,23 +32,10 @@ function Read-DotEnvFile {
         Loads KEY=value pairs from a .env file into the current process environment.
 
     .DESCRIPTION
-        Parses a .env-style file:
-          - Whole-line comments (`# ...`) and blank lines are skipped.
-          - Quoted values (single or double) are taken verbatim between the
-            matching quotes, so `#` inside quotes is preserved (relevant for
-            secrets like API tokens that may contain `#`).
-          - Unquoted values support a trailing inline comment, but only when
-            preceded by whitespace (`KEY=value  # comment`). A bare `#` inside
-            an unquoted value (e.g. `KEY=foo#bar`) is treated as part of the
-            value, not a comment marker.
-
-        Each parsed assignment is set via
-        [System.Environment]::SetEnvironmentVariable so it is visible through
-        $env:NAME for the lifetime of the process.
+        JiraPS compatibility wrapper around the shared Standards .env loader.
 
     .PARAMETER Path
-        Path to the .env file. The function silently no-ops if the file does not
-        exist so callers can opt-in without checking first.
+        Path to the .env file.
 
     .EXAMPLE
         Read-DotEnvFile -Path (Join-Path $projectRoot '.env')
@@ -61,50 +50,7 @@ function Read-DotEnvFile {
         [string[]]$ExcludeName = @()
     )
 
-    if (-not (Test-Path -LiteralPath $Path)) {
-        return
-    }
-
-    Get-Content -LiteralPath $Path | ForEach-Object {
-        $line = $_
-        if ($line -match '^\s*#' -or $line -match '^\s*$') { return }
-        if ($line -notmatch '^\s*([^#=]+?)\s*=\s*(.*)$') { return }
-
-        $name = $matches[1].Trim()
-        if ([string]::IsNullOrEmpty($name)) { return }
-        if ($name -in $ExcludeName) { return }
-
-        $rawValue = $matches[2].TrimStart()
-
-        if ($rawValue.Length -gt 0 -and ($rawValue[0] -eq '"' -or $rawValue[0] -eq "'")) {
-            # Quoted value: take everything between the opening quote and the
-            # next matching quote. Anything after the closing quote is ignored
-            # (acts as an inline comment).
-            $quote = $rawValue[0]
-            $endIdx = $rawValue.IndexOf($quote, 1)
-            $value = if ($endIdx -gt 0) {
-                $rawValue.Substring(1, $endIdx - 1)
-            }
-            else {
-                # Unterminated quote - take the rest of the line verbatim,
-                # minus the opening quote.
-                $rawValue.Substring(1)
-            }
-        }
-        else {
-            # Unquoted value: only treat ` #` (whitespace + #) as the start
-            # of an inline comment so `#` characters inside the value survive.
-            if ($rawValue -match '^(.*?)\s+#') {
-                $value = $matches[1]
-            }
-            else {
-                $value = $rawValue
-            }
-            $value = $value.TrimEnd()
-        }
-
-        [System.Environment]::SetEnvironmentVariable($name, $value)
-    }
+    Import-AtlassianPSDotEnvFile -Path $Path -ExcludeName $ExcludeName
 }
 
 function Initialize-IntegrationEnvironment {

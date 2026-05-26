@@ -29,7 +29,7 @@ Describe 'Tools/update.dependencies.ps1' -Tag Unit {
         $harnessRoot = Join-Path -Path $TestDrive -ChildPath ([Guid]::NewGuid().ToString())
         $toolsPath = Join-Path -Path $harnessRoot -ChildPath 'Tools'
         $modulePath = Join-Path -Path $harnessRoot -ChildPath 'JiraPS'
-        $mockModulePath = Join-Path -Path $harnessRoot -ChildPath 'mockModules/AtlassianPS.Standards/0.1.6'
+        $mockModulePath = Join-Path -Path $harnessRoot -ChildPath 'mockModules/AtlassianPS.Standards/0.1.7'
         $scriptPath = Join-Path -Path $toolsPath -ChildPath 'update.dependencies.ps1'
         $capturePath = Join-Path -Path $TestDrive -ChildPath 'update-deps.json'
         $escapedCapturePath = $capturePath.Replace("'", "''")
@@ -42,7 +42,7 @@ Describe 'Tools/update.dependencies.ps1' -Tag Unit {
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
-    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.6" }
+    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.7" }
     @{ ModuleName = "InvokeBuild"; RequiredVersion = "5.14.23" }
 )
 '@
@@ -84,7 +84,7 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
         Set-Content -LiteralPath (Join-Path -Path $mockModulePath -ChildPath 'AtlassianPS.Standards.psd1') -Value @'
 @{
     RootModule        = 'AtlassianPS.Standards.psm1'
-    ModuleVersion     = '0.1.6'
+    ModuleVersion     = '0.1.7'
     GUID              = 'c72f680f-a8f2-434e-8b70-80e0099f90d7'
     FunctionsToExport = @('*')
 }
@@ -298,7 +298,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
-    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.6" }
+    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.7" }
 )
 '@
 
@@ -364,7 +364,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
-    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.6" }
+    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.7" }
 )
 '@
 
@@ -413,7 +413,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
         $harnessRoot = Join-Path -Path $TestDrive -ChildPath ([Guid]::NewGuid().ToString())
         $toolsPath = Join-Path -Path $harnessRoot -ChildPath 'Tools'
         $modulePath = Join-Path -Path $harnessRoot -ChildPath 'JiraPS'
-        $mockModulePath = Join-Path -Path $harnessRoot -ChildPath 'mockModules/AtlassianPS.Standards/0.1.6'
+        $mockModulePath = Join-Path -Path $harnessRoot -ChildPath 'mockModules/AtlassianPS.Standards/0.1.7'
         $scriptPath = Join-Path -Path $toolsPath -ChildPath 'update.dependencies.ps1'
 
         $null = New-Item -Path $toolsPath -ItemType Directory -Force
@@ -424,7 +424,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
-    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.6" }
+    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.7" }
     @{ ModuleName = "InvokeBuild"; RequiredVersion = "5.14.23" }
 )
 '@
@@ -456,7 +456,7 @@ Export-ModuleMember -Function Update-AtlassianPSDependencyReference
         Set-Content -LiteralPath (Join-Path -Path $mockModulePath -ChildPath 'AtlassianPS.Standards.psd1') -Value @'
 @{
     RootModule        = 'AtlassianPS.Standards.psm1'
-    ModuleVersion     = '0.1.6'
+    ModuleVersion     = '0.1.7'
     GUID              = 'c72f680f-a8f2-434e-8b70-80e0099f90d7'
     FunctionsToExport = @('*')
 }
