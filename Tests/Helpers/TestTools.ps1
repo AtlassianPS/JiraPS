@@ -1,7 +1,7 @@
 ﻿# Captured at dot-source time when $PSScriptRoot is this file's directory (Tests/Helpers/)
 $script:_TestToolsDir = $PSScriptRoot
 
-Import-Module AtlassianPS.Standards -RequiredVersion '0.1.7' -Force -ErrorAction Stop
+Import-Module AtlassianPS.Standards -RequiredVersion '0.1.9' -Force -ErrorAction Stop
 
 function Initialize-TestEnvironment {
     <#

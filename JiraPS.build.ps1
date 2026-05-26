@@ -1,4 +1,4 @@
-﻿#requires -Modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.7'; MaximumVersion = '0.1.7' }
+﻿#requires -Modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.9'; MaximumVersion = '0.1.9' }
 
 [CmdletBinding()]
 param(
@@ -33,6 +33,13 @@ param(
 )
 
 Import-Module "$PSScriptRoot/Tools/BuildTools.psm1" -Force
+
+function Import-JiraPSStandard {
+    [CmdletBinding()]
+    param()
+
+    Import-Module AtlassianPS.Standards -RequiredVersion '0.1.9' -Force -ErrorAction Stop
+}
 
 $ProjectName = 'JiraPS'
 $script:BuildInfo = Initialize-AtlassianPSBuildEnvironment `
@@ -69,6 +76,8 @@ Task ShowDebugInfo {
 # workflow commands when running under CI so violations appear as inline
 # annotations on the PR diff.
 Task Lint {
+    Import-JiraPSStandard
+
     $analyzerPaths = @(
         "$env:BHProjectPath/JiraPS"
         "$env:BHProjectPath/Tests"
@@ -102,6 +111,8 @@ Task Build Clean, {
 # Deletions in `docs/` would otherwise survive in `JiraPS/<locale>/` (the
 # GenerateExternalHelp cache) and ship via CopyModuleFiles.
 Task RemoveOrphanedExternalHelp {
+    Import-JiraPSStandard
+
     Remove-AtlassianPSOrphanedExternalHelp `
         -ModulePath $env:BHModulePath `
         -DocsPath (Join-Path $env:BHProjectPath 'docs') `
@@ -110,6 +121,8 @@ Task RemoveOrphanedExternalHelp {
 
 # Synopsis: Generate ./Release structure
 Task CopyModuleFiles {
+    Import-JiraPSStandard
+
     $additionalFiles = @(
         'CHANGELOG.md'
         'LICENSE'
@@ -127,6 +140,8 @@ Task CopyModuleFiles {
 
 # Synopsis: Compile all functions into the .psm1 file
 Task CompileModule {
+    Import-JiraPSStandard
+
     $null = Join-AtlassianPSModuleSource `
         -ReleaseModulePath "$env:BHBuildOutput/$env:BHProjectName" `
         -RegionsToKeep @('Dependencies', 'Configuration')
@@ -150,6 +165,8 @@ Task GenerateExternalHelp -Inputs {
             ForEach-Object { Join-Path $localeOut "$($_.BaseName).help.txt" }
     }
 } {
+    Import-JiraPSStandard
+
     Update-AtlassianPSExternalHelp `
         -DocsPath (Join-Path $env:BHProjectPath 'docs') `
         -ModulePath $env:BHModulePath `
@@ -158,6 +175,8 @@ Task GenerateExternalHelp -Inputs {
 
 # Synopsis: Update the manifest of the module
 Task UpdateManifest {
+    Import-JiraPSStandard
+
     $null = Update-AtlassianPSModuleManifestExports `
         -SourceModulePath $env:BHModulePath `
         -BuiltManifestPath $builtManifestPath `
@@ -165,6 +184,8 @@ Task UpdateManifest {
 }
 
 Task SetVersion {
+    Import-JiraPSStandard
+
     $versionString = Set-AtlassianPSModuleManifestVersion `
         -BuiltManifestPath $builtManifestPath `
         -ModuleName $env:BHProjectName `
@@ -173,6 +194,8 @@ Task SetVersion {
 }
 
 Task Test {
+    Import-JiraPSStandard
+
     # Skip the Integration folder at discovery time so Pester does not run
     # its BeforeDiscovery blocks (which read .env and warn when integration
     # secrets are missing). Use TestIntegration task to run them.
@@ -189,7 +212,7 @@ Task Test {
 
     foreach ($testPath in $testPaths) {
         $resultName = (Split-Path -Path $testPath -Leaf) -replace '[^A-Za-z0-9._-]', '-'
-        Import-Module AtlassianPS.Standards -RequiredVersion '0.1.7' -Force -ErrorAction Stop
+        Import-Module AtlassianPS.Standards -RequiredVersion '0.1.9' -Force -ErrorAction Stop
         $null = Invoke-AtlassianPSModuleTests `
             -TestPath $testPath `
             -PesterVerbosity $PesterVerbosity `
@@ -374,10 +397,14 @@ Task SignCode {
 }
 
 Task Package {
+    Import-JiraPSStandard
+
     $script:PackagePath = New-AtlassianPSModulePackage -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName
 }
 
 Task TestPublish Build, Package, {
+    Import-JiraPSStandard
+
     $testPackageParameters = @{
         BuildOutputPath = $env:BHBuildOutput
         ModuleName      = $env:BHProjectName
