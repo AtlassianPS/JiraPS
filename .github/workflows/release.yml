@@ -24,6 +24,7 @@ jobs:
           set -euo pipefail
 
           release_tag="${{ github.ref_name }}"
+          release_version="${release_tag#v}"
 
           if [[ ! "$release_tag" =~ ^v[0-9]+(\.[0-9]+){1,2}([-.][0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
             echo "::error::Release tag '$release_tag' does not match the expected v-prefixed version pattern."
@@ -49,8 +50,11 @@ jobs:
             exit 1
           fi
 
-          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
-          echo "release_sha=$release_sha" >> "$GITHUB_OUTPUT"
+          {
+            echo "release_tag=$release_tag"
+            echo "release_version=$release_version"
+            echo "release_sha=$release_sha"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Download artifact from commit that got tagged
         uses: dawidd6/action-download-artifact@v21
@@ -73,29 +77,10 @@ jobs:
 
       - name: Build release notes from changelog
         id: changelog
-        shell: pwsh
-        run: |
-          $tag = '${{ steps.release_ref.outputs.release_tag }}'
-          $version = $tag.TrimStart('v')
-          $content = Get-Content -LiteralPath './CHANGELOG.md' -Raw -ErrorAction Stop
-          $escapedVersion = [System.Text.RegularExpressions.Regex]::Escape($version)
-          $match = [System.Text.RegularExpressions.Regex]::Match(
-              $content,
-              "(?ms)^##\s+$escapedVersion(?:\s+-\s+[^\r\n]*|\s*\([^)]+\))?\s*\r?\n(?<body>.*?)(?=^##\s+|\z)"
-          )
-          if (-not $match.Success) {
-              throw "Could not find changelog section for $tag. Expected a heading like '## $version - YYYY-MM-DD'."
-          }
-
-          $body = $match.Groups['body'].Value.Trim()
-          if ([string]::IsNullOrWhiteSpace($body)) {
-              throw "Changelog section for $tag is empty."
-          }
-
-          $delimiter = [guid]::NewGuid().ToString('N')
-          "body<<$delimiter" >> $env:GITHUB_OUTPUT
-          $body >> $env:GITHUB_OUTPUT
-          $delimiter >> $env:GITHUB_OUTPUT
+        uses: MatteoCampinoti94/changelog-to-release@v1.0.6
+        with:
+          version-name: ${{ steps.release_ref.outputs.release_version }}
+          configuration: ./.github/changelog.configuration.json
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v3
