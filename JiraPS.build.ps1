@@ -102,7 +102,7 @@ function Get-JiraPSReleaseNotesFromChangelog {
     $content = Get-Content -LiteralPath $ChangelogPath -Raw
     $match = [System.Text.RegularExpressions.Regex]::Match(
         $content,
-        "(?ms)^##\s+$escapedVersion(?:\s+-[^\r\n]*)?\s*\r?\n(?<body>.*?)(?=^##\s+|\z)"
+        "(?ms)^##\s+v?$escapedVersion(?:\s+-[^\r\n]*)?\s*\r?\n(?<body>.*?)(?=^##\s+|\z)"
     )
 
     if (-not $match.Success) {

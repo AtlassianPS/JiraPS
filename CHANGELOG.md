@@ -10,7 +10,7 @@
 - Pinned JiraPS `setup-powershell` GitHub Action references to the `AtlassianPS.Standards` `v0.1.10` commit SHA, with a consistency test guarding workflow pin drift against `Tools/build.requirements.psd1`.
 - Set `JiraPS/JiraPS.psd1` `RequiredModules` to explicit `@()` to keep shared dependency updater behavior deterministic.
 
-## 3.0.0 - 2026-05-10
+## v3.0.0 - 2026-05-10
 
 This release focuses on Cloud and Data Center compatibility, safer typing, and better automation ergonomics.
 
