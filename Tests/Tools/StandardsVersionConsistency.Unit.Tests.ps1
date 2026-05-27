@@ -84,6 +84,38 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $releaseWorkflowContent | Should -Not -Match 'Tools/Resolve-ReleaseTag\.ps1'
     }
 
+    It 'keeps published manifest release notes sourced from the changelog' {
+        $projectRoot = if (
+            $env:BHProjectPath -and
+            (Test-Path -LiteralPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CODEOWNERS'))
+        ) {
+            (Resolve-Path -LiteralPath $env:BHProjectPath).ProviderPath
+        }
+        else {
+            $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
+            while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
+                    break
+                }
+
+                $candidate = Split-Path -Path $candidate -Parent
+            }
+
+            if (-not $candidate -or -not (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS'))) {
+                throw "Could not resolve repository root from '$PSScriptRoot'."
+            }
+
+            $candidate
+        }
+
+        $buildScriptContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath 'JiraPS.build.ps1') -Raw
+
+        $buildScriptContent | Should -Match 'function\s+Get-JiraPSReleaseNotesFromChangelog'
+        $buildScriptContent | Should -Match 'Get-JiraPSReleaseNotesFromChangelog[\s\S]+CHANGELOG\.md'
+        $buildScriptContent | Should -Match 'ConvertTo-JiraPSModuleVersion[\s\S]+VersionToPublish'
+        $buildScriptContent | Should -Match 'Set-AtlassianPSModuleManifestVersion[\s\S]+-ReleaseNotes\s+\$releaseNotes'
+    }
+
     It 'reads AtlassianPS.Standards version from build.requirements in tool scripts' {
         $projectRoot = if (
             $env:BHProjectPath -and

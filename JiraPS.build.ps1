@@ -76,6 +76,68 @@ function Initialize-JiraDockerEnvironment {
     $env:JIRA_TEST_VERSION = $null
 }
 
+function Get-JiraPSReleaseNotesFromChangelog {
+    [CmdletBinding()]
+    [OutputType([String])]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [String] $ChangelogPath,
+
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [String] $ReleaseVersion
+    )
+
+    if (-not (Test-Path -LiteralPath $ChangelogPath -PathType Leaf)) {
+        throw "Changelog file was not found at '$ChangelogPath'."
+    }
+
+    $normalizedVersion = $ReleaseVersion.Trim()
+    if ($normalizedVersion.StartsWith('v')) {
+        $normalizedVersion = $normalizedVersion.Substring(1)
+    }
+
+    $escapedVersion = [System.Text.RegularExpressions.Regex]::Escape($normalizedVersion)
+    $content = Get-Content -LiteralPath $ChangelogPath -Raw
+    $match = [System.Text.RegularExpressions.Regex]::Match(
+        $content,
+        "(?ms)^##\s+$escapedVersion(?:\s+-[^\r\n]*)?\s*\r?\n(?<body>.*?)(?=^##\s+|\z)"
+    )
+
+    if (-not $match.Success) {
+        throw "Could not find changelog section '## $normalizedVersion' in '$ChangelogPath'."
+    }
+
+    $releaseNotes = $match.Groups['body'].Value.Trim()
+    if ([string]::IsNullOrWhiteSpace($releaseNotes)) {
+        throw "Changelog section '## $normalizedVersion' in '$ChangelogPath' is empty."
+    }
+
+    return $releaseNotes
+}
+
+function ConvertTo-JiraPSModuleVersion {
+    [CmdletBinding()]
+    [OutputType([String])]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [String] $Version
+    )
+
+    $normalizedVersion = $Version.Trim()
+    if ($normalizedVersion.StartsWith('v')) {
+        $normalizedVersion = $normalizedVersion.Substring(1)
+    }
+
+    if ($normalizedVersion -match '^(?<major>\d+)\.(?<minor>\d+)(?<suffix>[-.][0-9A-Za-z][0-9A-Za-z.-]*)?$') {
+        return "$($matches.major).$($matches.minor).0$($matches.suffix)"
+    }
+
+    return $normalizedVersion
+}
+
 Task ShowDebugInfo {
     Write-AtlassianPSBuildInfo -BuildInfo $script:BuildInfo
 }
@@ -180,10 +242,16 @@ Task UpdateManifest {
 }
 
 Task SetVersion {
+    $releaseNotes = Get-JiraPSReleaseNotesFromChangelog `
+        -ChangelogPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CHANGELOG.md') `
+        -ReleaseVersion $script:BuildInfo.VersionToPublish
+    $moduleVersionToPublish = ConvertTo-JiraPSModuleVersion -Version $VersionToPublish
+
     $versionString = Set-AtlassianPSModuleManifestVersion `
         -BuiltManifestPath $builtManifestPath `
         -ModuleName $env:BHProjectName `
-        -VersionToPublish $VersionToPublish
+        -VersionToPublish $moduleVersionToPublish `
+        -ReleaseNotes $releaseNotes
     Write-Build Gray "Resolved release version: $versionString"
 }
 
