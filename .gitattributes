@@ -1,9 +1,10 @@
-# Set default behaviour, in case users don't have core.autocrlf set.
-* text=auto
+# Keep Git's index normalization independent from each developer's global
+# core.autocrlf setting. The working tree line endings below remain explicit.
+* text=auto eol=lf
 
-# Explicitly declare text files we want to always be normalized and converted
-# to native line endings on checkout.
-*.gitattributes text
+# Keep attributes files LF so Git can parse them consistently before applying
+# later path-specific CRLF rules.
+*.gitattributes text eol=lf
 
 # Set merge behavior for the changelog
 CHANGELOG.md merge=union

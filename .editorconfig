@@ -8,10 +8,17 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[*.{md,ps1,psm1,psd1,psc1,ps1xml,clixml}]
+[*.{ps1,psm1,psd1,psc1,ps1xml,clixml}]
 end_of_line = crlf
 charset = utf-8-bom
 
+[*.md]
+end_of_line = crlf
+charset = utf-8
+
+[*.{cs,xml,txt}]
+end_of_line = crlf
+charset = utf-8
 
 [*.{yml,yaml}]
 indent_size = 2

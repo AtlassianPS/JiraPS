@@ -12,15 +12,16 @@ Describe "Style rules" -Tag "Unit" {
         # are discovered on Unix-like systems too. Without it, PowerShell hides
         # them on macOS/Linux but not on Windows, leading to violations that
         # silently pass locally and only fail on Windows CI.
-        $script:codeFiles = Get-ChildItem $moduleRoot -Include *.ps1, *.psm1 -Recurse -Force |
+        $script:powershellFiles = Get-ChildItem $moduleRoot -Include *.ps1, *.psm1, *.psd1 -Recurse -Force |
             Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
         $script:docFiles = Get-ChildItem $moduleRoot -Include *.md -Recurse -Force |
             Where-Object { $_.FullName -notlike "*${/}Release${/}*" }
+        $script:crlfFiles = @($script:powershellFiles + $script:docFiles)
     }
 
     It "has no trailing whitespace in code files" {
         $badLines = @(
-            foreach ($file in $codeFiles) {
+            foreach ($file in $powershellFiles) {
                 $lines = [System.IO.File]::ReadAllLines($file.FullName)
                 $lineCount = $lines.Count
 
@@ -39,7 +40,7 @@ Describe "Style rules" -Tag "Unit" {
 
     It "has one newline at the end of the file" {
         $badFiles = @(
-            foreach ($file in @($codeFiles + $docFiles)) {
+            foreach ($file in $crlfFiles) {
                 $string = [System.IO.File]::ReadAllText($file.FullName)
                 if ($string.Length -gt 0 -and $string[-1] -ne "`n") {
                     $file.FullName
@@ -52,9 +53,9 @@ Describe "Style rules" -Tag "Unit" {
         }
     }
 
-    It "uses UTF-8 with BOM for code files" {
+    It "uses UTF-8 with BOM for PowerShell files" {
         $badFiles = @(
-            foreach ($file in $codeFiles) {
+            foreach ($file in $powershellFiles) {
                 $encoding = Get-FileEncoding -Path $file.FullName
                 if ($encoding -and $encoding.encoding -ne "UTF8-BOM") {
                     $file.FullName
@@ -63,11 +64,11 @@ Describe "Style rules" -Tag "Unit" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files are not encoded with UTF-8 BOM (required for PS v5 compatibility):`n  $($badFiles -join "`n  ")"
+            throw "The following PowerShell files are not encoded with UTF-8 BOM (required for PS v5 compatibility):`n  $($badFiles -join "`n  ")"
         }
     }
 
-    It "uses UTF-8 for documentation files" {
+    It "uses UTF-8 without BOM for documentation files" {
         $badFiles = @(
             foreach ($file in $docFiles) {
                 $encoding = Get-FileEncoding -Path $file.FullName
@@ -78,28 +79,13 @@ Describe "Style rules" -Tag "Unit" {
         )
 
         if ($badFiles.Count -gt 0) {
-            throw "The following files are not encoded with UTF-8 (no BOM):`n  $($badFiles -join "`n  ")"
+            throw "The following documentation files are not encoded with UTF-8 (no BOM):`n  $($badFiles -join "`n  ")"
         }
     }
 
-    It "uses CRLF as newline character in code files" {
+    It "uses CRLF as newline character in configured CRLF files" {
         $badFiles = @(
-            foreach ($file in $codeFiles) {
-                $string = [System.IO.File]::ReadAllText($file.FullName)
-                if ($string.Length -gt 0 -and $string -match "(?<!`r)`n|`r(?!`n)") {
-                    $file.FullName
-                }
-            }
-        )
-
-        if ($badFiles.Count -gt 0) {
-            throw "The following files do not use CRLF as line break:`n  $($badFiles -join "`n  ")"
-        }
-    }
-
-    It "uses CRLF as newline character in documentation files" {
-        $badFiles = @(
-            foreach ($file in $docFiles) {
+            foreach ($file in $crlfFiles) {
                 $string = [System.IO.File]::ReadAllText($file.FullName)
                 if ($string.Length -gt 0 -and $string -match "(?<!`r)`n|`r(?!`n)") {
                     $file.FullName
