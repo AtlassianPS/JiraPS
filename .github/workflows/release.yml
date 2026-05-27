@@ -4,12 +4,6 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Tag to release (for manual reruns)"
-        required: true
-        type: string
 
 jobs:
   release:
@@ -22,19 +16,14 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
 
-      - name: Resolve release ref
+      - name: Validate release tag
         id: release_ref
         shell: bash
         run: |
           set -euo pipefail
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            release_tag="${{ inputs.release_tag }}"
-          else
-            release_tag="${{ github.ref_name }}"
-          fi
+          release_tag="${{ github.ref_name }}"
 
           if [[ ! "$release_tag" =~ ^v[0-9]+(\.[0-9]+){1,2}([-.][0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
             echo "::error::Release tag '$release_tag' does not match the expected v-prefixed version pattern."
@@ -75,17 +64,38 @@ jobs:
 
       - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
 
-      - run: Invoke-Build -Task Publish -VersionToPublish ${{ steps.release_ref.outputs.release_tag }}
-          -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
+      - name: Publish module
+        run: |
+          Invoke-Build -Task Publish `
+            -VersionToPublish ${{ steps.release_ref.outputs.release_tag }} `
+            -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
         shell: pwsh
 
-      - name: Cherry pick CHANGELOG.md
+      - name: Build release notes from changelog
         id: changelog
-        uses: MatteoCampinoti94/changelog-to-release@v1.0.6
-        with:
-          version-name: ${{ steps.release_ref.outputs.release_tag }}
-          configuration: ./.github/changelog.configuration.json
-        if: ${{ hashFiles('CHANGELOG.md') != '' }}
+        shell: pwsh
+        run: |
+          $tag = '${{ steps.release_ref.outputs.release_tag }}'
+          $version = $tag.TrimStart('v')
+          $content = Get-Content -LiteralPath './CHANGELOG.md' -Raw -ErrorAction Stop
+          $escapedVersion = [System.Text.RegularExpressions.Regex]::Escape($version)
+          $match = [System.Text.RegularExpressions.Regex]::Match(
+              $content,
+              "(?ms)^##\s+$escapedVersion(?:\s+-\s+[^\r\n]*|\s*\([^)]+\))?\s*\r?\n(?<body>.*?)(?=^##\s+|\z)"
+          )
+          if (-not $match.Success) {
+              throw "Could not find changelog section for $tag. Expected a heading like '## $version - YYYY-MM-DD'."
+          }
+
+          $body = $match.Groups['body'].Value.Trim()
+          if ([string]::IsNullOrWhiteSpace($body)) {
+              throw "Changelog section for $tag is empty."
+          }
+
+          $delimiter = [guid]::NewGuid().ToString('N')
+          "body<<$delimiter" >> $env:GITHUB_OUTPUT
+          $body >> $env:GITHUB_OUTPUT
+          $delimiter >> $env:GITHUB_OUTPUT
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v3
@@ -100,13 +110,3 @@ jobs:
             'beta') || contains(steps.release_ref.outputs.release_tag, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Notify homepage to update submodule
-        if: ${{ !contains(steps.release_ref.outputs.release_tag, 'alpha') && !contains(steps.release_ref.outputs.release_tag,
-          'beta') && !contains(steps.release_ref.outputs.release_tag, 'rc') }}
-        uses: peter-evans/repository-dispatch@v4
-        with:
-          token: ${{ secrets.HOMEPAGE_PAT }}
-          repository: AtlassianPS/AtlassianPS.github.io
-          event-type: module-release
-          client-payload: "{\"module\": \"JiraPS\", \"version\": \"${{ steps.release_ref.outputs.release_tag }}\"}"
