@@ -19,7 +19,7 @@ jobs:
 
       - name: Validate release tag
         id: release_ref
-        uses: AtlassianPS/AtlassianPS.Standards/.github/actions/resolve-release-tag@bd26873fac8ed93eb3b29ea2be20a956394479cb # v0.1.10+
+        uses: AtlassianPS/AtlassianPS.Standards/.github/actions/resolve-release-tag@2616acf046b28a52a5915bae49ae91348555e0b8 # v0.1.10+
 
       - name: Download artifact from commit that got tagged
         uses: dawidd6/action-download-artifact@v21
