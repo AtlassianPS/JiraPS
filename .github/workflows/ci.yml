@@ -60,7 +60,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca # v1.7.12
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
+      - uses: ./.github/actions/setup-standards
 
       - run: Invoke-Build -Task Lint
         shell: pwsh
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
+      - uses: ./.github/actions/setup-standards
 
       - run: Invoke-Build -Task Clean, TestPublish
         shell: pwsh
@@ -124,7 +124,7 @@ jobs:
           - { os: macos-latest, name: "macOS" }
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
+      - uses: ./.github/actions/setup-standards
 
       - uses: actions/download-artifact@v8
         with:
@@ -166,7 +166,7 @@ jobs:
       JIRA_TEST_VERSION: ${{ vars.JIRA_TEST_VERSION }}
     steps:
       - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
+      - uses: ./.github/actions/setup-standards
 
       - run: |
           Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed

@@ -1,6 +1,4 @@
-﻿#requires -Modules @{ ModuleName = 'AtlassianPS.Standards'; ModuleVersion = '0.1.10'; MaximumVersion = '0.1.10' }
-
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [ValidateSet('None', 'Normal' , 'Detailed', 'Diagnostic')]
     [String] $PesterVerbosity = 'Normal',
@@ -38,10 +36,21 @@ function Import-JiraPSStandard {
     [CmdletBinding()]
     param()
 
-    Import-Module AtlassianPS.Standards -RequiredVersion '0.1.10' -Force -ErrorAction Stop
+    $buildRequirements = Import-PowerShellDataFile -Path (Join-Path -Path $PSScriptRoot -ChildPath 'Tools/build.requirements.psd1')
+    $standardsRequirement = $buildRequirements |
+        Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
+        Select-Object -First 1
+
+    if (-not $standardsRequirement) {
+        throw 'AtlassianPS.Standards is missing from Tools/build.requirements.psd1.'
+    }
+
+    Import-Module AtlassianPS.Standards -RequiredVersion $standardsRequirement.RequiredVersion -Force -ErrorAction Stop
 }
 
 $ProjectName = 'JiraPS'
+Import-JiraPSStandard
+
 $script:BuildInfo = Initialize-AtlassianPSBuildEnvironment `
     -ProjectName $ProjectName `
     -ProjectPath $PSScriptRoot `

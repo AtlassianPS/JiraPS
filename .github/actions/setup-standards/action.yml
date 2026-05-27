@@ -1,0 +1,7 @@
+name: Setup AtlassianPS Standards
+description: Installs JiraPS PowerShell build requirements through the shared Standards action.
+
+runs:
+  using: composite
+  steps:
+    - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10

@@ -1,8 +1,18 @@
-﻿Import-Module AtlassianPS.Standards -RequiredVersion '0.1.10' -Force -ErrorAction Stop
+﻿$script:_TestToolsDir = $PSScriptRoot
+$script:_ProjectRoot = git -C $script:_TestToolsDir rev-parse --show-toplevel
+$script:_BuildRequirements = Import-PowerShellDataFile -Path (Join-Path -Path $script:_ProjectRoot -ChildPath 'Tools/build.requirements.psd1')
+$script:_StandardsRequirement = $script:_BuildRequirements |
+    Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
+    Select-Object -First 1
+
+if (-not $script:_StandardsRequirement) {
+    throw 'AtlassianPS.Standards is missing from Tools/build.requirements.psd1.'
+}
+
+Import-Module AtlassianPS.Standards -RequiredVersion $script:_StandardsRequirement.RequiredVersion -Force -ErrorAction Stop
 
 # These compatibility wrappers keep existing tests readable while binding JiraPS defaults
 # to the shared Standards primitives.
-$script:_TestToolsDir = $PSScriptRoot
 
 function Initialize-TestEnvironment {
     Initialize-AtlassianPSModuleTestEnvironment -ModuleName 'JiraPS' -StartPath $script:_TestToolsDir -Global
