@@ -13,101 +13,44 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   changes:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      run_ci: ${{ steps.detect.outputs.run_ci }}
+      run_ci: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.code == 'true' }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - id: detect
+      - id: filter
         name: Decide whether full CI is required
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "run_ci=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            base='${{ github.event.pull_request.base.sha }}'
-            head='${{ github.event.pull_request.head.sha }}'
-          else
-            base='${{ github.event.before }}'
-            head='${{ github.sha }}'
-          fi
-
-          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
-            base="${head}^"
-          fi
-
-          mapfile -t changed_files < <(git diff --name-only "$base" "$head")
-          if [ "${#changed_files[@]}" -eq 0 ]; then
-            echo "run_ci=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Files that do not affect runtime behavior, packaging, tests, or release artifacts.
-          # If every changed file is listed here or under ignored_path_globs, expensive CI can skip.
-          ignored_files=(
-            '.editorconfig'
-            '.github/copilot-instructions.md'
-            '.spelling'
-            'AGENTS.md'
-            'CHANGELOG.md'
-            'CLAUDE.md'
-            'GEMINI.md'
-            'LICENSE'
-          )
-          ignored_path_globs=(
-            '.cursor/*'
-            '.github/*.md'
-            '.github/ai-context/*'
-            '.github/instructions/*'
-            '.github/ISSUE_TEMPLATE/*'
-            '.github/PULL_REQUEST_TEMPLATE/*'
-            '.vscode/*'
-            'docs-regenerated/*'
-          )
-
-          is_ignored_file() {
-            local file="$1"
-            local ignored
-
-            for ignored in "${ignored_files[@]}"; do
-              if [[ "$file" == "$ignored" ]]; then
-                return 0
-              fi
-            done
-
-            for ignored in "${ignored_path_globs[@]}"; do
-              # shellcheck disable=SC2053 # Right-hand side is intentionally a glob pattern.
-              if [[ "$file" == $ignored ]]; then
-                return 0
-              fi
-            done
-
-            return 1
-          }
-
-          run_ci=false
-          for file in "${changed_files[@]}"; do
-            if is_ignored_file "$file"; then
-              continue
-            fi
-
-            run_ci=true
-            break
-          done
-
-          echo "run_ci=$run_ci" >> "$GITHUB_OUTPUT"
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
+        with:
+          base: ${{ github.ref }}
+          predicate-quantifier: every
+          filters: |
+            code:
+              - '**'
+              - '!.editorconfig'
+              - '!.github/copilot-instructions.md'
+              - '!.spelling'
+              - '!AGENTS.md'
+              - '!CHANGELOG.md'
+              - '!CLAUDE.md'
+              - '!GEMINI.md'
+              - '!LICENSE'
+              - '!.cursor/**'
+              - '!.github/*.md'
+              - '!.github/ai-context/**'
+              - '!.github/instructions/**'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - '!.github/PULL_REQUEST_TEMPLATE/**'
+              - '!.vscode/**'
+              - '!docs-regenerated/**'
 
   lint:
     name: Lint
