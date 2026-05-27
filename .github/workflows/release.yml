@@ -19,10 +19,7 @@ jobs:
 
       - name: Validate release tag
         id: release_ref
-        shell: pwsh
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: ./Tools/Resolve-ReleaseTag.ps1 -ReleaseTag $env:RELEASE_TAG
+        uses: AtlassianPS/AtlassianPS.Standards/.github/actions/resolve-release-tag@bd26873fac8ed93eb3b29ea2be20a956394479cb # v0.1.10+
 
       - name: Download artifact from commit that got tagged
         uses: dawidd6/action-download-artifact@v21

@@ -54,6 +54,36 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         @($workflowActionMatches | Select-Object -ExpandProperty Sha -Unique).Count | Should -Be 1
     }
 
+    It 'uses the shared Standards release tag resolver action' {
+        $projectRoot = if (
+            $env:BHProjectPath -and
+            (Test-Path -LiteralPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CODEOWNERS'))
+        ) {
+            (Resolve-Path -LiteralPath $env:BHProjectPath).ProviderPath
+        }
+        else {
+            $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
+            while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
+                    break
+                }
+
+                $candidate = Split-Path -Path $candidate -Parent
+            }
+
+            if (-not $candidate -or -not (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS'))) {
+                throw "Could not resolve repository root from '$PSScriptRoot'."
+            }
+
+            $candidate
+        }
+
+        $releaseWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath '.github/workflows/release.yml') -Raw
+
+        $releaseWorkflowContent | Should -Match 'AtlassianPS/AtlassianPS\.Standards/\.github/actions/resolve-release-tag@[0-9a-f]{40}'
+        $releaseWorkflowContent | Should -Not -Match 'Tools/Resolve-ReleaseTag\.ps1'
+    }
+
     It 'reads AtlassianPS.Standards version from build.requirements in tool scripts' {
         $projectRoot = if (
             $env:BHProjectPath -and
