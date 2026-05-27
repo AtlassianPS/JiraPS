@@ -19,42 +19,10 @@ jobs:
 
       - name: Validate release tag
         id: release_ref
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          release_tag="${{ github.ref_name }}"
-          release_version="${release_tag#v}"
-
-          if [[ ! "$release_tag" =~ ^v[0-9]+(\.[0-9]+){1,2}([-.][0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
-            echo "::error::Release tag '$release_tag' does not match the expected v-prefixed version pattern."
-            exit 1
-          fi
-
-          if ! git show-ref --verify --quiet "refs/tags/$release_tag"; then
-            echo "::error::Release ref '$release_tag' is not a tag."
-            exit 1
-          fi
-
-          tag_type="$(git cat-file -t "refs/tags/$release_tag")"
-          if [ "$tag_type" != "tag" ]; then
-            echo "::error::Release tag '$release_tag' must be an annotated tag."
-            exit 1
-          fi
-
-          git fetch --no-tags origin master
-
-          release_sha="$(git rev-list -n 1 "$release_tag")"
-          if ! git merge-base --is-ancestor "$release_sha" "origin/master"; then
-            echo "::error::Release tag '$release_tag' does not point to a commit reachable from origin/master."
-            exit 1
-          fi
-
-          {
-            echo "release_tag=$release_tag"
-            echo "release_version=$release_version"
-            echo "release_sha=$release_sha"
-          } >> "$GITHUB_OUTPUT"
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: ./Tools/Resolve-ReleaseTag.ps1 -ReleaseTag $env:RELEASE_TAG
 
       - name: Download artifact from commit that got tagged
         uses: dawidd6/action-download-artifact@v21
