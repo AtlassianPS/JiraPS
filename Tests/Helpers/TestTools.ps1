@@ -1,114 +1,18 @@
-﻿# Captured at dot-source time when $PSScriptRoot is this file's directory (Tests/Helpers/)
+﻿Import-Module AtlassianPS.Standards -RequiredVersion '0.1.10' -Force -ErrorAction Stop
+
+# These compatibility wrappers keep existing tests readable while binding JiraPS defaults
+# to the shared Standards primitives.
 $script:_TestToolsDir = $PSScriptRoot
 
-Import-Module AtlassianPS.Standards -RequiredVersion '0.1.10' -Force -ErrorAction Stop
-
 function Initialize-TestEnvironment {
-    <#
-    .SYNOPSIS
-        Ensures the JiraPS module is loaded at the current on-disk version and
-        returns the manifest path used.
-
-    .DESCRIPTION
-        Thin JiraPS wrapper around the shared Standards module test bootstrap helper.
-
-    .OUTPUTS
-        [string] The absolute path to the JiraPS manifest that was loaded.
-
-    .EXAMPLE
-        BeforeDiscovery {
-            . "$PSScriptRoot/../Helpers/TestTools.ps1"
-
-            $script:moduleToTest = Initialize-TestEnvironment
-        }
-
-    .NOTES
-        Product-specific test fixtures remain in IntegrationTestTools.ps1.
-    #>
-    [CmdletBinding()]
-    [OutputType([string])]
-    param()
-
     Initialize-AtlassianPSModuleTestEnvironment -ModuleName 'JiraPS' -StartPath $script:_TestToolsDir -Global
 }
 
 function Resolve-ModuleSource {
-    <#
-    .SYNOPSIS
-        Resolves the path to the JiraPS module manifest for testing.
-
-    .DESCRIPTION
-        JiraPS compatibility wrapper around the shared Standards module source resolver.
-
-    .OUTPUTS
-        [string] Path to the JiraPS module manifest (.psd1)
-
-    .EXAMPLE
-        # Standard usage in test files
-        BeforeDiscovery {
-            . "$PSScriptRoot/../Helpers/TestTools.ps1"
-
-            Initialize-TestEnvironment
-            $script:moduleToTest = Resolve-ModuleSource
-
-            Import-Module $script:moduleToTest -Force -ErrorAction Stop
-        }
-
-    .EXAMPLE
-        # With verbose output
-        BeforeAll {
-            . "$PSScriptRoot/Helpers/TestTools.ps1"
-            $VerbosePreference = 'Continue'
-            $moduleToTest = Resolve-ModuleSource
-            # Outputs: "Using module at: /path/to/JiraPS/JiraPS.psd1"
-        }
-
-    .NOTES
-        Product-specific tests keep calling Resolve-ModuleSource while the implementation lives in Standards.
-
-    .LINK
-        Initialize-TestEnvironment
-
-    .LINK
-        Resolve-ProjectRoot
-    #>
-    [CmdletBinding()]
-    [OutputType([string])]
-    param()
-
     Resolve-AtlassianPSModuleSource -ModuleName 'JiraPS' -StartPath $script:_TestToolsDir
 }
 
-
 function Resolve-ProjectRoot {
-    <#
-    .SYNOPSIS
-        Resolves the root directory of the JiraPS project.
-
-    .DESCRIPTION
-        JiraPS compatibility wrapper around the shared Standards project root resolver.
-
-    .OUTPUTS
-        [string] Fully qualified path to the project root directory
-
-    .EXAMPLE
-        # Direct usage (uncommon - typically called by other TestTools functions)
-        BeforeAll {
-            . "$PSScriptRoot/Helpers/TestTools.ps1"
-            $projectRoot = Resolve-ProjectRoot
-            $changelogPath = Join-Path $projectRoot "CHANGELOG.md"
-        }
-
-    .NOTES
-        Product-specific tests keep calling Resolve-ProjectRoot while the implementation lives in Standards.
-
-    .LINK
-        Resolve-ModuleSource
-    #>
-    [CmdletBinding()]
-    [OutputType([string])]
-    param()
-
     Resolve-AtlassianPSProjectRoot -StartPath $script:_TestToolsDir
 }
 

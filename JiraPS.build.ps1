@@ -212,7 +212,7 @@ Task Test {
 
     foreach ($testPath in $testPaths) {
         $resultName = (Split-Path -Path $testPath -Leaf) -replace '[^A-Za-z0-9._-]', '-'
-        Import-Module AtlassianPS.Standards -RequiredVersion '0.1.10' -Force -ErrorAction Stop
+        Import-JiraPSStandard
         $null = Invoke-AtlassianPSModuleTests `
             -TestPath $testPath `
             -PesterVerbosity $PesterVerbosity `
