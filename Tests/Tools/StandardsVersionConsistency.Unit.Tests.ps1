@@ -112,8 +112,8 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
 
         $buildScriptContent | Should -Match 'function\s+Get-JiraPSReleaseNotesFromChangelog'
         $buildScriptContent | Should -Match 'Get-JiraPSReleaseNotesFromChangelog[\s\S]+CHANGELOG\.md'
-        $buildScriptContent | Should -Match 'ConvertTo-JiraPSModuleVersion[\s\S]+VersionToPublish'
         $buildScriptContent | Should -Match 'Set-AtlassianPSModuleManifestVersion[\s\S]+-ReleaseNotes\s+\$releaseNotes'
+        $buildScriptContent | Should -Not -Match 'ConvertTo-JiraPSModuleVersion'
     }
 
     It 'reads AtlassianPS.Standards version from build.requirements in tool scripts' {

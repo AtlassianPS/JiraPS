@@ -59,7 +59,7 @@ $script:BuildInfo = Initialize-AtlassianPSBuildEnvironment `
 
 $builtManifestPath = $script:BuildInfo.BuiltManifestPath
 
-function Initialize-JiraDockerEnvironment {
+function Initialize-JiraServerTestEnvironment {
     [CmdletBinding()]
     param()
 
@@ -115,27 +115,6 @@ function Get-JiraPSReleaseNotesFromChangelog {
     }
 
     return $releaseNotes
-}
-
-function ConvertTo-JiraPSModuleVersion {
-    [CmdletBinding()]
-    [OutputType([String])]
-    param(
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [String] $Version
-    )
-
-    $normalizedVersion = $Version.Trim()
-    if ($normalizedVersion.StartsWith('v')) {
-        $normalizedVersion = $normalizedVersion.Substring(1)
-    }
-
-    if ($normalizedVersion -match '^(?<major>\d+)\.(?<minor>\d+)(?<suffix>[-.][0-9A-Za-z][0-9A-Za-z.-]*)?$') {
-        return "$($matches.major).$($matches.minor).0$($matches.suffix)"
-    }
-
-    return $normalizedVersion
 }
 
 Task ShowDebugInfo {
@@ -245,30 +224,21 @@ Task SetVersion {
     $releaseNotes = Get-JiraPSReleaseNotesFromChangelog `
         -ChangelogPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CHANGELOG.md') `
         -ReleaseVersion $script:BuildInfo.VersionToPublish
-    $moduleVersionToPublish = ConvertTo-JiraPSModuleVersion -Version $VersionToPublish
 
     $versionString = Set-AtlassianPSModuleManifestVersion `
         -BuiltManifestPath $builtManifestPath `
         -ModuleName $env:BHProjectName `
-        -VersionToPublish $moduleVersionToPublish `
+        -VersionToPublish $VersionToPublish `
         -ReleaseNotes $releaseNotes
     Write-Build Gray "Resolved release version: $versionString"
 }
 
 Task Test {
-    # Skip the Integration folder at discovery time so Pester does not run
-    # its BeforeDiscovery blocks (which read .env and warn when integration
-    # secrets are missing). Use TestIntegration task to run them.
-    $integrationPath = Join-Path $env:BHBuildOutput 'Tests/Integration'
-    $testPaths = Get-ChildItem -LiteralPath "$env:BHBuildOutput/Tests" -Force |
-        Where-Object {
-            $_.FullName -ne $integrationPath -and
-            (
-                $_.Name -like '*.Tests.ps1' -or
-                ($_.PSIsContainer -and (Get-ChildItem -LiteralPath $_.FullName -Filter '*.Tests.ps1' -Recurse -File -ErrorAction SilentlyContinue))
-            )
-        } |
-        ForEach-Object { $_.FullName }
+    $testsRoot = Join-Path $env:BHBuildOutput 'Tests'
+    $testPaths = Get-ChildItem -LiteralPath $testsRoot -Force |
+        Where-Object { $_.Name -notin @('Archive', 'Fixtures', 'Integration') } |
+        Where-Object { $_.PSIsContainer -or $_.Name -like '*.Tests.ps1' } |
+        Select-Object -ExpandProperty FullName
 
     foreach ($testPath in $testPaths) {
         $resultName = (Split-Path -Path $testPath -Leaf) -replace '[^A-Za-z0-9._-]', '-'
@@ -377,7 +347,7 @@ See Tests/Integration/README.md for integration test configuration details.
 
 # Synopsis: Configure environment variables for the local Jira Data Center Docker track
 Task SetJiraDockerEnvironment {
-    Initialize-JiraDockerEnvironment
+    Initialize-JiraServerTestEnvironment
 }
 
 # Synopsis: Start the local Jira Data Center Docker container (for Server-track integration tests)
@@ -405,7 +375,7 @@ Task TestIntegrationServer {
     $runnerPath = "$env:BHProjectPath/Tests/Invoke-ParallelPester.ps1"
     Assert-True (Test-Path $runnerPath) "Integration test runner not found: $runnerPath"
 
-    Initialize-JiraDockerEnvironment
+    Initialize-JiraServerTestEnvironment
 
     try {
         Write-Build Gray "Starting Jira Data Center container via $composeFile (cold start: ~5 min)..."
