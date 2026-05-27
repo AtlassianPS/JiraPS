@@ -59,10 +59,6 @@ $script:BuildInfo = Initialize-AtlassianPSBuildEnvironment `
 
 $builtManifestPath = $script:BuildInfo.BuiltManifestPath
 
-Enter-BuildTask {
-    Import-JiraPSStandard
-}
-
 function Initialize-JiraDockerEnvironment {
     [CmdletBinding()]
     param()
@@ -208,7 +204,6 @@ Task Test {
 
     foreach ($testPath in $testPaths) {
         $resultName = (Split-Path -Path $testPath -Leaf) -replace '[^A-Za-z0-9._-]', '-'
-        Import-JiraPSStandard
         $null = Invoke-AtlassianPSModuleTests `
             -TestPath $testPath `
             -PesterVerbosity $PesterVerbosity `
