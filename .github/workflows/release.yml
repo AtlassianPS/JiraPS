@@ -19,7 +19,7 @@ jobs:
 
       - name: Validate release tag
         id: release_ref
-        uses: AtlassianPS/AtlassianPS.Standards/.github/actions/resolve-release-tag@2616acf046b28a52a5915bae49ae91348555e0b8 # v0.1.10+
+        uses: AtlassianPS/AtlassianPS.Standards/.github/actions/resolve-release-tag@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
 
       - name: Download artifact from commit that got tagged
         uses: dawidd6/action-download-artifact@v21
@@ -31,7 +31,12 @@ jobs:
           path: ./Release/
           if_no_artifact_found: fail
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@198212f8a114e8382801678dc59295793a5de288 # v0.1.10
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
+
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
+        id: release_notes
+        with:
+          release-version: ${{ steps.release_ref.outputs.release_tag }}
 
       - name: Publish module
         run: |
@@ -40,17 +45,10 @@ jobs:
             -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
         shell: pwsh
 
-      - name: Build release notes from changelog
-        id: changelog
-        uses: MatteoCampinoti94/changelog-to-release@v1.0.6
-        with:
-          version-name: ${{ steps.release_ref.outputs.release_tag }}
-          configuration: ./.github/changelog.configuration.json
-
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v3
         with:
-          body: ${{ steps.changelog.outputs.body }}
+          body_path: ${{ steps.release_notes.outputs.release_notes_path }}
           files: ./Release/JiraPS.zip
           fail_on_unmatched_files: true
           draft: false

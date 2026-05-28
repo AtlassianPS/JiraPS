@@ -110,10 +110,15 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
 
         $buildScriptContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath 'JiraPS.build.ps1') -Raw
 
-        $buildScriptContent | Should -Match 'function\s+Get-JiraPSReleaseNotesFromChangelog'
-        $buildScriptContent | Should -Match 'Get-JiraPSReleaseNotesFromChangelog[\s\S]+CHANGELOG\.md'
+        $buildScriptContent | Should -Not -Match 'function\s+Get-JiraPSReleaseNotesFromChangelog'
+        $buildScriptContent | Should -Match 'Get-AtlassianPSReleaseNotesFromChangelog[\s\S]+CHANGELOG\.md'
         $buildScriptContent | Should -Match 'Set-AtlassianPSModuleManifestVersion[\s\S]+-ReleaseNotes\s+\$releaseNotes'
         $buildScriptContent | Should -Not -Match 'ConvertTo-JiraPSModuleVersion'
+
+        $releaseWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath '.github/workflows/release.yml') -Raw
+        $releaseWorkflowContent | Should -Match 'AtlassianPS/AtlassianPS\.Standards/\.github/actions/build-release-notes@[0-9a-f]{40}'
+        $releaseWorkflowContent | Should -Match 'body_path:\s+\$\{\{\s*steps\.release_notes\.outputs\.release_notes_path\s*\}\}'
+        $releaseWorkflowContent | Should -Not -Match 'changelog-to-release|changelog\.configuration\.json|steps\.changelog\.outputs\.body|Get-AtlassianPSReleaseNotesFromChangelog[\s\S]+Set-Content'
     }
 
     It 'reads AtlassianPS.Standards version from build.requirements in tool scripts' {
