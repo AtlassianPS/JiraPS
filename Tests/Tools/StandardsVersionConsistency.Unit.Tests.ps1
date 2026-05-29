@@ -39,7 +39,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             $workflowContent = Get-Content -LiteralPath $workflowPath -Raw
             [regex]::Matches(
                 $workflowContent,
-                "AtlassianPS/AtlassianPS\.Standards/\.github/actions/setup-powershell@(?<sha>[0-9a-f]{40})\s+#\s*v(?<version>[0-9]+\.[0-9]+\.[0-9]+)"
+                "AtlassianPS/AtlassianPS\.Standards/\.github/actions/[^@\s]+@(?<sha>[0-9a-f]{40})\s+#\s*v(?<version>[0-9]+\.[0-9]+\.[0-9]+)"
             ) | ForEach-Object {
                 [PSCustomObject]@{
                     WorkflowPath = $workflowPath
@@ -118,6 +118,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $releaseWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath '.github/workflows/release.yml') -Raw
         $releaseWorkflowContent | Should -Match 'AtlassianPS/AtlassianPS\.Standards/\.github/actions/build-release-notes@[0-9a-f]{40}'
         $releaseWorkflowContent | Should -Match 'body_path:\s+\$\{\{\s*steps\.release_notes\.outputs\.release_notes_path\s*\}\}'
+        $releaseWorkflowContent | Should -Match 'build-release-notes[\s\S]+Publish module'
         $releaseWorkflowContent | Should -Not -Match 'changelog-to-release|changelog\.configuration\.json|steps\.changelog\.outputs\.body|Get-AtlassianPSReleaseNotesFromChangelog[\s\S]+Set-Content'
     }
 
