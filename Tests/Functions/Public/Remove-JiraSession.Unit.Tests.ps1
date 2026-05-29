@@ -50,7 +50,7 @@ Describe "Remove-JiraSession" -Tag 'Unit' {
 
                 Remove-JiraSession
 
-                (Get-Module JiraPS).PrivateData.Session | Should -BeNullOrEmpty
+                $script:command.Module.PrivateData.Session | Should -BeNullOrEmpty
             }
         }
     }

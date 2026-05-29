@@ -134,18 +134,30 @@ $results = @()
 $generateXml = [bool]$OutputPath
 
 # Define the test execution body once as text. Both branches (parallel via
-# ForEach-Object -Parallel, and sequential via direct invocation) materialize
-# it into a script block and run it. Keeping it as text means we have a single
-# source of truth for how a test file is executed.
+# Start-ThreadJob, and sequential via direct invocation) materialize it into a
+# script block and run it. Keeping it as text means we have a single source of
+# truth for how a test file is executed.
 $helpersPath = Join-Path $PSScriptRoot 'Helpers/IntegrationTestTools.ps1'
 
 $runTestBodyText = @'
 param($testFile, $projectRoot, $tagFilter, $excludeTagFilter, $outputVerbosity, $tempResultsDir, $generateXml, $helpersPath)
 
 try {
+    function Get-PesterTestInBlock {
+        param($Block)
+
+        foreach ($test in $Block.Tests) {
+            $test
+        }
+
+        foreach ($childBlock in $Block.Blocks) {
+            Get-PesterTestInBlock -Block $childBlock
+        }
+    }
+
     if (Test-Path $helpersPath) {
         . $helpersPath
-        Read-DotEnvFile -Path (Join-Path $projectRoot '.env')
+        Read-DotEnvFile -Path (Join-Path $projectRoot '.env') -ExcludeName (Get-DotEnvExcludedName)
     }
 
     Import-Module Pester -MinimumVersion 5.0 -Force
@@ -168,17 +180,25 @@ try {
     $result = Invoke-Pester -Configuration $config
 
     $failedTests = @()
-    if ($result.FailedCount -gt 0) {
-        foreach ($container in $result.Containers) {
-            foreach ($block in $container.Blocks) {
-                foreach ($test in $block.Tests) {
-                    if ($test.Result -eq 'Failed') {
-                        $failedTests += [PSCustomObject]@{
-                            Name         = $test.Name
-                            ErrorMessage = if ($test.ErrorRecord) { $test.ErrorRecord[0].Exception.Message } else { 'Unknown error' }
-                        }
-                    }
-                }
+    $skippedTests = @()
+    $allTests = foreach ($container in $result.Containers) {
+        foreach ($block in $container.Blocks) {
+            Get-PesterTestInBlock -Block $block
+        }
+    }
+
+    foreach ($test in $allTests) {
+        if ($test.Result -eq 'Failed') {
+            $failedTests += [PSCustomObject]@{
+                Name         = if ($test.ExpandedPath) { $test.ExpandedPath } else { $test.Name }
+                ErrorMessage = if ($test.ErrorRecord) { $test.ErrorRecord[0].Exception.Message } else { 'Unknown error' }
+            }
+        }
+
+        if ($test.Result -eq 'Skipped') {
+            $skippedTests += [PSCustomObject]@{
+                Name   = if ($test.ExpandedPath) { $test.ExpandedPath } else { $test.Name }
+                Reason = if ($test.ErrorRecord) { ($test.ErrorRecord | ForEach-Object { $_.Exception.Message }) -join '; ' } else { 'No skip reason reported' }
             }
         }
     }
@@ -191,6 +211,7 @@ try {
         Duration    = $result.Duration
         Success     = $result.FailedCount -eq 0
         FailedTests = $failedTests
+        SkippedTests = $skippedTests
         XmlPath     = if ($generateXml) { Join-Path $tempResultsDir "$($testFile.BaseName).xml" } else { $null }
     }
 }
@@ -204,6 +225,7 @@ catch {
         Success     = $false
         Error       = $_.Exception.Message
         FailedTests = @([PSCustomObject]@{ Name = 'Script execution'; ErrorMessage = $_.Exception.Message })
+        SkippedTests = @()
         XmlPath     = $null
     }
 }
@@ -276,18 +298,19 @@ if ($canParallel) {
             Write-Warning "Test file [$($file.Name)] exceeded ${perFileTimeoutSeconds}s budget; stopping the runspace and recording an orchestrator timeout."
             try { Stop-Job -Job $job -ErrorAction SilentlyContinue } catch { Write-Warning "Stop-Job [$($job.Name)] threw: $_" }
             $results += [PSCustomObject]@{
-                File        = $file.Name
-                Passed      = 0
-                Failed      = 1
-                Skipped     = 0
-                Duration    = [TimeSpan]::FromSeconds($perFileTimeoutSeconds)
-                Success     = $false
-                Error       = "Per-file orchestrator timeout (${perFileTimeoutSeconds}s) — runspace stopped, see Wait-Job timeout warning above."
-                FailedTests = @([PSCustomObject]@{
+                File         = $file.Name
+                Passed       = 0
+                Failed       = 1
+                Skipped      = 0
+                Duration     = [TimeSpan]::FromSeconds($perFileTimeoutSeconds)
+                Success      = $false
+                Error        = "Per-file orchestrator timeout (${perFileTimeoutSeconds}s) — runspace stopped, see Wait-Job timeout warning above."
+                FailedTests  = @([PSCustomObject]@{
                         Name         = 'Orchestrator timeout'
                         ErrorMessage = "Test file [$($file.Name)] did not produce a Pester result object within ${perFileTimeoutSeconds}s. The runspace was force-stopped to keep the rest of the suite running."
                     })
-                XmlPath     = $null
+                SkippedTests = @()
+                XmlPath      = $null
             }
         }
         else {
@@ -309,15 +332,16 @@ if ($canParallel) {
             catch {
                 Write-Warning "Receive-Job [$($job.Name)] threw: $_"
                 $results += [PSCustomObject]@{
-                    File        = $file.Name
-                    Passed      = 0
-                    Failed      = 1
-                    Skipped     = 0
-                    Duration    = [TimeSpan]::Zero
-                    Success     = $false
-                    Error       = "Receive-Job failed: $_"
-                    FailedTests = @([PSCustomObject]@{ Name = 'Receive-Job failure'; ErrorMessage = $_.Exception.Message })
-                    XmlPath     = $null
+                    File         = $file.Name
+                    Passed       = 0
+                    Failed       = 1
+                    Skipped      = 0
+                    Duration     = [TimeSpan]::Zero
+                    Success      = $false
+                    Error        = "Receive-Job failed: $_"
+                    FailedTests  = @([PSCustomObject]@{ Name = 'Receive-Job failure'; ErrorMessage = $_.Exception.Message })
+                    SkippedTests = @()
+                    XmlPath      = $null
                 }
             }
         }
@@ -343,6 +367,7 @@ $totalPassed = 0
 $totalFailed = 0
 $totalSkipped = 0
 $allFailedTests = @()
+$allSkippedTests = @()
 
 foreach ($r in $results) {
     $totalPassed += $r.Passed
@@ -362,6 +387,16 @@ foreach ($r in $results) {
             }
         }
     }
+
+    if ($r.SkippedTests) {
+        foreach ($st in $r.SkippedTests) {
+            $allSkippedTests += [PSCustomObject]@{
+                File   = $r.File
+                Test   = $st.Name
+                Reason = $st.Reason
+            }
+        }
+    }
 }
 
 if ($allFailedTests.Count -gt 0) {
@@ -374,6 +409,19 @@ if ($allFailedTests.Count -gt 0) {
         Write-Host "    $($ft.ErrorMessage)" -ForegroundColor DarkGray
     }
     Write-Host "==================================" -ForegroundColor Red
+    Write-Host ""
+}
+
+if ($allSkippedTests.Count -gt 0) {
+    Write-Host ""
+    Write-Host "========== SKIPPED TESTS ==========" -ForegroundColor Yellow
+    foreach ($st in $allSkippedTests) {
+        Write-Host "  $($st.File)" -ForegroundColor Yellow -NoNewline
+        Write-Host " :: " -NoNewline
+        Write-Host "$($st.Test)" -ForegroundColor White
+        Write-Host "    $($st.Reason)" -ForegroundColor DarkGray
+    }
+    Write-Host "===================================" -ForegroundColor Yellow
     Write-Host ""
 }
 

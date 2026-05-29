@@ -56,8 +56,8 @@ Describe "General project validation" -Tag Unit {
         Get-JiraConfigServer | Should -Be "https://example.com"
     }
 
-    It "module manifest only define major and minor verions" {
-        $manifest.Version | Should -Match '^\d+\.\d+$'
+    It "module manifest uses a semantic version" {
+        $manifest.Version | Should -Match '^\d+\.\d+\.\d+(?:-.+)?$'
     }
 
     # It "module is imported with default prefix" {

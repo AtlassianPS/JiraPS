@@ -4,12 +4,6 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Tag to release (for manual reruns)"
-        required: true
-        type: string
 
 jobs:
   release:
@@ -22,21 +16,10 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
 
-      - name: Resolve release ref
+      - name: Validate release tag
         id: release_ref
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            release_tag="${{ inputs.release_tag }}"
-          else
-            release_tag="${{ github.ref_name }}"
-          fi
-
-          release_sha="$(git rev-list -n 1 "$release_tag")"
-          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
-          echo "release_sha=$release_sha" >> "$GITHUB_OUTPUT"
+        uses: AtlassianPS/AtlassianPS.Standards/.github/actions/resolve-release-tag@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
 
       - name: Download artifact from commit that got tagged
         uses: dawidd6/action-download-artifact@v21
@@ -48,24 +31,24 @@ jobs:
           path: ./Release/
           if_no_artifact_found: fail
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@9a9367e22847bd24f86208ed2d98d207b0e2a3b3 # v0.1.6
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
 
-      - run: Invoke-Build -Task Publish -VersionToPublish ${{ steps.release_ref.outputs.release_tag }}
-          -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
-        shell: pwsh
-
-      - name: Cherry pick CHANGELOG.md
-        id: changelog
-        uses: MatteoCampinoti94/changelog-to-release@v1.0.6
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
+        id: release_notes
         with:
-          version-name: ${{ steps.release_ref.outputs.release_tag }}
-          configuration: ./.github/changelog.configuration.json
-        if: ${{ hashFiles('CHANGELOG.md') != '' }}
+          release-version: ${{ steps.release_ref.outputs.release_tag }}
+
+      - name: Publish module
+        run: |
+          Invoke-Build -Task Publish `
+            -VersionToPublish ${{ steps.release_ref.outputs.release_tag }} `
+            -PSGalleryAPIKey ${{ secrets.PSGALLERY_API_KEY }}
+        shell: pwsh
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v3
         with:
-          body: ${{ steps.changelog.outputs.body }}
+          body_path: ${{ steps.release_notes.outputs.release_notes_path }}
           files: ./Release/JiraPS.zip
           fail_on_unmatched_files: true
           draft: false
@@ -75,13 +58,3 @@ jobs:
             'beta') || contains(steps.release_ref.outputs.release_tag, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Notify homepage to update submodule
-        if: ${{ !contains(steps.release_ref.outputs.release_tag, 'alpha') && !contains(steps.release_ref.outputs.release_tag,
-          'beta') && !contains(steps.release_ref.outputs.release_tag, 'rc') }}
-        uses: peter-evans/repository-dispatch@v4
-        with:
-          token: ${{ secrets.HOMEPAGE_PAT }}
-          repository: AtlassianPS/AtlassianPS.github.io
-          event-type: module-release
-          client-payload: "{\"module\": \"JiraPS\", \"version\": \"${{ steps.release_ref.outputs.release_tag }}\"}"

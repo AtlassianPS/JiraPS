@@ -682,24 +682,25 @@ if ($issue -and $issue.key) {
     }
 }
 
-# Export the provisioned fixture identifiers to GITHUB_ENV so the next workflow
-# steps inherit them as JIRA_TEST_PROJECT / JIRA_TEST_GROUP / JIRA_TEST_ISSUE.
-# This is what makes the dynamic Server fixture visible to integration test
-# files that gate on `$testEnv.TestIssue` or `$testEnv.TestGroup` — without it
-# those tests self-skip even though the project, group, and baseline issue are
-# present.
-# Locally ($env:GITHUB_ENV unset) this is a no-op; users seed the same vars in
-# their .env file.
-if ($env:GITHUB_ENV) {
-    $exports = @()
-    if ($project -and $project.key) { $exports += "JIRA_TEST_PROJECT=$($project.key)" }
-    if ($testGroup) { $exports += "JIRA_TEST_GROUP=$testGroup" }
-    if ($issue -and $issue.key) { $exports += "JIRA_TEST_ISSUE=$($issue.key)" }
+# Export the provisioned fixture identifiers to the current process and, in CI,
+# to GITHUB_ENV so subsequent workflow steps inherit them.
+$exports = @()
+if ($project -and $project.key) {
+    $env:JIRA_TEST_PROJECT = $project.key
+    $exports += "JIRA_TEST_PROJECT=$($project.key)"
+}
+if ($testGroup) {
+    $env:JIRA_TEST_GROUP = $testGroup
+    $exports += "JIRA_TEST_GROUP=$testGroup"
+}
+if ($issue -and $issue.key) {
+    $env:JIRA_TEST_ISSUE = $issue.key
+    $exports += "JIRA_TEST_ISSUE=$($issue.key)"
+}
 
-    if ($exports.Count -gt 0) {
-        Add-Content -Path $env:GITHUB_ENV -Value ($exports -join [Environment]::NewLine)
-        Write-Host ("==> Exported to GITHUB_ENV: {0}" -f ($exports -join '; '))
-    }
+if ($env:GITHUB_ENV -and $exports.Count -gt 0) {
+    Add-Content -Path $env:GITHUB_ENV -Value ($exports -join [Environment]::NewLine)
+    Write-Host ("==> Exported to GITHUB_ENV: {0}" -f ($exports -join '; '))
 }
 
 Write-Host "==> Jira is ready, the test user is provisioned, and the test project '$ProjectKey' is available."

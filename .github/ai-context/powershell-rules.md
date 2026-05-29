@@ -173,7 +173,10 @@ Invoke-Build -Task TestIntegration -ThrottleLimit 8     # More parallelism
 | `Build` | Compiles module into `Release/` (includes Clean) |
 | `Test` | Runs unit tests against built module (excludes Integration) |
 | `TestIntegration` | Runs integration tests in parallel (no build needed) |
+| `TestIntegrationServer` | Starts local Docker Jira DC, runs Server-tagged integration tests, then stops Docker |
 | `GenerateExternalHelp` | Generates help XML from `docs/` markdown |
+| `Package` | Creates `Release/JiraPS.zip` from the built module |
+| `TestPublish` | Dry-runs release packaging checks without publishing |
 | `Publish` | Publishes to PowerShell Gallery (release tags only) |
 
 ### Common Mistakes

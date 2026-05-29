@@ -4,6 +4,25 @@ $script:TestResourcePrefix = 'JiraPS-IntTest-'
 $script:_CachedIntegrationEnv = $null
 $script:_EnvLoaded = $false
 $script:_CleanupInProgress = $false
+$script:ServerDotEnvFixtureExclusions = @(
+    'JIRA_TEST_PROJECT'
+    'JIRA_TEST_ISSUE'
+    'JIRA_TEST_GROUP'
+    'JIRA_TEST_FILTER'
+    'JIRA_TEST_VERSION'
+)
+
+function Get-DotEnvExcludedName {
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param()
+
+    if ($env:CI_JIRA_TYPE -eq 'Server') {
+        return $script:ServerDotEnvFixtureExclusions
+    }
+
+    return @()
+}
 
 function Read-DotEnvFile {
     <#
@@ -11,23 +30,10 @@ function Read-DotEnvFile {
         Loads KEY=value pairs from a .env file into the current process environment.
 
     .DESCRIPTION
-        Parses a .env-style file:
-          - Whole-line comments (`# ...`) and blank lines are skipped.
-          - Quoted values (single or double) are taken verbatim between the
-            matching quotes, so `#` inside quotes is preserved (relevant for
-            secrets like API tokens that may contain `#`).
-          - Unquoted values support a trailing inline comment, but only when
-            preceded by whitespace (`KEY=value  # comment`). A bare `#` inside
-            an unquoted value (e.g. `KEY=foo#bar`) is treated as part of the
-            value, not a comment marker.
-
-        Each parsed assignment is set via
-        [System.Environment]::SetEnvironmentVariable so it is visible through
-        $env:NAME for the lifetime of the process.
+        JiraPS compatibility wrapper around the shared Standards .env loader.
 
     .PARAMETER Path
-        Path to the .env file. The function silently no-ops if the file does not
-        exist so callers can opt-in without checking first.
+        Path to the .env file.
 
     .EXAMPLE
         Read-DotEnvFile -Path (Join-Path $projectRoot '.env')
@@ -36,52 +42,13 @@ function Read-DotEnvFile {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$Path
+        [string]$Path,
+
+        [Parameter()]
+        [string[]]$ExcludeName = @()
     )
 
-    if (-not (Test-Path -LiteralPath $Path)) {
-        return
-    }
-
-    Get-Content -LiteralPath $Path | ForEach-Object {
-        $line = $_
-        if ($line -match '^\s*#' -or $line -match '^\s*$') { return }
-        if ($line -notmatch '^\s*([^#=]+?)\s*=\s*(.*)$') { return }
-
-        $name = $matches[1].Trim()
-        if ([string]::IsNullOrEmpty($name)) { return }
-
-        $rawValue = $matches[2].TrimStart()
-
-        if ($rawValue.Length -gt 0 -and ($rawValue[0] -eq '"' -or $rawValue[0] -eq "'")) {
-            # Quoted value: take everything between the opening quote and the
-            # next matching quote. Anything after the closing quote is ignored
-            # (acts as an inline comment).
-            $quote = $rawValue[0]
-            $endIdx = $rawValue.IndexOf($quote, 1)
-            $value = if ($endIdx -gt 0) {
-                $rawValue.Substring(1, $endIdx - 1)
-            }
-            else {
-                # Unterminated quote - take the rest of the line verbatim,
-                # minus the opening quote.
-                $rawValue.Substring(1)
-            }
-        }
-        else {
-            # Unquoted value: only treat ` #` (whitespace + #) as the start
-            # of an inline comment so `#` characters inside the value survive.
-            if ($rawValue -match '^(.*?)\s+#') {
-                $value = $matches[1]
-            }
-            else {
-                $value = $rawValue
-            }
-            $value = $value.TrimEnd()
-        }
-
-        [System.Environment]::SetEnvironmentVariable($name, $value)
-    }
+    Import-AtlassianPSDotEnvFile -Path $Path -ExcludeName $ExcludeName
 }
 
 function Initialize-IntegrationEnvironment {
@@ -138,7 +105,7 @@ function Initialize-IntegrationEnvironment {
 
     $envFile = Join-Path $projectRoot '.env'
     if (Test-Path $envFile) {
-        Read-DotEnvFile -Path $envFile
+        Read-DotEnvFile -Path $envFile -ExcludeName (Get-DotEnvExcludedName)
         Write-Verbose "Loaded environment from: $envFile"
     }
 
@@ -201,9 +168,9 @@ function Initialize-IntegrationEnvironment {
     if ($deploymentType -eq 'Server') {
         # Server track fixture sourcing:
         #   - Wait-JiraServer.ps1 (run by the `server_integration_tests` job in
-        #     integration_tests.yml and by the StartJiraDocker build task) provisions a TEST project and a TEST-1 baseline issue
-        #     against the moveworkforward/atlas-run-standalone image, then exports
-        #     JIRA_TEST_PROJECT and JIRA_TEST_ISSUE to $env:GITHUB_ENV.
+        #     integration_tests.yml and by the StartJiraDocker build task) provisions
+        #     a TEST project and a TEST-1 baseline issue, then exports the fixtures
+        #     to the current process and to $env:GITHUB_ENV in CI.
         #   - Honour those env vars here (same shape as the Cloud branch below) so
         #     read-only smoke tests like `Get-JiraIssue $TestIssue` actually run
         #     against the seeded baseline instead of self-skipping.

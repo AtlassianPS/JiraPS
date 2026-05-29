@@ -1,46 +1,23 @@
 ---
-description: JiraPS project-wide development rules (Cursor entry point)
+description: JiraPS compact project rules (Cursor entry point)
 alwaysApply: true
 ---
 
 # Cursor Entry Point
 
-Cursor reads this file as its always-on rule for the JiraPS workspace.
+Cursor should treat `AGENTS.md` as the canonical project rule set.
+Keep this file small to avoid duplicating context.
 
-**Canonical sources**:
-- Project rules: [AGENTS.md](../../AGENTS.md)
-- PowerShell rules: [.github/ai-context/powershell-rules.md](../../.github/ai-context/powershell-rules.md)
+## Read First
 
-## Quick Reference
+- `../../AGENTS.md`
+- `../../.github/ai-context/powershell-rules.md` for Cloud/Data Center or REST/API changes
 
-1. **One Functionality Per Commit** — code + tests + docs + green tests
-2. **Cloud AND Data Center** — all API changes must work on both Jira deployment types
-3. **User Identity** — `accountId` for Cloud, `username`/`name` for DC
-4. **REST calls** — always go through `Invoke-JiraMethod`
-5. **Tests required** — every function needs `.Unit.Tests.ps1`
-6. **Full-suite validation** — `Invoke-Build -Task Build, Test` before commit
+## Critical Rules
 
-## Testing During Development
-
-Run the appropriate tests after every change.
-
-| What you changed | Test command |
-|------------------|--------------|
-| **Any code file** | `Invoke-Build -Task Lint` |
-| **Function** in `JiraPS/Public/` | `Invoke-Pester Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1` |
-| **Function** in `JiraPS/Private/` | `Invoke-Pester Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1` |
-| **Test file** | `Invoke-Pester <path-to-that-test-file>` |
-| **Docs** in `docs/**` | `Invoke-Pester Tests/Help.Tests.ps1` |
-
-**Before committing**: Run full `Invoke-Build -Task Build, Test`.
-
-## File Locations
-
-| Type | Location |
-|------|----------|
-| Public functions | `JiraPS/Public/` |
-| Private functions | `JiraPS/Private/` |
-| Tests | `Tests/Functions/Public/` or `Tests/Functions/Private/` |
-| Docs | `docs/en-US/commands/` |
-
-For full instructions, read [`AGENTS.md`](../../AGENTS.md) and [`.github/ai-context/powershell-rules.md`](../../.github/ai-context/powershell-rules.md).
+- One functionality per commit: code, tests, docs, and green validation.
+- Use `Invoke-Build -Task Build, Test` as the full-suite gate before commit.
+- All behavior changes must work on Jira Cloud and Data Center unless explicitly scoped.
+- Cloud uses `accountId`; Data Center uses `username` or `name`.
+- REST calls must go through `Invoke-JiraMethod`.
+- Public cmdlet help lives in `docs/en-US/commands/*.md`, not comment-based help.

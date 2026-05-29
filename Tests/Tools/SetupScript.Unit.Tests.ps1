@@ -1,7 +1,7 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
 
 Describe 'Tools/setup.ps1' -Tag Unit {
-    It 'delegates dependency install and analyzer settings sync to shared standards commands' {
+    It 'delegates dependency install to shared standards commands' {
         $projectRoot = if (
             $env:BHProjectPath -and
             (Test-Path -LiteralPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CODEOWNERS'))
@@ -29,12 +29,10 @@ Describe 'Tools/setup.ps1' -Tag Unit {
         $harnessRoot = Join-Path -Path $TestDrive -ChildPath ([Guid]::NewGuid().ToString())
         $toolsPath = Join-Path -Path $harnessRoot -ChildPath 'Tools'
         $modulePath = Join-Path -Path $harnessRoot -ChildPath 'JiraPS'
-        $mockModulePath = Join-Path -Path $harnessRoot -ChildPath 'mockModules/AtlassianPS.Standards/0.1.6'
+        $mockModulePath = Join-Path -Path $harnessRoot -ChildPath 'mockModules/AtlassianPS.Standards/0.1.10'
         $scriptPath = Join-Path -Path $toolsPath -ChildPath 'setup.ps1'
         $installCapturePath = Join-Path -Path $TestDrive -ChildPath 'setup-install.json'
-        $syncCapturePath = Join-Path -Path $TestDrive -ChildPath 'setup-sync.txt'
         $escapedInstallCapturePath = $installCapturePath.Replace("'", "''")
-        $escapedSyncCapturePath = $syncCapturePath.Replace("'", "''")
 
         $null = New-Item -Path $toolsPath -ItemType Directory -Force
         $null = New-Item -Path $modulePath -ItemType Directory -Force
@@ -44,7 +42,7 @@ Describe 'Tools/setup.ps1' -Tag Unit {
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
-    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.6" }
+    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.10" }
     @{ ModuleName = "InvokeBuild"; RequiredVersion = "5.14.23" }
 )
 '@
@@ -71,23 +69,13 @@ function Install-AtlassianPSDependencyRequirement {
     } | ConvertTo-Json -Compress | Set-Content -LiteralPath '$escapedInstallCapturePath'
 }
 
-function Sync-AtlassianPSScriptAnalyzerSettings {
-    [CmdletBinding()]
-    param(
-        [String]`$DestinationPath
-    )
-
-    Set-Content -LiteralPath '$escapedSyncCapturePath' -Value `$DestinationPath
-    return `$DestinationPath
-}
-
-Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement, Sync-AtlassianPSScriptAnalyzerSettings
+Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement
 "@
 
         Set-Content -LiteralPath (Join-Path -Path $mockModulePath -ChildPath 'AtlassianPS.Standards.psd1') -Value @'
 @{
     RootModule        = 'AtlassianPS.Standards.psm1'
-    ModuleVersion     = '0.1.6'
+    ModuleVersion     = '0.1.10'
     GUID              = '5d8bdca8-6d20-47b5-a302-f6f51cf96270'
     FunctionsToExport = @('*')
 }
@@ -118,11 +106,9 @@ Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement, Sync-Atl
         }
 
         $capturedInstall = Get-Content -LiteralPath $installCapturePath -Raw | ConvertFrom-Json
-        $capturedSyncPath = (Get-Content -LiteralPath $syncCapturePath -Raw).TrimEnd("`r", "`n")
 
         $capturedInstall.BuildRequirementsPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'Tools/build.requirements.psd1')
         $capturedInstall.ManifestPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'JiraPS/JiraPS.psd1')
-        $capturedSyncPath | Should -Be (Join-Path -Path $harnessRoot -ChildPath 'PSScriptAnalyzerSettings.psd1')
     }
 
     It 'installs the required standards version from build.requirements when not present locally' {
@@ -190,16 +176,7 @@ function Install-AtlassianPSDependencyRequirement {
     }
 }
 
-function Sync-AtlassianPSScriptAnalyzerSettings {
-    [CmdletBinding()]
-    param(
-        [String]$DestinationPath
-    )
-
-    return $DestinationPath
-}
-
-Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement, Sync-AtlassianPSScriptAnalyzerSettings
+Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement
 '@
 
         Set-Content -LiteralPath (Join-Path -Path $mockModulePath -ChildPath 'AtlassianPS.Standards.psd1') -Value @'
@@ -255,7 +232,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
 
         Test-Path -LiteralPath $installPackageProviderCapturePath | Should -BeTrue
         Test-Path -LiteralPath $setPSRepositoryCapturePath | Should -BeTrue
-        Assert-MockCalled -CommandName Install-Module -Exactly -Times 1 -ParameterFilter {
+        Should -Invoke -CommandName Install-Module -Exactly -Times 1 -ParameterFilter {
             $Name -eq 'AtlassianPS.Standards' -and
             $RequiredVersion -eq '9.9.9' -and
             $Scope -eq 'CurrentUser' -and
@@ -302,7 +279,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
-    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.6" }
+    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.10" }
 )
 '@
 
@@ -351,7 +328,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
         $harnessRoot = Join-Path -Path $TestDrive -ChildPath ([Guid]::NewGuid().ToString())
         $toolsPath = Join-Path -Path $harnessRoot -ChildPath 'Tools'
         $modulePath = Join-Path -Path $harnessRoot -ChildPath 'JiraPS'
-        $mockModulePath = Join-Path -Path $harnessRoot -ChildPath 'mockModules/AtlassianPS.Standards/0.1.6'
+        $mockModulePath = Join-Path -Path $harnessRoot -ChildPath 'mockModules/AtlassianPS.Standards/0.1.10'
         $scriptPath = Join-Path -Path $toolsPath -ChildPath 'setup.ps1'
 
         $null = New-Item -Path $toolsPath -ItemType Directory -Force
@@ -362,7 +339,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
-    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.6" }
+    @{ ModuleName = "AtlassianPS.Standards"; RequiredVersion = "0.1.10" }
     @{ ModuleName = "InvokeBuild"; RequiredVersion = "5.14.23" }
 )
 '@
@@ -386,22 +363,13 @@ function Install-AtlassianPSDependencyRequirement {
     Write-Error -Message "simulated setup failure"
 }
 
-function Sync-AtlassianPSScriptAnalyzerSettings {
-    [CmdletBinding()]
-    param(
-        [String]$DestinationPath
-    )
-
-    return $DestinationPath
-}
-
-Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement, Sync-AtlassianPSScriptAnalyzerSettings
+Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement
 '@
 
         Set-Content -LiteralPath (Join-Path -Path $mockModulePath -ChildPath 'AtlassianPS.Standards.psd1') -Value @'
 @{
     RootModule        = 'AtlassianPS.Standards.psm1'
-    ModuleVersion     = '0.1.6'
+    ModuleVersion     = '0.1.10'
     GUID              = '5d8bdca8-6d20-47b5-a302-f6f51cf96270'
     FunctionsToExport = @('*')
 }
