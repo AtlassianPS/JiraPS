@@ -143,7 +143,7 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 ## RELATED LINKS
 
-[Get-JiraAttachmentFile](../Get-JiraAttachmentFile/)
+[Get-JiraAttachmentFile](../Get-JiraIssueAttachmentFile/)
 
 [Add-JiraIssueAttachment](../Add-JiraIssueAttachment/)
 
