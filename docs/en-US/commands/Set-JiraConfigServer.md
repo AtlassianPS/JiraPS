@@ -79,6 +79,6 @@ This can be tracked in [JiraPS#194](https://github.com/AtlassianPS/JiraPS/issues
 
 ## RELATED LINKS
 
-[about_JiraPS_Authentication](../../about/authentication/)
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Get-JiraConfigServer](../Get-JiraConfigServer/)

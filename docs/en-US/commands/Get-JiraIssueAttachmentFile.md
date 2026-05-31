@@ -148,10 +148,10 @@ If neither are supplied, this function will run with anonymous access to JIRA.
 
 ## RELATED LINKS
 
-[Get-JiraAttachment](../Get-JiraAttachmentFile/)
+[Get-JiraAttachment](../Get-JiraIssueAttachmentFile/)
 
-[Add-JiraIssueAttachmentFile](../Add-JiraIssueAttachmentFile/)
+[Add-JiraIssueAttachmentFile](../Add-JiraIssueAttachment/)
 
 [Get-JiraIssue](../Get-JiraIssue/)
 
-[Remove-JiraIssueAttachmentFile](../Remove-JiraIssueAttachmentFile/)
+[Remove-JiraIssueAttachmentFile](../Remove-JiraIssueAttachment/)
