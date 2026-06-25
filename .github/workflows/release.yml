@@ -19,7 +19,7 @@ jobs:
 
       - name: Validate release tag
         id: release_ref
-        uses: AtlassianPS/AtlassianPS.Standards/.github/actions/resolve-release-tag@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
+        uses: AtlassianPS/AtlassianPS.Standards/.github/actions/resolve-release-tag@b95fd4d1ad0fca24905a38be4db70da7eeff8cb0 # v0.1.12
 
       - name: Download artifact from commit that got tagged
         uses: dawidd6/action-download-artifact@v21
@@ -31,9 +31,9 @@ jobs:
           path: ./Release/
           if_no_artifact_found: fail
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@b95fd4d1ad0fca24905a38be4db70da7eeff8cb0 # v0.1.12
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@b95fd4d1ad0fca24905a38be4db70da7eeff8cb0 # v0.1.12
         id: release_notes
         with:
           release-version: ${{ steps.release_ref.outputs.release_tag }}
