@@ -19,7 +19,7 @@
     CompanyName          = 'AtlassianPS.org'
 
     # Copyright statement for this module
-    Copyright            = '(c) 2017 AtlassianPS. All rights reserved.'
+    Copyright            = '(c) 2015 AtlassianPS contributors.'
 
     # Description of the functionality provided by this module
     Description          = 'Windows PowerShell module to interact with Atlassian JIRA'
