@@ -1,4 +1,4 @@
-﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.9.0"; MaximumVersion = "5.9.999" }
 
 Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
     It 'keeps workflow Standards action pins aligned with build.requirements' {

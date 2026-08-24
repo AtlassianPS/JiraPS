@@ -1,4 +1,4 @@
-﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.9.0"; MaximumVersion = "5.9.999" }
 
 Describe 'Tools/update.dependencies.ps1' -Tag Unit {
     It 'delegates dependency updates to the shared standards updater with expected paths and switches' {

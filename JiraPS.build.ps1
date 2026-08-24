@@ -92,14 +92,38 @@ Task Lint {
         "$env:BHProjectPath/JiraPS.build.ps1"
     )
 
-    $null = Invoke-AtlassianPSLint `
-        -ProjectPath $env:BHProjectPath `
-        -ModulePath $env:BHModulePath `
-        -BuildScriptPath "$env:BHProjectPath/JiraPS.build.ps1" `
-        -StyleTestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
-        -AnalyzerPaths $analyzerPaths `
-        -PesterVerbosity $PesterVerbosity `
-        -Severity @('Error', 'Warning')
+    $lintFailures = @()
+    try {
+        $null = Invoke-AtlassianPSModuleTests `
+            -TestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
+            -PesterVerbosity $PesterVerbosity `
+            -MinimumPesterVersion ([Version]'5.9.0') `
+            -MaximumPesterVersion ([Version]'5.9.999')
+    }
+    catch {
+        $lintFailures += $_.Exception.Message
+    }
+
+    Import-JiraPSStandard
+    try {
+        $null = Invoke-AtlassianPSLint `
+            -ProjectPath $env:BHProjectPath `
+            -ModulePath $env:BHModulePath `
+            -BuildScriptPath "$env:BHProjectPath/JiraPS.build.ps1" `
+            -StyleTestPath "$env:BHProjectPath/Tests/Style.Tests.ps1" `
+            -AnalyzerPaths $analyzerPaths `
+            -PesterVerbosity $PesterVerbosity `
+            -Severity @('Error', 'Warning') `
+            -SkipStyleTests
+    }
+    catch {
+        $lintFailures += $_.Exception.Message
+    }
+
+    Import-JiraPSStandard
+    if ($lintFailures.Count -gt 0) {
+        throw ("Lint failed:`n  - " + ($lintFailures -join "`n  - "))
+    }
 }
 
 Task Clean {
@@ -199,6 +223,9 @@ Task Test {
         Where-Object { $_.PSIsContainer -or $_.Name -like '*.Tests.ps1' } |
         Select-Object -ExpandProperty FullName
 
+    Get-Module Pester | Remove-Module -Force -ErrorAction SilentlyContinue
+    Import-Module Pester -MinimumVersion '5.9.0' -MaximumVersion '5.9.999' -Global -Force -ErrorAction Stop
+
     foreach ($testPath in $testPaths) {
         $resultName = (Split-Path -Path $testPath -Leaf) -replace '[^A-Za-z0-9._-]', '-'
         Import-JiraPSStandard
@@ -208,8 +235,8 @@ Task Test {
             -Tag $Tag `
             -ExcludeTag $ExcludeTag `
             -DefaultExcludeTag @('Integration') `
-            -MinimumPesterVersion ([Version]'5.7.0') `
-            -MaximumPesterVersion ([Version]'5.7.999') `
+            -MinimumPesterVersion ([Version]'5.9.0') `
+            -MaximumPesterVersion ([Version]'5.9.999') `
             -ResultOutputPath (Join-Path $env:BHProjectPath "Test-$resultName.xml")
     }
 }

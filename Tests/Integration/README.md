@@ -248,7 +248,7 @@ Its console summary always includes the skipped-test count; when any tests skip,
 Integration tests follow the same Pester v5 patterns as unit tests:
 
 ```powershell
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.9.0"; MaximumVersion = "5.9.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"

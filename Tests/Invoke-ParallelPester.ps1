@@ -160,7 +160,8 @@ try {
         Read-DotEnvFile -Path (Join-Path $projectRoot '.env') -ExcludeName (Get-DotEnvExcludedName)
     }
 
-    Import-Module Pester -MinimumVersion 5.0 -Force
+    Get-Module Pester | Remove-Module -Force -ErrorAction SilentlyContinue
+    Import-Module Pester -MinimumVersion '5.9.0' -MaximumVersion '5.9.999' -Force -ErrorAction Stop
     Set-Location $projectRoot
 
     $config = New-PesterConfiguration
