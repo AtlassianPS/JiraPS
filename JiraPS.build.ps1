@@ -209,6 +209,7 @@ Task Test {
             -ExcludeTag $ExcludeTag `
             -DefaultExcludeTag @('Integration') `
             -MinimumPesterVersion ([Version]'5.7.0') `
+            -MaximumPesterVersion ([Version]'5.7.999') `
             -ResultOutputPath (Join-Path $env:BHProjectPath "Test-$resultName.xml")
     }
 }
