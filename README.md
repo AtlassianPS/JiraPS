@@ -107,6 +107,8 @@ Hopefully this is obvious, but:
 
 > This is an open source project (under the [MIT license]), and all contributors are volunteers. All commands are executed at your own risk. Please have good backups before you start, because you can delete a lot of stuff if you're not careful.
 
+See [LICENSING.md](LICENSING.md) for the project's licensing history and the ongoing audit of the 2017 GPLv3-to-MIT change.
+
 <!-- reference-style links -->
   [JIRA]: https://www.atlassian.com/software/jira
   [PowerShell Gallery]: https://www.powershellgallery.com/
