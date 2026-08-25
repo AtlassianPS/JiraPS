@@ -16,6 +16,10 @@ Do not enable automatic releases before that version is intentionally published.
 - Set `JIRAPS_CD_ENABLED=true` and rerun CI for the prepared release commit; the successful rerun publishes that exact artifact.
 - Verify PSGallery and the GitHub release, then leave the variable enabled for normal post-merge releases.
 
+Before enabling publication, configure the `release` environment for protected `master`, protect
+`refs/tags/v*` so only the `atlassianps-release-bot` App can create or change release tags, and require
+both `CI Result` and `Release Intent` on `master`.
+
 ## Pull request contract
 
 Every pull request must declare exactly one release impact:
@@ -33,6 +37,8 @@ A releasing pull request also needs one `changelog:*` label or a reviewed fragme
 
 Use `release:none` for internal changes that should not independently trigger a package release.
 It does not remove their code from the next release.
+For an uncommon batched release, keep automatic release disabled, record the combined notes under
+`Unreleased`, and use `release:none` on the held PRs until the maintainer deliberately prepares the batch.
 
 ## Changelog contract
 

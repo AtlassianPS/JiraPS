@@ -88,8 +88,10 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $releaseIntentContent | Should -Match 'issues:\s+write'
         $releaseIntentContent | Should -Match 'validate-release-intent@[0-9a-f]{40}'
         $releaseIntentContent | Should -Not -Match 'actions/checkout|\brun:'
+        $releaseIntentContent | Should -Not -Match '\bedited\b'
 
         $continuousReleaseContent | Should -Match 'workflows/module_release\.yml@[0-9a-f]{40}'
+        $continuousReleaseContent | Should -Match '(?ms)workflow_run:.*?branches:\s*\[master\]'
         $continuousReleaseContent | Should -Match 'module-name:\s+JiraPS'
         $continuousReleaseContent | Should -Match "vars\.JIRAPS_CD_ENABLED == 'true'"
         $continuousReleaseContent | Should -Match '(?ms)options:\s+- major'
