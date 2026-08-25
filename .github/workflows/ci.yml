@@ -16,192 +16,27 @@ permissions:
   pull-requests: read
 
 jobs:
-  changes:
-    name: Detect Changes
-    runs-on: ubuntu-latest
-    outputs:
-      run_ci: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.code == 'true' }}
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+  module-ci:
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_ci.yml@a2aac6c601073864ae77c8660e6c6c57c26217be # v0.2.0
+    with:
+      build-profile: jiraps
+      smoke-profile: jira
+      release-candidate: false
+    secrets: inherit
 
-      - id: filter
-        name: Decide whether full CI is required
-        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
-        with:
-          base: ${{ github.ref }}
-          predicate-quantifier: every
-          filters: |
-            code:
-              - '**'
-              - '!.editorconfig'
-              - '!.github/copilot-instructions.md'
-              - '!.spelling'
-              - '!AGENTS.md'
-              - '!CHANGELOG.md'
-              - '!CLAUDE.md'
-              - '!GEMINI.md'
-              - '!LICENSE'
-              - '!.cursor/**'
-              - '!.github/*.md'
-              - '!.github/ai-context/**'
-              - '!.github/instructions/**'
-              - '!.github/ISSUE_TEMPLATE/**'
-              - '!.github/PULL_REQUEST_TEMPLATE/**'
-              - '!.vscode/**'
-              - '!docs-regenerated/**'
-
-  lint:
-    name: Lint
-    needs: changes
-    if: needs.changes.outputs.run_ci == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca # v1.7.12
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
-
-      - run: Invoke-Build -Task Lint
-        shell: pwsh
-
-  build:
-    name: Build Module
-    needs: [changes, lint]
-    if: needs.changes.outputs.run_ci == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
-
-      - run: Invoke-Build -Task Clean, TestPublish
-        shell: pwsh
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: Release
-          path: ./Release/
-
-  test_windows_ps5:
-    name: Test (Windows PS5)
-    needs: [changes, build]
-    if: needs.changes.outputs.run_ci == 'true'
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/download-artifact@v8
-        with:
-          name: Release
-          path: ./Release/
-
-      - name: Setup
-        shell: powershell
-        run: |
-          ./Tools/setup.ps1
-          Invoke-Build -Task ShowDebugInfo
-
-      - run: Invoke-Build -Task Test
-        shell: powershell
-
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: Windows-PS5-Unit-Tests
-          path: Test*.xml
-
-  test_pwsh:
-    name: Test (${{ matrix.name }})
-    needs: [changes, build]
-    if: needs.changes.outputs.run_ci == 'true'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { os: windows-latest, name: "Windows PS7" }
-          - { os: ubuntu-latest, name: "Ubuntu" }
-          - { os: macos-latest, name: "macOS" }
-    steps:
-      - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
-
-      - uses: actions/download-artifact@v8
-        with:
-          name: Release
-          path: ./Release/
-
-      - run: Invoke-Build -Task Test
-        shell: pwsh
-
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: ${{ matrix.name }}-Unit-Tests
-          path: Test*.xml
-
-  smoke_tests:
-    name: Smoke Tests
-    needs: [changes, lint]
-    runs-on: ubuntu-latest
-    # Skip on fork PRs and Dependabot PRs: the shared cloud PAT secret is not
-    # exposed in those contexts and the smoke run would fail. The ci-required
-    # aggregator below treats skipped jobs as a pass, so fork PRs still get
-    # a green CI Result. First-party PRs and pushes to master gate on the
-    # smoke result, which in turn gates release.yml's artifact download
-    # (workflow_conclusion: success).
-    if: needs.changes.outputs.run_ci == 'true' &&
-      (github.event_name != 'pull_request' ||
-       (github.event.pull_request.head.repo.full_name == github.repository &&
-        github.actor != 'dependabot[bot]'))
-    env:
-      JIRA_CLOUD_URL: ${{ vars.JIRA_CLOUD_URL }}
-      JIRA_CLOUD_USERNAME: ${{ vars.ATLASSIAN_CLOUD_USER }}
-      JIRA_CLOUD_PASSWORD: ${{ secrets.ATLASSIAN_CLOUD_PAT }}
-      JIRA_TEST_PROJECT: ${{ vars.JIRA_TEST_PROJECT }}
-      JIRA_TEST_ISSUE: ${{ vars.JIRA_TEST_ISSUE }}
-      JIRA_TEST_USER: ${{ vars.JIRA_TEST_USER }}
-      JIRA_TEST_GROUP: ${{ vars.JIRA_TEST_GROUP }}
-      JIRA_TEST_FILTER: ${{ vars.JIRA_TEST_FILTER }}
-      JIRA_TEST_VERSION: ${{ vars.JIRA_TEST_VERSION }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
-
-      - run: |
-          Invoke-Build -Task TestIntegration -Tag 'Smoke' -PesterVerbosity Detailed
-        shell: pwsh
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: Smoke-Tests
-          path: Test-Integration.xml
-        if: always()
-
-  # Sentinel job that always runs and aggregates the result of the pipeline.
-  # Branch protection should require ONLY this check (`CI / CI Result`),
-  # not the individual jobs. That way a docs-only PR (where lint/build/test
-  # are skipped by the Detect Changes job) still produces a green required check
-  # and can be merged. Smoke tests are part of the gate: they run on
-  # first-party PRs and on every push to master, and skip (without failing
-  # the gate) on fork/Dependabot PRs where Jira Cloud secrets are not
-  # exposed. release.yml downloads the Release artifact with
-  # workflow_conclusion: success, so any smoke failure here blocks the
-  # release.
   ci-required:
     name: CI Result
     if: always()
-    needs: [changes, lint, build, test_windows_ps5, test_pwsh, smoke_tests]
+    needs: module-ci
     runs-on: ubuntu-latest
     steps:
-      - name: Aggregate job results
+      - name: Require the reusable CI pipeline
         shell: bash
+        env:
+          PIPELINE_RESULT: ${{ needs.module-ci.result }}
         run: |
-          results='${{ toJSON(needs) }}'
-          echo "Job results:"
-          echo "$results"
-          if echo "$results" | grep -E '"result":[[:space:]]*"(failure|cancelled)"' > /dev/null; then
-            echo "::error::One or more required jobs failed or were cancelled."
+          if [[ "$PIPELINE_RESULT" != "success" ]]; then
+            echo "::error::Module CI finished with result: $PIPELINE_RESULT"
             exit 1
           fi
-          echo "All required jobs passed or were skipped."
+
