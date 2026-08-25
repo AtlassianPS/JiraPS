@@ -33,7 +33,7 @@ jobs:
 
       - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
 
-      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/build-release-notes@3c050eda17bfb4177f93c3cac61610a6f21b2537 # v0.1.16
         id: release_notes
         with:
           release-version: ${{ steps.release_ref.outputs.release_tag }}
