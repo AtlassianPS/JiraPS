@@ -72,8 +72,8 @@ If `TestIntegrationServer` fails before teardown, it captures `jira-container.lo
 | Workflow / Job                                       | Trigger                                  | Notes                                                                                                                                                                              |
 | ---------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ci.yml` → `smoke_tests` (Cloud)                     | every PR + every push to `master`        | Skipped on fork / Dependabot PRs (no secrets); gates `release.yml` via the `CI Result` aggregator (`workflow_conclusion: success`)                                                 |
-| `integration_tests.yml` → `cloud_integration_tests`  | `0 5 * * *` + manual `workflow_dispatch` | Full Cloud suite — scheduled + manual only; PR-level coverage is the smoke job above                                                                                               |
-| `integration_tests.yml` → `server_integration_tests` | `0 5 * * *` + manual `workflow_dispatch` | Never on PRs — ~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`. Jira boot dominates wall time |
+| `integration_tests.yml` → `cloud_integration_tests`  | `0 5 * * 0` + manual `workflow_dispatch` | Full Cloud suite — weekly + manual only; PR-level coverage is the smoke job above                                                                                                  |
+| `integration_tests.yml` → `server_integration_tests` | `0 5 * * 0` + manual `workflow_dispatch` | Never on PRs — ~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`. Jira boot dominates wall time |
 
 ## Prerequisites
 
@@ -400,7 +400,7 @@ Context "Write Operations" -Skip:($fixtures.ReadOnly) {
 
 ## CI/CD
 
-Cloud smoke runs as part of the standard `.github/workflows/ci.yml` pipeline; the full Cloud suite and the full Server (Data Center, Dockerized) suite share `.github/workflows/integration_tests.yml`, which fires on a nightly cron and on manual dispatch.
+Cloud smoke runs as part of the standard `.github/workflows/ci.yml` pipeline; the full Cloud suite and the full Server (Data Center, Dockerized) suite share `.github/workflows/integration_tests.yml`, which runs weekly and on manual dispatch.
 
 ### Workflow Triggers
 
@@ -409,7 +409,7 @@ Cloud smoke runs as part of the standard `.github/workflows/ci.yml` pipeline; th
 | Pull Request (first-party)       | ✅                      | ❌ — use `workflow_dispatch` to opt in | ❌ — use `workflow_dispatch` to opt in |
 | Pull Request (fork / Dependabot) | ⚪ skipped (no secrets) | ❌                                     | ❌                                     |
 | Push to `master`                 | ✅                      | ❌                                     | ❌                                     |
-| Nightly (5 AM UTC)               | —                      | ✅                                     | ✅                                     |
+| Weekly (Sunday at 5 AM UTC)      | —                      | ✅                                     | ✅                                     |
 | Manual (`workflow_dispatch`)     | re-run via Actions UI  | ✅ — pass `track=cloud` (or `both`)    | ✅ — pass `track=server` (or `both`)   |
 
 ### Required Secrets
@@ -447,7 +447,7 @@ For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the bran
 
 - **No build required**: tests run directly against source for speed.
 - **Parallel execution**: Cloud uses `ThrottleLimit=6`; Server uses `ThrottleLimit=2` (halved because the AMPS/H2 backend serialises Lucene write commits — see the inline comment on the `server_integration_tests` job for the contention details).
-- **Concurrency control**: nightly + dispatched runs share one concurrency group with `cancel-in-progress: false`, so an in-flight run is never killed by the next cron tick or a dispatch retry.
+- **Concurrency control**: weekly + dispatched runs share one concurrency group with `cancel-in-progress: false`, so an in-flight run is never killed by a dispatch retry.
 - **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `Test-Integration.xml`); the Server job additionally uploads `Server-Jira-Container-Logs` for post-mortem on failures.
 
 ## Troubleshooting
