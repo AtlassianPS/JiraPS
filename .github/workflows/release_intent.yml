@@ -1,0 +1,16 @@
+name: Release Intent
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+permissions:
+  pull-requests: read
+  issues: write
+
+jobs:
+  validate:
+    name: Release Intent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/validate-release-intent@72a8008dcd2f840b373d22380a50bc5f1870211f # v0.3.3

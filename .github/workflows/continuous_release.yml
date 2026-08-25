@@ -1,0 +1,29 @@
+name: Continuous Release
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      release_impact:
+        description: Initial JiraPS release impact (v3 is still pending)
+        required: true
+        type: choice
+        options:
+          - major
+
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  release:
+    if: github.event_name == 'workflow_dispatch' || vars.JIRAPS_CD_ENABLED == 'true'
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@72a8008dcd2f840b373d22380a50bc5f1870211f # v0.3.3
+    with:
+      module-name: JiraPS
+      release-impact: ${{ inputs.release_impact }}
+    secrets: inherit

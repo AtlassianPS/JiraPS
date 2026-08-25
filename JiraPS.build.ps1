@@ -6,9 +6,6 @@ param(
     [Parameter()]
     [String] $VersionToPublish,
 
-    [Parameter()]
-    [String] $PSGalleryAPIKey,
-
     # Test filtering parameters
     [Parameter()]
     [String[]] $Tag,
@@ -179,7 +176,22 @@ Task UpdateManifest {
         -ModuleName $env:BHProjectName
 }
 
+Task SetSourceVersion {
+    if (-not $script:BuildInfo.VersionToPublish) {
+        throw 'VersionToPublish is required for SetSourceVersion. Use -VersionToPublish <semver>.'
+    }
+
+    $null = Set-AtlassianPSModuleManifestVersion `
+        -BuiltManifestPath $env:BHPSModuleManifest `
+        -ModuleName $env:BHProjectName `
+        -VersionToPublish $script:BuildInfo.VersionToPublish
+}
+
 Task SetVersion {
+    if (-not $script:BuildInfo.VersionToPublish) {
+        throw 'VersionToPublish is required for SetVersion. Use -VersionToPublish <semver>.'
+    }
+
     $releaseNotes = Get-AtlassianPSReleaseNotesFromChangelog `
         -ChangelogPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CHANGELOG.md') `
         -ReleaseVersion $script:BuildInfo.VersionToPublish
@@ -377,17 +389,26 @@ Task StopJiraDocker {
     Invoke-BuildExec { docker compose -f $composeFile down -v }
 }
 
-Task Publish SetVersion, Package, {
-    Assert-True (-not [String]::IsNullOrEmpty($PSGalleryAPIKey)) "No key for the PSGallery"
-    Publish-Module -Path (Join-Path $env:BHBuildOutput $env:BHProjectName) -NuGetApiKey $PSGalleryAPIKey
-}
-
 Task SignCode {
     throw "Code signing is not configured yet. Add certificate provisioning before wiring this task into Publish."
 }
 
 Task Package {
     $script:PackagePath = New-AtlassianPSModulePackage -BuildOutputPath $env:BHBuildOutput -ModuleName $env:BHProjectName
+}
+
+Task VerifyReleaseArtifact Package, {
+    if (-not $script:BuildInfo.VersionToPublish) {
+        throw 'VersionToPublish is required for VerifyReleaseArtifact. Use -VersionToPublish <semver>.'
+    }
+
+    $expectedVersion = $script:BuildInfo.VersionToPublish.TrimStart('v')
+    $null = Test-AtlassianPSModulePackage `
+        -BuildOutputPath $env:BHBuildOutput `
+        -ModuleName $env:BHProjectName `
+        -PackagePath $script:PackagePath `
+        -ExpectedVersion $expectedVersion `
+        -RequireReleaseNotes
 }
 
 Task TestPublish Build, Package, {
