@@ -20,6 +20,14 @@
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to change)
 
+### Release intent
+
+<!-- Maintainers apply exactly one release label: release:none, release:patch, release:minor, or release:major. -->
+<!-- A releasing PR also needs one changelog:* label or one .changelog/<pr>.<impact>.<type>.md fragment. -->
+
+- [ ] This change needs no independent package release (`release:none`).
+- [ ] This change needs a patch, minor, or major release and includes release-note intent.
+
 ### Checklist
 
 <!-- Go over all the following points, and put an `x` in all the boxes that apply. -->

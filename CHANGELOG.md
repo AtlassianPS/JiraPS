@@ -1,17 +1,6 @@
 # Change Log
 
-## [Unreleased]
-
-### Changed
-
-- Stabilized the Server integration `Search.Integration.Tests.ps1` OR-operator case by replacing the non-existent-key branch with a deterministic project-scoped OR predicate (`key = <fixture> OR key != <fixture>`), avoiding an intermittent Jira 11 backend null-deref (`issueObject` null) that failed nightly `integration_tests.yml` runs even when JiraPS behavior was correct.
-- Updated JiraPS shared standards dependency pins to `AtlassianPS.Standards` `0.1.11`, with scripts resolving the required standards version from `Tools/build.requirements.psd1`, validating PSGallery availability across runtimes, running NuGet/PSGallery trust preflight only on Windows PowerShell (Desktop), and then using direct `Install-Module`/`Import-Module` bootstrap before delegating to shared commands (`Tools/update.dependencies.ps1` now honors `-WhatIf` before any bootstrap side effects).
-- Replaced duplicated JiraPS build/test helper internals with shared `AtlassianPS.Standards` primitives for external help generation, orphaned help cleanup, package validation, `.env` loading, and source/release test module resolution.
-- Pinned JiraPS `setup-powershell` GitHub Action references to the `AtlassianPS.Standards` `v0.1.11` commit SHA, with a consistency test guarding workflow pin drift against `Tools/build.requirements.psd1`.
-- Switched release-note generation to the shared `build-release-notes` GitHub Action and the shared changelog parser so `CHANGELOG.md`, GitHub release bodies, and PSGallery manifest `ReleaseNotes` use the same source text.
-- Set `JiraPS/JiraPS.psd1` `RequiredModules` to explicit `@()` to keep shared dependency updater behavior deterministic.
-
-## v3.0.0 - 2026-05-10
+## Unreleased
 
 This release focuses on Cloud and Data Center compatibility, safer typing, and better automation ergonomics.
 
@@ -36,6 +25,12 @@ For the migration playbook and concrete before/after script examples, see [`abou
 
 ### Changed
 
+- Stabilized the Server integration `Search.Integration.Tests.ps1` OR-operator case by replacing the non-existent-key branch with a deterministic project-scoped OR predicate (`key = <fixture> OR key != <fixture>`), avoiding an intermittent Jira 11 backend null-deref (`issueObject` null) that failed nightly `integration_tests.yml` runs even when JiraPS behavior was correct.
+- Updated JiraPS shared standards dependency pins to `AtlassianPS.Standards` `0.1.11`, with scripts resolving the required standards version from `Tools/build.requirements.psd1`, validating PSGallery availability across runtimes, running NuGet/PSGallery trust preflight only on Windows PowerShell (Desktop), and then using direct `Install-Module`/`Import-Module` bootstrap before delegating to shared commands (`Tools/update.dependencies.ps1` now honors `-WhatIf` before any bootstrap side effects).
+- Replaced duplicated JiraPS build/test helper internals with shared `AtlassianPS.Standards` primitives for external help generation, orphaned help cleanup, package validation, `.env` loading, and source/release test module resolution.
+- Pinned JiraPS `setup-powershell` GitHub Action references to the `AtlassianPS.Standards` `v0.1.11` commit SHA, with a consistency test guarding workflow pin drift against `Tools/build.requirements.psd1`.
+- Switched release-note generation to the shared `build-release-notes` GitHub Action and the shared changelog parser so `CHANGELOG.md`, GitHub release bodies, and PSGallery manifest `ReleaseNotes` use the same source text.
+- Set `JiraPS/JiraPS.psd1` `RequiredModules` to explicit `@()` to keep shared dependency updater behavior deterministic.
 - `Get-JiraIssueLinkType -LinkType` now binds to `[AtlassianPS.JiraPS.IssueLinkType]` via `IssueLinkTypeTransformation`, and `Remove-JiraIssueLink` now uses typed parameter sets (`-IssueLink [AtlassianPS.JiraPS.IssueLink[]]` and `-Issue [AtlassianPS.JiraPS.Issue[]]`) instead of custom `ValidateScript` type checks.
   Invalid values now fail with argument-transformation errors at bind time, and `Get-JiraIssueLinkType` still supports numeric ID lookups and name-based matches.
 - **BREAKING**: `Add-JiraIssueLink -IssueLink` now binds to `[AtlassianPS.JiraPS.IssueLinkCreateRequest[]]` via `IssueLinkCreateRequestTransformation` instead of reusing the response/domain `IssueLink` model.
@@ -245,7 +240,8 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Internal
 
-- Reorganised the integration test workflows. The Cloud `Smoke` job moved from `.github/workflows/integration_tests.yml` into the standard `ci.yml` pipeline, where it runs on every first-party PR and every push to `master` and (via the existing `CI Result` aggregator + `release.yml`'s `workflow_conclusion: success` requirement) gates publishing to PSGallery. The remaining full Cloud suite was merged with the new Server (Data Center) job into a single `integration_tests.yml` workflow with two parallel jobs (`cloud_integration_tests`, `server_integration_tests`) running on a shared nightly cron + manual dispatch (with an optional `track` input to dispatch one or both); the standalone `jira_server_ci.yml` was removed. The `run-integration-tests` PR label opt-in is retired — operators dispatch the full Cloud suite via the Actions tab's "Run workflow" button instead.
+- Replaced the tag-triggered publisher with the shared continuous-delivery pipeline, including release-intent validation and immutable CI artifact promotion. Automatic publishing remains gated by `JIRAPS_CD_ENABLED` until the pending v3 release is explicitly prepared.
+- Reorganised the integration test workflows. The Cloud `Smoke` job moved from `.github/workflows/integration_tests.yml` into the standard `ci.yml` pipeline, where it runs on every first-party PR and every push to `master` and gates continuous delivery through the `CI Result` aggregator. The remaining full Cloud suite was merged with the new Server (Data Center) job into a single `integration_tests.yml` workflow with two parallel jobs (`cloud_integration_tests`, `server_integration_tests`) running on a shared nightly cron + manual dispatch (with an optional `track` input to dispatch one or both); the standalone `jira_server_ci.yml` was removed. The `run-integration-tests` PR label opt-in is retired — operators dispatch the full Cloud suite via the Actions tab's "Run workflow" button instead.
 - Added private helper `Resolve-JiraTextFieldPayload` that returns either the input string (Server / Data Center) or an Atlassian Document Format hashtable (Cloud) for rich-text fields, and warns when wiki-markup table syntax is detected on Cloud. Used by `Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, and `Set-JiraIssue` to centralise the Cloud-vs-DC payload-shape decision in one place. (#602)
 - Added private helper `ConvertTo-JiraRestApiV3Url` that rewrites `/rest/api/2/...` URLs (typically built from a `JiraPS.Issue.RestUrl` value Jira Cloud returns as v2 even on Cloud) to their `/rest/api/3/...` equivalents on Cloud, leaving Server / Data Center URLs untouched. Used by `Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, and `Set-JiraIssue` to dispatch their writes to the correct API version so ADF payloads are accepted on Cloud. (#602)
 - Added private helper `Test-JiraRichTextField` that inspects a `JiraPS.Field` schema (`schema.type -eq 'doc'`, `schema.system in ('description','environment')`, or `schema.custom` of `...customfieldtypes:textarea`) to decide whether a value supplied via `-Fields` requires ADF wrapping on Jira Cloud. Falls back to the system-field id list (`description`, `environment`) when no schema is available. Used by `New-JiraIssue`, `Set-JiraIssue`, and `Invoke-JiraIssueTransition` so hashtable-supplied rich-text fields go through `Resolve-JiraTextFieldPayload` on Cloud, matching the behaviour of the explicit `-Description` / `-AddComment` / `-Comment` parameters. (#602)

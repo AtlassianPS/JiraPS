@@ -31,6 +31,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
             Select-Object -First 1
         $standardsVersion = [string] $standardsRequirement.RequiredVersion
+        $expectedStandardsSha = '72a8008dcd2f840b373d22380a50bc5f1870211f'
 
         $workflowPaths = Get-ChildItem -Path (Join-Path -Path $projectRoot -ChildPath '.github/workflows') -File -Filter '*.yml' |
             Select-Object -ExpandProperty FullName
@@ -39,11 +40,11 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             $workflowContent = Get-Content -LiteralPath $workflowPath -Raw
             [regex]::Matches(
                 $workflowContent,
-                "AtlassianPS/AtlassianPS\.Standards/\.github/actions/[^@\s]+@(?<sha>[0-9a-f]{40})\s+#\s*v(?<version>[0-9]+\.[0-9]+\.[0-9]+)"
+                "AtlassianPS/AtlassianPS\.Standards/\.github/(?:actions|workflows)/[^@\s]+@(?<ref>[^\s]+)(?:\s+#\s*v(?<version>[0-9]+\.[0-9]+\.[0-9]+))?"
             ) | ForEach-Object {
                 [PSCustomObject]@{
                     WorkflowPath = $workflowPath
-                    Sha          = $_.Groups['sha'].Value
+                    Ref          = $_.Groups['ref'].Value
                     Version      = $_.Groups['version'].Value
                 }
             }
@@ -51,10 +52,10 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
 
         @($workflowActionMatches).Count | Should -BeGreaterThan 0
         ($workflowActionMatches | Select-Object -ExpandProperty Version -Unique) | Should -Be @($standardsVersion)
-        @($workflowActionMatches | Select-Object -ExpandProperty Sha -Unique).Count | Should -Be 1
+        ($workflowActionMatches | Select-Object -ExpandProperty Ref -Unique) | Should -Be @($expectedStandardsSha)
     }
 
-    It 'uses the shared Standards release tag resolver action' {
+    It 'uses safe shared release workflows' {
         $projectRoot = if (
             $env:BHProjectPath -and
             (Test-Path -LiteralPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CODEOWNERS'))
@@ -78,10 +79,25 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             $candidate
         }
 
-        $releaseWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath '.github/workflows/release.yml') -Raw
+        $workflowRoot = Join-Path -Path $projectRoot -ChildPath '.github/workflows'
+        $releaseIntentContent = Get-Content -LiteralPath (Join-Path -Path $workflowRoot -ChildPath 'release_intent.yml') -Raw
+        $continuousReleaseContent = Get-Content -LiteralPath (Join-Path -Path $workflowRoot -ChildPath 'continuous_release.yml') -Raw
 
-        $releaseWorkflowContent | Should -Match 'AtlassianPS/AtlassianPS\.Standards/\.github/actions/resolve-release-tag@[0-9a-f]{40}'
-        $releaseWorkflowContent | Should -Not -Match 'Tools/Resolve-ReleaseTag\.ps1'
+        $releaseIntentContent | Should -Match 'pull_request_target:'
+        $releaseIntentContent | Should -Match 'pull-requests:\s+read'
+        $releaseIntentContent | Should -Match 'issues:\s+write'
+        $releaseIntentContent | Should -Match 'validate-release-intent@[0-9a-f]{40}'
+        $releaseIntentContent | Should -Not -Match 'actions/checkout|\brun:'
+        $releaseIntentContent | Should -Not -Match '\bedited\b'
+
+        $continuousReleaseContent | Should -Match 'workflows/module_release\.yml@[0-9a-f]{40}'
+        $continuousReleaseContent | Should -Match '(?ms)workflow_run:.*?branches:\s*\[master\]'
+        $continuousReleaseContent | Should -Match 'module-name:\s+JiraPS'
+        $continuousReleaseContent | Should -Match "vars\.JIRAPS_CD_ENABLED == 'true'"
+        $continuousReleaseContent | Should -Match '(?ms)options:\s+- major'
+        $continuousReleaseContent | Should -Not -Match '(?m)^\s+tags:'
+
+        Test-Path -LiteralPath (Join-Path -Path $workflowRoot -ChildPath 'release.yml') | Should -BeFalse
     }
 
     It 'keeps published manifest release notes sourced from the changelog' {
@@ -115,11 +131,13 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $buildScriptContent | Should -Match 'Set-AtlassianPSModuleManifestVersion[\s\S]+-ReleaseNotes\s+\$releaseNotes'
         $buildScriptContent | Should -Not -Match 'ConvertTo-JiraPSModuleVersion'
 
-        $releaseWorkflowContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath '.github/workflows/release.yml') -Raw
-        $releaseWorkflowContent | Should -Match 'AtlassianPS/AtlassianPS\.Standards/\.github/actions/build-release-notes@[0-9a-f]{40}'
-        $releaseWorkflowContent | Should -Match 'body_path:\s+\$\{\{\s*steps\.release_notes\.outputs\.release_notes_path\s*\}\}'
-        $releaseWorkflowContent | Should -Match 'build-release-notes[\s\S]+Publish module'
-        $releaseWorkflowContent | Should -Not -Match 'changelog-to-release|changelog\.configuration\.json|steps\.changelog\.outputs\.body|Get-AtlassianPSReleaseNotesFromChangelog[\s\S]+Set-Content'
+        $buildScriptContent | Should -Match 'Task SetSourceVersion'
+        $buildScriptContent | Should -Match 'Task VerifyReleaseArtifact Package,'
+        $buildScriptContent | Should -Not -Match '(?m)^Task Publish\b|PSGalleryAPIKey|Publish-Module'
+
+        $changelogContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath 'CHANGELOG.md') -Raw
+        $changelogContent | Should -Match '(?m)^## Unreleased\r?$'
+        $changelogContent | Should -Not -Match '(?m)^## v3\.0\.0\b'
     }
 
     It 'reads AtlassianPS.Standards version from build.requirements in tool scripts' {

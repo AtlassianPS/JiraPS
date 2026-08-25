@@ -8,19 +8,32 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "⬆️ "
+    labels:
+      - dependencies
+      - github_actions
+      - "release:none"
   - package-ecosystem: "devcontainers"
     directory: "/.devcontainer"
     schedule:
       interval: weekly
+    labels:
+      - dependencies
+      - "release:none"
   - package-ecosystem: "docker"
     directory: "/.devcontainer"
     schedule:
       interval: "weekly"
     commit-message:
       prefix: "⬆️ "
+    labels:
+      - dependencies
+      - "release:none"
   - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
       interval: "weekly"
     commit-message:
       prefix: "⬆️ "
+    labels:
+      - dependencies
+      - "release:none"

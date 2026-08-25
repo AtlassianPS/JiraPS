@@ -101,10 +101,10 @@ Server tests use Dockerized Jira Data Center and can be slow.
 
 ## CI And Release Notes
 
-- Branch protection should require only `CI / CI Result`.
+- Branch protection should require `CI / CI Result` and `Release Intent`.
 - `ci.yml` skips expensive jobs for docs/instruction-only changes while still emitting `CI Result`.
 - Smoke tests gate first-party PRs and pushes but skip when secrets are unavailable for forks or Dependabot.
-- Releases are tag based from `master`; release details live in `.github/ai-context/releasing.md`.
+- Releases promote CI-tested `master` artifacts through the shared continuous-delivery workflow; release details and the temporary v3 rollout guard live in `.github/ai-context/releasing.md`.
 
 ## Backlog Handling
 

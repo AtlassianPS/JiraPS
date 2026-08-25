@@ -71,7 +71,7 @@ If `TestIntegrationServer` fails before teardown, it captures `jira-container.lo
 
 | Workflow / Job                                       | Trigger                                  | Notes                                                                                                                                                                              |
 | ---------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ci.yml` → `smoke_tests` (Cloud)                     | every PR + every push to `master`        | Skipped on fork / Dependabot PRs (no secrets); gates `release.yml` via the `CI Result` aggregator (`workflow_conclusion: success`)                                                 |
+| `ci.yml` → `smoke_tests` (Cloud)                     | every PR + every push to `master`        | Skipped on fork / Dependabot PRs (no secrets); gates continuous delivery via the `CI Result` aggregator                                                                           |
 | `integration_tests.yml` → `cloud_integration_tests`  | `0 5 * * 0` + manual `workflow_dispatch` | Full Cloud suite — weekly + manual only; PR-level coverage is the smoke job above                                                                                                  |
 | `integration_tests.yml` → `server_integration_tests` | `0 5 * * 0` + manual `workflow_dispatch` | Never on PRs — ~25 min cold boot is too expensive to gate every PR on; PR-level Server coverage comes from the Server-tagged unit tests in `ci.yml`. Jira boot dominates wall time |
 

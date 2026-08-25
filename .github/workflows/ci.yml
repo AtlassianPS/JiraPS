@@ -17,11 +17,10 @@ permissions:
 
 jobs:
   module-ci:
-    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_ci.yml@a2aac6c601073864ae77c8660e6c6c57c26217be # v0.2.0
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_ci.yml@72a8008dcd2f840b373d22380a50bc5f1870211f # v0.3.3
     with:
       build-profile: jiraps
       smoke-profile: jira
-      release-candidate: false
     secrets: inherit
 
   ci-required:
@@ -39,4 +38,3 @@ jobs:
             echo "::error::Module CI finished with result: $PIPELINE_RESULT"
             exit 1
           fi
-
