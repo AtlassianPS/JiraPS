@@ -17,7 +17,7 @@
 .NOTES
     Tagged 'Integration', 'Smoke', 'Server' - this IS the smoke test for the
     Server track and is the first thing the `server_integration_tests` job in
-    integration_tests.yml runs (nightly + manual workflow_dispatch only; the
+    integration_tests.yml runs (weekly + manual workflow_dispatch only; the
     Server job is not wired up to PRs because the ~25 min cold-boot cost is
     too expensive to gate every PR on).
 #>

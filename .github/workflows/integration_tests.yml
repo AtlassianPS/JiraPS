@@ -1,18 +1,18 @@
 name: Integration Tests
 
 # Cloud track + Server (Data Center, Dockerized) track. The two jobs share
-# this workflow's nightly cron and dispatch but are otherwise independent:
+# this workflow's weekly cron and dispatch but are otherwise independent:
 # Cloud runs against a live Jira Cloud instance via shared org credentials,
 # Server boots moveworkforward/atlas-run-standalone:jira-11 with
 # docker-compose and provisions the fixture project + user from scratch.
 #
 # Per-PR Cloud coverage is the smoke_tests job in ci.yml; per-PR Server
 # coverage is the Server-tagged unit tests in ci.yml. The full suites here
-# only run on the cron and on explicit dispatch because the Cloud full
+# only run weekly and on explicit dispatch because the Cloud full
 # suite burns API quota and the Server cold boot is ~25 min.
 on:
   schedule:
-    - cron: "0 5 * * *"
+    - cron: "0 5 * * 0"
   workflow_dispatch:
     inputs:
       track:
@@ -79,7 +79,7 @@ jobs:
     #
     # Because this workflow only runs on the cron + manual dispatch, the
     # Server job is intentionally NOT marked continue-on-error: a red
-    # nightly is a real signal that either the upstream image has drifted
+    # weekly run is a real signal that either the upstream image has drifted
     # or a Server-track regression has slipped in, and we want that noise.
     # Boot budget: pulling the ~1.2 GB image (~1 min on a warm runner), Maven
     # dependency verification (~3 min), Tomcat 10.1.44 startup + jira.war
