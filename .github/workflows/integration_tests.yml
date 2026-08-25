@@ -50,7 +50,7 @@ jobs:
       JIRA_TEST_FILTER: ${{ vars.JIRA_TEST_FILTER }}
       JIRA_TEST_VERSION: ${{ vars.JIRA_TEST_VERSION }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@6fe5d05db84cdd10c9e4284e235a8f359c9537ad # v0.1.11
 
       - run: |
@@ -105,7 +105,7 @@ jobs:
       CI_JIRA_USER: jira_user
       CI_JIRA_USER_PASSWORD: jira
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Start Jira Data Center container
         run: docker compose up -d
