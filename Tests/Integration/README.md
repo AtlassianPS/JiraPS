@@ -448,7 +448,7 @@ For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the bran
 - **No build required**: tests run directly against source for speed.
 - **Parallel execution**: Cloud uses `ThrottleLimit=6`; Server uses `ThrottleLimit=2` (halved because the AMPS/H2 backend serialises Lucene write commits — see the inline comment on the `server_integration_tests` job for the contention details).
 - **Concurrency control**: weekly + dispatched runs share one concurrency group with `cancel-in-progress: false`, so an in-flight run is never killed by a dispatch retry.
-- **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `Test-Integration.xml`); the Server job additionally uploads `Server-Jira-Container-Logs` for post-mortem on failures.
+- **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `Test-Integration.xml`) are retained for 14 days. The Server job retains `Server-Jira-Container-Logs` for 7 days after failures, manual runs with `debug` enabled, or runs with GitHub runner debug logging enabled.
 
 ## Troubleshooting
 

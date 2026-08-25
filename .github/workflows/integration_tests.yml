@@ -24,6 +24,11 @@ on:
           - cloud
           - server
           - both
+      debug:
+        description: "Upload Data Center container logs even when tests succeed"
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -62,6 +67,7 @@ jobs:
         with:
           name: Cloud-Integration-Tests
           path: Test-Integration.xml
+          retention-days: 14
         if: always()
 
   server_integration_tests:
@@ -169,18 +175,20 @@ jobs:
         with:
           name: Server-Integration-Tests
           path: Test-Integration.xml
+          retention-days: 14
 
       - name: Capture Jira container logs for debugging
-        if: always()
+        if: ${{ failure() || inputs.debug || runner.debug == '1' }}
         run: docker compose logs jira > jira-container.log
         shell: bash
 
       - name: Upload Jira container logs
-        if: always()
+        if: ${{ failure() || inputs.debug || runner.debug == '1' }}
         uses: actions/upload-artifact@v7
         with:
           name: Server-Jira-Container-Logs
           path: jira-container.log
+          retention-days: 7
 
       - name: Tear down Jira Data Center container
         if: always()
