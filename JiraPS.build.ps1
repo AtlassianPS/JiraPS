@@ -106,6 +106,8 @@ Task Clean {
 }
 
 Task Build Clean, {
+    Import-JiraPSStandard
+
     if (-not (Test-Path "$env:BHBuildOutput/$env:BHProjectName")) {
         $null = New-Item -Path "$env:BHBuildOutput", "$env:BHBuildOutput/$env:BHProjectName" -ItemType Directory
     }
@@ -220,8 +222,8 @@ Task Test {
             -Tag $Tag `
             -ExcludeTag $ExcludeTag `
             -DefaultExcludeTag @('Integration') `
-            -MinimumPesterVersion ([Version]'5.7.0') `
-            -MaximumPesterVersion ([Version]'5.7.999') `
+            -MinimumPesterVersion ([Version]'5.9.0') `
+            -MaximumPesterVersion ([Version]'5.9.999') `
             -ResultOutputPath (Join-Path $env:BHProjectPath "Test-$resultName.xml")
     }
 }

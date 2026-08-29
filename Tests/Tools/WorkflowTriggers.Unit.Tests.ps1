@@ -24,5 +24,6 @@ Describe 'GitHub Actions workflow triggers' -Tag Unit {
 
         ([regex]::Matches($dependabot, 'package-ecosystem:\s*"(?:devcontainers|docker|docker-compose)"[\s\S]*?interval:\s*"?monthly"?')).Count | Should -Be 3
         $dependabot | Should -Match 'package-ecosystem:\s*"github-actions"[\s\S]*?interval:\s*"?weekly"?'
+        $dependabot | Should -Match 'ignore:[\s\S]+dependency-name:\s*"AtlassianPS/AtlassianPS\.Standards\*"'
     }
 }
