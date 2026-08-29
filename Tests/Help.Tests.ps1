@@ -238,8 +238,12 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                                 }
                             }
                         }
-                        # To avoid calling Trim method on a null object.
-                        $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
+                        $helpType = if ($parameterHelp.parameterValue) {
+                            $parameterHelp.parameterValue.Trim()
+                        }
+                        elseif ($parameterHelp.type.name) {
+                            $parameterHelp.type.name.Trim()
+                        }
                         if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
                         # PlatyPS 1.0 uses "Switch" instead of "SwitchParameter"
                         if ($helpType -eq "Switch") { $helpType = "SwitchParameter" }

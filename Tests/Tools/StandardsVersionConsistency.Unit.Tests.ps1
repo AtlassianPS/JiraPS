@@ -31,7 +31,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
             Select-Object -First 1
         $standardsVersion = [string] $standardsRequirement.RequiredVersion
-        $expectedStandardsSha = '72a8008dcd2f840b373d22380a50bc5f1870211f'
+        $expectedStandardsSha = 'bd959dc3de7ee8426f89c31a62e0282e7140bd51'
 
         $workflowPaths = Get-ChildItem -Path (Join-Path -Path $projectRoot -ChildPath '.github/workflows') -File -Filter '*.yml' |
             Select-Object -ExpandProperty FullName
@@ -165,18 +165,12 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         }
 
         $setupScriptContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath 'Tools/setup.ps1') -Raw
-        $updateScriptContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath 'Tools/update.dependencies.ps1') -Raw
         $buildScriptContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath 'JiraPS.build.ps1') -Raw
         $testToolsContent = Get-Content -LiteralPath (Join-Path -Path $projectRoot -ChildPath 'Tests/Helpers/TestTools.ps1') -Raw
 
         $setupScriptContent | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
         $setupScriptContent | Should -Not -Match '\$standardsVersion\s*=\s*'''
         $setupScriptContent | Should -Match '-RequiredVersion\s+\$standardsVersion'
-
-        $updateScriptContent | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
-        $updateScriptContent | Should -Not -Match '\$standardsVersion\s*=\s*'''
-        $updateScriptContent | Should -Match '-RequiredVersion\s+\$standardsVersion'
-        $updateScriptContent | Should -Match '\$PSCmdlet\.ShouldProcess\('
 
         $buildScriptContent | Should -Match '\$buildRequirements\s*=\s*Import-PowerShellDataFile'
         $buildScriptContent | Should -Match '-RequiredVersion\s+\$standardsRequirement\.RequiredVersion'

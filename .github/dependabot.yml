@@ -6,6 +6,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "AtlassianPS/AtlassianPS.Standards*"
     commit-message:
       prefix: "⬆️ "
     labels:
