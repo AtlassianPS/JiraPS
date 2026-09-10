@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   module-ci:
-    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_ci.yml@72a8008dcd2f840b373d22380a50bc5f1870211f # v0.3.3
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_ci.yml@bd959dc3de7ee8426f89c31a62e0282e7140bd51 # v0.3.4
     with:
       build-profile: jiraps
       smoke-profile: jira
