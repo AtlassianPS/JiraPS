@@ -20,6 +20,14 @@ Describe "Validation of build environment" -Tag Unit {
         }
     }
 
+    Context "Pester result gate" {
+        It "includes test, block, and container failures" {
+            $parallelPesterScript = Get-Content -LiteralPath (Join-Path $moduleRoot 'Tests/Invoke-ParallelPester.ps1') -Raw
+
+            $parallelPesterScript | Should -Match '\$result\.FailedCount \+ \$result\.FailedBlocksCount \+ \$result\.FailedContainersCount'
+        }
+    }
+
     Context "CHANGELOG" {
         BeforeAll {
             $changelogFile = "$moduleRoot/CHANGELOG.md"
