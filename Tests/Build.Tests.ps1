@@ -21,10 +21,17 @@ Describe "Validation of build environment" -Tag Unit {
     }
 
     Context "Pester result gate" {
-        It "includes test, block, and container failures" {
-            $parallelPesterScript = Get-Content -LiteralPath (Join-Path $moduleRoot 'Tests/Invoke-ParallelPester.ps1') -Raw
+        BeforeAll {
+            $script:parallelPesterScript = Get-Content -LiteralPath (Join-Path $moduleRoot 'Tests/Invoke-ParallelPester.ps1') -Raw
+        }
 
+        It "includes test, block, and container failures" {
             $parallelPesterScript | Should -Match '\$result\.FailedCount \+ \$result\.FailedBlocksCount \+ \$result\.FailedContainersCount'
+        }
+
+        It "does not share the parent host with Pester thread jobs" {
+            $parallelPesterScript | Should -Not -Match '(?m)^\s*-StreamingHost\b'
+            $parallelPesterScript | Should -Match '\$jobOutput = Receive-Job -Job \$job -ErrorAction Stop\s*\r?\n'
         }
     }
 
