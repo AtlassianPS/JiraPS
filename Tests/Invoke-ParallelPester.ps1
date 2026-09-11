@@ -25,7 +25,8 @@
     Start-ThreadJob lets us Wait-Job -Timeout each file individually, Stop-Job +
     Remove-Job -Force to tear down stuck runspaces deterministically, and proceed
     to the merged-XML write block + a clean `exit` regardless of background
-    thread state.
+    thread state. Child output is replayed when each job completes because sharing
+    the parent host via -StreamingHost can corrupt Pester discovery state.
 
 .PARAMETER Path
     Path to the directory containing test files, or an array of test file paths.
@@ -262,8 +263,8 @@ if ($canParallel) {
     #     so a single hung file can't take down the whole suite.
     #   * Stop-Job + Remove-Job -Force tears down the runspace deterministically.
     #   * -ThrottleLimit still bounds concurrency the same way as FE-O-P.
-    #   * -StreamingHost preserves the live Write-Host streaming we get from
-    #     FE-O-P today, so CI logs stay informative as files complete.
+    #   * Receive-Job replays each file's output after completion, so CI logs
+    #     remain informative without sharing the parent's host object.
     # When this script's final `exit` runs, any still-running background
     # threads are reaped by the process tearing down — they are no longer
     # the orchestrator's problem to drain cleanly.
@@ -277,16 +278,14 @@ if ($canParallel) {
     $perFileTimeoutSeconds = 600
     $jobInfos = New-Object System.Collections.Generic.List[object]
     foreach ($testFile in $testFiles) {
-        # NOTE: -StreamingHost streams Write-Host / Write-Information from
-        # the child runspace to the parent's host as it is produced, which
-        # keeps CI logs in the same shape FE-O-P produced. We pass $Host
-        # explicitly because $PSHost in a ThreadJob defaults to a default
-        # PSHost that does not write to the Actions runner stdout.
+        # Do not pass -StreamingHost here. Sharing the parent's host object
+        # across Pester thread jobs has an upstream race that can corrupt
+        # discovery state: https://github.com/pester/Pester/issues/2383
+        # Receive-Job replays the buffered output after each file completes.
         $job = Start-ThreadJob `
             -ScriptBlock ([scriptblock]::Create($runTestBodyText)) `
             -ArgumentList @($testFile, $projectRoot, $Tag, $ExcludeTag, $Output, $tempResultsDir, $generateXml, $helpersPath) `
             -ThrottleLimit $ThrottleLimit `
-            -StreamingHost $Host `
             -Name "Pester:$($testFile.BaseName)"
         $jobInfos.Add(@{ File = $testFile; Job = $job })
     }
@@ -323,18 +322,9 @@ if ($canParallel) {
         }
         else {
             try {
-                # Redirect the Information stream (6>) to $null. The child
-                # already wrote everything to the parent's host live via
-                # -StreamingHost above; without this redirect Receive-Job
-                # re-emits the Information records and we get every Pester
-                # line printed twice (once streamed, once replayed) — see
-                # the duplicated "Starting discovery / Discovery found / Running
-                # tests / [+] file / Tests completed / Tests Passed" blocks
-                # that appear in a smoke test against two unit test files.
-                # Keeping Error (2>), Warning (3>), Verbose (4>), and Debug
-                # (5>) intact: those are not streamed by -StreamingHost and
-                # we do want them surfaced if Receive-Job hits a real problem.
-                $jobOutput = Receive-Job -Job $job -ErrorAction Stop 6> $null
+                # No host is shared with the child runspace, so replay every
+                # stream once the file completes.
+                $jobOutput = Receive-Job -Job $job -ErrorAction Stop
                 if ($null -ne $jobOutput) { $results += $jobOutput }
             }
             catch {
