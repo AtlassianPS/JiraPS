@@ -1,4 +1,4 @@
-﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
@@ -9,20 +9,12 @@ BeforeDiscovery {
 
 Describe "Help tests" -Tag "Documentation", "Build" {
     BeforeDiscovery {
-        ${/} = [regex]::Escape([System.IO.Path]::DirectorySeparatorChar)
-
-        $script:isRunningInReleaseFolder = $moduleToTest -match "${/}Release${/}"
-        if (-not $isRunningInReleaseFolder) {
-            Write-Warning "Tests are being run outside of the 'Release' folder. Some tests may be skipped."
-        }
-
         # Only test public functions (those that have markdown documentation)
         $script:publicFunctions = (Get-ChildItem "$projectRoot/JiraPS/Public/*.ps1").BaseName
 
         # Help data is fetched lazily per-cmdlet in BeforeAll below instead of
-        # eagerly at discovery. Calling Get-Help for all 64 public cmdlets up
-        # front cost ~9 s regardless of which tests actually ran, including
-        # source-mode runs where every Help/Parameter context is -Skip'd.
+        # eagerly at discovery. Calling Get-Help for all public cmdlets up
+        # front adds the full MAML parsing cost before any tests run.
         $script:commands = Get-Command -Module JiraPS -CommandType Cmdlet, Function |
             Where-Object { $_.Name -in $publicFunctions } |
             ForEach-Object { @{
@@ -57,28 +49,19 @@ Describe "Help tests" -Tag "Documentation", "Build" {
             BeforeDiscovery {
                 # Exclude default params and any parameter marked [Parameter(DontShow)],
                 # which is the principled signal for "internal, not part of the public surface".
-                # The parameter matrix only feeds a -Skip'd context in source mode, so skip the
-                # per-cmdlet attribute reflection there as well (it compounds over 64 cmdlets).
-                if ($isRunningInReleaseFolder) {
-                    $cmd = $_.Command
-                    $isDontShow = {
-                        param($name)
-                        $paramAttr = $cmd.Parameters[$name].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
-                        return ($paramAttr.DontShow -contains $true)
-                    }
-                    $script:parameters = $cmd.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and -not (& $isDontShow $_) }
+                $cmd = $_.Command
+                $isDontShow = {
+                    param($name)
+                    $paramAttr = $cmd.Parameters[$name].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
+                    return ($paramAttr.DontShow -contains $true)
                 }
-                else {
-                    $script:parameters = @()
-                }
+                $script:parameters = $cmd.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and -not (& $isDontShow $_) }
             }
             BeforeAll {
                 $script:command = $_.Command
-                # Get-Help is only consumed by the Help / Parameter contexts, which
-                # are -Skip'd against the source tree. Skip the MAML parse entirely
-                # in that mode. In Release mode the first call per cmdlet parses the
-                # MAML (~150 ms); sibling contexts below reuse the cached result.
-                $script:help = if ($isRunningInReleaseFolder) { Get-Help $command.Name }
+                # The first call per cmdlet parses the MAML; sibling contexts below
+                # reuse the cached result in both source and Release layouts.
+                $script:help = Get-Help $command.Name
             }
 
             Context "Markdown file for <_.CommandName>" {
@@ -118,7 +101,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
             }
 
-            Context "Help for <_.CommandName>" -Skip:(-not $isRunningInReleaseFolder) {
+            Context "Help for <_.CommandName>" {
                 It "has a synopsis" {
                     $help.Synopsis | Should -Not -BeNullOrEmpty
                 }
@@ -199,8 +182,8 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 # }
             }
 
-            Context "Parameter for <_.CommandName>" -Skip:(-not $isRunningInReleaseFolder) {
-                Context "Parameter: <_>" -ForEach $parameters {
+            Context "Parameter for <_.CommandName>" {
+                Context "Parameter: <_>" -ForEach $parameters -AllowNullOrEmptyForEach {
                     BeforeAll {
                         $script:parameterName = $_
                         $script:parameterCode = $command.Parameters[$parameterName]

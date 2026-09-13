@@ -10,7 +10,7 @@ For detailed information about writing and debugging tests, see the **[Testing G
 
 Key highlights:
 
-- JiraPS uses **Pester v5.7+** for unit testing
+- JiraPS uses **Pester 6.2.0 through 6.x** for unit testing
 - All tests follow a consistent structure with Context blocks
 - **Test organization**: Tests mirror the module structure
   - `Tests/Functions/Public/` - Public CRUD functions

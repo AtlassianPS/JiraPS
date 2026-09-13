@@ -1,4 +1,4 @@
-﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
@@ -79,7 +79,7 @@ InModuleScope JiraPS {
 
         Describe "Input Validation" {
             BeforeAll {
-                # Pester 5 strips ArgumentTransformationAttribute from mocked
+                # Pester strips ArgumentTransformationAttribute from mocked
                 # parameter signatures, so feeding the upstream mock a bare
                 # issue-key string trips the [AtlassianPS.JiraPS.Issue] cast.
                 # Build a real Issue instance once and reuse it.

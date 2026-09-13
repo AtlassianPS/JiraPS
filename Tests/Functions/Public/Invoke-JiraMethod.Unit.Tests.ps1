@@ -1,4 +1,4 @@
-﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 param()
@@ -703,7 +703,7 @@ InModuleScope JiraPS {
                 Should -Invoke @assertMockCalledSplat
             }
 
-            It "uses authenticates as anonymous when no -Credential is provided and no session exists" -Pending {
+            It "uses authenticates as anonymous when no -Credential is provided and no session exists" -Skip {
                 Mock Get-JiraSession -ModuleName 'JiraPS' {
                     $null
                 }
