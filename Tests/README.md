@@ -13,7 +13,7 @@ This guide explains how to write, run, and debug tests for JiraPS.
 
 ## Test Structure
 
-JiraPS uses [Pester v5.7+](https://pester.dev/) for unit testing. All test files follow one of two standardized templates based on the function type being tested.
+JiraPS uses [Pester 6.2.0 through 6.x](https://pester.dev/) for unit testing. All test files follow one of two standardized templates based on the function type being tested.
 
 ### Directory Organization
 
@@ -54,7 +54,7 @@ JiraPS uses two primary test templates based on function type:
 **Structure**:
 
 ```powershell
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
@@ -149,7 +149,7 @@ InModuleScope JiraPS {
 **Structure**:
 
 ```powershell
-#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
@@ -473,7 +473,7 @@ When finished debugging, re-comment the line:
 
 ### Why Doesn't -Verbose Work?
 
-The `-Verbose` parameter on `Invoke-Pester` only affects Pester's own internal logging, not the test script's `$VerbosePreference`. Due to how Pester v5 isolates test execution contexts, command-line parameters don't propagate into the test script scope. This is why you must set `$VerbosePreference` directly inside the test file.
+The `-Verbose` parameter on `Invoke-Pester` only affects Pester's own internal logging, not the test script's `$VerbosePreference`. Due to how Pester v6 isolates test execution contexts, command-line parameters don't propagate into the test script scope. This is why you must set `$VerbosePreference` directly inside the test file.
 
 ### Alternative: Manual Debugging
 
@@ -525,7 +525,7 @@ See [`Tests/Functions/Add-JiraFilterPermission.Unit.Tests.ps1`](Functions/Add-Ji
 
 ### Tests Not Running
 
-- Ensure Pester 5.7+ is installed: `Install-Module Pester -MinimumVersion 5.7 -Force`
+- Ensure Pester 6.2.0 through 6.x is installed: `Install-Module Pester -MinimumVersion 6.2.0 -MaximumVersion 6.999 -Force`
 - Check for syntax errors in test file
 - Verify module imports correctly in BeforeDiscovery
 

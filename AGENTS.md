@@ -81,7 +81,7 @@ Server tests use Dockerized Jira Data Center and can be slow.
 - For argument transformers, return input unchanged only when competing pipeline parameter sets need binder fallthrough.
 - Throw actionable `ArgumentTransformationMetadataException` errors when no alternate parameter set should bind.
 - Do not hardcode server URLs; use the configured Jira server state.
-- Do not mix Pester 4 and Pester 5 syntax in the same new or heavily edited test.
+- Use Pester 6 syntax in new and heavily edited tests; do not introduce legacy Pester 4 or Pester 5-only syntax.
 - Do not commit generated `Release/` content.
 
 ## Comments And Help

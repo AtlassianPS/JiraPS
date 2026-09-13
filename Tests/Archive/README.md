@@ -15,7 +15,7 @@ This file contains the original integration tests from before the Pester v5 migr
 
 **Do not run these tests.** They are preserved only for reference when writing new integration tests.
 
-The new integration tests are located in `Tests/Integration/` and follow the Pester v5 patterns used by the unit tests.
+The active integration tests are located in `Tests/Integration/` and follow the Pester 6 patterns used by the unit tests.
 
 ## Migration Notes
 

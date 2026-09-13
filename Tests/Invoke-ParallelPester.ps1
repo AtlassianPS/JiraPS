@@ -11,7 +11,7 @@
     Each test file generates its own NUnit XML which is then merged into a single
     output file with full test-case details (names, durations, failure messages).
 
-    NOTE: This script provides file-level parallelization. Pester 5's built-in
+    NOTE: This script provides file-level parallelization. Pester 6's native
     -Parallel flag provides test-level parallelization within a single invocation.
     The file-level approach is used here for isolation between integration test
     files that may have conflicting global state or authentication sessions.
@@ -161,7 +161,7 @@ try {
         Read-DotEnvFile -Path (Join-Path $projectRoot '.env') -ExcludeName (Get-DotEnvExcludedName)
     }
 
-    Import-Module Pester -MinimumVersion 5.0 -Force
+    Import-Module Pester -MinimumVersion 6.2.0 -MaximumVersion 6.999 -Force
     Set-Location $projectRoot
 
     $config = New-PesterConfiguration

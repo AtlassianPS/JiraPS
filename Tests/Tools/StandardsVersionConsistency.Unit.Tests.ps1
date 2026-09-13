@@ -1,4 +1,4 @@
-﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
 
 Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
     It 'keeps workflow Standards action pins aligned with build.requirements' {
@@ -31,7 +31,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
             Select-Object -First 1
         $standardsVersion = [string] $standardsRequirement.RequiredVersion
-        $expectedStandardsSha = 'bd959dc3de7ee8426f89c31a62e0282e7140bd51'
+        $expectedStandardsSha = '347ded1033c302cf6dbbd8c614aefe2477121ab0'
 
         $workflowPaths = Get-ChildItem -Path (Join-Path -Path $projectRoot -ChildPath '.github/workflows') -File -Filter '*.yml' |
             Select-Object -ExpandProperty FullName

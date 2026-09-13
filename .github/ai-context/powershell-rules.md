@@ -132,7 +132,7 @@ If a "not found" branch is part of normal lookup behavior, set the result or wri
 ## Testing Requirements
 
 - Every function needs a corresponding `.Unit.Tests.ps1` file
-- Use Pester 5 syntax
+- Use Pester 6 syntax
 - Public functions: `Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1`
 - Private functions: `Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1`
 - Use `.template.ps1` files as starting points

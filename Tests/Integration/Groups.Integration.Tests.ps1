@@ -1,4 +1,4 @@
-﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/TestTools.ps1"
@@ -9,6 +9,7 @@ BeforeDiscovery {
     $script:Skip = Skip-IntegrationTest
     if (-not $Skip) {
         $script:envDiscovery = Initialize-IntegrationEnvironment
+        $script:IsCloud = $envDiscovery.IsCloud
         if ([string]::IsNullOrEmpty($envDiscovery.TestGroup)) {
             throw "Integration test fixture 'TestGroup' is required for Groups.Integration.Tests.ps1. Configure JIRA_TEST_GROUP for Cloud runs and ensure Wait-JiraServer.ps1 exports it for Server runs."
         }
@@ -49,7 +50,7 @@ InModuleScope JiraPS {
                     $group.Name | Should -Be $fixtures.TestGroup
                 }
 
-                It "exposes Id on Jira Cloud" -Skip:(-not $env.IsCloud) {
+                It "exposes Id on Jira Cloud" -Skip:(-not $IsCloud) {
                     $group = Get-JiraGroup -GroupName $fixtures.TestGroup
 
                     $group.Id | Should -Not -BeNullOrEmpty
@@ -80,13 +81,13 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "retrieves members for a resolved group object on Jira Cloud" -Skip:(-not $env.IsCloud) {
+                It "retrieves members for a resolved group object on Jira Cloud" -Skip:(-not $IsCloud) {
                     $group = Get-JiraGroup -GroupName $fixtures.TestGroup
 
                     { Get-JiraGroupMember -Group $group } | Should -Not -Throw
                 }
 
-                It "retrieves members for a resolved group object on Server" -Skip:$env.IsCloud {
+                It "retrieves members for a resolved group object on Server" -Skip:$IsCloud {
                     $group = Get-JiraGroup -GroupName $fixtures.TestGroup
 
                     { Get-JiraGroupMember -Group $group } | Should -Not -Throw

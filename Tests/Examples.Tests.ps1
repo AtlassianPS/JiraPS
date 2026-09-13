@@ -1,17 +1,13 @@
-﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "5.7"; MaximumVersion = "5.999" }
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
 
 BeforeDiscovery {
     . "$PSScriptRoot/Helpers/TestTools.ps1"
 
     $script:moduleToTest = Initialize-TestEnvironment
+    $script:commands = Get-Command -Module JiraPS -CommandType Cmdlet, Function
 }
 
-Describe "Validation of example codes in the documentation" -Tag Documentation, NotImplemented -Skip {
-    BeforeAll {
-        $script:commands = Get-Command -Module JiraPS -CommandType Cmdlet, Function
-        $script:module = Get-Module JiraPS
-    }
-
+Describe "Validation of example codes in the documentation" -Tag Documentation, NotImplemented {
     Describe "Examples" {
         Describe "Examples for <_.Name>" -ForEach $commands {
             BeforeAll {
@@ -20,7 +16,7 @@ Describe "Validation of example codes in the documentation" -Tag Documentation, 
             }
 
             # TODO:
-            It "should have examples implemented as tests" {
+            It "should have examples implemented as tests" -Skip {
                 $true | Should -Be $true
             }
         }
