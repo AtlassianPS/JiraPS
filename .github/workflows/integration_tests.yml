@@ -55,7 +55,7 @@ jobs:
       JIRA_TEST_FILTER: ${{ vars.JIRA_TEST_FILTER }}
       JIRA_TEST_VERSION: ${{ vars.JIRA_TEST_VERSION }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: AtlassianPS/AtlassianPS.Standards/.github/actions/setup-powershell@347ded1033c302cf6dbbd8c614aefe2477121ab0 # v0.4.0
 
       - run: |
@@ -63,7 +63,7 @@ jobs:
         shell: pwsh
 
       - name: Upload test results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: Cloud-Integration-Tests
           path: Test-Integration.xml
@@ -111,7 +111,7 @@ jobs:
       CI_JIRA_USER: jira_user
       CI_JIRA_USER_PASSWORD: jira
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Start Jira Data Center container
         run: docker compose up -d
@@ -171,7 +171,7 @@ jobs:
 
       - name: Upload integration test results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: Server-Integration-Tests
           path: Test-Integration.xml
@@ -184,7 +184,7 @@ jobs:
 
       - name: Upload Jira container logs
         if: ${{ failure() || inputs.debug || runner.debug == '1' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: Server-Jira-Container-Logs
           path: jira-container.log
