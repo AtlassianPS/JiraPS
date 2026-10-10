@@ -71,6 +71,15 @@
             $offset = $PSCmdlet.PagingParameters.Skip
         }
 
+        if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
+            if ($null -ne $Response.total) {
+                $PSCmdlet.PagingParameters.NewTotalCount($Response.total, 1.0)
+            }
+            else {
+                $PSCmdlet.PagingParameters.NewTotalCount(0, 0.0)
+            }
+        }
+
         $isTokenPaged = $Response.PSObject.Properties.Name -contains "nextPageToken"
 
         do {
@@ -140,10 +149,5 @@
 
             $result = Expand-Result -InputObject $Response
         } while (@($result).Count -gt 0)
-
-        if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
-            [double]$Accuracy = 1.0
-            $PSCmdlet.PagingParameters.NewTotalCount($total, $Accuracy)
-        }
     }
 }

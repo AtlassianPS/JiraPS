@@ -27,6 +27,7 @@ For the migration playbook and concrete before/after script examples, see [`abou
 
 - Fixed `Get-JiraIssueCreateMetadata` returning no fields on Jira Cloud by recognizing its `fields` response array and following offset pagination on v3 endpoints.
   Data Center retains its v2 `values` response support, and `-First` / `-Skip` now return the requested fields across page boundaries (#651).
+  The shared pager now emits `Invoke-JiraMethod -IncludeTotalCount` before the results, using Jira's full total or marking the count as unknown when the API does not provide one.
 
 - Migrated build and test tooling to AtlassianPS.Standards 0.4.0 and Pester 6.2.0. Test headers accept Pester 6.2.0 through the 6.x line (AtlassianPS/AtlassianPS#12, @lipkau).
 - Stabilized the Server integration `Search.Integration.Tests.ps1` OR-operator case by replacing the non-existent-key branch with a deterministic project-scoped OR predicate (`key = <fixture> OR key != <fixture>`), avoiding an intermittent Jira 11 backend null-deref (`issueObject` null) that failed nightly `integration_tests.yml` runs even when JiraPS behavior was correct.
