@@ -11,104 +11,154 @@ permalink: /docs/JiraPS/about/classes.html
 
 # SHORT DESCRIPTION
 
-This topic explains how to use the `AtlassianPS.JiraPS.*` classes introduced and expanded in JiraPS v3.
+Construct and use JiraPS objects from the `AtlassianPS.JiraPS` namespace.
 
 # LONG DESCRIPTION
 
-JiraPS v3 promotes core domain objects to real .NET classes under the `AtlassianPS.JiraPS` namespace.
-Those classes are used for converter output, parameter binding, and transformer-based input coercion across public cmdlets.
-For a migration-focused view of what changed from v2, see [about_JiraPS_MigrationV3](migration-v3.html).
+JiraPS commands return .NET objects with typed properties for issues, users, projects, filters and related Jira data.
+Commands that accept these objects can use them directly, including through the pipeline where the parameter supports it.
+Import JiraPS before referring to its types in a script.
 
-## The six identifier-driven classes
+```powershell
+Import-Module JiraPS
 
-These six classes are the common "stub by identifier" entry points in scripts.
+$issue = Get-JiraIssue -Key 'TEST-1'
+$issue -is [AtlassianPS.JiraPS.Issue]
+$issue.Status.Name
+```
 
-| Class | Canonical identifier slot |
-| ----- | ------------------------- |
+## Constructing objects
+
+### Identifier constructors
+
+The following classes have a string constructor that creates an object containing an identifier.
+Construction does not fetch data from Jira.
+
+| Class | Property set by the string constructor |
+| ----- | -------------------------------------- |
 | `AtlassianPS.JiraPS.Issue` | `Key` |
-| `AtlassianPS.JiraPS.Version` | `ID` (fallback `Name`) |
-| `AtlassianPS.JiraPS.Filter` | `ID` |
-| `AtlassianPS.JiraPS.Project` | `Key` (or `ID`) |
-| `AtlassianPS.JiraPS.User` | `AccountId` on Cloud, otherwise `Name` |
+| `AtlassianPS.JiraPS.Version` | `Id` for a numeric string, otherwise `Name` |
+| `AtlassianPS.JiraPS.Filter` | `Id` |
+| `AtlassianPS.JiraPS.Project` | `Key` |
+| `AtlassianPS.JiraPS.User` | `Name` |
 | `AtlassianPS.JiraPS.Group` | `Name` |
-
-## Three ways to construct a stub
-
-### 1) String constructor
-
-Use `::new('<identifier>')` for concise "single value" creation.
 
 ```powershell
 $issue = [AtlassianPS.JiraPS.Issue]::new('TEST-1')
 Add-JiraIssueComment -Issue $issue -Comment 'Ready for review.'
 ```
 
-### 2) Hashtable cast
-
-Use a cast when you want to set multiple properties up front.
+Use an explicit `AccountId` when constructing a Cloud user, or `Name` for a Data Center user.
 
 ```powershell
-$version = [AtlassianPS.JiraPS.Version]@{
-    ID       = 10200
-    Released = $true
-}
-Set-JiraVersion -Version $version
+$cloudUser = [AtlassianPS.JiraPS.User]@{ AccountId = 'account-id' }
+$dataCenterUser = [AtlassianPS.JiraPS.User]@{ Name = 'alice' }
 ```
 
-### 3) Pipeline from a resolved object
+### Hashtable casts
 
-Use converter-returned objects directly when chaining cmdlets.
+Cast a hashtable to the required type to set named properties.
+The property names and values must match the class.
+
+```powershell
+$visibility = [AtlassianPS.JiraPS.Visibility]@{
+    Type  = 'group'
+    Value = 'jira-users'
+}
+Add-JiraIssueComment -Issue 'TEST-1' -Comment 'Team note' -Visibility $visibility
+```
+
+Constructing or changing an object only changes local data.
+Use the command's update parameters to send changes to Jira.
+For example, `Set-JiraVersion` uses the object to identify the version and its `Released` parameter to set the release flag.
+
+```powershell
+$version = [AtlassianPS.JiraPS.Version]@{ Id = '10200' }
+Set-JiraVersion -Version $version -Released $true
+```
+
+## Passing objects to commands
+
+Objects returned by one command can be passed to another command that accepts the same type.
 
 ```powershell
 Get-JiraIssue -Query 'project = TEST AND status = "In Review"' |
     Add-JiraIssueComment -Comment 'Review sign-off complete.'
 ```
 
-## How transformers route input
+Argument transformers also accept identifier shorthand on supported parameters.
+For example, `Add-JiraIssueComment -Issue 'TEST-1'` constructs an issue identifier object during parameter binding.
+Version, filter and project transformers accept numeric IDs where the consuming parameter supports them.
+Check the command's parameter help for accepted input forms and whether it requires an ID or can resolve a name.
+Use explicit IDs when names are ambiguous.
 
-Most strongly-typed cmdlet parameters in v3 use `*TransformationAttribute` classes.
-The routing rules are consistent across families:
+## Identity and display
 
-- String input creates an identifier stub for the target class.
-- Numeric input is treated as an ID where the class supports numeric identity (`Version`, `Filter`, `Project`).
-- Existing `AtlassianPS.JiraPS.*` instances pass through unchanged.
-- Legacy `PSCustomObject` values with the relevant `PSTypeName` are converted into the corresponding class for backward compatibility.
+The six classes listed above compare instances of the same class using these properties.
+Comparisons are case-insensitive.
 
-This lets v2-style scripts keep passing plain strings while v3 scripts can pass richer objects without extra glue code.
+| Class | Identity used for equality and ordering |
+| ----- | -------------------------------------- |
+| `AtlassianPS.JiraPS.Issue` | `Key` |
+| `AtlassianPS.JiraPS.Version` | `Id`, falling back to `Name` |
+| `AtlassianPS.JiraPS.Filter` | `Id` |
+| `AtlassianPS.JiraPS.Project` | `Key` |
+| `AtlassianPS.JiraPS.User` | `AccountId`, falling back to `Name` |
+| `AtlassianPS.JiraPS.Group` | `Name` |
 
-## Working with resolved objects
+Use populated identity properties for equality checks, `Sort-Object -Unique` and hashtable keys.
+Separate objects without an identity do not compare as equal.
+Avoid changing an object's identity while using it as a hashtable key.
 
-Resolved objects returned by cmdlets are real class instances, so they work naturally with type checks and tab completion.
-`ToString()` returns the canonical identifier for user-friendly output in pipelines, logs, and interpolation.
-Identifier-based equality and comparisons deduplicate correctly (`-eq`, `Sort-Object -Unique`, hashtable keys) in JiraPS v3.
+`ToString()` produces display text specific to the class.
+For example, an issue includes its key and summary, while a version displays its name.
+Read `Key`, `Id`, `AccountId` or another explicit property when a script needs an identifier.
 
-When you need properties that are not modeled on a given class, query the relevant endpoint/cmdlet that surfaces that data and inspect the returned payload shape before building assumptions into script logic.
-In practice, prefer explicit property access for stable fields and avoid relying on display formatting as data.
+## Nested properties and collections
+
+Returned objects contain typed nested properties.
+Common examples include:
+
+| Property | Type |
+| -------- | ---- |
+| Issue `Assignee` | `AtlassianPS.JiraPS.User` or `$null` |
+| Issue `Status` | `AtlassianPS.JiraPS.Status` |
+| Issue `History` | `AtlassianPS.JiraPS.IssueHistoryEntry[]` |
+| History entry `Items` | `AtlassianPS.JiraPS.IssueHistoryItem[]` |
+| Issue `FixVersions` and `Versions` | `AtlassianPS.JiraPS.Version[]` |
+| Issue `Components` | `AtlassianPS.JiraPS.Component[]` |
+| Issue `Worklog` | `AtlassianPS.JiraPS.Worklogitem[]` |
+| Comment or worklog `Visibility` | `AtlassianPS.JiraPS.Visibility` |
+| Field `Schema` | `AtlassianPS.JiraPS.FieldSchema` |
+| Remote link `RemoteObject` | `AtlassianPS.JiraPS.RemoteLinkObject` |
+
+An unassigned issue has `$null` in `Assignee`.
+Request history with `Get-JiraIssue -IncludeHistory`; `History` is `$null` when the response has no changelog.
+For array-valued properties, present empty collections are empty typed arrays.
+Optional nested objects and nullable properties can be `$null` when the response omits them.
+
+```powershell
+$issue = Get-JiraIssue -Key 'TEST-1' -IncludeHistory
+if ($null -eq $issue.Assignee) {
+    'This issue is unassigned.'
+}
+foreach ($entry in $issue.History) {
+    foreach ($item in $entry.Items) {
+        '{0}: {1} -> {2}' -f $item.Field, $item.FromString, $item.ToString
+    }
+}
+```
+
+Some properties use nullable enums, including user `AccountType`, component `AssigneeType` and filter permission `Type`.
+An unrecognized API value for one of these enum properties becomes `$null`.
+
+Custom issue fields are accessible as additional properties on the returned issue, such as `$issue.customfield_10001`.
+Their values, entity-property values and allowed field values retain the data supplied by Jira.
+Use explicit property access rather than formatted output when processing returned data.
 
 # SEE ALSO
 
-- [about_JiraPS_MigrationV3](migration-v3.html)
 - [Get-JiraIssue](../commands/Get-JiraIssue/)
-- [Set-JiraIssue](../commands/Set-JiraIssue/)
-
-## Nested object and parameter contracts
-
-Issue history and its items, remote-link details, visibility, role actors, filter sharing/subscriptions and field schemas now use concrete CLR types.
-An unassigned issue has `$null` in its `Assignee` property.
-Test it with `$null -eq $issue.Assignee` instead of comparing against `Unassigned`.
-Known nested issue fields, including versions, components and worklogs, are declared typed properties.
-Present empty collections remain empty arrays; missing optional values remain `$null`.
-
-```powershell
-$issue = Get-JiraIssue TEST-1
-if ($null -eq $issue.Assignee) { 'This issue is unassigned.' }
-$issue.Transition[0] | ForEach-Object { Invoke-JiraIssueTransition -Issue $issue -Transition $_ }
-Add-JiraIssueComment -Issue $issue -Comment 'Team note' -Visibility @{ Type = 'group'; Value = 'jira-users' }
-```
-
-`VisibleRole` remains an alias for `Visibility`; role strings and `All Users` remain accepted shorthand.
-Filters and leaf inputs now use typed parameters where a cmdlet consumes those objects.
-`Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and optional typed permission IDs.
-Some stable string-set properties are nullable enums; unknown API values become `$null`.
-Custom-field data, entity-property values, allowed field values and raw REST responses remain extensible.
-See the [complete object and parameter inventory](../v3-object-contracts.md) for property types, converter/cmdlet mappings, transformer decisions and the remaining session/identity coordination.
+- [Add-JiraIssueComment](../commands/Add-JiraIssueComment/)
+- [Set-JiraVersion](../commands/Set-JiraVersion/)
+- [about_JiraPS_MigrationV3](migration-v3.html)
