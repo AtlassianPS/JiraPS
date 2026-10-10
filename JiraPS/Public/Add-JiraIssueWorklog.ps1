@@ -22,9 +22,18 @@
         [DateTime]
         $DateStarted,
 
-        [ValidateSet('All Users', 'Developers', 'Administrators')]
-        [String]
-        $VisibleRole = 'All Users',
+        [Alias('VisibleRole')]
+        [AtlassianPS.JiraPS.VisibilityTransformation()]
+        [ValidateScript({
+                if ($null -eq $_.Type -and $null -eq $_.Value -and $null -eq $_.Identifier) { return $true }
+                if ($_.Type -notin 'role', 'group') { throw "Visibility.Type must be 'role' or 'group'." }
+                if ([string]::IsNullOrWhiteSpace($_.Value) -and [string]::IsNullOrWhiteSpace($_.Identifier)) {
+                    throw 'Visibility requires a non-empty Value or Identifier.'
+                }
+                return $true
+            })]
+        [AtlassianPS.JiraPS.Visibility]
+        $Visibility,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -70,14 +79,10 @@
             'timeSpentSeconds' = $TimeSpent.TotalSeconds.ToString()
         }
 
-        # If the visible role should be all users, the visibility block shouldn't be passed at
-        # all. JIRA returns a 500 Internal Server Error if you try to pass this block with a
-        # value of "All Users".
-        if ($VisibleRole -ne 'All Users') {
-            $requestBody.visibility = @{
-                'type'  = 'role'
-                'value' = $VisibleRole
-            }
+        if ($Visibility -and $Visibility.Type) {
+            $requestBody.visibility = @{ type = $Visibility.Type }
+            if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
+            if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }
         }
 
         $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud

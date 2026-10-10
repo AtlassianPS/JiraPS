@@ -131,7 +131,7 @@ InModuleScope JiraPS {
                 @{ typeName = 'AtlassianPS.JiraPS.Comment'; property = 'UpdateAuthor'; expectedType = [AtlassianPS.JiraPS.User] }
                 @{ typeName = 'AtlassianPS.JiraPS.Issue'; property = 'Project'; expectedType = [AtlassianPS.JiraPS.Project] }
                 @{ typeName = 'AtlassianPS.JiraPS.Filter'; property = 'Owner'; expectedType = [AtlassianPS.JiraPS.User] }
-                @{ typeName = 'AtlassianPS.JiraPS.Issue'; property = 'Assignee'; expectedType = [object] }
+                @{ typeName = 'AtlassianPS.JiraPS.Issue'; property = 'Assignee'; expectedType = [AtlassianPS.JiraPS.User] }
                 @{ typeName = 'AtlassianPS.JiraPS.Issue'; property = 'Creator'; expectedType = [AtlassianPS.JiraPS.User] }
                 @{ typeName = 'AtlassianPS.JiraPS.Issue'; property = 'Reporter'; expectedType = [AtlassianPS.JiraPS.User] }
                 @{ typeName = 'AtlassianPS.JiraPS.Issue'; property = 'Comment'; expectedType = [AtlassianPS.JiraPS.Comment[]] }
@@ -400,11 +400,11 @@ InModuleScope JiraPS {
                     [CmdletBinding(DefaultParameterSetName = 'Issue')]
                     param(
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Issue')]
-                        [AtlassianPS.JiraPS.IssueTransformation()]
+                        [AtlassianPS.JiraPS.IssueTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Issue]$Issue,
 
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
-                        [AtlassianPS.JiraPS.ProjectTransformation()]
+                        [AtlassianPS.JiraPS.ProjectTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Project]$Project
                     )
                     process { $PSCmdlet.ParameterSetName }
@@ -414,11 +414,11 @@ InModuleScope JiraPS {
                     [CmdletBinding(DefaultParameterSetName = 'User')]
                     param(
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'User')]
-                        [AtlassianPS.JiraPS.UserTransformation()]
+                        [AtlassianPS.JiraPS.UserTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.User]$User,
 
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Group')]
-                        [AtlassianPS.JiraPS.GroupTransformation()]
+                        [AtlassianPS.JiraPS.GroupTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Group]$Group
                     )
                     process { $PSCmdlet.ParameterSetName }
@@ -428,11 +428,11 @@ InModuleScope JiraPS {
                     [CmdletBinding(DefaultParameterSetName = 'Group')]
                     param(
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Group')]
-                        [AtlassianPS.JiraPS.GroupTransformation()]
+                        [AtlassianPS.JiraPS.GroupTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Group]$Group,
 
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'User')]
-                        [AtlassianPS.JiraPS.UserTransformation()]
+                        [AtlassianPS.JiraPS.UserTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.User]$User
                     )
                     process { $PSCmdlet.ParameterSetName }
@@ -442,11 +442,11 @@ InModuleScope JiraPS {
                     [CmdletBinding(DefaultParameterSetName = 'Version')]
                     param(
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Version')]
-                        [AtlassianPS.JiraPS.VersionTransformation()]
+                        [AtlassianPS.JiraPS.VersionTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Version]$Version,
 
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
-                        [AtlassianPS.JiraPS.ProjectTransformation()]
+                        [AtlassianPS.JiraPS.ProjectTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Project]$Project
                     )
                     process { $PSCmdlet.ParameterSetName }
@@ -456,11 +456,11 @@ InModuleScope JiraPS {
                     [CmdletBinding(DefaultParameterSetName = 'Filter')]
                     param(
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Filter')]
-                        [AtlassianPS.JiraPS.FilterTransformation()]
+                        [AtlassianPS.JiraPS.FilterTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Filter]$Filter,
 
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
-                        [AtlassianPS.JiraPS.ProjectTransformation()]
+                        [AtlassianPS.JiraPS.ProjectTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Project]$Project
                     )
                     process { $PSCmdlet.ParameterSetName }
@@ -470,11 +470,11 @@ InModuleScope JiraPS {
                     [CmdletBinding(DefaultParameterSetName = 'Project')]
                     param(
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
-                        [AtlassianPS.JiraPS.ProjectTransformation()]
+                        [AtlassianPS.JiraPS.ProjectTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Project]$Project,
 
                         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Version')]
-                        [AtlassianPS.JiraPS.VersionTransformation()]
+                        [AtlassianPS.JiraPS.VersionTransformation(AllowPipelineFallthrough = $true)]
                         [AtlassianPS.JiraPS.Version]$Version
                     )
                     process { $PSCmdlet.ParameterSetName }

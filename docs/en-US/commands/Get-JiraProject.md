@@ -14,16 +14,12 @@ Returns a project from Jira
 
 ## SYNTAX
 
-### _All (Default)
-
 ```powershell
 Get-JiraProject [-Credential <pscredential>] [<CommonParameters>]
 ```
 
-### _Search
-
 ```powershell
-Get-JiraProject [-Project] <string[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraProject [-Project] <Project[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -89,7 +85,7 @@ HelpMessage: ''
 The Project ID or project key of a project to search.
 
 ```yaml
-Type: String[]
+Type: Project[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

@@ -115,7 +115,7 @@ InModuleScope JiraPS {
                     @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
                     @{ parameter = "TimeSpent"; type = "TimeSpan" }
                     @{ parameter = "DateStarted"; type = "DateTime" }
-                    @{ parameter = "VisibleRole"; type = "String" }
+                    @{ parameter = "Visibility"; type = "AtlassianPS.JiraPS.Visibility" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
@@ -124,7 +124,7 @@ InModuleScope JiraPS {
 
             Context "Default Values" {
                 It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "VisibleRole"; defaultValue = "All Users" }
+                    @{ parameter = "Visibility"; defaultValue = $null }
                     @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
                 ) {
                     $command | Should -HaveParameter $parameter -DefaultValue $defaultValue

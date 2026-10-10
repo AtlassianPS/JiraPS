@@ -14,34 +14,20 @@ This function returns information about a JIRA Project's Version
 
 ## SYNTAX
 
-### byId (Default)
-
 ```powershell
-Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount]
- [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-### byInputVersion
-
 ```powershell
-Get-JiraVersion [-InputVersion] <Version> [-PageSize <uint>] [-Credential <pscredential>]
- [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraVersion [-InputVersion] <Version> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-### byProject
-
 ```powershell
-Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
- [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
- [<CommonParameters>]
+Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-### byInputProject
-
 ```powershell
-Get-JiraVersion [-InputProject] <Project> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
- [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
- [<CommonParameters>]
+Get-JiraVersion [-InputProject] <Project[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -177,7 +163,7 @@ HelpMessage: ''
 A Project Object to search
 
 ```yaml
-Type: AtlassianPS.JiraPS.Project
+Type: Project[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

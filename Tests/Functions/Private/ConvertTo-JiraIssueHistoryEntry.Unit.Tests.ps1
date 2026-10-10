@@ -54,8 +54,8 @@ InModuleScope JiraPS {
                     $result | Should -Not -BeNullOrEmpty
                 }
 
-                It "adds custom type JiraPS.IssueHistoryEntry" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueHistoryEntry'
+                It "adds CLR type AtlassianPS.JiraPS.IssueHistoryEntry" {
+                    $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.IssueHistoryEntry'
                 }
             }
 
@@ -68,8 +68,8 @@ InModuleScope JiraPS {
                     $result.Id | Should -Be '10001'
                 }
 
-                It "maps Created as DateTime" {
-                    $result.Created | Should -BeOfType ([DateTime])
+                It "maps Created as DateTimeOffset" {
+                    $result.Created | Should -BeOfType ([DateTimeOffset])
                 }
 
                 It "maps Items collection" {

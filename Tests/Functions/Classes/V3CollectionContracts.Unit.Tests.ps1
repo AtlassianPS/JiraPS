@@ -1,0 +1,57 @@
+﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
+BeforeDiscovery {
+    . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+    Initialize-TestEnvironment
+}
+
+InModuleScope JiraPS {
+    Describe 'v3 collection and selector regressions' -Tag Unit {
+        It 'keeps present empty project collections typed' {
+            $project = ConvertTo-JiraProject (ConvertFrom-Json '{"issueTypes":[],"components":[],"versions":[]}')
+            $project.IssueTypes.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueType[]])
+            $project.Components.GetType() | Should -Be ([AtlassianPS.JiraPS.Component[]])
+            $project.Versions.GetType() | Should -Be ([AtlassianPS.JiraPS.Version[]])
+            $project.IssueTypes.Count | Should -Be 0
+            $project.Components.Count | Should -Be 0
+            $project.Versions.Count | Should -Be 0
+        }
+
+        It 'preserves arbitrary custom-field arrays and present empty domain collections' {
+            $issue = ConvertTo-JiraIssue (ConvertFrom-Json '{"fields":{"customfield_empty":[],"customfield_single":[{"id":1}],"issuelinks":[],"attachment":[],"comment":{"comments":[]}}}')
+            $issue.customfield_empty.GetType() | Should -Be ([object[]])
+            $issue.customfield_single.GetType() | Should -Be ([object[]])
+            $issue.customfield_single.Count | Should -Be 1
+            $issue.IssueLinks.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueLink[]])
+            $issue.Attachment.GetType() | Should -Be ([AtlassianPS.JiraPS.Attachment[]])
+            $issue.Comment.GetType() | Should -Be ([AtlassianPS.JiraPS.Comment[]])
+            $issue.Comment.Count | Should -Be 0
+            (ConvertTo-JiraComment (ConvertFrom-Json '{"properties":[]}')).Properties.GetType() | Should -Be ([AtlassianPS.JiraPS.EntityProperty[]])
+            (ConvertTo-JiraFilter (ConvertFrom-Json '{"sharePermissions":[]}')).SharePermission.GetType() | Should -Be ([AtlassianPS.JiraPS.FilterPermission[]])
+            (ConvertTo-JiraGroup (ConvertFrom-Json '{"users":{"size":0,"items":[]}}')).Member.GetType() | Should -Be ([AtlassianPS.JiraPS.User[]])
+            (ConvertTo-JiraUser (ConvertFrom-Json '{"groups":{"size":0,"items":[]}}')).Groups.GetType() | Should -Be ([string[]])
+            $meta = ConvertTo-JiraCreateMetaField (ConvertFrom-Json '{"allowedValues":[]}')
+            $meta.Operations | Should -BeNullOrEmpty
+            $meta.AllowedValues.GetType() | Should -Be ([object[]])
+        }
+
+        It 'selects returned objects by ID when display names are duplicated' {
+            Mock Invoke-JiraMethod {
+                if ($Uri -like '*/field') {
+                    ConvertFrom-Json '[{"id":"customfield_1","name":"Duplicate"},{"id":"customfield_2","name":"Duplicate"}]'
+                }
+                elseif ($Uri -like '*/issuetype') {
+                    ConvertFrom-Json '[{"id":"1","name":"Bug"},{"id":"2","name":"Bug"}]'
+                }
+            }
+            $fields = @(Get-JiraField -Field ([AtlassianPS.JiraPS.Field]@{ Id = 'customfield_1'; Name = 'Duplicate' }))
+            $fields.Count | Should -Be 1
+            $fields[0].Id | Should -Be 'customfield_1'
+            $types = @(Get-JiraIssueType -IssueType ([AtlassianPS.JiraPS.IssueType]@{ Id = 1; Name = 'Bug' }))
+            $types.Count | Should -Be 1
+            $types[0].Id | Should -Be 1
+            @(Get-JiraField -Field 'Dupli*').Count | Should -Be 2
+            @(Get-JiraIssueType -IssueType 'B*').Count | Should -Be 2
+        }
+    }
+}

@@ -168,7 +168,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Field"; type = "String[]" }
+                    @{ parameter = "Field"; type = "AtlassianPS.JiraPS.Field[]" }
                     @{ parameter = "Force"; type = "System.Management.Automation.SwitchParameter" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {

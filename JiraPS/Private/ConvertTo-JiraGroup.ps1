@@ -9,6 +9,7 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Group"
 
             $hash = @{
@@ -25,7 +26,7 @@
                     }
                 }
 
-                if ($i.users.items) {
+                if ($null -ne $i.users.items) {
                     $allUsers = [System.Collections.Generic.List[AtlassianPS.JiraPS.User]]::new()
                     $i.users.items.ForEach({ $allUsers.Add((ConvertTo-JiraUser -InputObject $_)) })
                     $hash.Member = $allUsers.ToArray()

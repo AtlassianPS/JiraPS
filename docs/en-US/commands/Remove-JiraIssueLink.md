@@ -14,18 +14,12 @@ Removes a issue link from a JIRA issue
 
 ## SYNTAX
 
-### ByIssueLink (Default)
-
 ```powershell
-Remove-JiraIssueLink [-IssueLink] <IssueLink[]> [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Remove-JiraIssueLink -IssueLink <IssueLink[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-### ByIssue
-
 ```powershell
-Remove-JiraIssueLink [-Issue] <Issue[]> [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Remove-JiraIssueLink -Issue <Issue[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -86,7 +80,7 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 1
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -107,7 +101,7 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: ByIssueLink
-  Position: 0
+  Position: Named
   IsRequired: true
   ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false
@@ -128,7 +122,7 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: ByIssue
-  Position: 0
+  Position: Named
   IsRequired: true
   ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false

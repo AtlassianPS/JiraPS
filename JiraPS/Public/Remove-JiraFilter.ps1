@@ -4,7 +4,8 @@
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNullOrEmpty()]
-        [PSTypeName('AtlassianPS.JiraPS.Filter')]
+        [AtlassianPS.JiraPS.FilterTransformation()]
+        [AtlassianPS.JiraPS.Filter[]]
         $InputObject,
 
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
@@ -26,13 +27,16 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($PSCmdlet.ParameterSetName -eq 'ById') {
-            $InputObject = foreach ($_id in $Id) {
-                Get-JiraFilter -Id $_id
+        $filters = if ($PSCmdlet.ParameterSetName -eq 'ById') {
+            foreach ($_id in $Id) { Get-JiraFilter -Id $_id -Credential $Credential -ErrorAction Stop }
+        }
+        else {
+            foreach ($item in $InputObject) {
+                if ($item.RestUrl) { $item } else { Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop }
             }
         }
 
-        foreach ($filter in $InputObject) {
+        foreach ($filter in $filters) {
             $parameter = @{
                 URI        = $filter.RestURL
                 Method     = "DELETE"

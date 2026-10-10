@@ -6,9 +6,6 @@ using System.Collections.Generic;
 
 namespace AtlassianPS.JiraPS
 {
-    // Slots typed `object` are intentional: they hold polymorphic values, opaque API payloads,
-    // or runtime-specific objects whose concrete types differ across PowerShell editions.
-    //
     // Id storage type convention:
     //   string — when the PowerShell converters (ConvertTo-Jira*) and existing scripts
     //            historically treated the Id as a string (e.g. $issue.Id was always a
@@ -24,7 +21,7 @@ namespace AtlassianPS.JiraPS
         public string Key { get; set; }
         public string AccountId { get; set; }
         // Cloud-only field documented in REST v3: 'atlassian', 'app', 'customer', 'unknown'.
-        public string AccountType { get; set; }
+        public AccountType? AccountType { get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string EmailAddress { get; set; }
@@ -32,7 +29,7 @@ namespace AtlassianPS.JiraPS
         // DC-only "right-to-be-forgotten" flag; nullable so callers can tell
         // "field missing" (legacy instances) apart from "explicitly false".
         public bool? Deleted { get; set; }
-        public object AvatarUrl { get; set; }
+        public IDictionary<string, Uri> AvatarUrl { get; set; }
         public string TimeZone { get; set; }
         public string Locale { get; set; }
         public string[] Groups { get; set; }
@@ -74,11 +71,13 @@ namespace AtlassianPS.JiraPS
         public string Description { get; set; }
         public User Lead { get; set; }
         public IssueType[] IssueTypes { get; set; }
-        public object Roles { get; set; }
+        public IDictionary<string, Uri> Roles { get; set; }
         public Uri RestUrl { get; set; }
         public Component[] Components { get; set; }
+        public AssigneeType? AssigneeType { get; set; }
+        public Version[] Versions { get; set; }
         public string Style { get; set; }
-        public object Category { get; set; }
+        public ProjectCategory Category { get; set; }
         // Both platforms: 'software', 'business', 'service_desk', 'product_discovery'.
         public string ProjectTypeKey { get; set; }
         public Uri Url { get; set; }
@@ -118,9 +117,9 @@ namespace AtlassianPS.JiraPS
         // Server-side rendered HTML body; only populated when the request
         // included expand=renderedBody (DC v2; not available on Cloud v3).
         public string RenderedBody { get; set; }
-        public object Visibility { get; set; }
+        public Visibility Visibility { get; set; }
         // Cloud-only entity-properties array (each item is { key, value }).
-        public object[] Properties { get; set; }
+        public EntityProperty[] Properties { get; set; }
         public Uri RestUrl { get; set; }
         public User Author { get; set; }
         public User UpdateAuthor { get; set; }
@@ -147,17 +146,32 @@ namespace AtlassianPS.JiraPS
         public IssueLink[] IssueLinks { get; set; }
         public Attachment[] Attachment { get; set; }
         public Project Project { get; set; }
-        // Assignee may be a User instance OR the legacy string "Unassigned".
-        public object Assignee { get; set; }
+        public User Assignee { get; set; }
         public User Creator { get; set; }
         public User Reporter { get; set; }
         public DateTimeOffset? Created { get; set; }
         public DateTimeOffset? LastViewed { get; set; }
         public DateTimeOffset? Updated { get; set; }
         public IDictionary<string, object> Fields { get; set; }
-        public object Expand { get; set; }
+        public string Expand { get; set; }
         public Transition[] Transition { get; set; }
         public Comment[] Comment { get; set; }
+        public IssueHistoryEntry[] History { get; set; }
+        public IssueType IssueType { get; set; }
+        public Priority Priority { get; set; }
+        public Resolution Resolution { get; set; }
+        public Component[] Components { get; set; }
+        public Worklogitem[] Worklog { get; set; }
+        public Version[] FixVersions { get; set; }
+        public Version[] Versions { get; set; }
+        public Issue Parent { get; set; }
+        public Issue[] Subtasks { get; set; }
+        public IssueWatches Watches { get; set; }
+        public IssueVotes Votes { get; set; }
+        public IssueProgress Progress { get; set; }
+        public IssueProgress AggregateProgress { get; set; }
+        public IssueTimeTracking TimeTracking { get; set; }
+        public IssueSecurityLevel Security { get; set; }
 
         public Issue() { }
 
@@ -238,9 +252,9 @@ namespace AtlassianPS.JiraPS
         public Uri SearchUrl { get; set; }
         public bool Favourite { get; set; }
         public FilterPermission[] FilterPermissions { get; set; }
-        public object SharePermission { get; set; }
-        public object SharedUser { get; set; }
-        public object Subscription { get; set; }
+        public FilterPermission[] SharePermission { get; set; }
+        public UserList SharedUser { get; set; }
+        public FilterSubscriptionList Subscription { get; set; }
         public string Description { get; set; }
         public User Owner { get; set; }
 
@@ -289,7 +303,7 @@ namespace AtlassianPS.JiraPS
         // Both platforms expose this as e.g. [9, 17, 0]; surfaced separately
         // from the Version string so callers can compare numerically.
         public int[] VersionNumbers { get; set; }
-        public string DeploymentType { get; set; }
+        public DeploymentType? DeploymentType { get; set; }
         public long? BuildNumber { get; set; }
         public DateTimeOffset? BuildDate { get; set; }
         public DateTimeOffset? ServerTime { get; set; }
@@ -304,22 +318,19 @@ namespace AtlassianPS.JiraPS
         public Uri DisplayUrlServicedeskHelpCenter { get; set; }
         // DC-only OEM partner attribution (e.g. "Marketplace App Vendor").
         public string BuildPartnerName { get; set; }
-        // DC-only complex shapes: { id, displayName } and { locale }.
-        // Kept as object so this assembly does not have to model side-band
-        // helper structs that no other class consumes.
-        public object ServerTimeZone { get; set; }
-        public object DefaultLocale { get; set; }
+        public ServerTimeZone ServerTimeZone { get; set; }
+        public ServerLocale DefaultLocale { get; set; }
 
         public ServerInfo() { }
 
         public override string ToString()
         {
-            if (!string.IsNullOrEmpty(DeploymentType) && !string.IsNullOrEmpty(Version))
+            if (DeploymentType.HasValue && !string.IsNullOrEmpty(Version))
             {
                 return string.Format("[{0}] {1}", DeploymentType, Version);
             }
             if (!string.IsNullOrEmpty(Version)) { return Version; }
-            if (!string.IsNullOrEmpty(DeploymentType)) { return DeploymentType; }
+            if (DeploymentType.HasValue) { return DeploymentType.Value.ToString(); }
             return string.Empty;
         }
     }

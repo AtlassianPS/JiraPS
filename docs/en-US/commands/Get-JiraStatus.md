@@ -14,16 +14,12 @@ Returns issue status information from Jira.
 
 ## SYNTAX
 
-### _All (Default)
-
 ```powershell
 Get-JiraStatus [-Credential <pscredential>] [<CommonParameters>]
 ```
 
-### _Search
-
 ```powershell
-Get-JiraStatus [-Status] <string[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraStatus [-Status] <Status[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -84,11 +80,10 @@ HelpMessage: ''
 
 ### -Status
 
-One or more statuses to retrieve.
-Each value can be a status id (for example, `1`) or a status name (for example, `Open`).
+Status objects, IDs or names to retrieve.
 
 ```yaml
-Type: String[]
+Type: Status[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

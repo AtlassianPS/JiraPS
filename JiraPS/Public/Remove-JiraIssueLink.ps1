@@ -4,13 +4,13 @@
     param(
         [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByIssueLink' )]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueLinkTransformation()]
+        [AtlassianPS.JiraPS.IssueLinkTransformation(AllowPipelineFallthrough = $true)]
         [AtlassianPS.JiraPS.IssueLink[]]
         $IssueLink,
 
         [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByIssue' )]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueTransformation()]
+        [AtlassianPS.JiraPS.IssueTransformation(AllowPipelineFallthrough = $true)]
         [AtlassianPS.JiraPS.Issue[]]
         $Issue,
 

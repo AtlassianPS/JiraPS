@@ -14,16 +14,12 @@ Fetch the permissions of a specific Filter.
 
 ## SYNTAX
 
-### ById (Default)
-
 ```powershell
 Get-JiraFilterPermission [-Id] <uint[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
-### ByInputObject
-
 ```powershell
-Get-JiraFilterPermission [-Filter] <Filter> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraFilterPermission [-Filter] <Filter[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -83,7 +79,7 @@ HelpMessage: ''
 Filter object from which to retrieve the permissions
 
 ```yaml
-Type: AtlassianPS.JiraPS.Filter
+Type: Filter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

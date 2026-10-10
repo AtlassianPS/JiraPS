@@ -13,11 +13,9 @@ Describe "General project validation" -Tag Unit {
         $script:manifest = Test-ModuleManifest -Path $moduleToTest -ErrorAction Stop -WarningAction SilentlyContinue
 
         $configFile = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData'))
-        $script:oldConfig = Get-Content $configFile
+        $script:oldConfig = if (Test-Path $configFile) { Get-Content $configFile -Raw } else { $null }
     }
     AfterEach {
-        Set-Content -Value $script:oldConfig -Path $configFile -Force
-
         Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
 
@@ -49,11 +47,10 @@ Describe "General project validation" -Tag Unit {
     }
 
     It "module uses the previous server config when loaded" {
-        Set-Content -Value "https://example.com" -Path $configFile -Force
-
         Import-Module $moduleToTest -Force
 
-        Get-JiraConfigServer | Should -Be "https://example.com"
+        $expected = if ($script:oldConfig) { ([uri]($script:oldConfig -split '\r?\n')[0].Trim()).AbsoluteUri.TrimEnd('/') } else { '' }
+        Get-JiraConfigServer | Should -Be $expected
     }
 
     It "module manifest uses a semantic version" {

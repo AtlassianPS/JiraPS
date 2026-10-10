@@ -9,11 +9,12 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Worklogitem"
 
             $props = @{
                 'ID'         = ConvertTo-JiraNullableInt64 $i.id
-                'Visibility' = $i.visibility
+                'Visibility' = if ($null -ne $i.visibility) { ConvertTo-JiraVisibility $i.visibility } else { $null }
                 'Comment'    = ConvertFrom-AtlassianDocumentFormat -InputObject $i.comment
                 'RestUrl'    = [uri]$i.self
             }

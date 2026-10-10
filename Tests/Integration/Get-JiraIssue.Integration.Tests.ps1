@@ -129,7 +129,7 @@ InModuleScope JiraPS {
 
                 $issue | Should -Not -BeNullOrEmpty
                 $issue.PSObject.Properties.Name | Should -Contain 'History'
-                ($issue.History -is [Object[]]) | Should -BeTrue
+                $issue.History.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueHistoryEntry[]])
             }
 
             It "supports the -GetHistory alias" {
@@ -137,7 +137,7 @@ InModuleScope JiraPS {
 
                 $issue | Should -Not -BeNullOrEmpty
                 $issue.PSObject.Properties.Name | Should -Contain 'History'
-                ($issue.History -is [Object[]]) | Should -BeTrue
+                $issue.History.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueHistoryEntry[]])
             }
 
             It "adds History when -IncludeHistory is used with -Query" {
@@ -147,7 +147,7 @@ InModuleScope JiraPS {
 
                 @($issues).Count | Should -BeGreaterThan 0
                 @($issues)[0].PSObject.Properties.Name | Should -Contain 'History'
-                (@($issues)[0].History -is [Object[]]) | Should -BeTrue
+                @($issues)[0].History.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueHistoryEntry[]])
             }
         }
 

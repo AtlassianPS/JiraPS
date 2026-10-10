@@ -70,9 +70,8 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Filter'; type = 'Object' }
-                    @{ parameter = 'FilterId'; type = 'UInt32' }
-                    @{ parameter = 'PermissionId'; type = 'UInt32[]' }
+                    @{ parameter = 'Filter'; type = "AtlassianPS.JiraPS.Filter" }
+                    @{ parameter = 'PermissionId'; type = "AtlassianPS.JiraPS.FilterPermission[]" }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
@@ -154,7 +153,7 @@ InModuleScope JiraPS {
                 }
 
                 It "does not accept negative FilterIds" {
-                    { Remove-JiraFilterPermission -FilterId -1 -PermissionId 1111 } | Should -Throw -ExpectedMessage "*'FilterId'*"
+                    { Remove-JiraFilterPermission -FilterId -1 -PermissionId 1111 } | Should -Throw -ExpectedMessage "*Filter*"
                 }
 
                 It "does not accept negative PermissionIds" {
@@ -162,7 +161,7 @@ InModuleScope JiraPS {
                 }
 
                 It "can only process one FilterId" {
-                    { Remove-JiraFilterPermission -FilterId 1, 2 -PermissionId 1111 } | Should -Throw -ExpectedMessage "*'FilterId'*"
+                    { Remove-JiraFilterPermission -FilterId 1, 2 -PermissionId 1111 } | Should -Throw -ExpectedMessage "*Filter*"
                 }
 
                 It "can only process one Filter objects" {
@@ -170,7 +169,7 @@ InModuleScope JiraPS {
                     $filter += Get-JiraFilterPermission -Id 1
                     $filter += Get-JiraFilterPermission -Id 1
 
-                    { Remove-JiraFilterPermission -Filter $filter } | Should -Throw -ExpectedMessage "*Invalid Parameter*"
+                    { Remove-JiraFilterPermission -Filter $filter } | Should -Throw -ExpectedMessage "*Filter*"
                 }
             }
         }

@@ -15,9 +15,7 @@ Adds a worklog item to an existing JIRA issue
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueWorklog [-Comment] <string> [-Issue] <Issue> [-TimeSpent] <timespan>
- [-DateStarted] <datetime> [[-VisibleRole] <string>] [[-Credential] <pscredential>] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+Add-JiraIssueWorklog [-Comment] <string> [-Issue] <Issue> [-TimeSpent] <timespan> [-DateStarted] <datetime> [[-Visibility] <Visibility>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -214,22 +212,20 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -VisibleRole
+### -Visibility
 
-Visibility of the comment.
-Defines if the comment should be publicly visible, viewable to only developers, or only administrators.
-
-Allowed values are:
-
-- `All Users`
-- `Developers`
-- `Administrators`
+Restricts access to a role or group using an `AtlassianPS.JiraPS.Visibility` object.
+Omit this parameter for unrestricted access.
+A string selects a role; `All Users` selects unrestricted access.
+Use `@{ Type = 'group'; Value = 'jira-users' }` for a group, or supply its `Identifier` where supported by Jira.
+`VisibleRole` remains an alias.
 
 ```yaml
-Type: String
-DefaultValue: All Users
+Type: Visibility
+DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- VisibleRole
 ParameterSets:
 - Name: (All)
   Position: 4
@@ -238,10 +234,7 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues:
-- All Users
-- Developers
-- Administrators
+AcceptedValues: []
 HelpMessage: ''
 ```
 

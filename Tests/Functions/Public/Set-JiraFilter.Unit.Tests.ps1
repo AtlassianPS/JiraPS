@@ -103,7 +103,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'InputObject'; type = 'Object' }
+                    @{ parameter = 'InputObject'; type = "AtlassianPS.JiraPS.Filter" }
                     @{ parameter = 'Name'; type = 'String' }
                     @{ parameter = 'Description'; type = 'String' }
                     @{ parameter = 'JQL'; type = 'String' }
@@ -334,12 +334,12 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "fails with multiple filter objects to the -Filter parameter" {
-                    { Set-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) -Name "test" } | Should -Throw -ExpectedMessage "*'URI'*"
+                    { Set-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) -Name "test" } | Should -Throw -ExpectedMessage "*Filter*"
                 }
 
                 It "fails if something other than [AtlassianPS.JiraPS.Filter] is provided to InputObject" {
-                    { "12345" | Set-JiraFilter -ErrorAction Stop } | Should -Throw -ExpectedMessage "*input object*"
-                    { Set-JiraFilter "12345" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*'InputObject'*"
+                    { Get-Date | Set-JiraFilter -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Filter*"
+
                 }
             }
         }

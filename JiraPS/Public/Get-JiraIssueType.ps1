@@ -3,7 +3,8 @@
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
-        [String[]]
+        [AtlassianPS.JiraPS.IssueTypeTransformation()]
+        [AtlassianPS.JiraPS.IssueType[]]
         $IssueType,
 
         [Parameter()]
@@ -48,8 +49,10 @@
 
                     $allIssueTypes = Get-JiraIssueType -Force:$Force -Credential $Credential
 
-                    Write-Output ($allIssueTypes | Where-Object -FilterScript { $_.Id -eq $_issueType })
-                    Write-Output ($allIssueTypes | Where-Object -FilterScript { $_.Name -like $_issueType })
+                    Write-Output ($allIssueTypes | Where-Object -FilterScript {
+                            if ($null -ne $_issueType.Id) { $_.Id -eq $_issueType.Id }
+                            else { $_.Name -like $_issueType.Name }
+                        })
                 }
             }
         }

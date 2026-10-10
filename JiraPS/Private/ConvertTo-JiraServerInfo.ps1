@@ -9,12 +9,13 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.ServerInfo"
 
             $hash = @{
                 BaseURL                         = [uri]$i.baseUrl
                 Version                         = $i.version
-                DeploymentType                  = if ($i.deploymentType) { $i.deploymentType } else { 'Server' }
+                DeploymentType                  = if ($i.deploymentType) { ConvertTo-JiraEnum -Type ([AtlassianPS.JiraPS.DeploymentType]) -Value $i.deploymentType } else { [AtlassianPS.JiraPS.DeploymentType]::Server }
                 BuildNumber                     = $i.buildNumber
                 BuildDate                       = ConvertTo-JiraDateTimeOffsetValue $i.buildDate
                 ServerTime                      = ConvertTo-JiraDateTimeOffsetValue $i.serverTime
@@ -24,11 +25,11 @@
                 DisplayUrlConfluence            = [uri]$i.displayUrlConfluence
                 DisplayUrlServicedeskHelpCenter = [uri]$i.displayUrlServicedeskHelpCenter
                 BuildPartnerName                = $i.buildPartnerName
-                ServerTimeZone                  = $i.serverTimeZone
-                DefaultLocale                   = $i.defaultLocale
+                ServerTimeZone                  = if ($i.serverTimeZone) { [AtlassianPS.JiraPS.ServerTimeZone]@{ Id = $i.serverTimeZone.id; DisplayName = $i.serverTimeZone.displayName } } else { $null }
+                DefaultLocale                   = if ($i.defaultLocale) { [AtlassianPS.JiraPS.ServerLocale]@{ Locale = $i.defaultLocale.locale } } else { $null }
             }
 
-            if ($i.versionNumbers) {
+            if ($null -ne $i.versionNumbers) {
                 $hash.VersionNumbers = [int[]]@($i.versionNumbers)
             }
 

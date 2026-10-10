@@ -14,23 +14,16 @@ Remove a permission of a Filter
 
 ## SYNTAX
 
-### ByFilterId (Default)
-
 ```powershell
-Remove-JiraFilterPermission [-FilterId] <uint> [-PermissionId] <uint[]> [-Credential <pscredential>]
- [-WhatIf] [-Confirm] [<CommonParameters>]
-```
-
-### ByFilterObject
-
-```powershell
-Remove-JiraFilterPermission [-Filter] <Filter> [-Credential <pscredential>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Remove-JiraFilterPermission [-Filter] <Filter> [[-PermissionId] <FilterPermission[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Remove a sharing permission of a Filter.
+Remove sharing permissions from a filter.
+Pass a filter object or its numeric ID.
+`FilterId` and `Id` remain aliases for `Filter`.
+If `PermissionId` is omitted, the filter must contain permissions retrieved by `Get-JiraFilterPermission`.
 
 ## EXAMPLES
 
@@ -42,7 +35,7 @@ Remove-JiraFilterPermission -FilterId 11822 -PermissionId 1111, 2222
 
 Remove two share permissions of Filter with ID '11822'
 
-### Example 1
+### Example 2
 
 ```powershell
 Get-JiraFilter 11822 | Get-JiraFilterPermission | Remove-JiraFilterPermission
@@ -98,15 +91,17 @@ HelpMessage: ''
 
 ### -Filter
 
-Object of the Filter from which to remove a permission.
+Filter object or positive numeric filter ID from which to remove permissions.
 
 ```yaml
-Type: AtlassianPS.JiraPS.Filter
+Type: Filter
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- FilterId
+- Id
 ParameterSets:
-- Name: ByFilterObject
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
@@ -117,41 +112,20 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -FilterId
-
-Id of the Filter from which to remove a permission.
-
-```yaml
-Type: UInt32
-DefaultValue: ''
-SupportsWildcards: false
-Aliases:
-- Id
-ParameterSets:
-- Name: ByFilterId
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -PermissionId
 
-List of id's of the permissions to remove.
+Permission objects or positive numeric permission IDs.
+If omitted, removes the permissions already present in the supplied filter object.
 
 ```yaml
-Type: UInt32[]
+Type: FilterPermission[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: ByFilterId
+- Name: (All)
   Position: 1
-  IsRequired: true
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false

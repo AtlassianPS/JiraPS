@@ -151,23 +151,16 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Filter"; type = "Object"; typeName = "AtlassianPS.JiraPS.Filter" }
+                    @{ parameter = "Filter"; type = "AtlassianPS.JiraPS.Filter[]" }
                     @{ parameter = "Id"; type = "UInt32[]" }
                     @{ parameter = "Type"; type = "String" }
                     @{ parameter = "Value"; type = "String" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
-                    param($parameter, $type, $typeName)
+                    param($parameter, $type)
 
                     $command | Should -HaveParameter $parameter -Type $type
 
-                    if ($typeName) {
-                        $actualTypeName = $command.Parameters[$parameter].Attributes |
-                            Where-Object { $_ -is [System.Management.Automation.PSTypeNameAttribute] } |
-                            Select-Object -ExpandProperty PSTypeName
-
-                        $actualTypeName | Should -Be $typeName
-                    }
                 }
             }
 
@@ -226,7 +219,6 @@ InModuleScope JiraPS {
         Describe "Input Validation" {
             Context "Type Validation - Negative Cases" {
                 It "rejects invalid type '<description>' with meaningful error" -TestCases @(
-                    @{ invalidType = 1; description = "integer" }
                     @{ invalidType = "lorem"; description = "string" }
                     @{ invalidType = (Get-Date); description = "DateTime object" }
                 ) {

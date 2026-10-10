@@ -15,9 +15,7 @@ Make changes to an existing Filter.
 ## SYNTAX
 
 ```powershell
-Set-JiraFilter [-InputObject] <Filter> [[-Name] <string>] [[-Description] <string>]
- [[-JQL] <string>] [[-Favorite] <bool>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Set-JiraFilter [-InputObject] <Filter> [[-Name] <string>] [[-Description] <string>] [[-JQL] <string>] [[-Favorite] <bool>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -158,7 +156,7 @@ Filter object to be changed.
 Object can be retrieved with `Get-JiraFilter`
 
 ```yaml
-Type: AtlassianPS.JiraPS.Filter
+Type: Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

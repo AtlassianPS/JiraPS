@@ -9,12 +9,13 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Transition"
 
             $props = @{
                 'ID'           = ConvertTo-JiraNullableInt64 $i.id
                 'Name'         = $i.name
-                'ResultStatus' = ConvertTo-JiraStatus -InputObject $i.to
+                'ResultStatus' = if ($null -ne $i.to) { ConvertTo-JiraStatus -InputObject $i.to } else { $null }
             }
 
             [AtlassianPS.JiraPS.Transition]$props

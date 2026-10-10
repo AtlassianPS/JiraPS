@@ -10,6 +10,9 @@
         $Issue,
 
         [Parameter( Mandatory )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.TransitionTransformation()]
+        [AtlassianPS.JiraPS.Transition]
         $Transition,
 
         [PSCustomObject]
@@ -79,24 +82,10 @@
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        if ($Transition -is [AtlassianPS.JiraPS.Transition]) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Transition parameter is an AtlassianPS.JiraPS.Transition object"
-            $transitionId = $Transition.Id
-        }
-        else {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Attempting to cast Transition parameter [$Transition] as int for transition ID"
-            try {
-                $transitionId = [Int]"$Transition"
-            }
-            catch {
-                $exception = ([System.ArgumentException]"Invalid Type for Parameter")
-                $errorId = 'ParameterType.NotJiraTransition'
-                $errorCategory = 'InvalidArgument'
-                $errorTarget = $Transition
-                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [AtlassianPS.JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
-                ThrowError -ErrorRecord $errorItem
-            }
+        $transitionId = $Transition.Id
+        if ($null -eq $transitionId -and $Transition.Name) {
+            $matchingTransitions = @($issueObj.Transition | Where-Object { $_.Name -eq $Transition.Name })
+            if ($matchingTransitions.Count -eq 1) { $transitionId = $matchingTransitions[0].Id }
         }
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Checking that the issue can perform the given transition"

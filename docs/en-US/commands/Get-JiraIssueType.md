@@ -14,16 +14,12 @@ Returns information about the available issue type in JIRA.
 
 ## SYNTAX
 
-### _All (Default)
-
 ```powershell
 Get-JiraIssueType [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
-### _Search
-
 ```powershell
-Get-JiraIssueType [-IssueType] <string[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraIssueType [-IssueType] <IssueType[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -108,10 +104,11 @@ HelpMessage: ''
 
 ### -IssueType
 
-The Issue Type name or ID to search.
+Issue type objects, IDs or wildcard issue type names.
+An object with an ID selects that exact issue type.
 
 ```yaml
-Type: String[]
+Type: IssueType[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

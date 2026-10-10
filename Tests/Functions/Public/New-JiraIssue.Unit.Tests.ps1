@@ -119,20 +119,19 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Project'; type = 'String' }
-                    @{ parameter = 'IssueType'; type = 'String' }
-                    @{ parameter = 'Priority'; type = 'Int32' }
+                    @{ parameter = 'Project'; type = "AtlassianPS.JiraPS.Project" }
+                    @{ parameter = 'IssueType'; type = "AtlassianPS.JiraPS.IssueType" }
+                    @{ parameter = 'Priority'; type = "AtlassianPS.JiraPS.Priority" }
                     @{ parameter = 'Summary'; type = 'String' }
                     @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'Reporter'; type = 'User' }
+                    @{ parameter = 'Reporter'; type = "AtlassianPS.JiraPS.User" }
                     @{ parameter = 'Label'; type = 'String[]' }
-                    @{ parameter = 'Components'; type = 'String[]' }
+                    @{ parameter = 'Components'; type = "AtlassianPS.JiraPS.Component[]" }
                     @{ parameter = 'Fields'; type = 'PSObject' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
-                    $command | Should -HaveParameter $parameter
-                    $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
+                    $command | Should -HaveParameter $parameter -Type $type
                 }
 
             }

@@ -14,22 +14,12 @@ Creates a new issue in JIRA
 
 ## SYNTAX
 
-### AssignToUser (Default)
-
 ```powershell
-New-JiraIssue -Project <string> -IssueType <string> -Summary <string> [-Priority <int>]
- [-Description <string>] [-Reporter <User>] [-Assignee <User>] [-Label <string[]>]
- [-Parent <string>] [-FixVersion <string[]>] [-Fields <psobject>] [-Components <string[]>]
- [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraIssue -Project <Project> -IssueType <IssueType> -Summary <string> [-Priority <Priority>] [-Description <string>] [-Reporter <User>] [-Assignee <User>] [-Label <string[]>] [-Parent <string>] [-FixVersion <Version[]>] [-Fields <psobject>] [-Components <Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-### Unassign
-
 ```powershell
-New-JiraIssue -Project <string> -IssueType <string> -Summary <string> [-Priority <int>]
- [-Description <string>] [-Reporter <User>] [-Unassign] [-Label <string[]>] [-Parent <string>]
- [-FixVersion <string[]>] [-Fields <psobject>] [-Components <string[]>] [-Credential <pscredential>]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraIssue -Project <Project> -IssueType <IssueType> -Summary <string> [-Priority <Priority>] [-Description <string>] [-Reporter <User>] [-Unassign] [-Label <string[]>] [-Parent <string>] [-FixVersion <Version[]>] [-Fields <psobject>] [-Components <Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -149,10 +139,10 @@ HelpMessage: ''
 
 ### -Components
 
-List of component ids which will be added to the issue.
+Component objects, IDs or names to add to the issue.
 
 ```yaml
-Type: String[]
+Type: Component[]
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []
@@ -267,10 +257,10 @@ HelpMessage: ''
 
 ### -FixVersion
 
-Set the FixVersion of the issue.
+Version objects, IDs or names to assign as fix versions.
 
 ```yaml
-Type: String[]
+Type: Version[]
 DefaultValue: None
 SupportsWildcards: false
 Aliases:
@@ -289,10 +279,11 @@ HelpMessage: ''
 
 ### -IssueType
 
-Type of the issue.
+Issue type object, ID or name available in the selected project.
+An object with an ID selects that exact issue type.
 
 ```yaml
-Type: String
+Type: IssueType
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []
@@ -353,11 +344,11 @@ HelpMessage: ''
 
 ### -Priority
 
-ID of the Priority the issue shall have.
+Priority object, ID or unambiguous priority name.
 
 ```yaml
-Type: Int32
-DefaultValue: 0
+Type: Priority
+DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -374,10 +365,10 @@ HelpMessage: ''
 
 ### -Project
 
-Project in which to create the issue.
+Project object, key or ID in which to create the issue.
 
 ```yaml
-Type: String
+Type: Project
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []

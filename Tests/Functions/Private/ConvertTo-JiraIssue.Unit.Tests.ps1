@@ -1010,9 +1010,9 @@ InModuleScope JiraPS {
                     $converted = ConvertTo-JiraIssue -InputObject $issueWithOneHistory
 
                     $converted.PSObject.Properties.Name | Should -Contain 'History'
-                    ($converted.History -is [Object[]]) | Should -BeTrue
+                    ($converted.History -is [AtlassianPS.JiraPS.IssueHistoryEntry[]]) | Should -BeTrue
                     @($converted.History) | Should -HaveCount 1
-                    @($converted.History)[0].PSObject.TypeNames[0] | Should -Be 'JiraPS.IssueHistoryEntry'
+                    @($converted.History)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.IssueHistoryEntry'
                 }
 
                 It "adds History as an array when changelog contains multiple entries" {
@@ -1038,17 +1038,17 @@ InModuleScope JiraPS {
                     $converted = ConvertTo-JiraIssue -InputObject $issueWithTwoHistories
 
                     $converted.PSObject.Properties.Name | Should -Contain 'History'
-                    ($converted.History -is [Object[]]) | Should -BeTrue
+                    ($converted.History -is [AtlassianPS.JiraPS.IssueHistoryEntry[]]) | Should -BeTrue
                     @($converted.History) | Should -HaveCount 2
                 }
 
-                It "omits History when changelog is absent" {
+                It "leaves History null when changelog is absent" {
                     $issueWithoutChangelog = ConvertFrom-Json -InputObject $sampleJson
                     [void]$issueWithoutChangelog.PSObject.Properties.Remove('changelog')
 
                     $converted = ConvertTo-JiraIssue -InputObject $issueWithoutChangelog
 
-                    $converted.PSObject.Properties.Name | Should -Not -Contain 'History'
+                    $converted.History | Should -BeNullOrEmpty
                 }
             }
 

@@ -15,8 +15,7 @@ Returns metadata required to create an issue in JIRA
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueCreateMetadata [-Project] <string> [-IssueType] <string> [[-Credential] <pscredential>]
- [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraIssueCreateMetadata [-Project] <Project> [-IssueType] <IssueType> [[-Credential] <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -133,7 +132,7 @@ HelpMessage: ''
 Issue type ID or name.
 
 ```yaml
-Type: String
+Type: IssueType
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -154,7 +153,7 @@ HelpMessage: ''
 Project ID or key of the reference issue.
 
 ```yaml
-Type: String
+Type: Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

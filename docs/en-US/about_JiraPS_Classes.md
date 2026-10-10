@@ -90,3 +90,25 @@ In practice, prefer explicit property access for stable fields and avoid relying
 - [about_JiraPS_MigrationV3](migration-v3.html)
 - [Get-JiraIssue](../commands/Get-JiraIssue/)
 - [Set-JiraIssue](../commands/Set-JiraIssue/)
+
+## Nested object and parameter contracts
+
+Issue history and its items, remote-link details, visibility, role actors, filter sharing/subscriptions and field schemas now use concrete CLR types.
+An unassigned issue has `$null` in its `Assignee` property.
+Test it with `$null -eq $issue.Assignee` instead of comparing against `Unassigned`.
+Known nested issue fields, including versions, components and worklogs, are declared typed properties.
+Present empty collections remain empty arrays; missing optional values remain `$null`.
+
+```powershell
+$issue = Get-JiraIssue TEST-1
+if ($null -eq $issue.Assignee) { 'This issue is unassigned.' }
+$issue.Transition[0] | ForEach-Object { Invoke-JiraIssueTransition -Issue $issue -Transition $_ }
+Add-JiraIssueComment -Issue $issue -Comment 'Team note' -Visibility @{ Type = 'group'; Value = 'jira-users' }
+```
+
+`VisibleRole` remains an alias for `Visibility`; role strings and `All Users` remain accepted shorthand.
+Filters and leaf inputs now use typed parameters where a cmdlet consumes those objects.
+`Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and optional typed permission IDs.
+Some stable string-set properties are nullable enums; unknown API values become `$null`.
+Custom-field data, entity-property values, allowed field values and raw REST responses remain extensible.
+See the [complete object and parameter inventory](../v3-object-contracts.md) for property types, converter/cmdlet mappings, transformer decisions and the remaining session/identity coordination.

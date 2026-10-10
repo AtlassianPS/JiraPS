@@ -27,6 +27,13 @@ For the migration playbook and concrete before/after script examples, see [`abou
 
 - Fixed HTTP error handling on PowerShell 7 when `ErrorDetails` is missing (#604).
   Empty responses now report the HTTP status instead of failing with a `GetResponseStream` error, while Windows PowerShell 5.1 retains stream-based error parsing.
+- Completed stable nested CLR return models for issue history, remote links, visibility, role actors, schemas, filter collections and standard issue fields (#681).
+  Unassigned issues now return `$null` in the typed `User` assignee property.
+  Known string-set properties use nullable enums; unknown wire values become `$null`.
+- Added typed leaf and filter parameters, retained identifier/name shorthand, and removed unused leaf transformation attributes.
+  `Add-JiraIssueComment` and `Add-JiraIssueWorklog` accept typed role/group `Visibility`, with `VisibleRole` retained as an alias.
+  `Remove-JiraFilterPermission` uses one typed filter parameter with `FilterId`/`Id` aliases and optional typed permission IDs.
+  Added the v3 contract inventory and migration examples.
 
 - Fixed `Get-JiraIssueCreateMetadata` returning no fields on Jira Cloud by recognizing its `fields` response array and following offset pagination on v3 endpoints.
   Data Center retains its v2 `values` response support, and `-First` / `-Skip` now return the requested fields across page boundaries (#651).

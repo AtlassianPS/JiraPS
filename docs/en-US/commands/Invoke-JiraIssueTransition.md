@@ -14,19 +14,12 @@ Performs an issue transition on a JIRA issue changing it's status
 
 ## SYNTAX
 
-### AssignToUser (Default)
-
 ```powershell
-Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobject>]
- [-Assignee <User>] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru]
- [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <Issue> -Transition <Transition> [-Fields <psobject>] [-Assignee <User>] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
 
-### Unassign
-
 ```powershell
-Invoke-JiraIssueTransition -Issue <Issue> -Transition <Object> [-Fields <psobject>] [-Unassign]
- [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <Issue> -Transition <Transition> [-Fields <psobject>] [-Unassign] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -246,10 +239,10 @@ HelpMessage: ''
 
 ### -Transition
 
-The Transition Object or it's ID.
+Transition object, numeric ID or unambiguous available transition name.
 
 ```yaml
-Type: Object
+Type: Transition
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

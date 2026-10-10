@@ -14,16 +14,12 @@ This function returns information about JIRA fields
 
 ## SYNTAX
 
-### _All (Default)
-
 ```powershell
 Get-JiraField [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
-### _Search
-
 ```powershell
-Get-JiraField [-Field] <string[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraField [-Field] <Field[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -89,10 +85,11 @@ HelpMessage: ''
 
 ### -Field
 
-The Field name or ID to search.
+Field objects, field IDs or wildcard field names.
+An exact ID takes precedence over a display-name match.
 
 ```yaml
-Type: String[]
+Type: Field[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

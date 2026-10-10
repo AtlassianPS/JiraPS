@@ -3,7 +3,8 @@
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
-        [String[]]
+        [AtlassianPS.JiraPS.FieldTransformation()]
+        [AtlassianPS.JiraPS.Field[]]
         $Field,
 
         [Parameter()]
@@ -48,7 +49,14 @@
 
                     $allFields = Get-JiraField -Force:$Force -Credential $Credential
 
-                    Write-Output ($allFields | Where-Object -FilterScript { ($_.Id -eq $_field) -or ($_.Name -like $_field) })
+                    $matchesById = @($allFields | Where-Object { $_field.Id -and $_.Id -eq $_field.Id })
+                    if ($matchesById.Count -gt 0 -or ($_field.Id -and $_field.Name)) {
+                        Write-Output $matchesById
+                    }
+                    else {
+                        $pattern = if ($_field.Name) { $_field.Name } else { $_field.Id }
+                        Write-Output ($allFields | Where-Object { $_.Name -like $pattern })
+                    }
                 }
             }
         }

@@ -8,7 +8,7 @@
 
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputVersion' )]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.VersionTransformation()]
+        [AtlassianPS.JiraPS.VersionTransformation(AllowPipelineFallthrough = $true)]
         [AtlassianPS.JiraPS.Version]
         $InputVersion,
 
@@ -18,7 +18,8 @@
         $Project,
 
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputProject' )]
-        [PSTypeName('AtlassianPS.JiraPS.Project')]
+        [AtlassianPS.JiraPS.ProjectTransformation(AllowPipelineFallthrough = $true)]
+        [AtlassianPS.JiraPS.Project[]]
         $InputProject,
 
         [Parameter( ParameterSetName = 'byProject' )]
@@ -58,7 +59,7 @@
 
         $ParameterSetName = ''
         switch ($PsCmdlet.ParameterSetName) {
-            'byInputProject' { $Project = $InputProject.Key; $ParameterSetName = 'byProject' }
+            'byInputProject' { $Project = @($InputProject | ForEach-Object { if ($_.Key) { $_.Key } else { $_.Id } }); $ParameterSetName = 'byProject' }
             'byInputVersion' {
                 if (-not $InputVersion.Id) {
                     $errorItem = [System.Management.Automation.ErrorRecord]::new(

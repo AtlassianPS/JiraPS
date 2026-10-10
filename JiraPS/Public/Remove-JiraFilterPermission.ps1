@@ -1,47 +1,22 @@
 ﻿function Remove-JiraFilterPermission {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ByFilterId' )]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByFilterObject' )]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript(
-            {
-                if (@($Filter).Count -gt 1) {
-                    $exception = ([System.ArgumentException]"Invalid Parameter")
-                    $errorId = 'ParameterType.TooManyFilters'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "Only one Filter can be passed at a time."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-                elseif (@($_.FilterPermissions).Count -lt 1) {
-                    $exception = ([System.ArgumentException]"Invalid Type for Parameter")
-                    $errorId = 'ParameterType.FilterWithoutPermission'
-                    $errorCategory = 'InvalidArgument'
-                    $errorTarget = $_
-                    $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                    $errorItem.ErrorDetails = "The Filter provided does not contain any Permission to delete."
-                    $PSCmdlet.ThrowTerminatingError($errorItem)
-                }
-                else {
-                    return $true
-                }
-            }
-        )]
-        [PSTypeName('AtlassianPS.JiraPS.Filter')]
+        [Parameter(Position = 0, Mandatory, ValueFromPipeline)]
+        [ValidateNotNull()]
+        [Alias('FilterId', 'Id')]
+        [AtlassianPS.JiraPS.FilterTransformation()]
+        [AtlassianPS.JiraPS.Filter]
         $Filter,
 
-        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByFilterId' )]
+        [Parameter(Position = 1)]
         [ValidateNotNullOrEmpty()]
-        [Alias('Id')]
-        [UInt32]
-        $FilterId,
-
-        # TODO: [Parameter( Position = 1, ParameterSetName = 'ByFilterObject')]
-        [Parameter( Position = 1, Mandatory, ParameterSetName = 'ByFilterId')]
-        [ValidateNotNullOrEmpty()]
-        [UInt32[]]
+        [AtlassianPS.JiraPS.FilterPermissionTransformation()]
+        [ValidateScript({
+                if ($null -eq $_.Id -or $_.Id -le 0) { throw 'PermissionId must contain positive numeric permission IDs.' }
+                return $true
+            })]
+        [AtlassianPS.JiraPS.FilterPermission[]]
         $PermissionId,
 
         [Parameter()]
@@ -50,37 +25,22 @@
         $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
-    begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-    }
-
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        switch ($PSCmdlet.ParameterSetName) {
-            "ByFilterObject" {
-                $PermissionId = $Filter.FilterPermissions.Id
-            }
-            "ByFilterId" {
-                $Filter = Get-JiraFilter -Id $FilterId
-            }
+        $filterObject = if ($Filter.RestUrl) { $Filter } else { Get-JiraFilter -Id $Filter.Id -Credential $Credential -ErrorAction Stop }
+        $permissions = if ($PSBoundParameters.ContainsKey('PermissionId')) { $PermissionId } else { $filterObject.FilterPermissions }
+        if (-not $permissions) {
+            throw 'The Filter has no permissions to remove. Supply PermissionId or retrieve it with Get-JiraFilterPermission first.'
         }
-
-        foreach ($_permissionId in $PermissionId) {
+        foreach ($permission in $permissions) {
+            if ($null -eq $permission.Id -or $permission.Id -le 0) { throw 'PermissionId must contain positive numeric permission IDs.' }
             $parameter = @{
-                URI        = "{0}/permission/{1}" -f $Filter.RestURL, $_permissionId
-                Method     = "DELETE"
+                URI        = "{0}/permission/{1}" -f $filterObject.RestUrl, $permission.Id
+                Method     = 'DELETE'
                 Credential = $Credential
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($InputObject.Type, "Remove Permission")) {
+            if ($PSCmdlet.ShouldProcess($filterObject.Name, "Remove permission $($permission.Id)")) {
                 Invoke-JiraMethod @parameter
             }
         }
-    }
-
-    end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

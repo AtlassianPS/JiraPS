@@ -4,7 +4,8 @@
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
-        [PSTypeName('AtlassianPS.JiraPS.Filter')]
+        [AtlassianPS.JiraPS.FilterTransformation()]
+        [AtlassianPS.JiraPS.Filter]
         $InputObject,
 
         [Parameter()]
@@ -39,6 +40,10 @@
     process {
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+
+        if ($InputObject -and -not $InputObject.RestUrl) {
+            $InputObject = Get-JiraFilter -Id $InputObject.Id -Credential $Credential -ErrorAction Stop
+        }
 
         $requestBody = @{}
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) {

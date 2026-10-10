@@ -120,7 +120,7 @@ namespace AtlassianPS.JiraPS
         public bool Subtask { get; set; }
         public long? AvatarId { get; set; }
         public int? HierarchyLevel { get; set; }
-        public object Scope { get; set; }
+        public IssueTypeScope Scope { get; set; }
 
         public IssueType() { }
 
@@ -149,8 +149,8 @@ namespace AtlassianPS.JiraPS
         public string ProjectName { get; set; }
         public string ProjectId { get; set; }
         public string Description { get; set; }
-        public string AssigneeType { get; set; }
-        public string RealAssigneeType { get; set; }
+        public AssigneeType? AssigneeType { get; set; }
+        public AssigneeType? RealAssigneeType { get; set; }
         public bool? IsAssigneeTypeValid { get; set; }
 
         public Component() { }
@@ -179,7 +179,7 @@ namespace AtlassianPS.JiraPS
         public bool Navigable { get; set; }
         public bool Searchable { get; set; }
         public string[] ClauseNames { get; set; }
-        public object Schema { get; set; }
+        public FieldSchema Schema { get; set; }
 
         public Field() { }
 
@@ -318,7 +318,7 @@ namespace AtlassianPS.JiraPS
     public class Worklogitem
     {
         public long? Id { get; set; }
-        public object Visibility { get; set; }
+        public Visibility Visibility { get; set; }
         public string Comment { get; set; }
         public Uri RestUrl { get; set; }
         public User Author { get; set; }
@@ -386,10 +386,10 @@ namespace AtlassianPS.JiraPS
         public long? Id { get; set; }
         public Uri RestUrl { get; set; }
         public string GlobalId { get; set; }
-        public object Application { get; set; }
+        public LinkApplication Application { get; set; }
         public string Relationship { get; set; }
         // Jira wire field `object`; renamed to avoid shadowing System.Object.
-        public object RemoteObject { get; set; }
+        public RemoteLinkObject RemoteObject { get; set; }
 
         public Link() { }
 
@@ -417,7 +417,7 @@ namespace AtlassianPS.JiraPS
         public long? Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public object Actors { get; set; }
+        public RoleActor[] Actors { get; set; }
         public Uri RestUrl { get; set; }
 
         public ProjectRole() { }
@@ -448,7 +448,8 @@ namespace AtlassianPS.JiraPS
     public class FilterPermission
     {
         public long? Id { get; set; }
-        public string Type { get; set; }
+        public FilterShareType? Type { get; set; }
+        public User User { get; set; }
         public Group Group { get; set; }
         public Project Project { get; set; }
         public ProjectRole Role { get; set; }
@@ -470,7 +471,7 @@ namespace AtlassianPS.JiraPS
 
         public override string ToString()
         {
-            return Type ?? string.Empty;
+            return Type.HasValue ? Type.Value.ToString() : string.Empty;
         }
     }
 
@@ -480,9 +481,9 @@ namespace AtlassianPS.JiraPS
         public string Name { get; set; }
         public bool HasDefaultValue { get; set; }
         public bool Required { get; set; }
-        public object Schema { get; set; }
-        public object Operations { get; set; }
-        public object AllowedValues { get; set; }
+        public FieldSchema Schema { get; set; }
+        public string[] Operations { get; set; }
+        public object[] AllowedValues { get; set; }
         public Uri AutoCompleteUrl { get; set; }
 
         public CreateMetaField() { }

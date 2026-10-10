@@ -103,7 +103,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'InputObject'; type = 'Object' }
+                    @{ parameter = 'InputObject'; type = "AtlassianPS.JiraPS.Filter[]" }
                     @{ parameter = 'Id'; type = 'UInt32[]' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
@@ -185,8 +185,8 @@ InModuleScope JiraPS {
                 }
 
                 It "fails if something other than [AtlassianPS.JiraPS.Filter] is provided" {
-                    { Get-Date | Remove-JiraFilter -ErrorAction Stop } | Should -Throw -ExpectedMessage "*input object*"
-                    { Remove-JiraFilter "12345" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*'InputObject'*"
+                    { Get-Date | Remove-JiraFilter -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Filter*"
+
                 }
             }
         }

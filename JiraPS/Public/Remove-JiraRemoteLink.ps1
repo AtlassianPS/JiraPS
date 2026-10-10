@@ -10,7 +10,8 @@
         $Issue,
 
         [Parameter( Mandatory )]
-        [Int[]]
+        [AtlassianPS.JiraPS.LinkTransformation()]
+        [AtlassianPS.JiraPS.Link[]]
         $LinkId,
 
         [Parameter()]
@@ -49,7 +50,7 @@
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_link [$_link]"
 
             $parameter = @{
-                URI        = $resourceURi -f $issueObj.Key, $_link
+                URI        = $resourceURi -f $issueObj.Key, $_link.Id
                 Method     = "DELETE"
                 Credential = $Credential
             }

@@ -161,10 +161,10 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
-                    @{ parameter = "Transition"; type = "Object" }
+                    @{ parameter = "Transition"; type = "AtlassianPS.JiraPS.Transition" }
                     @{ parameter = "Comment"; type = "String" }
                     @{ parameter = "TimeSpent"; type = "TimeSpan" }
-                    @{ parameter = "Assignee"; type = "User" }
+                    @{ parameter = "Assignee"; type = "AtlassianPS.JiraPS.User" }
                     @{ parameter = "Unassign"; type = "Switch" }
                     @{ parameter = "Fields"; type = "PSCustomObject" }
                     @{ parameter = "Passthru"; type = "Switch" }

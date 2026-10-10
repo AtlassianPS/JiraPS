@@ -20,12 +20,13 @@
             'Status', 'IssueLinks', 'Attachment', 'Project',
             'Assignee', 'Creator', 'Reporter',
             'Created', 'LastViewed', 'Updated',
-            'Fields', 'Expand', 'Transition', 'Comment'
+            'Fields', 'Expand', 'Transition', 'Comment', 'History'
         )
     }
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Issue"
 
             # Derive the user-facing /browse URL from the item's own self link.
@@ -46,11 +47,11 @@
 
             if ($i.fields.status) { $hash.Status = ConvertTo-JiraStatus -InputObject $i.fields.status }
 
-            if ($i.fields.issuelinks) {
+            if ($null -ne $i.fields.issuelinks) {
                 $hash.IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks)
             }
 
-            if ($i.fields.attachment) {
+            if ($null -ne $i.fields.attachment) {
                 $hash.Attachment = [AtlassianPS.JiraPS.Attachment[]]@(ConvertTo-JiraAttachment $i.fields.attachment)
             }
 
@@ -59,7 +60,7 @@
             }
 
             if ($i.changelog) {
-                $history = [object[]]@(
+                $hash.History = [AtlassianPS.JiraPS.IssueHistoryEntry[]]@(
                     foreach ($entry in $i.changelog.histories) {
                         ConvertTo-JiraIssueHistoryEntry -InputObject $entry
                     }
@@ -70,11 +71,6 @@
                 if ($i.fields.$field) {
                     $hash.$field = ConvertTo-JiraUser -InputObject $i.fields.$field
                 }
-                elseif ($field -eq 'Assignee') {
-                    # Legacy sentinel. Surfaced as a string so downstream
-                    # `if ($issue.Assignee -eq 'Unassigned')` checks keep working.
-                    $hash.Assignee = 'Unassigned'
-                }
             }
 
             foreach ($field in @('Created', 'LastViewed', 'Updated')) {
@@ -84,7 +80,10 @@
             }
 
             if ($IncludeDebug) {
-                $hash.Fields = ConvertTo-Hashtable -InputObject $i.fields
+                $hash.Fields = [System.Collections.Generic.Dictionary[string, object]]::new()
+                foreach ($property in $i.fields.PSObject.Properties) {
+                    $hash.Fields[$property.Name] = $property.Value
+                }
                 $hash.Expand = $i.expand
             }
 
@@ -94,7 +93,7 @@
             }
             $hash.Transition = $transitions.ToArray()
 
-            if ($i.fields.comment -and $i.fields.comment.comments) {
+            if ($null -ne $i.fields.comment.comments) {
                 $comments = foreach ($c in $i.fields.comment.comments) {
                     ConvertTo-JiraComment -InputObject $c
                 }
@@ -118,22 +117,83 @@
                     'issuetype' { ConvertTo-JiraIssueType -InputObject $f.Value; break }
                     'priority' { ConvertTo-JiraPriority -InputObject $f.Value; break }
                     'resolution' { if ($f.Value) { ConvertTo-JiraResolution -InputObject $f.Value } else { $null }; break }
-                    'components' { [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent -InputObject $f.Value); break }
+                    'components' { , [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent -InputObject $f.Value); break }
                     'worklog' {
                         if ($f.Value.worklogs) {
-                            [AtlassianPS.JiraPS.Worklogitem[]]@(ConvertTo-JiraWorklogitem -InputObject $f.Value.worklogs)
+                            , [AtlassianPS.JiraPS.Worklogitem[]]@(ConvertTo-JiraWorklogitem -InputObject $f.Value.worklogs)
                         }
-                        else { $f.Value }
+                        else { , [AtlassianPS.JiraPS.Worklogitem[]]@() }
                         break
                     }
-                    Default { $f.Value }
+                    'fixVersions' { , [AtlassianPS.JiraPS.Version[]]@(ConvertTo-JiraVersion $f.Value); break }
+                    'versions' { , [AtlassianPS.JiraPS.Version[]]@(ConvertTo-JiraVersion $f.Value); break }
+                    'parent' { if ($f.Value) { ConvertTo-JiraIssue $f.Value }; break }
+                    'subtasks' { , [AtlassianPS.JiraPS.Issue[]]@(ConvertTo-JiraIssue $f.Value); break }
+                    'watches' {
+                        if ($f.Value) {
+                            [AtlassianPS.JiraPS.IssueWatches]@{
+                                Self       = [uri]$f.Value.self
+                                WatchCount = ConvertTo-JiraNullableInt64 $f.Value.watchCount
+                                IsWatching = $f.Value.isWatching
+                                Watchers   = [AtlassianPS.JiraPS.User[]]@(ConvertTo-JiraUser $f.Value.watchers)
+                            }
+                        }
+                        break
+                    }
+                    'votes' {
+                        if ($f.Value) {
+                            [AtlassianPS.JiraPS.IssueVotes]@{
+                                Self     = [uri]$f.Value.self
+                                Votes    = ConvertTo-JiraNullableInt64 $f.Value.votes
+                                HasVoted = $f.Value.hasVoted
+                                Voters   = [AtlassianPS.JiraPS.User[]]@(ConvertTo-JiraUser $f.Value.voters)
+                            }
+                        }
+                        break
+                    }
+                    { $_ -in 'progress', 'aggregateprogress' } {
+                        if ($f.Value) {
+                            [AtlassianPS.JiraPS.IssueProgress]@{
+                                Progress = ConvertTo-JiraNullableInt64 $f.Value.progress
+                                Total    = ConvertTo-JiraNullableInt64 $f.Value.total
+                                Percent  = ConvertTo-JiraNullableInt64 $f.Value.percent
+                            }
+                        }
+                        break
+                    }
+                    'timetracking' {
+                        if ($f.Value) {
+                            [AtlassianPS.JiraPS.IssueTimeTracking]@{
+                                OriginalEstimate         = $f.Value.originalEstimate
+                                RemainingEstimate        = $f.Value.remainingEstimate
+                                TimeSpent                = $f.Value.timeSpent
+                                OriginalEstimateSeconds  = ConvertTo-JiraNullableInt64 $f.Value.originalEstimateSeconds
+                                RemainingEstimateSeconds = ConvertTo-JiraNullableInt64 $f.Value.remainingEstimateSeconds
+                                TimeSpentSeconds         = ConvertTo-JiraNullableInt64 $f.Value.timeSpentSeconds
+                            }
+                        }
+                        break
+                    }
+                    'security' {
+                        if ($f.Value) {
+                            [AtlassianPS.JiraPS.IssueSecurityLevel]@{
+                                Id          = $f.Value.id
+                                Name        = $f.Value.name
+                                Description = $f.Value.description
+                                Self        = [uri]$f.Value.self
+                            }
+                        }
+                        break
+                    }
+                    default { , $f.Value }
                 }
 
-                $result | Add-Member -MemberType NoteProperty -Name $f.Name -Value $value -Force
-            }
-
-            if ($i.changelog) {
-                $result | Add-Member -MemberType NoteProperty -Name History -Value $history -Force
+                if ($result.PSObject.Properties[$f.Name].MemberType -eq 'Property') {
+                    $result.($f.Name) = $value
+                }
+                else {
+                    $result | Add-Member -MemberType NoteProperty -Name $f.Name -Value $value -Force
+                }
             }
 
             $result

@@ -185,9 +185,15 @@ InModuleScope JiraPS {
                     $null = $script:createdVersions.Add($version)
 
                     $newDescription = "Updated at $(Get-Date)"
-                    Set-JiraVersion -Version $version -Description $newDescription
+                    $written = Set-JiraVersion -Version $version -Description $newDescription
+                    $written.Description | Should -Be $newDescription
 
-                    $updated = Get-JiraVersion -Project $fixtures.TestProject -Name $version.Name
+                    $deadline = (Get-Date).AddSeconds(60)
+                    do {
+                        $updated = Get-JiraVersion -Project $fixtures.TestProject -Name $version.Name
+                        if ($updated.Description -eq $newDescription) { break }
+                        Start-Sleep -Milliseconds 500
+                    } while ((Get-Date) -lt $deadline)
                     $updated.Description | Should -Be $newDescription
                 }
 
