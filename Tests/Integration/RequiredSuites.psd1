@@ -29,5 +29,15 @@
             Cloud  = @()
             Server = @()
         }
+        @{
+            File   = 'EnumContracts.Integration.Tests.ps1'
+            Common = @(
+                'Enum Contracts.converts a live user role actor'
+                'Enum Contracts.converts a live group role actor'
+                'Enum Contracts.converts a live project-role filter share'
+            )
+            Cloud  = @()
+            Server = @()
+        }
     )
 }

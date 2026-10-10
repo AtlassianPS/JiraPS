@@ -7,6 +7,20 @@ BeforeDiscovery {
 
 InModuleScope JiraPS {
     Describe 'ConvertTo-JiraEnum' -Tag Unit {
+        It 'maps Jira wire value <value> to <expected>' -TestCases @(
+            @{ value = 'atlassian-user-role-actor'; expected = [AtlassianPS.JiraPS.ActorType]::AtlassianUserRoleActor }
+            @{ value = 'atlassian-group-role-actor'; expected = [AtlassianPS.JiraPS.ActorType]::AtlassianGroupRoleActor }
+            @{ value = 'projectRole'; expected = [AtlassianPS.JiraPS.FilterShareType]::ROLE }
+            @{ value = 'ATLASSIAN-USER-ROLE-ACTOR'; expected = [AtlassianPS.JiraPS.ActorType]::AtlassianUserRoleActor }
+            @{ value = 'ATLASSIAN-GROUP-ROLE-ACTOR'; expected = [AtlassianPS.JiraPS.ActorType]::AtlassianGroupRoleActor }
+            @{ value = 'PROJECTROLE'; expected = [AtlassianPS.JiraPS.FilterShareType]::ROLE }
+        ) {
+            param($value, $expected)
+            $actual = ConvertTo-JiraEnum -Type $expected.GetType() -Value $value
+            $actual | Should -BeOfType $expected.GetType()
+            $actual | Should -Be $expected
+        }
+
         It 'defines the known <name> values and maps every member' -TestCases @(
             @{ name = 'DeploymentType'; members = @('Cloud', 'Server', 'DataCenter') }
             @{ name = 'AccountType'; members = @('atlassian', 'app', 'customer') }

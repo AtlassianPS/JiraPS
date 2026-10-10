@@ -463,7 +463,7 @@ The check fails if the NUnit report is missing or malformed, a required suite or
 It checks test cases because Pester can mark a suite `Ignored` when it contains intentional deployment-specific skips.
 Result artifacts still upload when verification fails.
 
-`Tests/Integration/RequiredSuites.psd1` maintains the required suites, including Groups and HTTP error handling.
+`Tests/Integration/RequiredSuites.psd1` maintains the required suites, including Groups, HTTP error handling and enum conversion.
 Each entry specifies the file name and full NUnit test names under `Common`, `Cloud`, and `Server`.
 Common tests and tests for the selected track must execute successfully.
 Only tests listed exclusively for the other track may skip.
@@ -479,6 +479,16 @@ To check an existing report locally:
 ```
 
 Smoke runs and intentionally filtered local runs do not automatically apply this full-suite gate.
+
+### Enum conversion coverage
+
+`EnumContracts.Integration.Tests.ps1` creates a temporary project role with the configured test user and group, then shares a temporary filter with that role.
+It verifies both actor enum mappings against live responses and checks that a role-specific filter permission retains its enum type, project and role.
+The creation request uses `type: projectRole`; Jira returns the permission as `type: project` with a nested role.
+Unit tests also cover conversion of the `projectRole` spelling.
+All three integration cases must pass on both Cloud and Data Center.
+The suite requires a writable Jira administrator account and configured `TestProject`, `TestUser` and `TestGroup` fixtures.
+Cleanup removes the temporary filter and role without changing existing role memberships.
 
 ## Troubleshooting
 

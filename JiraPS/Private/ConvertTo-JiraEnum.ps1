@@ -10,14 +10,13 @@
     if ($null -eq $Value) { return $null }
     $name = [string]$Value
     if ($Type -eq [AtlassianPS.JiraPS.ActorType]) {
-        $name = switch ($name) {
-            'atlassian-user-role-actor' { 'AtlassianUserRoleActor' }
-            'atlassian-group-role-actor' { 'AtlassianGroupRoleActor' }
-            default { $name }
+        switch ($name) {
+            'atlassian-user-role-actor' { return [AtlassianPS.JiraPS.ActorType]::AtlassianUserRoleActor }
+            'atlassian-group-role-actor' { return [AtlassianPS.JiraPS.ActorType]::AtlassianGroupRoleActor }
         }
     }
     elseif ($Type -eq [AtlassianPS.JiraPS.FilterShareType] -and $name -eq 'projectRole') {
-        $name = 'ROLE'
+        return [AtlassianPS.JiraPS.FilterShareType]::ROLE
     }
     if ([Enum]::GetNames($Type) -icontains $name) {
         [Enum]::Parse($Type, $name, $true)
