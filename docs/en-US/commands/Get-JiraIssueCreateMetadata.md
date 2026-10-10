@@ -26,7 +26,8 @@ This can be used to identify custom fields in order to pass them to `New-JiraIss
 
 This function is particularly useful when your JIRA instance includes custom fields that are marked as mandatory.
 
-The cmdlet walks every page of the Jira Cloud createmeta response, so the full set of fields is returned by default even when the issue type has more fields than a single page holds.
+The cmdlet returns typed `AtlassianPS.JiraPS.CreateMetaField` objects and walks every offset page on Jira Cloud and Data Center.
+The full set of fields is returned by default even when the issue type has more fields than a single page holds.
 Use the `-First` / `-Skip` / `-IncludeTotalCount` common pagination parameters to limit or offset the results.
 
 ## EXAMPLES
@@ -203,7 +204,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.Field
+### AtlassianPS.JiraPS.CreateMetaField
 
 ## NOTES
 

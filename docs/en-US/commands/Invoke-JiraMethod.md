@@ -430,6 +430,8 @@ HelpMessage: ''
 ### -IncludeTotalCount
 
 Causes an extra output of the total count at the beginning.
+The count uses Jira's reported total before `-First` and `-Skip` are applied.
+If Jira does not report a total, the count is marked as unknown with `Accuracy` set to `0`.
 
 Note this is actually a uInt64, but with a custom string representation.
 

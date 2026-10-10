@@ -71,7 +71,16 @@
             $offset = $PSCmdlet.PagingParameters.Skip
         }
 
-        $isTokenPaged = "$URI" -match '/rest/api/3'
+        if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
+            if ($null -ne $Response.total) {
+                $PSCmdlet.PagingParameters.NewTotalCount($Response.total, 1.0)
+            }
+            else {
+                $PSCmdlet.PagingParameters.NewTotalCount(0, 0.0)
+            }
+        }
+
+        $isTokenPaged = $Response.PSObject.Properties.Name -contains "nextPageToken"
 
         do {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Invoking pagination [currentTotal: $total]"
@@ -84,8 +93,9 @@
             }
 
             if ($total -gt $PSCmdlet.PagingParameters.First) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $($PSCmdlet.PagingParameters.First % $pageSize) of page"
-                $result = $result | Select-Object -First ($PSCmdlet.PagingParameters.First % $pageSize)
+                $remaining = $PSCmdlet.PagingParameters.First - ($total - @($result).Count)
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $remaining of page"
+                $result = $result | Select-Object -First $remaining
             }
 
             Convert-Result -InputObject $result -OutputType $OutputType
@@ -101,7 +111,7 @@
             }
 
             if ($isTokenPaged) {
-                # v3 API: token-based pagination driven by nextPageToken/isLast.
+                # Enhanced search uses tokens; other v3 endpoints still use offsets.
                 # The response omits maxResults, so the page-count heuristic is unreliable.
                 if ($Response.PSObject.Properties.Name -contains "nextPageToken" -and $Response.nextPageToken) {
                     $PSBoundParameters["GetParameter"]["nextPageToken"] = $Response.nextPageToken
@@ -112,14 +122,18 @@
                 }
             }
             else {
-                # v2 API: offset-based pagination using startAt/maxResults
+                # Both v2 and v3 APIs support offset-based pagination.
+                if ($null -ne $Response.total -and ($total + $offset) -ge $Response.total) {
+                    break
+                }
+
                 if (@($result).Count -lt $pageSize) {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $pageSize"
                     break
                 }
 
                 $PSBoundParameters["GetParameter"]["startAt"] = $total + $offset
-                $expectedTotal = $PSBoundParameters["GetParameter"]["startAt"] + $pageSize
+                $expectedTotal = $total + $pageSize
                 if ($expectedTotal -gt $PSCmdlet.PagingParameters.First) {
                     $reduceBy = $expectedTotal - $PSCmdlet.PagingParameters.First
                     $PSBoundParameters["GetParameter"]["maxResults"] = $pageSize - $reduceBy
@@ -135,10 +149,5 @@
 
             $result = Expand-Result -InputObject $Response
         } while (@($result).Count -gt 0)
-
-        if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
-            [double]$Accuracy = 1.0
-            $PSCmdlet.PagingParameters.NewTotalCount($total, $Accuracy)
-        }
     }
 }

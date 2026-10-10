@@ -943,8 +943,17 @@ InModuleScope JiraPS {
                 Should -Invoke @assertMockCalledSplat
             }
 
-            It "-totalcount" {
-                # Don't know how to test this
+            It "returns the server total before First/Skip results through the HTTP response path" {
+                $result = @(Invoke-JiraMethod -Method Get -URI "https://postman-echo.com/Get" -Paging -IncludeTotalCount -Skip 5 -First 1 -ErrorAction Stop)
+
+                $result | Should -HaveCount 2
+                $result[0] | Should -BeOfType ([uint64])
+                $result[0] | Should -Be 7
+                $result[0].Accuracy | Should -Be 1.0
+                $result[1].id | Should -Be 6
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    "$Uri" -match 'startAt=5' -and "$Uri" -match 'maxResults=1'
+                }
             }
         }
 
