@@ -151,24 +151,22 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Filter"; type = "AtlassianPS.JiraPS.Filter"; isPSTypeName = $true }
+                    @{ parameter = "Filter"; type = "Object"; typeName = "AtlassianPS.JiraPS.Filter" }
                     @{ parameter = "Id"; type = "UInt32[]" }
                     @{ parameter = "Type"; type = "String" }
                     @{ parameter = "Value"; type = "String" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
-                    param($parameter, $type, $isPSTypeName = $false)
+                    param($parameter, $type, $typeName)
 
-                    if ($isPSTypeName) {
-                        $command | Should -HaveParameter $parameter -Type Object
-                        $typeName = $command.Parameters[$parameter].Attributes |
+                    $command | Should -HaveParameter $parameter -Type $type
+
+                    if ($typeName) {
+                        $actualTypeName = $command.Parameters[$parameter].Attributes |
                             Where-Object { $_ -is [System.Management.Automation.PSTypeNameAttribute] } |
                             Select-Object -ExpandProperty PSTypeName
 
-                        $typeName | Should -Be $type
-                    }
-                    else {
-                        $command | Should -HaveParameter $parameter -Type $type
+                        $actualTypeName | Should -Be $typeName
                     }
                 }
             }
