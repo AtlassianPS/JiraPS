@@ -74,6 +74,19 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                     Test-Path $markdownFile | Should -Be $true
                 }
 
+                It "lists each named parameter set and its default marker in syntax" {
+                    $markdown = Get-Content -LiteralPath $markdownFile -Raw
+                    $syntax = [regex]::Match($markdown, '(?ms)^## SYNTAX\r?\n(.*?)(?=^## |\z)').Groups[1].Value
+                    $actual = @([regex]::Matches($syntax, '(?m)^### (.+?)\r?$') | ForEach-Object { $_.Groups[1].Value })
+                    $expected = @($command.ParameterSets | Where-Object Name -NE '__AllParameterSets' | ForEach-Object {
+                            $_.Name + $(if ($_.IsDefault) { ' (Default)' })
+                        })
+                    $actual.Count | Should -Be $expected.Count
+                    if ($expected.Count -gt 0) {
+                        @($actual | Sort-Object) | Should -Be @($expected | Sort-Object)
+                    }
+                }
+
                 It "does not have Comment-Based Help" {
                     # We use .EXAMPLE, as we test this extensivly and it is never auto-generated
                     $command.Definition | Should -Not -BeNullOrEmpty
@@ -108,6 +121,10 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                 It "has a syntax" {
                     $help.syntax | Should -Not -BeNullOrEmpty
+                }
+
+                It "has a generated syntax entry for every parameter set" {
+                    @($help.syntax.syntaxItem).Count | Should -Be $command.ParameterSets.Count
                 }
 
                 It "has a description" {

@@ -14,13 +14,19 @@ Configures Jira response headers that `Invoke-JiraMethod` writes to the debug st
 
 ## SYNTAX
 
+### Wildcard (Default)
+
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Include <string[]> [-Exclude <string[]>] [<CommonParameters>]
 ```
 
+### Regex
+
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Pattern <regex> [<CommonParameters>]
 ```
+
+### Disabled
 
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Disable [<CommonParameters>]
