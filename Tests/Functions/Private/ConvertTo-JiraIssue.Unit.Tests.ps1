@@ -1052,6 +1052,119 @@ InModuleScope JiraPS {
                 }
             }
 
+            Context 'Standard and custom fields' {
+                It 'leaves omitted or null nested models null (<shape>)' -TestCases @(
+                    @{ shape = 'omitted'; json = '{"fields":{}}' }
+                    @{ shape = 'null'; json = '{"fields":{"watches":null,"votes":null,"progress":null,"aggregateprogress":null,"timetracking":null,"security":null}}' }
+                ) {
+                    param($json)
+                    $issue = ConvertTo-JiraIssue (ConvertFrom-Json $json)
+                    foreach ($property in 'Watches', 'Votes', 'Progress', 'AggregateProgress', 'TimeTracking', 'Security') {
+                        ($null -eq $issue.$property) | Should -BeTrue
+                    }
+                }
+
+                It 'preserves raw custom values and protects declared properties (<debug>)' -TestCases @(
+                    @{ debug = $false }; @{ debug = $true }
+                ) {
+                    param($debug)
+                    $wire = ConvertFrom-Json '{"key":"TEST-1","self":"https://jira.example/rest/api/2/issue/1","expand":"changelog","fields":{"key":"wrong","summary":"Summary","priority":{"id":"2","name":"High"},"customfield_empty":[],"customfield_single":[{"plugin":true}],"customfield_null":null,"customfield_zero":0,"customfield_false":false,"plugin":{"nested":[1,2]}}}'
+                    $issue = ConvertTo-JiraIssue $wire -IncludeDebug:$debug
+                    $issue.Key | Should -Be 'TEST-1'
+                    $issue.Summary | Should -Be 'Summary'
+                    $issue.Priority.GetType() | Should -Be ([AtlassianPS.JiraPS.Priority])
+                    $issue.Priority.Id | Should -Be 2
+                    $issue.PSObject.Properties['Priority'].MemberType | Should -Be 'Property'
+                    $issue.PSObject.Properties['plugin'].MemberType | Should -Be 'NoteProperty'
+                    [object]::ReferenceEquals($issue.plugin, $wire.fields.plugin) | Should -BeTrue
+                    $issue.customfield_empty.GetType() | Should -Be ([object[]])
+                    $issue.customfield_empty.Count | Should -Be 0
+                    $issue.customfield_single.GetType() | Should -Be ([object[]])
+                    $issue.customfield_single.Count | Should -Be 1
+                    $issue.customfield_single[0].plugin | Should -BeTrue
+                    ($null -eq $issue.customfield_null) | Should -BeTrue
+                    $issue.customfield_zero | Should -Be 0
+                    $issue.customfield_false | Should -BeFalse
+                    if ($debug) {
+                        [object]::ReferenceEquals($issue.Fields['priority'], $wire.fields.priority) | Should -BeTrue
+                        [object]::ReferenceEquals($issue.Fields['plugin'], $wire.fields.plugin) | Should -BeTrue
+                        $issue.Fields['key'] | Should -Be 'wrong'
+                        $issue.Expand | Should -Be 'changelog'
+                    }
+                    else {
+                        ($null -eq $issue.Fields) | Should -BeTrue
+                        ($null -eq $issue.Expand) | Should -BeTrue
+                    }
+                }
+            }
+
+            Context 'Expanded collections' {
+                It 'keeps missing history and comments null, and transitions typed and empty (<shape>)' -TestCases @(
+                    @{ shape = 'omitted'; json = '{"fields":{}}' }
+                    @{ shape = 'null'; json = '{"changelog":null,"transitions":null,"fields":{"comment":null}}' }
+                    @{ shape = 'missing comments'; json = '{"fields":{"comment":{}}}' }
+                    @{ shape = 'null comments'; json = '{"fields":{"comment":{"comments":null}}}' }
+                ) {
+                    param($json)
+                    $issue = ConvertTo-JiraIssue (ConvertFrom-Json $json)
+                    ($null -eq $issue.History) | Should -BeTrue
+                    ($null -eq $issue.Comment) | Should -BeTrue
+                    $issue.Transition.GetType() | Should -Be ([AtlassianPS.JiraPS.Transition[]])
+                    $issue.Transition.Count | Should -Be 0
+                }
+
+                It 'keeps an expanded history with missing histories typed and empty' {
+                    $issue = ConvertTo-JiraIssue (ConvertFrom-Json '{"changelog":{},"fields":{}}')
+                    $issue.History.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueHistoryEntry[]])
+                    $issue.History.Count | Should -Be 0
+                }
+
+                It 'preserves types, cardinality and order of expanded collections (<count>)' -TestCases @(
+                    @{ count = 0 }; @{ count = 1 }; @{ count = 2 }
+                ) {
+                    param($count)
+                    $entries = @(
+                        for ($index = 0; $index -lt $count; $index++) {
+                            [PSCustomObject]@{ id = "$index"; body = "comment$index"; name = "transition$index"; items = @() }
+                        }
+                    )
+                    $wire = [PSCustomObject]@{
+                        changelog   = [PSCustomObject]@{ histories = $entries }
+                        transitions = $entries
+                        fields      = [PSCustomObject]@{ comment = [PSCustomObject]@{ comments = $entries } }
+                    }
+                    $issue = ConvertTo-JiraIssue $wire
+                    $issue.History.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueHistoryEntry[]])
+                    $issue.Comment.GetType() | Should -Be ([AtlassianPS.JiraPS.Comment[]])
+                    $issue.Transition.GetType() | Should -Be ([AtlassianPS.JiraPS.Transition[]])
+                    $issue.History.Count | Should -Be $count
+                    $issue.Comment.Count | Should -Be $count
+                    $issue.Transition.Count | Should -Be $count
+                    for ($index = 0; $index -lt $count; $index++) {
+                        $issue.History[$index].Id | Should -Be "$index"
+                        $issue.Comment[$index].Body | Should -Be "comment$index"
+                        $issue.Transition[$index].Name | Should -Be "transition$index"
+                    }
+                }
+
+                It 'preserves absent and null standard field collections (<shape>)' -TestCases @(
+                    @{ shape = 'omitted'; json = '{"fields":{}}'; present = $false }
+                    @{ shape = 'null'; json = '{"fields":{"components":null,"worklog":null,"fixVersions":null,"versions":null,"subtasks":null}}'; present = $true }
+                ) {
+                    param($json, $present)
+                    $issue = ConvertTo-JiraIssue (ConvertFrom-Json $json)
+                    foreach ($property in 'Components', 'Worklog', 'FixVersions', 'Versions', 'Subtasks') {
+                        if ($present) {
+                            $issue.$property.GetType().IsArray | Should -BeTrue
+                            $issue.$property.Count | Should -Be 0
+                        }
+                        else {
+                            ($null -eq $issue.$property) | Should -BeTrue
+                        }
+                    }
+                }
+            }
+
             Context "Pipeline Support" {
                 It "accepts pipeline input" {
                     { $sampleObject | ConvertTo-JiraIssue } | Should -Not -Throw
