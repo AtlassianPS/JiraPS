@@ -4,6 +4,11 @@ Happy to see you are interested in helping.
 
 We have a comprehensive documentation on how to contribute here: **[Contributing to AtlassianPS](https://atlassianps.org/docs/Contributing/)**.
 
+## Object model reference
+
+The [v3 object model reference](.github/ai-context/v3-object-contracts.md) maps domain types to converters, command parameters and tests.
+It also records transformation decisions and related implementation work for contributors.
+
 ## Testing
 
 For detailed information about writing and debugging tests, see the **[Testing Guide](Tests/README.md)**.

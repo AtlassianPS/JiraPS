@@ -734,4 +734,4 @@ Filters and leaf inputs now use typed parameters where a cmdlet consumes those o
 `Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and optional typed permission IDs.
 Some stable string-set properties are nullable enums; unknown API values become `$null`.
 Custom-field data, entity-property values, allowed field values and raw REST responses remain extensible.
-See the [complete object and parameter inventory](../v3-object-contracts.md) for property types, converter/cmdlet mappings, transformer decisions and the remaining session/identity coordination.
+See [about_JiraPS_Classes](classes.html) for object construction, command input and nested property examples.

@@ -1,4 +1,9 @@
-# JiraPS v3 object and parameter contracts
+# JiraPS v3 object model: maintainer reference
+
+This reference is for contributors reviewing or changing the JiraPS object model.
+It maps domain properties to converters, public command parameters and regression tests, and records implementation decisions and related work.
+User-facing construction and usage examples are in [about_JiraPS_Classes](../../docs/en-US/about_JiraPS_Classes.md).
+Migration guidance is in [about_JiraPS_MigrationV3](../../docs/en-US/about_JiraPS_MigrationV3.md).
 
 All domain types below use the `AtlassianPS.JiraPS` namespace.
 `T[]` means a CLR array even when a response contains one item.
@@ -124,8 +129,7 @@ Assignment intent continues to use `-Unassign` and `-UseDefaultAssignee` rather 
 
 #194 owns named connections, server-bound session state, configuration import/export and final connection propagation.
 `Session` and `ServerInfo` are inventoried here, but the session contract cannot be frozen until #194 lands.
-Do not close #681 or declare the complete v3 contract frozen until its #194/#614 coordination and PS5.1/PS7 CI verification are complete.
-No release is enabled or triggered by this implementation.
+Completion of #681 depends on #194/#614 coordination and PS5.1/PS7 CI verification.
 
 ## Wire-contract references
 
