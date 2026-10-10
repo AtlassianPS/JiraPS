@@ -450,6 +450,30 @@ For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the bran
 - **Concurrency control**: weekly + dispatched runs share one concurrency group with `cancel-in-progress: false`, so an in-flight run is never killed by a dispatch retry.
 - **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `Test-Integration.xml`) are retained for 14 days. The Server job retains `Server-Jira-Container-Logs` for 7 days after failures, manual runs with `debug` enabled, or runs with GitHub runner debug logging enabled.
 
+### Required integration coverage
+
+Both full integration jobs run `Tools/Assert-IntegrationCoverage.ps1` after testing, including when the test step fails.
+The check fails if the NUnit report is missing or malformed, a required suite or test is absent, or a test in a required suite fails or skips unexpectedly.
+It checks test cases because Pester can mark a suite `Ignored` when it contains intentional deployment-specific skips.
+Result artifacts still upload when verification fails.
+
+`Tests/Integration/RequiredSuites.psd1` maintains the required suites, starting with `Groups.Integration.Tests.ps1`.
+Each entry specifies the file name and full NUnit test names under `Common`, `Cloud`, and `Server`.
+Common tests and tests for the selected track must execute successfully.
+Only tests listed exclusively for the other track may skip.
+New tests in a required suite must also pass unless explicitly listed for the other track.
+When adding a required suite or renaming a required test, update this file with the test change.
+Keep deployment-specific lists narrow so an unexpected skip cannot hide lost coverage.
+
+To check an existing report locally:
+
+```powershell
+./Tools/Assert-IntegrationCoverage.ps1 -Track Cloud -ResultPath Test-Integration.xml
+./Tools/Assert-IntegrationCoverage.ps1 -Track Server -ResultPath Test-Integration.xml
+```
+
+Smoke runs and intentionally filtered local runs do not automatically apply this full-suite gate.
+
 ## Troubleshooting
 
 ### Tests Skip with "Integration environment not configured"

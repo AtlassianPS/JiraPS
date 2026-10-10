@@ -62,6 +62,11 @@ jobs:
           Invoke-Build -Task TestIntegration -ThrottleLimit 6 -PesterVerbosity Detailed
         shell: pwsh
 
+      - name: Verify required Cloud integration coverage
+        if: always()
+        run: ./Tools/Assert-IntegrationCoverage.ps1 -Track Cloud
+        shell: pwsh
+
       - name: Upload test results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -167,6 +172,11 @@ jobs:
         # job above.
         run: |
           Invoke-Build -Task TestIntegration -Tag 'Server' -ThrottleLimit 2 -PesterVerbosity Detailed
+        shell: pwsh
+
+      - name: Verify required Server integration coverage
+        if: always()
+        run: ./Tools/Assert-IntegrationCoverage.ps1 -Track Server
         shell: pwsh
 
       - name: Upload integration test results
