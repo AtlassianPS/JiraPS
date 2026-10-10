@@ -16,15 +16,21 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        # Powershell v6+ populates the body of the response into the exception
-        if ($Exception.ErrorDetails) {
+        $responseBody = $null
+        if ($PSVersionTable.PSEdition -eq 'Core') {
             $responseBody = $Exception.ErrorDetails.Message
         }
-        # Powershell v5.1- has the body of the response in a Stream in the Exception Response
-        else {
-            $readStream = New-Object -TypeName System.IO.StreamReader -ArgumentList ($Exception.Exception.Response.GetResponseStream())
-            $responseBody = $readStream.ReadToEnd()
-            $readStream.Close()
+        elseif ($Exception.Exception.Response) {
+            $responseStream = $Exception.Exception.Response.GetResponseStream()
+            if ($null -ne $responseStream) {
+                $readStream = [System.IO.StreamReader]::new($responseStream)
+                try {
+                    $responseBody = $readStream.ReadToEnd()
+                }
+                finally {
+                    $readStream.Dispose()
+                }
+            }
         }
 
         $exception = "Invalid Server Response"

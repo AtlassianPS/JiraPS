@@ -9,12 +9,26 @@ Describe 'Required integration coverage' -Tag Unit -ForEach @(
         $script:projectRoot = Resolve-ProjectRoot
         $script:assertScript = Join-Path $projectRoot 'Tools/Assert-IntegrationCoverage.ps1'
         $script:manifestPath = Join-Path $projectRoot 'Tests/Integration/RequiredSuites.psd1'
-        $script:suite = (Import-PowerShellDataFile $manifestPath).Suites[0]
+        $script:requiredSuites = (Import-PowerShellDataFile $manifestPath).Suites
+        $script:suite = $requiredSuites[0]
     }
 
     BeforeEach {
         $script:resultPath = Join-Path $TestDrive 'integration.xml'
         $script:report = [xml] '<test-results><test-suite type="Assembly"><results><test-suite type="TestFixture"><results /></test-suite></results></test-suite></test-results>'
+        foreach ($requiredSuite in $requiredSuites | Select-Object -Skip 1) {
+            $fixture = $report.SelectSingleNode('//test-suite[@type="TestFixture"]').CloneNode($true)
+            $fixture.SetAttribute('name', "/home/runner/Tests/Integration/$($requiredSuite.File)")
+            foreach ($name in (@($requiredSuite.Common) + @($requiredSuite.Cloud) + @($requiredSuite.Server))) {
+                $test = $report.CreateElement('test-case')
+                $test.SetAttribute('name', $name)
+                $isOtherTrack = $name -in $requiredSuite[$OtherTrack]
+                $test.SetAttribute('result', $(if ($isOtherTrack) { 'Ignored' } else { 'Success' }))
+                $test.SetAttribute('executed', $(if ($isOtherTrack) { 'False' } else { 'True' }))
+                $null = $fixture.SelectSingleNode('results').AppendChild($test)
+            }
+            $null = $report.SelectSingleNode('//test-suite[@type="Assembly"]/results').AppendChild($fixture)
+        }
         $script:fileFixture = $report.SelectSingleNode('//test-suite[@type="TestFixture"]')
         $fileFixture.SetAttribute('name', "/home/runner/Tests/Integration/$($suite.File)")
         foreach ($name in (@($suite.Common) + @($suite.Cloud) + @($suite.Server))) {
