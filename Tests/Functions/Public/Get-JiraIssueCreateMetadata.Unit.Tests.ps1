@@ -52,31 +52,6 @@ InModuleScope JiraPS {
 }
 "@
 
-            # Two-page fixtures for the multi-page walk test.
-            $script:pagedResponse1 = @"
-{
-    "maxResults": 2,
-    "startAt": 0,
-    "total": 4,
-    "isLast": false,
-    "values": [
-        { "required": true,  "schema": { "type": "string", "system": "summary" },     "name": "Summary",     "fieldId": "summary",     "hasDefaultValue": false, "operations": [ "set" ] },
-        { "required": false, "schema": { "type": "string", "system": "description" }, "name": "Description", "fieldId": "description", "hasDefaultValue": false, "operations": [ "set" ] }
-    ]
-}
-"@
-            $script:pagedResponse2 = @"
-{
-    "maxResults": 2,
-    "startAt": 2,
-    "total": 4,
-    "isLast": true,
-    "values": [
-        { "required": false, "schema": { "type": "priority", "system": "priority" }, "name": "Priority", "fieldId": "priority", "hasDefaultValue": true,  "operations": [ "set" ] },
-        { "required": false, "schema": { "type": "array",    "system": "labels" },   "name": "Labels",   "fieldId": "labels",   "hasDefaultValue": false, "operations": [ "add", "set", "remove" ] }
-    ]
-}
-"@
             #endregion Definitions
 
             Mock Get-JiraConfigServer -ModuleName JiraPS {
@@ -206,53 +181,89 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Walks multiple pages of createmeta results" {
+            Context "Pages <deployment> create metadata" -ForEach @(
+                @{ deployment = 'Cloud'; isCloud = $true; container = 'fields'; apiVersion = 3 }
+                @{ deployment = 'Data Center'; isCloud = $false; container = 'values'; apiVersion = 2 }
+            ) {
                 BeforeAll {
-                    # Mock the HTTP layer only so that Invoke-JiraMethod (and
-                    # Invoke-PaginatedRequest) actually runs end-to-end and the
-                    # second page is fetched.
-                    Mock Resolve-DefaultParameterValue -ModuleName JiraPS { @{ } }
-                    Mock Set-TlsLevel -ModuleName JiraPS { }
-                    Mock Test-ServerResponse -ModuleName JiraPS { }
+                    $script:metadataIsCloud = $isCloud
+                    $script:metadataContainer = $container
+                    $script:metadataApiVersion = $apiVersion
+                    $script:metadataFields = @((ConvertFrom-Json $restResult).values) + @(
+                        [PSCustomObject]@{
+                            fieldId = 'labels'; name = 'Labels'; required = $false
+                            hasDefaultValue = $false; schema = @{ type = 'array'; system = 'labels' }
+                            operations = @('add', 'set', 'remove')
+                        }
+                    )
+
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $metadataIsCloud }
+                    Mock Resolve-DefaultParameterValue -ModuleName JiraPS { @{} }
+                    Mock Set-TlsLevel -ModuleName JiraPS {}
+                    Mock Test-ServerResponse -ModuleName JiraPS {}
                     Mock Get-JiraSession -ModuleName JiraPS {
                         [PSCustomObject]@{
-                            WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
+                            WebSession = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
                         }
                     }
 
                     Mock Invoke-WebRequest -ModuleName JiraPS {
-                        Write-MockDebugInfo 'Invoke-WebRequest' -Params 'Uri', 'Method'
-
-                        $response = $pagedResponse1
-                        if ("$Uri" -match "startAt=(\d+)") {
-                            switch ($matches[1]) {
-                                '2' { $response = $pagedResponse2; break }
-                            }
+                        $startAt = 0
+                        $maxResults = 2
+                        if ("$Uri" -match 'startAt=(\d+)') { $startAt = [int]$matches[1] }
+                        if ("$Uri" -match 'maxResults=(\d+)') { $maxResults = [Math]::Min(2, [int]$matches[1]) }
+                        $page = @($metadataFields | Select-Object -Skip $startAt -First $maxResults)
+                        $response = @{
+                            startAt = $startAt; maxResults = $maxResults; total = $metadataFields.Count
+                            $metadataContainer = $page
                         }
-
-                        $bytes = [System.Text.Encoding]::UTF8.GetBytes($response)
-                        $stream = [PSCustomObject]@{ _bytes = $bytes }
-                        $stream | Add-Member -MemberType ScriptMethod -Name 'ToArray' -Force -Value { return $this._bytes }
-
+                        if (-not $metadataIsCloud) {
+                            $response.isLast = ($startAt + $page.Count) -ge $metadataFields.Count
+                        }
+                        $json = ConvertTo-Json $response -Depth 10
                         [PSCustomObject]@{
-                            StatusCode       = 200
-                            Content          = $response
-                            RawContentStream = $stream
+                            StatusCode       = [System.Net.HttpStatusCode]::OK
+                            Content          = $json
+                            RawContentStream = [System.IO.MemoryStream]::new([System.Text.Encoding]::UTF8.GetBytes($json))
                         }
                     }
                 }
 
-                It "Requests all pages and returns every field" {
-                    $result = Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2
+                It "returns every typed field across offset pages without an extra request" {
+                    $result = @(Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 -ErrorAction Stop)
 
                     $result | Should -HaveCount 4
-
+                    ($result.Id -join ',') | Should -Be 'summary,description,priority,labels'
+                    foreach ($field in $result) {
+                        $field | Should -BeOfType ([AtlassianPS.JiraPS.CreateMetaField])
+                        $field.Name | Should -Not -BeNullOrEmpty
+                    }
+                    $result[0].Required | Should -BeTrue
+                    $result[2].AllowedValues[0].name | Should -Be 'Blocker'
                     Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                    Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                        "$Uri" -match "/rest/api/$metadataApiVersion/issue/createmeta/10003/issuetypes/2" -and
+                        "$Uri" -match 'startAt=2' -and "$Uri" -notmatch 'nextPageToken'
+                    }
+                }
 
-                    # startAt=2 query should be issued for the second page request.
-                    Should -Invoke Invoke-WebRequest -ModuleName JiraPS -ParameterFilter {
-                        "$Uri" -match 'startAt=2'
-                    } -Exactly -Times 1 -Scope It
+                It "honors First and Skip across page boundaries" -ForEach @(
+                    @{ first = 1; skip = 0; ids = 'summary'; requests = 1 }
+                    @{ first = 3; skip = 0; ids = 'summary,description,priority'; requests = 2 }
+                    @{ first = 3; skip = 1; ids = 'description,priority,labels'; requests = 2 }
+                    @{ first = 2; skip = 1; ids = 'description,priority'; requests = 1 }
+                ) {
+                    $result = @(Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 -First $first -Skip $skip -ErrorAction Stop)
+
+                    ($result.Id -join ',') | Should -Be $ids
+                    Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Exactly -Times $requests -Scope It
+                }
+
+                It "returns no fields when the offset is past the last field" {
+                    $result = @(Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 -Skip 10 -ErrorAction Stop)
+
+                    $result | Should -HaveCount 0
+                    Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It
                 }
             }
         }

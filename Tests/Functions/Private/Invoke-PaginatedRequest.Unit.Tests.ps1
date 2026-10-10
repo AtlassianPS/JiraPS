@@ -16,6 +16,38 @@ InModuleScope JiraPS {
             #endregion Definitions
         }
 
+        Describe "Token pagination" {
+            BeforeAll {
+                $script:tokenResponse = [PSCustomObject]@{
+                    issues        = @([PSCustomObject]@{ key = 'TEST-1' })
+                    nextPageToken = 'page-2'
+                    isLast        = $false
+                }
+                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                    [PSCustomObject]@{
+                        issues = @([PSCustomObject]@{ key = 'TEST-2' })
+                        isLast = $true
+                    }
+                }
+            }
+
+            It "follows tokens even when a page has fewer items than the default page size" {
+                $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/3/search/jql" -Response $tokenResponse)
+
+                ($result.key -join ',') | Should -Be 'TEST-1,TEST-2'
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    $GetParameter.nextPageToken -eq 'page-2' -and -not $GetParameter.ContainsKey('startAt')
+                }
+            }
+
+            It "stops before requesting another token page when First is satisfied" {
+                $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/3/search/jql" -Response $tokenResponse -First 1)
+
+                ($result.key -join ',') | Should -Be 'TEST-1'
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
+            }
+        }
+
         Describe "Null Response Handling" {
             # When Invoke-JiraMethod returns null during pagination (auth failure,
             # server error, etc.), the function should stop gracefully with a warning

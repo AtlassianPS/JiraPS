@@ -201,7 +201,10 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    { Get-JiraIssueCreateMetadata -Project $fixtures.TestProject -IssueType 'Task' -ErrorAction Stop } | Should -Not -Throw
+                    $metadata = @(Get-JiraIssueCreateMetadata -Project $fixtures.TestProject -IssueType 'Task' -ErrorAction Stop)
+
+                    $metadata | Should -Not -BeNullOrEmpty
+                    $metadata.Id | Should -Contain 'summary'
                 }
 
                 It "returns field metadata" {
@@ -209,13 +212,14 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    $metadata = Get-JiraIssueCreateMetadata -Project $fixtures.TestProject -IssueType 'Task'
+                    $metadata = @(Get-JiraIssueCreateMetadata -Project $fixtures.TestProject -IssueType 'Task' -ErrorAction Stop)
 
-                    if (@($metadata).Count -eq 0) {
-                        Set-ItResult -Skipped -Because "Project returns empty create metadata (simplified project)"
-                        return
+                    $metadata | Should -Not -BeNullOrEmpty
+                    foreach ($field in $metadata) {
+                        $field | Should -BeOfType ([AtlassianPS.JiraPS.CreateMetaField])
+                        $field.Id | Should -Not -BeNullOrEmpty
+                        $field.Name | Should -Not -BeNullOrEmpty
                     }
-                    @($metadata).Count | Should -BeGreaterThan 0 -Because "metadata should contain field definitions"
                 }
             }
         }

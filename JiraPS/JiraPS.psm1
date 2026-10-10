@@ -73,6 +73,7 @@ $script:JiraResponseHeaderLogConfiguration = $null
 $script:PagingContainers = @(
     "comments"
     "dashboards"
+    "fields"
     "groups"
     "issues"
     "values"
