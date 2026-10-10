@@ -14,9 +14,13 @@ Returns information about the available issue type in JIRA.
 
 ## SYNTAX
 
+### _All (Default)
+
 ```powershell
 Get-JiraIssueType [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
+
+### _Search
 
 ```powershell
 Get-JiraIssueType [-IssueType] <IssueType[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]

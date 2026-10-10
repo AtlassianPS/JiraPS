@@ -14,9 +14,13 @@ Removes a issue link from a JIRA issue
 
 ## SYNTAX
 
+### ByIssueLink (Default)
+
 ```powershell
 Remove-JiraIssueLink -IssueLink <IssueLink[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+
+### ByIssue
 
 ```powershell
 Remove-JiraIssueLink -Issue <Issue[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]

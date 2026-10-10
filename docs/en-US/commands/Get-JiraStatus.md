@@ -14,9 +14,13 @@ Returns issue status information from Jira.
 
 ## SYNTAX
 
+### _All (Default)
+
 ```powershell
 Get-JiraStatus [-Credential <pscredential>] [<CommonParameters>]
 ```
+
+### _Search
 
 ```powershell
 Get-JiraStatus [-Status] <Status[]> [-Credential <pscredential>] [<CommonParameters>]

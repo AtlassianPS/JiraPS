@@ -14,9 +14,13 @@ Creates a new issue in JIRA
 
 ## SYNTAX
 
+### AssignToUser (Default)
+
 ```powershell
 New-JiraIssue -Project <Project> -IssueType <IssueType> -Summary <string> [-Priority <Priority>] [-Description <string>] [-Reporter <User>] [-Assignee <User>] [-Label <string[]>] [-Parent <string>] [-FixVersion <Version[]>] [-Fields <psobject>] [-Components <Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+
+### Unassign
 
 ```powershell
 New-JiraIssue -Project <Project> -IssueType <IssueType> -Summary <string> [-Priority <Priority>] [-Description <string>] [-Reporter <User>] [-Unassign] [-Label <string[]>] [-Parent <string>] [-FixVersion <Version[]>] [-Fields <psobject>] [-Components <Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]

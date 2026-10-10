@@ -14,9 +14,13 @@ This function returns information about JIRA fields
 
 ## SYNTAX
 
+### _All (Default)
+
 ```powershell
 Get-JiraField [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
+
+### _Search
 
 ```powershell
 Get-JiraField [-Field] <Field[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]

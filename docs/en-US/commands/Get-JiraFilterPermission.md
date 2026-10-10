@@ -14,9 +14,13 @@ Fetch the permissions of a specific Filter.
 
 ## SYNTAX
 
+### ById (Default)
+
 ```powershell
 Get-JiraFilterPermission [-Id] <uint[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
+
+### ByInputObject
 
 ```powershell
 Get-JiraFilterPermission [-Filter] <Filter[]> [-Credential <pscredential>] [<CommonParameters>]

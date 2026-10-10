@@ -14,9 +14,13 @@ Removes an existing filter.
 
 ## SYNTAX
 
+### ByInputObject (Default)
+
 ```powershell
 Remove-JiraFilter [-InputObject] <Filter[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+
+### ById
 
 ```powershell
 Remove-JiraFilter [-Id] <uint[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]

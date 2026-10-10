@@ -14,9 +14,13 @@ Share a Filter with other users.
 
 ## SYNTAX
 
+### ByInputObject (Default)
+
 ```powershell
 Add-JiraFilterPermission [-Filter] <Filter[]> -Type <string> [-Value <string>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+
+### ById
 
 ```powershell
 Add-JiraFilterPermission [-Id] <uint[]> -Type <string> [-Value <string>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]

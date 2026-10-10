@@ -14,9 +14,13 @@ Returns a project from Jira
 
 ## SYNTAX
 
+### _All (Default)
+
 ```powershell
 Get-JiraProject [-Credential <pscredential>] [<CommonParameters>]
 ```
+
+### _Search
 
 ```powershell
 Get-JiraProject [-Project] <Project[]> [-Credential <pscredential>] [<CommonParameters>]

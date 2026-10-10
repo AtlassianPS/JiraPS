@@ -14,9 +14,13 @@ Performs an issue transition on a JIRA issue changing it's status
 
 ## SYNTAX
 
+### AssignToUser (Default)
+
 ```powershell
 Invoke-JiraIssueTransition -Issue <Issue> -Transition <Transition> [-Fields <psobject>] [-Assignee <User>] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
+
+### Unassign
 
 ```powershell
 Invoke-JiraIssueTransition -Issue <Issue> -Transition <Transition> [-Fields <psobject>] [-Unassign] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
