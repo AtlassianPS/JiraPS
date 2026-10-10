@@ -18,5 +18,16 @@
                 'Groups.Get-JiraGroupMember.Group Members.retrieves members for a resolved group object on Server'
             )
         }
+        @{
+            File   = 'HttpErrors.Integration.Tests.ps1'
+            Common = @(
+                "HTTP Errors.preserves Jira's message for a missing issue"
+                'HTTP Errors.captures a real empty HEAD error response'
+                'HTTP Errors.reports the HTTP status for an empty HEAD error response'
+                'HTTP Errors.emits a non-terminating HTTP error for an empty HEAD response'
+            )
+            Cloud  = @()
+            Server = @()
+        }
     )
 }

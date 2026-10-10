@@ -450,6 +450,12 @@ For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the bran
 - **Concurrency control**: weekly + dispatched runs share one concurrency group with `cancel-in-progress: false`, so an in-flight run is never killed by a dispatch retry.
 - **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `Test-Integration.xml`) are retained for 14 days. The Server job retains `Server-Jira-Container-Logs` for 7 days after failures, manual runs with `debug` enabled, or runs with GitHub runner debug logging enabled.
 
+### HTTP error regression coverage
+
+`HttpErrors.Integration.Tests.ps1` makes authenticated requests to a nonexistent Jira issue on both Cloud and Data Center.
+It checks Jira's parsed GET error message, captures a native empty HEAD error response, and verifies that `Invoke-JiraMethod` reports the HTTP status to the caller.
+These tests use no HTTP, resolver, or error-writer mocks and run in the smoke suite.
+
 ### Required integration coverage
 
 Both full integration jobs run `Tools/Assert-IntegrationCoverage.ps1` after testing, including when the test step fails.
@@ -457,7 +463,7 @@ The check fails if the NUnit report is missing or malformed, a required suite or
 It checks test cases because Pester can mark a suite `Ignored` when it contains intentional deployment-specific skips.
 Result artifacts still upload when verification fails.
 
-`Tests/Integration/RequiredSuites.psd1` maintains the required suites, starting with `Groups.Integration.Tests.ps1`.
+`Tests/Integration/RequiredSuites.psd1` maintains the required suites, including Groups and HTTP error handling.
 Each entry specifies the file name and full NUnit test names under `Common`, `Cloud`, and `Server`.
 Common tests and tests for the selected track must execute successfully.
 Only tests listed exclusively for the other track may skip.
