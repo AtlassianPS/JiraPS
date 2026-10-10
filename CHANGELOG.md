@@ -25,6 +25,9 @@ For the migration playbook and concrete before/after script examples, see [`abou
 
 ### Changed
 
+- Fixed HTTP error handling on PowerShell 7 when `ErrorDetails` is missing (#604).
+  Empty responses now report the HTTP status instead of failing with a `GetResponseStream` error, while Windows PowerShell 5.1 retains stream-based error parsing.
+
 - Fixed `Get-JiraIssueCreateMetadata` returning no fields on Jira Cloud by recognizing its `fields` response array and following offset pagination on v3 endpoints.
   Data Center retains its v2 `values` response support, and `-First` / `-Skip` now return the requested fields across page boundaries (#651).
   The shared pager now emits `Invoke-JiraMethod -IncludeTotalCount` before the results, using Jira's full total or marking the count as unknown when the API does not provide one.
