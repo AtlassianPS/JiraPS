@@ -159,6 +159,14 @@ InModuleScope JiraPS {
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
                 }
+
+                It "requires the 'AtlassianPS.JiraPS.Filter' type name for Filter" {
+                    $filterTypeName = $command.Parameters['Filter'].Attributes |
+                        Where-Object { $_ -is [System.Management.Automation.PSTypeNameAttribute] } |
+                        Select-Object -ExpandProperty PSTypeName
+
+                    $filterTypeName | Should -Be 'AtlassianPS.JiraPS.Filter'
+                }
             }
 
             Context "Default Values" {
