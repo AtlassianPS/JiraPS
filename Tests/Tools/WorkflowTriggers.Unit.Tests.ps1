@@ -19,6 +19,12 @@ Describe 'GitHub Actions workflow triggers' -Tag Unit {
         ([regex]::Matches($script:integrationWorkflow, "failure\(\) \|\| inputs\.debug \|\| runner\.debug == '1'")).Count | Should -Be 2
     }
 
+    It 'always verifies required suites on both integration tracks' {
+        foreach ($track in @('Cloud', 'Server')) {
+            $script:integrationWorkflow | Should -Match "Verify required $track integration coverage\s+if: always\(\)\s+run: ./Tools/Assert-IntegrationCoverage.ps1 -Track $track\s+shell: pwsh"
+        }
+    }
+
     It 'checks routine container dependencies monthly' {
         $dependabot = Get-Content (Join-Path $script:projectRoot '.github/dependabot.yml') -Raw
 
