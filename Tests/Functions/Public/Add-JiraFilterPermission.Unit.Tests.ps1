@@ -151,18 +151,13 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Filter"; type = "AtlassianPS.JiraPS.Filter" }
+                    @{ parameter = "Filter"; type = "Object" }
                     @{ parameter = "Id"; type = "UInt32[]" }
                     @{ parameter = "Type"; type = "String" }
                     @{ parameter = "Value"; type = "String" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
-                    $command | Should -HaveParameter $parameter
-
-                    #ToDo:CustomClass
-                    # This test is currently broken - can't validate type this way
-                    # can't use -Type with Should -HaveParameter as long we are using `PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')`
-                    (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
+                    $command | Should -HaveParameter $parameter -Type $type
                 }
             }
 

@@ -90,16 +90,12 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Issue"; type = "Object" }
+                    @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
                     @{ parameter = "FilePath"; type = "String[]" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                     @{ parameter = "Passthru"; type = "Switch" }
                 ) {
-                    $command | Should -HaveParameter $parameter
-
-                    #ToDo:CustomClass
-                    # can't use -Type as long we are using `PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')`
-                    (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
+                    $command | Should -HaveParameter $parameter -Type $type
                 }
             }
 
