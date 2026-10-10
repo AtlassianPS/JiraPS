@@ -216,7 +216,13 @@ HelpMessage: ''
 
 Restricts access to a role or group using an `AtlassianPS.JiraPS.Visibility` object.
 Omit this parameter for unrestricted access.
-A string selects a role; `All Users` selects unrestricted access.
+String values remain supported through both `Visibility` and its `VisibleRole` alias:
+
+- `All Users` leaves access unrestricted.
+- `Developers` restricts access to that project role.
+- `Administrators` restricts access to that project role.
+
+Other project role names are also accepted; the role must exist in Jira.
 Use `@{ Type = 'group'; Value = 'jira-users' }` for a group, or supply its `Identifier` where supported by Jira.
 `VisibleRole` remains an alias.
 
