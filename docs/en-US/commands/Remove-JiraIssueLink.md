@@ -17,13 +17,13 @@ Removes a issue link from a JIRA issue
 ### ByIssueLink (Default)
 
 ```powershell
-Remove-JiraIssueLink -IssueLink <IssueLink[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraIssueLink -IssueLink <AtlassianPS.JiraPS.IssueLink[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByIssue
 
 ```powershell
-Remove-JiraIssueLink -Issue <Issue[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraIssueLink -Issue <AtlassianPS.JiraPS.Issue[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -99,7 +99,7 @@ HelpMessage: ''
 IssueLink to delete
 
 ```yaml
-Type: IssueLink[]
+Type: AtlassianPS.JiraPS.IssueLink[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -120,7 +120,7 @@ HelpMessage: ''
 Issue whose links should all be removed.
 
 ```yaml
-Type: Issue[]
+Type: AtlassianPS.JiraPS.Issue[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

@@ -23,7 +23,7 @@ Get-JiraIssueLinkType [-Credential <pscredential>] [<CommonParameters>]
 ### _Search
 
 ```powershell
-Get-JiraIssueLinkType [-LinkType] <IssueLinkType> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraIssueLinkType [-LinkType] <AtlassianPS.JiraPS.IssueLinkType> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -80,7 +80,7 @@ HelpMessage: ''
 The Issue Type name or ID to search.
 
 ```yaml
-Type: IssueLinkType
+Type: AtlassianPS.JiraPS.IssueLinkType
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

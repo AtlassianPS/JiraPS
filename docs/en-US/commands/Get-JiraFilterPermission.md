@@ -23,7 +23,7 @@ Get-JiraFilterPermission [-Id] <uint[]> [-Credential <pscredential>] [<CommonPar
 ### ByInputObject
 
 ```powershell
-Get-JiraFilterPermission [-Filter] <Filter[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -83,7 +83,7 @@ HelpMessage: ''
 Filter object from which to retrieve the permissions
 
 ```yaml
-Type: Filter[]
+Type: AtlassianPS.JiraPS.Filter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

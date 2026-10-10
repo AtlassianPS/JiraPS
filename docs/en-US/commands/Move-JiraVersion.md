@@ -17,13 +17,13 @@ Moves an existing Version in JIRA
 ### ByAfter (Default)
 
 ```powershell
-Move-JiraVersion -Version <Version> -After <Version> [-Credential <pscredential>] [<CommonParameters>]
+Move-JiraVersion -Version <AtlassianPS.JiraPS.Version> -After <AtlassianPS.JiraPS.Version> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByPosition
 
 ```powershell
-Move-JiraVersion -Version <Version> -Position <string> [-Credential <pscredential>]
+Move-JiraVersion -Version <AtlassianPS.JiraPS.Version> -Position <string> [-Credential <pscredential>]
  [<CommonParameters>]
 ```
 
@@ -65,7 +65,7 @@ This example moves the Version object to the earliest position.
 Version Object or ID to move Version after.
 
 ```yaml
-Type: Version
+Type: AtlassianPS.JiraPS.Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -133,7 +133,7 @@ HelpMessage: ''
 Version Object or ID to move.
 
 ```yaml
-Type: Version
+Type: AtlassianPS.JiraPS.Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

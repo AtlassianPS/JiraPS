@@ -23,7 +23,7 @@ Get-JiraIssueType [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ### _Search
 
 ```powershell
-Get-JiraIssueType [-IssueType] <IssueType[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraIssueType [-IssueType] <AtlassianPS.JiraPS.IssueType[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -112,7 +112,7 @@ Issue type objects, IDs or wildcard issue type names.
 An object with an ID selects that exact issue type.
 
 ```yaml
-Type: IssueType[]
+Type: AtlassianPS.JiraPS.IssueType[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

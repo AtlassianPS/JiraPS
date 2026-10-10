@@ -15,7 +15,7 @@ Removes an existing group from JIRA
 ## SYNTAX
 
 ```powershell
-Remove-JiraGroup [-Group] <Group[]> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
+Remove-JiraGroup [-Group] <AtlassianPS.JiraPS.Group[]> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
@@ -114,7 +114,7 @@ On Jira Cloud, `Id` is used automatically when the input object already includes
 On Jira Data Center, passing the group name directly avoids depending on `Get-JiraGroup`.
 
 ```yaml
-Type: Group[]
+Type: AtlassianPS.JiraPS.Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

@@ -15,7 +15,7 @@ Removes a remote link from a JIRA issue
 ## SYNTAX
 
 ```powershell
-Remove-JiraRemoteLink [-Issue] <Issue> [-LinkId] <Link[]> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [-LinkId] <AtlassianPS.JiraPS.Link[]> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -114,7 +114,7 @@ Issue from which to delete a remote link.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -136,7 +136,7 @@ HelpMessage: ''
 Remote link objects or their numeric IDs to remove.
 
 ```yaml
-Type: Link[]
+Type: AtlassianPS.JiraPS.Link[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

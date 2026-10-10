@@ -23,7 +23,7 @@ Get-JiraComponent [-ComponentId] <int[]> [-Credential <pscredential>] [<CommonPa
 ### ByProject
 
 ```powershell
-Get-JiraComponent [-Project] <Project[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraComponent [-Project] <AtlassianPS.JiraPS.Project[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -118,7 +118,7 @@ HelpMessage: ''
 The ID or Key of the Project to search.
 
 ```yaml
-Type: Project[]
+Type: AtlassianPS.JiraPS.Project[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

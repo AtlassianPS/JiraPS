@@ -15,7 +15,7 @@ Adds a user to a JIRA group
 ## SYNTAX
 
 ```powershell
-Add-JiraGroupMember [-Group] <Group[]> [-UserName] <User[]> [[-Credential] <pscredential>]
+Add-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-UserName] <AtlassianPS.JiraPS.User[]> [[-Credential] <pscredential>]
  [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -95,7 +95,7 @@ Group (or list of groups) to which the user(s) will be added.
 Passing a group name is the most portable option across Jira Cloud and Jira Data Center.
 
 ```yaml
-Type: Group[]
+Type: AtlassianPS.JiraPS.Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -138,7 +138,7 @@ HelpMessage: ''
 Username or user object obtained from Get-JiraUser.
 
 ```yaml
-Type: User[]
+Type: AtlassianPS.JiraPS.User[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

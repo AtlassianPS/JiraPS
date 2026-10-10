@@ -23,7 +23,7 @@ Get-JiraStatus [-Credential <pscredential>] [<CommonParameters>]
 ### _Search
 
 ```powershell
-Get-JiraStatus [-Status] <Status[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -87,7 +87,7 @@ HelpMessage: ''
 Status objects, IDs or names to retrieve.
 
 ```yaml
-Type: Status[]
+Type: AtlassianPS.JiraPS.Status[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

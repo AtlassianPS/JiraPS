@@ -17,7 +17,7 @@ Share a Filter with other users.
 ### ByInputObject (Default)
 
 ```powershell
-Add-JiraFilterPermission [-Filter] <Filter[]> -Type <string> [-Value <string>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Add-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> -Type <string> [-Value <string>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ById
@@ -111,7 +111,7 @@ HelpMessage: ''
 Filter object to which the permission should be applied
 
 ```yaml
-Type: Filter[]
+Type: AtlassianPS.JiraPS.Filter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

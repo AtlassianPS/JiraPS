@@ -220,6 +220,22 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                     It "matches the type of the parameter in code and help" {
                         $codeType = $parameterCode.ParameterType.Name
+                        $elementType = if ($parameterCode.ParameterType.IsArray) { $parameterCode.ParameterType.GetElementType() } else { $parameterCode.ParameterType }
+                        if ($elementType.Namespace -eq 'AtlassianPS.JiraPS') {
+                            $codeType = $parameterCode.ParameterType.FullName
+                            $markdown = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/$($command.Name).md" -Raw
+                            $sectionPattern = '(?ms)^### -' + [regex]::Escape($parameterName) + '\r?\n(.*?)(?=^### |^## |\z)'
+                            $parameterSection = [regex]::Match($markdown, $sectionPattern).Groups[1].Value
+                            $markdownType = [regex]::Match($parameterSection, '(?m)^Type: (.+?)\r?$').Groups[1].Value
+                            $markdownType | Should -Be $codeType
+                            $syntax = [regex]::Match($markdown, '(?ms)^## SYNTAX\r?\n(.*?)(?=^## |\z)').Groups[1].Value
+                            $syntaxPattern = '(?i)-' + [regex]::Escape($parameterName) + '\]?\s+<([^>]+)>'
+                            $syntaxTypes = @([regex]::Matches($syntax, $syntaxPattern) | ForEach-Object { $_.Groups[1].Value })
+                            $syntaxTypes.Count | Should -BeGreaterThan 0
+                            foreach ($syntaxType in $syntaxTypes) {
+                                $syntaxType | Should -Be $codeType
+                            }
+                        }
                         # Parameters decorated with [PSTypeName(...)] surface as
                         # Object / Object[] at the binder level. Prefer the
                         # PSTypeName for the user-facing type (which is what the

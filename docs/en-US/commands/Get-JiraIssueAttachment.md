@@ -15,7 +15,7 @@ Returns attachments of an issue in JIRA.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueAttachment [-Issue] <Issue> [[-FileName] <string>] [[-Credential] <pscredential>]
+Get-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [[-FileName] <string>] [[-Credential] <pscredential>]
  [<CommonParameters>]
 ```
 
@@ -103,7 +103,7 @@ JIRA issue to check for attachments.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

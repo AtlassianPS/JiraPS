@@ -17,7 +17,7 @@ Removes an existing filter.
 ### ByInputObject (Default)
 
 ```powershell
-Remove-JiraFilter [-InputObject] <Filter[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraFilter [-InputObject] <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ById
@@ -155,7 +155,7 @@ Filter object to be deleted.
 Object can be retrieved with `Get-JiraFilter`
 
 ```yaml
-Type: Filter[]
+Type: AtlassianPS.JiraPS.Filter[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

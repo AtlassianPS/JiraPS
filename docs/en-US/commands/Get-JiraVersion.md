@@ -23,7 +23,7 @@ Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-In
 ### byInputVersion
 
 ```powershell
-Get-JiraVersion [-InputVersion] <Version> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraVersion [-InputVersion] <AtlassianPS.JiraPS.Version> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### byProject
@@ -35,7 +35,7 @@ Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-Page
 ### byInputProject
 
 ```powershell
-Get-JiraVersion [-InputProject] <Project[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraVersion [-InputProject] <AtlassianPS.JiraPS.Project[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -171,7 +171,7 @@ HelpMessage: ''
 A Project Object to search
 
 ```yaml
-Type: Project[]
+Type: AtlassianPS.JiraPS.Project[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -192,7 +192,7 @@ HelpMessage: ''
 A Version object to search for
 
 ```yaml
-Type: Version
+Type: AtlassianPS.JiraPS.Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

@@ -16,7 +16,7 @@ Returns worklogs from an issue in JIRA.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueWorklog [-Issue] <Issue> [[-Credential] <pscredential>] [<CommonParameters>]
+Get-JiraIssueWorklog [-Issue] <AtlassianPS.JiraPS.Issue> [[-Credential] <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -72,7 +72,7 @@ JIRA issue to check for worklogs.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

@@ -23,7 +23,7 @@ Get-JiraProject [-Credential <pscredential>] [<CommonParameters>]
 ### _Search
 
 ```powershell
-Get-JiraProject [-Project] <Project[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraProject [-Project] <AtlassianPS.JiraPS.Project[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -89,7 +89,7 @@ HelpMessage: ''
 The Project ID or project key of a project to search.
 
 ```yaml
-Type: Project[]
+Type: AtlassianPS.JiraPS.Project[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

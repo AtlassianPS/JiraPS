@@ -17,13 +17,13 @@ Creates a new issue in JIRA
 ### AssignToUser (Default)
 
 ```powershell
-New-JiraIssue -Project <Project> -IssueType <IssueType> -Summary <string> [-Priority <Priority>] [-Description <string>] [-Reporter <User>] [-Assignee <User>] [-Label <string[]>] [-Parent <string>] [-FixVersion <Version[]>] [-Fields <psobject>] [-Components <Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string> [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>] [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Parent <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-New-JiraIssue -Project <Project> -IssueType <IssueType> -Summary <string> [-Priority <Priority>] [-Description <string>] [-Reporter <User>] [-Unassign] [-Label <string[]>] [-Parent <string>] [-FixVersion <Version[]>] [-Fields <psobject>] [-Components <Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string> [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>] [-Unassign] [-Label <string[]>] [-Parent <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -125,7 +125,7 @@ on this cmdlet because the create endpoint already does the right thing when the
 To create an issue with no assignee, use `-Unassign` instead.
 
 ```yaml
-Type: User
+Type: AtlassianPS.JiraPS.User
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []
@@ -146,7 +146,7 @@ HelpMessage: ''
 Component objects, IDs or names to add to the issue.
 
 ```yaml
-Type: Component[]
+Type: AtlassianPS.JiraPS.Component[]
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []
@@ -264,7 +264,7 @@ HelpMessage: ''
 Version objects, IDs or names to assign as fix versions.
 
 ```yaml
-Type: Version[]
+Type: AtlassianPS.JiraPS.Version[]
 DefaultValue: None
 SupportsWildcards: false
 Aliases:
@@ -287,7 +287,7 @@ Issue type object, ID or name available in the selected project.
 An object with an ID selects that exact issue type.
 
 ```yaml
-Type: IssueType
+Type: AtlassianPS.JiraPS.IssueType
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []
@@ -351,7 +351,7 @@ HelpMessage: ''
 Priority object, ID or unambiguous priority name.
 
 ```yaml
-Type: Priority
+Type: AtlassianPS.JiraPS.Priority
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -372,7 +372,7 @@ HelpMessage: ''
 Project object, key or ID in which to create the issue.
 
 ```yaml
-Type: Project
+Type: AtlassianPS.JiraPS.Project
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []
@@ -396,7 +396,7 @@ If omitted, Jira will apply the default reporter (typically the currently authen
 Empty, `$null`, and whitespace-only values are rejected at parameter binding.
 
 ```yaml
-Type: User
+Type: AtlassianPS.JiraPS.User
 DefaultValue: None
 SupportsWildcards: false
 Aliases: []

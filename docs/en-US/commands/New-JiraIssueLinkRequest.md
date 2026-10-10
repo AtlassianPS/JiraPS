@@ -15,7 +15,7 @@ Creates a typed issue-link create request payload.
 ## SYNTAX
 
 ```powershell
-New-JiraIssueLinkRequest [-LinkType] <IssueLinkType> [-FromIssue] <Issue> [-ToIssue] <Issue> [<CommonParameters>]
+New-JiraIssueLinkRequest [-LinkType] <AtlassianPS.JiraPS.IssueLinkType> [-FromIssue] <AtlassianPS.JiraPS.Issue> [-ToIssue] <AtlassianPS.JiraPS.Issue> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -41,7 +41,7 @@ Creates an issue-link request from simple string inputs and posts the link to Ji
 The source issue to map to Jira's `inwardIssue` request slot.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -65,7 +65,7 @@ Simple string input maps to the link-type name.
 For id-based requests, pass an `AtlassianPS.JiraPS.IssueLinkType` object with `Id` populated.
 
 ```yaml
-Type: IssueLinkType
+Type: AtlassianPS.JiraPS.IssueLinkType
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -87,7 +87,7 @@ HelpMessage: ''
 The destination issue to map to Jira's `outwardIssue` request slot.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

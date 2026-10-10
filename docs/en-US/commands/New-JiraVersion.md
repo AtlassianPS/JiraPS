@@ -17,14 +17,14 @@ Creates a new FixVersion in JIRA
 ### byObject (Default)
 
 ```powershell
-New-JiraVersion [-InputObject] <Version> [-Credential <pscredential>] [-WhatIf] [-Confirm]
+New-JiraVersion [-InputObject] <AtlassianPS.JiraPS.Version> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### byParameters
 
 ```powershell
-New-JiraVersion [-Name] <string> [-Project] <Project> [-Description <string>] [-Archived <bool>]
+New-JiraVersion [-Name] <string> [-Project] <AtlassianPS.JiraPS.Project> [-Description <string>] [-Archived <bool>]
  [-Released <bool>] [-ReleaseDate <datetime>] [-StartDate <datetime>] [-Credential <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
@@ -155,7 +155,7 @@ HelpMessage: ''
 Version object that should be created on the server.
 
 ```yaml
-Type: Version
+Type: AtlassianPS.JiraPS.Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -197,7 +197,7 @@ HelpMessage: ''
 The Project ID
 
 ```yaml
-Type: Project
+Type: AtlassianPS.JiraPS.Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

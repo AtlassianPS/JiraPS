@@ -37,7 +37,7 @@ Get-JiraUser [-AccountId] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <u
 ### ByInputObject
 
 ```powershell
-Get-JiraUser [-InputObject] <User[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>]
+Get-JiraUser [-InputObject] <AtlassianPS.JiraPS.User[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>]
  [<CommonParameters>]
 ```
 
@@ -226,7 +226,7 @@ Use this parameter when you already have `AtlassianPS.JiraPS.User` objects and w
 For string-based lookup, use `-UserName` (Data Center / generic) or `-AccountId` (Cloud).
 
 ```yaml
-Type: User[]
+Type: AtlassianPS.JiraPS.User[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

@@ -15,7 +15,7 @@ Adds a link between two Issues on Jira
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueLink [-IssueLink] <IssueLinkCreateRequest[]> [[-Comment] <string>] [[-Credential] <pscredential>]
+Add-JiraIssueLink [-IssueLink] <AtlassianPS.JiraPS.IssueLinkCreateRequest[]> [[-Comment] <string>] [[-Credential] <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -123,7 +123,7 @@ The nested issue references must include `key` or `id`.
 Both `inwardIssue` and `outwardIssue` are required.
 
 ```yaml
-Type: IssueLinkCreateRequest[]
+Type: AtlassianPS.JiraPS.IssueLinkCreateRequest[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

@@ -24,7 +24,7 @@ Get-JiraIssue [-Key] <string[]> [-Fields <string[]>] [-Credential <pscredential>
 ### ByInputObject
 
 ```powershell
-Get-JiraIssue [-InputObject] <Issue> [-Fields <string[]>] [-Credential <pscredential>] [-IncludeHistory]
+Get-JiraIssue [-InputObject] <AtlassianPS.JiraPS.Issue> [-Fields <string[]>] [-Credential <pscredential>] [-IncludeHistory]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
@@ -38,7 +38,7 @@ Get-JiraIssue -Query <string> [-Fields <string[]>] [-PageSize <uint>] [-Credenti
 ### ByFilter
 
 ```powershell
-Get-JiraIssue -Filter <Filter> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeHistory]
+Get-JiraIssue -Filter <AtlassianPS.JiraPS.Filter> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeHistory]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
@@ -188,7 +188,7 @@ HelpMessage: ''
 Object of an existing JIRA filter from which the results will be returned.
 
 ```yaml
-Type: Filter
+Type: AtlassianPS.JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -276,7 +276,7 @@ HelpMessage: ''
 Object of an issue to search for.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

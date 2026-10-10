@@ -24,7 +24,7 @@ Remove-JiraIssueAttachment [-AttachmentId] <int[]> [-Credential <pscredential>] 
 ### byIssue
 
 ```powershell
-Remove-JiraIssueAttachment [-Issue] <Issue> [-FileName <string[]>] [-Credential <pscredential>]
+Remove-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FileName <string[]>] [-Credential <pscredential>]
  [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -175,7 +175,7 @@ Issue from which to delete on or more attachments.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

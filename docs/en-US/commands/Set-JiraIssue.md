@@ -17,8 +17,8 @@ Modifies an existing issue in JIRA
 ### AssignToUser (Default)
 
 ```powershell
-Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
- [-Assignee <User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+ [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
@@ -26,7 +26,7 @@ Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVe
 ### Unassign
 
 ```powershell
-Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -35,7 +35,7 @@ Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVe
 ### UseDefaultAssignee
 
 ```powershell
-Set-JiraIssue -Issue <Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
  [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -150,7 +150,7 @@ Use `-UseDefaultAssignee` to set the project's default assignee.
 Empty strings and `$null` values are not accepted.
 
 ```yaml
-Type: User
+Type: AtlassianPS.JiraPS.User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -292,7 +292,7 @@ Issue to be changed.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

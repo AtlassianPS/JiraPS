@@ -17,13 +17,13 @@ Performs an issue transition on a JIRA issue changing it's status
 ### AssignToUser (Default)
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <Issue> -Transition <Transition> [-Fields <psobject>] [-Assignee <User>] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>] [-Assignee <AtlassianPS.JiraPS.User>] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <Issue> -Transition <Transition> [-Fields <psobject>] [-Unassign] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>] [-Unassign] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -103,7 +103,7 @@ Empty strings and `$null` values are not accepted.
 Assignee field must be configured to appear on the transition screen to use this parameter.
 
 ```yaml
-Type: User
+Type: AtlassianPS.JiraPS.User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -203,7 +203,7 @@ The Issue Object or ID to transition.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -246,7 +246,7 @@ HelpMessage: ''
 Transition object, numeric ID or unambiguous available transition name.
 
 ```yaml
-Type: Transition
+Type: AtlassianPS.JiraPS.Transition
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

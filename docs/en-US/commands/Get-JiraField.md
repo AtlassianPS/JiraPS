@@ -23,7 +23,7 @@ Get-JiraField [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ### _Search
 
 ```powershell
-Get-JiraField [-Field] <Field[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraField [-Field] <AtlassianPS.JiraPS.Field[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -93,7 +93,7 @@ Field objects, field IDs or wildcard field names.
 An exact ID takes precedence over a display-name match.
 
 ```yaml
-Type: Field[]
+Type: AtlassianPS.JiraPS.Field[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

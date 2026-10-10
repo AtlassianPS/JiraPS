@@ -15,7 +15,7 @@ Removes a user from a JIRA group
 ## SYNTAX
 
 ```powershell
-Remove-JiraGroupMember [-Group] <Group[]> [-User] <User[]> [[-Credential] <pscredential>]
+Remove-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-User] <AtlassianPS.JiraPS.User[]> [[-Credential] <pscredential>]
  [-PassThru] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -116,7 +116,7 @@ Group Object or name from which to remove the user(s).
 Passing a group name is the most portable option across Jira Cloud and Jira Data Center.
 
 ```yaml
-Type: Group[]
+Type: AtlassianPS.JiraPS.Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -159,7 +159,7 @@ HelpMessage: ''
 Username or user object obtained from Get-JiraUser
 
 ```yaml
-Type: User[]
+Type: AtlassianPS.JiraPS.User[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

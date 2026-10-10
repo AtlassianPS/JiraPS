@@ -15,7 +15,7 @@ Returns members of a given group in JIRA
 ## SYNTAX
 
 ```powershell
-Get-JiraGroupMember [-Group] <Group[]> [[-PageSize] <uint>] [[-Credential] <pscredential>]
+Get-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [[-PageSize] <uint>] [[-Credential] <pscredential>]
  [-IncludeInactive] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
@@ -100,7 +100,7 @@ If the group object includes `Id`, that identifier is used automatically on Jira
 Passing a plain group name is supported and is the most portable option across Jira deployments.
 
 ```yaml
-Type: Group[]
+Type: AtlassianPS.JiraPS.Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

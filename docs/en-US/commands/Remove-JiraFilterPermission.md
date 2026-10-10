@@ -15,7 +15,7 @@ Remove a permission of a Filter
 ## SYNTAX
 
 ```powershell
-Remove-JiraFilterPermission [-Filter] <Filter> [[-PermissionId] <FilterPermission[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter> [[-PermissionId] <AtlassianPS.JiraPS.FilterPermission[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -94,7 +94,7 @@ HelpMessage: ''
 Filter object or positive numeric filter ID from which to remove permissions.
 
 ```yaml
-Type: Filter
+Type: AtlassianPS.JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -118,7 +118,7 @@ Permission objects or positive numeric permission IDs.
 If omitted, removes the permissions already present in the supplied filter object.
 
 ```yaml
-Type: FilterPermission[]
+Type: AtlassianPS.JiraPS.FilterPermission[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []

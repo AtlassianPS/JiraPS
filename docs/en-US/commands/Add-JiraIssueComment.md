@@ -15,7 +15,7 @@ Adds a comment to an existing JIRA issue
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueComment [-Comment] <string> [-Issue] <Issue> [[-Visibility] <Visibility>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Add-JiraIssueComment [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue> [[-Visibility] <AtlassianPS.JiraPS.Visibility>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -172,7 +172,7 @@ Issue that should be commented upon.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -198,7 +198,7 @@ Use `@{ Type = 'group'; Value = 'jira-users' }` for a group, or supply its `Iden
 `VisibleRole` remains an alias.
 
 ```yaml
-Type: Visibility
+Type: AtlassianPS.JiraPS.Visibility
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

@@ -15,7 +15,7 @@ Adds a worklog item to an existing JIRA issue
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueWorklog [-Comment] <string> [-Issue] <Issue> [-TimeSpent] <timespan> [-DateStarted] <datetime> [[-Visibility] <Visibility>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Add-JiraIssueWorklog [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue> [-TimeSpent] <timespan> [-DateStarted] <datetime> [[-Visibility] <AtlassianPS.JiraPS.Visibility>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -174,7 +174,7 @@ Issue to receive the new worklog item.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -221,7 +221,7 @@ Use `@{ Type = 'group'; Value = 'jira-users' }` for a group, or supply its `Iden
 `VisibleRole` remains an alias.
 
 ```yaml
-Type: Visibility
+Type: AtlassianPS.JiraPS.Visibility
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:

@@ -15,7 +15,7 @@ Adds a watcher to an existing JIRA issue
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueWatcher [-Watcher] <string[]> [-Issue] <Issue> [[-Credential] <pscredential>]
+Add-JiraIssueWatcher [-Watcher] <string[]> [-Issue] <AtlassianPS.JiraPS.Issue> [[-Credential] <pscredential>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -104,7 +104,7 @@ Issue that should be watched.
 Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
