@@ -44,7 +44,7 @@
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_status [$_status]"
 
                     $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id } else { $_status.Name }
-                    $encodedIdentifier = ConvertTo-URLEncoded -InputString $statusIdentifier -PathSegment
+                    $encodedIdentifier = ConvertTo-URLEncoded -InputString $statusIdentifier
 
                     $parameter = @{
                         URI        = $resourceURi -f "/$encodedIdentifier"
