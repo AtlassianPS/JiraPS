@@ -15,25 +15,27 @@ Remove a permission of a Filter
 ## SYNTAX
 
 ```powershell
-Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter> [[-PermissionId] <AtlassianPS.JiraPS.FilterPermission[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter> [[-Permission] <AtlassianPS.JiraPS.FilterPermission[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 Remove sharing permissions from a filter.
 Pass a filter object or its numeric ID.
-`FilterId` and `Id` remain aliases for `Filter`.
-If `PermissionId` is omitted, the filter must contain permissions retrieved by `Get-JiraFilterPermission`.
+`FilterId` and `Id` are aliases for `Filter`.
+`PermissionId` is an alias for `Permission`.
+If `Permission` is omitted, the filter must contain permissions retrieved by `Get-JiraFilterPermission`.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-Remove-JiraFilterPermission -FilterId 11822 -PermissionId 1111, 2222
+Remove-JiraFilterPermission -FilterId 11822 -Permission 1111, 2222
 ```
 
-Remove two share permissions of Filter with ID '11822'
+Remove two share permissions from filter 11822.
+Numeric IDs are converted to permission objects.
 
 ### Example 2
 
@@ -112,10 +114,10 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -PermissionId
+### -Permission
 
 Permission objects or non-negative numeric permission IDs.
-Zero retains the previous numeric parameter behavior; Jira determines whether the ID exists.
+Zero is accepted; Jira determines whether the ID exists.
 Permission objects must contain an ID.
 If omitted, removes the permissions already present in the supplied filter object.
 
@@ -123,7 +125,8 @@ If omitted, removes the permissions already present in the supplied filter objec
 Type: AtlassianPS.JiraPS.FilterPermission[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- PermissionId
 ParameterSets:
 - Name: (All)
   Position: 1

@@ -32,7 +32,7 @@ For the migration playbook and concrete before/after script examples, see [`abou
   Known string-set properties use nullable enums; unknown wire values become `$null`.
 - Added typed leaf and filter parameters, retained identifier/name shorthand, and removed unused leaf transformation attributes.
   `Add-JiraIssueComment` and `Add-JiraIssueWorklog` accept typed role/group `Visibility`, with `VisibleRole` retained as an alias.
-  `Remove-JiraFilterPermission` uses one typed filter parameter with `FilterId`/`Id` aliases and optional typed permission IDs.
+  `Remove-JiraFilterPermission` uses one typed filter parameter with `FilterId`/`Id` aliases and optional typed permissions through `-Permission` (alias `-PermissionId`).
   Added the v3 contract inventory and migration examples.
 - Unified filter ID and object input for `Get-JiraFilter`, `Remove-JiraFilter`, `Get-JiraFilterPermission` and `Add-JiraFilterPermission`, retaining identifier aliases and pipeline support.
   Filter permission operations now forward credentials when resolving ID-only inputs.

@@ -71,7 +71,7 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'Filter'; type = "AtlassianPS.JiraPS.Filter" }
-                    @{ parameter = 'PermissionId'; type = "AtlassianPS.JiraPS.FilterPermission[]" }
+                    @{ parameter = 'Permission'; type = "AtlassianPS.JiraPS.FilterPermission[]" }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
@@ -103,10 +103,31 @@ InModuleScope JiraPS {
                 It "uses a typed filter and permission without an extra filter lookup" {
                     $filter = [AtlassianPS.JiraPS.Filter]@{ Id = '12345'; Name = 'Test filter'; RestUrl = "$jiraServer/rest/api/2/filter/12345" }
                     $permission = [AtlassianPS.JiraPS.FilterPermission]@{ Id = 1111 }
-                    $filter | Remove-JiraFilterPermission -PermissionId $permission -Confirm:$false
+                    $filter | Remove-JiraFilterPermission -Permission $permission -Confirm:$false
 
                     Should -Invoke Get-JiraFilter -Exactly -Times 0
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/1111' }
+                }
+
+                It "preserves explicit permissions across pipeline filters with <parameterName>" -TestCases @(
+                    @{ parameterName = 'Permission' }
+                    @{ parameterName = 'PermissionId' }
+                ) {
+                    param($parameterName)
+                    $parameters = @{
+                        $parameterName = @(
+                            [AtlassianPS.JiraPS.FilterPermission]@{ Id = 3333 }
+                            [AtlassianPS.JiraPS.FilterPermission]@{ Id = 4444 }
+                        )
+                        Confirm        = $false
+                    }
+                    @($fullFilter, $basicFilter) | Remove-JiraFilterPermission @parameters
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 4
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/3333' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/4444' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/3333' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/4444' }
                 }
 
                 It "preserves zero permission IDs accepted by the former UInt32 parameter" {
@@ -234,11 +255,11 @@ InModuleScope JiraPS {
                 }
 
                 It "uses a module argument error when the filter has no permissions" {
-                    { Remove-JiraFilterPermission -Filter $basicFilter } | Should -Throw -ExpectedMessage '*Supply PermissionId*' -ErrorId 'ParameterValue.FilterWithoutPermission*'
+                    { Remove-JiraFilterPermission -Filter $basicFilter } | Should -Throw -ExpectedMessage '*Supply Permission*' -ErrorId 'ParameterValue.FilterWithoutPermission*'
                 }
 
                 It "validates the -Filter to ensure FilterPermissions" {
-                    { Remove-JiraFilterPermission -Filter (Get-JiraFilter -Id 1) } | Should -Throw -ExpectedMessage "*PermissionId*"
+                    { Remove-JiraFilterPermission -Filter (Get-JiraFilter -Id 1) } | Should -Throw -ExpectedMessage "*Permission*"
                     { Remove-JiraFilterPermission -Filter (Get-JiraFilterPermission -Id 1) } | Should -Not -Throw
                 }
 
@@ -247,7 +268,7 @@ InModuleScope JiraPS {
                 }
 
                 It "does not accept negative PermissionIds" {
-                    { Remove-JiraFilterPermission -FilterId 1 -PermissionId -1111 } | Should -Throw -ExpectedMessage "*'PermissionId'*"
+                    { Remove-JiraFilterPermission -FilterId 1 -PermissionId -1111 } | Should -Throw -ExpectedMessage "*'Permission'*"
                 }
 
                 It "can only process one FilterId" {

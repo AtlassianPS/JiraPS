@@ -731,7 +731,7 @@ Add-JiraIssueComment -Issue $issue -Comment 'Team note' -Visibility @{ Type = 'g
 
 `VisibleRole` remains an alias for `Visibility`; role strings and `All Users` remain accepted shorthand.
 Filters and leaf inputs now use typed parameters where a cmdlet consumes those objects.
-`Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and optional typed permission IDs.
+`Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and optional typed permissions through `-Permission` (`-PermissionId` is an alias).
 Some stable string-set properties are nullable enums; unknown API values become `$null`.
 Custom-field data, entity-property values, allowed field values and raw REST responses remain extensible.
 See [about_JiraPS_Classes](classes.html) for object construction, command input and nested property examples.
