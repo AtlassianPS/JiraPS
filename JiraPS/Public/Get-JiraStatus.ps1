@@ -43,8 +43,11 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_status]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_status [$_status]"
 
+                    $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id } else { $_status.Name }
+                    $encodedIdentifier = ConvertTo-URLEncoded -InputString $statusIdentifier -PathSegment
+
                     $parameter = @{
-                        URI        = $resourceURi -f "/$(if ($null -ne $_status.Id) { $_status.Id } else { $_status.Name })"
+                        URI        = $resourceURi -f "/$encodedIdentifier"
                         Method     = "GET"
                         Credential = $Credential
                     }

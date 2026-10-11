@@ -104,6 +104,32 @@ InModuleScope JiraPS {
                 }
             }
 
+            It "escapes a status name as one URI path segment" {
+                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                    ConvertFrom-Json $restResultOne
+                } -ParameterFilter {
+                    $Method -eq 'GET' -and
+                    $URI -eq "$jiraServer/rest/api/latest/status/In%20Progress%2FQA%3F%23"
+                }
+
+                Get-JiraStatus -Status 'In Progress/QA?#' | Should -Not -BeNullOrEmpty
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    $Method -eq 'GET' -and
+                    $URI -eq "$jiraServer/rest/api/latest/status/In%20Progress%2FQA%3F%23"
+                }
+            }
+
+            It "prefers the ID when a status object also contains a name" {
+                $status = [AtlassianPS.JiraPS.Status]@{ Id = 1; Name = 'Open' }
+
+                Get-JiraStatus -Status $status | Should -Not -BeNullOrEmpty
+
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    $URI -eq "$jiraServer/rest/api/latest/status/1"
+                }
+            }
+
             It "processes multiple -Status values" {
                 $result = Get-JiraStatus -Status 1, Open
 

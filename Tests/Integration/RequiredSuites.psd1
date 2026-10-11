@@ -19,6 +19,14 @@
             )
         }
         @{
+            File   = 'Status.Integration.Tests.ps1'
+            Common = @(
+                'Status name encoding.retrieves a status whose name contains spaces'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
             File   = 'HttpErrors.Integration.Tests.ps1'
             Common = @(
                 "HTTP Errors.preserves Jira's message for a missing issue"

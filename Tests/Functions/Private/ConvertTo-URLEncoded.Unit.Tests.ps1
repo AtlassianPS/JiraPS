@@ -35,6 +35,26 @@ InModuleScope JiraPS {
                 }
             }
 
+            Context "Path segments" {
+                It "preserves reserved characters inside one segment" {
+                    ConvertTo-URLEncoded -InputString 'In Progress/QA?#' -PathSegment |
+                        Should -Be 'In%20Progress%2FQA%3F%23'
+                }
+
+                It "encodes literal plus and percent characters" {
+                    ConvertTo-URLEncoded -InputString 'QA+50%' -PathSegment |
+                        Should -Be 'QA%2B50%25'
+                }
+
+                It "encodes Unicode segments from the pipeline" {
+                    $result = @('Prüfung', 'In Progress' | ConvertTo-URLEncoded -PathSegment)
+
+                    $result | Should -HaveCount 2
+                    $result[0] | Should -Be 'Pr%C3%BCfung'
+                    $result[1] | Should -Be 'In%20Progress'
+                }
+            }
+
             Context "Property Mapping" {
                 It "has InputString parameter" {
                     $command = Get-Command -Name ConvertTo-URLEncoded

@@ -490,6 +490,15 @@ All three integration cases must pass on both Cloud and Data Center.
 The suite requires a writable Jira administrator account and configured `TestProject`, `TestUser` and `TestGroup` fixtures.
 Cleanup removes the temporary filter and role without changing existing role memberships.
 
+### Status name encoding coverage
+
+`Status.Integration.Tests.ps1` requires a status with spaces in its name and retrieves it by name on both Cloud and Data Center.
+The required coverage gate rejects a missing, failed or skipped case.
+Jira's [status lookup endpoint](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-workflow-statuses/) requires the status to belong to an active workflow.
+The live tests use an existing active status without changing workflows.
+Reserved characters (`/`, `?`, `#`, `+` and `%`) and Unicode are covered by unit tests.
+Live reserved-character coverage would require provisioning and cleaning up a disposable workflow, workflow scheme and project on Cloud.
+
 ### Comment and worklog visibility coverage
 
 `Visibility.Integration.Tests.ps1` creates a temporary issue, project role and group, and adds the test account to the temporary role and group.

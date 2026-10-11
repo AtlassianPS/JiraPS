@@ -85,6 +85,8 @@ HelpMessage: ''
 ### -Status
 
 Status objects, IDs or names to retrieve.
+When an object contains both an ID and a name, its ID takes precedence.
+Jira Cloud returns the first matching status when a name is shared by multiple statuses, so use an ID when the name is ambiguous.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Status[]
@@ -131,3 +133,5 @@ If neither are supplied, this function runs with anonymous access to Jira.
 ## RELATED LINKS
 
 [Get-JiraIssue](../Get-JiraIssue/)
+
+[Atlassian Cloud status lookup](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-workflow-statuses/#api-rest-api-3-status-idOrName-get)
