@@ -37,6 +37,8 @@ For the migration playbook and concrete before/after script examples, see [`abou
 - Unified filter ID and object input for `Get-JiraFilter`, `Remove-JiraFilter`, `Get-JiraFilterPermission` and `Add-JiraFilterPermission`, retaining identifier aliases and pipeline support.
   Filter permission operations now forward credentials when resolving ID-only inputs.
   `Remove-JiraFilterPermission` validates all permission identifiers before deleting and follows the standard begin/process/end lifecycle.
+- Comments and worklogs omit visibility for typed `All Users` roles as well as string shorthand.
+  Added live create-and-readback coverage for unrestricted, role and group visibility on Cloud and Data Center.
 
 - Fixed `Get-JiraIssueCreateMetadata` returning no fields on Jira Cloud by recognizing its `fields` response array and following offset pagination on v3 endpoints.
   Data Center retains its v2 `values` response support, and `-First` / `-Skip` now return the requested fields across page boundaries (#651).

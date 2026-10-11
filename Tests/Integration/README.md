@@ -463,7 +463,7 @@ The check fails if the NUnit report is missing or malformed, a required suite or
 It checks test cases because Pester can mark a suite `Ignored` when it contains intentional deployment-specific skips.
 Result artifacts still upload when verification fails.
 
-`Tests/Integration/RequiredSuites.psd1` maintains the required suites, including Groups, HTTP error handling and enum conversion.
+`Tests/Integration/RequiredSuites.psd1` maintains the required suites, including Groups, HTTP error handling, enum conversion and comment/worklog visibility.
 Each entry specifies the file name and full NUnit test names under `Common`, `Cloud`, and `Server`.
 Common tests and tests for the selected track must execute successfully.
 Only tests listed exclusively for the other track may skip.
@@ -489,6 +489,21 @@ Unit tests also cover conversion of the `projectRole` spelling.
 All three integration cases must pass on both Cloud and Data Center.
 The suite requires a writable Jira administrator account and configured `TestProject`, `TestUser` and `TestGroup` fixtures.
 Cleanup removes the temporary filter and role without changing existing role memberships.
+
+### Comment and worklog visibility coverage
+
+`Visibility.Integration.Tests.ps1` creates a temporary issue, project role and group, and adds the test account to the temporary role and group.
+It creates and reads back unrestricted comments and worklogs, including the `All Users` shorthand, `VisibleRole` alias and typed role form.
+It also verifies role and group restrictions on both deployments and group identifier restrictions on Cloud.
+The suite requires a writable Jira administrator account and a configured `TestProject` fixture.
+On Cloud, configure **Settings > System > General Configuration > Comment visibility** as **Groups & Project Roles** on the dedicated test site.
+The configuration endpoint does not expose this setting; the group restriction requests and read-back assertions verify it through actual behavior.
+The disposable Data Center container enables `jira.comment.level.visibility.groups` through the SDK home override in `Tests/Integration/Fixtures/jira-home/jira-config.properties` before Jira starts.
+The container entrypoint copies that file into AMPS' standard override directory, and CI checks the resulting Jira home file before running the suite.
+The visibility suite does not change site settings.
+Data Center fixtures outside Docker must enable **Groups & Project Roles** before running the suite.
+Cleanup removes the temporary issue, role and group.
+Run writable integration tests only against a dedicated test site.
 
 ## Troubleshooting
 

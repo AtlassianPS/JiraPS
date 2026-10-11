@@ -39,5 +39,27 @@
             Cloud  = @()
             Server = @()
         }
+        @{
+            File   = 'Visibility.Integration.Tests.ps1'
+            Common = @(
+                'Comment and worklog visibility.persists unrestricted comment for omitted visibility'
+                'Comment and worklog visibility.persists unrestricted comment for All Users'
+                'Comment and worklog visibility.persists unrestricted comment for VisibleRole alias'
+                'Comment and worklog visibility.persists unrestricted comment for typed All Users role'
+                'Comment and worklog visibility.persists unrestricted worklog for omitted visibility'
+                'Comment and worklog visibility.persists unrestricted worklog for All Users'
+                'Comment and worklog visibility.persists unrestricted worklog for VisibleRole alias'
+                'Comment and worklog visibility.persists unrestricted worklog for typed All Users role'
+                'Comment and worklog visibility.persists a role restriction on a comment'
+                'Comment and worklog visibility.persists a group restriction on a comment'
+                'Comment and worklog visibility.persists a role restriction on a worklog'
+                'Comment and worklog visibility.persists a group restriction on a worklog'
+            )
+            Cloud  = @(
+                'Comment and worklog visibility.persists a Cloud group identifier restriction on a comment'
+                'Comment and worklog visibility.persists a Cloud group identifier restriction on a worklog'
+            )
+            Server = @()
+        }
     )
 }

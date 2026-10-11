@@ -224,6 +224,8 @@ String values remain supported through both `Visibility` and its `VisibleRole` a
 
 Other project role names are also accepted; the role must exist in Jira.
 Use `@{ Type = 'group'; Value = 'jira-users' }` for a group, or supply its `Identifier` where supported by Jira.
+A role visibility object with `Value = 'All Users'` and no `Identifier` also leaves access unrestricted.
+Unrestricted access omits the REST `visibility` property; it does not send an `All Users` role to Jira.
 `VisibleRole` remains an alias.
 
 ```yaml
