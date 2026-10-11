@@ -228,6 +228,76 @@ InModuleScope JiraPS {
                 }
             }
 
+            Context "Transition binding and validation" {
+                It "sends the ID for <description>" -TestCases @(
+                    @{ description = 'numeric string'; value = '11' }
+                    @{ description = 'transition name'; value = 'Start Progress' }
+                    @{ description = 'case-insensitive transition name'; value = 'start progress' }
+                ) {
+                    Invoke-JiraIssueTransition -Issue $issueKey -Transition $value
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'Post' -and ($Body | ConvertFrom-Json).transition.id -eq 11
+                    }
+                }
+
+                It "rejects <description> during parameter binding before resolving the issue" -TestCases @(
+                    @{ description = 'null'; value = $null }
+                    @{ description = 'empty string'; value = '' }
+                    @{ description = 'whitespace'; value = '   ' }
+                    @{ description = 'unrelated object'; value = [PSCustomObject]@{ Unexpected = 11 } }
+                    @{ description = 'boolean'; value = $true }
+                    @{ description = 'fractional ID'; value = 11.5 }
+                    @{ description = 'multiple IDs'; value = @(11, 81) }
+                ) {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition $value -ErrorAction Stop } |
+                        Should -Throw -ExceptionType ([System.Management.Automation.ParameterBindingException])
+                    Should -Invoke Resolve-JiraIssueObject -ModuleName JiraPS -Exactly -Times 0
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+
+                It "rejects an unavailable ID or name before posting" -TestCases @(
+                    @{ value = 999 }
+                    @{ value = 'Unknown transition' }
+                    @{ value = [AtlassianPS.JiraPS.Transition]::new() }
+                ) {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition $value -ErrorAction Stop } |
+                        Should -Throw -ErrorId 'ParameterValue.InvalidTransition*'
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+
+                It "rejects unresolved transitions when the issue has no available transitions" -TestCases @(
+                    @{ value = 'Unknown transition' }
+                    @{ value = [AtlassianPS.JiraPS.Transition]::new() }
+                ) {
+                    Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                        [AtlassianPS.JiraPS.Issue]@{
+                            Key        = $issueKey
+                            RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
+                            Transition = @()
+                        }
+                    }
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition $value -ErrorAction Stop } |
+                        Should -Throw -ErrorId 'ParameterValue.InvalidTransition*'
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+
+                It "rejects an ambiguous transition name before posting" {
+                    Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                        [AtlassianPS.JiraPS.Issue]@{
+                            Key        = $issueKey
+                            RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
+                            Transition = @(
+                                [AtlassianPS.JiraPS.Transition]@{ Id = 11; Name = 'Duplicate' }
+                                [AtlassianPS.JiraPS.Transition]@{ Id = 81; Name = 'Duplicate' }
+                            )
+                        }
+                    }
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 'Duplicate' -ErrorAction Stop } |
+                        Should -Throw -ErrorId 'ParameterValue.InvalidTransition*'
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+            }
+
             Context "Field Updates" {
                 It "updates custom fields if provided to the -Fields parameter" {
                     {

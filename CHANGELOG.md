@@ -39,6 +39,7 @@ For the migration playbook and concrete before/after script examples, see [`abou
   `Remove-JiraFilterPermission` validates all permission identifiers before deleting and follows the standard begin/process/end lifecycle.
 - Comments and worklogs omit visibility for typed `All Users` roles as well as string shorthand.
   Added live create-and-readback coverage for unrestricted, role and group visibility on Cloud and Data Center.
+- `Invoke-JiraIssueTransition` rejects unresolved transitions even when the issue has no available transitions.
 
 - Fixed `Get-JiraIssueCreateMetadata` returning no fields on Jira Cloud by recognizing its `fields` response array and following offset pagination on v3 endpoints.
   Data Center retains its v2 `values` response support, and `-First` / `-Skip` now return the requested fields across page boundaries (#651).

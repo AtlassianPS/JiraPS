@@ -89,13 +89,14 @@
         }
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Checking that the issue can perform the given transition"
-        if (($issueObj.Transition.Id) -notcontains $transitionId) {
+        if ($null -eq $transitionId -or ($issueObj.Transition.Id) -notcontains $transitionId) {
             $exception = ([System.ArgumentException]"Invalid value for Parameter")
             $errorId = 'ParameterValue.InvalidTransition'
             $errorCategory = 'InvalidArgument'
             $errorTarget = $Issue
             $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-            $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$transitionId]. Check the issue's Transition property and provide a transition valid for its current state."
+            $requestedTransition = if ($null -ne $transitionId) { $transitionId } else { $Transition.Name }
+            $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$requestedTransition]. Check the issue's Transition property and provide a transition valid for its current state."
             ThrowError -ErrorRecord $errorItem
         }
 
