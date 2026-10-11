@@ -2,7 +2,7 @@
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.FieldSchema])]
     param(
-        [Parameter(ValueFromPipeline)]
+        [Parameter( ValueFromPipeline )]
         [PSObject[]]
         $InputObject
     )
@@ -10,6 +10,8 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.FieldSchema"
+
             $configuration = $null
             if ($null -ne $i.configuration) {
                 $configuration = [System.Collections.Generic.Dictionary[string, object]]::new()

@@ -10,7 +10,10 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            if ($i -is [AtlassianPS.JiraPS.User]) { $i; continue }
+            if ($i -is [AtlassianPS.JiraPS.User]) {
+                $i
+                continue
+            }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.User"
 
             $hash = @{
@@ -21,7 +24,7 @@
                 DisplayName  = $i.displayName
                 EmailAddress = $i.emailAddress
                 Active       = if ($null -ne $i.active) { [System.Convert]::ToBoolean($i.active) } else { $false }
-                AvatarUrl    = if ($null -ne $i.avatarUrls) { ConvertTo-JiraUriMap $i.avatarUrls } else { $null }
+                AvatarUrl    = ConvertTo-JiraUriMap -InputObject $i.avatarUrls
                 TimeZone     = $i.timeZone
                 Locale       = $i.locale
                 Groups       = if ($i.groups) { , [string[]]@($i.groups.items | ForEach-Object { $_.name }) } else { $null }

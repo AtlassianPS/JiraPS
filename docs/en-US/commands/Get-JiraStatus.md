@@ -29,12 +29,12 @@ Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Credential <pscredentia
 ## DESCRIPTION
 
 This function returns Jira status objects.
-Use it to retrieve all available statuses or to query one or more statuses by id or name.
+Use it to retrieve all available statuses or to query one or more statuses by ID or name.
 `-IdOrName` is provided as an alias for `-Status`.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraStatus
@@ -42,15 +42,15 @@ Get-JiraStatus
 
 Returns all available statuses.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraStatus -Status 1
 ```
 
-Returns the status with id 1.
+Returns the status with ID 1.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Get-JiraStatus -Status Open
@@ -108,11 +108,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -122,7 +119,7 @@ Values passed to `-Status` can be provided through the pipeline.
 
 ## OUTPUTS
 
-### JiraPS.Status
+### AtlassianPS.JiraPS.Status
 
 ## NOTES
 

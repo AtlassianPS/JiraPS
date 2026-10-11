@@ -2,14 +2,22 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-    Initialize-TestEnvironment
+
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 InModuleScope JiraPS {
-    Describe 'ConvertTo-JiraIssueSecurityLevel' -Tag Unit {
+    Describe "ConvertTo-JiraIssueSecurityLevel" -Tag 'Unit' {
         It 'maps wire values to typed properties' {
-            $wire = ConvertFrom-Json '{"id":"5","name":"Internal","description":"Restricted access","self":"https://jira.example/security/5"}'
-            $result = ConvertTo-JiraIssueSecurityLevel $wire
+            $wire = ConvertFrom-Json -InputObject @'
+{
+    "id": "5",
+    "name": "Internal",
+    "description": "Restricted access",
+    "self": "https://jira.example/security/5"
+}
+'@
+            $result = ConvertTo-JiraIssueSecurityLevel -InputObject $wire
             $result.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueSecurityLevel])
             $result.Id | Should -Be '5'
             $result.Name | Should -Be 'Internal'
@@ -18,7 +26,7 @@ InModuleScope JiraPS {
         }
 
         It 'preserves unknown values when fields are omitted' {
-            $result = ConvertTo-JiraIssueSecurityLevel (ConvertFrom-Json '{}')
+            $result = ConvertTo-JiraIssueSecurityLevel -InputObject (ConvertFrom-Json '{}')
             $result.Id | Should -BeNullOrEmpty
             $result.Name | Should -BeNullOrEmpty
             $result.Description | Should -BeNullOrEmpty
@@ -31,7 +39,8 @@ InModuleScope JiraPS {
         }
 
         It 'preserves order and skips null entries (<delivery>)' -TestCases @(
-            @{ delivery = 'array' }; @{ delivery = 'pipeline' }
+            @{ delivery = 'array' }
+            @{ delivery = 'pipeline' }
         ) {
             param($delivery)
             $first = [PSCustomObject]@{ id = 1 }

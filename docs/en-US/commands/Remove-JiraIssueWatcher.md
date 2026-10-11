@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Remove-JiraIssueWatcher/
 
 ## SYNOPSIS
 
-Removes a watcher from an existing JIRA issue
+Removes a watcher from an existing Jira issue.
 
 ## SYNTAX
 
@@ -21,30 +21,30 @@ Remove-JiraIssueWatcher [-Watcher] <string[]> [-Issue] <AtlassianPS.JiraPS.Issue
 
 ## DESCRIPTION
 
-This function removes a watcher from an existing issue in JIRA.
+This function removes a watcher from an existing issue in Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-Remove-JiraIssueWatcher -Watcher "fred" -Issue "TEST-001"
+Remove-JiraIssueWatcher -Watcher 'fred' -Issue 'TEST-001'
 ```
 
 This example removes a watcher from the issue TEST-001.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraIssue "TEST-002" | Remove-JiraIssueWatcher "fred"
+Get-JiraIssue 'TEST-002' | Remove-JiraIssueWatcher 'fred'
 ```
 
 This example illustrates pipeline use from Get-JiraIssue to Remove-JiraIssueWatcher.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
-Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' | Remove-JiraIssueWatcher "fred"
+Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' | Remove-JiraIssueWatcher 'fred'
 ```
 
 This example illustrates removing watcher on all projects which match a given JQL query.
@@ -77,7 +77,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -101,7 +101,7 @@ HelpMessage: ''
 
 Issue that should be updated.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -123,7 +123,7 @@ HelpMessage: ''
 
 ### -Watcher
 
-Watcher that should be removed from JIRA
+Watcher that should be removed from Jira.
 
 ```yaml
 Type: String[]
@@ -167,10 +167,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -180,9 +178,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

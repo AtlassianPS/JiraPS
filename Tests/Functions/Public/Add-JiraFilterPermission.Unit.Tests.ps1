@@ -155,10 +155,10 @@ InModuleScope JiraPS {
                 }
 
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Filter"; type = "AtlassianPS.JiraPS.Filter[]" }
-                    @{ parameter = "Type"; type = "String" }
-                    @{ parameter = "Value"; type = "String" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                    @{ parameter = 'Filter'; type = 'AtlassianPS.JiraPS.Filter[]' }
+                    @{ parameter = 'Type'; type = 'String' }
+                    @{ parameter = 'Value'; type = 'String' }
+                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
                     param($parameter, $type)
 
@@ -205,7 +205,11 @@ InModuleScope JiraPS {
                 }
 
                 It "accepts a complete typed filter from the pipeline" {
-                    $filter = [AtlassianPS.JiraPS.Filter]@{ Id = '12345'; Name = 'Test filter'; RestUrl = "$jiraServer/rest/api/2/filter/12345" }
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id      = '12345'
+                        Name    = 'Test filter'
+                        RestUrl = "$jiraServer/rest/api/2/filter/12345"
+                    }
                     $filter | Add-JiraFilterPermission -Type Global -Confirm:$false
 
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1
@@ -234,7 +238,9 @@ InModuleScope JiraPS {
                     $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
                     Add-JiraFilterPermission -Id 12844 -Type Global -Credential $credential -Confirm:$false
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop' }
+                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
+                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
+                    }
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
                 }
 

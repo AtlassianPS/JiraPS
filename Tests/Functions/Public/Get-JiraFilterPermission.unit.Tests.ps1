@@ -91,7 +91,11 @@ InModuleScope JiraPS {
                 }
 
                 It "accepts a complete typed filter from the pipeline" {
-                    $filter = [AtlassianPS.JiraPS.Filter]@{ Id = '12345'; Name = 'Test filter'; RestUrl = "$jiraServer/rest/api/2/filter/12345" }
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id      = '12345'
+                        Name    = 'Test filter'
+                        RestUrl = "$jiraServer/rest/api/2/filter/12345"
+                    }
                     $filter | Get-JiraFilterPermission
 
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1
@@ -104,7 +108,9 @@ InModuleScope JiraPS {
                     $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
                     Get-JiraFilterPermission -Id 23456 -Credential $credential
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop' }
+                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
+                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
+                    }
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
                 }
 

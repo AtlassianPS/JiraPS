@@ -15,6 +15,7 @@ namespace AtlassianPS.JiraPS
             long id;
             return long.TryParse(value, out id) ? FromNumericScalar(id) : new Status(value);
         }
+
         protected override object FromNumericScalar(long value) { return new Status { Id = value }; }
     }
 
@@ -27,6 +28,7 @@ namespace AtlassianPS.JiraPS
             long id;
             return long.TryParse(value, out id) ? FromNumericScalar(id) : new Priority(value);
         }
+
         protected override object FromNumericScalar(long value) { return new Priority { Id = value }; }
     }
 
@@ -39,6 +41,7 @@ namespace AtlassianPS.JiraPS
             long id;
             return long.TryParse(value, out id) ? FromNumericScalar(id) : new IssueType(value);
         }
+
         protected override object FromNumericScalar(long value) { return new IssueType { Id = value }; }
     }
 
@@ -51,6 +54,7 @@ namespace AtlassianPS.JiraPS
             long id;
             return long.TryParse(value, out id) ? FromNumericScalar(id) : new Component(value);
         }
+
         protected override object FromNumericScalar(long value) { return new Component { Id = value.ToString(System.Globalization.CultureInfo.InvariantCulture) }; }
     }
 
@@ -582,9 +586,12 @@ namespace AtlassianPS.JiraPS
         {
             long id;
             if (!long.TryParse(value, out id))
+            {
                 throw new System.Management.Automation.ArgumentTransformationMetadataException("Link requires a numeric ID.");
+            }
             return FromNumericScalar(id);
         }
+
         protected override object FromNumericScalar(long value) { return new Link { Id = value }; }
     }
 
@@ -596,9 +603,12 @@ namespace AtlassianPS.JiraPS
         {
             long id;
             if (!long.TryParse(value, out id))
+            {
                 throw new System.Management.Automation.ArgumentTransformationMetadataException("FilterPermission requires a numeric ID.");
+            }
             return FromNumericScalar(id);
         }
+
         protected override object FromNumericScalar(long value) { return new FilterPermission { Id = value }; }
     }
 
@@ -611,10 +621,12 @@ namespace AtlassianPS.JiraPS
             return value.Equals("All Users", StringComparison.OrdinalIgnoreCase)
                 ? new Visibility() : new Visibility { Type = "role", Value = value };
         }
+
         protected override bool ShouldMapLegacyObject(System.Management.Automation.PSObject pso)
         {
             return pso != null && (pso.BaseObject is System.Collections.IDictionary || pso.Properties["type"] != null);
         }
+
         protected override object MapLegacyObject(System.Management.Automation.PSObject pso)
         {
             var map = pso.BaseObject as System.Collections.IDictionary;
@@ -676,8 +688,14 @@ namespace AtlassianPS.JiraPS
                 {
                     case "Key": case "key": user.Key = prop.Value as string; break;
                     case "AccountId": case "accountId": user.AccountId = prop.Value as string; break;
-                    case "AccountType": case "accountType": AccountType accountType;
-                        if (Enum.TryParse<AccountType>(prop.Value as string, true, out accountType) && Enum.IsDefined(typeof(AccountType), accountType)) { user.AccountType = accountType; } break;
+                    case "AccountType": case "accountType":
+                        AccountType accountType;
+                        if (Enum.TryParse<AccountType>(prop.Value as string, true, out accountType)
+                            && Enum.IsDefined(typeof(AccountType), accountType))
+                        {
+                            user.AccountType = accountType;
+                        }
+                        break;
                     case "Name": case "name": user.Name = prop.Value as string; break;
                     case "DisplayName": case "displayName": user.DisplayName = prop.Value as string; break;
                     case "EmailAddress": case "emailAddress": user.EmailAddress = prop.Value as string; break;
@@ -792,14 +810,19 @@ namespace AtlassianPS.JiraPS
         protected override object FromString(string value)
         {
             long id;
-            if (!long.TryParse(value, out id) || id <= 0)
+            if (!long.TryParse(value, out id))
+            {
                 throw new System.Management.Automation.ArgumentTransformationMetadataException("Filter requires a positive numeric ID.");
+            }
             return FromNumericScalar(id);
         }
 
         protected override object FromNumericScalar(long value)
         {
-            if (value <= 0) throw new System.Management.Automation.ArgumentTransformationMetadataException("Filter requires a positive numeric ID.");
+            if (value <= 0)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException("Filter requires a positive numeric ID.");
+            }
             return new Filter { Id = value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
         }
 
@@ -845,7 +868,9 @@ namespace AtlassianPS.JiraPS
                                     long id;
                                     var idProperty = raw.Properties["Id"];
                                     if (idProperty == null || idProperty.Value == null || !long.TryParse(idProperty.Value.ToString(), out id))
+                                    {
                                         throw new System.Management.Automation.ArgumentTransformationMetadataException("FilterPermissions require numeric IDs.");
+                                    }
                                     permission = new FilterPermission { Id = id };
                                 }
                                 permissions.Add(permission);

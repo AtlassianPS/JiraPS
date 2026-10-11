@@ -10,24 +10,25 @@ permalink: /docs/JiraPS/commands/Add-JiraGroupMember/
 
 ## SYNOPSIS
 
-Adds a user to a JIRA group
+Adds a user to a Jira group.
 
 ## SYNTAX
 
 ```powershell
-Add-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-UserName] <AtlassianPS.JiraPS.User[]> [[-Credential] <pscredential>]
+Add-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-UserName] <AtlassianPS.JiraPS.User[]>
+ [[-Credential] <pscredential>]
  [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function adds a JIRA user to a JIRA group.
+This function adds a Jira user to a Jira group.
 Pass the group name directly when you already know it.
 That avoids depending on `Get-JiraGroup`, whose canonical lookup path is less reliable on Jira Data Center.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Add-JiraGroupMember -Group testUsers -User jsmith
@@ -35,13 +36,13 @@ Add-JiraGroupMember -Group testUsers -User jsmith
 
 This example adds the user "jsmith" to the group "testUsers"
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Add-JiraGroupMember -Group 'Project Admins' -UserName jsmith
 ```
 
-This example adds "jsmith" to the "Project Admins" group without first resolving the group through `Get-JiraGroup`.
+This example adds "jsmith" to the `Project Admins` group without first resolving the group through `Get-JiraGroup`.
 
 ## PARAMETERS
 
@@ -69,7 +70,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -179,36 +180,34 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### JiraPS.Group
+### AtlassianPS.JiraPS.Group
 
 Group(s) to which users should be added
 
 ## OUTPUTS
 
-### JiraPS.Group
+### AtlassianPS.JiraPS.Group
 
-If the `-PassThru` parameter is provided, this function will provide a reference to the JIRA group modified.
+If the `-PassThru` parameter is provided, this function will provide a reference to the Jira group modified.
 Otherwise, this function does not provide output.
 
 ## NOTES
 
-This REST method is still marked Experimental in JIRA's REST API.
-That means that there is a high probability this will break in future versions of JIRA.
+This REST method is still marked Experimental in Jira's REST API.
+That means that there is a high probability this will break in future versions of Jira.
 The function will need to be re-written at that time.
 
 On Jira Data Center, do not treat `Get-JiraGroup` as a prerequisite for this cmdlet.
 If you already know the group name, pass it directly.
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

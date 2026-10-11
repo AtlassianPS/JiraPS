@@ -2,13 +2,13 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-    Initialize-TestEnvironment
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 InModuleScope JiraPS {
     Describe 'v3 collection and selector regressions' -Tag Unit {
         It 'keeps present empty project collections typed' {
-            $project = ConvertTo-JiraProject (ConvertFrom-Json '{"issueTypes":[],"components":[],"versions":[]}')
+            $project = ConvertTo-JiraProject -InputObject (ConvertFrom-Json '{"issueTypes":[],"components":[],"versions":[]}')
             $project.IssueTypes.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueType[]])
             $project.Components.GetType() | Should -Be ([AtlassianPS.JiraPS.Component[]])
             $project.Versions.GetType() | Should -Be ([AtlassianPS.JiraPS.Version[]])
@@ -17,8 +17,25 @@ InModuleScope JiraPS {
             $project.Versions.Count | Should -Be 0
         }
 
-        It 'preserves arbitrary custom-field arrays and present empty domain collections' {
-            $issue = ConvertTo-JiraIssue (ConvertFrom-Json '{"fields":{"customfield_empty":[],"customfield_single":[{"id":1}],"issuelinks":[],"attachment":[],"comment":{"comments":[]}}}')
+        It 'preserves custom-field arrays and empty issue collections' {
+            $issueResponse = ConvertFrom-Json @'
+{
+    "fields": {
+        "customfield_empty": [],
+        "customfield_single": [
+            {
+                "id": 1
+            }
+        ],
+        "issuelinks": [],
+        "attachment": [],
+        "comment": {
+            "comments": []
+        }
+    }
+}
+'@
+            $issue = ConvertTo-JiraIssue -InputObject $issueResponse
             $issue.customfield_empty.GetType() | Should -Be ([object[]])
             $issue.customfield_single.GetType() | Should -Be ([object[]])
             $issue.customfield_single.Count | Should -Be 1
@@ -26,13 +43,37 @@ InModuleScope JiraPS {
             $issue.Attachment.GetType() | Should -Be ([AtlassianPS.JiraPS.Attachment[]])
             $issue.Comment.GetType() | Should -Be ([AtlassianPS.JiraPS.Comment[]])
             $issue.Comment.Count | Should -Be 0
-            (ConvertTo-JiraComment (ConvertFrom-Json '{"properties":[]}')).Properties.GetType() | Should -Be ([AtlassianPS.JiraPS.EntityProperty[]])
-            (ConvertTo-JiraFilter (ConvertFrom-Json '{"sharePermissions":[]}')).SharePermission.GetType() | Should -Be ([AtlassianPS.JiraPS.FilterPermission[]])
-            (ConvertTo-JiraGroup (ConvertFrom-Json '{"users":{"size":0,"items":[]}}')).Member.GetType() | Should -Be ([AtlassianPS.JiraPS.User[]])
-            (ConvertTo-JiraUser (ConvertFrom-Json '{"groups":{"size":0,"items":[]}}')).Groups.GetType() | Should -Be ([string[]])
-            $meta = ConvertTo-JiraCreateMetaField (ConvertFrom-Json '{"allowedValues":[]}')
+        }
+
+        It 'keeps present empty comment properties typed' {
+            $comment = ConvertTo-JiraComment -InputObject (ConvertFrom-Json '{"properties":[]}')
+            $comment.Properties.GetType() | Should -Be ([AtlassianPS.JiraPS.EntityProperty[]])
+            $comment.Properties.Count | Should -Be 0
+        }
+
+        It 'keeps present empty filter permissions typed' {
+            $filter = ConvertTo-JiraFilter -InputObject (ConvertFrom-Json '{"sharePermissions":[]}')
+            $filter.SharePermission.GetType() | Should -Be ([AtlassianPS.JiraPS.FilterPermission[]])
+            $filter.SharePermission.Count | Should -Be 0
+        }
+
+        It 'keeps present empty group members typed' {
+            $group = ConvertTo-JiraGroup -InputObject (ConvertFrom-Json '{"users":{"size":0,"items":[]}}')
+            $group.Member.GetType() | Should -Be ([AtlassianPS.JiraPS.User[]])
+            $group.Member.Count | Should -Be 0
+        }
+
+        It 'keeps present empty user groups typed' {
+            $user = ConvertTo-JiraUser -InputObject (ConvertFrom-Json '{"groups":{"size":0,"items":[]}}')
+            $user.Groups.GetType() | Should -Be ([string[]])
+            $user.Groups.Count | Should -Be 0
+        }
+
+        It 'distinguishes absent operations from present empty allowed values' {
+            $meta = ConvertTo-JiraCreateMetaField -InputObject (ConvertFrom-Json '{"allowedValues":[]}')
             $meta.Operations | Should -BeNullOrEmpty
             $meta.AllowedValues.GetType() | Should -Be ([object[]])
+            $meta.AllowedValues.Count | Should -Be 0
         }
 
         It 'selects returned objects by ID when display names are duplicated' {

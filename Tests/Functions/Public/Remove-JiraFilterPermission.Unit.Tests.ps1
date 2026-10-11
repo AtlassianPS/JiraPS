@@ -70,8 +70,8 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Filter'; type = "AtlassianPS.JiraPS.Filter" }
-                    @{ parameter = 'Permission'; type = "AtlassianPS.JiraPS.FilterPermission[]" }
+                    @{ parameter = 'Filter'; type = 'AtlassianPS.JiraPS.Filter' }
+                    @{ parameter = 'Permission'; type = 'AtlassianPS.JiraPS.FilterPermission[]' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
@@ -90,7 +90,9 @@ InModuleScope JiraPS {
                     $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
                     Remove-JiraFilterPermission -FilterId 23456 -PermissionId 1111 -Credential $credential -Confirm:$false
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop' }
+                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
+                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
+                    }
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
                 }
 
@@ -101,7 +103,11 @@ InModuleScope JiraPS {
                 }
 
                 It "uses a typed filter and permission without an extra filter lookup" {
-                    $filter = [AtlassianPS.JiraPS.Filter]@{ Id = '12345'; Name = 'Test filter'; RestUrl = "$jiraServer/rest/api/2/filter/12345" }
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id      = '12345'
+                        Name    = 'Test filter'
+                        RestUrl = "$jiraServer/rest/api/2/filter/12345"
+                    }
                     $permission = [AtlassianPS.JiraPS.FilterPermission]@{ Id = 1111 }
                     $filter | Remove-JiraFilterPermission -Permission $permission -Confirm:$false
 
@@ -139,7 +145,9 @@ InModuleScope JiraPS {
                 It "supports 64-bit permission IDs without truncating them" {
                     Remove-JiraFilterPermission -Filter $basicFilter -PermissionId '4294967296' -Confirm:$false
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/4294967296' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                        $URI -like '*/filter/23456/permission/4294967296'
+                    }
                 }
 
                 It "keeps embedded zero permission IDs distinct from missing IDs" {

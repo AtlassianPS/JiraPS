@@ -50,8 +50,12 @@
                     $allIssueTypes = Get-JiraIssueType -Force:$Force -Credential $Credential
 
                     Write-Output ($allIssueTypes | Where-Object -FilterScript {
-                            if ($null -ne $_issueType.Id) { $_.Id -eq $_issueType.Id }
-                            else { $_.Name -like $_issueType.Name }
+                            if ($null -ne $_issueType.Id) {
+                                $_.Id -eq $_issueType.Id
+                            }
+                            else {
+                                $_.Name -like $_issueType.Name
+                            }
                         })
                 }
             }

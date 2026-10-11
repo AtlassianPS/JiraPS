@@ -103,7 +103,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'InputObject'; type = "AtlassianPS.JiraPS.Filter[]" }
+                    @{ parameter = 'InputObject'; type = 'AtlassianPS.JiraPS.Filter[]' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
@@ -141,14 +141,18 @@ InModuleScope JiraPS {
                     Remove-JiraFilter @arguments
 
                     Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $InputObject.Id -eq 12844 }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Method -eq 'DELETE' -and $URI -like '*/filter/12844' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'DELETE' -and $URI -like '*/filter/12844'
+                    }
                 }
 
                 It "forwards credentials when resolving filter IDs and deleting filters" {
                     $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
                     Remove-JiraFilter -Id 12844 -Credential $credential -Confirm:$false
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop' }
+                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
+                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
+                    }
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
                 }
 
@@ -175,7 +179,11 @@ InModuleScope JiraPS {
                 }
 
                 It "uses a complete typed filter without looking it up" {
-                    $filter = [AtlassianPS.JiraPS.Filter]@{ Id = '12844'; Name = 'All JIRA Bugs'; RestUrl = "$jiraServer/rest/api/2/filter/12844" }
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id      = '12844'
+                        Name    = 'All JIRA Bugs'
+                        RestUrl = "$jiraServer/rest/api/2/filter/12844"
+                    }
                     $filter | Remove-JiraFilter -Confirm:$false
 
                     Should -Invoke Get-JiraFilter -Exactly -Times 0

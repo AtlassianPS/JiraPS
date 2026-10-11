@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/New-JiraVersion/
 
 ## SYNOPSIS
 
-Creates a new FixVersion in JIRA
+Creates a new FixVersion in Jira.
 
 ## SYNTAX
 
@@ -31,36 +31,49 @@ New-JiraVersion [-Name] <string> [-Project] <AtlassianPS.JiraPS.Project> [-Descr
 
 ## DESCRIPTION
 
-This function creates a new FixVersion in JIRA.
+This function creates a new FixVersion in Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-New-JiraVersion -Name '1.0.0.0' -Project "RD"
+New-JiraVersion -Name '1.0.0.0' -Project 'RD'
 ```
 
-This example creates a new JIRA Version named "1.0.0.0" in project "RD".
+This example creates a new Jira version named "1.0.0.0" in project "RD".
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-$project = Get-JiraProject -Project "RD"
-New-JiraVersion -Name '1.0.0.0' -Project $project -ReleaseDate "2000-12-31"
+$project = Get-JiraProject -Project 'RD'
+New-JiraVersion -Name '1.0.0.0' -Project $project -ReleaseDate '2000-12-31'
 ```
 
-Create a new Version in Project "RD" with a set release date.
+Create a new version in project "RD" with a set release date.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
-$version = Get-JiraVersion -Name "1.0.0.0" -Project "RD"
-$version = $version.Project.Key "TEST"
-$version | New-JiraVersion
+$version = Get-JiraVersion -Name '1.0.0.0' -Project 'RD'
+$copy = @{
+    Name        = $version.Name
+    Project     = 'TEST'
+    Description = $version.Description
+    Archived    = $version.Archived
+    Released    = $version.Released
+}
+if ($null -ne $version.StartDate) {
+    $copy.StartDate = $version.StartDate
+}
+if ($null -ne $version.ReleaseDate) {
+    $copy.ReleaseDate = $version.ReleaseDate
+}
+New-JiraVersion @copy
 ```
 
-This example duplicates the Version named "1.0.0.0" in Project "RD" to Project "TEST".
+Copies the name, description and flags of version 1.0.0.0 from project RD to project TEST.
+Start and release dates are copied when present.
 
 ## PARAMETERS
 
@@ -109,7 +122,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -194,7 +207,7 @@ HelpMessage: ''
 
 ### -Project
 
-The Project ID
+The project ID.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Project
@@ -301,10 +314,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -314,9 +325,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

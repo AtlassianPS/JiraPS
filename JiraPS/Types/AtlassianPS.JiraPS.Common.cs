@@ -310,9 +310,10 @@ namespace AtlassianPS.JiraPS
                 return FromString(text);
             }
 
-            if (ShouldMapLegacyObject(pso ?? System.Management.Automation.PSObject.AsPSObject(inputData)))
+            var legacyObject = pso ?? System.Management.Automation.PSObject.AsPSObject(inputData);
+            if (ShouldMapLegacyObject(legacyObject))
             {
-                return MapLegacyObject(pso ?? System.Management.Automation.PSObject.AsPSObject(inputData));
+                return MapLegacyObject(legacyObject);
             }
 
             if (AllowPipelineFallthrough && JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }

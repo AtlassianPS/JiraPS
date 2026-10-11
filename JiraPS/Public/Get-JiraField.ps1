@@ -49,13 +49,18 @@
 
                     $allFields = Get-JiraField -Force:$Force -Credential $Credential
 
-                    $matchesById = @($allFields | Where-Object { $_field.Id -and $_.Id -eq $_field.Id })
+                    $matchesById = @($allFields | Where-Object -FilterScript { $_field.Id -and $_.Id -eq $_field.Id })
                     if ($matchesById.Count -gt 0 -or ($_field.Id -and $_field.Name)) {
                         Write-Output $matchesById
                     }
                     else {
-                        $pattern = if ($_field.Name) { $_field.Name } else { $_field.Id }
-                        Write-Output ($allFields | Where-Object { $_.Name -like $pattern })
+                        $pattern = if ($_field.Name) {
+                            $_field.Name
+                        }
+                        else {
+                            $_field.Id
+                        }
+                        Write-Output ($allFields | Where-Object -FilterScript { $_.Name -like $pattern })
                     }
                 }
             }

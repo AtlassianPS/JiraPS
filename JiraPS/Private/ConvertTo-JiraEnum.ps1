@@ -1,10 +1,13 @@
 ﻿function ConvertTo-JiraEnum {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)]
-        [type]$Type,
+        [Parameter( Mandatory )]
+        [type]
+        $Type,
+
         [AllowNull()]
-        [object]$Value
+        [object]
+        $Value
     )
 
     if ($null -eq $Value) { return $null }

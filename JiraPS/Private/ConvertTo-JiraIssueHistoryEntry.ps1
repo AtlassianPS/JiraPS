@@ -2,7 +2,7 @@
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueHistoryEntry])]
     param(
-        [Parameter(ValueFromPipeline)]
+        [Parameter( ValueFromPipeline )]
         [PSObject[]]
         $InputObject
     )
@@ -10,6 +10,8 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueHistoryEntry"
+
             $items = foreach ($item in $i.items) {
                 if ($null -eq $item) { continue }
                 [AtlassianPS.JiraPS.IssueHistoryItem]@{

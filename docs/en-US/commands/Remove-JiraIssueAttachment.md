@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Remove-JiraIssueAttachment/
 
 ## SYNOPSIS
 
-Removes an attachment from a JIRA issue
+Removes an attachment from a Jira issue.
 
 ## SYNTAX
 
@@ -30,19 +30,19 @@ Remove-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FileName <strin
 
 ## DESCRIPTION
 
-This function removes an attachment from a JIRA issue.
+This function removes an attachment from a Jira issue.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Remove-JiraIssueAttachment -AttachmentId 10039
 ```
 
-Removes attachment with id of 10039
+Removes attachment with ID of 10039
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraIssueAttachment -Issue FOO-1234 | Remove-JiraIssueAttachment
@@ -50,19 +50,19 @@ Get-JiraIssueAttachment -Issue FOO-1234 | Remove-JiraIssueAttachment
 
 Removes all attachments from issue FOO-1234
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Remove-JiraIssueAttachment -Issue FOO-1234 -FileName '*.png' -force
 ```
 
-Removes all *.png attachments from Issue FOO-1234 without prompting for confirmation
+Removes all *.png attachments from issue FOO-1234 without prompting for confirmation
 
 ## PARAMETERS
 
 ### -AttachmentId
 
-Id of the Attachment to delete
+ID of the attachment to delete.
 
 ```yaml
 Type: Int32[]
@@ -106,7 +106,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -128,7 +128,7 @@ HelpMessage: ''
 
 ### -FileName
 
-Name of the File to delete
+Name of the file to delete.
 
 ```yaml
 Type: String[]
@@ -170,9 +170,9 @@ HelpMessage: ''
 
 ### -Issue
 
-Issue from which to delete on or more attachments.
+Issue from which to delete one or more attachments.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -217,10 +217,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -231,9 +229,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

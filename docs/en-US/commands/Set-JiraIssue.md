@@ -10,14 +10,15 @@ permalink: /docs/JiraPS/commands/Set-JiraIssue/
 
 ## SYNOPSIS
 
-Modifies an existing issue in JIRA
+Modifies an existing issue in Jira.
 
 ## SYNTAX
 
 ### AssignToUser (Default)
 
 ```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>]
+ [-FixVersion <string[]>]
  [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -26,7 +27,8 @@ Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Descriptio
 ### Unassign
 
 ```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>]
+ [-FixVersion <string[]>]
  [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -35,7 +37,8 @@ Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Descriptio
 ### UseDefaultAssignee
 
 ```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>]
+ [-FixVersion <string[]>]
  [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
  [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
  [<CommonParameters>]
@@ -43,7 +46,7 @@ Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Descriptio
 
 ## DESCRIPTION
 
-This function modifies an existing issue in JIRA.
+This function modifies an existing issue in Jira.
 This can include changing the issue's summary or description, or assigning the issue.
 
 On **Jira Cloud**, both the `-Description` and the `-AddComment` text are interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, so familiar Markdown syntax (headings, bold/italic, lists, fenced code blocks, links, Markdown tables) renders as rich text on the issue.
@@ -54,58 +57,57 @@ See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/)
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Set-JiraIssue -Issue TEST-01 -Summary 'Modified issue summary' -Description 'This issue has been modified by PowerShell' -SkipNotification
 ```
 
-This example changes the summary and description of the JIRA issue TEST-01 without updating users by email about the change.
+This example changes the summary and description of the Jira issue TEST-01 without updating users by email about the change.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 $issue = Get-JiraIssue TEST-01
 $issue | Set-JiraIssue -Description "$($issue.Description)\`n\`nEdit: Also foo."
 ```
 
-This example appends text to the end of an existing issue description by using
-`Get-JiraIssue` to obtain a reference to the current issue and description.
+This example appends text to the end of an existing issue description by using `Get-JiraIssue` to obtain a reference to the current issue and description.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Set-JiraIssue -Issue TEST-01 -Unassign
 ```
 
-This example removes the assignee from JIRA issue TEST-01.
+This example removes the assignee from Jira issue TEST-01.
 
-### EXAMPLE 4
+### Example 4
 
 ```powershell
 Set-JiraIssue -Issue TEST-01 -UseDefaultAssignee
 ```
 
-This example sets the assignee of JIRA issue TEST-01 to the project's default assignee.
+This example sets the assignee of Jira issue TEST-01 to the project's default assignee.
 
-### EXAMPLE 5
+### Example 5
 
 ```powershell
 Set-JiraIssue -Issue TEST-01 -Assignee 'joe' -AddComment 'Dear [~joe], please review.'
 ```
 
-This example assigns the JIRA Issue TEST-01 to 'joe' and adds a comment at one.
+This example assigns the Jira issue TEST-01 to 'joe' and adds a comment at one.
 
-### EXAMPLE 6
+### Example 6
 
 ```powershell
 $parameters = @{
-    labels = @("DEPRECATED")
-    AddComment = "Updated with a script"
+    labels = @('DEPRECATED')
+    AddComment = 'Updated with a script'
     Fields = @{
         customfield_10000 = @(
             @{
-                "value" = "NAME"
+                'value' = 'NAME'
             }
         )
     }
@@ -190,7 +192,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -265,7 +267,7 @@ HelpMessage: ''
 
 ### -FixVersion
 
-Set the FixVersion of the issue, this will overwrite any present FixVersions
+Set the FixVersion of the issue, this will overwrite any present FixVersions.
 
 ```yaml
 Type: String[]
@@ -289,7 +291,7 @@ HelpMessage: ''
 
 Issue to be changed.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -358,7 +360,7 @@ HelpMessage: ''
 
 ### -SkipNotification
 
-Whether send notification to users about issue change or not
+Whether send notification to users about issue change or not.
 
 ```yaml
 Type: SwitchParameter
@@ -423,8 +425,7 @@ HelpMessage: ''
 
 Set the issue's assignee to the project's default assignee.
 
-This is useful when you want Jira to automatically determine the assignee
-based on the project's configuration.
+This is useful when you want Jira to automatically determine the assignee based on the project's configuration.
 
 ```yaml
 Type: SwitchParameter
@@ -468,10 +469,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -481,15 +480,14 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### AtlassianPS.JiraPS.Issue
 
-If the `-PassThru` parameter is provided,
-this function will provide a reference to the JIRA issue modified.
+If the `-PassThru` parameter is provided, this function will provide a reference to the Jira issue modified.
 Otherwise, this function does not provide output.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

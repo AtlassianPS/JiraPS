@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Set-JiraUser/
 
 ## SYNOPSIS
 
-Modifies user properties in JIRA
+Modifies user properties in Jira.
 
 ## SYNTAX
 
@@ -30,11 +30,11 @@ Set-JiraUser [-User] <AtlassianPS.JiraPS.User> [-Property] <hashtable> [-Credent
 
 ## DESCRIPTION
 
-This function modifies user properties in JIRA, allowing you to change a user's e-mail address, display name, and any other properties supported by JIRA's API.
+This function modifies user properties in Jira, allowing you to change a user's e-mail address, display name, and any other properties supported by Jira's API.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Set-JiraUser -User user1 -EmailAddress user1_new@example.com
@@ -43,7 +43,7 @@ Set-JiraUser -User user1 -EmailAddress user1_new@example.com
 Modifies user1's e-mail address to a new value.
 The original value is overridden.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Set-JiraUser -User user2 -Property @{emailAddress='user2_new@example.com';displayName='User 2'}
@@ -99,7 +99,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -186,7 +186,7 @@ HelpMessage: ''
 
 Hashtable (dictionary) of additional information to set.
 
-Property names defined in the hashtable are strictly case-sensitive and must match the exact format defined in the [JIRA API schema](https://docs.atlassian.com/software/jira/docs/api/REST/latest/#api/2/user-updateUser), which typically uses camel case.
+Property names defined in the hashtable are strictly case-sensitive and must match the exact format defined in the [Jira API schema](https://docs.atlassian.com/software/jira/docs/api/REST/latest/#api/2/user-updateUser), which typically uses camel case.
 For example, "name" and "displayName" will work correctly when passed in the hashtable but "Name" and "DisplayName" do not.
 
 ```yaml
@@ -253,10 +253,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -267,17 +265,16 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### AtlassianPS.JiraPS.User
 
-If the `-PassThru` parameter is provided, this function will provide a reference
-to the JIRA user modified.
- Otherwise, this function does not provide output.
+If the `-PassThru` parameter is provided, this function will provide a reference to the Jira user modified.
+Otherwise, this function does not provide output.
 
 ## NOTES
 
 The `-Active` parameter is supported only in Jira Server version 8.3.0 and above.
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

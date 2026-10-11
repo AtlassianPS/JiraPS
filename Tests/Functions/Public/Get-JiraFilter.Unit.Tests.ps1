@@ -163,7 +163,11 @@ InModuleScope JiraPS {
                 }
 
                 It "accepts a complete typed filter from the pipeline" {
-                    $filter = [AtlassianPS.JiraPS.Filter]@{ Id = '12345'; Name = 'Test filter'; RestUrl = "$jiraServer/rest/api/2/filter/12345" }
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id      = '12345'
+                        Name    = 'Test filter'
+                        RestUrl = "$jiraServer/rest/api/2/filter/12345"
+                    }
                     $filter | Get-JiraFilter
 
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1

@@ -10,24 +10,25 @@ permalink: /docs/JiraPS/commands/Remove-JiraGroupMember/
 
 ## SYNOPSIS
 
-Removes a user from a JIRA group
+Removes a user from a Jira group.
 
 ## SYNTAX
 
 ```powershell
-Remove-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-User] <AtlassianPS.JiraPS.User[]> [[-Credential] <pscredential>]
+Remove-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-User] <AtlassianPS.JiraPS.User[]>
+ [[-Credential] <pscredential>]
  [-PassThru] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function removes a JIRA user from a JIRA group.
+This function removes a Jira user from a Jira group.
 Pass the group name directly when you already know it.
 That avoids depending on `Get-JiraGroup`, whose canonical lookup path is less reliable on Jira Data Center.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Remove-JiraGroupMember -Group testUsers -User jsmith
@@ -35,13 +36,13 @@ Remove-JiraGroupMember -Group testUsers -User jsmith
 
 This example removes the user jsmith from the group testUsers.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Remove-JiraGroupMember -Group 'Project Admins' -User jsmith
 ```
 
-This example removes jsmith from the "Project Admins" group without first resolving the group through `Get-JiraGroup`.
+This example removes jsmith from the `Project Admins` group without first resolving the group through `Get-JiraGroup`.
 
 ## PARAMETERS
 
@@ -69,7 +70,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -112,7 +113,7 @@ HelpMessage: ''
 
 ### -Group
 
-Group Object or name from which to remove the user(s).
+Group object or name from which to remove the user(s).
 Passing a group name is the most portable option across Jira Cloud and Jira Data Center.
 
 ```yaml
@@ -135,7 +136,7 @@ HelpMessage: ''
 
 ### -PassThru
 
-Whether output should be provided after invoking this function
+Whether output should be provided after invoking this function.
 
 ```yaml
 Type: SwitchParameter
@@ -156,7 +157,7 @@ HelpMessage: ''
 
 ### -User
 
-Username or user object obtained from Get-JiraUser
+Username or user object obtained from Get-JiraUser.
 
 ```yaml
 Type: AtlassianPS.JiraPS.User[]
@@ -201,14 +202,12 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### JiraPS.Group
+### AtlassianPS.JiraPS.Group
 
 Group(s) from which users should be removed
 
@@ -218,23 +217,23 @@ User(s) which to remove
 
 ## OUTPUTS
 
-### JiraPS.Group
+### AtlassianPS.JiraPS.Group
 
-If the `-PassThru` parameter is provided, this function will provide a reference to the JIRA group modified.
+If the `-PassThru` parameter is provided, this function will provide a reference to the Jira group modified.
 Otherwise, this function does not provide output.
 
 ## NOTES
 
-This REST method is still marked Experimental in JIRA's REST API.
-That means that there is a high probability this will break in future versions of JIRA.
+This REST method is still marked Experimental in Jira's REST API.
+That means that there is a high probability this will break in future versions of Jira.
 The function will need to be re-written at that time.
 
 On Jira Data Center, do not treat `Get-JiraGroup` as a prerequisite for this cmdlet.
 If you already know the group name, pass it directly.
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

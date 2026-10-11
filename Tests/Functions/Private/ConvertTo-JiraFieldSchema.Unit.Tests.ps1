@@ -2,17 +2,39 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-    Initialize-TestEnvironment
+
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 InModuleScope JiraPS {
-    Describe 'ConvertTo-JiraFieldSchema' -Tag Unit {
+    Describe "ConvertTo-JiraFieldSchema" -Tag 'Unit' {
         It 'retains extensible configuration when raw and typed schemas are converted' {
-            $wire = ConvertFrom-Json '{"type":"array","customId":10000,"configuration":{"plugin":{"flags":[true,false]}}}'
-            $typed = ConvertTo-JiraFieldSchema $wire
-            $hashtable = @{ type = 'array'; customId = 10000; configuration = @{ plugin = @{ flags = @($true, $false) } } }
+            $wire = ConvertFrom-Json -InputObject @'
+{
+    "type": "array",
+    "customId": 10000,
+    "configuration": {
+        "plugin": {
+            "flags": [
+                true,
+                false
+            ]
+        }
+    }
+}
+'@
+            $typed = ConvertTo-JiraFieldSchema -InputObject $wire
+            $hashtable = @{
+                type          = 'array'
+                customId      = 10000
+                configuration = @{
+                    plugin = @{
+                        flags = @($true, $false)
+                    }
+                }
+            }
             foreach ($schema in @($wire, $typed, $hashtable)) {
-                $result = ConvertTo-JiraFieldSchema $schema
+                $result = ConvertTo-JiraFieldSchema -InputObject $schema
                 $result.GetType() | Should -Be ([AtlassianPS.JiraPS.FieldSchema])
                 $result.CustomId | Should -Be 10000
                 $result.Configuration.Count | Should -Be 1
@@ -21,8 +43,8 @@ InModuleScope JiraPS {
         }
 
         It 'keeps an absent schema null and a present empty configuration typed' {
-            ConvertTo-JiraFieldSchema $null | Should -BeNullOrEmpty
-            $result = ConvertTo-JiraFieldSchema (ConvertFrom-Json '{"configuration":{}}')
+            ConvertTo-JiraFieldSchema -InputObject $null | Should -BeNullOrEmpty
+            $result = ConvertTo-JiraFieldSchema -InputObject (ConvertFrom-Json '{"configuration":{}}')
             $result.Configuration.GetType() | Should -Be ([System.Collections.Generic.Dictionary[string, object]])
             $result.Configuration.Count | Should -Be 0
         }

@@ -23,7 +23,12 @@
 
             if ($null -ne $i.avatarId) { $props.AvatarId = ConvertTo-JiraNullableInt64 $i.avatarId }
             if ($null -ne $i.hierarchyLevel) { $props.HierarchyLevel = [int]$i.hierarchyLevel }
-            if ($i.scope) { $props.Scope = if ($i.scope) { [AtlassianPS.JiraPS.IssueTypeScope]@{ Type = $i.scope.type; Project = if ($i.scope.project) { ConvertTo-JiraProject $i.scope.project } else { $null } } } else { $null } }
+            if ($i.scope) {
+                $props.Scope = [AtlassianPS.JiraPS.IssueTypeScope]@{
+                    Type    = $i.scope.type
+                    Project = if ($i.scope.project) { ConvertTo-JiraProject -InputObject $i.scope.project } else { $null }
+                }
+            }
 
             [AtlassianPS.JiraPS.IssueType]$props
         }

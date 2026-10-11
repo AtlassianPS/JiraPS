@@ -111,12 +111,12 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Comment"; type = "String" }
-                    @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
-                    @{ parameter = "TimeSpent"; type = "TimeSpan" }
-                    @{ parameter = "DateStarted"; type = "DateTime" }
-                    @{ parameter = "Visibility"; type = "AtlassianPS.JiraPS.Visibility" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                    @{ parameter = 'Comment'; type = 'String' }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
+                    @{ parameter = 'TimeSpent'; type = 'TimeSpan' }
+                    @{ parameter = 'DateStarted'; type = 'DateTime' }
+                    @{ parameter = 'Visibility'; type = 'AtlassianPS.JiraPS.Visibility' }
+                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
                 }
@@ -169,11 +169,45 @@ InModuleScope JiraPS {
             Context "Visibility payloads" {
                 It "omits visibility for <description> on Cloud=<cloud>" -TestCases @(
                     foreach ($cloud in $false, $true) {
-                        @{ cloud = $cloud; description = 'default access'; parameters = @{} }
-                        @{ cloud = $cloud; description = 'All Users'; parameters = @{ Visibility = 'All Users' } }
-                        @{ cloud = $cloud; description = 'VisibleRole alias'; parameters = @{ VisibleRole = 'aLl UsErS' } }
-                        @{ cloud = $cloud; description = 'role object All Users'; parameters = @{ Visibility = @{ Type = 'role'; Value = 'All Users' } } }
-                        @{ cloud = $cloud; description = 'typed role All Users'; parameters = @{ Visibility = [AtlassianPS.JiraPS.Visibility]@{ Type = 'role'; Value = 'All Users' } } }
+                        @{
+                            cloud       = $cloud
+                            description = 'default access'
+                            parameters  = @{}
+                        }
+                        @{
+                            cloud       = $cloud
+                            description = 'All Users'
+                            parameters  = @{
+                                Visibility = 'All Users'
+                            }
+                        }
+                        @{
+                            cloud       = $cloud
+                            description = 'VisibleRole alias'
+                            parameters  = @{
+                                VisibleRole = 'aLl UsErS'
+                            }
+                        }
+                        @{
+                            cloud       = $cloud
+                            description = 'role object All Users'
+                            parameters  = @{
+                                Visibility = @{
+                                    Type  = 'role'
+                                    Value = 'All Users'
+                                }
+                            }
+                        }
+                        @{
+                            cloud       = $cloud
+                            description = 'typed role All Users'
+                            parameters  = @{
+                                Visibility = [AtlassianPS.JiraPS.Visibility]@{
+                                    Type  = 'role'
+                                    Value = 'All Users'
+                                }
+                            }
+                        }
                     }
                 ) {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $cloud }
@@ -186,10 +220,43 @@ InModuleScope JiraPS {
 
                 It "sends <description> on Cloud=<cloud>" -TestCases @(
                     foreach ($cloud in $false, $true) {
-                        @{ cloud = $cloud; description = 'custom role name'; value = 'Release Managers'; expectedType = 'role'; expectedValue = 'Release Managers' }
-                        @{ cloud = $cloud; description = 'group object'; value = @{ Type = 'group'; Value = 'jira-users' }; expectedType = 'group'; expectedValue = 'jira-users' }
-                        @{ cloud = $cloud; description = 'typed role'; value = [AtlassianPS.JiraPS.Visibility]@{ Type = 'role'; Value = 'Developers' }; expectedType = 'role'; expectedValue = 'Developers' }
-                        @{ cloud = $cloud; description = 'group actually named All Users'; value = @{ Type = 'group'; Value = 'All Users' }; expectedType = 'group'; expectedValue = 'All Users' }
+                        @{
+                            cloud         = $cloud
+                            description   = 'custom role name'
+                            value         = 'Release Managers'
+                            expectedType  = 'role'
+                            expectedValue = 'Release Managers'
+                        }
+                        @{
+                            cloud         = $cloud
+                            description   = 'group object'
+                            value         = @{
+                                Type  = 'group'
+                                Value = 'jira-users'
+                            }
+                            expectedType  = 'group'
+                            expectedValue = 'jira-users'
+                        }
+                        @{
+                            cloud         = $cloud
+                            description   = 'typed role'
+                            value         = [AtlassianPS.JiraPS.Visibility]@{
+                                Type  = 'role'
+                                Value = 'Developers'
+                            }
+                            expectedType  = 'role'
+                            expectedValue = 'Developers'
+                        }
+                        @{
+                            cloud         = $cloud
+                            description   = 'group actually named All Users'
+                            value         = @{
+                                Type  = 'group'
+                                Value = 'All Users'
+                            }
+                            expectedType  = 'group'
+                            expectedValue = 'All Users'
+                        }
                     }
                 ) {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $cloud }
@@ -204,7 +271,10 @@ InModuleScope JiraPS {
 
                 It "sends a Cloud group identifier without inventing a name" {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
-                    Add-JiraIssueWorklog -Issue $issueKey -Comment 'Visibility test' -TimeSpent '00:10:00' -DateStarted '2018-01-01' -Visibility @{ Type = 'group'; Identifier = 'group-123' } | Out-Null
+                    Add-JiraIssueWorklog -Issue $issueKey -Comment 'Visibility test' -TimeSpent '00:10:00' -DateStarted '2018-01-01' -Visibility @{
+                        Type       = 'group'
+                        Identifier = 'group-123'
+                    } | Out-Null
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $payload = $Body | ConvertFrom-Json
                         $payload.visibility.type -eq 'group' -and $payload.visibility.identifier -eq 'group-123' -and
@@ -213,9 +283,26 @@ InModuleScope JiraPS {
                 }
 
                 It "rejects malformed visibility <description> before making API calls" -TestCases @(
-                    @{ description = 'unsupported type'; value = @{ Type = 'user'; Value = 'someone' } }
-                    @{ description = 'missing role name'; value = @{ Type = 'role' } }
-                    @{ description = 'blank group name'; value = @{ Type = 'group'; Value = ' ' } }
+                    @{
+                        description = 'unsupported type'
+                        value       = @{
+                            Type  = 'user'
+                            Value = 'someone'
+                        }
+                    }
+                    @{
+                        description = 'missing role name'
+                        value       = @{
+                            Type = 'role'
+                        }
+                    }
+                    @{
+                        description = 'blank group name'
+                        value       = @{
+                            Type  = 'group'
+                            Value = ' '
+                        }
+                    }
                     @{ description = 'empty string'; value = '' }
                     @{ description = 'numeric value'; value = 123 }
                 ) {

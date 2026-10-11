@@ -1,6 +1,6 @@
 ﻿function Remove-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( ConfirmImpact = "Medium", SupportsShouldProcess )]
+    [CmdletBinding( ConfirmImpact = 'Medium', SupportsShouldProcess )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
@@ -24,7 +24,12 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $filters = foreach ($item in $InputObject) {
-            if ($item.RestUrl) { $item } else { Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop }
+            if ($item.RestUrl) {
+                $item
+            }
+            else {
+                Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop
+            }
         }
 
         foreach ($filter in $filters) {
@@ -33,7 +38,7 @@
 
             $parameter = @{
                 URI        = $filter.RestURL
-                Method     = "DELETE"
+                Method     = 'DELETE'
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"

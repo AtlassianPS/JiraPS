@@ -3,11 +3,44 @@ using System.Collections.Generic;
 
 namespace AtlassianPS.JiraPS
 {
-    public enum DeploymentType { Cloud, Server, DataCenter }
-    public enum AccountType { atlassian, app, customer }
-    public enum AssigneeType { PROJECT_DEFAULT, COMPONENT_LEAD, PROJECT_LEAD, UNASSIGNED }
-    public enum FilterShareType { GLOBAL, LOGGEDIN, PROJECT, GROUP, ROLE, AUTHENTICATED, USER }
-    public enum ActorType { AtlassianUserRoleActor, AtlassianGroupRoleActor }
+    public enum DeploymentType
+    {
+        Cloud,
+        Server,
+        DataCenter
+    }
+
+    public enum AccountType
+    {
+        atlassian,
+        app,
+        customer
+    }
+
+    public enum AssigneeType
+    {
+        PROJECT_DEFAULT,
+        COMPONENT_LEAD,
+        PROJECT_LEAD,
+        UNASSIGNED
+    }
+
+    public enum FilterShareType
+    {
+        GLOBAL,
+        LOGGEDIN,
+        PROJECT,
+        GROUP,
+        ROLE,
+        AUTHENTICATED,
+        USER
+    }
+
+    public enum ActorType
+    {
+        AtlassianUserRoleActor,
+        AtlassianGroupRoleActor
+    }
 
     public class IssueHistoryEntry
     {
@@ -16,7 +49,10 @@ namespace AtlassianPS.JiraPS
         public DateTimeOffset? Created { get; set; }
         public IssueHistoryItem[] Items { get; set; }
 
-        public override string ToString() { return Id ?? string.Empty; }
+        public override string ToString()
+        {
+            return Id ?? string.Empty;
+        }
     }
 
     public class IssueHistoryItem

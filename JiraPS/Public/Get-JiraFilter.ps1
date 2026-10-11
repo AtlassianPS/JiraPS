@@ -1,6 +1,6 @@
 ﻿function Get-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding(DefaultParameterSetName = 'ByInputObject')]
+    [CmdletBinding( DefaultParameterSetName = 'ByInputObject' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNull()]

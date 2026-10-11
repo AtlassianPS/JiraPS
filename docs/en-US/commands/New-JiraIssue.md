@@ -10,33 +10,41 @@ permalink: /docs/JiraPS/commands/New-JiraIssue/
 
 ## SYNOPSIS
 
-Creates a new issue in JIRA
+Creates a new issue in Jira.
 
 ## SYNTAX
 
 ### AssignToUser (Default)
 
 ```powershell
-New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string> [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>] [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Parent <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string>
+ [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>]
+ [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Parent <string>]
+ [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>]
+ [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string> [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>] [-Unassign] [-Label <string[]>] [-Parent <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string>
+ [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>]
+ [-Unassign] [-Label <string[]>] [-Parent <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
+ [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>] [-Credential <pscredential>] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function creates a new issue in JIRA.
+This function creates a new issue in Jira.
 
-Creating an issue requires a lot of data, and the exact data may be different from one instance of JIRA to the next.
+Creating an issue requires a lot of data, and the exact data may be different from one instance of Jira to the next.
 
 To identify what data is available for a given issue type and project, use the `Get-JiraIssueCreateMetadata` function provided in this module.
 Jira's create metadata is informative, but the Jira create endpoint remains the source of truth for whether a field is actually required for API callers.
 `New-JiraIssue` therefore sends the request to Jira and surfaces any server-side field validation errors returned by the API, instead of pre-emptively rejecting the call based only on create metadata.
 
-Some JIRA instances may require additional custom fields specific to that instance of JIRA.
+Some Jira instances may require additional custom fields specific to that instance of Jira.
 In addition to the parameterized fields provided in this function, the Fields parameter accepts a hashtable of field names/IDs and values.
 This allows users to provide custom field data when creating an issue.
 Read more about it in [about_JiraPS_CustomFields](../../about/custom-fields.html)
@@ -47,38 +55,37 @@ See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/)
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-New-JiraIssue -Project "TEST" -Type "Bug" -Summary "Test issue"
+New-JiraIssue -Project 'TEST' -Type 'Bug' -Summary 'Test issue'
 ```
 
 Creates a new issue in the TEST project.
 
-This is the simplest way possible to use the command,
-given the project only requires these fields as mandatory.
+This is the simplest way possible to use the command, given the project only requires these fields as mandatory.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraIssueCreateMetadata -Project TEST -IssueType Bug | ? {$_.Required -eq $true}
-New-JiraIssue -Project TEST -IssueType Bug -Priority 1 -Summary 'Test issue from PowerShell' -Description 'This is a test issue created from the JiraPS module in PowerShell.' -Fields @{'Custom Field Name 1'=@{"foo" = "bar"};'customfield_10001'=@('baz');}
+Get-JiraIssueCreateMetadata -Project TEST -IssueType Bug | Where-Object {$_.Required -eq $true}
+New-JiraIssue -Project TEST -IssueType Bug -Priority 1 -Summary 'Test issue from PowerShell' -Description 'This is a test issue created from the JiraPS module in PowerShell.' -Fields @{'Custom Field Name 1'=@{'foo' = 'bar'};'customfield_10001'=@('baz');}
 ```
 
-This example uses `Get-JiraIssueCreateMetadata` to identify fields required to create an issue in JIRA.
+This example uses `Get-JiraIssueCreateMetadata` to identify fields required to create an issue in Jira.
 It then creates an issue with the Fields parameter providing a field name and a field ID.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 $parameters = @{
-    Project = "TEST"
-    IssueType = "Bug"
+    Project = 'TEST'
+    IssueType = 'Bug'
     Priority = 1
     Summary = 'Test issue from PowerShell'
     Description = 'This is a test issue created from the JiraPS module in PowerShell.'
     Fields = @{
-        "Custom Field Name 1" = @{"foo" = "bar"}
+        'Custom Field Name 1' = @{'foo' = 'bar'}
         customfield_10001 = @('baz')
     }
 }
@@ -89,18 +96,18 @@ This illustrates how to use splatting for the example above.
 
 Read more about splatting: about_Splatting
 
-### EXAMPLE 4
+### Example 4
 
 ```powershell
-"project,summary,assignee,IssueType,Priority,Description" > "./data.csv"
-"CS,Some Title 1,admin,Minor,1,Some Description 1" >> "./data.csv"
-"CS,Some Title 2,admin,Minor,1,Some Description 2" >> "./data.csv"
-import-csv "./data.csv" | New-JiraIssue
+'project,summary,assignee,IssueType,Priority,Description' > './data.csv'
+'CS,Some Title 1,admin,Minor,1,Some Description 1' >> './data.csv'
+'CS,Some Title 2,admin,Minor,1,Some Description 2' >> './data.csv'
+import-csv './data.csv' | New-JiraIssue
 ```
 
 This example illuetrates how to prepare multiple new stories and pipe them to be created all at once.
 
-### EXAMPLE 5
+### Example 5
 
 ```powershell
 New-JiraIssue -Project TEST -IssueType Bug -Summary 'Triage me' -Assignee 'alice'
@@ -119,8 +126,7 @@ The third call omits both parameters; Jira applies the project's default assigne
 User to assign the new issue to.
 Accepts a username (Jira Server / Data Center), an `accountId` (Jira Cloud), or a `AtlassianPS.JiraPS.User` object.
 
-If omitted, Jira will apply the project's default assignee — there is no separate `-UseDefaultAssignee` switch
-on this cmdlet because the create endpoint already does the right thing when the field is missing.
+If omitted, Jira will apply the project's default assignee — there is no separate `-UseDefaultAssignee` switch on this cmdlet because the create endpoint already does the right thing when the field is missing.
 
 To create an issue with no assignee, use `-Unassign` instead.
 
@@ -187,7 +193,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -264,7 +270,7 @@ HelpMessage: ''
 
 Version objects, IDs or names to assign as fix versions.
 An object with an ID sends that ID; a name-only object sends its name for Jira to resolve in the project.
-Numeric strings are interpreted as IDs; to select a numeric version name, use an explicit name object such as `[AtlassianPS.JiraPS.Version]::new("2026")`.
+Numeric strings are interpreted as IDs; to select a numeric version name, use an explicit name object such as `[AtlassianPS.JiraPS.Version]@{ Name = '2026' }`.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Version[]
@@ -486,10 +492,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -499,9 +503,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

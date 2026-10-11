@@ -25,34 +25,31 @@ This function downloads an attachment of an issue to the local disk.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraIssueAttachmentFile (Get-JiraIssueAttachment -Issue TEST-001)
 ```
 
-This example downloads all attachments from issue TEST-001 to the current
-working directory.
+This example downloads all attachments from issue TEST-001 to the current working directory.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraIssue TEST-002 | Get-JiraIssueAttachment | Get-JiraIssueAttachmentFile
 ```
 
-This example illustrates use of the pipeline to download all attachments from
-issue TEST-002.
+This example illustrates use of the pipeline to download all attachments from issue TEST-002.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Get-JiraIssue TEST-002 |
-    Get-JiraIssueAttachment -FileName "*.png" |
-    Get-JiraIssueAttachmentFile -Path "c:\temp
+    Get-JiraIssueAttachment -FileName '*.png' |
+    Get-JiraIssueAttachmentFile -Path 'C:\temp'
 ```
 
-Download all attachments of issue TEST-002 where the filename ends in `.png`
-to a specific location.
+Download all attachments of issue TEST-002 where the filename ends in `.png` to a specific location.
 
 ## PARAMETERS
 
@@ -79,7 +76,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -124,10 +121,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -142,9 +137,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Get-JiraFilter/
 
 ## SYNOPSIS
 
-Returns information about a filter in JIRA
+Returns information about a filter in Jira.
 
 ## SYNTAX
 
@@ -28,24 +28,24 @@ Get-JiraFilter -Favorite [-Credential <pscredential>] [<CommonParameters>]
 
 ## DESCRIPTION
 
-This function returns information about a filter in JIRA, including the JQL syntax of the filter, its owner, and sharing status.
+This function returns information about a filter in Jira, including the JQL syntax of the filter, its owner, and sharing status.
 
-This function is only capable of returning filters by their Filter ID.
-This is a limitation of JIRA's REST API.
+This function is only capable of returning filters by their filter ID.
+This is a limitation of Jira's REST API.
 
-The easiest way to obtain the ID of a filter is to load the filter in the "regular" Web view of JIRA, then copy the ID from the URL of the page.
+The easiest way to obtain the ID of a filter is to load the filter in the "regular" Web view of Jira, then copy the ID from the URL of the page.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraFilter -Id 12345
 ```
 
-Gets a reference to filter ID 12345 from JIRA
+Gets a reference to filter ID 12345 from Jira
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 $filterObject | Get-JiraFilter
@@ -53,7 +53,7 @@ $filterObject | Get-JiraFilter
 
 Gets the information of a filter by providing a filter object
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Get-JiraFilter -Favorite
@@ -65,7 +65,7 @@ Gets all filters makes as "favorite" by the user
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -87,7 +87,7 @@ HelpMessage: ''
 
 ### -Favorite
 
-Fetch all filters marked as favorite by the user
+Fetch all filters marked as favorite by the user.
 
 ```yaml
 Type: SwitchParameter
@@ -133,17 +133,15 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ### AtlassianPS.JiraPS.Filter / String
 
-The filter to look up in JIRA.
-This can be a String (filter ID) or a AtlassianPS.JiraPS.Filter object.
+The filter to look up in Jira.
+This can be a String (filter ID) or an AtlassianPS.JiraPS.Filter object.
 
 ## OUTPUTS
 
@@ -151,10 +149,9 @@ This can be a String (filter ID) or a AtlassianPS.JiraPS.Filter object.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or
-a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

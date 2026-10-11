@@ -2,7 +2,7 @@
     [CmdletBinding()]
     [OutputType([System.Collections.Generic.IDictionary[string, uri]])]
     param(
-        [Parameter(ValueFromPipeline)]
+        [Parameter( ValueFromPipeline )]
         [PSObject[]]
         $InputObject
     )
@@ -10,6 +10,8 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to URI map"
+
             $result = [System.Collections.Generic.Dictionary[string, uri]]::new()
             if ($i -is [System.Collections.IDictionary]) {
                 foreach ($key in $i.Keys) {

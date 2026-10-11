@@ -26,7 +26,12 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $filters = foreach ($item in $Filter) {
-            if ($item.RestUrl) { $item } else { Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop }
+            if ($item.RestUrl) {
+                $item
+            }
+            else {
+                Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop
+            }
         }
 
         foreach ($_filter in $filters) {

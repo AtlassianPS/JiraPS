@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Get-JiraIssueAttachment/
 
 ## SYNOPSIS
 
-Returns attachments of an issue in JIRA.
+Returns attachments of an issue in Jira.
 
 ## SYNTAX
 
@@ -21,11 +21,11 @@ Get-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [[-FileName] <string
 
 ## DESCRIPTION
 
-This function obtains attachments from existing issues in JIRA.
+This function obtains attachments from existing issues in Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraIssueAttachment -Issue TEST-001
@@ -33,7 +33,7 @@ Get-JiraIssueAttachment -Issue TEST-001
 
 This example returns all attachments from issue TEST-001.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraIssue TEST-002 | Get-JiraIssueAttachment
@@ -41,10 +41,10 @@ Get-JiraIssue TEST-002 | Get-JiraIssueAttachment
 
 This example illustrates use of the pipeline to return all attachments from issue TEST-002.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
-Get-JiraIssue TEST-002 | Get-JiraIssueAttachment -FileName "*.png"
+Get-JiraIssue TEST-002 | Get-JiraIssueAttachment -FileName '*.png'
 ```
 
 Returns all attachments of issue TEST-002 where the filename ends in `.png`
@@ -53,7 +53,7 @@ Returns all attachments of issue TEST-002 where the filename ends in `.png`
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -75,7 +75,7 @@ HelpMessage: ''
 
 ### -FileName
 
-Name of the file(s) to filter.
+File names to match.
 
 This parameter supports wildcards.
 
@@ -98,9 +98,9 @@ HelpMessage: ''
 
 ### -Issue
 
-JIRA issue to check for attachments.
+Jira issue to check for attachments.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -122,10 +122,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -133,13 +131,13 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.Attachment
+### AtlassianPS.JiraPS.Attachment
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

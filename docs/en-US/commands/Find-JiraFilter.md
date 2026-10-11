@@ -10,14 +10,15 @@ permalink: /docs/JiraPS/commands/Find-JiraFilter/
 
 ## SYNOPSIS
 
-Find JIRA filter(s).
+Find Jira filter(s).
 
 ## SYNTAX
 
 ### ByAccountId (Default)
 
 ```powershell
-Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>]
+Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>]
+ [-Project <AtlassianPS.JiraPS.Project>]
  [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-IncludeTotalCount]
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
@@ -25,7 +26,8 @@ Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [
 ### ByOwner
 
 ```powershell
-Find-JiraFilter [-Name <string[]>] [-Owner <AtlassianPS.JiraPS.User>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>]
+Find-JiraFilter [-Name <string[]>] [-Owner <AtlassianPS.JiraPS.User>] [-GroupName <string>]
+ [-Project <AtlassianPS.JiraPS.Project>]
  [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-IncludeTotalCount]
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
@@ -44,67 +46,66 @@ Disclaimer
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Find-JiraFilter -Name 'ABC'
 ```
 
-This example finds all JIRA filters that include ABC in the name.
- The search is case insensitive.
+This example finds all Jira filters that include ABC in the name.
+The search is case insensitive.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Find-JiraFilter -Name """George Jetsons Filter"""
+Find-JiraFilter -Name '''George Jetsons Filter'''
 ```
 
-This example finds a JIRA filter by exact name (case insensitive)
+This example finds a Jira filter by exact name (case insensitive)
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 'My','Your' | Find-JiraFilter
 ```
 
-This example demonstrates use of the pipeline to search for multiple filter Name(s).
- The search is case insensitive.
+This example demonstrates use of the pipeline to search for multiple filter names.
+The search is case insensitive.
 
-### EXAMPLE 4
+### Example 4
 
 ```powershell
 Find-JiraFilter -Name 'My','Your'
 ```
 
-This example demonstrates the use of a list of names to search for multiple filter Name(s).
- The search is case insensitive.
+This example demonstrates the use of a list of names to search for multiple filter names.
+The search is case insensitive.
 
-### EXAMPLE 5
+### Example 5
 
 ```powershell
 Find-JiraFilter -AccountId 'c62dde3418235be1c8424950' -First 3 -Skip 3
 ```
 
-This example finds all JIRA filters belonging to a specific owner, and illustrates the use of the -First and -Skip Paging parameters.
+This example finds all Jira filters belonging to a specific owner, and illustrates the use of the -First and -Skip Paging parameters.
 
-### EXAMPLE 6
+### Example 6
 
 ```powershell
 Find-JiraFilter -Project 'TEST' -First 8
 ```
 
-This example finds all JIRA filters belonging to project TEST.
+This example finds all Jira filters belonging to project TEST.
 
 ### Example 7
 
 ```powershell
-Find-JiraFilter -Name """George Jetsons Filter""" -Fields 'description','jql'
+Find-JiraFilter -Name '''George Jetsons Filter''' -Fields 'description','jql'
 ```
 
-This example finds the JIRA filter named "George Jetsons Filter" but only expands the fields listed.
+This example finds the Jira filter named "George Jetsons filter" but only expands the fields listed.
 
-By retrieving only the data really needed, the payload the server sends is
-reduced, which speeds up the search.
+By retrieving only the data really needed, the payload the server sends is reduced, which speeds up the search.
 
 ## PARAMETERS
 
@@ -131,7 +132,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -153,9 +154,8 @@ HelpMessage: ''
 
 ### -Fields
 
-Field you would like to select from your issue.
-By default, all fields are
-returned.
+Fields to include in the returned filter.
+By default, all fields are returned.
 
 Allows any combination of the following values:
 
@@ -263,7 +263,7 @@ HelpMessage: ''
 ### -Name
 
 String used to perform a case-insensitive partial match with name.
- An exact match can be requested by including quotes (refer to the examples above).
+An exact match can be requested by including quotes (refer to the examples above).
 
 ```yaml
 Type: String[]
@@ -284,7 +284,7 @@ HelpMessage: ''
 
 ### -Owner
 
-User Object or user name used to return filters with the matching owner.accountId.
+User object or user name used to return filters with the matching owner.accountId.
 
 ```yaml
 Type: AtlassianPS.JiraPS.User
@@ -306,7 +306,7 @@ HelpMessage: ''
 
 ### -Project
 
-The ID or Key of the Project to search.
+The ID or key of the project to search.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Project
@@ -353,10 +353,10 @@ HelpMessage: ''
 Orders the results using one of these filter properties:
 
 - *description* Orders by filter description.
-Note that this ordering works independently of whether the expand to display the description field is in use.
+  Note that this ordering works independently of whether the expand to display the description field is in use.
 - *favourite_count* Orders by favouritedCount.
 - *is_favourite* Orders by favourite.
-- *id* Orders by filter id.
+- *ID* Orders by filter ID.
 - *name* Orders by filter name.
 - *owner* Orders by owner.accountId.
 
@@ -385,10 +385,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -398,9 +396,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

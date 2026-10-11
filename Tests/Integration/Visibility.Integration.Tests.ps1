@@ -70,10 +70,35 @@ InModuleScope JiraPS {
 
         It 'persists unrestricted <resource> for <description>' -TestCases @(
             foreach ($resource in 'comment', 'worklog') {
-                @{ resource = $resource; description = 'omitted visibility'; visibility = @{} }
-                @{ resource = $resource; description = 'All Users'; visibility = @{ Visibility = 'All Users' } }
-                @{ resource = $resource; description = 'VisibleRole alias'; visibility = @{ VisibleRole = 'All Users' } }
-                @{ resource = $resource; description = 'typed All Users role'; visibility = @{ Visibility = [AtlassianPS.JiraPS.Visibility]@{ Type = 'role'; Value = 'All Users' } } }
+                @{
+                    resource    = $resource
+                    description = 'omitted visibility'
+                    visibility  = @{}
+                }
+                @{
+                    resource    = $resource
+                    description = 'All Users'
+                    visibility  = @{
+                        Visibility = 'All Users'
+                    }
+                }
+                @{
+                    resource    = $resource
+                    description = 'VisibleRole alias'
+                    visibility  = @{
+                        VisibleRole = 'All Users'
+                    }
+                }
+                @{
+                    resource    = $resource
+                    description = 'typed All Users role'
+                    visibility  = @{
+                        Visibility = [AtlassianPS.JiraPS.Visibility]@{
+                            Type  = 'role'
+                            Value = 'All Users'
+                        }
+                    }
+                }
             }
         ) {
             $parameters = @{ Issue = $issue; Comment = "Unrestricted $resource"; ErrorAction = 'Stop' }
@@ -100,7 +125,10 @@ InModuleScope JiraPS {
             $parameters = @{
                 Issue       = $issue
                 Comment     = "Restricted $resource"
-                Visibility  = [AtlassianPS.JiraPS.Visibility]@{ Type = $restriction; Value = $value }
+                Visibility  = [AtlassianPS.JiraPS.Visibility]@{
+                    Type  = $restriction
+                    Value = $value
+                }
                 ErrorAction = 'Stop'
             }
             if ($resource -eq 'worklog') {
@@ -130,7 +158,10 @@ InModuleScope JiraPS {
             $parameters = @{
                 Issue       = $issue
                 Comment     = "Group identifier $resource"
-                Visibility  = @{ Type = 'group'; Identifier = $group.Id }
+                Visibility  = @{
+                    Type       = 'group'
+                    Identifier = $group.Id
+                }
                 ErrorAction = 'Stop'
             }
             if ($resource -eq 'worklog') {

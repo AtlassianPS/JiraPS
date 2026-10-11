@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Get-JiraFilterPermission/
 
 ## SYNOPSIS
 
-Fetch the permissions of a specific Filter.
+Fetch the permissions of a specific filter.
 
 ## SYNTAX
 
@@ -20,7 +20,7 @@ Get-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> [-Credential <p
 
 ## DESCRIPTION
 
-This allows the user to retrieve all the sharing permissions set for a Filter.
+This allows the user to retrieve all the sharing permissions set for a filter.
 
 ## EXAMPLES
 
@@ -28,29 +28,29 @@ This allows the user to retrieve all the sharing permissions set for a Filter.
 
 ```powershell
 Get-JiraFilterPermission -Filter (Get-JiraFilter 12345)
-#-------
+# Or use the ID directly.
 Get-JiraFilterPermission -Id 12345
 ```
 
-Two methods for retrieving the permissions set for Filter 12345.
+Two methods for retrieving the permissions set for filter 12345.
 
 ### Example 2
 
 ```powershell
 12345 | Get-JiraFilterPermission
-#-------
+# Or use the ID directly.
 Get-JiraFilter 12345 | Get-JiraFilterPermission
 ```
 
-Two methods for retrieve the permissions set for Filter 12345 by using the pipeline.
+Two methods for retrieving the permissions set for filter 12345 by using the pipeline.
 
-The Id could be read from a file.
+The ID can be read from a file.
 
 ## PARAMETERS
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -96,10 +96,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -112,10 +110,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or
-a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

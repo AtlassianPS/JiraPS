@@ -84,18 +84,26 @@
 
         $transitionId = $Transition.Id
         if ($null -eq $transitionId -and $Transition.Name) {
-            $matchingTransitions = @($issueObj.Transition | Where-Object { $_.Name -eq $Transition.Name })
-            if ($matchingTransitions.Count -eq 1) { $transitionId = $matchingTransitions[0].Id }
+            $matchingTransitions = @($issueObj.Transition | Where-Object -FilterScript { $_.Name -eq $Transition.Name })
+            if ($matchingTransitions.Count -eq 1) {
+                $transitionId = $matchingTransitions[0].Id
+            }
         }
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Checking that the issue can perform the given transition"
         if ($null -eq $transitionId -or ($issueObj.Transition.Id) -notcontains $transitionId) {
-            $exception = ([System.ArgumentException]"Invalid value for Parameter")
-            $errorId = 'ParameterValue.InvalidTransition'
-            $errorCategory = 'InvalidArgument'
-            $errorTarget = $Issue
-            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-            $requestedTransition = if ($null -ne $transitionId) { $transitionId } else { $Transition.Name }
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                [System.ArgumentException]::new('Invalid value for Parameter'),
+                'ParameterValue.InvalidTransition',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $Issue
+            )
+            $requestedTransition = if ($null -ne $transitionId) {
+                $transitionId
+            }
+            else {
+                $Transition.Name
+            }
             $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$requestedTransition]. Check the issue's Transition property and provide a transition valid for its current state."
             ThrowError -ErrorRecord $errorItem
         }

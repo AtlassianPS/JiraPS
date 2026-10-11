@@ -2,14 +2,21 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-    Initialize-TestEnvironment
+
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 InModuleScope JiraPS {
-    Describe 'ConvertTo-JiraIssueProgress' -Tag Unit {
+    Describe "ConvertTo-JiraIssueProgress" -Tag 'Unit' {
         It 'maps wire values to typed properties' {
-            $wire = ConvertFrom-Json '{"progress":0,"total":2147483648,"percent":0}'
-            $result = ConvertTo-JiraIssueProgress $wire
+            $wire = ConvertFrom-Json -InputObject @'
+{
+    "progress": 0,
+    "total": 2147483648,
+    "percent": 0
+}
+'@
+            $result = ConvertTo-JiraIssueProgress -InputObject $wire
             $result.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueProgress])
             $result.Progress | Should -Be 0
             $result.Total | Should -Be 2147483648
@@ -17,7 +24,7 @@ InModuleScope JiraPS {
         }
 
         It 'preserves unknown values when fields are omitted' {
-            $result = ConvertTo-JiraIssueProgress (ConvertFrom-Json '{}')
+            $result = ConvertTo-JiraIssueProgress -InputObject (ConvertFrom-Json '{}')
             ($null -eq $result.Progress) | Should -BeTrue
             ($null -eq $result.Total) | Should -BeTrue
             ($null -eq $result.Percent) | Should -BeTrue
@@ -29,7 +36,8 @@ InModuleScope JiraPS {
         }
 
         It 'preserves order and skips null entries (<delivery>)' -TestCases @(
-            @{ delivery = 'array' }; @{ delivery = 'pipeline' }
+            @{ delivery = 'array' }
+            @{ delivery = 'pipeline' }
         ) {
             param($delivery)
             $first = [PSCustomObject]@{ progress = 1 }
@@ -48,7 +56,7 @@ InModuleScope JiraPS {
 
         It 'rejects invalid numeric values' {
             $wire = [PSCustomObject]@{ progress = 'invalid' }
-            { ConvertTo-JiraIssueProgress $wire } | Should -Throw
+            { ConvertTo-JiraIssueProgress -InputObject $wire } | Should -Throw -ExpectedMessage '*Cannot convert value "invalid" to type "System.Int64"*'
         }
     }
 }

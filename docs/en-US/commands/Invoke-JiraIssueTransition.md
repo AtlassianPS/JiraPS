@@ -10,31 +10,35 @@ permalink: /docs/JiraPS/commands/Invoke-JiraIssueTransition/
 
 ## SYNOPSIS
 
-Performs an issue transition on a JIRA issue changing it's status
+Changes an issue's status by performing a Jira transition.
 
 ## SYNTAX
 
 ### AssignToUser (Default)
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>] [-Assignee <AtlassianPS.JiraPS.User>] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition>
+ [-Fields <psobject>] [-Assignee <AtlassianPS.JiraPS.User>] [-Comment <string>] [-TimeSpent <timespan>]
+ [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>] [-Unassign] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition>
+ [-Fields <psobject>] [-Unassign] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>]
+ [-Passthru] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function performs an issue transition on a JIRA issue.
+This function performs an issue transition on a Jira issue.
 
-Transitions are defined in JIRA through workflows, and allow the issue to move from one status to the next.
+Transitions are defined in Jira through workflows, and allow the issue to move from one status to the next.
 
 For example, the "Start Progress" transition typically moves an issue from an Open status to an "In Progress" status.
 
-To identify the transitions that an issue can perform, use `Get-JiraIssue` and check the Transition property of the issue obj ect returned.
+To identify the transitions that an issue can perform, use `Get-JiraIssue` and check the returned issue's `Transition` property.
 Attempting to perform a transition that does not apply to the issue (for example, trying to "start progress" on an issue in progress) will result in an exception.
 
 On **Jira Cloud**, the `-Comment` text is interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent.
@@ -43,7 +47,7 @@ See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/)
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11
@@ -51,7 +55,7 @@ Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11
 
 Invokes transition ID 11 on issue TEST-01.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition comment' -TimeSpent ([TimeSpan]::FromMinutes(15))
@@ -60,17 +64,17 @@ Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Comment 'Transition co
 Invokes transition ID 11 on issue TEST-01 with a comment and a 15-minute worklog.
 Requires the comment and worklog fields to be configured visible for transition.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Assignee 'joe.bloggs'
 ```
 
-Invokes transition ID 11 on issue TEST-01 and assigns to user 'Joe Blogs'.
+Invokes transition ID 11 on issue TEST-01 and assigns it to user 'joe.bloggs'.
 
 Requires the assignee field to be configured as visible for transition.
 
-### EXAMPLE 4
+### Example 4
 
 ```powershell
 $transitionFields = @{'customfield_12345' = 'example'}
@@ -81,15 +85,15 @@ Invokes transition ID 11 on issue TEST-01 and configures a custom field value.
 
 Requires fields to be configured as visible for transition.
 
-### EXAMPLE 5
+### Example 5
 
 ```powershell
-$transition = Get-JiraIssue -Issue TEST-01 | Select-Object -ExpandProperty Transition | ? {$_.ResultStatus.Name -eq 'In Progress'}
+$transition = Get-JiraIssue -Key TEST-01 | Select-Object -ExpandProperty Transition |
+    Where-Object { $_.ResultStatus.Name -eq 'In Progress' }
 Invoke-JiraIssueTransition -Issue TEST-01 -Transition $transition
 ```
 
-This example identifies the correct transition based on the result status of
-"In Progress" and invokes that transition on issue TEST-01.
+This example identifies the correct transition based on the result status of "In Progress" and invokes that transition on issue TEST-01.
 
 ## PARAMETERS
 
@@ -121,7 +125,7 @@ HelpMessage: ''
 
 ### -Comment
 
-Comment that should be added to JIRA.
+Comment that should be added to Jira.
 
 Comment field must be configured to appear on the transition screen to use this parameter.
 
@@ -144,7 +148,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -198,9 +202,9 @@ HelpMessage: ''
 
 ### -Issue
 
-The Issue Object or ID to transition.
+The issue object or ID to transition.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -310,14 +314,22 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String / JiraPS.Transition
+### AtlassianPS.JiraPS.Issue
+
+Pipe an issue object to transition it.
+
+### System.String
+
+Pipe an issue key or numeric issue ID.
+
+### System.Int64
+
+Pipe a numeric issue ID.
 
 ## OUTPUTS
 
@@ -327,9 +339,9 @@ When `-Passthru` is provided, the issue will be returned.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

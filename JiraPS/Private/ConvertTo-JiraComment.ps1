@@ -15,7 +15,7 @@
             $hash = @{
                 ID         = $i.id
                 Body       = ConvertFrom-AtlassianDocumentFormat -InputObject $i.body
-                Visibility = if ($null -ne $i.visibility) { ConvertTo-JiraVisibility $i.visibility } else { $null }
+                Visibility = ConvertTo-JiraVisibility -InputObject $i.visibility
                 RestUrl    = [uri]$i.self
             }
 
@@ -24,7 +24,10 @@
             if ($null -ne $i.properties) {
                 $hash.Properties = [AtlassianPS.JiraPS.EntityProperty[]]@(
                     foreach ($property in $i.properties) {
-                        [AtlassianPS.JiraPS.EntityProperty]@{ Key = $property.key; Value = $property.value }
+                        [AtlassianPS.JiraPS.EntityProperty]@{
+                            Key   = $property.key
+                            Value = $property.value
+                        }
                     }
                 )
             }

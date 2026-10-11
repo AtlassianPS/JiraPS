@@ -168,9 +168,9 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Field"; type = "AtlassianPS.JiraPS.Field[]" }
-                    @{ parameter = "Force"; type = "System.Management.Automation.SwitchParameter" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                    @{ parameter = 'Field'; type = 'AtlassianPS.JiraPS.Field[]' }
+                    @{ parameter = 'Force'; type = 'System.Management.Automation.SwitchParameter' }
+                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
                     $command | Should -HaveParameter $parameter
                 }
@@ -202,6 +202,35 @@ InModuleScope JiraPS {
                 $oneResult | Should -Not -BeNullOrEmpty
                 $oneResult.ID | Should -Be 'issuetype'
                 $oneResult.Name | Should -Be 'Issue Type'
+            }
+
+            Context 'Typed field references' {
+                It 'uses the ID from a returned field object' {
+                    $field = [AtlassianPS.JiraPS.Field]@{ Id = 'issuetype'; Name = 'Issue Type' }
+
+                    $result = @($field | Get-JiraField)
+
+                    $result.Count | Should -Be 1
+                    $result[0].Id | Should -Be 'issuetype'
+                }
+
+                It 'prefers the field ID over a conflicting display name' {
+                    $field = [AtlassianPS.JiraPS.Field]@{ Id = 'issuetype'; Name = 'Summary' }
+
+                    $result = @(Get-JiraField -Field $field)
+
+                    $result.Count | Should -Be 1
+                    $result[0].Id | Should -Be 'issuetype'
+                    $result[0].Name | Should -Be 'Issue Type'
+                }
+
+                It 'does not fall back to the name when a returned field ID is stale' {
+                    $field = [AtlassianPS.JiraPS.Field]@{ Id = 'customfield_deleted'; Name = 'Issue Type' }
+
+                    $result = @(Get-JiraField -Field $field)
+
+                    $result.Count | Should -Be 0
+                }
             }
 
             It "handles positional parameters correctly" {

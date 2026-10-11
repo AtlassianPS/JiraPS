@@ -2,7 +2,7 @@
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.FilterSubscription])]
     param(
-        [Parameter(ValueFromPipeline)]
+        [Parameter( ValueFromPipeline )]
         [PSObject[]]
         $InputObject
     )
@@ -10,6 +10,8 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.FilterSubscription"
+
             [AtlassianPS.JiraPS.FilterSubscription]@{
                 Id    = ConvertTo-JiraNullableInt64 $i.id
                 User  = if ($i.user) { ConvertTo-JiraUser $i.user } else { $null }

@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Remove-JiraIssue/
 
 ## SYNOPSIS
 
-Removes an existing issue from JIRA.
+Removes an existing issue from Jira.
 
 ## SYNTAX
 
@@ -31,7 +31,7 @@ Remove-JiraIssue [-IssueId] <string[]> [-IncludeSubTasks] [-Credential <pscreden
 ## DESCRIPTION
 
 This function will remove an issue from Jira.
-Deleting an issue removes it permanently from JIRA, including all of its comments and attachments.
+Deleting an issue removes it permanently from Jira, including all of its comments and attachments.
 
 If you have completed an issue, it should usually be resolved or closed - not deleted.
 
@@ -39,26 +39,26 @@ If an issue includes sub-tasks, these are deleted as well.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Remove-JiraIssue -IssueId ABC-123
 ```
 
-Removes issue \[ABC-123\] from JIRA.
+Removes issue \[ABC-123\] from Jira.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Remove-JiraIssue -IssueId ABC-124 -IncludeSubTasks
 ```
 
-Removes issue \[ABC-124\] from JIRA, including any subtasks therein.
+Removes issue \[ABC-124\] from Jira, including any subtasks therein.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
-Get-JiraIssue -Query "Project = ABC AND label = NeedsDeletion" | Remove-JiraIssue -IncludeSubTasks
+Get-JiraIssue -Query 'Project = ABC AND label = NeedsDeletion' | Remove-JiraIssue -IncludeSubTasks
 ```
 
 Removes all issues from project ABC (including their subtasks) that have the label "NeedsDeletion".
@@ -89,7 +89,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 
 ```yaml
 Type: PSCredential
@@ -156,8 +156,7 @@ HelpMessage: ''
 
 ### -InputObject
 
-One or more issues to delete, specified as `AtlassianPS.JiraPS.Issue` objects (e.g.
-from `Get-JiraIssue`)
+One or more issues to delete, specified as `AtlassianPS.JiraPS.Issue` objects (e.g. from `Get-JiraIssue`).
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -181,9 +180,8 @@ HelpMessage: ''
 
 One or more issues to delete, either:
 
-* Issue Keys (e.g.
-"TEST-1234")
-* Numerical issue IDs
+* Issue Keys (e.g. "TEST-1234")
+* Numerical issue IDs.
 
 ```yaml
 Type: String[]
@@ -230,10 +228,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -249,7 +245,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 If the issue has subtasks you must include the parameter IncludeSubTasks to delete the issue.
 You cannot delete an issue without its subtasks also being deleted.
 
-This function requires either the \`-Credential\` parameter to be passed or a persistent JIRA session.
+This function requires either the \`-Credential\` parameter to be passed or a persistent Jira session.
 See \`New-JiraSession\` for more details.
 
 ## RELATED LINKS

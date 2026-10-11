@@ -10,12 +10,14 @@ permalink: /docs/JiraPS/commands/Remove-JiraFilterPermission/
 
 ## SYNOPSIS
 
-Remove a permission of a Filter
+Remove a permission of a filter.
 
 ## SYNTAX
 
 ```powershell
-Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter> [[-Permission] <AtlassianPS.JiraPS.FilterPermission[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter>
+ [[-Permission] <AtlassianPS.JiraPS.FilterPermission[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -43,7 +45,7 @@ Numeric IDs are converted to permission objects.
 Get-JiraFilter 11822 | Get-JiraFilterPermission | Remove-JiraFilterPermission
 ```
 
-Remove all permissions of Filter 11822
+Remove all permissions of filter 11822
 
 ## PARAMETERS
 
@@ -71,7 +73,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -164,16 +166,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ### AtlassianPS.JiraPS.Filter
 
-Pipe a AtlassianPS.JiraPS.Filter to remove all of its share permissions.
+Pipe an AtlassianPS.JiraPS.Filter to remove all of its share permissions.
 
 ## OUTPUTS
 
@@ -181,10 +181,9 @@ Pipe a AtlassianPS.JiraPS.Filter to remove all of its share permissions.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or
-a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Remove-JiraGroup/
 
 ## SYNOPSIS
 
-Removes an existing group from JIRA
+Removes an existing group from Jira.
 
 ## SYNTAX
 
@@ -21,24 +21,24 @@ Remove-JiraGroup [-Group] <AtlassianPS.JiraPS.Group[]> [[-Credential] <pscredent
 
 ## DESCRIPTION
 
-This function removes an existing group from JIRA.
+This function removes an existing group from Jira.
 
 On Jira Cloud, the cmdlet deletes by `Id` when the input group already includes one.
 Otherwise, it deletes by group name.
 On Jira Data Center, it uses the documented `groupname` deletion path.
 Passing the group name directly is usually more reliable than resolving the group first with `Get-JiraGroup`.
 
-> Deleting a group does not delete users from JIRA.
+> Deleting a group does not delete users from Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Remove-JiraGroup -GroupName testGroup
 ```
 
-Removes the JIRA group testGroup
+Removes the Jira group testGroup
 
 ## PARAMETERS
 
@@ -66,7 +66,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -156,23 +156,21 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### JiraPS.Group
+### AtlassianPS.JiraPS.Group
 
 
 ## OUTPUTS
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 `Remove-JiraGroup` can still work on Jira Data Center even when `Get-JiraGroup` cannot resolve the same group.
 

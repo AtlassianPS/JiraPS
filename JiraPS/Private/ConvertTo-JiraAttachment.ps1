@@ -21,7 +21,7 @@
                 'ID'        = $i.id
                 'Self'      = [uri]$i.self
                 'FileName'  = $i.FileName
-                'Author'    = if ($null -ne $i.Author) { ConvertTo-JiraUser -InputObject $i.Author } else { $null }
+                'Author'    = ConvertTo-JiraUser -InputObject $i.Author
                 'Created'   = ConvertTo-JiraDateTimeOffsetValue $i.created
                 'Size'      = ConvertTo-JiraNullableInt64 $i.size
                 'MimeType'  = $i.mimeType

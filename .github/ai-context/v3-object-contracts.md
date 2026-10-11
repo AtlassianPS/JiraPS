@@ -16,68 +16,1001 @@ URI fields use `System.Uri` and timestamps use the nullable date type shown belo
 
 This inventory includes every property declared on each public domain or request class.
 `EditMetaField` also inherits the `CreateMetaField` properties.
-The converter column names both top-level converters and converters that construct nested records.
-The producer column lists commands that return the class directly or within a declared containing model.
+Each type lists the converters that construct it, directly or within a containing object.
+Producing commands return the class directly or within a declared containing object.
 `Set-JiraIssue`, `Set-JiraIssueLabel` and `Invoke-JiraIssueTransition` return an issue when `PassThru` is requested.
-Transport `OutputType` conversion is included; internal resolution alone does not make a command a producer.
+Commands using transport `OutputType` conversion are included.
+A command that only resolves an object internally is not listed as a producer.
 The tests are under `Tests/Functions/Private`, `Tests/Functions/Public`, and `Tests/Functions/Classes`.
 `V3CollectionContracts.Unit.Tests.ps1` covers empty collections, raw custom arrays and duplicate-name selectors.
-`V3ReturnContracts.Unit.Tests.ps1` verifies the nested types and collections; `V3ParameterContracts.Unit.Tests.ps1` verifies cross-cmdlet binding, request bodies and regression cases.
+`V3ReturnContracts.Unit.Tests.ps1` verifies the nested types and collections.
+`V3ParameterContracts.Unit.Tests.ps1` verifies cross-cmdlet binding, request bodies and regression cases.
 The existing `AtlassianPS.JiraPS.Types.Unit.Tests.ps1` and `ConvertTo-Jira.Roundtrip.Unit.Tests.ps1` cover core types and transformer fallthrough.
 
-| CLR class | Declared properties and final CLR types | Converters | Producing cmdlets | Consuming parameters | Tests |
-| --- | --- | --- | --- | --- | --- |
-| `Attachment` | `Id: string`; `Self: Uri`; `FileName: string`; `Author: User`; `Created: DateTimeOffset?`; `Size: long?`; `MimeType: string`; `Content: Uri`; `Thumbnail: Uri` | `ConvertTo-JiraIssue`, `ConvertTo-JiraAttachment` | `Add-JiraIssueAttachment`, `Get-JiraIssue`, `Get-JiraIssueAttachment`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `Get-JiraIssueAttachmentFile -Attachment` | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraAttachment.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Comment` | `Id: string`; `Body: string`; `RenderedBody: string`; `Visibility: Visibility`; `Properties: EntityProperty[]`; `RestUrl: Uri`; `Author: User`; `UpdateAuthor: User`; `Created: DateTimeOffset?`; `Updated: DateTimeOffset?` | `ConvertTo-JiraIssue`, `ConvertTo-JiraComment` | `Add-JiraIssueComment`, `Get-JiraIssue`, `Get-JiraIssueComment`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraComment.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Component` | `Id: string`; `Name: string`; `RestUrl: Uri`; `Lead: User`; `LeadDisplayName: string`; `ProjectName: string`; `ProjectId: string`; `Description: string`; `AssigneeType: AssigneeType?`; `RealAssigneeType: AssigneeType?`; `IsAssigneeTypeValid: bool?` | `ConvertTo-JiraIssue`, `ConvertTo-JiraComponent`, `ConvertTo-JiraProject` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraComponent`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `New-JiraIssue -Components` | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraComponent.Unit.Tests.ps1`, `ConvertTo-JiraProject.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `CreateMetaField` | `Id: string`; `Name: string`; `HasDefaultValue: bool`; `Required: bool`; `Schema: FieldSchema`; `Operations: string[]`; `AllowedValues: object[]`; `AutoCompleteUrl: Uri` | `ConvertTo-JiraCreateMetaField` | `Get-JiraIssueCreateMetadata`, `Get-JiraIssueEditMetadata` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraCreateMetaField.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `EditMetaField` | Inherits `CreateMetaField` | `ConvertTo-JiraEditMetaField` | `Get-JiraIssueEditMetadata` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraEditMetaField.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `EntityProperty` | `Key: string`; `Value: object` | `ConvertTo-JiraComment` | `Add-JiraIssueComment`, `Get-JiraIssue`, `Get-JiraIssueComment`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraComment.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Field` | `Id: string`; `Name: string`; `Custom: bool`; `Orderable: bool`; `Navigable: bool`; `Searchable: bool`; `ClauseNames: string[]`; `Schema: FieldSchema` | `ConvertTo-JiraField` | `Get-JiraField` | `Get-JiraField -Field` | `ConvertTo-JiraField.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `FieldSchema` | `Type: string`; `Items: string`; `System: string`; `Custom: string`; `CustomId: long?`; `Configuration: IDictionary<string, object>` | `ConvertTo-JiraFieldSchema` | `Get-JiraField`, `Get-JiraIssueCreateMetadata`, `Get-JiraIssueEditMetadata` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraFieldSchema.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Filter` | `Id: string`; `Name: string`; `JQL: string`; `RestUrl: Uri`; `ViewUrl: Uri`; `SearchUrl: Uri`; `Favourite: bool`; `FilterPermissions: FilterPermission[]`; `SharePermission: FilterPermission[]`; `SharedUser: UserList`; `Subscription: FilterSubscriptionList`; `Description: string`; `Owner: User` | `ConvertTo-JiraFilter` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter` | `Add-JiraFilterPermission -Filter`, `Get-JiraFilterPermission -Filter`, `Remove-JiraFilter -InputObject`, `Remove-JiraFilterPermission -Filter`, `Set-JiraFilter -InputObject`, `Get-JiraFilter -InputObject`, `Get-JiraIssue -Filter` | `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `FilterPermission` | `Id: long?`; `Type: FilterShareType?`; `User: User`; `Group: Group`; `Project: Project`; `Role: ProjectRole` | `ConvertTo-JiraFilterPermission`, `ConvertTo-JiraFilter` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter` | `Remove-JiraFilterPermission -Permission` | `ConvertTo-JiraFilterPermission.Unit.Tests.ps1`, `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `FilterSubscription` | `Id: long?`; `User: User`; `Group: Group` | `ConvertTo-JiraFilterSubscription`, `ConvertTo-JiraFilter` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `FilterSubscriptionList` | `Size: int?`; `MaxResults: int?`; `StartIndex: int?`; `EndIndex: int?`; `Items: FilterSubscription[]` | `ConvertTo-JiraFilter` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Group` | `Name: string`; `Id: string`; `GroupId: string`; `RestUrl: Uri`; `Size: int?`; `Member: User[]` | `ConvertTo-JiraGroup` | `Add-JiraFilterPermission`, `Add-JiraGroupMember`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraGroup`, `New-JiraFilter`, `New-JiraGroup`, `Set-JiraFilter` | `Add-JiraGroupMember -Group`, `Get-JiraGroupMember -Group`, `Remove-JiraGroup -Group`, `Remove-JiraGroupMember -Group` | `ConvertTo-JiraGroup.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Issue` | `Id: string`; `Key: string`; `HttpUrl: Uri`; `RestUrl: Uri`; `Summary: string`; `Description: string`; `Status: Status`; `IssueLinks: IssueLink[]`; `Attachment: Attachment[]`; `Project: Project`; `Assignee: User`; `Creator: User`; `Reporter: User`; `Created: DateTimeOffset?`; `LastViewed: DateTimeOffset?`; `Updated: DateTimeOffset?`; `Fields: IDictionary<string, object>`; `Expand: string`; `Transition: Transition[]`; `Comment: Comment[]`; `History: IssueHistoryEntry[]`; `IssueType: IssueType`; `Priority: Priority`; `Resolution: Resolution`; `Components: Component[]`; `Worklog: Worklogitem[]`; `FixVersions: Version[]`; `Versions: Version[]`; `Parent: Issue`; `Subtasks: Issue[]`; `Watches: IssueWatches`; `Votes: IssueVotes`; `Progress: IssueProgress`; `AggregateProgress: IssueProgress`; `TimeTracking: IssueTimeTracking`; `Security: IssueSecurityLevel` | `Resolve-JiraIssueObject`, `ConvertTo-JiraIssue` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `Add-JiraIssueComment -Issue`, `Add-JiraIssueWorklog -Issue`, `Invoke-JiraIssueTransition -Issue`, `Remove-JiraIssueLink -Issue`, `Remove-JiraRemoteLink -Issue`, `Add-JiraIssueAttachment -Issue`, `Add-JiraIssueWatcher -Issue`, `Get-JiraIssue -InputObject`, `Get-JiraIssueAttachment -Issue`, `Get-JiraIssueComment -Issue`, `Get-JiraIssueWatcher -Issue`, `Get-JiraIssueWorklog -Issue`, `Get-JiraRemoteLink -Issue`, `New-JiraIssueLinkRequest -FromIssue`, `New-JiraIssueLinkRequest -ToIssue`, `Remove-JiraIssue -InputObject`, `Remove-JiraIssueAttachment -Issue`, `Remove-JiraIssueWatcher -Issue`, `Set-JiraIssue -Issue`, `Set-JiraIssueLabel -Issue` | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `IssueHistoryEntry` | `Id: string`; `Author: User`; `Created: DateTimeOffset?`; `Items: IssueHistoryItem[]` | `ConvertTo-JiraIssue`, `ConvertTo-JiraIssueHistoryEntry` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraIssueHistoryEntry.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `IssueHistoryItem` | `Field: string`; `FieldType: string`; `FieldId: string`; `From: string`; `FromString: string`; `To: string`; `ToString: string` | `ConvertTo-JiraIssueHistoryEntry` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraIssueHistoryEntry.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `IssueLink` | `Id: long?`; `Type: IssueLinkType`; `InwardIssue: Issue`; `OutwardIssue: Issue` | `ConvertTo-JiraIssue`, `ConvertTo-JiraIssueLink` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `Remove-JiraIssueLink -IssueLink` | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraIssueLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `IssueLinkCreateRequest` | `Type: IssueLinkTypeRef`; `InwardIssue: LinkedIssueRef`; `OutwardIssue: LinkedIssueRef` | Constructed by `New-JiraIssueLinkRequest` | `New-JiraIssueLinkRequest` | `Add-JiraIssueLink -IssueLink` | `New-JiraIssueLinkRequest.Unit.Tests.ps1` |
-| `IssueLinkType` | `Id: string`; `Name: string`; `InwardText: string`; `OutwardText: string`; `RestUrl: Uri` | `ConvertTo-JiraIssueLinkType` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueLinkType`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `Get-JiraIssueLinkType -LinkType`, `New-JiraIssueLinkRequest -LinkType` | `ConvertTo-JiraIssueLinkType.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `IssueLinkTypeRef` | `Id: string`; `Name: string` | Constructed by `New-JiraIssueLinkRequest` | `New-JiraIssueLinkRequest` | Nested/output-only; no public parameter consumes this record | `New-JiraIssueLinkRequest.Unit.Tests.ps1` |
-| `IssueProgress` | `Progress: long?`; `Total: long?`; `Percent: long?` | `ConvertTo-JiraIssue` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `IssueSecurityLevel` | `Id: string`; `Name: string`; `Description: string`; `Self: Uri` | `ConvertTo-JiraIssue` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `IssueTimeTracking` | `OriginalEstimate: string`; `RemainingEstimate: string`; `TimeSpent: string`; `OriginalEstimateSeconds: long?`; `RemainingEstimateSeconds: long?`; `TimeSpentSeconds: long?` | `ConvertTo-JiraIssue` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `IssueType` | `Id: long?`; `Name: string`; `Description: string`; `IconUrl: Uri`; `RestUrl: Uri`; `Subtask: bool`; `AvatarId: long?`; `HierarchyLevel: int?`; `Scope: IssueTypeScope` | `ConvertTo-JiraProject`, `ConvertTo-JiraIssueType` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `Get-JiraIssueCreateMetadata -IssueType`, `Get-JiraIssueType -IssueType`, `New-JiraIssue -IssueType` | `ConvertTo-JiraProject.Unit.Tests.ps1`, `ConvertTo-JiraIssueType.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `IssueTypeScope` | `Type: string`; `Project: Project` | `ConvertTo-JiraIssueType` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraIssueType.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `IssueVotes` | `Self: Uri`; `Votes: long?`; `HasVoted: bool?`; `Voters: User[]` | `ConvertTo-JiraIssue` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `IssueWatches` | `Self: Uri`; `WatchCount: long?`; `IsWatching: bool?`; `Watchers: User[]` | `ConvertTo-JiraIssue` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Link` | `Id: long?`; `RestUrl: Uri`; `GlobalId: string`; `Application: LinkApplication`; `Relationship: string`; `RemoteObject: RemoteLinkObject` | `ConvertTo-JiraLink` | `Get-JiraRemoteLink` | `Remove-JiraRemoteLink -LinkId` | `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `LinkApplication` | `Type: string`; `Name: string` | `ConvertTo-JiraLink` | `Get-JiraRemoteLink` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `LinkedIssueRef` | `Id: string`; `Key: string` | Constructed by `New-JiraIssueLinkRequest` | `New-JiraIssueLinkRequest` | Nested/output-only; no public parameter consumes this record | `New-JiraIssueLinkRequest.Unit.Tests.ps1` |
-| `Priority` | `Id: long?`; `Name: string`; `Description: string`; `StatusColor: string`; `IconUrl: Uri`; `RestUrl: Uri` | `ConvertTo-JiraPriority` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraPriority`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `New-JiraIssue -Priority` | `ConvertTo-JiraPriority.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Project` | `Id: string`; `Key: string`; `Name: string`; `Description: string`; `Lead: User`; `IssueTypes: IssueType[]`; `Roles: IDictionary<string, Uri>`; `RestUrl: Uri`; `Components: Component[]`; `AssigneeType: AssigneeType?`; `Versions: Version[]`; `Style: string`; `Category: ProjectCategory`; `ProjectTypeKey: string`; `Url: Uri`; `Email: string`; `Archived: bool?`; `Simplified: bool?`; `IsPrivate: bool?` | `ConvertTo-JiraProject` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `Get-JiraIssueCreateMetadata -Project`, `Get-JiraProject -Project`, `Get-JiraVersion -InputProject`, `New-JiraIssue -Project`, `Find-JiraFilter -Project`, `Get-JiraComponent -Project`, `New-JiraVersion -Project`, `Set-JiraVersion -Project` | `ConvertTo-JiraProject.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `ProjectCategory` | `Id: string`; `Name: string`; `Description: string`; `RestUrl: Uri` | `ConvertTo-JiraProject` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraProject.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `ProjectRole` | `Id: long?`; `Name: string`; `Description: string`; `Actors: RoleActor[]`; `RestUrl: Uri` | `ConvertTo-JiraProjectRole` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraProjectRole.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `RemoteLinkIcon` | `Url16x16: Uri`; `Title: string`; `Link: Uri` | `ConvertTo-JiraLink` | `Get-JiraRemoteLink` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `RemoteLinkObject` | `Url: Uri`; `Title: string`; `Summary: string`; `Icon: RemoteLinkIcon`; `Status: RemoteLinkStatus` | `ConvertTo-JiraLink` | `Get-JiraRemoteLink` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `RemoteLinkStatus` | `Resolved: bool?`; `Icon: RemoteLinkIcon` | `ConvertTo-JiraLink` | `Get-JiraRemoteLink` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Resolution` | `Id: string`; `Name: string`; `Description: string`; `RestUrl: Uri` | `ConvertTo-JiraResolution` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `RoleActor` | `Id: long?`; `Name: string`; `DisplayName: string`; `Type: ActorType?`; `AvatarUrl: Uri`; `ActorUser: User`; `ActorGroup: Group` | `ConvertTo-JiraRoleActor`, `ConvertTo-JiraProjectRole` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraProjectRole.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `ServerInfo` | `BaseURL: Uri`; `Version: string`; `VersionNumbers: int[]`; `DeploymentType: DeploymentType?`; `BuildNumber: long?`; `BuildDate: DateTimeOffset?`; `ServerTime: DateTimeOffset?`; `ScmInfo: string`; `ServerTitle: string`; `DisplayUrl: Uri`; `DisplayUrlConfluence: Uri`; `DisplayUrlServicedeskHelpCenter: Uri`; `BuildPartnerName: string`; `ServerTimeZone: ServerTimeZone`; `DefaultLocale: ServerLocale` | `ConvertTo-JiraServerInfo` | `Get-JiraServerInformation` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraServerInfo.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `ServerLocale` | `Locale: string` | `ConvertTo-JiraServerInfo` | `Get-JiraServerInformation` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraServerInfo.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `ServerTimeZone` | `Id: string`; `DisplayName: string` | `ConvertTo-JiraServerInfo` | `Get-JiraServerInformation` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraServerInfo.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Session` | `WebSession: object`; `Username: string`; `JSessionID: string` | `ConvertTo-JiraSession` | `Get-JiraSession`, `New-JiraSession` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraSession.Unit.Tests.ps1` |
-| `Status` | `Id: long?`; `Name: string`; `Description: string`; `IconUrl: Uri`; `RestUrl: Uri`; `StatusCategory: StatusCategory` | `ConvertTo-JiraStatus` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraStatus`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `Get-JiraStatus -Status` | `ConvertTo-JiraStatus.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `StatusCategory` | `Id: long?`; `Key: string`; `Name: string`; `ColorName: string`; `RestUrl: Uri` | `ConvertTo-JiraStatus` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraStatus`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraStatus.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Transition` | `Id: long?`; `Name: string`; `ResultStatus: Status` | `ConvertTo-JiraIssue`, `ConvertTo-JiraTransition` | `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `Invoke-JiraIssueTransition -Transition` | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraTransition.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `User` | `Key: string`; `AccountId: string`; `AccountType: AccountType?`; `Name: string`; `DisplayName: string`; `EmailAddress: string`; `Active: bool`; `Deleted: bool?`; `AvatarUrl: IDictionary<string, Uri>`; `TimeZone: string`; `Locale: string`; `Groups: string[]`; `LastLoginTime: DateTime?`; `RestUrl: Uri` | `ConvertTo-JiraGroup`, `ConvertTo-JiraUser`, `Resolve-JiraUser`, `ConvertTo-JiraIssue`, `ConvertTo-JiraFilter` | `Add-JiraFilterPermission`, `Add-JiraGroupMember`, `Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `Find-JiraFilter`, `Get-JiraComponent`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraGroup`, `Get-JiraGroupMember`, `Get-JiraIssue`, `Get-JiraIssueAttachment`, `Get-JiraIssueComment`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraProject`, `Get-JiraUser`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraGroup`, `New-JiraIssue`, `New-JiraUser`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`, `Set-JiraUser` | `Invoke-JiraIssueTransition -Assignee`, `New-JiraIssue -Reporter`, `New-JiraIssue -Assignee`, `Add-JiraGroupMember -UserName`, `Find-JiraFilter -Owner`, `Get-JiraUser -InputObject`, `Remove-JiraGroupMember -User`, `Remove-JiraUser -User`, `Set-JiraIssue -Assignee`, `Set-JiraUser -User` | `ConvertTo-JiraGroup.Unit.Tests.ps1`, `ConvertTo-JiraUser.Unit.Tests.ps1`, `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `UserList` | `Size: int?`; `MaxResults: int?`; `StartIndex: int?`; `EndIndex: int?`; `Items: User[]` | `ConvertTo-JiraFilter` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Version` | `Id: string`; `Project: long?`; `Name: string`; `Description: string`; `Archived: bool`; `Released: bool`; `Overdue: bool`; `RestUrl: Uri`; `StartDate: DateTime?`; `ReleaseDate: DateTime?` | `ConvertTo-JiraIssue`, `ConvertTo-JiraProject`, `ConvertTo-JiraVersion` | `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Get-JiraVersion`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `New-JiraVersion`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`, `Set-JiraVersion` | `Get-JiraVersion -InputVersion`, `New-JiraIssue -FixVersion`, `Move-JiraVersion -Version`, `Move-JiraVersion -After`, `New-JiraVersion -InputObject`, `Remove-JiraVersion -Version`, `Set-JiraVersion -Version` | `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraProject.Unit.Tests.ps1`, `ConvertTo-JiraVersion.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
-| `Visibility` | `Type: string`; `Value: string`; `Identifier: string` | `ConvertTo-JiraVisibility` | `Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `Get-JiraIssue`, `Get-JiraIssueComment`, `Get-JiraIssueLink`, `Get-JiraIssueWorklog`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | `Add-JiraIssueComment -Visibility`, `Add-JiraIssueWorklog -Visibility` | `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1` |
-| `Worklogitem` | `Id: long?`; `Visibility: Visibility`; `Comment: string`; `RestUrl: Uri`; `Author: User`; `UpdateAuthor: User`; `Created: DateTimeOffset?`; `Updated: DateTimeOffset?`; `Started: DateTimeOffset?`; `TimeSpent: string`; `TimeSpentSeconds: long?` | `ConvertTo-JiraWorklogitem`, `ConvertTo-JiraIssue` | `Add-JiraIssueWorklog`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueWorklog`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel` | Nested/output-only; no public parameter consumes this record | `ConvertTo-JiraWorklogitem.Unit.Tests.ps1`, `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1` |
+### `Attachment`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Self` | `Uri` |
+| `FileName` | `string` |
+| `Author` | `User` |
+| `Created` | `DateTimeOffset?` |
+| `Size` | `long?` |
+| `MimeType` | `string` |
+| `Content` | `Uri` |
+| `Thumbnail` | `Uri` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraAttachment`.
+
+Producing commands: `Add-JiraIssueAttachment`, `Get-JiraIssue`, `Get-JiraIssueAttachment`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `Get-JiraIssueAttachmentFile -Attachment`.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraAttachment.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Comment`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Body` | `string` |
+| `RenderedBody` | `string` |
+| `Visibility` | `Visibility` |
+| `Properties` | `EntityProperty[]` |
+| `RestUrl` | `Uri` |
+| `Author` | `User` |
+| `UpdateAuthor` | `User` |
+| `Created` | `DateTimeOffset?` |
+| `Updated` | `DateTimeOffset?` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraComment`.
+
+Producing commands: `Add-JiraIssueComment`, `Get-JiraIssue`, `Get-JiraIssueComment`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraComment.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Component`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Name` | `string` |
+| `RestUrl` | `Uri` |
+| `Lead` | `User` |
+| `LeadDisplayName` | `string` |
+| `ProjectName` | `string` |
+| `ProjectId` | `string` |
+| `Description` | `string` |
+| `AssigneeType` | `AssigneeType?` |
+| `RealAssigneeType` | `AssigneeType?` |
+| `IsAssigneeTypeValid` | `bool?` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraComponent`, `ConvertTo-JiraProject`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraComponent`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `New-JiraIssue -Components`.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraComponent.Unit.Tests.ps1`, `ConvertTo-JiraProject.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `CreateMetaField`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Name` | `string` |
+| `HasDefaultValue` | `bool` |
+| `Required` | `bool` |
+| `Schema` | `FieldSchema` |
+| `Operations` | `string[]` |
+| `AllowedValues` | `object[]` |
+| `AutoCompleteUrl` | `Uri` |
+
+Converters: `ConvertTo-JiraCreateMetaField`.
+
+Producing commands: `Get-JiraIssueCreateMetadata`, `Get-JiraIssueEditMetadata`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraCreateMetaField.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `EditMetaField`
+
+Inherits `CreateMetaField`.
+
+Converters: `ConvertTo-JiraEditMetaField`.
+
+Producing commands: `Get-JiraIssueEditMetadata`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraEditMetaField.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `EntityProperty`
+
+| Property | CLR type |
+| --- | --- |
+| `Key` | `string` |
+| `Value` | `object` |
+
+Converters: `ConvertTo-JiraComment`.
+
+Producing commands: `Add-JiraIssueComment`, `Get-JiraIssue`, `Get-JiraIssueComment`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraComment.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Field`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Name` | `string` |
+| `Custom` | `bool` |
+| `Orderable` | `bool` |
+| `Navigable` | `bool` |
+| `Searchable` | `bool` |
+| `ClauseNames` | `string[]` |
+| `Schema` | `FieldSchema` |
+
+Converters: `ConvertTo-JiraField`.
+
+Producing commands: `Get-JiraField`.
+
+Consuming parameters: `Get-JiraField -Field`.
+
+Tests: `ConvertTo-JiraField.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `FieldSchema`
+
+| Property | CLR type |
+| --- | --- |
+| `Type` | `string` |
+| `Items` | `string` |
+| `System` | `string` |
+| `Custom` | `string` |
+| `CustomId` | `long?` |
+| `Configuration` | `IDictionary<string, object>` |
+
+Converters: `ConvertTo-JiraFieldSchema`.
+
+Producing commands: `Get-JiraField`, `Get-JiraIssueCreateMetadata`, `Get-JiraIssueEditMetadata`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraFieldSchema.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Filter`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Name` | `string` |
+| `JQL` | `string` |
+| `RestUrl` | `Uri` |
+| `ViewUrl` | `Uri` |
+| `SearchUrl` | `Uri` |
+| `Favourite` | `bool` |
+| `FilterPermissions` | `FilterPermission[]` |
+| `SharePermission` | `FilterPermission[]` |
+| `SharedUser` | `UserList` |
+| `Subscription` | `FilterSubscriptionList` |
+| `Description` | `string` |
+| `Owner` | `User` |
+
+Converters: `ConvertTo-JiraFilter`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter`.
+
+Consuming parameters: `Add-JiraFilterPermission -Filter`, `Get-JiraFilterPermission -Filter`, `Remove-JiraFilter -InputObject`, `Remove-JiraFilterPermission -Filter`, `Set-JiraFilter -InputObject`, `Get-JiraFilter -InputObject`, `Get-JiraIssue -Filter`.
+
+Tests: `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `FilterPermission`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Type` | `FilterShareType?` |
+| `User` | `User` |
+| `Group` | `Group` |
+| `Project` | `Project` |
+| `Role` | `ProjectRole` |
+
+Converters: `ConvertTo-JiraFilterPermission`, `ConvertTo-JiraFilter`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter`.
+
+Consuming parameters: `Remove-JiraFilterPermission -Permission`.
+
+Tests: `ConvertTo-JiraFilterPermission.Unit.Tests.ps1`, `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `FilterSubscription`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `User` | `User` |
+| `Group` | `Group` |
+
+Converters: `ConvertTo-JiraFilterSubscription`, `ConvertTo-JiraFilter`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `FilterSubscriptionList`
+
+| Property | CLR type |
+| --- | --- |
+| `Size` | `int?` |
+| `MaxResults` | `int?` |
+| `StartIndex` | `int?` |
+| `EndIndex` | `int?` |
+| `Items` | `FilterSubscription[]` |
+
+Converters: `ConvertTo-JiraFilter`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Group`
+
+| Property | CLR type |
+| --- | --- |
+| `Name` | `string` |
+| `Id` | `string` |
+| `GroupId` | `string` |
+| `RestUrl` | `Uri` |
+| `Size` | `int?` |
+| `Member` | `User[]` |
+
+Converters: `ConvertTo-JiraGroup`.
+
+Producing commands: `Add-JiraFilterPermission`, `Add-JiraGroupMember`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraGroup`, `New-JiraFilter`, `New-JiraGroup`, `Set-JiraFilter`.
+
+Consuming parameters: `Add-JiraGroupMember -Group`, `Get-JiraGroupMember -Group`, `Remove-JiraGroup -Group`, `Remove-JiraGroupMember -Group`.
+
+Tests: `ConvertTo-JiraGroup.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Issue`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Key` | `string` |
+| `HttpUrl` | `Uri` |
+| `RestUrl` | `Uri` |
+| `Summary` | `string` |
+| `Description` | `string` |
+| `Status` | `Status` |
+| `IssueLinks` | `IssueLink[]` |
+| `Attachment` | `Attachment[]` |
+| `Project` | `Project` |
+| `Assignee` | `User` |
+| `Creator` | `User` |
+| `Reporter` | `User` |
+| `Created` | `DateTimeOffset?` |
+| `LastViewed` | `DateTimeOffset?` |
+| `Updated` | `DateTimeOffset?` |
+| `Fields` | `IDictionary<string, object>` |
+| `Expand` | `string` |
+| `Transition` | `Transition[]` |
+| `Comment` | `Comment[]` |
+| `History` | `IssueHistoryEntry[]` |
+| `IssueType` | `IssueType` |
+| `Priority` | `Priority` |
+| `Resolution` | `Resolution` |
+| `Components` | `Component[]` |
+| `Worklog` | `Worklogitem[]` |
+| `FixVersions` | `Version[]` |
+| `Versions` | `Version[]` |
+| `Parent` | `Issue` |
+| `Subtasks` | `Issue[]` |
+| `Watches` | `IssueWatches` |
+| `Votes` | `IssueVotes` |
+| `Progress` | `IssueProgress` |
+| `AggregateProgress` | `IssueProgress` |
+| `TimeTracking` | `IssueTimeTracking` |
+| `Security` | `IssueSecurityLevel` |
+
+Converters: `Resolve-JiraIssueObject`, `ConvertTo-JiraIssue`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `Add-JiraIssueComment -Issue`, `Add-JiraIssueWorklog -Issue`, `Invoke-JiraIssueTransition -Issue`, `Remove-JiraIssueLink -Issue`, `Remove-JiraRemoteLink -Issue`, `Add-JiraIssueAttachment -Issue`, `Add-JiraIssueWatcher -Issue`, `Get-JiraIssue -InputObject`, `Get-JiraIssueAttachment -Issue`, `Get-JiraIssueComment -Issue`, `Get-JiraIssueWatcher -Issue`, `Get-JiraIssueWorklog -Issue`, `Get-JiraRemoteLink -Issue`, `New-JiraIssueLinkRequest -FromIssue`, `New-JiraIssueLinkRequest -ToIssue`, `Remove-JiraIssue -InputObject`, `Remove-JiraIssueAttachment -Issue`, `Remove-JiraIssueWatcher -Issue`, `Set-JiraIssue -Issue`, `Set-JiraIssueLabel -Issue`.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `IssueHistoryEntry`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Author` | `User` |
+| `Created` | `DateTimeOffset?` |
+| `Items` | `IssueHistoryItem[]` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraIssueHistoryEntry`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraIssueHistoryEntry.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `IssueHistoryItem`
+
+| Property | CLR type |
+| --- | --- |
+| `Field` | `string` |
+| `FieldType` | `string` |
+| `FieldId` | `string` |
+| `From` | `string` |
+| `FromString` | `string` |
+| `To` | `string` |
+| `ToString` | `string` |
+
+Converters: `ConvertTo-JiraIssueHistoryEntry`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraIssueHistoryEntry.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `IssueLink`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Type` | `IssueLinkType` |
+| `InwardIssue` | `Issue` |
+| `OutwardIssue` | `Issue` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraIssueLink`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `Remove-JiraIssueLink -IssueLink`.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraIssueLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `IssueLinkCreateRequest`
+
+| Property | CLR type |
+| --- | --- |
+| `Type` | `IssueLinkTypeRef` |
+| `InwardIssue` | `LinkedIssueRef` |
+| `OutwardIssue` | `LinkedIssueRef` |
+
+Converters: Constructed by `New-JiraIssueLinkRequest`.
+
+Producing commands: `New-JiraIssueLinkRequest`.
+
+Consuming parameters: `Add-JiraIssueLink -IssueLink`.
+
+Tests: `New-JiraIssueLinkRequest.Unit.Tests.ps1`.
+
+### `IssueLinkType`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Name` | `string` |
+| `InwardText` | `string` |
+| `OutwardText` | `string` |
+| `RestUrl` | `Uri` |
+
+Converters: `ConvertTo-JiraIssueLinkType`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueLinkType`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `Get-JiraIssueLinkType -LinkType`, `New-JiraIssueLinkRequest -LinkType`.
+
+Tests: `ConvertTo-JiraIssueLinkType.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `IssueLinkTypeRef`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Name` | `string` |
+
+Converters: Constructed by `New-JiraIssueLinkRequest`.
+
+Producing commands: `New-JiraIssueLinkRequest`.
+
+No public parameter consumes this record directly.
+
+Tests: `New-JiraIssueLinkRequest.Unit.Tests.ps1`.
+
+### `IssueProgress`
+
+| Property | CLR type |
+| --- | --- |
+| `Progress` | `long?` |
+| `Total` | `long?` |
+| `Percent` | `long?` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraIssueProgress`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `ConvertTo-JiraIssueProgress.Unit.Tests.ps1`.
+
+### `IssueSecurityLevel`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Name` | `string` |
+| `Description` | `string` |
+| `Self` | `Uri` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraIssueSecurityLevel`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `ConvertTo-JiraIssueSecurityLevel.Unit.Tests.ps1`.
+
+### `IssueTimeTracking`
+
+| Property | CLR type |
+| --- | --- |
+| `OriginalEstimate` | `string` |
+| `RemainingEstimate` | `string` |
+| `TimeSpent` | `string` |
+| `OriginalEstimateSeconds` | `long?` |
+| `RemainingEstimateSeconds` | `long?` |
+| `TimeSpentSeconds` | `long?` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraIssueTimeTracking`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `ConvertTo-JiraIssueTimeTracking.Unit.Tests.ps1`.
+
+### `IssueType`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Name` | `string` |
+| `Description` | `string` |
+| `IconUrl` | `Uri` |
+| `RestUrl` | `Uri` |
+| `Subtask` | `bool` |
+| `AvatarId` | `long?` |
+| `HierarchyLevel` | `int?` |
+| `Scope` | `IssueTypeScope` |
+
+Converters: `ConvertTo-JiraProject`, `ConvertTo-JiraIssueType`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `Get-JiraIssueCreateMetadata -IssueType`, `Get-JiraIssueType -IssueType`, `New-JiraIssue -IssueType`.
+
+Tests: `ConvertTo-JiraProject.Unit.Tests.ps1`, `ConvertTo-JiraIssueType.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `IssueTypeScope`
+
+| Property | CLR type |
+| --- | --- |
+| `Type` | `string` |
+| `Project` | `Project` |
+
+Converters: `ConvertTo-JiraIssueType`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraIssueType.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `IssueVotes`
+
+| Property | CLR type |
+| --- | --- |
+| `Self` | `Uri` |
+| `Votes` | `long?` |
+| `HasVoted` | `bool?` |
+| `Voters` | `User[]` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraIssueVote`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `ConvertTo-JiraIssueVote.Unit.Tests.ps1`.
+
+### `IssueWatches`
+
+| Property | CLR type |
+| --- | --- |
+| `Self` | `Uri` |
+| `WatchCount` | `long?` |
+| `IsWatching` | `bool?` |
+| `Watchers` | `User[]` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraIssueWatch`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `ConvertTo-JiraIssueWatch.Unit.Tests.ps1`.
+
+### `Link`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `RestUrl` | `Uri` |
+| `GlobalId` | `string` |
+| `Application` | `LinkApplication` |
+| `Relationship` | `string` |
+| `RemoteObject` | `RemoteLinkObject` |
+
+Converters: `ConvertTo-JiraLink`.
+
+Producing commands: `Get-JiraRemoteLink`.
+
+Consuming parameters: `Remove-JiraRemoteLink -LinkId`.
+
+Tests: `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `LinkApplication`
+
+| Property | CLR type |
+| --- | --- |
+| `Type` | `string` |
+| `Name` | `string` |
+
+Converters: `ConvertTo-JiraLink`.
+
+Producing commands: `Get-JiraRemoteLink`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `LinkedIssueRef`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Key` | `string` |
+
+Converters: Constructed by `New-JiraIssueLinkRequest`.
+
+Producing commands: `New-JiraIssueLinkRequest`.
+
+No public parameter consumes this record directly.
+
+Tests: `New-JiraIssueLinkRequest.Unit.Tests.ps1`.
+
+### `Priority`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Name` | `string` |
+| `Description` | `string` |
+| `StatusColor` | `string` |
+| `IconUrl` | `Uri` |
+| `RestUrl` | `Uri` |
+
+Converters: `ConvertTo-JiraPriority`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraPriority`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `New-JiraIssue -Priority`.
+
+Tests: `ConvertTo-JiraPriority.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Project`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Key` | `string` |
+| `Name` | `string` |
+| `Description` | `string` |
+| `Lead` | `User` |
+| `IssueTypes` | `IssueType[]` |
+| `Roles` | `IDictionary<string, Uri>` |
+| `RestUrl` | `Uri` |
+| `Components` | `Component[]` |
+| `AssigneeType` | `AssigneeType?` |
+| `Versions` | `Version[]` |
+| `Style` | `string` |
+| `Category` | `ProjectCategory` |
+| `ProjectTypeKey` | `string` |
+| `Url` | `Uri` |
+| `Email` | `string` |
+| `Archived` | `bool?` |
+| `Simplified` | `bool?` |
+| `IsPrivate` | `bool?` |
+
+Converters: `ConvertTo-JiraProject`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `Get-JiraIssueCreateMetadata -Project`, `Get-JiraProject -Project`, `Get-JiraVersion -InputProject`, `New-JiraIssue -Project`, `Find-JiraFilter -Project`, `Get-JiraComponent -Project`, `New-JiraVersion -Project`, `Set-JiraVersion -Project`.
+
+Tests: `ConvertTo-JiraProject.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `ProjectCategory`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Name` | `string` |
+| `Description` | `string` |
+| `RestUrl` | `Uri` |
+
+Converters: `ConvertTo-JiraProject`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraProject.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `ProjectRole`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Name` | `string` |
+| `Description` | `string` |
+| `Actors` | `RoleActor[]` |
+| `RestUrl` | `Uri` |
+
+Converters: `ConvertTo-JiraProjectRole`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraProjectRole.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `RemoteLinkIcon`
+
+| Property | CLR type |
+| --- | --- |
+| `Url16x16` | `Uri` |
+| `Title` | `string` |
+| `Link` | `Uri` |
+
+Converters: `ConvertTo-JiraLink`.
+
+Producing commands: `Get-JiraRemoteLink`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `RemoteLinkObject`
+
+| Property | CLR type |
+| --- | --- |
+| `Url` | `Uri` |
+| `Title` | `string` |
+| `Summary` | `string` |
+| `Icon` | `RemoteLinkIcon` |
+| `Status` | `RemoteLinkStatus` |
+
+Converters: `ConvertTo-JiraLink`.
+
+Producing commands: `Get-JiraRemoteLink`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `RemoteLinkStatus`
+
+| Property | CLR type |
+| --- | --- |
+| `Resolved` | `bool?` |
+| `Icon` | `RemoteLinkIcon` |
+
+Converters: `ConvertTo-JiraLink`.
+
+Producing commands: `Get-JiraRemoteLink`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraLink.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Resolution`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Name` | `string` |
+| `Description` | `string` |
+| `RestUrl` | `Uri` |
+
+Converters: `ConvertTo-JiraResolution`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `RoleActor`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Name` | `string` |
+| `DisplayName` | `string` |
+| `Type` | `ActorType?` |
+| `AvatarUrl` | `Uri` |
+| `ActorUser` | `User` |
+| `ActorGroup` | `Group` |
+
+Converters: `ConvertTo-JiraRoleActor`, `ConvertTo-JiraProjectRole`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraProjectRole.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `ServerInfo`
+
+| Property | CLR type |
+| --- | --- |
+| `BaseURL` | `Uri` |
+| `Version` | `string` |
+| `VersionNumbers` | `int[]` |
+| `DeploymentType` | `DeploymentType?` |
+| `BuildNumber` | `long?` |
+| `BuildDate` | `DateTimeOffset?` |
+| `ServerTime` | `DateTimeOffset?` |
+| `ScmInfo` | `string` |
+| `ServerTitle` | `string` |
+| `DisplayUrl` | `Uri` |
+| `DisplayUrlConfluence` | `Uri` |
+| `DisplayUrlServicedeskHelpCenter` | `Uri` |
+| `BuildPartnerName` | `string` |
+| `ServerTimeZone` | `ServerTimeZone` |
+| `DefaultLocale` | `ServerLocale` |
+
+Converters: `ConvertTo-JiraServerInfo`.
+
+Producing commands: `Get-JiraServerInformation`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraServerInfo.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `ServerLocale`
+
+| Property | CLR type |
+| --- | --- |
+| `Locale` | `string` |
+
+Converters: `ConvertTo-JiraServerInfo`.
+
+Producing commands: `Get-JiraServerInformation`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraServerInfo.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `ServerTimeZone`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `DisplayName` | `string` |
+
+Converters: `ConvertTo-JiraServerInfo`.
+
+Producing commands: `Get-JiraServerInformation`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraServerInfo.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Session`
+
+| Property | CLR type |
+| --- | --- |
+| `WebSession` | `object` |
+| `Username` | `string` |
+| `JSessionID` | `string` |
+
+Converters: `ConvertTo-JiraSession`.
+
+Producing commands: `Get-JiraSession`, `New-JiraSession`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraSession.Unit.Tests.ps1`.
+
+### `Status`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Name` | `string` |
+| `Description` | `string` |
+| `IconUrl` | `Uri` |
+| `RestUrl` | `Uri` |
+| `StatusCategory` | `StatusCategory` |
+
+Converters: `ConvertTo-JiraStatus`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraStatus`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `Get-JiraStatus -Status`.
+
+Tests: `ConvertTo-JiraStatus.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `StatusCategory`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Key` | `string` |
+| `Name` | `string` |
+| `ColorName` | `string` |
+| `RestUrl` | `Uri` |
+
+Converters: `ConvertTo-JiraStatus`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraStatus`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraStatus.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Transition`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Name` | `string` |
+| `ResultStatus` | `Status` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraTransition`.
+
+Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `Invoke-JiraIssueTransition -Transition`.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraTransition.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `User`
+
+| Property | CLR type |
+| --- | --- |
+| `Key` | `string` |
+| `AccountId` | `string` |
+| `AccountType` | `AccountType?` |
+| `Name` | `string` |
+| `DisplayName` | `string` |
+| `EmailAddress` | `string` |
+| `Active` | `bool` |
+| `Deleted` | `bool?` |
+| `AvatarUrl` | `IDictionary<string, Uri>` |
+| `TimeZone` | `string` |
+| `Locale` | `string` |
+| `Groups` | `string[]` |
+| `LastLoginTime` | `DateTime?` |
+| `RestUrl` | `Uri` |
+
+Converters: `ConvertTo-JiraGroup`, `ConvertTo-JiraUser`, `Resolve-JiraUser`, `ConvertTo-JiraIssue`, `ConvertTo-JiraFilter`.
+
+Producing commands: `Add-JiraFilterPermission`, `Add-JiraGroupMember`, `Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `Find-JiraFilter`, `Get-JiraComponent`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraGroup`, `Get-JiraGroupMember`, `Get-JiraIssue`, `Get-JiraIssueAttachment`, `Get-JiraIssueComment`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraProject`, `Get-JiraUser`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraGroup`, `New-JiraIssue`, `New-JiraUser`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`, `Set-JiraUser`.
+
+Consuming parameters: `Invoke-JiraIssueTransition -Assignee`, `New-JiraIssue -Reporter`, `New-JiraIssue -Assignee`, `Add-JiraGroupMember -UserName`, `Find-JiraFilter -Owner`, `Get-JiraUser -InputObject`, `Remove-JiraGroupMember -User`, `Remove-JiraUser -User`, `Set-JiraIssue -Assignee`, `Set-JiraUser -User`.
+
+Tests: `ConvertTo-JiraGroup.Unit.Tests.ps1`, `ConvertTo-JiraUser.Unit.Tests.ps1`, `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `UserList`
+
+| Property | CLR type |
+| --- | --- |
+| `Size` | `int?` |
+| `MaxResults` | `int?` |
+| `StartIndex` | `int?` |
+| `EndIndex` | `int?` |
+| `Items` | `User[]` |
+
+Converters: `ConvertTo-JiraFilter`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Version`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `string` |
+| `Project` | `long?` |
+| `Name` | `string` |
+| `Description` | `string` |
+| `Archived` | `bool` |
+| `Released` | `bool` |
+| `Overdue` | `bool` |
+| `RestUrl` | `Uri` |
+| `StartDate` | `DateTime?` |
+| `ReleaseDate` | `DateTime?` |
+
+Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraProject`, `ConvertTo-JiraVersion`.
+
+Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Get-JiraVersion`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `New-JiraVersion`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`, `Set-JiraVersion`.
+
+Consuming parameters: `Get-JiraVersion -InputVersion`, `New-JiraIssue -FixVersion`, `Move-JiraVersion -Version`, `Move-JiraVersion -After`, `New-JiraVersion -InputObject`, `Remove-JiraVersion -Version`, `Set-JiraVersion -Version`.
+
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraProject.Unit.Tests.ps1`, `ConvertTo-JiraVersion.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
+
+### `Visibility`
+
+| Property | CLR type |
+| --- | --- |
+| `Type` | `string` |
+| `Value` | `string` |
+| `Identifier` | `string` |
+
+Converters: `ConvertTo-JiraVisibility`.
+
+Producing commands: `Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `Get-JiraIssue`, `Get-JiraIssueComment`, `Get-JiraIssueLink`, `Get-JiraIssueWorklog`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+Consuming parameters: `Add-JiraIssueComment -Visibility`, `Add-JiraIssueWorklog -Visibility`.
+
+Tests: `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+
+### `Worklogitem`
+
+| Property | CLR type |
+| --- | --- |
+| `Id` | `long?` |
+| `Visibility` | `Visibility` |
+| `Comment` | `string` |
+| `RestUrl` | `Uri` |
+| `Author` | `User` |
+| `UpdateAuthor` | `User` |
+| `Created` | `DateTimeOffset?` |
+| `Updated` | `DateTimeOffset?` |
+| `Started` | `DateTimeOffset?` |
+| `TimeSpent` | `string` |
+| `TimeSpentSeconds` | `long?` |
+
+Converters: `ConvertTo-JiraWorklogitem`, `ConvertTo-JiraIssue`.
+
+Producing commands: `Add-JiraIssueWorklog`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueWorklog`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+
+No public parameter consumes this record directly.
+
+Tests: `ConvertTo-JiraWorklogitem.Unit.Tests.ps1`, `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
 
 ## Deliberately extensible values
 

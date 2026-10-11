@@ -2,14 +2,24 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-    Initialize-TestEnvironment
+
+    $script:moduleToTest = Initialize-TestEnvironment
 }
 
 InModuleScope JiraPS {
-    Describe 'ConvertTo-JiraIssueTimeTracking' -Tag Unit {
+    Describe "ConvertTo-JiraIssueTimeTracking" -Tag 'Unit' {
         It 'maps wire values to typed properties' {
-            $wire = ConvertFrom-Json '{"originalEstimate":"2h","remainingEstimate":"1h","timeSpent":"0m","originalEstimateSeconds":7200,"remainingEstimateSeconds":3600,"timeSpentSeconds":0}'
-            $result = ConvertTo-JiraIssueTimeTracking $wire
+            $wire = ConvertFrom-Json -InputObject @'
+{
+    "originalEstimate": "2h",
+    "remainingEstimate": "1h",
+    "timeSpent": "0m",
+    "originalEstimateSeconds": 7200,
+    "remainingEstimateSeconds": 3600,
+    "timeSpentSeconds": 0
+}
+'@
+            $result = ConvertTo-JiraIssueTimeTracking -InputObject $wire
             $result.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueTimeTracking])
             $result.OriginalEstimate | Should -Be '2h'
             $result.RemainingEstimate | Should -Be '1h'
@@ -20,7 +30,7 @@ InModuleScope JiraPS {
         }
 
         It 'preserves unknown values when fields are omitted' {
-            $result = ConvertTo-JiraIssueTimeTracking (ConvertFrom-Json '{}')
+            $result = ConvertTo-JiraIssueTimeTracking -InputObject (ConvertFrom-Json '{}')
             ($null -eq $result.OriginalEstimateSeconds) | Should -BeTrue
             ($null -eq $result.RemainingEstimateSeconds) | Should -BeTrue
             ($null -eq $result.TimeSpentSeconds) | Should -BeTrue
@@ -32,7 +42,8 @@ InModuleScope JiraPS {
         }
 
         It 'preserves order and skips null entries (<delivery>)' -TestCases @(
-            @{ delivery = 'array' }; @{ delivery = 'pipeline' }
+            @{ delivery = 'array' }
+            @{ delivery = 'pipeline' }
         ) {
             param($delivery)
             $first = [PSCustomObject]@{ timeSpentSeconds = 1 }
@@ -51,7 +62,7 @@ InModuleScope JiraPS {
 
         It 'rejects invalid numeric values' {
             $wire = [PSCustomObject]@{ timeSpentSeconds = 'invalid' }
-            { ConvertTo-JiraIssueTimeTracking $wire } | Should -Throw
+            { ConvertTo-JiraIssueTimeTracking -InputObject $wire } | Should -Throw -ExpectedMessage '*Cannot convert value "invalid" to type "System.Int64"*'
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿function ConvertTo-JiraIssueWatchState {
+﻿function ConvertTo-JiraIssueWatch {
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueWatches])]
     param(
-        [Parameter(ValueFromPipeline)]
+        [Parameter( ValueFromPipeline )]
         [PSObject[]]
         $InputObject
     )
@@ -10,6 +10,8 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueWatches"
+
             [AtlassianPS.JiraPS.IssueWatches]@{
                 Self       = [uri]$i.self
                 WatchCount = ConvertTo-JiraNullableInt64 $i.watchCount

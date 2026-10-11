@@ -79,7 +79,7 @@ If `TestIntegrationServer` fails before teardown, it captures `jira-container.lo
 
 1. **Jira Cloud Instance**: You need access to a Jira Cloud instance for testing
 2. **API Token**: Generate an API token from [Atlassian Account Settings](https://id.atlassian.com/manage-profile/security/api-tokens)
-3. **Test Project**: A dedicated project for running tests (recommended)
+3. **Test project**: A dedicated project for running tests (recommended)
 4. **Test Fixtures**: Pre-existing test data (issue, user, group, etc.)
 
 ## Setup
@@ -131,7 +131,8 @@ Get-JiraServerInformation
 
 ## Running Integration Tests
 
-Integration tests can run directly against source code without building. This is faster and simpler for development.
+Integration tests can run directly against source code without building.
+This is faster and simpler for development.
 
 ### Using Invoke-Build (Recommended)
 
@@ -305,7 +306,8 @@ The `IntegrationTestTools.ps1` module provides:
 
 ## Cleanup Strategy
 
-Integration tests create real resources in Jira. Here's how we ensure cleanup happens even when tests fail:
+Integration tests create real resources in Jira.
+Here's how we ensure cleanup happens even when tests fail:
 
 ### 1. Use Prefixed Names
 
@@ -438,7 +440,8 @@ To run the full suite against an in-flight PR, dispatch the workflow manually:
 2. Click **Run workflow**, pick the branch, and choose the `track` input (`cloud`, `server`, or `both`; default `both`).
 3. Inspect the run in the same workflow's history — results upload as the `Cloud-Integration-Tests` and/or `Server-Integration-Tests` artifacts.
 
-For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the branch appears in the **Run workflow** dropdown directly. For **fork PRs**, the dropdown only sees branches on `AtlassianPS/JiraPS`, so a maintainer needs to either:
+For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the branch appears in the **Run workflow** dropdown directly.
+For **fork PRs**, the dropdown only sees branches on `AtlassianPS/JiraPS`, so a maintainer needs to either:
 
 - Cherry-pick (or push) the fork's commits onto a maintainer-owned branch first and dispatch from there, or
 - Run `gh workflow run "Integration Tests" --ref <branch> -f track=<cloud|server|both>` from a clone that has a remote pointing at the fork (the dispatched run still uses `AtlassianPS/JiraPS`'s secrets, not the fork's).
@@ -448,7 +451,8 @@ For **first-party PR branches** (those on `AtlassianPS/JiraPS` itself), the bran
 - **No build required**: tests run directly against source for speed.
 - **Parallel execution**: Cloud uses `ThrottleLimit=6`; Server uses `ThrottleLimit=2` (halved because the AMPS/H2 backend serialises Lucene write commits — see the inline comment on the `server_integration_tests` job for the contention details).
 - **Concurrency control**: weekly + dispatched runs share one concurrency group with `cancel-in-progress: false`, so an in-flight run is never killed by a dispatch retry.
-- **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `Test-Integration.xml`) are retained for 14 days. The Server job retains `Server-Jira-Container-Logs` for 7 days after failures, manual runs with `debug` enabled, or runs with GitHub runner debug logging enabled.
+- **NUnit results artifacts**: `Cloud-Integration-Tests` and `Server-Integration-Tests` (each containing `Test-Integration.xml`) are retained for 14 days.
+  The Server job retains `Server-Jira-Container-Logs` for 7 days after failures, manual runs with `debug` enabled, or runs with GitHub runner debug logging enabled.
 
 ### HTTP error regression coverage
 
@@ -463,7 +467,7 @@ The check fails if the NUnit report is missing or malformed, a required suite or
 It checks test cases because Pester can mark a suite `Ignored` when it contains intentional deployment-specific skips.
 Result artifacts still upload when verification fails.
 
-`Tests/Integration/RequiredSuites.psd1` maintains the required suites, including Groups, HTTP error handling, enum conversion and comment/worklog visibility.
+`Tests/Integration/RequiredSuites.psd1` maintains the required suites, including groups, HTTP error handling, enum conversion and comment/worklog visibility.
 Each entry specifies the file name and full NUnit test names under `Common`, `Cloud`, and `Server`.
 Common tests and tests for the selected track must execute successfully.
 Only tests listed exclusively for the other track may skip.
@@ -505,12 +509,12 @@ Live reserved-character coverage would require provisioning and cleaning up a di
 It creates and reads back unrestricted comments and worklogs, including the `All Users` shorthand, `VisibleRole` alias and typed role form.
 It also verifies role and group restrictions on both deployments and group identifier restrictions on Cloud.
 The suite requires a writable Jira administrator account and a configured `TestProject` fixture.
-On Cloud, configure **Settings > System > General Configuration > Comment visibility** as **Groups & Project Roles** on the dedicated test site.
+On Cloud, configure **Settings > System > General Configuration > Comment visibility** as **groups & project Roles** on the dedicated test site.
 The configuration endpoint does not expose this setting; the group restriction requests and read-back assertions verify it through actual behavior.
 The disposable Data Center container enables `jira.comment.level.visibility.groups` through the SDK home override in `Tests/Integration/Fixtures/jira-home/jira-config.properties` before Jira starts.
 The container entrypoint copies that file into AMPS' standard override directory, and CI checks the resulting Jira home file before running the suite.
 The visibility suite does not change site settings.
-Data Center fixtures outside Docker must enable **Groups & Project Roles** before running the suite.
+Data Center fixtures outside Docker must enable **groups & project Roles** before running the suite.
 Cleanup removes the temporary issue, role and group.
 Run writable integration tests only against a dedicated test site.
 

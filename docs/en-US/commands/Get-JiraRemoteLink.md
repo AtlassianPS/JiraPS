@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Get-JiraRemoteLink/
 
 ## SYNOPSIS
 
-Returns a remote link from a Jira issue
+Returns a remote link from a Jira issue.
 
 ## SYNTAX
 
@@ -21,11 +21,11 @@ Get-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [[-LinkId] <int>] [[-Cred
 
 ## DESCRIPTION
 
-This function returns information on remote links from a  JIRA issue.
+This function returns information on remote links from a  Jira issue.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraRemoteLink -Issue TEST-001 -Credential $cred
@@ -33,7 +33,7 @@ Get-JiraRemoteLink -Issue TEST-001 -Credential $cred
 
 Returns information about all remote links from the issue "TEST-001"
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraRemoteLink -Issue TEST-001 -LinkId 100000 -Credential $cred
@@ -45,7 +45,7 @@ Returns information about a specific remote link from the issue "TEST-001"
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -67,9 +67,9 @@ HelpMessage: ''
 
 ### -Issue
 
-The Issue to search for link.
+The issue to search for link.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -91,7 +91,7 @@ HelpMessage: ''
 
 ### -LinkId
 
-Get a single link by it's id.
+Get a single link by it's ID.
 
 ```yaml
 Type: Int32
@@ -112,10 +112,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -123,13 +121,13 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.Link
+### AtlassianPS.JiraPS.Link
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

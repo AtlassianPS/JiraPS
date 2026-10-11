@@ -10,20 +10,21 @@ permalink: /docs/JiraPS/commands/Get-JiraIssueCreateMetadata/
 
 ## SYNOPSIS
 
-Returns metadata required to create an issue in JIRA
+Returns metadata required to create an issue in Jira.
 
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueCreateMetadata [-Project] <AtlassianPS.JiraPS.Project> [-IssueType] <AtlassianPS.JiraPS.IssueType> [[-Credential] <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraIssueCreateMetadata [-Project] <AtlassianPS.JiraPS.Project> [-IssueType] <AtlassianPS.JiraPS.IssueType>
+ [[-Credential] <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function returns metadata required to create an issue in JIRA - the fields that can be defined in the process of creating an issue.
+This function returns metadata required to create an issue in Jira - the fields that can be defined in the process of creating an issue.
 This can be used to identify custom fields in order to pass them to `New-JiraIssue`.
 
-This function is particularly useful when your JIRA instance includes custom fields that are marked as mandatory.
+This function is particularly useful when your Jira instance includes custom fields that are marked as mandatory.
 
 The cmdlet returns typed `AtlassianPS.JiraPS.CreateMetaField` objects and walks every offset page on Jira Cloud and Data Center.
 The full set of fields is returned by default even when the issue type has more fields than a single page holds.
@@ -31,39 +32,38 @@ Use the `-First` / `-Skip` / `-IncludeTotalCount` common pagination parameters t
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraIssueCreateMetadata -Project 'TEST' -IssueType 'Bug'
 ```
 
-This example returns all fields available when creating an issue of type Bug under
-project TEST, walking pagination as needed.
+This example returns all fields available when creating an issue of type Bug under project TEST, walking pagination as needed.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraIssueCreateMetadata -Project 'JIRA' -IssueType 'Bug' | ? {$_.Required -eq $true}
+Get-JiraIssueCreateMetadata -Project 'TEST' -IssueType 'Bug' |
+    Where-Object { $_.Required }
 ```
 
-This example returns fields available when creating an issue of type Bug under the project Jira.
+This example returns fields available when creating an issue of type Bug in project TEST.
 
-It then uses `Where-Object` (aliased by the question mark) to filter only the fields that are required.
+It then uses `Where-Object` to filter only the fields that are required.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Get-JiraIssueCreateMetadata -Project 'TEST' -IssueType 'Bug' -First 10
 ```
 
-This example returns only the first 10 fields, regardless of how many pages the
-Jira API would normally return.
+This example returns only the first 10 fields, regardless of how many pages the Jira API would normally return.
 
 ## PARAMETERS
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -194,10 +194,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -207,9 +205,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

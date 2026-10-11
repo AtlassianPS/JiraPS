@@ -40,8 +40,15 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
+                    $projectIdentifier = if ($_project.Key) {
+                        $_project.Key
+                    }
+                    else {
+                        $_project.Id
+                    }
+
                     $parameter = @{
-                        URI        = $resourceURi -f "/$(if ($_project.Key) { $_project.Key } else { $_project.Id })"
+                        URI        = $resourceURi -f "/$projectIdentifier"
                         Method     = "GET"
                         Credential = $Credential
                     }

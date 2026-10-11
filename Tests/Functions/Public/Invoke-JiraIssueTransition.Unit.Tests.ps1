@@ -160,15 +160,15 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
-                    @{ parameter = "Transition"; type = "AtlassianPS.JiraPS.Transition" }
-                    @{ parameter = "Comment"; type = "String" }
-                    @{ parameter = "TimeSpent"; type = "TimeSpan" }
-                    @{ parameter = "Assignee"; type = "AtlassianPS.JiraPS.User" }
-                    @{ parameter = "Unassign"; type = "Switch" }
-                    @{ parameter = "Fields"; type = "PSCustomObject" }
-                    @{ parameter = "Passthru"; type = "Switch" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
+                    @{ parameter = 'Transition'; type = 'AtlassianPS.JiraPS.Transition' }
+                    @{ parameter = 'Comment'; type = 'String' }
+                    @{ parameter = 'TimeSpent'; type = 'TimeSpan' }
+                    @{ parameter = 'Assignee'; type = 'AtlassianPS.JiraPS.User' }
+                    @{ parameter = 'Unassign'; type = 'Switch' }
+                    @{ parameter = 'Fields'; type = 'PSCustomObject' }
+                    @{ parameter = 'Passthru'; type = 'Switch' }
+                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
                     $command | Should -HaveParameter $parameter
                 }
@@ -294,6 +294,28 @@ InModuleScope JiraPS {
                     }
                     { Invoke-JiraIssueTransition -Issue $issueKey -Transition 'Duplicate' -ErrorAction Stop } |
                         Should -Throw -ErrorId 'ParameterValue.InvalidTransition*'
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+            }
+
+            Context 'Transition error contract' {
+                It 'preserves the error identity, exception, details and target for an unavailable transition' {
+                    $failure = $null
+                    try {
+                        Invoke-JiraIssueTransition -Issue $issueKey -Transition 'Unavailable' -ErrorAction Stop
+                    }
+                    catch {
+                        $failure = $_
+                    }
+
+                    $failure | Should -Not -BeNullOrEmpty
+                    $failure.FullyQualifiedErrorId | Should -Be 'ParameterValue.InvalidTransition,Invoke-JiraIssueTransition'
+                    $failure.Exception | Should -BeOfType ([System.ArgumentException])
+                    $failure.Exception.Message | Should -Be 'Invalid value for Parameter'
+                    $failure.CategoryInfo.Category | Should -Be ([System.Management.Automation.ErrorCategory]::InvalidArgument)
+                    $failure.TargetObject.Key | Should -Be $issueKey
+                    $expectedDetails = "The specified Jira issue cannot perform transition [Unavailable]. Check the issue's Transition property and provide a transition valid for its current state."
+                    $failure.ErrorDetails.Message | Should -Be $expectedDetails
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
                 }
             }

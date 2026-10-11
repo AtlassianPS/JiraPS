@@ -234,6 +234,97 @@ InModuleScope JiraPS {
                 }
             }
 
+            Context "Nested pages" {
+                It 'preserves <count> users and subscriptions with page metadata on <deployment>' -TestCases @(
+                    @{
+                        deployment = 'Cloud'
+                        identity   = 'accountId'
+                        count      = 0
+                    }
+                    @{
+                        deployment = 'Cloud'
+                        identity   = 'accountId'
+                        count      = 1
+                    }
+                    @{
+                        deployment = 'Cloud'
+                        identity   = 'accountId'
+                        count      = 2
+                    }
+                    @{
+                        deployment = 'Data Center'
+                        identity   = 'name'
+                        count      = 0
+                    }
+                    @{
+                        deployment = 'Data Center'
+                        identity   = 'name'
+                        count      = 1
+                    }
+                    @{
+                        deployment = 'Data Center'
+                        identity   = 'name'
+                        count      = 2
+                    }
+                ) {
+                    param($identity, $count)
+
+                    $users = @(
+                        for ($index = 0; $index -lt $count; $index++) {
+                            [PSCustomObject]@{ $identity = "user$index" }
+                        }
+                    )
+                    $subscriptions = @(
+                        for ($index = 0; $index -lt $count; $index++) {
+                            [PSCustomObject]@{
+                                id   = 100 + $index
+                                user = $users[$index]
+                            }
+                        }
+                    )
+                    $wire = [PSCustomObject]@{
+                        id            = '10'
+                        sharedUsers   = [PSCustomObject]@{
+                            size          = $count
+                            'max-results' = 50
+                            'start-index' = 0
+                            'end-index'   = $count
+                            items         = $users
+                        }
+                        subscriptions = [PSCustomObject]@{
+                            size          = $count
+                            'max-results' = 25
+                            'start-index' = 0
+                            'end-index'   = $count
+                            items         = $subscriptions
+                        }
+                    } | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+
+                    $result = ConvertTo-JiraFilter -InputObject $wire
+                    $result.SharedUser.Items.GetType() | Should -Be ([AtlassianPS.JiraPS.User[]])
+                    $result.SharedUser.Items.Count | Should -Be $count
+                    $result.SharedUser.Size | Should -Be $count
+                    $result.SharedUser.MaxResults | Should -Be 50
+                    $result.SharedUser.StartIndex | Should -Be 0
+                    $result.SharedUser.EndIndex | Should -Be $count
+                    $result.Subscription.Items.GetType() | Should -Be ([AtlassianPS.JiraPS.FilterSubscription[]])
+                    $result.Subscription.Items.Count | Should -Be $count
+                    $result.Subscription.Size | Should -Be $count
+                    $result.Subscription.MaxResults | Should -Be 25
+                    $result.Subscription.StartIndex | Should -Be 0
+                    $result.Subscription.EndIndex | Should -Be $count
+                    for ($index = 0; $index -lt $count; $index++) {
+                        $result.SharedUser.Items[$index].$identity | Should -Be "user$index"
+                        $result.Subscription.Items[$index].Id | Should -Be (100 + $index)
+                        $result.Subscription.Items[$index].User.$identity | Should -Be "user$index"
+                    }
+
+                    $reconverted = ConvertTo-JiraFilter -InputObject $result -FilterPermissions @()
+                    [object]::ReferenceEquals($reconverted.SharedUser, $result.SharedUser) | Should -BeTrue
+                    [object]::ReferenceEquals($reconverted.Subscription, $result.Subscription) | Should -BeTrue
+                }
+            }
+
             Context "Pipeline Support" {
                 It "accepts pipeline input" {
                     { $sampleObject | ConvertTo-JiraFilter -FilterPermissions (ConvertFrom-Json -InputObject $script:samplePermission) } | Should -Not -Throw

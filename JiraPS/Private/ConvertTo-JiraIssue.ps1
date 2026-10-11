@@ -33,54 +33,111 @@
             foreach ($field in $i.fields.PSObject.Properties) {
                 switch ($field.Name) {
                     'status' {
-                        if ($field.Value) { $hash.Status = ConvertTo-JiraStatus $field.Value }
+                        if ($field.Value) {
+                            $hash.Status = ConvertTo-JiraStatus -InputObject $field.Value
+                        }
                         break
                     }
                     'issuelinks' {
-                        if ($null -ne $field.Value) { $hash.IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(ConvertTo-JiraIssueLink $field.Value) }
+                        if ($null -ne $field.Value) {
+                            $hash.IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(ConvertTo-JiraIssueLink -InputObject $field.Value)
+                        }
                         break
                     }
                     'attachment' {
-                        if ($null -ne $field.Value) { $hash.Attachment = [AtlassianPS.JiraPS.Attachment[]]@(ConvertTo-JiraAttachment $field.Value) }
+                        if ($null -ne $field.Value) {
+                            $hash.Attachment = [AtlassianPS.JiraPS.Attachment[]]@(ConvertTo-JiraAttachment -InputObject $field.Value)
+                        }
                         break
                     }
                     'project' {
-                        if ($field.Value) { $hash.Project = ConvertTo-JiraProject $field.Value }
+                        if ($field.Value) {
+                            $hash.Project = ConvertTo-JiraProject -InputObject $field.Value
+                        }
                         break
                     }
                     { $_ -in 'assignee', 'creator', 'reporter' } {
-                        if ($field.Value) { $hash[$field.Name] = ConvertTo-JiraUser $field.Value }
+                        if ($field.Value) {
+                            $hash[$field.Name] = ConvertTo-JiraUser -InputObject $field.Value
+                        }
                         break
                     }
                     { $_ -in 'created', 'lastViewed', 'updated' } {
-                        if ($field.Value) { $hash[$field.Name] = ConvertTo-JiraDateTimeOffsetValue $field.Value }
+                        if ($field.Value) {
+                            $hash[$field.Name] = ConvertTo-JiraDateTimeOffsetValue $field.Value
+                        }
                         break
                     }
                     'comment' {
-                        if ($null -ne $field.Value.comments) { $hash.Comment = [AtlassianPS.JiraPS.Comment[]]@(ConvertTo-JiraComment $field.Value.comments) }
+                        if ($null -ne $field.Value.comments) {
+                            $hash.Comment = [AtlassianPS.JiraPS.Comment[]]@(ConvertTo-JiraComment -InputObject $field.Value.comments)
+                        }
                         break
                     }
-                    'issuetype' { $hash.IssueType = ConvertTo-JiraIssueType $field.Value; break }
-                    'priority' { $hash.Priority = ConvertTo-JiraPriority $field.Value; break }
+                    'issuetype' {
+                        $hash.IssueType = ConvertTo-JiraIssueType -InputObject $field.Value
+                        break
+                    }
+                    'priority' {
+                        $hash.Priority = ConvertTo-JiraPriority -InputObject $field.Value
+                        break
+                    }
                     'resolution' {
-                        if ($field.Value) { $hash.Resolution = ConvertTo-JiraResolution $field.Value }
+                        if ($field.Value) {
+                            $hash.Resolution = ConvertTo-JiraResolution -InputObject $field.Value
+                        }
                         break
                     }
-                    'components' { $hash.Components = [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent $field.Value); break }
-                    'worklog' { $hash.Worklog = [AtlassianPS.JiraPS.Worklogitem[]]@(ConvertTo-JiraWorklogitem $field.Value.worklogs); break }
-                    'fixVersions' { $hash.FixVersions = [AtlassianPS.JiraPS.Version[]]@(ConvertTo-JiraVersion $field.Value); break }
-                    'versions' { $hash.Versions = [AtlassianPS.JiraPS.Version[]]@(ConvertTo-JiraVersion $field.Value); break }
+                    'components' {
+                        $hash.Components = [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent -InputObject $field.Value)
+                        break
+                    }
+                    'worklog' {
+                        $hash.Worklog = [AtlassianPS.JiraPS.Worklogitem[]]@(ConvertTo-JiraWorklogitem -InputObject $field.Value.worklogs)
+                        break
+                    }
+                    'fixVersions' {
+                        $hash.FixVersions = [AtlassianPS.JiraPS.Version[]]@(ConvertTo-JiraVersion -InputObject $field.Value)
+                        break
+                    }
+                    'versions' {
+                        $hash.Versions = [AtlassianPS.JiraPS.Version[]]@(ConvertTo-JiraVersion -InputObject $field.Value)
+                        break
+                    }
                     'parent' {
-                        if ($field.Value) { $hash.Parent = ConvertTo-JiraIssue $field.Value }
+                        if ($field.Value) {
+                            $hash.Parent = ConvertTo-JiraIssue -InputObject $field.Value
+                        }
                         break
                     }
-                    'subtasks' { $hash.Subtasks = [AtlassianPS.JiraPS.Issue[]]@(ConvertTo-JiraIssue $field.Value); break }
-                    'watches' { $hash.Watches = ConvertTo-JiraIssueWatchState $field.Value; break }
-                    'votes' { $hash.Votes = ConvertTo-JiraIssueVoteState $field.Value; break }
-                    'progress' { $hash.Progress = ConvertTo-JiraIssueProgress $field.Value; break }
-                    'aggregateprogress' { $hash.AggregateProgress = ConvertTo-JiraIssueProgress $field.Value; break }
-                    'timetracking' { $hash.TimeTracking = ConvertTo-JiraIssueTimeTracking $field.Value; break }
-                    'security' { $hash.Security = ConvertTo-JiraIssueSecurityLevel $field.Value; break }
+                    'subtasks' {
+                        $hash.Subtasks = [AtlassianPS.JiraPS.Issue[]]@(ConvertTo-JiraIssue -InputObject $field.Value)
+                        break
+                    }
+                    'watches' {
+                        $hash.Watches = ConvertTo-JiraIssueWatch -InputObject $field.Value
+                        break
+                    }
+                    'votes' {
+                        $hash.Votes = ConvertTo-JiraIssueVote -InputObject $field.Value
+                        break
+                    }
+                    'progress' {
+                        $hash.Progress = ConvertTo-JiraIssueProgress -InputObject $field.Value
+                        break
+                    }
+                    'aggregateprogress' {
+                        $hash.AggregateProgress = ConvertTo-JiraIssueProgress -InputObject $field.Value
+                        break
+                    }
+                    'timetracking' {
+                        $hash.TimeTracking = ConvertTo-JiraIssueTimeTracking -InputObject $field.Value
+                        break
+                    }
+                    'security' {
+                        $hash.Security = ConvertTo-JiraIssueSecurityLevel -InputObject $field.Value
+                        break
+                    }
                 }
             }
 
