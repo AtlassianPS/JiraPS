@@ -1,18 +1,13 @@
 ﻿function Add-JiraFilterPermission {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ByInputObject' )]
-    # [OutputType( [JiraPS.FilterPermission] )]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
+        [Alias('Id')]
         [AtlassianPS.JiraPS.FilterTransformation()]
         [AtlassianPS.JiraPS.Filter[]]
         $Filter,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()]
-        [UInt32[]]
-        $Id,
 
         [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
@@ -38,14 +33,8 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($null -ne $Filter) {
-            $Filter = @(foreach ($item in $Filter) {
-                    if ($item.RestUrl) { $item } else { Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop }
-                })
-        }
-
-        if ($PSCmdlet.ParameterSetName -eq 'ById') {
-            $Filter = Get-JiraFilter -Id $Id
+        $filters = foreach ($item in $Filter) {
+            if ($item.RestUrl) { $item } else { Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop }
         }
 
         $body = @{
@@ -65,7 +54,7 @@
             "Global" { }
         }
 
-        foreach ($_filter in $Filter) {
+        foreach ($_filter in $filters) {
             $parameter = @{
                 URI        = $resourceURi -f $_filter.RestURL
                 Method     = "POST"

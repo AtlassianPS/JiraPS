@@ -34,6 +34,9 @@ For the migration playbook and concrete before/after script examples, see [`abou
   `Add-JiraIssueComment` and `Add-JiraIssueWorklog` accept typed role/group `Visibility`, with `VisibleRole` retained as an alias.
   `Remove-JiraFilterPermission` uses one typed filter parameter with `FilterId`/`Id` aliases and optional typed permission IDs.
   Added the v3 contract inventory and migration examples.
+- Unified filter ID and object input for `Get-JiraFilter`, `Remove-JiraFilter`, `Get-JiraFilterPermission` and `Add-JiraFilterPermission`, retaining identifier aliases and pipeline support.
+  Filter permission operations now forward credentials when resolving ID-only inputs.
+  `Remove-JiraFilterPermission` validates all permission identifiers before deleting and follows the standard begin/process/end lifecycle.
 
 - Fixed `Get-JiraIssueCreateMetadata` returning no fields on Jira Cloud by recognizing its `fields` response array and following offset pagination on v3 endpoints.
   Data Center retains its v2 `values` response support, and `-First` / `-Skip` now return the requested fields across page boundaries (#651).

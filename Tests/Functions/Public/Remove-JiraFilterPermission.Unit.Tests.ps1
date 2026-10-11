@@ -86,6 +86,52 @@ InModuleScope JiraPS {
 
         Describe "Behavior" {
             Context "Permission Deletion" {
+                It "uses credentials for both filter hydration and permission deletion" {
+                    $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
+                    Remove-JiraFilterPermission -FilterId 23456 -PermissionId 1111 -Credential $credential -Confirm:$false
+
+                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
+                }
+
+                It "does not delete permissions under WhatIf" {
+                    Remove-JiraFilterPermission -Filter $fullFilter -WhatIf
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                }
+
+                It "uses a typed filter and permission without an extra filter lookup" {
+                    $filter = [AtlassianPS.JiraPS.Filter]@{ Id = '12345'; Name = 'Test filter'; RestUrl = "$jiraServer/rest/api/2/filter/12345" }
+                    $permission = [AtlassianPS.JiraPS.FilterPermission]@{ Id = 1111 }
+                    $filter | Remove-JiraFilterPermission -PermissionId $permission -Confirm:$false
+
+                    Should -Invoke Get-JiraFilter -Exactly -Times 0
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/1111' }
+                }
+
+                It "preserves zero permission IDs accepted by the former UInt32 parameter" {
+                    Remove-JiraFilterPermission -Filter $basicFilter -PermissionId 0 -Confirm:$false
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/0' }
+                }
+
+                It "supports 64-bit permission IDs without truncating them" {
+                    Remove-JiraFilterPermission -Filter $basicFilter -PermissionId '4294967296' -Confirm:$false
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/4294967296' }
+                }
+
+                It "keeps embedded zero permission IDs distinct from missing IDs" {
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id                = '12345'
+                        RestUrl           = "$jiraServer/rest/api/2/filter/12345"
+                        FilterPermissions = @([AtlassianPS.JiraPS.FilterPermission]@{ Id = 0 })
+                    }
+                    Remove-JiraFilterPermission -Filter $filter -Confirm:$false
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/permission/0' }
+                }
+
                 It "Deletes Permission from Filter Object" {
                     {
                         Get-JiraFilterPermission -Id 1 | Remove-JiraFilterPermission
@@ -147,6 +193,50 @@ InModuleScope JiraPS {
             }
 
             Context "Negative cases" {
+                It "rejects missing or negative IDs in permission objects" -TestCases @(
+                    @{ permissionId = $null }
+                    @{ permissionId = -1 }
+                ) {
+                    param($permissionId)
+                    $permission = [AtlassianPS.JiraPS.FilterPermission]@{ Id = $permissionId }
+                    { Remove-JiraFilterPermission -Filter $basicFilter -PermissionId $permission } | Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*'
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                }
+
+                It "validates all embedded permissions before deleting any" -TestCases @(
+                    @{ permissionId = $null }
+                    @{ permissionId = -1 }
+                ) {
+                    param($permissionId)
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id                = '12345'
+                        RestUrl           = "$jiraServer/rest/api/2/filter/12345"
+                        FilterPermissions = @(
+                            [AtlassianPS.JiraPS.FilterPermission]@{ Id = 1111 }
+                            [AtlassianPS.JiraPS.FilterPermission]@{ Id = $permissionId }
+                        )
+                    }
+                    { Remove-JiraFilterPermission -Filter $filter } | Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*' -ErrorId 'ParameterValue.InvalidFilterPermissionId*'
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                }
+
+                It "rejects null entries in embedded permission arrays before deleting any" {
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id                = '12345'
+                        RestUrl           = "$jiraServer/rest/api/2/filter/12345"
+                        FilterPermissions = @([AtlassianPS.JiraPS.FilterPermission]@{ Id = 1111 }, $null)
+                    }
+                    { Remove-JiraFilterPermission -Filter $filter } | Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*'
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                }
+
+                It "uses a module argument error when the filter has no permissions" {
+                    { Remove-JiraFilterPermission -Filter $basicFilter } | Should -Throw -ExpectedMessage '*Supply PermissionId*' -ErrorId 'ParameterValue.FilterWithoutPermission*'
+                }
+
                 It "validates the -Filter to ensure FilterPermissions" {
                     { Remove-JiraFilterPermission -Filter (Get-JiraFilter -Id 1) } | Should -Throw -ExpectedMessage "*PermissionId*"
                     { Remove-JiraFilterPermission -Filter (Get-JiraFilterPermission -Id 1) } | Should -Not -Throw

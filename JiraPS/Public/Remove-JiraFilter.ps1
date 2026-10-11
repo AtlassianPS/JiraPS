@@ -1,17 +1,13 @@
 ﻿function Remove-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( ConfirmImpact = "Medium", SupportsShouldProcess, DefaultParameterSetName = 'ByInputObject' )]
+    [CmdletBinding( ConfirmImpact = "Medium", SupportsShouldProcess )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
+        [Alias('Id', 'FilterId')]
         [AtlassianPS.JiraPS.FilterTransformation()]
         [AtlassianPS.JiraPS.Filter[]]
         $InputObject,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()]
-        [UInt32[]]
-        $Id,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -27,16 +23,14 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $filters = if ($PSCmdlet.ParameterSetName -eq 'ById') {
-            foreach ($_id in $Id) { Get-JiraFilter -Id $_id -Credential $Credential -ErrorAction Stop }
-        }
-        else {
-            foreach ($item in $InputObject) {
-                if ($item.RestUrl) { $item } else { Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop }
-            }
+        $filters = foreach ($item in $InputObject) {
+            if ($item.RestUrl) { $item } else { Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop }
         }
 
         foreach ($filter in $filters) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filter]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filter [$filter]"
+
             $parameter = @{
                 URI        = $filter.RestURL
                 Method     = "DELETE"

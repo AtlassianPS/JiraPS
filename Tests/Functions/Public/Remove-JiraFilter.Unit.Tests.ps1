@@ -78,8 +78,8 @@ InModuleScope JiraPS {
             }
 
             Mock Get-JiraFilter -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraFilter' 'Id'
-                foreach ($i in $Id) {
+                Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
+                foreach ($i in $InputObject) {
                     ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
                 }
             }
@@ -104,11 +104,23 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'InputObject'; type = "AtlassianPS.JiraPS.Filter[]" }
-                    @{ parameter = 'Id'; type = 'UInt32[]' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type
+                }
+            }
+
+            Context "Aliases" {
+                It "preserves the ID parameter spellings" {
+                    $command.Parameters.InputObject.Aliases | Should -Contain 'Id'
+                    $command.Parameters.InputObject.Aliases | Should -Contain 'FilterId'
+                }
+            }
+
+            Context "Parameter Sets" {
+                It "uses one parameter set for filter objects and IDs" {
+                    $command.ParameterSets.Count | Should -Be 1
                 }
             }
 
@@ -119,6 +131,57 @@ InModuleScope JiraPS {
 
         Describe "Behavior" {
             Context "Filter Deletion" {
+                It "supports the '<parameter>' spelling with numeric strings" -TestCases @(
+                    @{ parameter = 'InputObject' }
+                    @{ parameter = 'Id' }
+                    @{ parameter = 'FilterId' }
+                ) {
+                    param($parameter)
+                    $arguments = @{ $parameter = '12844'; Confirm = $false }
+                    Remove-JiraFilter @arguments
+
+                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $InputObject.Id -eq 12844 }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Method -eq 'DELETE' -and $URI -like '*/filter/12844' }
+                }
+
+                It "forwards credentials when resolving filter IDs and deleting filters" {
+                    $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
+                    Remove-JiraFilter -Id 12844 -Credential $credential -Confirm:$false
+
+                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
+                }
+
+                It "does not delete any filters when a later array lookup fails through '<parameter>'" -TestCases @(
+                    @{ parameter = 'InputObject' }
+                    @{ parameter = 'Id' }
+                ) {
+                    param($parameter)
+                    Mock Get-JiraFilter -ModuleName JiraPS -ParameterFilter { $InputObject.Id -eq 67890 } {
+                        throw 'Filter 67890 is not accessible.'
+                    }
+                    $arguments = @{ $parameter = @(12844, 67890); Confirm = $false }
+
+                    { Remove-JiraFilter @arguments } | Should -Throw -ExpectedMessage '*Filter 67890 is not accessible*'
+
+                    Should -Invoke Get-JiraFilter -Exactly -Times 2
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0 -ParameterFilter { $Method -eq 'DELETE' }
+                }
+
+                It "skips filter deletion under WhatIf" {
+                    Remove-JiraFilter -Id 12844 -WhatIf
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                }
+
+                It "uses a complete typed filter without looking it up" {
+                    $filter = [AtlassianPS.JiraPS.Filter]@{ Id = '12844'; Name = 'All JIRA Bugs'; RestUrl = "$jiraServer/rest/api/2/filter/12844" }
+                    $filter | Remove-JiraFilter -Confirm:$false
+
+                    Should -Invoke Get-JiraFilter -Exactly -Times 0
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1
+                }
+
                 It "deletes a filter based on one or more InputObjects" {
                     { Get-JiraFilter -Id 12844 | Remove-JiraFilter } | Should -Not -Throw
 
@@ -181,7 +244,7 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "fails if a negative number is passed as ID" {
-                    { Remove-JiraFilter -Id -1 } | Should -Throw -ExpectedMessage "*'Id'*"
+                    { Remove-JiraFilter -Id -1 } | Should -Throw -ExpectedMessage "*positive numeric ID*"
                 }
 
                 It "fails if something other than [AtlassianPS.JiraPS.Filter] is provided" {

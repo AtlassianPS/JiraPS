@@ -114,7 +114,9 @@ HelpMessage: ''
 
 ### -PermissionId
 
-Permission objects or positive numeric permission IDs.
+Permission objects or non-negative numeric permission IDs.
+Zero retains the previous numeric parameter behavior; Jira determines whether the ID exists.
+Permission objects must contain an ID.
 If omitted, removes the permissions already present in the supplied filter object.
 
 ```yaml

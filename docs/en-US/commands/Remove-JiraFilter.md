@@ -14,22 +14,14 @@ Removes an existing filter.
 
 ## SYNTAX
 
-### ByInputObject (Default)
-
 ```powershell
 Remove-JiraFilter [-InputObject] <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
-```
-
-### ById
-
-```powershell
-Remove-JiraFilter [-Id] <uint[]> [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 This function will remove a filter from Jira.
-Deleting a filter removed is permanently from Jira.
+Deleting a filter permanently removes it from Jira.
 
 ## EXAMPLES
 
@@ -125,42 +117,21 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Id
-
-Id of the filter to be deleted.
-
-Accepts integers over the pipeline.
-
-```yaml
-Type: UInt32[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ById
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -InputObject
 
-Filter object to be deleted.
-
-Object can be retrieved with `Get-JiraFilter`
+Filter objects or positive numeric filter IDs to delete.
+Accepts numeric strings and pipeline input.
+`Id` and `FilterId` are aliases for `InputObject`.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- Id
+- FilterId
 ParameterSets:
-- Name: ByInputObject
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true

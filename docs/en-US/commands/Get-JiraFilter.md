@@ -14,16 +14,10 @@ Returns information about a filter in JIRA
 
 ## SYNTAX
 
-### ByFilterID (Default)
+### ByInputObject (Default)
 
 ```powershell
-Get-JiraFilter [-Id] <string[]> [-Credential <pscredential>] [<CommonParameters>]
-```
-
-### ByInputObject
-
-```powershell
-Get-JiraFilter -InputObject <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraFilter [-InputObject] <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### MyFavorite
@@ -113,39 +107,21 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Id
-
-ID of the filter to search for.
-
-```yaml
-Type: String[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ByFilterID
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -InputObject
 
-Object of the filter to search for.
+Filter objects or positive numeric filter IDs to retrieve.
+Accepts numeric strings and pipeline input.
+`Id` is an alias for `InputObject`.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- Id
 ParameterSets:
 - Name: ByInputObject
-  Position: Named
+  Position: 0
   IsRequired: true
   ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false

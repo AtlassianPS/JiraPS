@@ -14,16 +14,8 @@ Share a Filter with other users.
 
 ## SYNTAX
 
-### ByInputObject (Default)
-
 ```powershell
 Add-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> -Type <string> [-Value <string>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
-```
-
-### ById
-
-```powershell
-Add-JiraFilterPermission [-Id] <uint[]> -Type <string> [-Value <string>] [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -108,38 +100,18 @@ HelpMessage: ''
 
 ### -Filter
 
-Filter object to which the permission should be applied
+Filter objects or positive numeric filter IDs to share.
+Accepts numeric strings and pipeline input.
+`Id` is an alias for `Filter`.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- Id
 ParameterSets:
-- Name: ByInputObject
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Id
-
-Id of the Filter to which the permission should be applied
-
-_Id can be passed over the pipeline when reading from a file._
-
-```yaml
-Type: UInt32[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ById
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true

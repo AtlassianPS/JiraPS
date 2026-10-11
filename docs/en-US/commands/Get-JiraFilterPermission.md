@@ -14,14 +14,6 @@ Fetch the permissions of a specific Filter.
 
 ## SYNTAX
 
-### ById (Default)
-
-```powershell
-Get-JiraFilterPermission [-Id] <uint[]> [-Credential <pscredential>] [<CommonParameters>]
-```
-
-### ByInputObject
-
 ```powershell
 Get-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
@@ -47,7 +39,7 @@ Two methods for retrieving the permissions set for Filter 12345.
 ```powershell
 12345 | Get-JiraFilterPermission
 #-------
-Get-JiraFilter 12345 | Add-JiraFilterPermission
+Get-JiraFilter 12345 | Get-JiraFilterPermission
 ```
 
 Two methods for retrieve the permissions set for Filter 12345 by using the pipeline.
@@ -80,36 +72,18 @@ HelpMessage: ''
 
 ### -Filter
 
-Filter object from which to retrieve the permissions
+Filter objects or positive numeric filter IDs whose permissions are retrieved.
+Accepts numeric strings and pipeline input.
+`Id` is an alias for `Filter`.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- Id
 ParameterSets:
-- Name: ByInputObject
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Id
-
-Id of the Filter from which to retrieve the permissions
-
-```yaml
-Type: UInt32[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ById
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
