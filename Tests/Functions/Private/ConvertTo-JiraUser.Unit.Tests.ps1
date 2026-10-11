@@ -134,6 +134,42 @@ InModuleScope JiraPS {
                 }
             }
 
+            Context "Group names" {
+                It "preserves names and their order as a string array" {
+                    $result = ConvertTo-JiraUser -InputObject $sampleObject
+                    $result.Groups.GetType() | Should -Be ([string[]])
+                    $result.Groups | Should -Be @('administrators', 'balsamiq-mockups-editors', 'jira-administrators', 'site-admins')
+                }
+
+                It "preserves a single group as a string array" {
+                    $payload = ConvertFrom-Json '{"name":"user","groups":{"items":[{"name":"jira-users"}]}}'
+                    $result = ConvertTo-JiraUser -InputObject $payload
+                    $result.Groups.GetType() | Should -Be ([string[]])
+                    $result.Groups.Count | Should -Be 1
+                    $result.Groups[0] | Should -Be 'jira-users'
+                }
+
+                It "preserves an expanded empty group collection as an empty string array" {
+                    $payload = ConvertFrom-Json '{"name":"user","groups":{"items":[]}}'
+                    $result = ConvertTo-JiraUser -InputObject $payload
+                    ($null -eq $result.Groups) | Should -BeFalse
+                    $result.Groups.GetType() | Should -Be ([string[]])
+                    $result.Groups.Count | Should -Be 0
+                }
+
+                It "leaves absent group expansion null" {
+                    $result = ConvertTo-JiraUser -InputObject (ConvertFrom-Json '{"name":"user"}')
+                    ($null -eq $result.Groups) | Should -BeTrue
+                }
+
+                It "returns an existing typed user and its group array unchanged" {
+                    $user = [AtlassianPS.JiraPS.User]@{ Name = 'user'; Groups = @('jira-users') }
+                    $result = ConvertTo-JiraUser -InputObject $user
+                    [object]::ReferenceEquals($user, $result) | Should -BeTrue
+                    [object]::ReferenceEquals($user.Groups, $result.Groups) | Should -BeTrue
+                }
+            }
+
             Context "Type Conversion" {
                 BeforeAll {
                     $script:result = ConvertTo-JiraUser -InputObject $sampleObject
