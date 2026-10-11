@@ -144,6 +144,7 @@ HelpMessage: ''
 ### -Components
 
 Component objects, IDs or names to add to the issue.
+An object with an ID sends that ID; a name-only object sends its name for Jira to resolve in the project.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Component[]
@@ -262,6 +263,8 @@ HelpMessage: ''
 ### -FixVersion
 
 Version objects, IDs or names to assign as fix versions.
+An object with an ID sends that ID; a name-only object sends its name for Jira to resolve in the project.
+Numeric strings are interpreted as IDs; to select a numeric version name, use an explicit name object such as `[AtlassianPS.JiraPS.Version]::new("2026")`.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Version[]
@@ -349,6 +352,9 @@ HelpMessage: ''
 ### -Priority
 
 Priority object, ID or unambiguous priority name.
+An object with an ID sends that ID without an additional lookup.
+A name must match exactly one result from `Get-JiraPriority`; the cmdlet sends the matching ID.
+A missing or ambiguous name terminates the command before an issue is created.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Priority

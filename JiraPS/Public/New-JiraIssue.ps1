@@ -103,12 +103,21 @@
         }
 
         if ($Priority) {
-            if ($null -eq $Priority.Id) {
-                $matches = @(Get-JiraPriority -Credential $Credential | Where-Object { $_.Name -eq $Priority.Name })
-                if ($matches.Count -ne 1) { throw "Priority '$($Priority.Name)' must identify exactly one priority." }
-                $Priority = $matches[0]
+            $priorityId = $Priority.Id
+            if ($null -eq $priorityId) {
+                $matchingPriorities = @(Get-JiraPriority -Credential $Credential -ErrorAction Stop |
+                        Where-Object -FilterScript { $_.Name -eq $Priority.Name })
+
+                if ($matchingPriorities.Count -ne 1) {
+                    ThrowError -ExceptionType 'System.ArgumentException' `
+                        -ErrorId 'ParameterValue.InvalidPriority' `
+                        -Category InvalidArgument `
+                        -TargetObject $Priority `
+                        -Message "Priority '$($Priority.Name)' must identify exactly one priority. Use Get-JiraPriority to find a valid priority ID."
+                }
+                $priorityId = $matchingPriorities[0].Id
             }
-            $requestBody["priority"] = @{"id" = [String] $Priority.Id }
+            $requestBody["priority"] = @{"id" = [String] $priorityId }
         }
 
         if ($Description) {
