@@ -36,7 +36,7 @@ For the migration playbook and concrete before/after script examples, see [`abou
   Added the v3 contract inventory and migration examples.
 - Unified filter ID and object input for `Get-JiraFilter`, `Remove-JiraFilter`, `Get-JiraFilterPermission` and `Add-JiraFilterPermission`, retaining identifier aliases and pipeline support.
   Filter permission operations now forward credentials when resolving ID-only inputs.
-  `Remove-JiraFilterPermission` validates all permission identifiers before deleting and follows the standard begin/process/end lifecycle.
+  `Remove-JiraFilterPermission` validates explicit and embedded permission identifiers together before deleting, reports structured errors, and follows the standard begin/process/end lifecycle.
 - Comments and worklogs omit visibility for typed `All Users` roles as well as string shorthand.
   Added live create-and-readback coverage for unrestricted, role and group visibility on Cloud and Data Center.
 - `Invoke-JiraIssueTransition` rejects unresolved transitions even when the issue has no available transitions.

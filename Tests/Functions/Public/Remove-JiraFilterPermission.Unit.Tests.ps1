@@ -225,6 +225,22 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 0
                 }
 
+                It "validates all explicit permissions before deleting any" -TestCases @(
+                    @{ permissionId = $null }
+                    @{ permissionId = -1 }
+                ) {
+                    param($permissionId)
+                    $permissions = @(
+                        [AtlassianPS.JiraPS.FilterPermission]@{ Id = 1111 }
+                        [AtlassianPS.JiraPS.FilterPermission]@{ Id = $permissionId }
+                    )
+
+                    { Remove-JiraFilterPermission -Filter $basicFilter -Permission $permissions -Confirm:$false } |
+                        Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*' -ErrorId 'ParameterValue.InvalidFilterPermissionId*'
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                }
+
                 It "validates all embedded permissions before deleting any" -TestCases @(
                     @{ permissionId = $null }
                     @{ permissionId = -1 }
@@ -268,7 +284,10 @@ InModuleScope JiraPS {
                 }
 
                 It "does not accept negative PermissionIds" {
-                    { Remove-JiraFilterPermission -FilterId 1 -PermissionId -1111 } | Should -Throw -ExpectedMessage "*'Permission'*"
+                    { Remove-JiraFilterPermission -FilterId 1 -PermissionId -1111 } |
+                        Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*' -ErrorId 'ParameterValue.InvalidFilterPermissionId*'
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
                 }
 
                 It "can only process one FilterId" {
