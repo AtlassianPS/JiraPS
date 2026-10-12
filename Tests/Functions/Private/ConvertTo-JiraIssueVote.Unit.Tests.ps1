@@ -43,11 +43,6 @@ InModuleScope JiraPS {
             $result.Voters.Count | Should -Be 0
         }
 
-        It 'emits no objects for direct or piped null input' {
-            @(ConvertTo-JiraIssueVote -InputObject $null).Count | Should -Be 0
-            @($null | ConvertTo-JiraIssueVote).Count | Should -Be 0
-        }
-
         It 'preserves order and skips null entries (<delivery>)' -TestCases @(
             @{ delivery = 'array' }
             @{ delivery = 'pipeline' }

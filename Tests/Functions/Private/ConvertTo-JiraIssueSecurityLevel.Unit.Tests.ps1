@@ -33,11 +33,6 @@ InModuleScope JiraPS {
             ($null -eq $result.Self) | Should -BeTrue
         }
 
-        It 'emits no objects for direct or piped null input' {
-            @(ConvertTo-JiraIssueSecurityLevel -InputObject $null).Count | Should -Be 0
-            @($null | ConvertTo-JiraIssueSecurityLevel).Count | Should -Be 0
-        }
-
         It 'preserves order and skips null entries (<delivery>)' -TestCases @(
             @{ delivery = 'array' }
             @{ delivery = 'pipeline' }

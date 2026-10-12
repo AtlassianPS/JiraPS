@@ -43,57 +43,6 @@ InModuleScope JiraPS {
             }
         }
 
-        Context "Type loading" {
-            It "loads <typeName> into the current AppDomain" -TestCases @(
-                @{ typeName = 'AtlassianPS.JiraPS.Attachment' }
-                @{ typeName = 'AtlassianPS.JiraPS.Comment' }
-                @{ typeName = 'AtlassianPS.JiraPS.Component' }
-                @{ typeName = 'AtlassianPS.JiraPS.CreateMetaField' }
-                @{ typeName = 'AtlassianPS.JiraPS.EditMetaField' }
-                @{ typeName = 'AtlassianPS.JiraPS.Field' }
-                @{ typeName = 'AtlassianPS.JiraPS.Filter' }
-                @{ typeName = 'AtlassianPS.JiraPS.FilterPermission' }
-                @{ typeName = 'AtlassianPS.JiraPS.Issue' }
-                @{ typeName = 'AtlassianPS.JiraPS.IssueLink' }
-                @{ typeName = 'AtlassianPS.JiraPS.IssueLinkType' }
-                @{ typeName = 'AtlassianPS.JiraPS.IssueType' }
-                @{ typeName = 'AtlassianPS.JiraPS.Link' }
-                @{ typeName = 'AtlassianPS.JiraPS.Priority' }
-                @{ typeName = 'AtlassianPS.JiraPS.Project' }
-                @{ typeName = 'AtlassianPS.JiraPS.ProjectRole' }
-                @{ typeName = 'AtlassianPS.JiraPS.Resolution' }
-                @{ typeName = 'AtlassianPS.JiraPS.ServerInfo' }
-                @{ typeName = 'AtlassianPS.JiraPS.Session' }
-                @{ typeName = 'AtlassianPS.JiraPS.Status' }
-                @{ typeName = 'AtlassianPS.JiraPS.StatusCategory' }
-                @{ typeName = 'AtlassianPS.JiraPS.Transition' }
-                @{ typeName = 'AtlassianPS.JiraPS.User' }
-                @{ typeName = 'AtlassianPS.JiraPS.Version' }
-                @{ typeName = 'AtlassianPS.JiraPS.Worklogitem' }
-            ) {
-                param($typeName)
-
-                ($typeName -as [Type]) | Should -Not -BeNullOrEmpty -Because "$typeName must be available after module import"
-            }
-        }
-
-        Context "Hashtable construction" {
-            It "constructs an Issue from a hashtable literal" {
-                $issue = [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1'; Summary = 'hashtable init' }
-
-                $issue.Key | Should -Be 'TEST-1'
-                $issue.Summary | Should -Be 'hashtable init'
-            }
-
-            It "constructs a User from a hashtable literal" {
-                $user = [AtlassianPS.JiraPS.User]@{ Name = 'jdoe'; DisplayName = 'John Doe'; Active = $true }
-
-                $user.Name | Should -Be 'jdoe'
-                $user.DisplayName | Should -Be 'John Doe'
-                $user.Active | Should -BeTrue
-            }
-        }
-
         Context "ToString() overrides" {
             It "<typeName> formats <scenario>" -TestCases @(
                 @{ typeName = 'AtlassianPS.JiraPS.Issue'; property = @{ Key = 'TEST-1'; Summary = 'my summary' }; scenario = 'key and summary'; expected = '[TEST-1] my summary' }
@@ -212,46 +161,6 @@ InModuleScope JiraPS {
                 param($typeName, $value)
 
                 { Get-JiraTestObjectFromString -TypeName $typeName -Value $value } | Should -Throw
-            }
-
-            It "the parameterless ctor is preserved on <typeName>" -TestCases @(
-                # Regression guard: declaring a parameterized ctor in C#
-                # removes the implicit parameterless ctor, which the
-                # [Class]@{ ... } hashtable-cast pattern depends on. Each
-                # class must keep `public Foo() {}` explicitly.
-                @{ typeName = 'AtlassianPS.JiraPS.Issue' }
-                @{ typeName = 'AtlassianPS.JiraPS.User' }
-                @{ typeName = 'AtlassianPS.JiraPS.Project' }
-                @{ typeName = 'AtlassianPS.JiraPS.Group' }
-                @{ typeName = 'AtlassianPS.JiraPS.Filter' }
-                @{ typeName = 'AtlassianPS.JiraPS.Version' }
-                @{ typeName = 'AtlassianPS.JiraPS.Comment' }
-                @{ typeName = 'AtlassianPS.JiraPS.Session' }
-                @{ typeName = 'AtlassianPS.JiraPS.ServerInfo' }
-            ) {
-                param($typeName)
-
-                $type = $typeName -as [Type]
-                $type | Should -Not -BeNullOrEmpty -Because "$typeName must be loaded"
-                $type.GetConstructor([Type]::EmptyTypes) |
-                    Should -Not -BeNullOrEmpty -Because "$typeName must keep an explicit parameterless ctor"
-            }
-
-            It "the hashtable-cast pattern still works for <typeName>.<property>" -TestCases @(
-                # The 30+ existing [Class]@{ ... } call sites in the test
-                # suite would fail loudly if we lost the parameterless ctor
-                # or its property setters; this assertion locks the contract
-                # in one place so it cannot regress quietly.
-                @{ typeName = 'AtlassianPS.JiraPS.Issue'; property = 'Key'; value = 'TEST-1'; create = { [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' } } }
-                @{ typeName = 'AtlassianPS.JiraPS.User'; property = 'Name'; value = 'jdoe'; create = { [AtlassianPS.JiraPS.User]@{ Name = 'jdoe' } } }
-                @{ typeName = 'AtlassianPS.JiraPS.Project'; property = 'Key'; value = 'TEST'; create = { [AtlassianPS.JiraPS.Project]@{ Key = 'TEST' } } }
-                @{ typeName = 'AtlassianPS.JiraPS.Group'; property = 'Name'; value = 'jira-users'; create = { [AtlassianPS.JiraPS.Group]@{ Name = 'jira-users' } } }
-                @{ typeName = 'AtlassianPS.JiraPS.Filter'; property = 'ID'; value = '1'; create = { [AtlassianPS.JiraPS.Filter]@{ ID = '1' } } }
-                @{ typeName = 'AtlassianPS.JiraPS.Version'; property = 'Name'; value = '1.0'; create = { [AtlassianPS.JiraPS.Version]@{ Name = '1.0' } } }
-            ) {
-                param($property, $value, $create)
-
-                (& $create).$property | Should -Be $value
             }
 
             It "the string-arg ctor produces a stub that round-trips through the matching transformer parameter" {

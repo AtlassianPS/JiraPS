@@ -158,10 +158,6 @@ InModuleScope JiraPS {
                     $script:result = ConvertTo-JiraFilter -InputObject $sampleObject -FilterPermission $samplePermission
                 }
 
-                It "creates PSObject from JSON input" {
-                    $result | Should -Not -BeNullOrEmpty
-                }
-
                 It "adds custom type 'AtlassianPS.JiraPS.Filter'" {
                     $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Filter'
                 }

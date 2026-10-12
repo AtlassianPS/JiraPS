@@ -264,15 +264,16 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         # Regression guard for the PlatyPS 1.0 MAML round-trip dropping every
                         # parameter's alias attribute. Compare reflected aliases against help.
                         $codeAliases = @($parameterCode.Aliases | Sort-Object)
-                        if ($codeAliases.Count -eq 0) { return }
-
-                        $helpAliasField = ($parameterHelp.aliases -as [String]).Trim()
+                        $helpAliasField = ([String]$parameterHelp.aliases).Trim()
                         $helpAliases = @()
                         if ($helpAliasField -and $helpAliasField -ne 'None' -and $helpAliasField -ne 'none') {
                             $helpAliases = @($helpAliasField -split '[,\s]+' | Where-Object { $_ } | Sort-Object)
                         }
 
-                        $helpAliases | Should -Be $codeAliases -Because "every alias declared on the parameter must be reachable through Get-Help"
+                        $helpAliases.Count | Should -Be $codeAliases.Count
+                        if ($codeAliases.Count -gt 0) {
+                            $helpAliases | Should -Be $codeAliases -Because "every alias declared on the parameter must be reachable through Get-Help"
+                        }
                     }
 
                     It "preserves pipeline input flag in help" {

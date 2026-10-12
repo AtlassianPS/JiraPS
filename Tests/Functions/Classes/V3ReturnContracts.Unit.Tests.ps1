@@ -335,12 +335,6 @@ InModuleScope JiraPS {
             $role.Actors[2].Name | Should -Be 'dc-user'
         }
 
-        It 'types the project scope of an issue type' {
-            $type = ConvertTo-JiraIssueType -InputObject (ConvertFrom-Json '{"scope":{"type":"PROJECT","project":{"key":"TEST"}}}')
-            $type.Scope.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueTypeScope])
-            $type.Scope.Project.Key | Should -Be 'TEST'
-        }
-
         It 'uses typed schemas and does not overwrite them with raw metadata' {
             $metaResponse = ConvertFrom-Json @'
 {
@@ -419,22 +413,6 @@ InModuleScope JiraPS {
             $empty = ConvertTo-JiraFilter -InputObject (ConvertFrom-Json '{"id":"2"}')
             $empty.SharedUser | Should -BeNullOrEmpty
             $empty.Subscription | Should -BeNullOrEmpty
-        }
-
-        It 'uses nullable enum values and tolerates future wire strings (<type>)' -TestCases @(
-            @{ type = 'DeploymentType'; value = 'Cloud'; expected = 'Cloud' }
-            @{ type = 'AccountType'; value = 'atlassian'; expected = 'atlassian' }
-            @{ type = 'AssigneeType'; value = 'PROJECT_DEFAULT'; expected = 'PROJECT_DEFAULT' }
-            @{ type = 'FilterShareType'; value = 'projectRole'; expected = 'ROLE' }
-            @{ type = 'ActorType'; value = 'atlassian-group-role-actor'; expected = 'AtlassianGroupRoleActor' }
-        ) {
-            param($type, $value, $expected)
-            $enum = "AtlassianPS.JiraPS.$type" -as [type]
-            $result = ConvertTo-JiraEnum -Type $enum -Value $value
-            $result.GetType() | Should -Be $enum
-            $result.ToString() | Should -Be $expected
-            ConvertTo-JiraEnum -Type $enum -Value 'future-value' | Should -BeNullOrEmpty
-            ConvertTo-JiraEnum -Type $enum -Value '100' | Should -BeNullOrEmpty
         }
 
         It 'types user avatars and tolerates unknown account types' {

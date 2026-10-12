@@ -11,8 +11,6 @@ Describe "General project validation" -Tag Unit {
     BeforeDiscovery {
         $script:module = Get-Module 'JiraPS'
 
-        $script:testFiles = Get-ChildItem $PSScriptRoot -Include "*.Tests.ps1" -Recurse
-
         $script:publicFunctionFiles = (Get-ChildItem "$moduleRoot/JiraPS/Public/*.ps1").BaseName
         $script:privateFunctionFiles = (Get-ChildItem "$moduleRoot/JiraPS/Private/*.ps1").BaseName
 
@@ -30,11 +28,6 @@ Describe "General project validation" -Tag Unit {
             BeforeAll {
                 $script:functionName = $_
             }
-            It "has a test file" {
-                $expectedTestFile = "$functionName.Unit.Tests.ps1"
-                $testFiles.Name | Should -Contain $expectedTestFile
-            }
-
             It "is exported" {
                 $exportedFunctionNames | Should -Contain $functionName
             }

@@ -50,10 +50,6 @@ InModuleScope JiraPS {
                     $script:result = ConvertTo-JiraIssueHistoryEntry -InputObject $sampleObject
                 }
 
-                It "creates an output object" {
-                    $result | Should -Not -BeNullOrEmpty
-                }
-
                 It "adds CLR type AtlassianPS.JiraPS.IssueHistoryEntry" {
                     $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.IssueHistoryEntry'
                 }

@@ -22,8 +22,8 @@ InModuleScope JiraPS {
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject', 'Credential'
                 [AtlassianPS.JiraPS.Issue]@{
-                    Key        = 'TEST-1'
-                    RestUrl    = 'https://jira.example/rest/api/2/issue/1'
+                    Key     = 'TEST-1'
+                    RestUrl = 'https://jira.example/rest/api/2/issue/1'
                 }
             }
             Mock Invoke-JiraMethod -ModuleName JiraPS {

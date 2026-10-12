@@ -483,8 +483,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            It "overwrites get parameters in the URI with -GetParameter values" {}
-
             It "passes the -InFile to Invoke-WebRequest" {
                 $invokeJiraMethodSplat = @{
                     Method = 'Post'

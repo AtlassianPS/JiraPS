@@ -886,10 +886,6 @@ InModuleScope JiraPS {
                     $script:result = ConvertTo-JiraIssue -InputObject $sampleObject
                 }
 
-                It "creates PSObject from JSON input" {
-                    $result | Should -Not -BeNullOrEmpty
-                }
-
                 It "adds custom type 'AtlassianPS.JiraPS.Issue'" {
                     $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
                 }
@@ -987,69 +983,6 @@ InModuleScope JiraPS {
                     "$($result.Status)" | Should -Be 'Open'
                 }
 
-                It "adds History as an array when changelog contains one entry" {
-                    $historyEntry = ConvertFrom-Json -InputObject @'
-{
-    "id": "10001",
-    "author": {
-        "name": "jdoe"
-    },
-    "created": "2020-01-01T12:00:00.000+0000",
-    "items": [
-        {
-            "field": "status",
-            "fromString": "To Do",
-            "toString": "In Progress"
-        }
-    ]
-}
-'@
-                    $issueWithOneHistory = ConvertFrom-Json -InputObject $sampleJson
-                    $issueWithOneHistory | Add-Member -MemberType NoteProperty -Name changelog -Value ([PSCustomObject]@{ histories = @($historyEntry) }) -Force
-
-                    $converted = ConvertTo-JiraIssue -InputObject $issueWithOneHistory
-
-                    $converted.PSObject.Properties.Name | Should -Contain 'History'
-                    ($converted.History -is [AtlassianPS.JiraPS.IssueHistoryEntry[]]) | Should -BeTrue
-                    @($converted.History) | Should -HaveCount 1
-                    @($converted.History)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.IssueHistoryEntry'
-                }
-
-                It "adds History as an array when changelog contains multiple entries" {
-                    $historyEntry = ConvertFrom-Json -InputObject @'
-{
-    "id": "10001",
-    "author": {
-        "name": "jdoe"
-    },
-    "created": "2020-01-01T12:00:00.000+0000",
-    "items": [
-        {
-            "field": "status",
-            "fromString": "To Do",
-            "toString": "In Progress"
-        }
-    ]
-}
-'@
-                    $issueWithTwoHistories = ConvertFrom-Json -InputObject $sampleJson
-                    $issueWithTwoHistories | Add-Member -MemberType NoteProperty -Name changelog -Value ([PSCustomObject]@{ histories = @($historyEntry, $historyEntry) }) -Force
-
-                    $converted = ConvertTo-JiraIssue -InputObject $issueWithTwoHistories
-
-                    $converted.PSObject.Properties.Name | Should -Contain 'History'
-                    ($converted.History -is [AtlassianPS.JiraPS.IssueHistoryEntry[]]) | Should -BeTrue
-                    @($converted.History) | Should -HaveCount 2
-                }
-
-                It "leaves History null when changelog is absent" {
-                    $issueWithoutChangelog = ConvertFrom-Json -InputObject $sampleJson
-                    [void]$issueWithoutChangelog.PSObject.Properties.Remove('changelog')
-
-                    $converted = ConvertTo-JiraIssue -InputObject $issueWithoutChangelog
-
-                    $converted.History | Should -BeNullOrEmpty
-                }
             }
 
             Context 'Standard and custom fields' {

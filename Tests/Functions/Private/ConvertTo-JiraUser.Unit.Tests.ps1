@@ -75,10 +75,6 @@ InModuleScope JiraPS {
                     $script:result = ConvertTo-JiraUser -InputObject $sampleObject
                 }
 
-                It "creates PSObject from JSON input" {
-                    $result | Should -Not -BeNullOrEmpty
-                }
-
                 It "adds custom type 'AtlassianPS.JiraPS.User'" {
                     $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                 }

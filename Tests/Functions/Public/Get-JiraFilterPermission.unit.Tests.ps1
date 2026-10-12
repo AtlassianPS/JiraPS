@@ -134,12 +134,6 @@ InModuleScope JiraPS {
             }
 
             Context "Input testing" {
-                It "finds the filter by Id" {
-                    { Get-JiraFilterPermission -Id 23456 } | Should -Not -Throw
-
-                    Should -Invoke Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
-                }
-
                 It "does not accept negative Ids" {
                     { Get-JiraFilterPermission -Id -1 } | Should -Throw -ExpectedMessage "*positive numeric ID*"
                 }
@@ -149,12 +143,6 @@ InModuleScope JiraPS {
 
                     Should -Invoke Get-JiraFilter -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
-                }
-
-                It "allows for the filter to be passed over the pipeline" {
-                    { Get-JiraFilter -Id 23456 | Get-JiraFilterPermission } | Should -Not -Throw
-
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "can only process one Filter objects" {

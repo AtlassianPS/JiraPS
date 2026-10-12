@@ -170,7 +170,7 @@ InModuleScope JiraPS {
                     @{ parameter = 'Passthru'; type = 'Switch' }
                     @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
-                    $command | Should -HaveParameter $parameter
+                    $command | Should -HaveParameter $parameter -Type $type
                 }
             }
 

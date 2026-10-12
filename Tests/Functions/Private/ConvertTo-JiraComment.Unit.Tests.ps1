@@ -69,11 +69,6 @@ InModuleScope JiraPS {
             }
 
             Context "Object Conversion" {
-                It "creates a PSObject out of JSON input" {
-                    $result | Should -Not -BeNullOrEmpty
-                    $result | Should -BeOfType [PSCustomObject]
-                }
-
                 It "adds custom type 'AtlassianPS.JiraPS.Comment'" {
                     $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Comment'
                 }

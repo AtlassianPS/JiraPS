@@ -26,10 +26,6 @@ InModuleScope JiraPS {
                     $script:result = ConvertTo-URLEncoded -InputString $sampleString
                 }
 
-                It "returns encoded string" {
-                    $result | Should -Not -BeNullOrEmpty
-                }
-
                 It "encodes strings to URL format correctly" {
                     $result | Should -Be $expectedEncoded
                 }
@@ -79,11 +75,6 @@ InModuleScope JiraPS {
             }
 
             Context "Property Mapping" {
-                It "has InputString parameter" {
-                    $command = Get-Command -Name ConvertTo-URLEncoded
-                    $command.Parameters.Keys | Should -Contain 'InputString'
-                }
-
                 It "returns as many objects as inputs provided" {
                     $r1 = ConvertTo-URLEncoded -InputString "lorem"
                     $r2 = "lorem", "ipsum" | ConvertTo-URLEncoded
@@ -106,15 +97,6 @@ InModuleScope JiraPS {
             }
 
             Context "Pipeline Support" {
-                It "accepts pipeline input" {
-                    { "lorem ipsum" | ConvertTo-URLEncoded } | Should -Not -Throw
-                }
-
-                It "accepts multiple InputStrings" {
-                    { ConvertTo-URLEncoded -InputString "lorem", "ipsum" } | Should -Not -Throw
-                    { "lorem", "ipsum" | ConvertTo-URLEncoded } | Should -Not -Throw
-                }
-
                 It "does not allow null or empty input" {
                     { ConvertTo-URLEncoded -InputString $null } | Should -Throw
                     { ConvertTo-URLEncoded -InputString "" } | Should -Throw

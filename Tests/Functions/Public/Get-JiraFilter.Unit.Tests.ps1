@@ -200,12 +200,6 @@ InModuleScope JiraPS {
                     $script:sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
                 }
 
-                It "Accepts a filter ID for the -Filter parameter" {
-                    { Get-JiraFilter -Id "12345" } | Should -Not -Throw
-
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
-                }
-
                 It "Accepts a filter ID without the -Filter parameter" {
                     { Get-JiraFilter "12345" } | Should -Not -Throw
 

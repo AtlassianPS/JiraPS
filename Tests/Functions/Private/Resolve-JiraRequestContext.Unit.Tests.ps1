@@ -40,10 +40,13 @@ InModuleScope JiraPS {
         }
 
         It "merges URI query and -GetParameter with caller values taking precedence" {
-            $result = Invoke-ResolveJiraRequestContext -Uri 'https://jira.example.com/rest/api/2/search?jql=fromUri' -GetParameter @{ jql = 'fromArg'; expand = 'names' }
+            $result = Invoke-ResolveJiraRequestContext -Uri 'https://jira.example.com/rest/api/2/search?jql=fromUri&fields=summary' -GetParameter @{ jql = 'fromArg'; expand = 'names' }
 
             $result.Uri.Query | Should -BeNullOrEmpty
-            $result.PaginatedUri.AbsoluteUri | Should -Match 'jql=fromArg'
+            $query = ConvertTo-ParameterHash -Uri $result.PaginatedUri
+            $query.Count | Should -Be 4
+            $query.jql | Should -Be 'fromArg'
+            $query.fields | Should -Be 'summary'
             $result.PaginatedUri.AbsoluteUri | Should -Match 'expand=names'
             $result.PaginatedUri.AbsoluteUri | Should -Match 'maxResults=25'
         }
