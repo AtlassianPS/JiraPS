@@ -38,8 +38,8 @@ InModuleScope JiraPS {
             $script:issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type 'TransitionFields')
             $createdIssues.Add($issue.Key)
             $metadata = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)/transitions" -GetParameter @{ expand = 'transitions.fields' } -ErrorAction Stop
+            # Data Center omits Cloud's hasScreen flag; expanded fields identify the screen.
             $compatible = @(foreach ($candidate in $metadata.transitions) {
-                    if (-not $candidate.hasScreen) { continue }
                     $fieldIds = @($candidate.fields.PSObject.Properties.Name)
                     if (@(@('summary', 'description', 'assignee', 'worklog') | Where-Object { $_ -notin $fieldIds }).Count) { continue }
                     if ('set' -notin $candidate.fields.summary.operations -or

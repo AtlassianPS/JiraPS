@@ -182,8 +182,8 @@
             $dateStarted = [DateTime]::new((Get-Date).Ticks, 'Local')
             $requestBody.update.worklog += , @{
                 'add' = @{
-                    'started'          = $dateStarted.ToString("o") -replace "\.(\d{3})\d*([\+\-]\d{2}):", ".`$1`$2"
-                    'timeSpentSeconds' = $TimeSpent.TotalSeconds.ToString()
+                    'started'   = $dateStarted.ToString("o") -replace "\.(\d{3})\d*([\+\-]\d{2}):", ".`$1`$2"
+                    'timeSpent' = $TimeSpent.TotalMinutes.ToString([System.Globalization.CultureInfo]::InvariantCulture) + 'm'
                 }
             }
         }

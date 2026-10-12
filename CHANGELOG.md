@@ -25,6 +25,7 @@ For the migration playbook and concrete before/after script examples, see [`abou
 
 ### Changed
 
+- `Invoke-JiraIssueTransition -TimeSpent` now sends the duration expected by Jira's transition field handler so the worklog is recorded.
 - Fixed Windows PowerShell 5.1 conversion failures when optional nested objects or URI maps are absent from Jira responses.
 - `Set-JiraIssue -UseDefaultAssignee` now selects the project's default assignee on Jira Cloud instead of unassigning the issue.
 - Issue link type conversion now skips null entries in array inputs instead of returning blank link-type objects.

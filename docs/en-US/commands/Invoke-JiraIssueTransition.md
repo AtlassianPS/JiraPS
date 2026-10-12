@@ -269,6 +269,7 @@ HelpMessage: ''
 ### -TimeSpent
 
 Time spent to record as a worklog during the transition.
+Durations are sent as explicit minutes so Jira's configured workday length does not change the recorded time.
 
 The worklog field must be configured to appear on the transition screen to use this parameter.
 

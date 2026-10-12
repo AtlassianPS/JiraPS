@@ -401,13 +401,16 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "adds a worklog if provided to the -TimeSpent parameter" {
-                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -TimeSpent ([TimeSpan]::FromMinutes(15)) } | Should -Not -Throw
+                It "adds a worklog using explicit minutes for durations longer than a day" {
+                    Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -TimeSpent ([TimeSpan]::FromHours(25.5))
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $worklog = $payload.update.worklog[0].add
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
-                        $Body -like '*worklog*timeSpentSeconds*900*' -and
+                        $worklog.timeSpent -eq '1530m' -and
+                        $null -eq $worklog.timeSpentSeconds -and
                         $Body -match '"started":\s*"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[\+\-]\d{4}"'
                     }
                 }
