@@ -176,9 +176,9 @@ if (-not $ready) {
     exit 1
 }
 
-Write-Host "==> Enabling unassigned issues for the disposable test site"
-$propertyBody = @{ id = 'jira.option.allowunassigned'; value = 'true' } | ConvertTo-Json -Compress
-$null = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/application-properties/jira.option.allowunassigned" -Method Put -Headers $headers -ContentType 'application/json' -Body $propertyBody -TimeoutSec 30
+# The AMPS seed enables unassigned issues in its database. This option is not an
+# advanced application property, so the application-properties REST API cannot set it.
+Write-Host "==> Verifying the disposable test site allows unassigned issues"
 $configuration = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/configuration" -Method Get -Headers $headers -TimeoutSec 30
 if ($configuration.unassignedIssuesAllowed -ne $true) { throw 'The disposable Jira fixture must allow unassigned issues.' }
 

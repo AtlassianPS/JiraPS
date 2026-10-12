@@ -526,7 +526,7 @@ Each step reads the issue independently and checks `accountId` on Cloud or `name
 The dedicated test project must permit the test user as reporter and assignee, use **Project lead** as its default assignee, and expose an assignable lead with a deployment-specific identity.
 The default must be a real user so an accidental unassignment cannot pass the project-default check.
 The site must allow unassigned issues.
-The disposable Data Center setup enables `jira.option.allowunassigned` through the application-properties API and verifies the effective configuration.
+The disposable Data Center setup uses the AMPS seed's enabled `jira.option.allowunassigned` setting and verifies the effective configuration.
 Configure the equivalent general setting on the dedicated Cloud test site; the suite checks it before creating an issue.
 `IssueWatchers.Integration.Tests.ps1` verifies watcher addition and removal, including issue pipeline inputs, on both deployments.
 `FilterPermissions.Integration.Tests.ps1` adds a project share through the public cmdlet, reads it back, removes it using returned typed objects, and verifies its removal.
