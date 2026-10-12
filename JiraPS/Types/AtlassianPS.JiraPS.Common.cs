@@ -242,6 +242,8 @@ namespace AtlassianPS.JiraPS
     // handle numeric IDs and v2 PSCustomObject shapes.
     public abstract class JiraTransformationAttribute : System.Management.Automation.ArgumentTransformationAttribute
     {
+        public bool AllowPipelineFallthrough { get; set; }
+
         protected abstract Type TargetType { get; }
         protected abstract object FromString(string value);
 
@@ -308,12 +310,13 @@ namespace AtlassianPS.JiraPS
                 return FromString(text);
             }
 
-            if (ShouldMapLegacyObject(pso))
+            var legacyObject = pso ?? System.Management.Automation.PSObject.AsPSObject(inputData);
+            if (ShouldMapLegacyObject(legacyObject))
             {
-                return MapLegacyObject(pso);
+                return MapLegacyObject(legacyObject);
             }
 
-            if (JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }
+            if (AllowPipelineFallthrough && JiraTransform.IsJiraDomainObject(inputData)) { return inputData; }
 
             throw new System.Management.Automation.ArgumentTransformationMetadataException(string.Format(
                 "Cannot convert value of type '{0}' to {1}. Expected a non-empty string or an existing {1} object.",

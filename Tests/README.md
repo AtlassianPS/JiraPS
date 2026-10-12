@@ -144,6 +144,13 @@ InModuleScope JiraPS {
 
 **Reference File**: [`Tests/Functions/Private/ConvertTo-JiraAttachment.Unit.Tests.ps1`](Functions/Private/ConvertTo-JiraAttachment.Unit.Tests.ps1)
 
+Shared null handling is covered by [`ConvertTo-Jira.NullInput.Unit.Tests.ps1`](Functions/Private/ConvertTo-Jira.NullInput.Unit.Tests.ps1).
+It discovers all `ConvertTo-Jira*` functions and checks their null-input contracts.
+It also checks field schemas and issue type scope projects with omitted, null, empty, populated and already typed values.
+Optional nested objects and URI maps have shared tests for omitted and null values.
+Keep explicit `$null` branches for absent nested values in typed-object initializers.
+Windows PowerShell 5.1 rejects a converter's no-output `AutomationNull` value when assigning these typed properties ([PowerShell #19402](https://github.com/PowerShell/PowerShell/issues/19402)).
+
 **Use For**: Functions that transform JSON to PowerShell objects - ConvertTo-*, ConvertFrom-* functions
 
 **Structure**:

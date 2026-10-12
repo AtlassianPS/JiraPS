@@ -107,12 +107,8 @@ InModuleScope JiraPS {
                     [hashtable] $ResponseHeaders = @{}
                 )
 
-                $statusCode = if ($Uri.AbsolutePath -match '/status/(\d+)') {
-                    [System.Net.HttpStatusCode][int]$Matches[1]
-                }
-                else {
-                    [System.Net.HttpStatusCode]::OK
-                }
+                $statusCode = if ($Uri.AbsolutePath -match '/status/(\d+)') { [System.Net.HttpStatusCode][int]$Matches[1] }
+                else { [System.Net.HttpStatusCode]::OK }
 
                 $data = if ($null -eq $Body) { $null }
                 elseif ($Body -is [byte[]]) { [System.Text.Encoding]::UTF8.GetString($Body) }
@@ -486,8 +482,6 @@ InModuleScope JiraPS {
                     $Headers.ContainsKey('X-Override') -and $Headers['X-Override'] -eq 'caller-value'
                 }
             }
-
-            It "overwrites get parameters in the URI with -GetParameter values" {}
 
             It "passes the -InFile to Invoke-WebRequest" {
                 $invokeJiraMethodSplat = @{

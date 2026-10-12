@@ -10,37 +10,37 @@ permalink: /docs/JiraPS/commands/Set-JiraVersion/
 
 ## SYNOPSIS
 
-Modifies an existing Version in JIRA
+Modifies an existing version in Jira.
 
 ## SYNTAX
 
 ```powershell
-Set-JiraVersion [-Version] <Version[]> [[-Name] <string>] [[-Description] <string>]
+Set-JiraVersion [-Version] <AtlassianPS.JiraPS.Version[]> [[-Name] <string>] [[-Description] <string>]
  [[-Archived] <bool>] [[-Released] <bool>] [[-ReleaseDate] <datetime>] [[-StartDate] <datetime>]
- [[-Project] <Project>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-Project] <AtlassianPS.JiraPS.Project>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function modifies the Version for an existing Project in JIRA.
+This function modifies the version for an existing project in Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-Get-JiraVersion -Project $Project -Name "Old-Name" | Set-JiraVersion -Name 'New-Name'
+Get-JiraVersion -Project $Project -Name 'Old-Name' | Set-JiraVersion -Name 'New-Name'
 ```
 
-This example assigns the modifies the existing version with a new name 'New-Name'.
+Changes the existing version's name to New-Name.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraVersion -ID 162401 | Set-JiraVersion -Description 'Descriptive String'
+Get-JiraVersion -Id 162401 | Set-JiraVersion -Description 'Descriptive string'
 ```
 
-This example assigns the modifies the existing version with a new name 'New-Name'.
+Changes the description of version 162401.
 
 ## PARAMETERS
 
@@ -89,7 +89,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -111,7 +111,7 @@ HelpMessage: ''
 
 ### -Description
 
-New Description of the Version.
+New Description of the version.
 
 ```yaml
 Type: String
@@ -132,7 +132,7 @@ HelpMessage: ''
 
 ### -Name
 
-New Name of the Version.
+The new version name.
 
 ```yaml
 Type: String
@@ -153,12 +153,12 @@ HelpMessage: ''
 
 ### -Project
 
-The new Project where this version should be in.
+The new project where this version should be in.
 
-This can be the ID of the Project, or the Project Object
+This can be the ID of the project, or the project object.
 
 ```yaml
-Type: Project
+Type: AtlassianPS.JiraPS.Project
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -239,10 +239,10 @@ HelpMessage: ''
 
 ### -Version
 
-Version to be changed
+Version to be changed.
 
 ```yaml
-Type: Version[]
+Type: AtlassianPS.JiraPS.Version[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -283,10 +283,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -299,9 +297,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

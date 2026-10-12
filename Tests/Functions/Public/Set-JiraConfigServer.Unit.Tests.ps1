@@ -13,11 +13,17 @@ InModuleScope JiraPS {
 
             #region Definitions
             $script:jiraServer = 'http://jiraserver.example.com'
+            $script:originalServerConfig = $script:serverConfig
+            $script:serverConfig = Join-Path $TestDrive 'server_config'
             #endregion Definitions
 
             #region Mocks
             # No mocks needed for this simple function
             #endregion Mocks
+        }
+
+        AfterAll {
+            $script:serverConfig = $script:originalServerConfig
         }
 
         Describe "Signature" {

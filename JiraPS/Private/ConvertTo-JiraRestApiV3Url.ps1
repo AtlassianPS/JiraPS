@@ -40,13 +40,9 @@
         $IsCloud
     )
 
-    if (-not $IsCloud) {
-        return $Url
-    }
+    if (-not $IsCloud) { return $Url }
 
-    if ([string]::IsNullOrEmpty($Url)) {
-        return $Url
-    }
+    if ([string]::IsNullOrEmpty($Url)) { return $Url }
 
     # Match only the first /rest/api/2/ segment that lives in the path
     # component (i.e. before any query string or fragment). The non-greedy

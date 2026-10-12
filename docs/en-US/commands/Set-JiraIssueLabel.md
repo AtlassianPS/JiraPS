@@ -10,34 +10,34 @@ permalink: /docs/JiraPS/commands/Set-JiraIssueLabel/
 
 ## SYNOPSIS
 
-Modifies labels on an existing JIRA issue
+Modifies labels on an existing Jira issue.
 
 ## SYNTAX
 
 ### ReplaceLabels (Default)
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <Issue> -Set <string[]> [-Credential <pscredential>] [-PassThru]
+Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Set <string[]> [-Credential <pscredential>] [-PassThru]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ModifyLabels
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <Issue> [-Add <string[]>] [-Remove <string[]>]
+Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> [-Add <string[]>] [-Remove <string[]>]
  [-Credential <pscredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ClearLabels
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <Issue> -Clear [-Credential <pscredential>] [-PassThru] [-WhatIf]
+Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Clear [-Credential <pscredential>] [-PassThru] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function modifies labels on an existing JIRA issue.
+This function modifies labels on an existing Jira issue.
 There are four supported operations on labels:
 
 - **Add**: appends additional labels to the labels that an issue already has
@@ -47,7 +47,7 @@ There are four supported operations on labels:
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Set-JiraIssueLabel -Issue TEST-01 -Set 'fixed'
@@ -55,16 +55,15 @@ Set-JiraIssueLabel -Issue TEST-01 -Set 'fixed'
 
 This example replaces all existing labels on issue TEST-01 with one label, "fixed".
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraIssue -Query 'created >= -7d AND reporter in (joeSmith)' | Set-JiraIssueLabel -Add 'enhancement'
 ```
 
-This example adds the "enhancement" label to all issues matching the JQL - in this case,
-all issues created by user joeSmith in the last 7 days.
+This example adds the "enhancement" label to all issues matching the JQL - in this case, all issues created by user joeSmith in the last 7 days.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Get-JiraIssue TEST-01 | Set-JiraIssueLabel -Clear
@@ -140,7 +139,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -164,10 +163,10 @@ HelpMessage: ''
 
 Issue of which the labels should be manipulated.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -276,10 +275,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -290,15 +287,14 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### AtlassianPS.JiraPS.Issue
 
-If the `-PassThru` parameter is provided, this function will provide a reference
-to the JIRA issue modified.
- Otherwise, this function does not provide output.
+If the `-PassThru` parameter is provided, this function will provide a reference to the Jira issue modified.
+Otherwise, this function does not provide output.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

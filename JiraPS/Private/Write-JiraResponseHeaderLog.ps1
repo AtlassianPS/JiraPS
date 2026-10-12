@@ -14,14 +14,10 @@ function Write-JiraResponseHeaderLog {
         $InputObject
     )
 
-    if (-not $InputObject -or -not $InputObject.Headers) {
-        return
-    }
+    if (-not $InputObject -or -not $InputObject.Headers) { return }
 
     $config = $script:JiraResponseHeaderLogConfiguration
-    if (-not $config) {
-        return
-    }
+    if (-not $config) { return }
 
     $matched = @{}
     foreach ($key in @($InputObject.Headers.Keys)) {

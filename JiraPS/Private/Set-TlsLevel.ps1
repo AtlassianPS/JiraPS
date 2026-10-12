@@ -16,9 +16,7 @@
             [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
         }
         if ($Revert) {
-            if ($Script:OriginalTlsSettings) {
-                [Net.ServicePointManager]::SecurityProtocol = $Script:OriginalTlsSettings
-            }
+            if ($Script:OriginalTlsSettings) { [Net.ServicePointManager]::SecurityProtocol = $Script:OriginalTlsSettings }
         }
     }
 }

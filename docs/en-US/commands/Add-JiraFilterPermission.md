@@ -10,57 +10,49 @@ permalink: /docs/JiraPS/commands/Add-JiraFilterPermission/
 
 ## SYNOPSIS
 
-Share a Filter with other users.
+Share a filter with other users.
 
 ## SYNTAX
 
-### ByInputObject (Default)
-
 ```powershell
-Add-JiraFilterPermission [-Filter] <Filter> -Type <string> [-Value <string>]
- [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
-```
-
-### ById
-
-```powershell
-Add-JiraFilterPermission [-Id] <uint[]> -Type <string> [-Value <string>]
+Add-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> -Type <string> [-Value <string>]
  [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Share a Filter with other users, such as "Group", "Project", "ProjectRole", "Authenticated" or "Global".
+Share a filter with a group, project role, authenticated users or everyone.
+Use `Type` to choose the permission and `Value` to identify the group, project or role.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-Add-JiraFilterPermission -Filter (Get-JiraFilter 12345) -Type "Global"
-#-------
-Add-JiraFilterPermission -Id 12345 -Type "Global"
+Add-JiraFilterPermission -Filter (Get-JiraFilter 12345) -Type 'Global'
+# Or use the ID directly.
+Add-JiraFilterPermission -Id 12345 -Type 'Global'
 ```
 
-Two methods of sharing Filter 12345 with everyone.
+Two methods of sharing filter 12345 with everyone.
 
 ### Example 2
 
 ```powershell
-12345 | Add-JiraFilterPermission -Type "Authenticated"
+12345 | Add-JiraFilterPermission -Type 'Authenticated'
 ```
 
-Share Filter 12345 with authenticated users.
+Share filter 12345 with authenticated users.
 
-The Id could be read from a file.
+The ID can be read from a file.
 
 ### Example 3
 
 ```powershell
-Get-JiraFilter 12345 | Add-JiraFilterPermission -Type "Group" -Value "administrators"
+Get-JiraFilter 12345 | Add-JiraFilterPermission -Type 'Group' -Value 'administrators'
 ```
 
-Share Filter 12345 only with users in the administrators groups.
+Share filter 12345 only with users in the administrators group.
 
 ## PARAMETERS
 
@@ -88,7 +80,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -110,38 +102,18 @@ HelpMessage: ''
 
 ### -Filter
 
-Filter object to which the permission should be applied
+Filter objects or positive numeric filter IDs to share.
+Accepts numeric strings and pipeline input.
+`Id` is an alias for `Filter`.
 
 ```yaml
-Type: AtlassianPS.JiraPS.Filter
+Type: AtlassianPS.JiraPS.Filter[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- Id
 ParameterSets:
-- Name: ByInputObject
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Id
-
-Id of the Filter to which the permission should be applied
-
-_Id can be passed over the pipeline when reading from a file._
-
-```yaml
-Type: UInt32[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ById
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
@@ -154,7 +126,7 @@ HelpMessage: ''
 
 ### -Type
 
-Type of the permission to add
+Type of the permission to add.
 
 ```yaml
 Type: String
@@ -180,16 +152,15 @@ HelpMessage: ''
 
 ### -Value
 
-Value for the Type of the permission.
+Value associated with the permission type.
 
-The Value differs per Type of the permission.
+The required value depends on the permission type:
 
-Here is a table to know what Value to provide:
 |Type         |Value                |Source                                              |
 |-------------|---------------------|----------------------------------------------------|
-|Group        |Name of the Group    |Use the known group name directly; avoid relying on `Get-JiraGroup` for Data Center-only resolution.|
-|Project      |Id of the Project    |Can be retrieved with `(Get-JiraProject ...).Id`    |
-|ProjectRole  |Id of the ProjectRole|Can be retrieved with `(Get-JiraProjectRole ...).Id`|
+|Group        |Group name    |Use the known group name directly; avoid relying on `Get-JiraGroup` for Data Center-only resolution.|
+|Project      |Project ID    |Can be retrieved with `(Get-JiraProject ...).Id`    |
+|ProjectRole  |Project role ID|Use the ID at the end of the role URL in `(Get-JiraProject ...).Roles`|
 |Authenticated| **must be null**    |                                                    |
 |Global       | **must be null**    |                                                    |
 
@@ -235,10 +206,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -251,14 +220,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This functions does not validate the input for `-Value`.
-In case the value is invalid, unexpected or missing, the API will response with
-an error.
+The command sends `Value` to Jira without validating it locally.
+Jira reports an error if the value is invalid or missing.
 
-This function requires either the `-Credential` parameter to be passed or
-a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

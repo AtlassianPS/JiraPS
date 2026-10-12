@@ -9,10 +9,8 @@
 
     process {
         foreach ($i in $InputObject) {
-            if ($i -is [AtlassianPS.JiraPS.Attachment]) {
-                $i
-                continue
-            }
+            if ($null -eq $i) { continue }
+            if ($i -is [AtlassianPS.JiraPS.Attachment]) { $i; continue }
 
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Attachment"
 
@@ -20,7 +18,7 @@
                 'ID'        = $i.id
                 'Self'      = [uri]$i.self
                 'FileName'  = $i.FileName
-                'Author'    = ConvertTo-JiraUser -InputObject $i.Author
+                'Author'    = if ($null -ne $i.Author) { ConvertTo-JiraUser -InputObject $i.Author } else { $null }
                 'Created'   = ConvertTo-JiraDateTimeOffsetValue $i.created
                 'Size'      = ConvertTo-JiraNullableInt64 $i.size
                 'MimeType'  = $i.mimeType

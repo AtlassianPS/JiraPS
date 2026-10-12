@@ -103,9 +103,7 @@
         if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Updating Issue labels")) {
             Invoke-JiraMethod @parameter
 
-            if ($PassThru) {
-                Get-JiraIssue -Key $issueObj.Key -Credential $Credential
-            }
+            if ($PassThru) { Get-JiraIssue -Key $issueObj.Key -Credential $Credential }
         }
     }
 

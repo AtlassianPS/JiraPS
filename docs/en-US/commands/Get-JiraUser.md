@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Get-JiraUser/
 
 ## SYNOPSIS
 
-Returns a user from Jira
+Returns a user from Jira.
 
 ## SYNTAX
 
@@ -37,7 +37,7 @@ Get-JiraUser [-AccountId] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <u
 ### ByInputObject
 
 ```powershell
-Get-JiraUser [-InputObject] <User[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>]
+Get-JiraUser [-InputObject] <AtlassianPS.JiraPS.User[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>]
  [<CommonParameters>]
 ```
 
@@ -47,7 +47,7 @@ This function returns information regarding a specified user from Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraUser -UserName user1
@@ -55,23 +55,23 @@ Get-JiraUser -UserName user1
 
 Returns information about all users with username like user1
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
 ```
 
-This example searches Active Directory for "John*Smith", then obtains their JIRA user accounts.
+This example searches Active Directory for "John*Smith", then obtains their Jira user accounts.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Get-JiraUser -Credential $cred
 ```
 
-This example returns the JIRA user that is executing the command.
+This example returns the Jira user that is executing the command.
 
-### EXAMPLE 4
+### Example 4
 
 ```powershell
 Get-JiraUser -UserName user1 -Exact
@@ -79,39 +79,37 @@ Get-JiraUser -UserName user1 -Exact
 
 Returns information about user user1
 
-### EXAMPLE 5
+### Example 5
 
 ```powershell
-Get-JiraUser -UserName ""
+Get-JiraUser -UserName ''
 ```
 
 Returns information about all users.
 The empty string "" matches all users.
 
-### EXAMPLE 6
+### Example 6
 
 ```powershell
-Get-JiraUser -AccountId "5b10a2844c20165700ede21g"
+Get-JiraUser -AccountId '5b10a2844c20165700ede21g'
 ```
 
 Returns user information for the specified account ID.
-Use this on Jira Cloud where
-usernames are not available due to GDPR requirements.
-The `AccountId` property
-can then be used in other commands like `Set-JiraIssue -Assignee`.
+Use this on Jira Cloud where usernames are not available due to GDPR requirements.
+The `AccountId` property can then be used in other commands like `Set-JiraIssue -Assignee`.
 
-### EXAMPLE 7
+### Example 7
 
 ```powershell
 # Find a user by display name and get their accountId for Cloud
-$user = Get-JiraUser -UserName "John Smith" | Select-Object -First 1
+$user = Get-JiraUser -UserName 'John Smith' | Select-Object -First 1
 Set-JiraIssue TEST-1 -Assignee $user.AccountId
 ```
 
 Searches for a user by name, then uses their account ID to assign an issue.
 This pattern is useful when migrating scripts from Data Center to Cloud.
 
-### EXAMPLE 8
+### Example 8
 
 ```powershell
 Get-JiraUser -UserName user1 | Get-JiraUser
@@ -145,7 +143,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -200,7 +198,7 @@ HelpMessage: ''
 
 ### -IncludeInactive
 
-Include inactive users in the search
+Include inactive users in the search.
 
 ```yaml
 Type: SwitchParameter
@@ -226,7 +224,7 @@ Use this parameter when you already have `AtlassianPS.JiraPS.User` objects and w
 For string-based lookup, use `-UserName` (Data Center / generic) or `-AccountId` (Cloud).
 
 ```yaml
-Type: User[]
+Type: AtlassianPS.JiraPS.User[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -325,10 +323,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -346,16 +342,13 @@ Existing user object(s) to refresh from Jira via `-InputObject`.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
-**Jira Cloud vs Data Center**: On Jira Cloud, users are identified by `accountId` instead of
-`username` due to GDPR requirements.
-The returned user object includes both `Name` (username,
-may be empty on Cloud) and `AccountId` (always present on Cloud).
-When working with Cloud,
-use the `AccountId` property for user-related operations like assigning issues.
+**Jira Cloud vs Data Center**: On Jira Cloud, users are identified by `accountId` instead of `username` due to GDPR requirements.
+The returned user object includes both `Name` (username, may be empty on Cloud) and `AccountId` (always present on Cloud).
+When working with Cloud, use the `AccountId` property for user-related operations like assigning issues.
 
 ## RELATED LINKS
 

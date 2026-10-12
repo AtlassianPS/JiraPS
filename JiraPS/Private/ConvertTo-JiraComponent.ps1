@@ -9,6 +9,7 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Component"
 
             $props = @{
@@ -26,8 +27,12 @@
             }
 
             if ($i.description) { $props.Description = $i.description }
-            if ($i.assigneeType) { $props.AssigneeType = $i.assigneeType }
-            if ($i.realAssigneeType) { $props.RealAssigneeType = $i.realAssigneeType }
+            if ($i.assigneeType) {
+                $props.AssigneeType = ConvertTo-JiraEnum -Type ([AtlassianPS.JiraPS.AssigneeType]) -Value $i.assigneeType
+            }
+            if ($i.realAssigneeType) {
+                $props.RealAssigneeType = ConvertTo-JiraEnum -Type ([AtlassianPS.JiraPS.AssigneeType]) -Value $i.realAssigneeType
+            }
             if ($null -ne $i.isAssigneeTypeValid) { $props.IsAssigneeTypeValid = [System.Convert]::ToBoolean($i.isAssigneeTypeValid) }
 
             [AtlassianPS.JiraPS.Component]$props

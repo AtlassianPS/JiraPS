@@ -57,19 +57,11 @@
                 $userObj = Resolve-JiraUser -InputObject $_user -Exact -Credential $Credential -ErrorAction Stop
                 $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
 
-                if ($isCloud -and $_group.Id) {
-                    $getParameter = @{ groupId = $_group.Id }
-                }
-                else {
-                    $getParameter = @{ groupname = $_group.Name }
-                }
+                $getParameter = if ($isCloud -and $_group.Id) { @{ groupId = $_group.Id } }
+                else { @{ groupname = $_group.Name } }
 
-                if ($isCloud) {
-                    $getParameter['accountId'] = $userIdentifier
-                }
-                else {
-                    $getParameter['username'] = $userIdentifier
-                }
+                if ($isCloud) { $getParameter['accountId'] = $userIdentifier }
+                else { $getParameter['username'] = $userIdentifier }
                 $target = if ($_group.Name) { $_group.Name } else { $_group.Id }
                 $parameter = @{
                     URI          = $resourceURi
@@ -78,14 +70,10 @@
                     Credential   = $Credential
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($target, "Remove $($userObj.DisplayName) from group")) {
-                    Invoke-JiraMethod @parameter
-                }
+                if ($PSCmdlet.ShouldProcess($target, "Remove $($userObj.DisplayName) from group")) { Invoke-JiraMethod @parameter }
             }
 
-            if ($PassThru) {
-                Write-Output $_group
-            }
+            if ($PassThru) { Write-Output $_group }
         }
     }
 

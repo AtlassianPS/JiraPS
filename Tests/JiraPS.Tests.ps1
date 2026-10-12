@@ -11,13 +11,8 @@ Describe "General project validation" -Tag Unit {
         Remove-Module JiraPS -ErrorAction SilentlyContinue
 
         $script:manifest = Test-ModuleManifest -Path $moduleToTest -ErrorAction Stop -WarningAction SilentlyContinue
-
-        $configFile = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData'))
-        $script:oldConfig = Get-Content $configFile
     }
     AfterEach {
-        Set-Content -Value $script:oldConfig -Path $configFile -Force
-
         Remove-Module JiraPS -ErrorAction SilentlyContinue
     }
 
@@ -48,12 +43,51 @@ Describe "General project validation" -Tag Unit {
         [Version]($manifest.Version) | Should -BeOfType [Version]
     }
 
-    It "module uses the previous server config when loaded" {
-        Set-Content -Value "https://example.com" -Path $configFile -Force
+    It "loads saved server configuration during initialization" {
+        $testServerConfig = Join-Path $TestDrive 'server_config'
+        Set-Content -LiteralPath $testServerConfig -Value 'https://saved-config.example/'
 
-        Import-Module $moduleToTest -Force
+        # Import in an isolated runspace so earlier tests cannot leave module mocks behind.
+        $powerShell = [PowerShell]::Create()
+        try {
+            $null = $powerShell.AddScript({
+                    param($modulePath, $fixturePath)
+                    $script:configFile = "{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData', 'Create')
+                    $script:fixturePath = $fixturePath
+                    $script:configReads = 0
 
-        Get-JiraConfigServer | Should -Be "https://example.com"
+                    function global:Test-Path {
+                        [CmdletBinding()]
+                        param([string]$Path, [string]$LiteralPath)
+                        if ($Path -eq $script:configFile) { return $true }
+                        Microsoft.PowerShell.Management\Test-Path @PSBoundParameters
+                    }
+
+                    function global:Get-Content {
+                        [CmdletBinding()]
+                        param([string]$Path, [switch]$Raw)
+                        if ($Path -eq $script:configFile) {
+                            $script:configReads++
+                            return [IO.File]::ReadAllText($script:fixturePath)
+                        }
+                        Microsoft.PowerShell.Management\Get-Content @PSBoundParameters
+                    }
+
+                    Import-Module $modulePath -Force -ErrorAction Stop
+                    [PSCustomObject]@{
+                        Server = Get-JiraConfigServer
+                        Reads  = $script:configReads
+                    }
+                }).AddArgument($moduleToTest).AddArgument($testServerConfig)
+            $result = $powerShell.Invoke()
+            if ($powerShell.HadErrors) { throw $powerShell.Streams.Error[0] }
+
+            $result.Server | Should -Be 'https://saved-config.example'
+            $result.Reads | Should -Be 1
+        }
+        finally {
+            $powerShell.Dispose()
+        }
     }
 
     It "module manifest uses a semantic version" {

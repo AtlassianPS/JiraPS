@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Get-JiraField/
 
 ## SYNOPSIS
 
-This function returns information about JIRA fields
+This function returns information about Jira fields.
 
 ## SYNTAX
 
@@ -23,12 +23,12 @@ Get-JiraField [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ### _Search
 
 ```powershell
-Get-JiraField [-Field] <string[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraField [-Field] <AtlassianPS.JiraPS.Field[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function provides information about JIRA fields, or about one field in particular.
+This function provides information about Jira fields, or about one field in particular.
 This is a good way to identify a field's ID by its name, or vice versa.
 
 Typically, this information is only needed when identifying what fields are necessary to create or edit issues.
@@ -39,23 +39,23 @@ Use the `-Force` parameter to bypass the cache and fetch fresh data from the ser
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraField
 ```
 
-This example returns information about all JIRA fields visible to the current user.
+This example returns information about all Jira fields visible to the current user.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraField "Key"
+Get-JiraField 'Key'
 ```
 
 This example returns information about the Key field.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Get-JiraField -Force
@@ -67,7 +67,7 @@ This example bypasses the cache and fetches fresh field data from the server.
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -89,10 +89,11 @@ HelpMessage: ''
 
 ### -Field
 
-The Field name or ID to search.
+Field objects, field IDs or wildcard field names.
+An exact ID takes precedence over a display-name match.
 
 ```yaml
-Type: String[]
+Type: AtlassianPS.JiraPS.Field[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -113,8 +114,7 @@ HelpMessage: ''
 Bypass the cache and fetch fresh data from the server.
 
 By default, field data is cached for 60 minutes to reduce API calls.
-Use this parameter when you need the most up-to-date field information,
-for example after making configuration changes in Jira.
+Use this parameter when you need the most up-to-date field information, for example after making configuration changes in Jira.
 
 ```yaml
 Type: SwitchParameter
@@ -135,26 +135,31 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
+### AtlassianPS.JiraPS.Field
+
+Pipe a field object to retrieve its current details.
+
+### System.String
+
+Pipe a field ID or name pattern.
+
 ## OUTPUTS
 
-### JiraPS.Field
+### AtlassianPS.JiraPS.Field
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 Results are cached for 60 minutes per server.
-Use `-Force` to bypass the cache,
-or use `Clear-JiraCache -Type Fields` to clear all cached field data.
+Use `-Force` to bypass the cache, or use `Clear-JiraCache -Type Fields` to clear all cached field data.
 
 Remaining operations for `field` have not yet been implemented in the module.
 

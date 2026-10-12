@@ -10,45 +10,42 @@ permalink: /docs/JiraPS/commands/Remove-JiraFilterPermission/
 
 ## SYNOPSIS
 
-Remove a permission of a Filter
+Remove a permission of a filter.
 
 ## SYNTAX
 
-### ByFilterId (Default)
-
 ```powershell
-Remove-JiraFilterPermission [-FilterId] <uint> [-PermissionId] <uint[]> [-Credential <pscredential>]
- [-WhatIf] [-Confirm] [<CommonParameters>]
-```
-
-### ByFilterObject
-
-```powershell
-Remove-JiraFilterPermission [-Filter] <Filter> [-Credential <pscredential>] [-WhatIf] [-Confirm]
+Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter>
+ [[-Permission] <AtlassianPS.JiraPS.FilterPermission[]>] [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Remove a sharing permission of a Filter.
+Remove sharing permissions from a filter.
+Pass a filter object or its numeric ID.
+`FilterId` and `Id` are aliases for `Filter`.
+`PermissionId` is an alias for `Permission`.
+If `Permission` is omitted, the filter must contain permissions retrieved by `Get-JiraFilterPermission`.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-Remove-JiraFilterPermission -FilterId 11822 -PermissionId 1111, 2222
+Remove-JiraFilterPermission -FilterId 11822 -Permission 1111, 2222
 ```
 
-Remove two share permissions of Filter with ID '11822'
+Remove two share permissions from filter 11822.
+Numeric IDs are converted to permission objects.
 
-### Example 1
+### Example 2
 
 ```powershell
 Get-JiraFilter 11822 | Get-JiraFilterPermission | Remove-JiraFilterPermission
 ```
 
-Remove all permissions of Filter 11822
+Remove all permissions of filter 11822
 
 ## PARAMETERS
 
@@ -76,7 +73,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -98,15 +95,17 @@ HelpMessage: ''
 
 ### -Filter
 
-Object of the Filter from which to remove a permission.
+Filter object or positive numeric filter ID from which to remove permissions.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- FilterId
+- Id
 ParameterSets:
-- Name: ByFilterObject
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
@@ -117,41 +116,23 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -FilterId
+### -Permission
 
-Id of the Filter from which to remove a permission.
+Permission objects or non-negative numeric permission IDs.
+Zero is accepted; Jira determines whether the ID exists.
+Permission objects must contain an ID.
+If omitted, removes the permissions already present in the supplied filter object.
 
 ```yaml
-Type: UInt32
+Type: AtlassianPS.JiraPS.FilterPermission[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
-- Id
+- PermissionId
 ParameterSets:
-- Name: ByFilterId
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -PermissionId
-
-List of id's of the permissions to remove.
-
-```yaml
-Type: UInt32[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ByFilterId
+- Name: (All)
   Position: 1
-  IsRequired: true
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -185,16 +166,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ### AtlassianPS.JiraPS.Filter
 
-Pipe a AtlassianPS.JiraPS.Filter to remove all of its share permissions.
+Pipe an AtlassianPS.JiraPS.Filter to remove all of its share permissions.
 
 ## OUTPUTS
 
@@ -202,10 +181,9 @@ Pipe a AtlassianPS.JiraPS.Filter to remove all of its share permissions.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or
-a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

@@ -49,9 +49,7 @@
     }
 
     # In PowerShellCore (v6+) the StatusCode of an exception is somewhere else
-    if (-not ($statusCode = $WebResponse.StatusCode)) {
-        $statusCode = $WebResponse.Exception.Response.StatusCode
-    }
+    if (-not ($statusCode = $WebResponse.StatusCode)) { $statusCode = $WebResponse.Exception.Response.StatusCode }
     Write-Verbose "[$CommandName] Status code: $($statusCode)"
 
     if ($statusCode.value__ -ge 400) {
@@ -59,9 +57,7 @@
         return
     }
 
-    if ($StoreSession) {
-        return & $SessionTransformationMethod -Session $Session -Username $Credential.UserName
-    }
+    if ($StoreSession) { return & $SessionTransformationMethod -Session $Session -Username $Credential.UserName }
 
     if (-not $WebResponse.Content) {
         # No content, although statusCode < 400
@@ -78,10 +74,5 @@
         Set-JiraCachedResponse -CacheKey $CacheKey -Method $Method -Response $response -CacheExpiry $CacheExpiry -CommandName $CommandName
     }
 
-    if ($Paging) {
-        Invoke-PaginatedRequest -Response $response @BoundParameters
-    }
-    else {
-        $response
-    }
+    if ($Paging) { Invoke-PaginatedRequest -Response $response @BoundParameters } else { $response }
 }

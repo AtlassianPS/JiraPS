@@ -15,31 +15,31 @@ This function removes an existing version.
 ## SYNTAX
 
 ```powershell
-Remove-JiraVersion [-Version] <Version[]> [[-Credential] <pscredential>] [-Force] [-WhatIf]
+Remove-JiraVersion [-Version] <AtlassianPS.JiraPS.Version[]> [[-Credential] <pscredential>] [-Force] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function removes an existing version in JIRA.
+This function removes an existing version in Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraVersion -Name '1.0.0.0' -Project $Project | Remove-JiraVersion
 ```
 
-This example removes the Version given.
+This example removes the version given.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Remove-JiraVersion -Version '66596'
 ```
 
-This example removes the Version given.
+This example removes the version given.
 
 ## PARAMETERS
 
@@ -67,7 +67,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -110,10 +110,10 @@ HelpMessage: ''
 
 ### -Version
 
-Version Object or ID to delete.
+Version object or ID to delete.
 
 ```yaml
-Type: Version[]
+Type: AtlassianPS.JiraPS.Version[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -154,10 +154,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -168,9 +166,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

@@ -16,9 +16,7 @@ BeforeDiscovery {
             $script:TestIssueKey = $testEnv.TestIssue
             $script:TestProjectKey = $testEnv.TestProject
         }
-        else {
-            $script:Skip = $true
-        }
+        else { $script:Skip = $true }
     }
 }
 
@@ -28,17 +26,11 @@ InModuleScope JiraPS {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
             $script:env = Initialize-IntegrationEnvironment
-            if (-not $env) {
-                throw "Initialize-IntegrationEnvironment returned null - tests cannot run"
-            }
+            if (-not $env) { throw "Initialize-IntegrationEnvironment returned null - tests cannot run" }
             $script:session = Connect-JiraTestServer -Environment $env
             $script:fixtures = Get-TestFixture -Environment $env
-            if (-not $fixtures) {
-                throw "Get-TestFixture returned null - tests cannot run"
-            }
-            if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                throw "fixtures.TestIssue is empty - tests should have been skipped"
-            }
+            if (-not $fixtures) { throw "Get-TestFixture returned null - tests cannot run" }
+            if ([string]::IsNullOrEmpty($fixtures.TestIssue)) { throw "fixtures.TestIssue is empty - tests should have been skipped" }
         }
 
         AfterAll {
@@ -129,7 +121,7 @@ InModuleScope JiraPS {
 
                 $issue | Should -Not -BeNullOrEmpty
                 $issue.PSObject.Properties.Name | Should -Contain 'History'
-                ($issue.History -is [Object[]]) | Should -BeTrue
+                $issue.History.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueHistoryEntry[]])
             }
 
             It "supports the -GetHistory alias" {
@@ -137,7 +129,7 @@ InModuleScope JiraPS {
 
                 $issue | Should -Not -BeNullOrEmpty
                 $issue.PSObject.Properties.Name | Should -Contain 'History'
-                ($issue.History -is [Object[]]) | Should -BeTrue
+                $issue.History.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueHistoryEntry[]])
             }
 
             It "adds History when -IncludeHistory is used with -Query" {
@@ -147,7 +139,7 @@ InModuleScope JiraPS {
 
                 @($issues).Count | Should -BeGreaterThan 0
                 @($issues)[0].PSObject.Properties.Name | Should -Contain 'History'
-                (@($issues)[0].History -is [Object[]]) | Should -BeTrue
+                @($issues)[0].History.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueHistoryEntry[]])
             }
         }
 

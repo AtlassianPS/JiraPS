@@ -10,19 +10,18 @@ permalink: /docs/JiraPS/commands/Set-JiraFilter/
 
 ## SYNOPSIS
 
-Make changes to an existing Filter.
+Make changes to an existing filter.
 
 ## SYNTAX
 
 ```powershell
-Set-JiraFilter [-InputObject] <Filter> [[-Name] <string>] [[-Description] <string>]
- [[-JQL] <string>] [[-Favorite] <bool>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Set-JiraFilter [-InputObject] <AtlassianPS.JiraPS.Filter> [[-Name] <string>] [[-Description] <string>]
+ [[-JQL] <string>] [[-Favorite] <bool>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Make changes to an existing Filter.
+Make changes to an existing filter.
 
 If no changing parameter is provided, no action will be performed.
 
@@ -31,7 +30,7 @@ If no changing parameter is provided, no action will be performed.
 ### Example 1
 
 ```powershell
-Set-JiraFilter -InputObject (Get-JiraFilter "12345") -Name "NewName"
+Set-JiraFilter -InputObject (Get-JiraFilter '12345') -Name 'NewName'
 ```
 
 Changes the name of filter "12345" to "NewName"
@@ -40,9 +39,9 @@ Changes the name of filter "12345" to "NewName"
 
 ```powershell
 $filterData = @{
-    InputObject = Get-JiraFilter "12345"
-    Description = "A new description"
-    JQL = "project = TV AND type = Bug"
+    InputObject = Get-JiraFilter '12345'
+    Description = 'A new description'
+    JQL = 'project = TV AND type = Bug'
     Favorite = $true
 }
 Set-JiraFilter @filterData
@@ -54,7 +53,7 @@ Changes the description and JQL of filter "12345" and make it a favorite
 
 ```powershell
 Get-JiraFilter -Favorite |
-    Where name -notlike "My*" |
+    Where name -notlike 'My*' |
     Set-JiraFilter -Favorite $false
 ```
 
@@ -86,7 +85,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -155,7 +154,7 @@ HelpMessage: ''
 
 Filter object to be changed.
 
-Object can be retrieved with `Get-JiraFilter`
+Object can be retrieved with `Get-JiraFilter`.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter
@@ -178,7 +177,7 @@ HelpMessage: ''
 
 New value for the filter's JQL string which the filter uses for matching issues.
 
-More about JQL at <https://confluence.atlassian.com/display/JIRA/Advanced+Searching>
+More about JQL at <https://confluence.atlassian.com/display/Jira/Advanced+Searching>.
 
 ```yaml
 Type: String
@@ -199,7 +198,7 @@ HelpMessage: ''
 
 ### -Name
 
-New value for the filter's Name.
+The new filter name.
 
 ```yaml
 Type: String
@@ -243,10 +242,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -258,9 +255,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

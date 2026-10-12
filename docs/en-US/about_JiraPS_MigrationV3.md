@@ -15,14 +15,12 @@ This document describes the breaking changes in JiraPS v3 and how to migrate you
 
 # LONG DESCRIPTION
 
-JiraPS v3 removes a number of long-deprecated parameters and "magic string"
-values that have been in the codebase for several major versions.
-The minimum supported PowerShell version was also raised to 5.1,
-allowing the module to adopt newer language features and improve performance.
+JiraPS v3 removes a number of long-deprecated parameters and "magic string" values that have been in the codebase for several major versions.
+The minimum supported PowerShell version was also raised to 5.1, allowing the module to adopt newer language features and improve performance.
 
 This guide lists every breaking change introduced in v3 and shows how to update your scripts.
 
-## SUMMARY OF BREAKING CHANGES
+## Summary of breaking changes
 
 | Area                         | What Changed                                                            |
 | ---------------------------- | ----------------------------------------------------------------------- |
@@ -39,7 +37,7 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | `New-JiraIssue -Reporter`    | No longer accepts `$null`, empty, or whitespace-only strings.           |
 | `New-JiraIssue -Reporter`    | Now resolves the user via `Resolve-JiraUser` on Server / DC too.        |
 | `Invoke-JiraMethod -Uri`     | Relative endpoint paths are now first-class (`/rest/api/...`).          |
-| `JiraPS.Issue.Status`        | Now a `JiraPS.Status` object instead of the bare status name string.    |
+| Issue `Status`              | Now an `AtlassianPS.JiraPS.Status` object instead of the bare status name string.    |
 | PSTypeName rename            | Eight core types moved from `JiraPS.<Type>` to `AtlassianPS.JiraPS.<Type>`. |
 | Class slot type tightening   | Boolean / numeric slots on `Filter` and `Version` are now strongly typed; missing flags surface as `$false` instead of `$null`. |
 | `Version.StartDate` / `Version.ReleaseDate` | Empty-string sentinel for missing dates dropped; the slots are now `[DateTime?]` and `$null` when absent. |
@@ -55,23 +53,27 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | Rich-text fields (read)      | On Cloud, returned as Markdown strings instead of ADF JSON trees.       |
 | Rich-text fields (write)     | On Cloud, plain strings / Markdown are accepted and wrapped in ADF (previously rejected). |
 | Minimum PowerShell version   | Raised from 3.0 to 5.1.                                                 |
+| Issue `Assignee` | Unassigned issues return `$null` instead of `Unassigned`. |
+| Nested issue and related data | History, visibility, schemas, filter subscriptions and other nested values use typed .NET objects. |
+| Enum properties | Known values use nullable enums; unknown API values become `$null`. Cast to `[string]` when exporting enum names as JSON. |
+| Project `Roles` and user `AvatarUrl` | These properties use dictionaries of URI values. Read entries by key. |
+| Filter and related object parameters | Commands declare the object types they accept. Identifier and name shorthand remain available where documented. |
 
-## DEPRECATIONS (NON-BREAKING)
+## Deprecations
 
-The following changes do **not** break existing scripts in v3 — the old name continues to work via an exported alias — but the alias will be removed in a future major version.
+The old command name continues to work as an exported alias in v3.
+The alias will be removed in a future major version.
 Update at your convenience.
 
 | Area          | What Changed                                                                  |
 | ------------- | ----------------------------------------------------------------------------- |
 | `Format-Jira` | Renamed to `ConvertTo-JiraTable`. The old name is preserved as a deprecated, exported alias. |
 
-## DETAILED MIGRATION GUIDE
+## Detailed migration guide
 
 ### Pagination — `Get-JiraIssue` and `Get-JiraGroupMember`
 
-The legacy parameters `-StartIndex` and `-MaxResults` have been removed in
-favor of the standard PowerShell paging parameters `-Skip` and `-First`,
-which were already supported in v2.
+The legacy parameters `-StartIndex` and `-MaxResults` have been removed in favor of the standard PowerShell paging parameters `-Skip` and `-First`, which were already supported in v2.
 
 #### v2
 
@@ -87,12 +89,10 @@ Get-JiraIssue -Query 'project = TEST' -Skip 10 -First 50
 Get-JiraGroupMember -Group 'jira-users' -First 100
 ```
 
-### Unassigning an Issue — `Set-JiraIssue`
+### Unassigning an issue with `Set-JiraIssue`
 
-Previously, `'Unassigned'` was a magic string and `$null` was the documented way
-to unassign. Both are removed in favor of the explicit `-Unassign` switch, which
-is more discoverable, symmetric with `-UseDefaultAssignee`, and prevents easy
-mistakes such as passing a variable that is unexpectedly `$null`.
+Previously, `'Unassigned'` was a magic string and `$null` was the documented way to unassign.
+Both are removed in favor of the explicit `-Unassign` switch, which is more discoverable, symmetric with `-UseDefaultAssignee`, and prevents easy mistakes such as passing a variable that is unexpectedly `$null`.
 
 #### v2
 
@@ -107,7 +107,7 @@ Set-JiraIssue -Issue TEST-01 -Assignee $null
 Set-JiraIssue -Issue TEST-01 -Unassign
 ```
 
-### Default Assignee — `Set-JiraIssue`
+### Default assignee with `Set-JiraIssue`
 
 The string value `'Default'` is no longer recognised by `-Assignee`.
 Use the `-UseDefaultAssignee` switch (introduced as the canonical replacement).
@@ -124,10 +124,9 @@ Set-JiraIssue -Issue TEST-01 -Assignee 'Default'
 Set-JiraIssue -Issue TEST-01 -UseDefaultAssignee
 ```
 
-### Unassigning during a Transition — `Invoke-JiraIssueTransition`
+### Unassigning during a transition with `Invoke-JiraIssueTransition`
 
-Same change as `Set-JiraIssue`:
-the `'Unassigned'` magic string and the `$null` convention have been replaced by the explicit `-Unassign` switch.
+Same change as `Set-JiraIssue`: the `'Unassigned'` magic string and the `$null` convention have been replaced by the explicit `-Unassign` switch.
 
 #### v2
 
@@ -142,11 +141,10 @@ Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Assignee $null
 Invoke-JiraIssueTransition -Issue TEST-01 -Transition 11 -Unassign
 ```
 
-### Mutual Exclusion of Assignee Operations
+### Mutually exclusive assignee operations
 
-In v3 the assignee-related parameters live in distinct parameter sets,
-so PowerShell will refuse to bind more than one of them in the same call.
-This catches mistakes at parse time rather than producing surprising behaviour.
+In v3 the assignee-related parameters live in distinct parameter sets, so PowerShell will refuse to bind more than one of them in the same call.
+PowerShell rejects conflicting parameters during parameter binding.
 
 #### Invalid in v3
 
@@ -156,19 +154,16 @@ Set-JiraIssue -Issue TEST-01 -Assignee 'alice' -UseDefaultAssignee  # error
 Set-JiraIssue -Issue TEST-01 -Unassign -UseDefaultAssignee          # error
 ```
 
-### Empty / Null Assignee Strings
+### Empty or null assignee strings
 
-`-Assignee ""` and `-Assignee $null` are now rejected at parameter binding
-time. Use `-Unassign` to remove the assignee, or `-UseDefaultAssignee` to
-fall back to the project default.
+`-Assignee ""` and `-Assignee $null` are now rejected at parameter binding time.
+Use `-Unassign` to remove the assignee, or `-UseDefaultAssignee` to fall back to the project default.
 
 ### `-Assignee` is no longer positional
 
-`-Assignee` used to be available positionally (after `-Issue`, `-Summary`,
-`-Description`, and `-FixVersion`). Because it now belongs to a parameter
-set and the new `-Unassign` / `-UseDefaultAssignee` switches are all named,
-`-Assignee` must also be supplied by name in v3. Scripts that used named
-arguments are unaffected.
+`-Assignee` used to be available positionally (after `-Issue`, `-Summary`, `-Description`, and `-FixVersion`).
+Because it now belongs to a parameter set and the new `-Unassign` / `-UseDefaultAssignee` switches are all named, `-Assignee` must also be supplied by name in v3.
+Scripts that used named arguments are unaffected.
 
 #### v2
 
@@ -182,23 +177,17 @@ Set-JiraIssue TEST-01 'new summary' 'new description' @() 'alice'
 Set-JiraIssue TEST-01 -Summary 'new summary' -Description 'new description' -Assignee 'alice'
 ```
 
-### Reporter Resolution and Validation — `New-JiraIssue`
+### Reporter resolution and validation with `New-JiraIssue`
 
-In v2, `New-JiraIssue -Reporter` accepted `$null`, `''`, and whitespace-only
-strings, silently forwarded them to Jira's create endpoint, and let the
-server reject the request with an opaque error. On Jira Server / Data Center
-it also bypassed `Resolve-JiraUser` entirely — so a typo'd username only
-surfaced once Jira returned an error.
+In v2, `New-JiraIssue -Reporter` accepted `$null`, `''`, and whitespace-only strings, silently forwarded them to Jira's create endpoint, and let the server reject the request with an opaque error.
+On Jira Server / Data Center it also bypassed `Resolve-JiraUser` entirely — so a typo'd username only surfaced once Jira returned an error.
 
 In v3:
 
-- `-Reporter` rejects `$null`, `''`, and whitespace-only strings at parameter
-  binding time with an actionable message. **Omit `-Reporter` entirely** to
-  let Jira apply the project's default reporter — this matches the API's
-  behaviour and is the supported way to "reset" the reporter on creation.
-- `-Reporter` is now resolved through `Resolve-JiraUser` on Server / DC as
-  well, so typos are caught client-side and Cloud / DC use the same code
-  path. `Resolve-JiraUser` performs an exact match (`-Exact`).
+- `-Reporter` rejects `$null`, `''`, and whitespace-only strings at parameter binding time with an actionable message.
+  **Omit `-Reporter` entirely** to let Jira apply the project's default reporter — this matches the API's behaviour and is the supported way to "reset" the reporter on creation.
+- `-Reporter` is now resolved through `Resolve-JiraUser` on Server / DC as well, so typos are caught client-side and Cloud / DC use the same code path.
+  `Resolve-JiraUser` performs an exact match (`-Exact`).
 
 #### v2
 
@@ -217,10 +206,11 @@ New-JiraIssue -Project TEST -IssueType Task -Summary 'x'
 New-JiraIssue -Project TEST -IssueType Task -Summary 'x' -Reporter 'powershell'
 ```
 
-### Renaming — `Format-Jira` → `ConvertTo-JiraTable`
+### Renaming `Format-Jira` → `ConvertTo-JiraTable`
 
 The `Format-Jira` cmdlet has been renamed to `ConvertTo-JiraTable`.
-The new name reflects what the command actually does: it returns a `[String]` containing Jira wiki-markup table syntax, not a host-only `Format-*` display object like `Format-Table` produces.
+The command returns a string containing Jira wiki-markup table syntax.
+It does not produce a formatting object like `Format-Table`.
 Treating it as a `ConvertTo-*` is also more honest about the destructive nature of the conversion.
 
 Existing scripts continue to work because `Format-Jira` is preserved as an exported deprecated alias.
@@ -265,7 +255,7 @@ The same change applies to comment bodies (`$issue.Comment[].Body`, `(Get-JiraIs
 ##### v2
 
 ```powershell
-$issue = Get-JiraIssue TEST-1
+$issue = Get-JiraIssue -Key 'TEST-1'
 # $issue.Description was an ADF document object — the script had to walk the tree:
 $issue.Description.content[0].content[0].text
 ```
@@ -273,7 +263,7 @@ $issue.Description.content[0].content[0].text
 ##### v3
 
 ```powershell
-$issue = Get-JiraIssue TEST-1
+$issue = Get-JiraIssue -Key 'TEST-1'
 # $issue.Description is now a Markdown string:
 $issue.Description
 ```
@@ -315,14 +305,14 @@ For full control over the ADF document (embedded media, mentions, status lozenge
 
 Wiki-markup tables (`||header||`) emitted by `ConvertTo-JiraTable` render as literal text on Cloud — JiraPS warns when it sees that pattern in a Cloud write payload.
 Use Markdown table syntax instead; `ConvertTo-AtlassianDocumentFormat` translates it to a real ADF table.
-See the **Renaming — `Format-Jira` → `ConvertTo-JiraTable`** section above.
+See the **Renaming `Format-Jira` → `ConvertTo-JiraTable`** section above.
 
-### `JiraPS.Issue.Status` is now a `JiraPS.Status` object
+### Issue `Status` is now a typed object
 
 Previously, `JiraPS.Issue.Status` was the bare status name string (e.g. `'Open'`).
 This made `$issue.Status.Name` evaluate to `$null` and prevented downstream code from inspecting the status category, icon, or REST URL — every other domain field on `JiraPS.Issue` was already strongly typed (`Project`, `Reporter`, `Assignee`, …) so this was a long-standing inconsistency.
 
-`Status` is now a `JiraPS.Status` `PSObject` with `Id`, `Name`, `Description`, `IconUrl`, and `RestUrl` properties.
+`Status` is now an `AtlassianPS.JiraPS.Status` object with `Id`, `Name`, `Description`, `IconUrl`, and `RestUrl` properties.
 Its `ToString()` override renders the status name, so string interpolation (`"$($issue.Status)"`), `Write-Output $issue.Status`, and the default formatter continue to print the previous text and most scripts need no change.
 
 The breaking case is direct equality / pattern-match against the bare name:
@@ -343,7 +333,7 @@ $issue.Status.Name -match '^In '
 $issue.Status.Name.Substring(0, 3)
 ```
 
-### Endpoint Paths in `Invoke-JiraMethod`
+### Endpoint paths in `Invoke-JiraMethod`
 
 In v3, JiraPS standardizes internal REST calls on relative endpoint paths that match Atlassian documentation (for example, `/rest/api/2/project`).
 `Invoke-JiraMethod` resolves those relative paths against `Get-JiraConfigServer`.
@@ -358,16 +348,10 @@ Invoke-JiraMethod -Uri '/rest/api/2/project'
 Invoke-JiraMethod -Uri '/rest/api/2/issue/TEST-1'
 ```
 
-### PSTypeName Rename — `AtlassianPS.JiraPS.*`
+### PSTypeName changes in `AtlassianPS.JiraPS.*`
 
-The eight most-used JiraPS domain types are now real .NET classes under the
-`AtlassianPS.JiraPS` namespace, mirroring the long-standing convention used by
-`ConfluencePS` and other AtlassianPS modules.
-Returned objects have `GetType().FullName -eq 'AtlassianPS.JiraPS.<Type>'`,
-support hashtable construction (`[AtlassianPS.JiraPS.User]@{ Name = 'jdoe' }`),
-expose strongly-typed cross-references (e.g. `Project.Lead` is `[User]`,
-`Issue.Project` is `[Project]`), and surface real properties to
-`Get-Member` and IDE IntelliSense.
+The eight most-used JiraPS domain types are now real .NET classes under the `AtlassianPS.JiraPS` namespace, mirroring the long-standing convention used by `ConfluencePS` and other AtlassianPS modules.
+Returned objects have `GetType().FullName -eq 'AtlassianPS.JiraPS.<Type>'`, support hashtable construction (`[AtlassianPS.JiraPS.User]@{ Name = 'jdoe' }`), expose strongly-typed cross-references (e.g. `Project.Lead` is `[User]`, `Issue.Project` is `[Project]`), and surface real properties to `Get-Member` and IDE IntelliSense.
 
 The following types were renamed:
 
@@ -383,15 +367,10 @@ The following types were renamed:
 | `JiraPS.ServerInfo` | `AtlassianPS.JiraPS.ServerInfo`  |
 
 There is no backward-compatibility alias.
-Scripts that inspect `PSObject.TypeNames` or hand-construct mock objects with
-the legacy `JiraPS.<Type>` name must be updated.
+Scripts that inspect `PSObject.TypeNames` or hand-construct mock objects with the legacy `JiraPS.<Type>` name must be updated.
 
-Leaf return types such as `Status`, `Priority`, `IssueType`, `Component`,
-`Attachment`, `Worklogitem`, `Transition`, `IssueLink`, `ProjectRole`,
-`FilterPermission`, and metadata field objects are also promoted to
-`AtlassianPS.JiraPS.*` classes in this release. New code should prefer
-`$obj -is [AtlassianPS.JiraPS.<Type>]` checks over inspecting
-`PSObject.TypeNames`.
+Leaf return types such as `Status`, `Priority`, `IssueType`, `Component`, `Attachment`, `Worklogitem`, `Transition`, `IssueLink`, `ProjectRole`, `FilterPermission`, and metadata field objects are also promoted to `AtlassianPS.JiraPS.*` classes in this release.
+New code should prefer `$obj -is [AtlassianPS.JiraPS.<Type>]` checks over inspecting `PSObject.TypeNames`.
 
 #### Type-name inspection
 
@@ -423,18 +402,16 @@ $mockIssue = [AtlassianPS.JiraPS.Issue]@{
 }
 ```
 
-The v3 form is preferred (it gives parse-time errors for typo'd property
-names), but if a test must keep the v2 hashtable shape, just rename the
-`PSTypeName` value to `'AtlassianPS.JiraPS.<Type>'` and it will continue
-to bind correctly to `[PSTypeName('AtlassianPS.JiraPS.<Type>')]`
-parameter attributes.
+Prefer typed mock objects.
+PowerShell rejects unknown properties when it constructs the object at runtime.
+Some command parameters also accept `PSCustomObject` mocks through their argument transformers.
+Give those mocks the corresponding `AtlassianPS.JiraPS.<Type>` type name only when the consuming transformer supports it.
+The parameters use CLR types and transformation attributes rather than `PSTypeName` attributes.
 
 ### Identifier-based equality on strong types
 
-`Issue`, `User`, `Project`, `Group`, `Filter`, and `Version` now implement
-identifier-based equality and comparison. This means `-eq`, `-contains`,
-`Sort-Object -Unique`, `Group-Object`, and hashtable-key lookups now dedupe
-instances by their canonical identifier instead of by object reference.
+`Issue`, `User`, `Project`, `Group`, `Filter`, and `Version` now implement identifier-based equality and comparison.
+This means `-eq`, `-contains`, `Sort-Object -Unique`, `Group-Object`, and hashtable-key lookups now dedupe instances by their canonical identifier instead of by object reference.
 
 Canonical identifier rules:
 
@@ -442,20 +419,17 @@ Canonical identifier rules:
 - `User`: `AccountId` when present, otherwise `Name`
 - `Project`: `Key`
 - `Group`: `Name`
-- `Filter`: `ID`
-- `Version`: `ID` when present, otherwise `Name`
+- `Filter`: `Id`
+- `Version`: `Id` when present, otherwise `Name`
 
-#### Cloud/Data Center note for `User`
+#### Cloud and Data Center identity for `User`
 
-Because `User` now prefers `AccountId` over `Name`, scripts that cache or
-dedupe users across mixed DC/Cloud data can see different grouping behavior
-after migration. For stable cross-platform behavior, key persisted caches on
-`AccountId` when it is available.
+Because `User` now prefers `AccountId` over `Name`, scripts that cache or dedupe users across mixed DC/Cloud data can see different grouping behavior after migration.
+For stable cross-platform behavior, key persisted caches on `AccountId` when it is available.
 
-### Class slot type tightening — `Filter`, `Version`
+### Property type changes in `Filter`, `Version`
 
-The boolean and numeric properties on `AtlassianPS.JiraPS.Filter` and
-`AtlassianPS.JiraPS.Version` are now strongly typed:
+The boolean and numeric properties on `AtlassianPS.JiraPS.Filter` and `AtlassianPS.JiraPS.Version` are now strongly typed:
 
 | Property              | v2 slot type | v3 slot type |
 | --------------------- | ------------ | ------------ |
@@ -465,12 +439,10 @@ The boolean and numeric properties on `AtlassianPS.JiraPS.Filter` and
 | `Version.Overdue`     | `[object]`   | `[bool]`     |
 | `Version.Project`     | `[object]`   | `[long?]`    |
 
-This matches what the Jira REST APIs actually return and lets `Get-Member`,
-IDE IntelliSense, and `[ValidateScript]` see the real types.
+This matches what the Jira REST APIs actually return and lets `Get-Member`, IDE IntelliSense, and `[ValidateScript]` see the real types.
 
 The user-visible behaviour change is around **missing fields**.
-The Jira docs describe a missing boolean flag as "not set" (i.e. `false`),
-and v3 surfaces it that way:
+The Jira docs describe a missing boolean flag as "not set" (i.e. `false`), and v3 surfaces it that way:
 
 ```powershell
 # v2 — a Filter without a `favourite` key in the payload
@@ -481,17 +453,12 @@ $filter.Favourite -eq $null    # False
 $filter.Favourite -eq $false   # True
 ```
 
-If your scripts deliberately distinguish "field absent" from "field set to
-false" via `if ($null -eq $f.Favourite)` you need to switch to a different
-signal (e.g. inspect the raw payload before the converter runs, or use
-`[Nullable[bool]]` in your own wrapper code).
+If your scripts deliberately distinguish "field absent" from "field set to false" via `if ($null -eq $f.Favourite)` you need to switch to a different signal (e.g. inspect the raw payload before the converter runs, or use `[Nullable[bool]]` in your own wrapper code).
 
 ### `Version.StartDate` / `Version.ReleaseDate` — empty-string sentinel removed
 
-In v2 the converter emitted an empty string `''` for missing version dates,
-so user code could keep using `if ($v.StartDate)` short-circuit checks
-without first thinking about `$null`. The slots were typed `[object]` to
-preserve that behaviour.
+In v2 the converter emitted an empty string `''` for missing version dates, so user code could keep using `if ($v.StartDate)` short-circuit checks without first thinking about `$null`.
+The slots were typed `[object]` to preserve that behaviour.
 
 In v3 the slots are `[DateTime?]` and missing values are `$null`:
 
@@ -517,7 +484,8 @@ Equality comparisons against `''` are the only thing that needs updating.
 ### Strongly-typed object parameters
 
 JiraPS v3 replaces the old `[Object]` + `ValidateScript` parameter pattern with typed class parameters and transformation attributes.
-In practice, this means each cmdlet family now accepts the same input shapes, but conversion happens centrally at parameter binding time, with clearer errors and less cmdlet-specific adapter code.
+Commands accept existing typed objects and the identifier or name shorthand documented in their help.
+PowerShell converts supported shorthand when binding parameters.
 Most scripts can keep passing strings, while newer scripts can pass real `AtlassianPS.JiraPS.*` instances directly.
 
 #### Cmdlet family summary
@@ -525,32 +493,22 @@ Most scripts can keep passing strings, while newer scripts can pass real `Atlass
 | Family | Representative parameters | v3 class | Canonical identifier slot |
 | ------ | ------------------------- | -------- | ------------------------- |
 | Issue | `-Issue`, `-InputObject` | `[AtlassianPS.JiraPS.Issue]` | `Key` |
-| Version | `-Version`, `-After`, `-InputVersion`, `-InputObject` | `[AtlassianPS.JiraPS.Version]` | `ID` (fallback `Name`) |
-| Filter | `-Filter`, `-InputObject` | `[AtlassianPS.JiraPS.Filter]` | `ID` |
-| Project | `-Project` | `[AtlassianPS.JiraPS.Project]` | `Key` (or `ID`) |
+| Version | `-Version`, `-After`, `-InputVersion`, `-InputObject` | `[AtlassianPS.JiraPS.Version]` | `Id` (fallback `Name`) |
+| Filter | `-Filter`, `-InputObject` | `[AtlassianPS.JiraPS.Filter]` | `Id` |
+| Project | `-Project` | `[AtlassianPS.JiraPS.Project]` | `Key` (or `Id`) |
 | User | `-User`, `-UserName`, `-Owner`, `-Assignee`, `-Reporter` | `[AtlassianPS.JiraPS.User]` | `AccountId` on Cloud, otherwise `Name` |
 | Group | `-Group` | `[AtlassianPS.JiraPS.Group]` | `Name` |
 
-Anything else throws an `ArgumentTransformationMetadataException` at parameter
-binding time with an actionable message, instead of failing later inside the
-cmdlet body with a generic `Cannot convert ...` error.
+Anything else throws an `ArgumentTransformationMetadataException` at parameter binding time with an actionable message, instead of failing later inside the cmdlet body with a generic `Cannot convert ...` error.
 
 #### Affected cmdlets
 
-`Add-JiraIssueAttachment`, `Add-JiraIssueComment`,
-`Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`, `Get-JiraIssue`
-(`-InputObject`), `Get-JiraIssueAttachment`, `Get-JiraIssueComment`,
-`Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraRemoteLink`,
-`Invoke-JiraIssueTransition`, `Remove-JiraIssue` (`-InputObject`),
-`Remove-JiraIssueAttachment`, `Remove-JiraIssueWatcher`,
-`Remove-JiraRemoteLink`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+`Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`, `Get-JiraIssue` (`-InputObject`), `Get-JiraIssueAttachment`, `Get-JiraIssueComment`, `Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraRemoteLink`, `Invoke-JiraIssueTransition`, `Remove-JiraIssue` (`-InputObject`), `Remove-JiraIssueAttachment`, `Remove-JiraIssueWatcher`, `Remove-JiraRemoteLink`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
 
 #### `Add-JiraIssueLink` now uses explicit relationship endpoints
 
-`Add-JiraIssueLink` no longer accepts the historical single-issue anchor
-parameter `-Issue`.
-Each create request must now include both relationship endpoints
-(`inwardIssue` and `outwardIssue`) together with the link `type`.
+`Add-JiraIssueLink` no longer accepts the historical single-issue anchor parameter `-Issue`.
+Each create request must now include both relationship endpoints (`inwardIssue` and `outwardIssue`) together with the link `type`.
 
 ##### v2
 
@@ -580,12 +538,11 @@ $issueLink = New-JiraIssueLinkRequest -Type "Blocks" -FromIssue "TEST-01" -ToIss
 Add-JiraIssueLink -IssueLink $issueLink
 ```
 
-#### Pipelines and arrays now iterate
+#### Passing multiple issues
 
-The "single Issue only" runtime guardrail was removed from cmdlets where
-pipeline iteration is the obviously-correct behaviour. The cmdlet's `process`
-block now runs once per piped (or array-bound) issue, matching the rest of
-PowerShell.
+Pipe multiple issues to a command to process them one at a time.
+Parameters declared as a single `Issue` do not accept an array directly.
+Commands with `Issue[]` parameters, such as `Remove-JiraIssueLink -Issue`, also accept arrays.
 
 #### One example per family
 
@@ -620,18 +577,13 @@ Get-JiraGroupMember -Group 'jira-users'
 
 #### Practical migration checks by family
 
-- Issue:
-  remove "single issue only" assumptions in scripts that now pipeline or array-bind multiple issues, and add explicit count guards if your script intentionally supports only one item.
-- Version:
-  stop comparing or passing missing date values as `''`, and use `$null` checks for `StartDate` and `ReleaseDate` instead.
-- Filter:
-  keep treating identifiers as filter IDs, and update any tests that asserted legacy `ValidateScript` wording to assert transformer errors instead.
-- Project:
-  prefer passing project keys or typed `Project` objects directly, and remove helper code that re-queries `Get-JiraProject` only to recover an ID before the real call.
-- User:
-  for Cloud and mixed Cloud/DC scripts, use `AccountId` as the stable identity key when persisting or deduplicating users.
-- Group:
-  update mocks and type checks from `JiraPS.Group` to `AtlassianPS.JiraPS.Group`, and use the new typed object checks in tests.
+- Issue: Pipe multiple issues to commands with a singular `Issue` parameter.
+  Use an array only when the parameter accepts `Issue[]`.
+- Version: Stop comparing or passing missing date values as `''`, and use `$null` checks for `StartDate` and `ReleaseDate` instead.
+- Filter: Keep treating identifiers as filter IDs, and update any tests that asserted legacy `ValidateScript` wording to assert transformer errors instead.
+- Project: Prefer passing project keys or typed `Project` objects directly, and remove helper code that re-queries `Get-JiraProject` only to recover an ID before the real call.
+- User: For Cloud and mixed Cloud/DC scripts, use `AccountId` as the stable identity key when persisting or deduplicating users.
+- Group: Update mocks and type checks from `JiraPS.Group` to `AtlassianPS.JiraPS.Group`.
 
 #### Hashtable cast still works
 
@@ -655,8 +607,8 @@ They map directly to the same identifier slots used by the transformers:
 | Constructor | Stores into |
 | ----------- | ----------- |
 | `[AtlassianPS.JiraPS.Issue]::new(string)` | `Key` |
-| `[AtlassianPS.JiraPS.Version]::new(string)` | `ID` when numeric, otherwise `Name` |
-| `[AtlassianPS.JiraPS.Filter]::new(string)` | `ID` |
+| `[AtlassianPS.JiraPS.Version]::new(string)` | `Id` when numeric, otherwise `Name` |
+| `[AtlassianPS.JiraPS.Filter]::new(string)` | `Id` |
 | `[AtlassianPS.JiraPS.Project]::new(string)` | `Key` |
 | `[AtlassianPS.JiraPS.User]::new(string)` | `Name` |
 | `[AtlassianPS.JiraPS.Group]::new(string)` | `Name` |
@@ -664,15 +616,45 @@ They map directly to the same identifier slots used by the transformers:
 Use the constructor when you only need one identifier, and use hashtable casts when you need to set multiple properties up front.
 For broader v3 usage guidance around these classes, see [about_JiraPS_Classes](classes.html).
 
-### Minimum PowerShell Version
+### Minimum PowerShell version
 
 JiraPS v3 requires PowerShell 5.1 or later.
-Windows PowerShell 3.0 and 4.0 are no longer supported. PowerShell 7+ continues to be fully supported.
+Windows PowerShell 3.0 and 4.0 are no longer supported.
+PowerShell 7+ continues to be fully supported.
 
-## FINDING DEPRECATED USAGE IN YOUR SCRIPTS
+### Changes to returned objects and command input
 
-The following commands recursively search your scripts for v2-style usage
-that needs updating:
+Issue history and its items, remote-link details, visibility, role actors, filter subscriptions and field schemas now return typed .NET objects.
+An unassigned issue has `$null` in its `Assignee` property.
+Test it with `$null -eq $issue.Assignee` instead of comparing against `Unassigned`.
+Known nested issue fields, including versions, components and worklogs, are declared typed properties.
+Present empty collections remain empty arrays; missing optional values remain `$null`.
+
+```powershell
+$issue = Get-JiraIssue -Key 'TEST-1'
+if ($null -eq $issue.Assignee) {
+    'This issue is unassigned.'
+}
+Invoke-JiraIssueTransition -Issue $issue -Transition 'Start Progress'
+Add-JiraIssueComment -Issue $issue -Comment 'Team note' -Visibility @{ Type = 'group'; Value = 'jira-users' }
+```
+
+`VisibleRole` remains an alias for `Visibility`; role strings and `All Users` remain accepted shorthand.
+Commands that accept filters and related Jira objects now declare their .NET types as parameter types.
+Check the command help for accepted objects, identifiers and names.
+Use a transition name that is available on the issue.
+`Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and optional typed permissions through `-Permission` (`-PermissionId` is an alias).
+Properties such as user `AccountType`, filter permission `Type` and server `DeploymentType` now use nullable enums.
+Unknown API values become `$null`.
+When exporting these properties as JSON, cast them to `[string]` to retain their names; `ConvertTo-Json` otherwise writes enum numbers.
+Project `Roles` and user `AvatarUrl` now use dictionaries of URI values.
+Read entries by key, for example `$project.Roles['Developers']` or `$user.AvatarUrl['16x16']`.
+Custom fields, entity-property values, allowed field values and raw REST responses retain the values supplied by Jira.
+See [about_JiraPS_Classes](classes.html) for object construction, command input and nested property examples.
+
+## Finding deprecated usage in your scripts
+
+The following commands recursively search your scripts for v2-style usage that needs updating:
 
 ```powershell
 # Find magic-string assignee usage

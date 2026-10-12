@@ -50,9 +50,7 @@ InModuleScope JiraPS {
                     }
                     $worklogs = Get-JiraIssueWorklog -Issue $fixtures.TestIssue
 
-                    if ($worklogs) {
-                        @($worklogs)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Worklogitem'
-                    }
+                    if ($worklogs) { @($worklogs)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Worklogitem' }
                 }
 
                 It "accepts issue object via pipeline" {
@@ -69,9 +67,7 @@ InModuleScope JiraPS {
 
         Describe "Add-JiraIssueWorklog" -Skip:$SkipWrite {
             BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                    $script:tempIssue = $null
-                }
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:tempIssue = $null }
                 else {
                     $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "WorklogIssue")
                     $null = $script:createdIssues.Add($issue)

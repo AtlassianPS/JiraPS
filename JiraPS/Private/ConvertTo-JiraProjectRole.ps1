@@ -9,13 +9,14 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.ProjectRole"
 
             $props = @{
                 'ID'          = ConvertTo-JiraNullableInt64 $i.id
                 'Name'        = $i.name
                 'Description' = $i.description
-                'Actors'      = $i.actors
+                'Actors'      = [AtlassianPS.JiraPS.RoleActor[]]@(ConvertTo-JiraRoleActor $i.actors)
                 'RestUrl'     = [uri]$i.self
             }
 

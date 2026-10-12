@@ -1,5 +1,6 @@
 ﻿function ConvertTo-JiraIssueHistoryEntry {
     [CmdletBinding()]
+    [OutputType([AtlassianPS.JiraPS.IssueHistoryEntry])]
     param(
         [Parameter( ValueFromPipeline )]
         [PSObject[]]
@@ -8,22 +9,27 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            if ($null -eq $i) { continue }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueHistoryEntry"
 
-            $props = @{
-                'ID'      = $i.id
-                'Author'  = ConvertTo-JiraUser $i.author
-                'Created' = Get-Date $i.created
-                'Items'   = $i.items
+            $items = foreach ($item in $i.items) {
+                if ($null -eq $item) { continue }
+                [AtlassianPS.JiraPS.IssueHistoryItem]@{
+                    Field      = $item.field
+                    FieldType  = $item.fieldtype
+                    FieldId    = $item.fieldId
+                    From       = $item.from
+                    FromString = $item.fromString
+                    To         = $item.to
+                    ToString   = $item.toString
+                }
             }
-
-            $result = New-Object -TypeName PSObject -Property $props
-            $result.PSObject.TypeNames.Insert(0, 'JiraPS.IssueHistoryEntry')
-            $result | Add-Member -MemberType ScriptMethod -Name 'ToString' -Force -Value {
-                Write-Output "$($this.Id)"
+            [AtlassianPS.JiraPS.IssueHistoryEntry]@{
+                Id      = $i.id
+                Author  = if ($null -ne $i.author) { ConvertTo-JiraUser -InputObject $i.author } else { $null }
+                Created = ConvertTo-JiraDateTimeOffsetValue $i.created
+                Items   = [AtlassianPS.JiraPS.IssueHistoryItem[]]@($items)
             }
-
-            Write-Output $result
         }
     }
 }

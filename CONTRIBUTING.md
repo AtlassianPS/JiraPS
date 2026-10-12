@@ -1,8 +1,15 @@
 # Contributing to JiraPS
 
-Happy to see you are interested in helping.
+For contribution guidelines, see **[Contributing to AtlassianPS](https://atlassianps.org/docs/Contributing/)**.
 
-We have a comprehensive documentation on how to contribute here: **[Contributing to AtlassianPS](https://atlassianps.org/docs/Contributing/)**.
+## PowerShell style
+
+Follow the [compact conditional block rules](.github/ai-context/powershell-rules.md#compact-conditional-blocks) for branch layout and examples.
+
+## Object model reference
+
+The [v3 object model reference](.github/ai-context/v3-object-contracts.md) maps domain types to converters, command parameters and tests.
+It also records transformation decisions and related implementation work for contributors.
 
 ## Testing
 
@@ -18,7 +25,7 @@ Key highlights:
 - **Mock debugging**: Uncomment `$VerbosePreference = 'Continue'` in BeforeAll to see mock parameter values
 - **Templates**: Use [`.template.ps1`](Tests/Functions/Public/.template.ps1) in the appropriate directory as a starting point
 
-### Creating New Tests
+### Creating new tests
 
 When adding tests for a new function:
 
@@ -30,25 +37,26 @@ When adding tests for a new function:
    - Use [`Tests/Functions/Private/.template.ps1`](Tests/Functions/Private/.template.ps1)
    - See [`ConvertTo-JiraAttachment.Unit.Tests.ps1`](Tests/Functions/Private/ConvertTo-JiraAttachment.Unit.Tests.ps1) for reference
 
-## Quick Start
+## Quick start
 
-Here is the gist of it once you have forked the repository:
+Clone your fork and create a branch.
+Replace `YOUR-USERNAME` with your GitHub username.
 
-- before changing the code
+Before changing the code:
 
 ```powershell
-git clone https://github.com/<YOUR GITHUB USER>/JiraPS
+git clone https://github.com/YOUR-USERNAME/JiraPS.git
 cd JiraPS
-git checkout -b <NAME FOR YOUR FEATURE>
+git checkout -b my-feature
 code .
 ```
 
-- after making the changes
+After making and validating your changes:
 
 ```powershell
 git add .
-git commit -m "<A MESSAGE ABOUT THE CHANGES>"
+git commit -m 'Describe the change'
 git push
 ```
 
-- [create a Pull Request](https://help.github.com/articles/creating-a-pull-request/)
+[Create a pull request](https://help.github.com/articles/creating-a-pull-request/).

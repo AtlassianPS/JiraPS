@@ -9,15 +9,18 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.FilterPermission"
 
             $props = @{
                 'ID'      = ConvertTo-JiraNullableInt64 $i.id
-                'Type'    = $i.type
+                'Type'    = ConvertTo-JiraEnum -Type ([AtlassianPS.JiraPS.FilterShareType]) -Value $i.type
                 'Group'   = $null
                 'Project' = $null
                 'Role'    = $null
             }
+
+            if ($i.user) { $props["User"] = ConvertTo-JiraUser $i.user }
 
             if ($i.group) { $props["Group"] = ConvertTo-JiraGroup $i.group }
 

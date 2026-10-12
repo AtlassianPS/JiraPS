@@ -32,12 +32,8 @@ InModuleScope JiraPS {
 
         Context "Update Operations" -Skip:$SkipWrite {
             BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                    $script:tempIssue = $null
-                }
-                else {
-                    $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "SetIssue")
-                }
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:tempIssue = $null }
+                else { $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "SetIssue") }
             }
 
             It "updates the summary" {

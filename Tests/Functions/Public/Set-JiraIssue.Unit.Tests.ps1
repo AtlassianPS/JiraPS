@@ -273,14 +273,19 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "Sets the assignee to default when -UseDefaultAssignee is specified" {
-                    { Set-JiraIssue -Issue "IT-3676" -UseDefaultAssignee } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
-                        $Method -eq 'Put' -and
-                        $URI -like '*/rest/api/*/issue/41701/assignee' -and
-                        $Body -match "`"name`":\s*`"-1`""
+                It "sends the project-default username to the Data Center assignee endpoint" {
+                    $script:defaultAssigneeRequest = $null
+                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/assignee' } {
+                        $script:defaultAssigneeRequest = @{ Method = $Method; Uri = $URI; Body = $Body }
                     }
+
+                    Set-JiraIssue -Issue "IT-3676" -UseDefaultAssignee -ErrorAction Stop
+
+                    $defaultAssigneeRequest.Method | Should -Be 'Put'
+                    $defaultAssigneeRequest.Uri | Should -Be "$jiraServer/rest/api/2/issue/41701/assignee"
+                    $payload = $defaultAssigneeRequest.Body | ConvertFrom-Json
+                    @($payload.PSObject.Properties).Count | Should -Be 1
+                    $payload.name | Should -Be '-1'
                 }
 
                 It "Throws when -Assignee is given an empty string" {
@@ -495,6 +500,21 @@ InModuleScope JiraPS {
                     $Body -match "`"accountId`"" -and
                     $Body -match "`"$testAccountId`""
                 }
+            }
+
+            It "sends the project-default accountId to the Cloud assignee endpoint" {
+                $script:defaultAssigneeRequest = $null
+                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -like '*/assignee' } {
+                    $script:defaultAssigneeRequest = @{ Method = $Method; Uri = $URI; Body = $Body }
+                }
+
+                Set-JiraIssue -Issue "IT-3676" -UseDefaultAssignee -ErrorAction Stop
+
+                $defaultAssigneeRequest.Method | Should -Be 'Put'
+                $defaultAssigneeRequest.Uri | Should -Be "$jiraServer/rest/api/3/issue/41701/assignee"
+                $payload = $defaultAssigneeRequest.Body | ConvertFrom-Json
+                @($payload.PSObject.Properties).Count | Should -Be 1
+                $payload.accountId | Should -Be '-1'
             }
 
             It "Sends accountId:null when -Unassign on Cloud deployment" {

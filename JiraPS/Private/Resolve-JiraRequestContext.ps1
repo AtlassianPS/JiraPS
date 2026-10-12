@@ -61,14 +61,10 @@
 
     [Uri]$resolvedUri = $Uri.GetLeftPart("Path")
 
-    if (-not $internalGetParameter.ContainsKey("maxResults")) {
-        $internalGetParameter["maxResults"] = $DefaultPageSize
-    }
+    if (-not $internalGetParameter.ContainsKey("maxResults")) { $internalGetParameter["maxResults"] = $DefaultPageSize }
 
     if ($Cmdlet -and $Cmdlet.PagingParameters) {
-        if ($Cmdlet.PagingParameters.Skip) {
-            $internalGetParameter["startAt"] = $Cmdlet.PagingParameters.Skip
-        }
+        if ($Cmdlet.PagingParameters.Skip) { $internalGetParameter["startAt"] = $Cmdlet.PagingParameters.Skip }
 
         if ($Cmdlet.PagingParameters.First -lt $internalGetParameter["maxResults"]) {
             $internalGetParameter["maxResults"] = $Cmdlet.PagingParameters.First

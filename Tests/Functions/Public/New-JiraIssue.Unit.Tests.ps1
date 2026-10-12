@@ -76,7 +76,8 @@ InModuleScope JiraPS {
             # This one needs to be able to output multiple objects
             Mock Get-JiraField -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraField'
-                $(if ($null -eq $Field) {
+                $(
+                    if ($null -eq $Field) {
                         @(
                             'Project'
                             'IssueType'
@@ -87,9 +88,8 @@ InModuleScope JiraPS {
                             'CustomField'
                         )
                     }
-                    else {
-                        $Field
-                    }) | ForEach-Object {
+                    else { $Field }
+                ) | ForEach-Object {
                     $object = [PSCustomObject] @{
                         'Id' = $_
                     }
@@ -119,20 +119,19 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Project'; type = 'String' }
-                    @{ parameter = 'IssueType'; type = 'String' }
-                    @{ parameter = 'Priority'; type = 'Int32' }
+                    @{ parameter = 'Project'; type = 'AtlassianPS.JiraPS.Project' }
+                    @{ parameter = 'IssueType'; type = 'AtlassianPS.JiraPS.IssueType' }
+                    @{ parameter = 'Priority'; type = 'AtlassianPS.JiraPS.Priority' }
                     @{ parameter = 'Summary'; type = 'String' }
                     @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'Reporter'; type = 'User' }
+                    @{ parameter = 'Reporter'; type = 'AtlassianPS.JiraPS.User' }
                     @{ parameter = 'Label'; type = 'String[]' }
-                    @{ parameter = 'Components'; type = 'String[]' }
+                    @{ parameter = 'Components'; type = 'AtlassianPS.JiraPS.Component[]' }
                     @{ parameter = 'Fields'; type = 'PSObject' }
                     @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
-                    $command | Should -HaveParameter $parameter
-                    $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
+                    $command | Should -HaveParameter $parameter -Type $type
                 }
 
             }
@@ -143,6 +142,110 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
+            Context "Typed issue field references" {
+                It "sends IDs and names in the <deployment> create payload" -TestCases @(
+                    @{ deployment = 'Cloud'; isCloud = $true; apiVersion = '3' }
+                    @{ deployment = 'Data Center'; isCloud = $false; apiVersion = '2' }
+                ) {
+                    param($isCloud, $apiVersion)
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $isCloud }
+                    Mock Get-JiraPriority -ModuleName JiraPS {
+                        [AtlassianPS.JiraPS.Priority]@{ Id = 2; Name = 'High' }
+                        [AtlassianPS.JiraPS.Priority]@{ Id = 3; Name = 'Highest' }
+                    }
+                    $priority = [AtlassianPS.JiraPS.Priority]::new('High')
+                    $component = [AtlassianPS.JiraPS.Component]@{ Id = 10001; Name = 'Ignored name' }
+                    $version = [AtlassianPS.JiraPS.Version]@{ Id = 10002; Name = 'Ignored version name' }
+
+                    New-JiraIssue -Project TEST -IssueType 1 -Summary 'Typed references' `
+                        -Priority $priority -Components $component, 'Frontend' -FixVersion $version, '1.2'
+
+                    Should -Invoke Get-JiraPriority -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                        $payload = ConvertFrom-Json -InputObject $Body
+                        $Method -eq 'POST' -and $URI -eq "/rest/api/$apiVersion/issue" -and
+                        $payload.fields.priority.id -eq '2' -and
+                        $payload.fields.components.Count -eq 2 -and
+                        $payload.fields.components[0].id -eq '10001' -and
+                        $null -eq $payload.fields.components[0].name -and
+                        $payload.fields.components[1].name -eq 'Frontend' -and
+                        $payload.fields.fixVersions.Count -eq 2 -and
+                        $payload.fields.fixVersions[0].id -eq '10002' -and
+                        $null -eq $payload.fields.fixVersions[0].name -and
+                        $payload.fields.fixVersions[1].name -eq '1.2'
+                    }
+                    $priority.Id | Should -BeNullOrEmpty
+                }
+
+                It 'sends a numeric version name as a name on <deployment>' -TestCases @(
+                    @{ deployment = 'Cloud'; isCloud = $true; apiVersion = '3' }
+                    @{ deployment = 'Data Center'; isCloud = $false; apiVersion = '2' }
+                ) {
+                    param($isCloud, $apiVersion)
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $isCloud }
+                    $version = [AtlassianPS.JiraPS.Version]@{ Name = '2026' }
+
+                    New-JiraIssue -Project TEST -IssueType 1 -Summary 'Numeric version name' -FixVersion $version
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $payload = ConvertFrom-Json -InputObject $Body
+                        $Method -eq 'POST' -and $URI -eq "/rest/api/$apiVersion/issue" -and
+                        $payload.fields.fixVersions.Count -eq 1 -and
+                        $payload.fields.fixVersions[0].name -eq '2026' -and
+                        $null -eq $payload.fields.fixVersions[0].id
+                    }
+                }
+
+                It "sends a priority ID without querying priorities" {
+                    Mock Get-JiraPriority -ModuleName JiraPS { throw 'Unexpected priority lookup' }
+
+                    New-JiraIssue @newParams
+
+                    Should -Invoke Get-JiraPriority -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                        (ConvertFrom-Json -InputObject $Body).fields.priority.id -eq '1'
+                    }
+                }
+
+                It "rejects a <description> priority name with a module error before creating an issue" -TestCases @(
+                    @{ description = 'missing'; priorities = @() }
+                    @{
+                        description = 'duplicate'
+                        priorities  = @(
+                            @{ Id = 1; Name = 'High' }
+                            @{ Id = 2; Name = 'High' }
+                        )
+                    }
+                ) {
+                    param($priorities)
+                    Mock Get-JiraPriority -ModuleName JiraPS { $priorities }
+                    $failure = $null
+                    try {
+                        New-JiraIssue -Project TEST -IssueType 1 -Summary 'Invalid priority' -Priority High
+                    }
+                    catch {
+                        $failure = $_
+                    }
+
+                    $failure | Should -Not -BeNullOrEmpty
+                    $failure.FullyQualifiedErrorId | Should -Be 'ParameterValue.InvalidPriority,New-JiraIssue'
+                    $failure.CategoryInfo.Category | Should -Be 'InvalidArgument'
+                    $failure.Exception | Should -BeOfType [System.ArgumentException]
+                    $failure.TargetObject.Name | Should -Be 'High'
+                    $failure.Exception.Message | Should -BeLike '*Use Get-JiraPriority*'
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                }
+
+                It "stops when priority lookup fails before creating an issue" {
+                    Mock Get-JiraPriority -ModuleName JiraPS { Write-Error 'Priority lookup failed' }
+
+                    { New-JiraIssue -Project TEST -IssueType 1 -Summary 'Lookup failure' -Priority High } |
+                        Should -Throw -ExpectedMessage '*Priority lookup failed*'
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                }
+            }
+
             It "Creates an issue in JIRA" {
                 { New-JiraIssue @newParams } | Should -Not -Throw
                 # The String in the ParameterFilter is made from the keywords
@@ -528,7 +631,8 @@ InModuleScope JiraPS {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
                     Mock Resolve-JiraUser -ModuleName JiraPS {
-                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name } else { [string]$InputObject }
+                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name }
+                        else { [string]$InputObject }
                         $object = [PSCustomObject]@{ 'Name' = $name }
                         $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                         return $object
@@ -561,7 +665,8 @@ InModuleScope JiraPS {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
                     Mock Resolve-JiraUser -ModuleName JiraPS {
-                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name } else { [string]$InputObject }
+                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name }
+                        else { [string]$InputObject }
                         $object = [PSCustomObject]@{
                             'Name'      = $name
                             'AccountId' = '5b10ac8d82e05b22cc7d4ef5'

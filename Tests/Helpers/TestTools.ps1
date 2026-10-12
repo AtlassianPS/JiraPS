@@ -5,9 +5,7 @@ $script:_StandardsRequirement = $script:_BuildRequirements |
     Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
     Select-Object -First 1
 
-if (-not $script:_StandardsRequirement) {
-    throw 'AtlassianPS.Standards is missing from Tools/build.requirements.psd1.'
-}
+if (-not $script:_StandardsRequirement) { throw 'AtlassianPS.Standards is missing from Tools/build.requirements.psd1.' }
 
 Import-Module AtlassianPS.Standards -RequiredVersion $script:_StandardsRequirement.RequiredVersion -Force -ErrorAction Stop
 
@@ -115,9 +113,7 @@ function Write-MockDebugInfo {
         foreach ($paramName in $Params) {
             $value = Get-Variable -Name $paramName -ValueOnly -ErrorAction SilentlyContinue
 
-            if ($null -eq $value) {
-                Write-Host "         [$paramName] = <null>" -ForegroundColor DarkGray
-            }
+            if ($null -eq $value) { Write-Host "         [$paramName] = <null>" -ForegroundColor DarkGray }
             elseif ($value -is [string] -and [string]::IsNullOrEmpty($value)) {
                 Write-Host "         [$paramName] = <empty string>" -ForegroundColor DarkGray
             }
@@ -137,12 +133,8 @@ function Write-MockDebugInfo {
                 Write-Host "}" -ForegroundColor Yellow
             }
             else {
-                $displayValue = if ($value.ToString().Length -gt 100) {
-                    "$($value.ToString().Substring(0, 97))..."
-                }
-                else {
-                    $value.ToString()
-                }
+                $displayValue = if ($value.ToString().Length -gt 100) { "$($value.ToString().Substring(0, 97))..." }
+                else { $value.ToString() }
                 Write-Host "         [$paramName] = $displayValue" -ForegroundColor Yellow
             }
         }
@@ -239,28 +231,18 @@ function Get-FileEncoding {
             $bytes = [System.Collections.Generic.List[Byte]]$bytes
             $stream.Close()
 
-            if ($enc -eq [System.Text.Encoding]::UTF8) {
-                $encoding = "UTF8"
-            }
+            if ($enc -eq [System.Text.Encoding]::UTF8) { $encoding = "UTF8" }
 
             foreach ($name in $signatures.Keys) {
                 $sampleEncoding = foreach ($sequence in $signatures[$name]) {
                     $sample = $bytes.GetRange(0, $sequence.Count)
 
-                    if ([System.Linq.Enumerable]::SequenceEqual($sample, $sequence)) {
-                        $name
-                        break
-                    }
+                    if ([System.Linq.Enumerable]::SequenceEqual($sample, $sequence)) { $name; break }
                 }
-                if ($sampleEncoding) {
-                    $encoding = $sampleEncoding
-                    break
-                }
+                if ($sampleEncoding) { $encoding = $sampleEncoding; break }
             }
 
-            if (-not $encoding) {
-                $encoding = "ASCII"
-            }
+            if (-not $encoding) { $encoding = "ASCII" }
 
             [PSCustomObject]@{
                 Name      = Split-Path $Path -Leaf

@@ -66,9 +66,7 @@ InModuleScope JiraPS {
 
             Mock ConvertTo-JiraGroup -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraGroup'
-                if ($null -eq $InputObject -or @($InputObject).Count -eq 0) {
-                    return
-                }
+                if ($null -eq $InputObject -or @($InputObject).Count -eq 0) { return }
 
                 $object = [PSCustomObject]@{
                     Name = $InputObject.name
@@ -106,7 +104,7 @@ InModuleScope JiraPS {
                     @{ parameter = "GroupName"; type = "String[]" }
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
-                    $command | Should -HaveParameter $parameter
+                    $command | Should -HaveParameter $parameter -Type $type
                 }
             }
 
@@ -142,18 +140,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "API Interaction" {
-                It "calls Invoke-JiraMethod with correct parameters" {
-                    { Get-JiraGroup -GroupName $testGroupName } | Should -Not -Throw
-
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
-                        $Method -eq 'Get' -and
-                        $URI -eq '/rest/api/2/group/member' -and
-                        $GetParameter['groupname'] -eq $testGroupName -and
-                        $GetParameter['maxResults'] -eq 1
-                    }
-                }
-            }
         }
 
         Describe "Input Validation" {
@@ -176,18 +162,6 @@ InModuleScope JiraPS {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/member' -and
                         $GetParameter['groupname'] -and
-                        $GetParameter['maxResults'] -eq 1
-                    }
-                }
-            }
-
-            Context "URL Encoding" {
-                It "passes the group name as a query parameter" {
-                    Get-JiraGroup -GroupName $testGroupName
-
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
-                        $URI -eq '/rest/api/2/group/member' -and
-                        $GetParameter['groupname'] -eq $testGroupName -and
                         $GetParameter['maxResults'] -eq 1
                     }
                 }

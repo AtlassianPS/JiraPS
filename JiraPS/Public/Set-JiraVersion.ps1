@@ -64,18 +64,10 @@
 
             $requestBody = @{}
 
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) {
-                $requestBody["name"] = $Name
-            }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
-                $requestBody["description"] = $Description
-            }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Archived")) {
-                $requestBody["archived"] = $Archived
-            }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Released")) {
-                $requestBody["released"] = $Released
-            }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) { $requestBody["name"] = $Name }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) { $requestBody["description"] = $Description }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Archived")) { $requestBody["archived"] = $Archived }
+            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Released")) { $requestBody["released"] = $Released }
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Project")) {
                 if ($Project.Id) {
                     # Caller passed a Project that already carried its numeric

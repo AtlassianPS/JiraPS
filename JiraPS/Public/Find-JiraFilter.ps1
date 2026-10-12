@@ -55,16 +55,12 @@
             Paging       = $true
             Credential   = $Credential
         }
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('AccountId')) {
-            $parameter['GetParameter']['accountId'] = $AccountId
-        }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('AccountId')) { $parameter['GetParameter']['accountId'] = $AccountId }
         elseif ($PSCmdlet.ParameterSetName -eq 'ByOwner') {
             $userObj = Resolve-JiraUser -InputObject $Owner -Exact -Credential $Credential -ErrorAction Stop
             $parameter['GetParameter']['accountId'] = $userObj.AccountId
         }
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('GroupName')) {
-            $parameter['GetParameter']['groupName'] = $GroupName
-        }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('GroupName')) { $parameter['GetParameter']['groupName'] = $GroupName }
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Project')) {
             if ($Project.Id) {
                 # Caller passed a Project that already had its numeric ID
@@ -77,9 +73,7 @@
                 $parameter['GetParameter']['projectId'] = $projectObj.Id
             }
         }
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Sort')) {
-            $parameter['GetParameter']['orderBy'] = $Sort
-        }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Sort')) { $parameter['GetParameter']['orderBy'] = $Sort }
         # Paging
         ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
             $parameter[$_] = $PSCmdlet.PagingParameters.$_

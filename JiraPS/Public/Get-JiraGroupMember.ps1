@@ -41,16 +41,10 @@
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
             $getParameter = @{ maxResults = $PageSize }
-            if ($isCloud -and $_group.Id) {
-                $getParameter['groupId'] = $_group.Id
-            }
-            else {
-                $getParameter['groupname'] = $_group.Name
-            }
+            if ($isCloud -and $_group.Id) { $getParameter['groupId'] = $_group.Id }
+            else { $getParameter['groupname'] = $_group.Name }
 
-            if ($IncludeInactive) {
-                $getParameter['includeInactiveUsers'] = $true
-            }
+            if ($IncludeInactive) { $getParameter['includeInactiveUsers'] = $true }
 
             $parameter = @{
                 URI          = $resourceURi

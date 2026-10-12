@@ -57,12 +57,8 @@
 
                 foreach ($parameter in $ParameterName) {
                     if ($item.Parameter -like $parameter) {
-                        if ($parameter -ne "*") {
-                            $Target["$($command):$($parameter)"] = $item.Value
-                        }
-                        else {
-                            $Target["$($command):$($item.Parameter)"] = $item.Value
-                        }
+                        if ($parameter -ne "*") { $Target["$($command):$($parameter)"] = $item.Value }
+                        else { $Target["$($command):$($item.Parameter)"] = $item.Value }
                     }
                 }
             }

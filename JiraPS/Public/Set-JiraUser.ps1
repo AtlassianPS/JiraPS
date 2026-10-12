@@ -18,9 +18,7 @@
         [ValidateNotNullOrEmpty()]
         [ValidateScript(
             {
-                if ($_ -match '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$') {
-                    return $true
-                }
+                if ($_ -match '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$') { return $true }
                 else {
                     $exception = ([System.ArgumentException]"Invalid Argument") #fix code highlighting]
                     $errorId = 'ParameterValue.NotEmail'
@@ -58,12 +56,7 @@
 
         $isCloud = Test-JiraCloudServer -Credential $Credential
 
-        if ($isCloud) {
-            $resourceURi = "/rest/api/2/user?accountId={0}"
-        }
-        else {
-            $resourceURi = "/rest/api/2/user?username={0}"
-        }
+        $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" } else { "/rest/api/2/user?username={0}" }
     }
 
     process {
@@ -86,21 +79,13 @@
                     return
                 }
 
-                if ($DisplayName) {
-                    $requestBody.displayName = $DisplayName
-                }
+                if ($DisplayName) { $requestBody.displayName = $DisplayName }
 
-                if ($EmailAddress) {
-                    $requestBody.emailAddress = $EmailAddress
-                }
+                if ($EmailAddress) { $requestBody.emailAddress = $EmailAddress }
 
-                if ($PSBoundParameters.ContainsKey('Active')) {
-                    $requestBody.active = $Active
-                }
+                if ($PSBoundParameters.ContainsKey('Active')) { $requestBody.active = $Active }
             }
-            'ByHashtable' {
-                $requestBody = $Property
-            }
+            'ByHashtable' { $requestBody = $Property }
         }
 
         $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
@@ -122,9 +107,7 @@
                     }
                     Write-Output (Resolve-JiraUser -InputObject $refreshUser -Exact -Credential $Credential -ErrorAction Stop)
                 }
-                else {
-                    Write-Output (ConvertTo-JiraUser -InputObject $result)
-                }
+                else { Write-Output (ConvertTo-JiraUser -InputObject $result) }
             }
         }
     }

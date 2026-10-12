@@ -10,31 +10,31 @@ permalink: /docs/JiraPS/commands/Remove-JiraUser/
 
 ## SYNOPSIS
 
-Removes an existing user from JIRA
+Removes an existing user from Jira.
 
 ## SYNTAX
 
 ```powershell
-Remove-JiraUser [-User] <User> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
+Remove-JiraUser [-User] <AtlassianPS.JiraPS.User> [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function removes an existing user from JIRA.
+This function removes an existing user from Jira.
 
-WARNING: Deleting a JIRA user may cause database integrity problems.
+WARNING: Deleting a Jira user may cause database integrity problems.
 See this article for details: [https://confluence.atlassian.com/jira/how-do-i-delete-a-user-account-192519.html](https://confluence.atlassian.com/jira/how-do-i-delete-a-user-account-192519.html)
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Remove-JiraUser -UserName testUser
 ```
 
-Removes the JIRA user TestUser
+Removes the Jira user TestUser
 
 ## PARAMETERS
 
@@ -62,7 +62,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -105,10 +105,10 @@ HelpMessage: ''
 
 ### -User
 
-User Object or ID to delete.
+User object or ID to delete.
 
 ```yaml
-Type: User
+Type: AtlassianPS.JiraPS.User
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -150,10 +150,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -164,9 +162,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

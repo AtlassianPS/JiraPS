@@ -15,12 +15,9 @@
 
     $webResponse = $null
     $exception = $null
-    $sessionVariableName = $null
     $sessionVariableValue = $null
-
-    if ($SplatParameters.ContainsKey('SessionVariable')) {
-        $sessionVariableName = [string]$SplatParameters['SessionVariable']
-    }
+    $sessionVariableName = if ($SplatParameters.ContainsKey('SessionVariable')) { [string]$SplatParameters['SessionVariable'] }
+    else { $null }
 
     try {
         $webResponse = Invoke-WebRequest @SplatParameters
@@ -32,9 +29,7 @@
     finally {
         if ($sessionVariableName) {
             $capturedSessionVariable = Get-Variable -Name $sessionVariableName -Scope Local -ErrorAction SilentlyContinue
-            if ($capturedSessionVariable) {
-                $sessionVariableValue = $capturedSessionVariable.Value
-            }
+            if ($capturedSessionVariable) { $sessionVariableValue = $capturedSessionVariable.Value }
         }
 
         $progressPreference = $oldProgressPreference

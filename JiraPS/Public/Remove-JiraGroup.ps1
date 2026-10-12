@@ -40,12 +40,8 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            if ($isCloud -and $_group.Id) {
-                $getParameter = @{ groupId = $_group.Id }
-            }
-            else {
-                $getParameter = @{ groupname = $_group.Name }
-            }
+            $getParameter = if ($isCloud -and $_group.Id) { @{ groupId = $_group.Id } }
+            else { @{ groupname = $_group.Name } }
 
             $target = if ($_group.Name) { $_group.Name } else { $_group.Id }
 
@@ -56,9 +52,7 @@
                 Credential   = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($target, "Remove group")) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($target, "Remove group")) { Invoke-JiraMethod @parameter }
         }
     }
 

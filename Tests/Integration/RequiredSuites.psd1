@@ -19,12 +19,80 @@
             )
         }
         @{
+            File   = 'Status.Integration.Tests.ps1'
+            Common = @(
+                'Status name encoding.retrieves a status whose name contains spaces'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
             File   = 'HttpErrors.Integration.Tests.ps1'
             Common = @(
                 "HTTP Errors.preserves Jira's message for a missing issue"
                 'HTTP Errors.captures a real empty HEAD error response'
                 'HTTP Errors.reports the HTTP status for an empty HEAD error response'
                 'HTTP Errors.emits a non-terminating HTTP error for an empty HEAD response'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
+            File   = 'EnumContracts.Integration.Tests.ps1'
+            Common = @(
+                'Enum Contracts.converts a live user role actor'
+                'Enum Contracts.converts a live group role actor'
+                'Enum Contracts.converts a live project-role filter share'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
+            File   = 'Visibility.Integration.Tests.ps1'
+            Common = @(
+                'Comment and worklog visibility.persists an unrestricted comment'
+                'Comment and worklog visibility.persists an unrestricted worklog'
+                'Comment and worklog visibility.persists a role restriction on a comment'
+                'Comment and worklog visibility.persists a group restriction on a comment'
+                'Comment and worklog visibility.persists a role restriction on a worklog'
+                'Comment and worklog visibility.persists a group restriction on a worklog'
+            )
+            Cloud  = @(
+                'Comment and worklog visibility.persists a Cloud group identifier restriction on a comment'
+                'Comment and worklog visibility.persists a Cloud group identifier restriction on a worklog'
+            )
+            Server = @()
+        }
+        @{
+            File   = 'IssueIdentity.Integration.Tests.ps1'
+            Common = @(
+                'Issue user identity.persists typed reporter and assignee through creation, unassignment, project default and reassignment'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
+            File   = 'FilterPermissions.Integration.Tests.ps1'
+            Common = @(
+                'Filter Permissions.adds and removes a project share using typed filter permissions'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
+            File   = 'IssueWatchers.Integration.Tests.ps1'
+            Common = @(
+                'Issue Watchers.Watcher Write Operations.adds and removes a watcher using deployment-specific identity'
+                'Issue Watchers.Watcher Write Operations.accepts issue objects via pipeline when adding and removing watchers'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
+            File   = 'TransitionFields.Integration.Tests.ps1'
+            Common = @(
+                'Transition screen fields.persists fields, assignment, a comment and a worklog on a screened transition'
+                'Transition screen fields.persists unassignment on a screened transition'
             )
             Cloud  = @()
             Server = @()

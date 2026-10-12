@@ -15,7 +15,7 @@
 
     .OUTPUTS
         [hashtable] — one of:
-            @{ accountId = <string> }        # Cloud, point at user
+            @{ accountId = <string> }        # Cloud, point at user or '-1' for project default assignee
             @{ accountId = $null }           # Cloud, clear the field
             @{ name      = <string> }        # Server/DC, point at user or '-1' for project default assignee
             @{ name      = $null }           # Server/DC, clear the field
@@ -30,8 +30,8 @@
         [PSObject]
         $UserObject,
 
-        # Server/DC magic values: '-1' = project default assignee, '' =
-        # legacy transition unassign, $null = Set-JiraIssue unassign.
+        # '-1' selects the project default on both deployments. Server/DC also
+        # preserves '' for legacy transition unassign and $null for unassign.
         # Untyped so $null and '' remain distinct (PowerShell coerces
         # $null -> '' when bound to a [string] parameter).
         [Parameter()]
@@ -58,13 +58,12 @@
             return @{ accountId = $UserObject.AccountId }
         }
 
-        # Cloud does not accept the 'name' field for user references.
+        if ($UserString -eq '-1') { return @{ accountId = '-1' } }
+
         return @{ accountId = $null }
     }
 
-    if ($UserObject) {
-        return @{ name = $UserObject.Name }
-    }
+    if ($UserObject) { return @{ name = $UserObject.Name } }
 
     return @{ name = $UserString }
 }

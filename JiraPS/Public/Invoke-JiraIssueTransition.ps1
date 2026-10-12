@@ -10,6 +10,9 @@
         $Issue,
 
         [Parameter( Mandatory )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.TransitionTransformation()]
+        [AtlassianPS.JiraPS.Transition]
         $Transition,
 
         [PSCustomObject]
@@ -79,34 +82,22 @@
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        if ($Transition -is [AtlassianPS.JiraPS.Transition]) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Transition parameter is an AtlassianPS.JiraPS.Transition object"
-            $transitionId = $Transition.Id
-        }
-        else {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Attempting to cast Transition parameter [$Transition] as int for transition ID"
-            try {
-                $transitionId = [Int]"$Transition"
-            }
-            catch {
-                $exception = ([System.ArgumentException]"Invalid Type for Parameter")
-                $errorId = 'ParameterType.NotJiraTransition'
-                $errorCategory = 'InvalidArgument'
-                $errorTarget = $Transition
-                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                $errorItem.ErrorDetails = "Wrong object type provided for Transition. Expected [AtlassianPS.JiraPS.Transition] or [Int], but was $($Transition.GetType().Name)"
-                ThrowError -ErrorRecord $errorItem
-            }
+        $transitionId = $Transition.Id
+        if ($null -eq $transitionId -and $Transition.Name) {
+            $matchingTransitions = @($issueObj.Transition | Where-Object -FilterScript { $_.Name -eq $Transition.Name })
+            if ($matchingTransitions.Count -eq 1) { $transitionId = $matchingTransitions[0].Id }
         }
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Checking that the issue can perform the given transition"
-        if (($issueObj.Transition.Id) -notcontains $transitionId) {
-            $exception = ([System.ArgumentException]"Invalid value for Parameter")
-            $errorId = 'ParameterValue.InvalidTransition'
-            $errorCategory = 'InvalidArgument'
-            $errorTarget = $Issue
-            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-            $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$transitionId]. Check the issue's Transition property and provide a transition valid for its current state."
+        if ($null -eq $transitionId -or ($issueObj.Transition.Id) -notcontains $transitionId) {
+            $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                [System.ArgumentException]::new('Invalid value for Parameter'),
+                'ParameterValue.InvalidTransition',
+                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                $Issue
+            )
+            $requestedTransition = if ($null -ne $transitionId) { $transitionId } else { $Transition.Name }
+            $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$requestedTransition]. Check the issue's Transition property and provide a transition valid for its current state."
             ThrowError -ErrorRecord $errorItem
         }
 
@@ -162,9 +153,7 @@
             ) {
                 ConvertTo-JiraEditMetaField -InputObject $transitionMeta
             }
-            else {
-                @()
-            }
+            else { @() }
 
             foreach ($assignment in ConvertTo-JiraFieldAssignment `
                     -Fields $Fields `
@@ -193,8 +182,8 @@
             $dateStarted = [DateTime]::new((Get-Date).Ticks, 'Local')
             $requestBody.update.worklog += , @{
                 'add' = @{
-                    'started'          = $dateStarted.ToString("o") -replace "\.(\d{3})\d*([\+\-]\d{2}):", ".`$1`$2"
-                    'timeSpentSeconds' = $TimeSpent.TotalSeconds.ToString()
+                    'started'   = $dateStarted.ToString("o") -replace "\.(\d{3})\d*([\+\-]\d{2}):", ".`$1`$2"
+                    'timeSpent' = $TimeSpent.TotalMinutes.ToString([System.Globalization.CultureInfo]::InvariantCulture) + 'm'
                 }
             }
         }
@@ -208,9 +197,7 @@
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         Invoke-JiraMethod @parameter
 
-        if ($Passthru) {
-            Get-JiraIssue $issueObj
-        }
+        if ($Passthru) { Get-JiraIssue $issueObj }
     }
 
     end {

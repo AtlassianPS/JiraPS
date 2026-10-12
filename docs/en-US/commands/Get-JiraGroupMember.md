@@ -10,18 +10,18 @@ permalink: /docs/JiraPS/commands/Get-JiraGroupMember/
 
 ## SYNOPSIS
 
-Returns members of a given group in JIRA
+Returns members of a given group in Jira.
 
 ## SYNTAX
 
 ```powershell
-Get-JiraGroupMember [-Group] <Group[]> [[-PageSize] <uint>] [[-Credential] <pscredential>]
+Get-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [[-PageSize] <uint>] [[-Credential] <pscredential>]
  [-IncludeInactive] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function returns members of a provided group in JIRA.
+This function returns members of a provided group in Jira.
 
 On Jira Cloud, the cmdlet uses the group's `Id` for member lookup when the input group already includes one.
 Otherwise, it uses the group name directly.
@@ -31,15 +31,15 @@ That is usually more reliable than resolving the group first with `Get-JiraGroup
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraGroupMember testGroup
 ```
 
-This example returns all members of the JIRA group testGroup.
+This example returns all members of the Jira group testGroup.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraGroupMember -Group 'Developers'
@@ -51,7 +51,7 @@ This example returns the members of the Developers group without first resolving
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -100,7 +100,7 @@ If the group object includes `Id`, that identifier is used automatically on Jira
 Passing a plain group name is supported and is the most portable option across Jira deployments.
 
 ```yaml
-Type: Group[]
+Type: AtlassianPS.JiraPS.Group[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -212,14 +212,12 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### JiraPS.Group
+### AtlassianPS.JiraPS.Group
 
 The group to query for members
 
@@ -236,13 +234,13 @@ To limit the number of group members returned, use the `-First` parameter.
 You can also combine this with the `-Skip` parameter to "page" through results.
 
 This function does not return inactive users.
-This appears to be a limitation of JIRA's REST API.
+This appears to be a limitation of Jira's REST API.
 
 On Jira Data Center, prefer `Get-JiraGroupMember -Group '<name>'` over `Get-JiraGroup '<name>' | Get-JiraGroupMember` unless you already have a resolved group object.
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

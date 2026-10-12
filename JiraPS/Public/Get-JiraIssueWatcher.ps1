@@ -33,9 +33,7 @@
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($result = Invoke-JiraMethod @parameter) {
-                $result.watchers | ConvertTo-JiraUser
-            }
+            if ($result = Invoke-JiraMethod @parameter) { $result.watchers | ConvertTo-JiraUser }
         }
     }
 

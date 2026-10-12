@@ -46,28 +46,16 @@
             foreach ($user in $users) {
 
                 $userDisplayIdentifier = if ($user.AccountId) { $user.AccountId } else { $user.Name }
-                $memberExists = $false
-                if ($isCloud -and $user.AccountId) {
-                    $memberExists = @($existingMembers.AccountId) -contains $user.AccountId
-                }
-                elseif ($user.Name) {
-                    $memberExists = @($existingMembers.Name) -contains $user.Name
-                }
+                $memberExists = if ($isCloud -and $user.AccountId) { @($existingMembers.AccountId) -contains $user.AccountId }
+                elseif ($user.Name) { @($existingMembers.Name) -contains $user.Name }
+                else { $false }
                 if (-not $memberExists) {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User [$userDisplayIdentifier] is not already in group [$_group]. Adding user."
 
-                    if ($isCloud -and $user.AccountId) {
-                        $memberBody = @{ 'accountId' = $user.AccountId }
-                    }
-                    else {
-                        $memberBody = @{ 'name' = $user.Name }
-                    }
-                    if ($isCloud -and $_group.Id) {
-                        $getParameter = @{ groupId = $_group.Id }
-                    }
-                    else {
-                        $getParameter = @{ groupname = $_group.Name }
-                    }
+                    $memberBody = if ($isCloud -and $user.AccountId) { @{ 'accountId' = $user.AccountId } }
+                    else { @{ 'name' = $user.Name } }
+                    $getParameter = if ($isCloud -and $_group.Id) { @{ groupId = $_group.Id } }
+                    else { @{ groupname = $_group.Name } }
                     $target = if ($_group.Name) { $_group.Name } else { $_group.Id }
                     $parameter = @{
                         URI          = $resourceURi
@@ -91,9 +79,7 @@
                 }
             }
 
-            if ($PassThru) {
-                Write-Output (ConvertTo-JiraGroup -InputObject $result)
-            }
+            if ($PassThru) { Write-Output (ConvertTo-JiraGroup -InputObject $result) }
         }
     }
 

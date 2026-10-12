@@ -45,9 +45,7 @@ InModuleScope JiraPS {
                     { Get-JiraIssueComment -Issue $fixtures.TestIssue } | Should -Not -Throw
 
                     $comments = Get-JiraIssueComment -Issue $fixtures.TestIssue
-                    if ($comments) {
-                        @($comments)[0] | Should -BeOfType [PSCustomObject]
-                    }
+                    if ($comments) { @($comments)[0] | Should -BeOfType [PSCustomObject] }
                 }
 
                 It "returns comment objects with correct type" {
@@ -57,9 +55,7 @@ InModuleScope JiraPS {
                     }
                     $comments = Get-JiraIssueComment -Issue $fixtures.TestIssue
 
-                    if ($comments) {
-                        $comments[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Comment'
-                    }
+                    if ($comments) { $comments[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Comment' }
                 }
 
                 It "accepts issue key as string" {
@@ -83,12 +79,8 @@ InModuleScope JiraPS {
 
             Context "Comment Properties" {
                 BeforeAll {
-                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        $script:comments = $null
-                    }
-                    else {
-                        $script:comments = Get-JiraIssueComment -Issue $fixtures.TestIssue
-                    }
+                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) { $script:comments = $null }
+                    else { $script:comments = Get-JiraIssueComment -Issue $fixtures.TestIssue }
                 }
 
                 It "includes comment body as string" {
@@ -119,12 +111,8 @@ InModuleScope JiraPS {
 
         Describe "Add-JiraIssueComment" -Skip:$SkipWrite {
             BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                    $script:tempIssue = $null
-                }
-                else {
-                    $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "CommentIssue")
-                }
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:tempIssue = $null }
+                else { $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "CommentIssue") }
             }
 
             Context "Adding Comments" {

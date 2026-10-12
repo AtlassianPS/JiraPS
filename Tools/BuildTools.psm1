@@ -9,13 +9,9 @@
         [String]$Message
     )
 
-    if ($ScriptBlock) {
-        $Bool = & $ScriptBlock
-    }
+    if ($ScriptBlock) { $Bool = & $ScriptBlock }
 
-    if (-not $Bool) {
-        throw $Message
-    }
+    if (-not $Bool) { throw $Message }
 }
 
 Export-ModuleMember -Function Assert-True

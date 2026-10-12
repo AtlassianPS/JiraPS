@@ -12,33 +12,60 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Filter"
 
             $hash = @{
                 ID              = $i.id
                 Name            = $i.name
                 JQL             = $i.jql
-                RestUrl         = [uri]$i.self
+                RestUrl         = if ($i.self) { [uri]$i.self } else { [uri]$i.RestUrl }
                 ViewUrl         = [uri]$i.viewUrl
                 SearchUrl       = [uri]$i.searchUrl
-                Favourite       = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) } else { $false }
-                SharePermission = $i.sharePermissions
-                SharedUser      = $i.sharedUsers
-                Subscription    = $i.subscriptions
+                Favourite       = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) }
+                else { $false }
+                SharePermission = [AtlassianPS.JiraPS.FilterPermission[]]@()
+                SharedUser      = $null
+                Subscription    = $null
             }
 
-            if ($FilterPermissions) {
-                $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@(ConvertTo-JiraFilterPermission ($FilterPermissions))
-            }
-            elseif ($i.sharePermissions) {
-                # Intentional: Jira's raw sharePermissions payload is kept
-                # below for compatibility and also projected into the new
-                # typed FilterPermissions slot.
-                $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@(ConvertTo-JiraFilterPermission ($i.sharePermissions))
+            if ($i -is [AtlassianPS.JiraPS.Filter]) {
+                $hash.SharePermission = $i.SharePermission
+                $hash.SharedUser = $i.SharedUser
+                $hash.Subscription = $i.Subscription
             }
             else {
-                $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@()
+                $hash.SharePermission = [AtlassianPS.JiraPS.FilterPermission[]]@(ConvertTo-JiraFilterPermission -InputObject $i.sharePermissions)
             }
+            if ($null -ne $i.sharedUsers) {
+                $users = $i.sharedUsers
+                $hash.SharedUser = [AtlassianPS.JiraPS.UserList]@{
+                    Size       = $users.size
+                    MaxResults = $users.'max-results'
+                    StartIndex = $users.'start-index'
+                    EndIndex   = $users.'end-index'
+                    Items      = [AtlassianPS.JiraPS.User[]]@(ConvertTo-JiraUser -InputObject $users.items)
+                }
+            }
+            if ($null -ne $i.subscriptions) {
+                $subscriptions = $i.subscriptions
+                $hash.Subscription = [AtlassianPS.JiraPS.FilterSubscriptionList]@{
+                    Size       = $subscriptions.size
+                    MaxResults = $subscriptions.'max-results'
+                    StartIndex = $subscriptions.'start-index'
+                    EndIndex   = $subscriptions.'end-index'
+                    Items      = [AtlassianPS.JiraPS.FilterSubscription[]]@(ConvertTo-JiraFilterSubscription -InputObject $subscriptions.items)
+                }
+            }
+
+            if ($PSBoundParameters.ContainsKey('FilterPermissions')) {
+                $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@(ConvertTo-JiraFilterPermission -InputObject $FilterPermissions)
+            }
+            elseif ($i -is [AtlassianPS.JiraPS.Filter]) { $hash.FilterPermissions = $i.FilterPermissions }
+            elseif ($i.sharePermissions) {
+                $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@(ConvertTo-JiraFilterPermission -InputObject $i.sharePermissions)
+            }
+            else { $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@() }
 
             if ($i.description) { $hash.Description = $i.description }
 

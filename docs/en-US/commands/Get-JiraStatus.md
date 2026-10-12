@@ -23,18 +23,18 @@ Get-JiraStatus [-Credential <pscredential>] [<CommonParameters>]
 ### _Search
 
 ```powershell
-Get-JiraStatus [-Status] <string[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 This function returns Jira status objects.
-Use it to retrieve all available statuses or to query one or more statuses by id or name.
+Use it to retrieve all available statuses or to query one or more statuses by ID or name.
 `-IdOrName` is provided as an alias for `-Status`.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraStatus
@@ -42,15 +42,15 @@ Get-JiraStatus
 
 Returns all available statuses.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraStatus -Status 1
 ```
 
-Returns the status with id 1.
+Returns the status with ID 1.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Get-JiraStatus -Status Open
@@ -84,11 +84,12 @@ HelpMessage: ''
 
 ### -Status
 
-One or more statuses to retrieve.
-Each value can be a status id (for example, `1`) or a status name (for example, `Open`).
+Status objects, IDs or names to retrieve.
+When an object contains both an ID and a name, its ID takes precedence.
+Jira Cloud returns the first matching status when a name is shared by multiple statuses, so use an ID when the name is ambiguous.
 
 ```yaml
-Type: String[]
+Type: AtlassianPS.JiraPS.Status[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -107,11 +108,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -121,7 +119,7 @@ Values passed to `-Status` can be provided through the pipeline.
 
 ## OUTPUTS
 
-### JiraPS.Status
+### AtlassianPS.JiraPS.Status
 
 ## NOTES
 
@@ -132,3 +130,5 @@ If neither are supplied, this function runs with anonymous access to Jira.
 ## RELATED LINKS
 
 [Get-JiraIssue](../Get-JiraIssue/)
+
+[Atlassian Cloud status lookup](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-workflow-statuses/#api-rest-api-3-status-idOrName-get)

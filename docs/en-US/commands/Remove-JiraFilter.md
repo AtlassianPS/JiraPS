@@ -14,31 +14,22 @@ Removes an existing filter.
 
 ## SYNTAX
 
-### ByInputObject (Default)
-
 ```powershell
-Remove-JiraFilter [-InputObject] <Filter> [-Credential <pscredential>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
-```
-
-### ById
-
-```powershell
-Remove-JiraFilter [-Id] <uint[]> [-Credential <pscredential>] [-WhatIf] [-Confirm]
+Remove-JiraFilter [-InputObject] <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 This function will remove a filter from Jira.
-Deleting a filter removed is permanently from Jira.
+Deleting a filter permanently removes it from Jira.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-Remove-JiraFilter -InputObject (Get-JiraFilter "12345")
+Remove-JiraFilter -InputObject (Get-JiraFilter '12345')
 ```
 
 Removes the filter `12345` from Jira.
@@ -46,7 +37,7 @@ Removes the filter `12345` from Jira.
 ### Example 2
 
 ```powershell
-$filter = Get-JiraFilter "12345", "98765"
+$filter = Get-JiraFilter '12345', '98765'
 Remove-JiraFilter -InputObject $filter
 ```
 
@@ -55,7 +46,7 @@ Removes two filters (`12345` and `98765`) from Jira.
 ### Example 3
 
 ```powershell
-Get-JiraFilter "12345", "98765" | Remove-JiraFilter
+Get-JiraFilter '12345', '98765' | Remove-JiraFilter
 ```
 
 Removes two filters (`12345` and `98765`) from Jira.
@@ -75,11 +66,9 @@ $listOfFilters = 1,2,3,4
 $listOfFilters | Remove-JiraFilter
 ```
 
-Remove filters with id "1", "2", "3" and "4".
+Remove filters with ID "1", "2", "3" and "4".
 
-This input allows for the ID of the filters to be stored in an array and passed
-to the command.
-(eg: `Get-Content` from a file with the ids)
+This input allows for the ID of the filters to be stored in an array and passed to the command. (eg: `Get-Content` from a file with the ids)
 
 ## PARAMETERS
 
@@ -107,7 +96,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -127,42 +116,21 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Id
-
-Id of the filter to be deleted.
-
-Accepts integers over the pipeline.
-
-```yaml
-Type: UInt32[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ById
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -InputObject
 
-Filter object to be deleted.
-
-Object can be retrieved with `Get-JiraFilter`
+Filter objects or positive numeric filter IDs to delete.
+Accepts numeric strings and pipeline input.
+`Id` and `FilterId` are aliases for `InputObject`.
 
 ```yaml
-Type: AtlassianPS.JiraPS.Filter
+Type: AtlassianPS.JiraPS.Filter[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- Id
+- FilterId
 ParameterSets:
-- Name: ByInputObject
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
@@ -198,10 +166,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -212,10 +178,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or
-a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

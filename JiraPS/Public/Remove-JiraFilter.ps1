@@ -1,16 +1,13 @@
 ﻿function Remove-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( ConfirmImpact = "Medium", SupportsShouldProcess, DefaultParameterSetName = 'ByInputObject' )]
+    [CmdletBinding( ConfirmImpact = 'Medium', SupportsShouldProcess )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline )]
         [ValidateNotNullOrEmpty()]
-        [PSTypeName('AtlassianPS.JiraPS.Filter')]
+        [Alias('Id', 'FilterId')]
+        [AtlassianPS.JiraPS.FilterTransformation()]
+        [AtlassianPS.JiraPS.Filter[]]
         $InputObject,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ById')]
-        [ValidateNotNullOrEmpty()]
-        [UInt32[]]
-        $Id,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -26,22 +23,24 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($PSCmdlet.ParameterSetName -eq 'ById') {
-            $InputObject = foreach ($_id in $Id) {
-                Get-JiraFilter -Id $_id
+        $filters = foreach ($item in $InputObject) {
+            if ($item.RestUrl) { $item }
+            else {
+                Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop
             }
         }
 
-        foreach ($filter in $InputObject) {
+        foreach ($filter in $filters) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filter]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filter [$filter]"
+
             $parameter = @{
                 URI        = $filter.RestURL
-                Method     = "DELETE"
+                Method     = 'DELETE'
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) { Invoke-JiraMethod @parameter }
         }
     }
 

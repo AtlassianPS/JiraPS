@@ -126,9 +126,7 @@ Content-Type: application/octet-stream
 
         try {
             $outBuffer = $null
-            if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer)) {
-                $PSBoundParameters['OutBuffer'] = 1
-            }
+            if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer)) { $PSBoundParameters['OutBuffer'] = 1 }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Invoke-WebRequest', [System.Management.Automation.CommandTypes]::Cmdlet)
             $scriptCmd = { & $wrappedCmd @PSBoundParameters }
             $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
@@ -295,9 +293,7 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
             ${SkipHeaderValidation})
 
         begin {
-            if ($Credential -and (-not ($Authentication))) {
-                $PSBoundParameters["Authentication"] = "Basic"
-            }
+            if ($Credential -and (-not ($Authentication))) { $PSBoundParameters["Authentication"] = "Basic" }
             if ($InFile) {
                 $multipartContent = [System.Net.Http.MultipartFormDataContent]::new()
                 $FileStream = [System.IO.FileStream]::new($InFile, [System.IO.FileMode]::Open)
@@ -314,9 +310,7 @@ if ($PSVersionTable.PSVersion.Major -ge 6) {
             }
             try {
                 $outBuffer = $null
-                if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer)) {
-                    $PSBoundParameters['OutBuffer'] = 1
-                }
+                if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer)) { $PSBoundParameters['OutBuffer'] = 1 }
                 $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Utility\Invoke-WebRequest', [System.Management.Automation.CommandTypes]::Cmdlet)
                 $scriptCmd = { & $wrappedCmd @PSBoundParameters }
                 $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)

@@ -74,6 +74,17 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                     Test-Path $markdownFile | Should -Be $true
                 }
 
+                It "lists each named parameter set and its default marker in syntax" {
+                    $markdown = Get-Content -LiteralPath $markdownFile -Raw
+                    $syntax = [regex]::Match($markdown, '(?ms)^## SYNTAX\r?\n(.*?)(?=^## |\z)').Groups[1].Value
+                    $actual = @([regex]::Matches($syntax, '(?m)^### (.+?)\r?$') | ForEach-Object { $_.Groups[1].Value })
+                    $expected = @($command.ParameterSets | Where-Object Name -NE '__AllParameterSets' | ForEach-Object {
+                            $_.Name + $(if ($_.IsDefault) { ' (Default)' })
+                        })
+                    $actual.Count | Should -Be $expected.Count
+                    if ($expected.Count -gt 0) { @($actual | Sort-Object) | Should -Be @($expected | Sort-Object) }
+                }
+
                 It "does not have Comment-Based Help" {
                     # We use .EXAMPLE, as we test this extensivly and it is never auto-generated
                     $command.Definition | Should -Not -BeNullOrEmpty
@@ -108,6 +119,10 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                 It "has a syntax" {
                     $help.syntax | Should -Not -BeNullOrEmpty
+                }
+
+                It "has a generated syntax entry for every parameter set" {
+                    @($help.syntax.syntaxItem).Count | Should -Be $command.ParameterSets.Count
                 }
 
                 It "has a description" {
@@ -203,6 +218,23 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                     It "matches the type of the parameter in code and help" {
                         $codeType = $parameterCode.ParameterType.Name
+                        $elementType = if ($parameterCode.ParameterType.IsArray) { $parameterCode.ParameterType.GetElementType() }
+                        else { $parameterCode.ParameterType }
+                        if ($elementType.Namespace -eq 'AtlassianPS.JiraPS') {
+                            $codeType = $parameterCode.ParameterType.FullName
+                            $markdown = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/$($command.Name).md" -Raw
+                            $sectionPattern = '(?ms)^### -' + [regex]::Escape($parameterName) + '\r?\n(.*?)(?=^### |^## |\z)'
+                            $parameterSection = [regex]::Match($markdown, $sectionPattern).Groups[1].Value
+                            $markdownType = [regex]::Match($parameterSection, '(?m)^Type: (.+?)\r?$').Groups[1].Value
+                            $markdownType | Should -Be $codeType
+                            $syntax = [regex]::Match($markdown, '(?ms)^## SYNTAX\r?\n(.*?)(?=^## |\z)').Groups[1].Value
+                            $syntaxPattern = '(?i)-' + [regex]::Escape($parameterName) + '\]?\s+<([^>]+)>'
+                            $syntaxTypes = @([regex]::Matches($syntax, $syntaxPattern) | ForEach-Object { $_.Groups[1].Value })
+                            $syntaxTypes.Count | Should -BeGreaterThan 0
+                            foreach ($syntaxType in $syntaxTypes) {
+                                $syntaxType | Should -Be $codeType
+                            }
+                        }
                         # Parameters decorated with [PSTypeName(...)] surface as
                         # Object / Object[] at the binder level. Prefer the
                         # PSTypeName for the user-facing type (which is what the
@@ -216,17 +248,11 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                                 # an array parameter so we line up with the
                                 # array form advertised in the markdown.
                                 $codeType = $psTypeAttr.PSTypeName
-                                if ($parameterCode.ParameterType.IsArray -and $codeType -notmatch '\[\]$') {
-                                    $codeType += '[]'
-                                }
+                                if ($parameterCode.ParameterType.IsArray -and $codeType -notmatch '\[\]$') { $codeType += '[]' }
                             }
                         }
-                        $helpType = if ($parameterHelp.parameterValue) {
-                            $parameterHelp.parameterValue.Trim()
-                        }
-                        elseif ($parameterHelp.type.name) {
-                            $parameterHelp.type.name.Trim()
-                        }
+                        $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
+                        elseif ($parameterHelp.type.name) { $parameterHelp.type.name.Trim() }
                         if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
                         # PlatyPS 1.0 uses "Switch" instead of "SwitchParameter"
                         if ($helpType -eq "Switch") { $helpType = "SwitchParameter" }
@@ -238,15 +264,16 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         # Regression guard for the PlatyPS 1.0 MAML round-trip dropping every
                         # parameter's alias attribute. Compare reflected aliases against help.
                         $codeAliases = @($parameterCode.Aliases | Sort-Object)
-                        if ($codeAliases.Count -eq 0) { return }
-
-                        $helpAliasField = ($parameterHelp.aliases -as [String]).Trim()
+                        $helpAliasField = ([String]$parameterHelp.aliases).Trim()
                         $helpAliases = @()
                         if ($helpAliasField -and $helpAliasField -ne 'None' -and $helpAliasField -ne 'none') {
                             $helpAliases = @($helpAliasField -split '[,\s]+' | Where-Object { $_ } | Sort-Object)
                         }
 
-                        $helpAliases | Should -Be $codeAliases -Because "every alias declared on the parameter must be reachable through Get-Help"
+                        $helpAliases.Count | Should -Be $codeAliases.Count
+                        if ($codeAliases.Count -gt 0) {
+                            $helpAliases | Should -Be $codeAliases -Because "every alias declared on the parameter must be reachable through Get-Help"
+                        }
                     }
 
                     It "preserves pipeline input flag in help" {
@@ -276,9 +303,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                 It "documents every public parameter exposed by the code" {
                     $documented = @()
-                    if ($help.Parameters | Get-Member -Name Parameter) {
-                        $documented = @($help.Parameters.Parameter.Name)
-                    }
+                    if ($help.Parameters | Get-Member -Name Parameter) { $documented = @($help.Parameters.Parameter.Name) }
 
                     foreach ($paramName in $command.Parameters.Keys) {
                         if ($paramName -in $DefaultParams) { continue }

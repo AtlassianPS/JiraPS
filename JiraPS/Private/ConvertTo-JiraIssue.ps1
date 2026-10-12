@@ -10,31 +10,12 @@
         $IncludeDebug
     )
 
-    begin {
-        # Property names native to AtlassianPS.JiraPS.Issue. Anything outside
-        # this set (notably `customfield_*` keys) is attached afterwards as a
-        # PSObject NoteProperty so we keep the historical "every field is
-        # accessible by name" contract intact.
-        $nativeProperties = @(
-            'ID', 'Key', 'HttpUrl', 'RestUrl', 'Summary', 'Description',
-            'Status', 'IssueLinks', 'Attachment', 'Project',
-            'Assignee', 'Creator', 'Reporter',
-            'Created', 'LastViewed', 'Updated',
-            'Fields', 'Expand', 'Transition', 'Comment'
-        )
-    }
-
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Issue"
 
-            # Derive the user-facing /browse URL from the item's own self link.
-            # Previously this used $InputObject.self, which returns the entire
-            # array of self URLs when more than one issue is converted in a
-            # single call — producing a stringified-array prefix on every
-            # HttpUrl after the first. Per-item $i.self is correct.
             $http = "{0}browse/$($i.key)" -f ($i.self -split 'rest')[0]
-
             $hash = @{
                 ID          = $i.id
                 Key         = $i.key
@@ -42,98 +23,95 @@
                 RestUrl     = [uri]$i.self
                 Summary     = $i.fields.summary
                 Description = ConvertFrom-AtlassianDocumentFormat -InputObject $i.fields.description
-            }
-
-            if ($i.fields.status) { $hash.Status = ConvertTo-JiraStatus -InputObject $i.fields.status }
-
-            if ($i.fields.issuelinks) {
-                $hash.IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(ConvertTo-JiraIssueLink -InputObject $i.fields.issuelinks)
-            }
-
-            if ($i.fields.attachment) {
-                $hash.Attachment = [AtlassianPS.JiraPS.Attachment[]]@(ConvertTo-JiraAttachment $i.fields.attachment)
-            }
-
-            if ($i.fields.project) {
-                $hash.Project = ConvertTo-JiraProject -InputObject $i.fields.project
+                Transition  = [AtlassianPS.JiraPS.Transition[]]@(ConvertTo-JiraTransition -InputObject $i.transitions)
             }
 
             if ($i.changelog) {
-                $history = [object[]]@(
-                    foreach ($entry in $i.changelog.histories) {
-                        ConvertTo-JiraIssueHistoryEntry -InputObject $entry
+                $hash.History = [AtlassianPS.JiraPS.IssueHistoryEntry[]]@(ConvertTo-JiraIssueHistoryEntry -InputObject $i.changelog.histories)
+            }
+
+            foreach ($field in $i.fields.PSObject.Properties) {
+                switch ($field.Name) {
+                    'status' {
+                        if ($field.Value) { $hash.Status = ConvertTo-JiraStatus -InputObject $field.Value }
+                        break
                     }
-                )
-            }
-
-            foreach ($field in @('Assignee', 'Creator', 'Reporter')) {
-                if ($i.fields.$field) {
-                    $hash.$field = ConvertTo-JiraUser -InputObject $i.fields.$field
-                }
-                elseif ($field -eq 'Assignee') {
-                    # Legacy sentinel. Surfaced as a string so downstream
-                    # `if ($issue.Assignee -eq 'Unassigned')` checks keep working.
-                    $hash.Assignee = 'Unassigned'
-                }
-            }
-
-            foreach ($field in @('Created', 'LastViewed', 'Updated')) {
-                if ($i.fields.$field) {
-                    $hash.$field = ConvertTo-JiraDateTimeOffsetValue $i.fields.$field
+                    'issuelinks' {
+                        if ($null -ne $field.Value) {
+                            $hash.IssueLinks = [AtlassianPS.JiraPS.IssueLink[]]@(ConvertTo-JiraIssueLink -InputObject $field.Value)
+                        }
+                        break
+                    }
+                    'attachment' {
+                        if ($null -ne $field.Value) {
+                            $hash.Attachment = [AtlassianPS.JiraPS.Attachment[]]@(ConvertTo-JiraAttachment -InputObject $field.Value)
+                        }
+                        break
+                    }
+                    'project' {
+                        if ($field.Value) { $hash.Project = ConvertTo-JiraProject -InputObject $field.Value }
+                        break
+                    }
+                    { $_ -in 'assignee', 'creator', 'reporter' } {
+                        if ($field.Value) { $hash[$field.Name] = ConvertTo-JiraUser -InputObject $field.Value }
+                        break
+                    }
+                    { $_ -in 'created', 'lastViewed', 'updated' } {
+                        if ($field.Value) { $hash[$field.Name] = ConvertTo-JiraDateTimeOffsetValue $field.Value }
+                        break
+                    }
+                    'comment' {
+                        if ($null -ne $field.Value.comments) {
+                            $hash.Comment = [AtlassianPS.JiraPS.Comment[]]@(ConvertTo-JiraComment -InputObject $field.Value.comments)
+                        }
+                        break
+                    }
+                    'issuetype' { $hash.IssueType = ConvertTo-JiraIssueType -InputObject $field.Value; break }
+                    'priority' { $hash.Priority = ConvertTo-JiraPriority -InputObject $field.Value; break }
+                    'resolution' {
+                        if ($field.Value) { $hash.Resolution = ConvertTo-JiraResolution -InputObject $field.Value }
+                        break
+                    }
+                    'components' {
+                        $hash.Components = [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent -InputObject $field.Value)
+                        break
+                    }
+                    'worklog' {
+                        $hash.Worklog = [AtlassianPS.JiraPS.Worklogitem[]]@(ConvertTo-JiraWorklogitem -InputObject $field.Value.worklogs)
+                        break
+                    }
+                    'fixVersions' {
+                        $hash.FixVersions = [AtlassianPS.JiraPS.Version[]]@(ConvertTo-JiraVersion -InputObject $field.Value)
+                        break
+                    }
+                    'versions' { $hash.Versions = [AtlassianPS.JiraPS.Version[]]@(ConvertTo-JiraVersion -InputObject $field.Value); break }
+                    'parent' {
+                        if ($field.Value) { $hash.Parent = ConvertTo-JiraIssue -InputObject $field.Value }
+                        break
+                    }
+                    'subtasks' { $hash.Subtasks = [AtlassianPS.JiraPS.Issue[]]@(ConvertTo-JiraIssue -InputObject $field.Value); break }
+                    'watches' { $hash.Watches = ConvertTo-JiraIssueWatch -InputObject $field.Value; break }
+                    'votes' { $hash.Votes = ConvertTo-JiraIssueVote -InputObject $field.Value; break }
+                    'progress' { $hash.Progress = ConvertTo-JiraIssueProgress -InputObject $field.Value; break }
+                    'aggregateprogress' { $hash.AggregateProgress = ConvertTo-JiraIssueProgress -InputObject $field.Value; break }
+                    'timetracking' { $hash.TimeTracking = ConvertTo-JiraIssueTimeTracking -InputObject $field.Value; break }
+                    'security' { $hash.Security = ConvertTo-JiraIssueSecurityLevel -InputObject $field.Value; break }
                 }
             }
 
             if ($IncludeDebug) {
-                $hash.Fields = ConvertTo-Hashtable -InputObject $i.fields
+                $hash.Fields = [System.Collections.Generic.Dictionary[string, object]]::new()
+                foreach ($property in $i.fields.PSObject.Properties) {
+                    $hash.Fields[$property.Name] = $property.Value
+                }
                 $hash.Expand = $i.expand
             }
 
-            $transitions = [System.Collections.Generic.List[AtlassianPS.JiraPS.Transition]]::new()
-            foreach ($t in $i.transitions) {
-                $transitions.Add((ConvertTo-JiraTransition -InputObject $t))
-            }
-            $hash.Transition = $transitions.ToArray()
-
-            if ($i.fields.comment -and $i.fields.comment.comments) {
-                $comments = foreach ($c in $i.fields.comment.comments) {
-                    ConvertTo-JiraComment -InputObject $c
-                }
-                # Explicit cast keeps the [Comment[]] slot bound when only one
-                # comment is present (PowerShell would otherwise unwrap to a scalar).
-                $hash.Comment = [AtlassianPS.JiraPS.Comment[]]@($comments)
-            }
-
-            # $hash is a fresh hashtable literal — cast straight to the class.
-            # ConvertTo-Hashtable is only needed when the input is already a
-            # PSCustomObject (which trips PS5.1's [Class]$psobject cast); a
-            # locally-built hashtable does not have that problem.
             $result = [AtlassianPS.JiraPS.Issue]$hash
-
-            # Custom fields and any unmapped server payload keys ride along as
-            # PSObject NoteProperties to preserve the historical contract that
-            # every API field is accessible by name on the returned object.
-            $extraFields = $i.fields.PSObject.Properties | Where-Object -FilterScript { $_.Name -notin $nativeProperties }
-            foreach ($f in $extraFields) {
-                $value = switch ($f.Name) {
-                    'issuetype' { ConvertTo-JiraIssueType -InputObject $f.Value; break }
-                    'priority' { ConvertTo-JiraPriority -InputObject $f.Value; break }
-                    'resolution' { if ($f.Value) { ConvertTo-JiraResolution -InputObject $f.Value } else { $null }; break }
-                    'components' { [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent -InputObject $f.Value); break }
-                    'worklog' {
-                        if ($f.Value.worklogs) {
-                            [AtlassianPS.JiraPS.Worklogitem[]]@(ConvertTo-JiraWorklogitem -InputObject $f.Value.worklogs)
-                        }
-                        else { $f.Value }
-                        break
-                    }
-                    Default { $f.Value }
+            foreach ($field in $i.fields.PSObject.Properties) {
+                if ($null -eq $result.PSObject.Properties[$field.Name]) {
+                    $result | Add-Member -MemberType NoteProperty -Name $field.Name -Value $field.Value
                 }
-
-                $result | Add-Member -MemberType NoteProperty -Name $f.Name -Value $value -Force
-            }
-
-            if ($i.changelog) {
-                $result | Add-Member -MemberType NoteProperty -Name History -Value $history -Force
             }
 
             $result

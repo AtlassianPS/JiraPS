@@ -10,21 +10,21 @@ permalink: /docs/JiraPS/commands/Get-JiraVersion/
 
 ## SYNOPSIS
 
-This function returns information about a JIRA Project's Version
+Returns versions in a Jira project.
 
 ## SYNTAX
 
-### byId (Default)
+### byId
 
 ```powershell
-Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount]
- [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>]
+ [-First <ulong>] [<CommonParameters>]
 ```
 
-### byInputVersion
+### byInputVersion (Default)
 
 ```powershell
-Get-JiraVersion [-InputVersion] <Version> [-PageSize <uint>] [-Credential <pscredential>]
+Get-JiraVersion [-InputVersion] <AtlassianPS.JiraPS.Version> [-PageSize <uint>] [-Credential <pscredential>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
@@ -32,62 +32,61 @@ Get-JiraVersion [-InputVersion] <Version> [-PageSize <uint>] [-Credential <pscre
 
 ```powershell
 Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
- [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
- [<CommonParameters>]
+ [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### byInputProject
 
 ```powershell
-Get-JiraVersion [-InputProject] <Project> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
- [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+Get-JiraVersion [-InputProject] <AtlassianPS.JiraPS.Project[]> [-Name <string[]>] [-Sort <string>]
+ [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function provides information about JIRA Version
+Returns versions visible to the current user in the selected project.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraVersion -Project $ProjectKey
 ```
 
-This example returns information about all JIRA Version visible to the current user for the project.
+Returns all versions visible to the current user in the project.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraVersion -Project $ProjectKey -Name '1.0.0.0'
 ```
 
-This example returns the information of a specific Version.
+Returns the version named 1.0.0.0 in the project.
 
-### EXAMPLE 3
-
-```powershell
-Get-JiraProject "FOO", "BAR" | Get-JiraVersion -Name "v1.0", "v2.0"
-```
-
-Get the Version with name "v1.0" and "v2.0" from both projects "FOO" and "BAR"
-
-### EXAMPLE 4
+### Example 3
 
 ```powershell
-Get-JiraVersion -ID '66596'
+Get-JiraProject 'FOO', 'BAR' | Get-JiraVersion -Name 'v1.0', 'v2.0'
 ```
 
-This example returns information about all JIRA Version visible to the current user
-(or using anonymous access if a JiraPS session has not been defined) for the project.
+Returns versions named v1.0 and v2.0 from projects FOO and BAR.
+
+### Example 4
+
+```powershell
+Get-JiraVersion -Id '66596'
+```
+
+Returns the version with ID 66596.
+The command uses anonymous access when no credentials or JiraPS session are available.
 
 ## PARAMETERS
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -130,7 +129,7 @@ HelpMessage: ''
 
 ### -Id
 
-The Version ID
+The version ID.
 
 ```yaml
 Type: Int32[]
@@ -174,10 +173,10 @@ HelpMessage: ''
 
 ### -InputProject
 
-A Project Object to search
+A project object to search.
 
 ```yaml
-Type: AtlassianPS.JiraPS.Project
+Type: AtlassianPS.JiraPS.Project[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -195,10 +194,10 @@ HelpMessage: ''
 
 ### -InputVersion
 
-A Version object to search for
+A version object to search for.
 
 ```yaml
-Type: Version
+Type: AtlassianPS.JiraPS.Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -216,7 +215,7 @@ HelpMessage: ''
 
 ### -Name
 
-Jira Version Name
+The version name.
 
 ```yaml
 Type: String[]
@@ -269,7 +268,7 @@ HelpMessage: ''
 
 ### -Project
 
-Project key of a project to search
+Project key of a project to search.
 
 ```yaml
 Type: String[]
@@ -321,7 +320,7 @@ Possible values are:
 * sequence
 * name
 * startDate
-* releaseDate
+* releaseDate.
 
 ```yaml
 Type: String
@@ -352,10 +351,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -370,9 +367,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

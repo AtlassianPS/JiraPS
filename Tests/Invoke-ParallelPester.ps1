@@ -94,9 +94,7 @@ $ErrorActionPreference = 'Stop'
 
 $canParallel = $PSVersionTable.PSVersion.Major -ge 7
 
-if (-not $canParallel) {
-    Write-Warning "PowerShell 5.1 detected: running tests sequentially. Use PowerShell 7+ for parallel execution."
-}
+if (-not $canParallel) { Write-Warning "PowerShell 5.1 detected: running tests sequentially. Use PowerShell 7+ for parallel execution." }
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 
@@ -114,9 +112,7 @@ foreach ($p in $Path) {
         if (Test-Path $resolvedPath -PathType Container) {
             $testFiles += Get-ChildItem -Path $resolvedPath -Filter '*.Tests.ps1' -File
         }
-        else {
-            $testFiles += Get-Item $resolvedPath
-        }
+        else { $testFiles += Get-Item $resolvedPath }
     }
 }
 
@@ -378,9 +374,7 @@ foreach ($r in $results) {
     $totalFailedContainers += $r.FailedContainers
     $totalSkipped += $r.Skipped
 
-    if ($r.Error) {
-        Write-Host "[ERROR] $($r.File): $($r.Error)" -ForegroundColor Red
-    }
+    if ($r.Error) { Write-Host "[ERROR] $($r.File): $($r.Error)" -ForegroundColor Red }
 
     if ($r.FailedTests) {
         foreach ($ft in $r.FailedTests) {
@@ -466,9 +460,7 @@ if ($OutputPath -and (Test-Path $tempResultsDir)) {
             $osName = if ($PSVersionTable.PSVersion.Major -ge 6) {
                 if ($IsWindows) { 'Windows' } elseif ($IsMacOS) { 'macOS' } else { 'Linux' }
             }
-            else {
-                'Windows'
-            }
+            else { 'Windows' }
             $envElement.SetAttribute('os-version', $osName)
             $envElement.SetAttribute('platform', "PowerShell $($PSVersionTable.PSVersion)")
             $envElement.SetAttribute('cwd', $projectRoot)
@@ -514,9 +506,4 @@ if ($OutputPath -and (Test-Path $tempResultsDir)) {
     }
 }
 
-if ($totalFailureCount -gt 0) {
-    exit 1
-}
-else {
-    exit 0
-}
+if ($totalFailureCount -gt 0) { exit 1 } else { exit 0 }

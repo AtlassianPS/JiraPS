@@ -39,9 +39,7 @@ Describe "Validation of build environment" -Tag Unit {
         BeforeAll {
             $changelogFile = "$moduleRoot/CHANGELOG.md"
 
-            if (-not (Test-Path $changelogFile)) {
-                throw "CHANGELOG.md file not found in the module root directory."
-            }
+            if (-not (Test-Path $changelogFile)) { throw "CHANGELOG.md file not found in the module root directory." }
 
             $script:changelogVersion = $null
             # Read the changelog file and extract the version

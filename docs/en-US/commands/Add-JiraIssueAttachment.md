@@ -10,33 +10,33 @@ permalink: /docs/JiraPS/commands/Add-JiraIssueAttachment/
 
 ## SYNOPSIS
 
-Adds a file attachment to an existing Jira Issue
+Adds a file attachment to an existing Jira issue.
 
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueAttachment [-Issue] <Issue> [-FilePath] <string[]> [[-Credential] <pscredential>]
+Add-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FilePath] <string[]> [[-Credential] <pscredential>]
  [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function adds an Attachment to an existing issue in JIRA.
+This function adds an Attachment to an existing issue in Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-Add-JiraIssueAttachment -FilePath "Test comment" -Issue "TEST-001"
+Add-JiraIssueAttachment -FilePath 'Test comment' -Issue 'TEST-001'
 ```
 
 This example adds a simple comment to the issue TEST-001.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraIssue "TEST-002" | Add-JiraIssueAttachment -FilePath "Test comment from PowerShell"
+Get-JiraIssue 'TEST-002' | Add-JiraIssueAttachment -FilePath 'Test comment from PowerShell'
 ```
 
 This example illustrates pipeline use from Get-JiraIssue to Add-JiraIssueAttachment.
@@ -67,7 +67,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -89,7 +89,7 @@ HelpMessage: ''
 
 ### -FilePath
 
-Path of the file to upload and attach
+Path of the file to upload and attach.
 
 ```yaml
 Type: String[]
@@ -115,10 +115,10 @@ HelpMessage: ''
 
 Issue to which to attach the file.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -137,7 +137,7 @@ HelpMessage: ''
 
 ### -PassThru
 
-Whether output should be provided after invoking this function
+Whether output should be provided after invoking this function.
 
 ```yaml
 Type: SwitchParameter
@@ -181,10 +181,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -194,15 +192,15 @@ Pipe one or more file paths to attach to the issue.
 
 ## OUTPUTS
 
-### JiraPS.Attachment
+### AtlassianPS.JiraPS.Attachment
 
 This function outputs the results of the attachment add.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

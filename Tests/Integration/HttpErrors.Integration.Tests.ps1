@@ -61,9 +61,7 @@ InModuleScope JiraPS {
                 }
             }
             finally {
-                if ($result.WebResponse) {
-                    $result.WebResponse.Dispose()
-                }
+                if ($result.WebResponse) { $result.WebResponse.Dispose() }
             }
         }
 

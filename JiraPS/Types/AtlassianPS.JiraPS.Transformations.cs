@@ -10,35 +10,52 @@ namespace AtlassianPS.JiraPS
     public sealed class StatusTransformationAttribute : JiraTransformationAttribute
     {
         protected override Type TargetType { get { return typeof(Status); } }
-        protected override object FromString(string value) { return new Status(value); }
+        protected override object FromString(string value)
+        {
+            long id;
+            return long.TryParse(value, out id) ? FromNumericScalar(id) : new Status(value);
+        }
+
+        protected override object FromNumericScalar(long value) { return new Status { Id = value }; }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class PriorityTransformationAttribute : JiraTransformationAttribute
     {
         protected override Type TargetType { get { return typeof(Priority); } }
-        protected override object FromString(string value) { return new Priority(value); }
-    }
+        protected override object FromString(string value)
+        {
+            long id;
+            return long.TryParse(value, out id) ? FromNumericScalar(id) : new Priority(value);
+        }
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class ResolutionTransformationAttribute : JiraTransformationAttribute
-    {
-        protected override Type TargetType { get { return typeof(Resolution); } }
-        protected override object FromString(string value) { return new Resolution(value); }
+        protected override object FromNumericScalar(long value) { return new Priority { Id = value }; }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class IssueTypeTransformationAttribute : JiraTransformationAttribute
     {
         protected override Type TargetType { get { return typeof(IssueType); } }
-        protected override object FromString(string value) { return new IssueType(value); }
+        protected override object FromString(string value)
+        {
+            long id;
+            return long.TryParse(value, out id) ? FromNumericScalar(id) : new IssueType(value);
+        }
+
+        protected override object FromNumericScalar(long value) { return new IssueType { Id = value }; }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class ComponentTransformationAttribute : JiraTransformationAttribute
     {
         protected override Type TargetType { get { return typeof(Component); } }
-        protected override object FromString(string value) { return new Component(value); }
+        protected override object FromString(string value)
+        {
+            long id;
+            return long.TryParse(value, out id) ? FromNumericScalar(id) : new Component(value);
+        }
+
+        protected override object FromNumericScalar(long value) { return new Component { Id = value.ToString(System.Globalization.CultureInfo.InvariantCulture) }; }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
@@ -554,45 +571,72 @@ namespace AtlassianPS.JiraPS
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class AttachmentTransformationAttribute : JiraTransformationAttribute
-    {
-        protected override Type TargetType { get { return typeof(Attachment); } }
-        protected override object FromString(string value) { return new Attachment(value); }
-    }
-
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class WorklogitemTransformationAttribute : JiraTransformationAttribute
-    {
-        protected override Type TargetType { get { return typeof(Worklogitem); } }
-        protected override object FromString(string value) { return new Worklogitem(value); }
-    }
-
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class TransitionTransformationAttribute : JiraTransformationAttribute
     {
         protected override Type TargetType { get { return typeof(Transition); } }
         protected override object FromString(string value) { return new Transition(value); }
+        protected override object FromNumericScalar(long value) { return new Transition { Id = value }; }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class LinkTransformationAttribute : JiraTransformationAttribute
     {
         protected override Type TargetType { get { return typeof(Link); } }
-        protected override object FromString(string value) { return new Link(value); }
-    }
+        protected override object FromString(string value)
+        {
+            long id;
+            if (!long.TryParse(value, out id))
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException("Link requires a numeric ID.");
+            }
+            return FromNumericScalar(id);
+        }
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
-    public sealed class ProjectRoleTransformationAttribute : JiraTransformationAttribute
-    {
-        protected override Type TargetType { get { return typeof(ProjectRole); } }
-        protected override object FromString(string value) { return new ProjectRole(value); }
+        protected override object FromNumericScalar(long value) { return new Link { Id = value }; }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class FilterPermissionTransformationAttribute : JiraTransformationAttribute
     {
         protected override Type TargetType { get { return typeof(FilterPermission); } }
-        protected override object FromString(string value) { return new FilterPermission(value); }
+        protected override object FromString(string value)
+        {
+            long id;
+            if (!long.TryParse(value, out id))
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException("FilterPermission requires a numeric ID.");
+            }
+            return FromNumericScalar(id);
+        }
+
+        protected override object FromNumericScalar(long value) { return new FilterPermission { Id = value }; }
+    }
+
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class VisibilityTransformationAttribute : JiraTransformationAttribute
+    {
+        protected override Type TargetType { get { return typeof(Visibility); } }
+        protected override object FromString(string value)
+        {
+            return value.Equals("All Users", StringComparison.OrdinalIgnoreCase)
+                ? new Visibility() : new Visibility { Type = "role", Value = value };
+        }
+
+        protected override bool ShouldMapLegacyObject(System.Management.Automation.PSObject pso)
+        {
+            return pso != null && (pso.BaseObject is System.Collections.IDictionary || pso.Properties["type"] != null);
+        }
+
+        protected override object MapLegacyObject(System.Management.Automation.PSObject pso)
+        {
+            var map = pso.BaseObject as System.Collections.IDictionary;
+            return new Visibility
+            {
+                Type = map != null ? map["type"] as string : pso.Properties["type"].Value as string,
+                Value = map != null ? map["value"] as string : (pso.Properties["value"] != null ? pso.Properties["value"].Value as string : null),
+                Identifier = map != null ? map["identifier"] as string : (pso.Properties["identifier"] != null ? pso.Properties["identifier"].Value as string : null)
+            };
+        }
     }
 
     // Singular [Issue] parameters must not auto-iterate arrays; callers
@@ -644,7 +688,14 @@ namespace AtlassianPS.JiraPS
                 {
                     case "Key": case "key": user.Key = prop.Value as string; break;
                     case "AccountId": case "accountId": user.AccountId = prop.Value as string; break;
-                    case "AccountType": case "accountType": user.AccountType = prop.Value as string; break;
+                    case "AccountType": case "accountType":
+                        AccountType accountType;
+                        if (Enum.TryParse<AccountType>(prop.Value as string, true, out accountType)
+                            && Enum.IsDefined(typeof(AccountType), accountType))
+                        {
+                            user.AccountType = accountType;
+                        }
+                        break;
                     case "Name": case "name": user.Name = prop.Value as string; break;
                     case "DisplayName": case "displayName": user.DisplayName = prop.Value as string; break;
                     case "EmailAddress": case "emailAddress": user.EmailAddress = prop.Value as string; break;
@@ -756,10 +807,22 @@ namespace AtlassianPS.JiraPS
     public sealed class FilterTransformationAttribute : JiraTransformationAttribute
     {
         protected override Type TargetType { get { return typeof(Filter); } }
-        protected override object FromString(string value) { return new Filter(value); }
+        protected override object FromString(string value)
+        {
+            long id;
+            if (!long.TryParse(value, out id))
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException("Filter requires a positive numeric ID.");
+            }
+            return FromNumericScalar(id);
+        }
 
         protected override object FromNumericScalar(long value)
         {
+            if (value <= 0)
+            {
+                throw new System.Management.Automation.ArgumentTransformationMetadataException("Filter requires a positive numeric ID.");
+            }
             return new Filter { Id = value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
         }
 
@@ -791,6 +854,30 @@ namespace AtlassianPS.JiraPS
                         break;
                     case "Owner": case "owner":
                         filter.Owner = prop.Value as User; break;
+                    case "FilterPermissions": case "filterPermissions":
+                        var permissions = new System.Collections.Generic.List<FilterPermission>();
+                        var values = prop.Value as System.Collections.IEnumerable;
+                        if (values != null)
+                        {
+                            foreach (var value in values)
+                            {
+                                var permission = value as FilterPermission;
+                                if (permission == null)
+                                {
+                                    var raw = System.Management.Automation.PSObject.AsPSObject(value);
+                                    long id;
+                                    var idProperty = raw.Properties["Id"];
+                                    if (idProperty == null || idProperty.Value == null || !long.TryParse(idProperty.Value.ToString(), out id))
+                                    {
+                                        throw new System.Management.Automation.ArgumentTransformationMetadataException("FilterPermissions require numeric IDs.");
+                                    }
+                                    permission = new FilterPermission { Id = id };
+                                }
+                                permissions.Add(permission);
+                            }
+                        }
+                        filter.FilterPermissions = permissions.ToArray();
+                        break;
                 }
             }
             return filter;

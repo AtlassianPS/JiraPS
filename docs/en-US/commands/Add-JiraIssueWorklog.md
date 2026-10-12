@@ -10,45 +10,45 @@ permalink: /docs/JiraPS/commands/Add-JiraIssueWorklog/
 
 ## SYNOPSIS
 
-Adds a worklog item to an existing JIRA issue
+Adds a worklog item to an existing Jira issue.
 
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueWorklog [-Comment] <string> [-Issue] <Issue> [-TimeSpent] <timespan>
- [-DateStarted] <datetime> [[-VisibleRole] <string>] [[-Credential] <pscredential>] [-WhatIf]
+Add-JiraIssueWorklog [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue> [-TimeSpent] <timespan>
+ [-DateStarted] <datetime> [[-Visibility] <AtlassianPS.JiraPS.Visibility>] [[-Credential] <pscredential>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function adds a worklog item to an existing issue in JIRA.
-You can optionally set the visibility of the item (All Users, Developers, or Administrators).
+This function adds a worklog item to an existing issue in Jira.
+You can optionally set the visibility of the item (All users, Developers, or Administrators).
 
 On **Jira Cloud**, the `-Comment` text is interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent.
-The reverse path is also handled: when worklogs are read back from Cloud, the ADF comment payload is rendered to plain text on the returned `JiraPS.Worklogitem` object.
+The reverse path is also handled: when worklogs are read back from Cloud, the ADF comment payload is rendered to plain text on the returned `AtlassianPS.JiraPS.Worklogitem` object.
 On **Jira Server / Data Center**, the comment is sent and read back verbatim and the legacy wiki-markup syntax continues to apply.
 See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/) for the supported Markdown subset.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-Add-JiraIssueWorklog -Comment "Test comment" -Issue "TEST-001" -TimeSpent 60 -DateStarted (Get-Date)
+Add-JiraIssueWorklog -Comment 'Test comment' -Issue 'TEST-001' -TimeSpent 60 -DateStarted (Get-Date)
 ```
 
 This example adds a simple worklog item to the issue TEST-001.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraIssue "TEST-002" | Add-JiraIssueWorklog "Test worklog item from PowerShell" -TimeSpent 60 -DateStarted (Get-Date)
+Get-JiraIssue 'TEST-002' | Add-JiraIssueWorklog 'Test worklog item from PowerShell' -TimeSpent 60 -DateStarted (Get-Date)
 ```
 
 This example illustrates pipeline use from `Get-JiraIssue` to `Add-JiraIssueWorklog`.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' |
@@ -58,7 +58,7 @@ Get-JiraIssue -Query 'project = "TEST" AND created >= -5d' |
 This example illustrates logging work on all projects which match a given JQL query.
 It would be best to validate the query first to make sure the query returns the expected issues!
 
-### EXAMPLE 4
+### Example 4
 
 ```powershell
 $completed = Get-JiraIssue -Query 'project = TEST AND assignee = currentUser() AND status = Done AND updated >= -1d' |
@@ -72,7 +72,7 @@ A common pattern for end-of-day time tracking when several related tickets roll 
 > Wiki-markup tables render natively on Jira **Server / Data Center**.
 > On Jira **Cloud** use a Markdown table instead — the `||header||` wiki-markup syntax does not survive the Markdown → ADF conversion and renders as literal text.
 
-### EXAMPLE 5
+### Example 5
 
 ```powershell
 $comment = Get-Process | ConvertTo-JiraTable
@@ -85,7 +85,7 @@ Add-JiraIssueWorklog $comment -Issue TEST-003 -TimeSpent 60 -DateStarted (Get-Da
 
 ### -Comment
 
-Worklog item that should be added to JIRA
+Worklog item that should be added to Jira.
 
 ```yaml
 Type: String
@@ -128,7 +128,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -150,7 +150,7 @@ HelpMessage: ''
 
 ### -DateStarted
 
-Date/time started to be logged
+Date/time started to be logged.
 
 ```yaml
 Type: DateTime
@@ -173,10 +173,10 @@ HelpMessage: ''
 
 Issue to receive the new worklog item.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -195,7 +195,7 @@ HelpMessage: ''
 
 ### -TimeSpent
 
-Time spent to be logged
+Time spent to be logged.
 
 ```yaml
 Type: TimeSpan
@@ -214,22 +214,30 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -VisibleRole
+### -Visibility
 
-Visibility of the comment.
-Defines if the comment should be publicly visible, viewable to only developers, or only administrators.
+Restricts access to a role or group using an `AtlassianPS.JiraPS.Visibility` object.
+Omit this parameter for unrestricted access.
+String values remain supported through both `Visibility` and its `VisibleRole` alias:
 
-Allowed values are:
+- `All Users` leaves access unrestricted.
+- `Developers` restricts access to that project role.
+- `Administrators` restricts access to that project role.
 
-- `All Users`
-- `Developers`
-- `Administrators`
+Other project role names are also accepted; the role must exist in Jira.
+Use `@{ Type = 'group'; Value = 'jira-users' }` for a group, or supply its `Identifier` where supported by Jira.
+Group restrictions require Jira's **Comment visibility** setting to allow **groups & project Roles**.
+On Cloud, an administrator can set this under **Settings > System > General Configuration**.
+A role visibility object with `Value = 'All Users'` and no `Identifier` also leaves access unrestricted.
+Unrestricted access omits the REST `visibility` property; it does not send an `All Users` role to Jira.
+`VisibleRole` remains an alias.
 
 ```yaml
-Type: String
-DefaultValue: All Users
+Type: AtlassianPS.JiraPS.Visibility
+DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- VisibleRole
 ParameterSets:
 - Name: (All)
   Position: 4
@@ -238,10 +246,7 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues:
-- All Users
-- Developers
-- Administrators
+AcceptedValues: []
 HelpMessage: ''
 ```
 
@@ -270,26 +275,24 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ### AtlassianPS.JiraPS.Issue
 
-Pipe a AtlassianPS.JiraPS.Issue object to record work against it.
+Pipe an AtlassianPS.JiraPS.Issue object to record work against it.
 
 ## OUTPUTS
 
-### JiraPS.Worklogitem
+### AtlassianPS.JiraPS.Worklogitem
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

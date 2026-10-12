@@ -10,22 +10,22 @@ permalink: /docs/JiraPS/commands/Remove-JiraRemoteLink/
 
 ## SYNOPSIS
 
-Removes a remote link from a JIRA issue
+Removes a remote link from a Jira issue.
 
 ## SYNTAX
 
 ```powershell
-Remove-JiraRemoteLink [-Issue] <Issue> [-LinkId] <int[]> [[-Credential] <pscredential>] [-Force]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [-LinkId] <AtlassianPS.JiraPS.Link[]>
+ [[-Credential] <pscredential>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function removes a remote link from a JIRA issue.
+This function removes a remote link from a Jira issue.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Remove-JiraRemoteLink TEST-001 10000, 20000
@@ -33,10 +33,10 @@ Remove-JiraRemoteLink TEST-001 10000, 20000
 
 Removes two remote link from issue "TEST-001"
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraIssue -Query "project = TEST" | Remove-JiraRemoteLink 10000
+Get-JiraIssue -Query 'project = TEST' | Remove-JiraRemoteLink 10000
 ```
 
 Removes a specific remote link from all issues in project "TEST"
@@ -67,7 +67,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -112,10 +112,10 @@ HelpMessage: ''
 
 Issue from which to delete a remote link.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -134,10 +134,10 @@ HelpMessage: ''
 
 ### -LinkId
 
-Id of the remote link to delete.
+Remote link objects or their numeric IDs to remove.
 
 ```yaml
-Type: Int32[]
+Type: AtlassianPS.JiraPS.Link[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -178,10 +178,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -192,9 +190,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

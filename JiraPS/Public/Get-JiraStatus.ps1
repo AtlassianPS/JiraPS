@@ -4,7 +4,8 @@
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
         [Alias('IdOrName')]
-        [String[]]
+        [AtlassianPS.JiraPS.StatusTransformation()]
+        [AtlassianPS.JiraPS.Status[]]
         $Status,
 
         [Parameter()]
@@ -42,8 +43,11 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_status]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_status [$_status]"
 
+                    $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id } else { $_status.Name }
+                    $encodedIdentifier = ConvertTo-URLEncoded -InputString $statusIdentifier
+
                     $parameter = @{
-                        URI        = $resourceURi -f "/$_status"
+                        URI        = $resourceURi -f "/$encodedIdentifier"
                         Method     = "GET"
                         Credential = $Credential
                     }

@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Get-JiraIssueType/
 
 ## SYNOPSIS
 
-Returns information about the available issue type in JIRA.
+Returns information about the available issue type in Jira.
 
 ## SYNTAX
 
@@ -23,12 +23,13 @@ Get-JiraIssueType [-Force] [-Credential <pscredential>] [<CommonParameters>]
 ### _Search
 
 ```powershell
-Get-JiraIssueType [-IssueType] <string[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraIssueType [-IssueType] <AtlassianPS.JiraPS.IssueType[]> [-Force] [-Credential <pscredential>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function retrieves all the available IssueType on the JIRA server an returns them as `JiraPS.IssueType`.
+This function retrieves all the available IssueType on the Jira server an returns them as `AtlassianPS.JiraPS.IssueType`.
 
 This function can restrict the output to a subset of the available IssueTypes if told so.
 
@@ -37,35 +38,35 @@ Use `-Force` to bypass the cache and fetch fresh data.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraIssueType
 ```
 
-This example returns all the IssueTypes on the JIRA server.
+This example returns all the IssueTypes on the Jira server.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraIssueType -IssueType "Bug"
+Get-JiraIssueType -IssueType 'Bug'
 ```
 
 This example returns only the IssueType "Bug".
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
-Get-JiraIssueType -IssueType "Bug","Task","4"
+Get-JiraIssueType -IssueType 'Bug','Task','4'
 ```
 
-This example return the information about the IssueType named "Bug" and "Task" and with id "4".
+This example return the information about the IssueType named "Bug" and "Task" and with ID "4".
 
 ## PARAMETERS
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -108,10 +109,11 @@ HelpMessage: ''
 
 ### -IssueType
 
-The Issue Type name or ID to search.
+Issue type objects, IDs or wildcard issue type names.
+An object with an ID selects that exact issue type.
 
 ```yaml
-Type: String[]
+Type: AtlassianPS.JiraPS.IssueType[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -129,25 +131,32 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### Int[]
+### AtlassianPS.JiraPS.IssueType
 
+Pipe an issue type object to retrieve its current details.
+
+### System.String
+
+Pipe an issue type name or ID.
+
+### System.Int64
+
+Pipe a numeric issue type ID.
 
 ## OUTPUTS
 
-### JiraPS.IssueType
+### AtlassianPS.JiraPS.IssueType
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

@@ -36,21 +36,15 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$watcherValue]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$watcherValue [$watcherValue]"
 
-            if ($isCloud) {
-                $watcherUri = "{0}/watchers?accountId={1}" -f $issueObj.RestURL, $watcherValue
-            }
-            else {
-                $watcherUri = "{0}/watchers?username={1}" -f $issueObj.RestURL, $watcherValue
-            }
+            $watcherUri = if ($isCloud) { "{0}/watchers?accountId={1}" -f $issueObj.RestURL, $watcherValue }
+            else { "{0}/watchers?username={1}" -f $issueObj.RestURL, $watcherValue }
             $parameter = @{
                 URI        = $watcherUri
                 Method     = "DELETE"
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) { Invoke-JiraMethod @parameter }
         }
     }
 

@@ -72,12 +72,9 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
 
-                    $expandValue = "transitions"
-                    if ($IncludeHistory) { $expandValue = "transitions,changelog" }
+                    $expandValue = if ($IncludeHistory) { "transitions,changelog" } else { "transitions" }
                     $getParameter = @{ expand = $expandValue }
-                    if ($Fields) {
-                        $getParameter["fields"] = $Fields
-                    }
+                    if ($Fields) { $getParameter["fields"] = $Fields }
 
                     $parameter = @{
                         URI          = $resourceURi -f $_key
@@ -100,8 +97,7 @@
                 Write-Output (Get-JiraIssue -Key $InputObject.Key -Fields $Fields -Credential $Credential -IncludeHistory:$IncludeHistory)
             }
             'ByJQL' {
-                $expandValue = "transitions"
-                if ($IncludeHistory) { $expandValue = "transitions,changelog" }
+                $expandValue = if ($IncludeHistory) { "transitions,changelog" } else { "transitions" }
                 $parameter = @{
                     URI          = if ($isCloud) { $searchURi_v3 } else { $searchURi }
                     Method       = "GET"
@@ -115,9 +111,7 @@
                     Paging       = $true
                     Credential   = $Credential
                 }
-                if ($Fields) {
-                    $parameter["GetParameter"]["fields"] = $Fields
-                }
+                if ($Fields) { $parameter["GetParameter"]["fields"] = $Fields }
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
                     $parameter[$_] = $PSCmdlet.PagingParameters.$_
@@ -128,8 +122,7 @@
             }
             'ByFilter' {
                 $filterObj = (Get-JiraFilter -Id $Filter.ID -Credential $Credential -ErrorAction Stop).SearchUrl
-                $expandValue = "transitions"
-                if ($IncludeHistory) { $expandValue = "transitions,changelog" }
+                $expandValue = if ($IncludeHistory) { "transitions,changelog" } else { "transitions" }
                 $parameter = @{
                     URI          = $filterObj
                     Method       = "GET"
@@ -143,9 +136,7 @@
                     Credential   = $Credential
 
                 }
-                if ($Fields) {
-                    $parameter["GetParameter"]["fields"] = $Fields
-                }
+                if ($Fields) { $parameter["GetParameter"]["fields"] = $Fields }
                 # Paging
                 ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
                     $parameter[$_] = $PSCmdlet.PagingParameters.$_

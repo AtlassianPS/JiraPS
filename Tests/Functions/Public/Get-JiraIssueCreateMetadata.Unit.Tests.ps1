@@ -217,9 +217,7 @@ InModuleScope JiraPS {
                             startAt = $startAt; maxResults = $maxResults; total = $metadataFields.Count
                             $metadataContainer = $page
                         }
-                        if (-not $metadataIsCloud) {
-                            $response.isLast = ($startAt + $page.Count) -ge $metadataFields.Count
-                        }
+                        if (-not $metadataIsCloud) { $response.isLast = ($startAt + $page.Count) -ge $metadataFields.Count }
                         $json = ConvertTo-Json $response -Depth 10
                         [PSCustomObject]@{
                             StatusCode       = [System.Net.HttpStatusCode]::OK

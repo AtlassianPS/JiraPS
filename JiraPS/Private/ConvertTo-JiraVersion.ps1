@@ -9,6 +9,7 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Version"
 
             $hash = @{
@@ -23,16 +24,10 @@
                 RestUrl     = [uri]$i.self
             }
 
-            if ($null -ne $i.projectId) {
-                $hash.Project = [long]$i.projectId
-            }
+            if ($null -ne $i.projectId) { $hash.Project = [long]$i.projectId }
 
-            if ($i.startDate) {
-                $hash.StartDate = Get-Date $i.startDate
-            }
-            if ($i.releaseDate) {
-                $hash.ReleaseDate = Get-Date $i.releaseDate
-            }
+            if ($i.startDate) { $hash.StartDate = Get-Date $i.startDate }
+            if ($i.releaseDate) { $hash.ReleaseDate = Get-Date $i.releaseDate }
 
             [AtlassianPS.JiraPS.Version]$hash
         }

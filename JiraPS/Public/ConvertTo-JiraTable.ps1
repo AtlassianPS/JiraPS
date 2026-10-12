@@ -24,9 +24,7 @@
         $n = [System.Environment]::NewLine
 
         if ($Property) {
-            if ($Property -eq '*') {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Property * was passed. Adding all properties."
-            }
+            if ($Property -eq '*') { Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Property * was passed. Adding all properties." }
             else {
 
                 foreach ($p in $Property) {

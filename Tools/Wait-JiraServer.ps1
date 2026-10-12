@@ -26,7 +26,9 @@
     3. Discovers the (projectTypeKey, projectTemplateKey) pairs the running Jira advertises
        via /rest/project-templates/1.0/templates, sorts them so 'task' / 'software-development'
        templates come first (the Task issuetype the Server-tagged tests rely on), and POSTs
-       to /rest/api/2/project until one of the candidates is accepted. Hardcoded canonical
+       to /rest/api/2/project with the AMPS seed's classic workflow scheme until one of
+       the candidates is accepted. Its Resolve Issue screen is extended with summary and
+       description for the transition-payload tests. Hardcoded canonical
        Server templates are tried as a last-resort fallback. This is necessary because the
        AMPS standalone image only registers a single 'business' projectType and rejects every
        canonical Jira Software template key.
@@ -174,6 +176,12 @@ if (-not $ready) {
     exit 1
 }
 
+# The AMPS seed enables unassigned issues in its database. This option is not an
+# advanced application property, so the application-properties REST API cannot set it.
+Write-Host "==> Verifying the disposable test site allows unassigned issues"
+$configuration = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/configuration" -Method Get -Headers $headers -TimeoutSec 30
+if ($configuration.unassignedIssuesAllowed -ne $true) { throw 'The disposable Jira fixture must allow unassigned issues.' }
+
 Write-Host "==> Provisioning normal test user '$NormalUser' via $userApiUrl"
 
 $body = @{
@@ -195,42 +203,65 @@ catch {
     }
 
     $message = $_.Exception.Message
-    $bodyText = $null
-    if ($_.ErrorDetails -and $_.ErrorDetails.Message) {
-        $bodyText = $_.ErrorDetails.Message
-    }
+    $bodyText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
 
     $alreadyExists = $false
     if ($statusCode -in 400, 409) {
         if ($bodyText -and ($bodyText -match 'already exists' -or $bodyText -match 'username' -or $bodyText -match 'user with that')) {
             $alreadyExists = $true
         }
-        elseif ($message -match 'already exists') {
-            $alreadyExists = $true
-        }
+        elseif ($message -match 'already exists') { $alreadyExists = $true }
     }
 
-    if ($alreadyExists) {
-        Write-Host "==> User '$NormalUser' already exists; treating as success."
-    }
+    if ($alreadyExists) { Write-Host "==> User '$NormalUser' already exists; treating as success." }
     else {
         Write-Error "Failed to provision normal user '$NormalUser' (status=$statusCode): $message`n$bodyText"
         exit 2
     }
 }
 
+# The pinned AMPS Jira 11 seed ships scheme 10000 and maps legacy resolveissue
+# transitions to screen 3. Verify this fixture before extending its screen.
+$workflowSchemeId = 10000
+$fixtureWorkflow = 'classic default workflow'
+$workflowScheme = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/workflowscheme/$workflowSchemeId" -Method Get -Headers $headers -TimeoutSec 30
+if ($workflowScheme.name -ne 'classic' -or $workflowScheme.defaultWorkflow -ne $fixtureWorkflow) {
+    throw "The disposable Jira image must provide AMPS classic workflow scheme $workflowSchemeId. Check the pinned Jira seed."
+}
+
+Write-Host "==> Preparing the classic Resolve Issue screen for transition-payload tests"
+$transitionScreenId = 3
+$screenTabs = @(Invoke-RestMethod -Uri "$baseUrl/rest/api/2/screens/$transitionScreenId/tabs" -Method Get -Headers $headers -TimeoutSec 30)
+if ($screenTabs.Count -eq 0) { throw 'The AMPS Resolve Issue screen must have a field tab.' }
+$screenFieldIds = @(
+    foreach ($tab in $screenTabs) {
+        $tabFields = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/screens/$transitionScreenId/tabs/$($tab.id)/fields" -Method Get -Headers $headers -TimeoutSec 30
+        $tabFields | ForEach-Object { $_.id }
+    }
+)
+foreach ($fieldId in 'resolution', 'assignee', 'worklog') {
+    if ($fieldId -notin $screenFieldIds) {
+        throw "The AMPS Resolve Issue screen is missing '$fieldId'. Check the pinned Jira seed."
+    }
+}
+foreach ($fieldId in 'summary', 'description') {
+    if ($fieldId -notin $screenFieldIds) {
+        $fieldBody = @{ fieldId = $fieldId } | ConvertTo-Json -Compress
+        $null = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/screens/$transitionScreenId/tabs/$($screenTabs[0].id)/fields" -Method Post -Headers $headers -ContentType 'application/json' -Body $fieldBody -TimeoutSec 30
+    }
+}
+
 Write-Host "==> Provisioning test project '$ProjectKey' via $projectApiUrl"
 
 $testGroup = if ($env:JIRA_TEST_GROUP) { $env:JIRA_TEST_GROUP } else { $null }
-if ($testGroup) {
-    Write-Host "==> Using preconfigured test group '$testGroup'"
-}
+if ($testGroup) { Write-Host "==> Using preconfigured test group '$testGroup'" }
 else {
     Write-Host "==> Discovering a reusable test group for '$NormalUser'"
 
     try {
         $userWithGroups = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/user?username=$([uri]::EscapeDataString($NormalUser))&expand=groups" -Method Get -Headers $headers -TimeoutSec 30
-        $groupItems = if ($userWithGroups.groups -and $userWithGroups.groups.items) { @($userWithGroups.groups.items) } else { @() }
+        $groupItems = if ($userWithGroups.groups -and $userWithGroups.groups.items) { @($userWithGroups.groups.items) }
+        else { @() }
         $preferredGroup = $groupItems |
             Sort-Object -Property @{
                 Expression = {
@@ -342,9 +373,7 @@ Write-Host ("    Resolved schemes: permission={0} notification={1} security={2} 
 # advertises so future debugging doesn't need another CI round-trip.
 try {
     $projectTypes = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/project/type" -Method Get -Headers $headers -TimeoutSec 30
-    if ($projectTypes) {
-        Write-Host ("    Available project types: {0}" -f (($projectTypes | ForEach-Object { $_.key }) -join ', '))
-    }
+    if ($projectTypes) { Write-Host ("    Available project types: {0}" -f (($projectTypes | ForEach-Object { $_.key }) -join ', ')) }
 }
 catch {
     Write-Host "    (project/type lookup failed: $($_.Exception.Message))"
@@ -374,8 +403,8 @@ try {
 
     if ($rawTemplates.projectTemplates) {
         foreach ($tpl in @($rawTemplates.projectTemplates)) {
-            $typeKey = $tpl.projectTypeKey
-            if (-not $typeKey -and $tpl.projectTypeBean) { $typeKey = $tpl.projectTypeBean.projectTypeKey }
+            $typeKey = if (-not $tpl.projectTypeKey -and $tpl.projectTypeBean) { $tpl.projectTypeBean.projectTypeKey }
+            else { $tpl.projectTypeKey }
             $tplKey = & $extractTemplateKey $tpl
             if ($typeKey -and $tplKey) {
                 $discoveredPairs.Add(@{ ProjectTypeKey = $typeKey; ProjectTemplateKey = $tplKey; Source = 'flat' })
@@ -424,9 +453,7 @@ try {
         $names = ($existing | ForEach-Object { "$($_.key) ($($_.projectTypeKey))" }) -join ', '
         Write-Host ("    Existing projects: {0}" -f $names)
     }
-    else {
-        Write-Host "    No existing projects."
-    }
+    else { Write-Host "    No existing projects." }
 }
 catch {
     Write-Host "    (project list failed: $($_.Exception.Message))"
@@ -474,6 +501,7 @@ foreach ($pair in $candidatePairs) {
         assigneeType       = 'PROJECT_LEAD'
         description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
         notificationScheme = $notificationScheme
+        workflowSchemeId   = $workflowSchemeId
     }
     if ($permissionScheme) { $payload['permissionScheme'] = $permissionScheme }
     if ($issueSecurityScheme) { $payload['issueSecurityScheme'] = $issueSecurityScheme }
@@ -519,6 +547,12 @@ if (-not $project) {
     exit 3
 }
 
+$assignedWorkflowScheme = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/project/$ProjectKey/workflowscheme" -Method Get -Headers $headers -TimeoutSec 30
+$unexpectedWorkflowMappings = @($assignedWorkflowScheme.issueTypeMappings.PSObject.Properties | Where-Object { $_.Value -ne $fixtureWorkflow })
+if ($assignedWorkflowScheme.id -ne $workflowSchemeId -or $assignedWorkflowScheme.defaultWorkflow -ne $fixtureWorkflow -or $unexpectedWorkflowMappings.Count -gt 0) {
+    throw "Project '$ProjectKey' must use the AMPS classic workflow scheme. Recreate the disposable Jira fixture if this volume predates transition-payload coverage."
+}
+
 Write-Host "==> Seeding baseline issue in project '$ProjectKey'"
 
 # Discover an issuetype that this project actually accepts (business projects
@@ -536,12 +570,8 @@ try {
             if ($candidate) { $issueTypeName = $candidate.name }
         }
     }
-    if ($issueTypeName) {
-        Write-Host ("    Using discovered issuetype: '{0}'" -f $issueTypeName)
-    }
-    else {
-        Write-Host "    /createmeta returned no issuetypes for '$ProjectKey'; falling back to conventional names."
-    }
+    if ($issueTypeName) { Write-Host ("    Using discovered issuetype: '{0}'" -f $issueTypeName) }
+    else { Write-Host "    /createmeta returned no issuetypes for '$ProjectKey'; falling back to conventional names." }
 }
 catch {
     Write-Host "    (createmeta lookup failed: $($_.Exception.Message))"
@@ -598,7 +628,8 @@ if ($issue -and $issueTypeName) {
     try {
         $cmFields = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issue/createmeta?projectKeys=$ProjectKey&issuetypeNames=$([uri]::EscapeDataString($issueTypeName))&expand=projects.issuetypes.fields" -Method Get -Headers $headers -TimeoutSec 30
         $proj = $cmFields.projects | Where-Object { $_.key -eq $ProjectKey } | Select-Object -First 1
-        $itype = if ($proj) { $proj.issuetypes | Where-Object { $_.name -eq $issueTypeName } | Select-Object -First 1 } else { $null }
+        $itype = if ($proj) { $proj.issuetypes | Where-Object { $_.name -eq $issueTypeName } | Select-Object -First 1 }
+        else { $null }
         if ($itype -and $itype.fields) {
             $allFields = @()
             foreach ($prop in $itype.fields.PSObject.Properties) {
@@ -618,13 +649,9 @@ if ($issue -and $issueTypeName) {
                     Write-Host ("    Required-no-default: id='{0}' name='{1}'" -f $f.Id, $f.Name)
                 }
             }
-            else {
-                Write-Host "    No tightened (required-no-default) fields detected."
-            }
+            else { Write-Host "    No tightened (required-no-default) fields detected." }
         }
-        else {
-            Write-Host "    /createmeta did not return field metadata for the chosen project/issuetype."
-        }
+        else { Write-Host "    /createmeta did not return field metadata for the chosen project/issuetype." }
     }
     catch {
         Write-Host ("    (createmeta diagnostic failed: {0})" -f $_.Exception.Message)
@@ -677,9 +704,7 @@ if ($issue -and $issue.key) {
         }
         Start-Sleep -Seconds 1
     }
-    if (-not $luceneReady) {
-        Write-Host "    Lucene did not return '$($issue.key)' within 60s — tests that race the indexer may flake."
-    }
+    if (-not $luceneReady) { Write-Host "    Lucene did not return '$($issue.key)' within 60s — tests that race the indexer may flake." }
 }
 
 # Export the provisioned fixture identifiers to the current process and, in CI,

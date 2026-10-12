@@ -18,6 +18,17 @@ services:
     # overhead, so allocate at least 6 GiB to Docker Desktop before running
     # locally. CI runners have ~7 GiB and are fine out of the box.
     image: moveworkforward/atlas-run-standalone:${JIRA_IMAGE_TAG:-jira-11}
+    # Standalone AMPS ignores the global override path; use its standard source directory.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        mkdir -p amps-standalone-jira-11.0.1/src/test/resources/jira-home
+        cp /jiraps-home-overrides/jira-config.properties amps-standalone-jira-11.0.1/src/test/resources/jira-home/
+        exec atlas-run-standalone -u 9.6.0 --product jira --http-port 2990 --version 11.0.1 --server 0.0.0.0 --jvmargs -Xmx4096M -DskipAllPrompts=true -Dmoveworkforward.dev.mode=true
+    volumes:
+      - ./Tests/Integration/Fixtures/jira-home:/jiraps-home-overrides:ro
     container_name: jiraps-jira-dc
     ports:
       - "2990:2990"

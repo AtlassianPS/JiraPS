@@ -56,9 +56,7 @@
                         Credential = $Credential
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    if ($PSCmdlet.ShouldProcess($thisUrl, "Removing an attachment")) {
-                        Invoke-JiraMethod @parameter
-                    }
+                    if ($PSCmdlet.ShouldProcess($thisUrl, "Removing an attachment")) { Invoke-JiraMethod @parameter }
                 }
             }
             "byIssue" {

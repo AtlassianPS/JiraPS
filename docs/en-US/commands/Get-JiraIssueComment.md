@@ -10,21 +10,21 @@ permalink: /docs/JiraPS/commands/Get-JiraIssueComment/
 
 ## SYNOPSIS
 
-Returns comments on an issue in JIRA.
+Returns comments on an issue in Jira.
 
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueComment [-Issue] <Issue> [[-Credential] <pscredential>] [<CommonParameters>]
+Get-JiraIssueComment [-Issue] <AtlassianPS.JiraPS.Issue> [[-Credential] <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function obtains comments from existing issues in JIRA.
+This function obtains comments from existing issues in Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraIssueComment -Key TEST-001
@@ -32,7 +32,7 @@ Get-JiraIssueComment -Key TEST-001
 
 This example returns all comments posted to issue TEST-001.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraIssue TEST-002 | Get-JiraIssueComment
@@ -44,7 +44,7 @@ This example illustrates use of the pipeline to return all comments on issue TES
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -66,12 +66,12 @@ HelpMessage: ''
 
 ### -Issue
 
-JIRA issue to check for comments.
+Jira issue to check for comments.
 
-Can be a `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
 
 ```yaml
-Type: Issue
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -90,10 +90,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -105,9 +103,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

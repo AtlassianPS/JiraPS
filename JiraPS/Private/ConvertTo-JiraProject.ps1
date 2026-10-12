@@ -9,6 +9,7 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Project"
 
             $hash = @{
@@ -16,21 +17,32 @@
                 Key            = $i.key
                 Name           = $i.name
                 Description    = $i.description
-                Lead           = if ($i.lead) { ConvertTo-JiraUser $i.lead } else { $null }
-                Roles          = $i.roles
+                Lead           = if ($null -ne $i.lead) { ConvertTo-JiraUser -InputObject $i.lead } else { $null }
+                Roles          = if ($null -ne $i.roles) { ConvertTo-JiraUriMap -InputObject $i.roles } else { $null }
                 RestUrl        = [uri]$i.self
                 Style          = $i.style
-                Category       = if ($i.projectCategory) { $i.projectCategory } elseif ($i.Category) { $i.Category } else { $null }
+                Category       = $null
+                AssigneeType   = ConvertTo-JiraEnum -Type ([AtlassianPS.JiraPS.AssigneeType]) -Value $i.assigneeType
                 ProjectTypeKey = $i.projectTypeKey
                 Url            = [uri]$i.url
                 Email          = $i.email
             }
 
+            $category = if ($i.projectCategory) { $i.projectCategory } else { $i.Category }
+            if ($category) {
+                $hash.Category = [AtlassianPS.JiraPS.ProjectCategory]@{
+                    Id          = $category.id
+                    Name        = $category.name
+                    Description = $category.description
+                    RestUrl     = [uri]$category.self
+                }
+            }
+            if ($null -ne $i.versions) { $hash.Versions = [AtlassianPS.JiraPS.Version[]]@(ConvertTo-JiraVersion $i.versions) }
             if ($null -ne $i.archived) { $hash.Archived = [System.Convert]::ToBoolean($i.archived) }
             if ($null -ne $i.simplified) { $hash.Simplified = [System.Convert]::ToBoolean($i.simplified) }
             if ($null -ne $i.isPrivate) { $hash.IsPrivate = [System.Convert]::ToBoolean($i.isPrivate) }
-            if ($i.issueTypes) { $hash.IssueTypes = [AtlassianPS.JiraPS.IssueType[]]@(ConvertTo-JiraIssueType $i.issueTypes) }
-            if ($i.components) { $hash.Components = [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent $i.components) }
+            if ($null -ne $i.issueTypes) { $hash.IssueTypes = [AtlassianPS.JiraPS.IssueType[]]@(ConvertTo-JiraIssueType $i.issueTypes) }
+            if ($null -ne $i.components) { $hash.Components = [AtlassianPS.JiraPS.Component[]]@(ConvertTo-JiraComponent $i.components) }
 
             [AtlassianPS.JiraPS.Project]$hash
         }

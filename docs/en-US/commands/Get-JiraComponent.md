@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Get-JiraComponent/
 
 ## SYNOPSIS
 
-Returns a Component from Jira
+Returns a component from Jira.
 
 ## SYNTAX
 
@@ -23,19 +23,19 @@ Get-JiraComponent [-ComponentId] <int[]> [-Credential <pscredential>] [<CommonPa
 ### ByProject
 
 ```powershell
-Get-JiraComponent [-Project] <Project[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraComponent [-Project] <AtlassianPS.JiraPS.Project[]> [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 This function returns information regarding a specified component from Jira.
 
-Components are specific to a Project.
-Therefore, it is not possible to query for Components without a project.
+Components are specific to a project.
+Therefore, it is not possible to query for components without a project.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Get-JiraComponent -Id 10000
@@ -43,7 +43,7 @@ Get-JiraComponent -Id 10000
 
 Returns information about the component with ID 10000
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Get-JiraComponent 20000 -Credential $cred
@@ -51,15 +51,15 @@ Get-JiraComponent 20000 -Credential $cred
 
 Returns information about the component with ID 20000
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
-Get-JiraProject "Project1" | Get-JiraComponent
+Get-JiraProject 'Project1' | Get-JiraComponent
 ```
 
 Returns information about all components within project 'Project1'
 
-### EXAMPLE 4
+### Example 4
 
 ```powershell
 Get-JiraComponent ABC,DEF
@@ -93,7 +93,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -115,10 +115,10 @@ HelpMessage: ''
 
 ### -Project
 
-The ID or Key of the Project to search.
+The ID or key of the project to search.
 
 ```yaml
-Type: Project[]
+Type: AtlassianPS.JiraPS.Project[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -136,34 +136,32 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### String[]
+### AtlassianPS.JiraPS.Project
 
-Retrieve all Components in a specific project.
+Pipe a project object to retrieve its components.
 
-### JiraPS.Component[]
+### System.String
 
-Pipe an existing Component object back into the cmdlet.
+Pipe a project key or numeric project ID to retrieve its components.
 
-### Int[]
+### System.Int64
 
-Retrieve specific Components by theirs id.
+Pipe a numeric project ID to retrieve its components.
 
 ## OUTPUTS
 
-### JiraPS.Component
+### AtlassianPS.JiraPS.Component
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 Remaining operations for `component` have not yet been implemented in the module.
 

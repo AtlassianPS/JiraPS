@@ -3,7 +3,8 @@
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
-        [String[]]
+        [AtlassianPS.JiraPS.ProjectTransformation()]
+        [AtlassianPS.JiraPS.Project[]]
         $Project,
 
         [Parameter()]
@@ -39,8 +40,10 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
+                    $projectIdentifier = if ($_project.Key) { $_project.Key } else { $_project.Id }
+
                     $parameter = @{
-                        URI        = $resourceURi -f "/$($_project)"
+                        URI        = $resourceURi -f "/$projectIdentifier"
                         Method     = "GET"
                         Credential = $Credential
                     }

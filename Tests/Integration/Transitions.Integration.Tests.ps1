@@ -94,14 +94,10 @@ InModuleScope JiraPS {
 
         Context "Transition Operations" -Skip:$SkipWrite {
             BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                    $script:transitionIssue = $null
-                }
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:transitionIssue = $null }
                 else {
                     $script:transitionIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "Transition")
-                    if ($transitionIssue) {
-                        $null = $script:createdIssues.Add($transitionIssue.Key)
-                    }
+                    if ($transitionIssue) { $null = $script:createdIssues.Add($transitionIssue.Key) }
                 }
             }
 
@@ -268,9 +264,11 @@ InModuleScope JiraPS {
                     return
                 }
 
-                $firstTransition = $forwardTransitions[0]
+                $uniqueNames = @($availableTransitions | Group-Object Name | Where-Object Count -EQ 1 | ForEach-Object Name)
+                $firstTransition = $forwardTransitions | Where-Object Name -In $uniqueNames | Select-Object -First 1
+                if (-not $firstTransition) { throw 'Transition name integration coverage requires a state-changing transition with a unique name.' }
                 $expectedAfterFirst = $firstTransition.ResultStatus.Name
-                Invoke-JiraIssueTransition -Issue $issue.Key -Transition $firstTransition.Id -ErrorAction Stop
+                Invoke-JiraIssueTransition -Issue $issue.Key -Transition $firstTransition.Name -ErrorAction Stop
 
                 # Poll for the new status: AMPS standalone (H2 store) sometimes serves
                 # a stale issue snapshot from cache for a beat after the transition

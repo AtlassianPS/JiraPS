@@ -45,9 +45,7 @@ InModuleScope JiraPS {
                     { Get-JiraIssueAttachment -Issue $fixtures.TestIssue } | Should -Not -Throw
 
                     $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
-                    if ($attachments) {
-                        @($attachments)[0] | Should -BeOfType [AtlassianPS.JiraPS.Attachment]
-                    }
+                    if ($attachments) { @($attachments)[0] | Should -BeOfType [AtlassianPS.JiraPS.Attachment] }
                 }
 
                 It "returns attachment objects with correct type" {
@@ -57,9 +55,7 @@ InModuleScope JiraPS {
                     }
                     $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
 
-                    if ($attachments) {
-                        @($attachments)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Attachment'
-                    }
+                    if ($attachments) { @($attachments)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Attachment' }
                 }
 
                 It "accepts issue object via pipeline" {
@@ -99,15 +95,9 @@ InModuleScope JiraPS {
             }
 
             AfterAll {
-                if ($testFilePath -and (Test-Path $testFilePath)) {
-                    Remove-Item $testFilePath -Force
-                }
-                if ($testBinaryFilePath -and (Test-Path $testBinaryFilePath)) {
-                    Remove-Item $testBinaryFilePath -Force
-                }
-                if ($downloadDir -and (Test-Path $downloadDir)) {
-                    Remove-Item $downloadDir -Recurse -Force
-                }
+                if ($testFilePath -and (Test-Path $testFilePath)) { Remove-Item $testFilePath -Force }
+                if ($testBinaryFilePath -and (Test-Path $testBinaryFilePath)) { Remove-Item $testBinaryFilePath -Force }
+                if ($downloadDir -and (Test-Path $downloadDir)) { Remove-Item $downloadDir -Recurse -Force }
             }
 
             Context "Attachment Upload" {
@@ -206,9 +196,7 @@ InModuleScope JiraPS {
                 if ($deleteTestIssue -and $deleteTestIssue.Key) {
                     Remove-JiraIssue -IssueId $deleteTestIssue.Key -Force -ErrorAction SilentlyContinue
                 }
-                if ($deleteTestFile -and (Test-Path $deleteTestFile)) {
-                    Remove-Item $deleteTestFile -Force
-                }
+                if ($deleteTestFile -and (Test-Path $deleteTestFile)) { Remove-Item $deleteTestFile -Force }
             }
 
             Context "Attachment Deletion" {

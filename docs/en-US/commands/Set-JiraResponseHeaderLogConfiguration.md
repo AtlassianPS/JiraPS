@@ -14,13 +14,19 @@ Configures Jira response headers that `Invoke-JiraMethod` writes to the debug st
 
 ## SYNTAX
 
+### Wildcard (Default)
+
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Include <string[]> [-Exclude <string[]>] [<CommonParameters>]
 ```
 
+### Regex
+
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Pattern <regex> [<CommonParameters>]
 ```
+
+### Disabled
 
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Disable [<CommonParameters>]
@@ -41,7 +47,7 @@ Debug output can still include diagnostic metadata such as Jira usernames, reque
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Include 'X-A*'
@@ -51,7 +57,7 @@ Invoke-JiraMethod -Uri '/rest/api/2/serverInfo' -Debug
 Logs Jira Data Center diagnostic response headers such as `X-AREQUESTID`, `X-ANODEID`, `X-ASESSIONID`, and `X-AUSERNAME` to the debug stream.
 `Authorization` and cookie response headers are always suppressed regardless of the `-Include` pattern.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Include 'X-A*', 'X-Trace-*' -Exclude 'X-Auth*'
@@ -60,7 +66,7 @@ Set-JiraResponseHeaderLogConfiguration -Include 'X-A*', 'X-Trace-*' -Exclude 'X-
 Logs response headers matching either `X-A*` or `X-Trace-*` and excludes any header matching `X-Auth*` (for example, custom `X-Auth-Token` headers).
 The `-Include` and `-Exclude` parameters accept an array of wildcard patterns.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Pattern '^X-A(?!uth)'
@@ -70,7 +76,7 @@ Invoke-JiraMethod -Uri '/rest/api/2/serverInfo' -Debug
 Uses a regular expression to log `X-A*` response headers while avoiding any `X-Auth*` headers.
 Regex matching is case-insensitive.
 
-### EXAMPLE 4
+### Example 4
 
 ```powershell
 Set-JiraResponseHeaderLogConfiguration -Disable
@@ -169,10 +175,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 

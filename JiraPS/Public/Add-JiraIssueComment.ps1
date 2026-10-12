@@ -14,9 +14,18 @@
         [AtlassianPS.JiraPS.Issue]
         $Issue,
 
-        [ValidateSet('All Users', 'Developers', 'Administrators')]
-        [String]
-        $VisibleRole = 'All Users',
+        [Alias('VisibleRole')]
+        [AtlassianPS.JiraPS.VisibilityTransformation()]
+        [ValidateScript({
+                if ($null -eq $_.Type -and $null -eq $_.Value -and $null -eq $_.Identifier) { return $true }
+                if ($_.Type -notin 'role', 'group') { throw "Visibility.Type must be 'role' or 'group'." }
+                if ([String]::IsNullOrWhiteSpace($_.Value) -and [String]::IsNullOrWhiteSpace($_.Identifier)) {
+                    throw 'Visibility requires a non-empty Value or Identifier.'
+                }
+                return $true
+            })]
+        [AtlassianPS.JiraPS.Visibility]
+        $Visibility,
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
@@ -43,14 +52,13 @@
             'body' = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
         }
 
-        # If the visible role should be all users, the visibility block shouldn't be passed at
-        # all. JIRA returns a 500 Internal Server Error if you try to pass this block with a
-        # value of "All Users".
-        if ($VisibleRole -ne 'All Users') {
-            $requestBody.visibility = @{
-                'type'  = 'role'
-                'value' = $VisibleRole
-            }
+        # Unrestricted access omits visibility; older Jira versions reject an "All Users" role.
+        if ($Visibility -and $Visibility.Type -and -not (
+                $Visibility.Type -eq 'role' -and $Visibility.Value -eq 'All Users' -and -not $Visibility.Identifier
+            )) {
+            $requestBody.visibility = @{ type = $Visibility.Type }
+            if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
+            if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }
         }
 
         $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud

@@ -38,9 +38,7 @@ function Import-JiraPSStandard {
         Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
         Select-Object -First 1
 
-    if (-not $standardsRequirement) {
-        throw 'AtlassianPS.Standards is missing from Tools/build.requirements.psd1.'
-    }
+    if (-not $standardsRequirement) { throw 'AtlassianPS.Standards is missing from Tools/build.requirements.psd1.' }
 
     Import-Module AtlassianPS.Standards -RequiredVersion $standardsRequirement.RequiredVersion -Force -ErrorAction Stop
 }
@@ -156,9 +154,7 @@ Task GenerateExternalHelp -Inputs {
         $hasCommandHelp = Get-ChildItem "$($locale.FullName)/commands/*.md" -File -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -ne 'index.md' } |
             Select-Object -First 1
-        if ($hasCommandHelp) {
-            Join-Path $localeOut "$env:BHProjectName-help.xml"
-        }
+        if ($hasCommandHelp) { Join-Path $localeOut "$env:BHProjectName-help.xml" }
 
         Get-ChildItem "$($locale.FullName)/about_*.md" -File -ErrorAction SilentlyContinue |
             ForEach-Object { Join-Path $localeOut "$($_.BaseName).help.txt" }
@@ -190,9 +186,7 @@ Task SetSourceVersion {
 }
 
 Task SetVersion {
-    if (-not $script:BuildInfo.VersionToPublish) {
-        throw 'VersionToPublish is required for SetVersion. Use -VersionToPublish <semver>.'
-    }
+    if (-not $script:BuildInfo.VersionToPublish) { throw 'VersionToPublish is required for SetVersion. Use -VersionToPublish <semver>.' }
 
     $releaseNotes = Get-AtlassianPSReleaseNotesFromChangelog `
         -ChangelogPath (Join-Path -Path $env:BHProjectPath -ChildPath 'CHANGELOG.md') `
@@ -240,9 +234,7 @@ Task TestIntegration {
     # `server_integration_tests` job in integration_tests.yml and by the StartJiraDocker
     # task; it defaults to Cloud so legacy invocations stay unchanged.
     $deploymentType = if ($env:CI_JIRA_TYPE) { $env:CI_JIRA_TYPE } else { 'Cloud' }
-    if ($deploymentType -notin @('Cloud', 'Server')) {
-        throw "Invalid CI_JIRA_TYPE '$deploymentType'. Must be 'Cloud' or 'Server'."
-    }
+    if ($deploymentType -notin @('Cloud', 'Server')) { throw "Invalid CI_JIRA_TYPE '$deploymentType'. Must be 'Cloud' or 'Server'." }
 
     $requiredEnvVars = if ($deploymentType -eq 'Server') {
         @(
@@ -278,9 +270,7 @@ See Tests/Integration/README.md for integration test configuration details.
 
     # Validate runner exists
     $runnerPath = "$env:BHProjectPath/Tests/Invoke-ParallelPester.ps1"
-    if (-not (Test-Path $runnerPath)) {
-        throw "Integration test runner not found: $runnerPath"
-    }
+    if (-not (Test-Path $runnerPath)) { throw "Integration test runner not found: $runnerPath" }
 
     # NOTE: High ThrottleLimit values (e.g., 6+) may trigger Jira Cloud rate limiting
     # (HTTP 429 + Retry-After). The runner does not currently handle 429 retries.
@@ -418,9 +408,7 @@ Task TestPublish Build, Package, {
         BuildOutputPath = $env:BHBuildOutput
         ModuleName      = $env:BHProjectName
     }
-    if ($script:PackagePath) {
-        $testPackageParameters.PackagePath = $script:PackagePath
-    }
+    if ($script:PackagePath) { $testPackageParameters.PackagePath = $script:PackagePath }
 
     $package = Test-AtlassianPSModulePackage @testPackageParameters
     Write-Build Green "Publish dry-run passed: $($package.PackagePath)"

@@ -38,19 +38,13 @@ InModuleScope JiraPS {
                     # Fresh Jira DC boots can briefly return an empty project-only
                     # search while indexing catches up, even though JIRA_TEST_ISSUE
                     # is already resolvable and belongs to the same project.
-                    $jql = if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        "project = $($fixtures.TestProject)"
-                    }
-                    else {
-                        "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue)"
-                    }
+                    $jql = if ([string]::IsNullOrEmpty($fixtures.TestIssue)) { "project = $($fixtures.TestProject)" }
+                    else { "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue)" }
 
                     $results = Get-JiraIssue -Query $jql
 
                     $results | Should -Not -BeNullOrEmpty
-                    if ($fixtures.TestIssue) {
-                        @($results).Key | Should -Contain $fixtures.TestIssue
-                    }
+                    if ($fixtures.TestIssue) { @($results).Key | Should -Contain $fixtures.TestIssue }
                 }
 
                 It "returns issue objects" {
@@ -58,12 +52,8 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    $jql = if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        "project = $($fixtures.TestProject)"
-                    }
-                    else {
-                        "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue)"
-                    }
+                    $jql = if ([string]::IsNullOrEmpty($fixtures.TestIssue)) { "project = $($fixtures.TestProject)" }
+                    else { "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue)" }
 
                     $results = Get-JiraIssue -Query $jql
 
@@ -167,9 +157,7 @@ InModuleScope JiraPS {
                     $secondPage = Get-JiraIssue -Query $jql -First 1 -Skip 1
 
                     # If there's a second page with results, verify it's different from first
-                    if ($secondPage -and @($secondPage).Count -gt 0) {
-                        @($firstPage)[0].Key | Should -Not -Be @($secondPage)[0].Key
-                    }
+                    if ($secondPage -and @($secondPage).Count -gt 0) { @($firstPage)[0].Key | Should -Not -Be @($secondPage)[0].Key }
                     else {
                         # Only one issue in project - just verify first page works
                         $firstPage | Should -Not -BeNullOrEmpty

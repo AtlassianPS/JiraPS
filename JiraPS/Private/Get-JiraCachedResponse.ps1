@@ -14,13 +14,9 @@
         $CommandName = "Invoke-JiraMethod"
     )
 
-    if (-not $CacheKey -or $Method -ne 'GET' -or $BypassCache) {
-        return $null
-    }
+    if (-not $CacheKey -or $Method -ne 'GET' -or $BypassCache) { return $null }
 
-    if (-not $script:JiraCache) {
-        $script:JiraCache = @{}
-    }
+    if (-not $script:JiraCache) { $script:JiraCache = @{} }
 
     $cacheServer = Get-JiraConfigServer -ErrorAction SilentlyContinue
     $fullCacheKey = "${CacheKey}:${cacheServer}"

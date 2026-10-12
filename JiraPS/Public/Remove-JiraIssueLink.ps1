@@ -4,13 +4,13 @@
     param(
         [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByIssueLink' )]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueLinkTransformation()]
+        [AtlassianPS.JiraPS.IssueLinkTransformation(AllowPipelineFallthrough = $true)]
         [AtlassianPS.JiraPS.IssueLink[]]
         $IssueLink,
 
         [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByIssue' )]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueTransformation()]
+        [AtlassianPS.JiraPS.IssueTransformation(AllowPipelineFallthrough = $true)]
         [AtlassianPS.JiraPS.Issue[]]
         $Issue,
 
@@ -33,21 +33,17 @@
         $linksToRemove = switch ($PSCmdlet.ParameterSetName) {
             'ByIssue' {
                 foreach ($currentIssue in $Issue) {
-                    $resolvedIssue = $currentIssue
-                    if (-not $resolvedIssue.IssueLinks) {
-                        $resolvedIssue = Resolve-JiraIssueObject -InputObject $currentIssue -Credential $Credential -ErrorAction Stop
+                    $resolvedIssue = if ($currentIssue.IssueLinks) { $currentIssue }
+                    else {
+                        Resolve-JiraIssueObject -InputObject $currentIssue -Credential $Credential -ErrorAction Stop
                     }
 
                     foreach ($link in @($resolvedIssue.IssueLinks)) {
-                        if ($link) {
-                            $link
-                        }
+                        if ($link) { $link }
                     }
                 }
             }
-            default {
-                $IssueLink
-            }
+            default { $IssueLink }
         }
 
         foreach ($link in $linksToRemove) {
@@ -60,9 +56,7 @@
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) { Invoke-JiraMethod @parameter }
         }
     }
 

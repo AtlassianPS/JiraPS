@@ -3,11 +3,13 @@
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'AssignToUser' )]
     param(
         [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
-        [String]
+        [AtlassianPS.JiraPS.ProjectTransformation()]
+        [AtlassianPS.JiraPS.Project]
         $Project,
 
         [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
-        [String]
+        [AtlassianPS.JiraPS.IssueTypeTransformation()]
+        [AtlassianPS.JiraPS.IssueType]
         $IssueType,
 
         [Parameter( Mandatory, ValueFromPipelineByPropertyName )]
@@ -15,7 +17,8 @@
         $Summary,
 
         [Parameter( ValueFromPipelineByPropertyName )]
-        [Int]
+        [AtlassianPS.JiraPS.PriorityTransformation()]
+        [AtlassianPS.JiraPS.Priority]
         $Priority,
 
         [Parameter( ValueFromPipelineByPropertyName )]
@@ -49,7 +52,8 @@
 
         [Parameter( ValueFromPipelineByPropertyName )]
         [Alias('FixVersions')]
-        [String[]]
+        [AtlassianPS.JiraPS.VersionTransformation()]
+        [AtlassianPS.JiraPS.Version[]]
         $FixVersion,
 
         [Parameter( ValueFromPipelineByPropertyName )]
@@ -58,7 +62,8 @@
 
         [Parameter( ValueFromPipelineByPropertyName )]
         [AllowNull()]
-        [String[]]
+        [AtlassianPS.JiraPS.ComponentTransformation()]
+        [AtlassianPS.JiraPS.Component[]]
         $Components,
 
         [Parameter()]
@@ -80,7 +85,9 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop -Debug:$false
-        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript { $_.Id -eq $IssueType -or $_.Name -eq $IssueType }
+        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {
+            if ($null -ne $IssueType.Id) { $_.Id -eq $IssueType.Id } else { $_.Name -eq $IssueType.Name }
+        }
 
         if ($null -eq $issueTypeObj.Id) {
             $errorMessage = @{
@@ -98,12 +105,24 @@
         }
 
         if ($Priority) {
-            $requestBody["priority"] = @{"id" = [String] $Priority }
+            $priorityId = $Priority.Id
+            if ($null -eq $priorityId) {
+                $matchingPriorities = @(Get-JiraPriority -Credential $Credential -ErrorAction Stop |
+                        Where-Object -FilterScript { $_.Name -eq $Priority.Name })
+
+                if ($matchingPriorities.Count -ne 1) {
+                    ThrowError -ExceptionType 'System.ArgumentException' `
+                        -ErrorId 'ParameterValue.InvalidPriority' `
+                        -Category InvalidArgument `
+                        -TargetObject $Priority `
+                        -Message "Priority '$($Priority.Name)' must identify exactly one priority. Use Get-JiraPriority to find a valid priority ID."
+                }
+                $priorityId = $matchingPriorities[0].Id
+            }
+            $requestBody["priority"] = @{"id" = [String] $priorityId }
         }
 
-        if ($Description) {
-            $requestBody["description"] = Resolve-JiraTextFieldPayload -Text $Description -IsCloud $isCloud
-        }
+        if ($Description) { $requestBody["description"] = Resolve-JiraTextFieldPayload -Text $Description -IsCloud $isCloud }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
             if ($reporterUser = Resolve-JiraUser -InputObject $Reporter -Exact -Credential $Credential) {
@@ -146,9 +165,7 @@
             $requestBody["assignee"] = Resolve-JiraUserPayload -UserObject $assigneeUser -IsCloud $isCloud
         }
 
-        if ($Parent) {
-            $requestBody["parent"] = @{"key" = $Parent }
-        }
+        if ($Parent) { $requestBody["parent"] = @{"key" = $Parent } }
 
         if ($Label) {
             $requestBody["labels"] = [System.Collections.Generic.List[string]]::new()
@@ -157,12 +174,18 @@
 
         if ($Components) {
             $requestBody["components"] = [System.Collections.Generic.List[hashtable]]::new()
-            $Components.ForEach({ $null = $requestBody["components"].Add(@{ id = "$_" }) })
+            $Components.ForEach({
+                    $componentValue = if ($_.Id) { @{ id = $_.Id } } else { @{ name = $_.Name } }
+                    $null = $requestBody["components"].Add($componentValue)
+                })
         }
 
         if ($FixVersion) {
             $requestBody['fixVersions'] = [System.Collections.Generic.List[hashtable]]::new()
-            $FixVersion.ForEach({ $null = $requestBody["fixVersions"].Add(@{ name = "$_" }) })
+            $FixVersion.ForEach({
+                    $versionValue = if ($_.Id) { @{ id = $_.Id } } else { @{ name = $_.Name } }
+                    $null = $requestBody["fixVersions"].Add($versionValue)
+                })
         }
 
         if ($Fields) {

@@ -160,17 +160,17 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
-                    @{ parameter = "Transition"; type = "Object" }
-                    @{ parameter = "Comment"; type = "String" }
-                    @{ parameter = "TimeSpent"; type = "TimeSpan" }
-                    @{ parameter = "Assignee"; type = "User" }
-                    @{ parameter = "Unassign"; type = "Switch" }
-                    @{ parameter = "Fields"; type = "PSCustomObject" }
-                    @{ parameter = "Passthru"; type = "Switch" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
+                    @{ parameter = 'Transition'; type = 'AtlassianPS.JiraPS.Transition' }
+                    @{ parameter = 'Comment'; type = 'String' }
+                    @{ parameter = 'TimeSpent'; type = 'TimeSpan' }
+                    @{ parameter = 'Assignee'; type = 'AtlassianPS.JiraPS.User' }
+                    @{ parameter = 'Unassign'; type = 'Switch' }
+                    @{ parameter = 'Fields'; type = 'PSCustomObject' }
+                    @{ parameter = 'Passthru'; type = 'Switch' }
+                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
-                    $command | Should -HaveParameter $parameter
+                    $command | Should -HaveParameter $parameter -Type $type
                 }
             }
 
@@ -225,6 +225,100 @@ InModuleScope JiraPS {
                     # Get-JiraIssue called once in test setup, once in Invoke-JiraIssueTransition
                     Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                }
+            }
+
+            Context "Transition binding and validation" {
+                It "sends the ID for <description>" -TestCases @(
+                    @{ description = 'numeric ID'; value = 11 }
+                    @{ description = 'returned transition'; value = [AtlassianPS.JiraPS.Transition]@{ Id = 11 } }
+                    @{ description = 'numeric string'; value = '11' }
+                    @{ description = 'transition name'; value = 'Start Progress' }
+                    @{ description = 'case-insensitive transition name'; value = 'start progress' }
+                ) {
+                    Invoke-JiraIssueTransition -Issue $issueKey -Transition $value
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'Post' -and ($Body | ConvertFrom-Json).transition.id -eq 11
+                    }
+                }
+
+                It "rejects <description> during parameter binding before resolving the issue" -TestCases @(
+                    @{ description = 'null'; value = $null }
+                    @{ description = 'empty string'; value = '' }
+                    @{ description = 'whitespace'; value = '   ' }
+                    @{ description = 'unrelated object'; value = [PSCustomObject]@{ Unexpected = 11 } }
+                    @{ description = 'boolean'; value = $true }
+                    @{ description = 'fractional ID'; value = 11.5 }
+                    @{ description = 'multiple IDs'; value = @(11, 81) }
+                ) {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition $value -ErrorAction Stop } |
+                        Should -Throw -ExceptionType ([System.Management.Automation.ParameterBindingException])
+                    Should -Invoke Resolve-JiraIssueObject -ModuleName JiraPS -Exactly -Times 0
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+
+                It "rejects an unavailable ID or name before posting" -TestCases @(
+                    @{ value = 999 }
+                    @{ value = 'Unknown transition' }
+                    @{ value = [AtlassianPS.JiraPS.Transition]::new() }
+                ) {
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition $value -ErrorAction Stop } |
+                        Should -Throw -ErrorId 'ParameterValue.InvalidTransition*'
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+
+                It "rejects unresolved transitions when the issue has no available transitions" -TestCases @(
+                    @{ value = 'Unknown transition' }
+                    @{ value = [AtlassianPS.JiraPS.Transition]::new() }
+                ) {
+                    Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                        [AtlassianPS.JiraPS.Issue]@{
+                            Key        = $issueKey
+                            RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
+                            Transition = @()
+                        }
+                    }
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition $value -ErrorAction Stop } |
+                        Should -Throw -ErrorId 'ParameterValue.InvalidTransition*'
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+
+                It "rejects an ambiguous transition name before posting" {
+                    Mock Resolve-JiraIssueObject -ModuleName JiraPS {
+                        [AtlassianPS.JiraPS.Issue]@{
+                            Key        = $issueKey
+                            RestUrl    = "$jiraServer/rest/api/2/issue/$issueID"
+                            Transition = @(
+                                [AtlassianPS.JiraPS.Transition]@{ Id = 11; Name = 'Duplicate' }
+                                [AtlassianPS.JiraPS.Transition]@{ Id = 81; Name = 'Duplicate' }
+                            )
+                        }
+                    }
+                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 'Duplicate' -ErrorAction Stop } |
+                        Should -Throw -ErrorId 'ParameterValue.InvalidTransition*'
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+            }
+
+            Context 'Transition error contract' {
+                It 'preserves the error identity, exception, details and target for an unavailable transition' {
+                    $failure = $null
+                    try {
+                        Invoke-JiraIssueTransition -Issue $issueKey -Transition 'Unavailable' -ErrorAction Stop
+                    }
+                    catch {
+                        $failure = $_
+                    }
+
+                    $failure | Should -Not -BeNullOrEmpty
+                    $failure.FullyQualifiedErrorId | Should -Be 'ParameterValue.InvalidTransition,Invoke-JiraIssueTransition'
+                    $failure.Exception | Should -BeOfType ([System.ArgumentException])
+                    $failure.Exception.Message | Should -Be 'Invalid value for Parameter'
+                    $failure.CategoryInfo.Category | Should -Be ([System.Management.Automation.ErrorCategory]::InvalidArgument)
+                    $failure.TargetObject.Key | Should -Be $issueKey
+                    $expectedDetails = "The specified Jira issue cannot perform transition [Unavailable]. Check the issue's Transition property and provide a transition valid for its current state."
+                    $failure.ErrorDetails.Message | Should -Be $expectedDetails
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
                 }
             }
 
@@ -307,13 +401,16 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "adds a worklog if provided to the -TimeSpent parameter" {
-                    { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -TimeSpent ([TimeSpan]::FromMinutes(15)) } | Should -Not -Throw
+                It "adds a worklog using explicit minutes for durations longer than a day" {
+                    Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -TimeSpent ([TimeSpan]::FromHours(25.5))
 
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $worklog = $payload.update.worklog[0].add
                         $Method -eq 'Post' -and
                         $URI -like "*/rest/api/2/issue/$issueID/transitions" -and
-                        $Body -like '*worklog*timeSpentSeconds*900*' -and
+                        $worklog.timeSpent -eq '1530m' -and
+                        $null -eq $worklog.timeSpentSeconds -and
                         $Body -match '"started":\s*"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[\+\-]\d{4}"'
                     }
                 }
@@ -422,9 +519,7 @@ InModuleScope JiraPS {
                 } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
-                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") {
-                        return $false
-                    }
+                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") { return $false }
 
                     $payload = $Body | ConvertFrom-Json
                     $set = $payload.update.description[0].set
@@ -444,9 +539,7 @@ InModuleScope JiraPS {
                 } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
-                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") {
-                        return $false
-                    }
+                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") { return $false }
 
                     $payload = $Body | ConvertFrom-Json
                     $payload.update.customfield_12345[0].set -eq 'plain'

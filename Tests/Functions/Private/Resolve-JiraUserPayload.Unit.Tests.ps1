@@ -21,19 +21,21 @@ InModuleScope JiraPS {
                 $result.accountId | Should -Be '5b10a2844c20165700ede21a'
             }
 
-            It "returns accountId:`$null when unassigning (no user)" {
-                $result = Resolve-JiraUserPayload -UserObject $null -IsCloud $true
+            It "returns accountId:null when unassigning with <case> UserString" -TestCases @(
+                @{ case = 'null'; userString = $null }
+                @{ case = 'empty'; userString = '' }
+            ) {
+                param($case, $userString)
+                $result = Resolve-JiraUserPayload -UserObject $null -UserString $userString -IsCloud $true
                 $result.Keys | Should -HaveCount 1
                 $result.ContainsKey('accountId') | Should -BeTrue
-                $result.accountId | Should -BeNullOrEmpty
+                ($null -eq $result.accountId) | Should -BeTrue
             }
 
-            It "returns accountId:`$null even when a default ('-1') string is passed" {
-                # Cloud does not support the project-default mechanic via 'name: -1';
-                # falling through to accountId:null is the safe, predictable behavior.
+            It "returns accountId:'-1' when requesting the project default" {
                 $result = Resolve-JiraUserPayload -UserObject $null -UserString '-1' -IsCloud $true
-                $result.ContainsKey('accountId') | Should -BeTrue
-                $result.accountId | Should -BeNullOrEmpty
+                $result.Keys | Should -HaveCount 1
+                $result.accountId | Should -Be '-1'
             }
 
             It "ignores UserString when a user is provided on Cloud" {

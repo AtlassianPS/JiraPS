@@ -10,42 +10,42 @@ permalink: /docs/JiraPS/commands/Remove-JiraIssueLink/
 
 ## SYNOPSIS
 
-Removes a issue link from a JIRA issue
+Removes an issue link from a Jira issue.
 
 ## SYNTAX
 
 ### ByIssueLink (Default)
 
 ```powershell
-Remove-JiraIssueLink [-IssueLink] <IssueLink[]> [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
+Remove-JiraIssueLink -IssueLink <AtlassianPS.JiraPS.IssueLink[]> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### ByIssue
 
 ```powershell
-Remove-JiraIssueLink [-Issue] <Issue[]> [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
+Remove-JiraIssueLink -Issue <AtlassianPS.JiraPS.Issue[]> [-Credential <pscredential>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function removes a issue link from a JIRA issue.
+This function removes an issue link from a Jira issue.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-Remove-JiraIssueLink 1234,2345
+Remove-JiraIssueLink -IssueLink 1234, 2345
 ```
 
-Removes two issue links with id 1234 and 2345
+Removes two issue links with ID 1234 and 2345
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraIssue -Query "project = Project1 AND label = lingering" | Remove-JiraIssueLink
+Get-JiraIssue -Query 'project = Project1 AND label = lingering' | Remove-JiraIssueLink
 ```
 
 Removes all issue links for all issues in project Project1 and that have a label "lingering"
@@ -76,7 +76,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -86,7 +86,7 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 1
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -98,16 +98,16 @@ HelpMessage: ''
 
 ### -IssueLink
 
-IssueLink to delete
+Issue links or their numeric IDs to delete.
 
 ```yaml
-Type: IssueLink[]
+Type: AtlassianPS.JiraPS.IssueLink[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: ByIssueLink
-  Position: 0
+  Position: Named
   IsRequired: true
   ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false
@@ -122,13 +122,13 @@ HelpMessage: ''
 Issue whose links should all be removed.
 
 ```yaml
-Type: Issue[]
+Type: AtlassianPS.JiraPS.Issue[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: ByIssue
-  Position: 0
+  Position: Named
   IsRequired: true
   ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false
@@ -163,10 +163,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -179,9 +177,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 

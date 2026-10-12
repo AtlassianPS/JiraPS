@@ -20,13 +20,9 @@
         }
 
         # Resolve the ADF 'type' field for both PSCustomObject (API JSON) and hashtable (round-trip)
-        $docType = $null
-        if ($InputObject -is [hashtable]) {
-            $docType = $InputObject['type']
-        }
-        elseif ($InputObject.PSObject.Properties['type']) {
-            $docType = $InputObject.type
-        }
+        $docType = if ($InputObject -is [hashtable]) { $InputObject['type'] }
+        elseif ($InputObject.PSObject.Properties['type']) { $InputObject.type }
+        else { $null }
 
         # Data Center, API v2 and non-ADF objects
         if ($docType -ne 'doc') {
@@ -97,9 +93,7 @@ function script:ConvertFrom-AdfBlock {
             $code = ConvertFrom-AdfInline $Node.content
             return "``````$lang`n$code`n``````"
         }
-        'panel' {
-            return ConvertFrom-AdfContent $Node.content
-        }
+        'panel' { return ConvertFrom-AdfContent $Node.content }
         'mediaSingle' {
             $media = $Node.content | Where-Object { $_.type -eq 'media' } | Select-Object -First 1
             if ($media -and $media.attrs.url) {
@@ -108,16 +102,12 @@ function script:ConvertFrom-AdfBlock {
             }
             return $null
         }
-        'table' {
-            return ConvertFrom-AdfTable $Node
-        }
+        'table' { return ConvertFrom-AdfTable $Node }
         default {
             $nodeContent = if ($Node -is [hashtable]) { $Node['content'] }
             elseif ($Node.PSObject.Properties['content']) { $Node.content }
             else { $null }
-            if ($nodeContent) {
-                return ConvertFrom-AdfContent $nodeContent
-            }
+            if ($nodeContent) { return ConvertFrom-AdfContent $nodeContent }
             return $null
         }
     }
@@ -164,9 +154,7 @@ function script:ConvertFrom-AdfInlineNode {
         'hardBreak' { return "  `n" }
         'mention' { return $Node.attrs.text }
         'emoji' { return $Node.attrs.text }
-        'inlineCard' {
-            return "<$($Node.attrs.url)>"
-        }
+        'inlineCard' { return "<$($Node.attrs.url)>" }
         'date' {
             $ts = [long]$Node.attrs.timestamp
             return [System.DateTimeOffset]::FromUnixTimeMilliseconds($ts).UtcDateTime.ToString('yyyy-MM-dd')
@@ -175,9 +163,7 @@ function script:ConvertFrom-AdfInlineNode {
             $nodeContent = if ($Node -is [hashtable]) { $Node['content'] }
             elseif ($Node.PSObject.Properties['content']) { $Node.content }
             else { $null }
-            if ($nodeContent) {
-                return ConvertFrom-AdfInline $nodeContent
-            }
+            if ($nodeContent) { return ConvertFrom-AdfInline $nodeContent }
             return ''
         }
     }
@@ -233,9 +219,7 @@ function script:ConvertFrom-AdfList {
         $paragraphContent = $item.content | Where-Object { $_.type -eq 'paragraph' } | Select-Object -First 1
         $itemText = if ($paragraphContent) { (ConvertFrom-AdfInline $paragraphContent.content).Trim() } else { '' }
 
-        if ($ListType -eq 'bullet') {
-            $lines.Add("$indent* $itemText")
-        }
+        if ($ListType -eq 'bullet') { $lines.Add("$indent* $itemText") }
         else {
             $lines.Add("$indent$n. $itemText")
             $n++

@@ -1,13 +1,10 @@
 ﻿function Get-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding(DefaultParameterSetName = 'ByFilterID')]
+    [CmdletBinding( DefaultParameterSetName = 'ByInputObject' )]
     param(
-        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByFilterID' )]
-        [String[]]
-        $Id,
-
-        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
         [ValidateNotNull()]
+        [Alias('Id')]
         [AtlassianPS.JiraPS.FilterTransformation()]
         [AtlassianPS.JiraPS.Filter[]]
         $InputObject,
@@ -34,13 +31,13 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         switch ($PSCmdlet.ParameterSetName) {
-            "ByFilterID" {
-                foreach ($_id in $Id) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
+            "ByInputObject" {
+                foreach ($filter in $InputObject) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filter]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filter [$filter]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f $_id
+                        URI        = $resourceURi -f $filter.Id
                         Method     = "GET"
                         Credential = $Credential
                     }
@@ -48,14 +45,6 @@
                     $result = Invoke-JiraMethod @parameter
 
                     Write-Output (ConvertTo-JiraFilter -InputObject $result)
-                }
-            }
-            "ByInputObject" {
-                foreach ($object in $InputObject) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$object]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$object [$object]"
-
-                    Write-Output (Get-JiraFilter -Id $object.ID -Credential $Credential)
                 }
             }
             "MyFavorite" {

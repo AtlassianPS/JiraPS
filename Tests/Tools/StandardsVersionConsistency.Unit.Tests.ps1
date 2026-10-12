@@ -11,9 +11,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         else {
             $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
             while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
-                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
-                    break
-                }
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) { break }
 
                 $candidate = Split-Path -Path $candidate -Parent
             }
@@ -65,9 +63,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         else {
             $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
             while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
-                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
-                    break
-                }
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) { break }
 
                 $candidate = Split-Path -Path $candidate -Parent
             }
@@ -110,9 +106,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         else {
             $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
             while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
-                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
-                    break
-                }
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) { break }
 
                 $candidate = Split-Path -Path $candidate -Parent
             }
@@ -150,9 +144,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         else {
             $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
             while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
-                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
-                    break
-                }
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) { break }
 
                 $candidate = Split-Path -Path $candidate -Parent
             }

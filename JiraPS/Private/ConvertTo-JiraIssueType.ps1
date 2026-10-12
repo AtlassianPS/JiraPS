@@ -9,6 +9,7 @@
 
     process {
         foreach ($i in $InputObject) {
+            if ($null -eq $i) { continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueType"
 
             $props = @{
@@ -22,7 +23,12 @@
 
             if ($null -ne $i.avatarId) { $props.AvatarId = ConvertTo-JiraNullableInt64 $i.avatarId }
             if ($null -ne $i.hierarchyLevel) { $props.HierarchyLevel = [int]$i.hierarchyLevel }
-            if ($i.scope) { $props.Scope = $i.scope }
+            if ($i.scope) {
+                $props.Scope = [AtlassianPS.JiraPS.IssueTypeScope]@{
+                    Type    = $i.scope.type
+                    Project = if ($null -ne $i.scope.project) { ConvertTo-JiraProject -InputObject $i.scope.project } else { $null }
+                }
+            }
 
             [AtlassianPS.JiraPS.IssueType]$props
         }

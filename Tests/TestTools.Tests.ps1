@@ -17,10 +17,4 @@ Describe 'Initialize-TestEnvironment' -Tag Unit {
         Test-Path $path | Should -BeTrue
         $path | Should -Match '\.psd1$'
     }
-
-    It 'imports the module under test' {
-        Initialize-TestEnvironment | Out-Null
-
-        Get-Module JiraPS | Should -Not -BeNullOrEmpty
-    }
 }

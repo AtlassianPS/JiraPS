@@ -119,14 +119,12 @@ InModuleScope JiraPS {
             }
 
             Mock Get-JiraFilter -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraFilter' 'Id'
-                foreach ($_id in $Id) {
-                    $object = New-Object -TypeName PSCustomObject -Property @{
-                        id      = $_id
-                        RestUrl = "$jiraServer/rest/api/2/filter/$_id"
+                Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
+                foreach ($item in $InputObject) {
+                    [AtlassianPS.JiraPS.Filter]@{
+                        Id      = $item.Id
+                        RestUrl = "$jiraServer/rest/api/2/filter/$($item.Id)"
                     }
-                    $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
-                    $object
                 }
             }
 
@@ -150,24 +148,22 @@ InModuleScope JiraPS {
             }
 
             Context "Parameter Types" {
+                It "keeps ID as an alias and has only the required parameter sets" {
+                    $command = Get-Command Add-JiraFilterPermission
+                    $command.Parameters.Filter.Aliases | Should -Contain 'Id'
+                    $command.ParameterSets.Count | Should -Be 1
+                }
+
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Filter"; type = "Object"; typeName = "AtlassianPS.JiraPS.Filter" }
-                    @{ parameter = "Id"; type = "UInt32[]" }
-                    @{ parameter = "Type"; type = "String" }
-                    @{ parameter = "Value"; type = "String" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                    @{ parameter = 'Filter'; type = 'AtlassianPS.JiraPS.Filter[]' }
+                    @{ parameter = 'Type'; type = 'String' }
+                    @{ parameter = 'Value'; type = 'String' }
+                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
-                    param($parameter, $type, $typeName)
+                    param($parameter, $type)
 
                     $command | Should -HaveParameter $parameter -Type $type
 
-                    if ($typeName) {
-                        $actualTypeName = $command.Parameters[$parameter].Attributes |
-                            Where-Object { $_ -is [System.Management.Automation.PSTypeNameAttribute] } |
-                            Select-Object -ExpandProperty PSTypeName
-
-                        $actualTypeName | Should -Be $typeName
-                    }
                 }
             }
 
@@ -182,7 +178,6 @@ InModuleScope JiraPS {
             Context "Mandatory Parameters" {
                 It "parameter '<parameter>' is mandatory" -TestCases @(
                     @{ parameter = "Filter" }
-                    @{ parameter = "Id" }
                     @{ parameter = "Type" }
                 ) {
                     $command | Should -HaveParameter $parameter -Mandatory
@@ -191,6 +186,37 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
+            Context "Typed references and aliases" {
+                It "accepts arrays through '<parameter>'" -TestCases @(
+                    @{ parameter = 'Filter' }
+                    @{ parameter = 'Id' }
+                ) {
+                    param($parameter)
+                    $arguments = @{ $parameter = @('12345', '67890') }
+                    Add-JiraFilterPermission @arguments -Type Global -Confirm:$false
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 2
+                }
+
+                It "accepts numeric strings from the pipeline" {
+                    '12345', '67890' | Add-JiraFilterPermission -Type Global -Confirm:$false
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 2
+                }
+
+                It "accepts a complete typed filter from the pipeline" {
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id      = '12345'
+                        Name    = 'Test filter'
+                        RestUrl = "$jiraServer/rest/api/2/filter/12345"
+                    }
+                    $filter | Add-JiraFilterPermission -Type Global -Confirm:$false
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1
+                }
+            }
+
+
             Context "Filter Object Input" {
                 It "Adds share permission to Filter Object" {
                     $filter = Get-JiraFilter -Id 12844
@@ -208,6 +234,22 @@ InModuleScope JiraPS {
             }
 
             Context "Filter ID Input" {
+                It "forwards credentials when resolving filter IDs and adding permissions" {
+                    $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
+                    Add-JiraFilterPermission -Id 12844 -Type Global -Credential $credential -Confirm:$false
+
+                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
+                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
+                    }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
+                }
+
+                It "does not add permissions under WhatIf" {
+                    Add-JiraFilterPermission -Id 12844 -Type Global -WhatIf
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                }
+
                 It "Adds share permission to FilterId" {
                     {
                         Add-JiraFilterPermission -Id 12844 -Type "Global"
@@ -226,7 +268,6 @@ InModuleScope JiraPS {
         Describe "Input Validation" {
             Context "Type Validation - Negative Cases" {
                 It "rejects invalid type '<description>' with meaningful error" -TestCases @(
-                    @{ invalidType = 1; description = "integer" }
                     @{ invalidType = "lorem"; description = "string" }
                     @{ invalidType = (Get-Date); description = "DateTime object" }
                 ) {
@@ -272,7 +313,7 @@ InModuleScope JiraPS {
                 It "can process multiple FilterIds" {
                     { Add-JiraFilterPermission -Id 1, 2, 3, 4, 5 -Type "Global" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 5
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 5
                 }
             }

@@ -17,9 +17,7 @@
             WebSession = $Session
         }
 
-        if ($Username) {
-            $hash.Username = $Username
-        }
+        if ($Username) { $hash.Username = $Username }
 
         [AtlassianPS.JiraPS.Session]$hash
     }

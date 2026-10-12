@@ -41,9 +41,7 @@
             name = $Name
             jql  = $JQL
         }
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
-            $requestBody["description"] = $Description
-        }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) { $requestBody["description"] = $Description }
         $requestBody["favourite"] = [Bool]$Favorite
 
         $parameter = @{

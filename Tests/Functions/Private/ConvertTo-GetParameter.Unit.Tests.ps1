@@ -38,45 +38,44 @@ InModuleScope JiraPS {
 
             Context "URL encoding of values" {
                 It "encodes spaces" {
-                    # HttpUtility.UrlEncode uses '+' for space (form-style); both
-                    # '+' and '%20' are accepted by Jira's REST API.
-                    ConvertTo-GetParameter @{ jql = 'foo bar' } | Should -Be '?jql=foo+bar'
+                    ConvertTo-GetParameter @{ jql = 'foo bar' } | Should -Be '?jql=foo%20bar'
                 }
 
                 It "encodes the '&' separator inside a value" {
                     # Without encoding this would produce '?groupName=Dev & QA'
                     # which Jira would parse as three separate parameters.
                     ConvertTo-GetParameter @{ groupName = 'Dev & QA' } |
-                        Should -Be '?groupName=Dev+%26+QA'
+                        Should -Be '?groupName=Dev%20%26%20QA'
                 }
 
                 It "encodes '=' inside a value so the next 'key=value' parser is unambiguous" {
                     ConvertTo-GetParameter @{ jql = 'project=TEST' } |
-                        Should -Be '?jql=project%3dTEST'
+                        Should -Be '?jql=project%3DTEST'
                 }
 
                 It "encodes '?', '#', '+', '%' reserved characters" {
                     ConvertTo-GetParameter @{ q = 'a?b#c+d%e' } |
-                        Should -Be '?q=a%3fb%23c%2bd%25e'
+                        Should -Be '?q=a%3Fb%23c%2Bd%25e'
                 }
 
                 It "encodes non-ASCII characters as UTF-8 percent escapes" {
-                    # 'Müller' -> M %c3%bc ller
                     ConvertTo-GetParameter @{ name = 'Müller' } |
-                        Should -Be '?name=M%c3%bcller'
+                        Should -Be '?name=M%C3%BCller'
                 }
 
-                It "encodes a JQL clause containing space, parens, comma and operators" {
+                It "preserves a JQL clause containing spaces and parentheses" {
                     $jql = 'reporter in (testuser)'
-                    ConvertTo-GetParameter @{ jql = $jql } |
-                        Should -Be '?jql=reporter+in+(testuser)'
+                    $query = ConvertTo-GetParameter @{ jql = $jql }
+
+                    $query | Should -Match '^\?jql=reporter%20in%20'
+                    (ConvertTo-ParameterHash -Query $query).jql | Should -BeExactly $jql
                 }
             }
 
             Context "URL encoding of keys" {
                 It "encodes reserved characters in the key" {
                     ConvertTo-GetParameter @{ 'weird key&name' = 'v' } |
-                        Should -Be '?weird+key%26name=v'
+                        Should -Be '?weird%20key%26name=v'
                 }
             }
 

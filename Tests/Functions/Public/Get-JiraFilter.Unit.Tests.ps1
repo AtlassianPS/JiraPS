@@ -129,6 +129,12 @@ InModuleScope JiraPS {
 
         Describe "Signature" {
             Context "Parameter Types" {
+                It "keeps ID as an alias and has only the required parameter sets" {
+                    $command = Get-Command Get-JiraFilter
+                    $command.Parameters.InputObject.Aliases | Should -Contain 'Id'
+                    $command.ParameterSets.Count | Should -Be 2
+                }
+
                 # TODO: Add parameter type validation tests
             }
 
@@ -138,6 +144,37 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
+            Context "Typed references and aliases" {
+                It "accepts arrays through '<parameter>'" -TestCases @(
+                    @{ parameter = 'InputObject' }
+                    @{ parameter = 'Id' }
+                ) {
+                    param($parameter)
+                    $arguments = @{ $parameter = @('12345', '67890') }
+                    Get-JiraFilter @arguments
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 2
+                }
+
+                It "accepts numeric strings from the pipeline" {
+                    '12345', '67890' | Get-JiraFilter
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 2
+                }
+
+                It "accepts a complete typed filter from the pipeline" {
+                    $filter = [AtlassianPS.JiraPS.Filter]@{
+                        Id      = '12345'
+                        Name    = 'Test filter'
+                        RestUrl = "$jiraServer/rest/api/2/filter/12345"
+                    }
+                    $filter | Get-JiraFilter
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1
+                }
+            }
+
+
             Context "Behavior testing" {
                 It "Queries JIRA for a filter with a given ID" {
                     { Get-JiraFilter -Id 12345 } | Should -Not -Throw
@@ -161,12 +198,6 @@ InModuleScope JiraPS {
             Context "Input testing" {
                 BeforeAll {
                     $script:sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
-                }
-
-                It "Accepts a filter ID for the -Filter parameter" {
-                    { Get-JiraFilter -Id "12345" } | Should -Not -Throw
-
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts a filter ID without the -Filter parameter" {

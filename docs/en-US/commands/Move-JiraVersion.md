@@ -10,62 +10,63 @@ permalink: /docs/JiraPS/commands/Move-JiraVersion/
 
 ## SYNOPSIS
 
-Moves an existing Version in JIRA
+Moves an existing version in Jira.
 
 ## SYNTAX
 
 ### ByAfter (Default)
 
 ```powershell
-Move-JiraVersion -Version <Version> -After <Version> [-Credential <pscredential>] [<CommonParameters>]
+Move-JiraVersion -Version <AtlassianPS.JiraPS.Version> -After <AtlassianPS.JiraPS.Version>
+ [-Credential <pscredential>] [<CommonParameters>]
 ```
 
 ### ByPosition
 
 ```powershell
-Move-JiraVersion -Version <Version> -Position <string> [-Credential <pscredential>]
+Move-JiraVersion -Version <AtlassianPS.JiraPS.Version> -Position <string> [-Credential <pscredential>]
  [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function moves the Version for an existing Project in JIRA.
-Moving the Version modifies the order/sequence of the Version in relation to other Versions.
+This function moves the version for an existing project in Jira.
+Moving the version modifies the order/sequence of the version in relation to other versions.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
 Move-JiraVersion -Version 10 -After 9
 ```
 
-This example moves the Version with ID 10 after the Version with ID 9.
+This example moves the version with ID 10 after the version with ID 9.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
 Move-JiraVersion -Version $myVersionObject -After $otherVersionObject
 ```
 
-This example moves the Version object after the other Version object.
+This example moves the version object after the other version object.
 
-### EXAMPLE 3
+### Example 3
 
 ```powershell
 Move-JiraVersion -Version $myVersionObject -Position Earliest
 ```
 
-This example moves the Version object to the earliest position.
+This example moves the version object to the earliest position.
 
 ## PARAMETERS
 
 ### -After
 
-Version Object or ID to move Version after.
+Version object or ID to move version after.
 
 ```yaml
-Type: Version
+Type: AtlassianPS.JiraPS.Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -83,7 +84,7 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use to connect to JIRA.
+Credentials to use to connect to Jira.
 If not specified, this function will use anonymous access.
 
 ```yaml
@@ -105,7 +106,7 @@ HelpMessage: ''
 
 ### -Position
 
-The new Position for the Version
+The new Position for the version.
 
 ```yaml
 Type: String
@@ -130,10 +131,10 @@ HelpMessage: ''
 
 ### -Version
 
-Version Object or ID to move.
+Version object or ID to move.
 
 ```yaml
-Type: Version
+Type: AtlassianPS.JiraPS.Version
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -151,10 +152,8 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -164,9 +163,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
+This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
 See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+If neither are supplied, this function will run with anonymous access to Jira.
 
 ## RELATED LINKS
 
