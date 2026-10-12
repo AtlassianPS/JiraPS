@@ -423,7 +423,8 @@ HelpMessage: ''
 
 ### -UseDefaultAssignee
 
-Set the issue's assignee to the project's default assignee.
+Set the issue's assignee to the project's default assignee on Jira Cloud and Data Center.
+If the project's default is unassigned, the issue becomes unassigned.
 
 This is useful when you want Jira to automatically determine the assignee based on the project's configuration.
 
