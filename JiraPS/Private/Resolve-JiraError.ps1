@@ -23,7 +23,8 @@
                 $errorId = if ($Key) { "ServerResponse.$Key" } else { "ServerResponse" }
                 $errorCategory = 'NotSpecified'
                 $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $Target
-                $errorDetails = if ($Key) { "Jira encountered an error: [$Key] - $Message" } else { "Jira encountered an error: [$Message]" }
+                $errorDetails = if ($Key) { "Jira encountered an error: [$Key] - $Message" }
+                else { "Jira encountered an error: [$Message]" }
                 $errorItem.ErrorDetails = $errorDetails
                 $Cmdlet.WriteError($errorItem)
             }
@@ -35,12 +36,8 @@
 
                 $obj.PSObject.TypeNames.Insert(0, 'JiraPS.Error')
                 $obj | Add-Member -MemberType ScriptMethod -Name "ToString" -Force -Value {
-                    if ($this.Key) {
-                        Write-Output "Jira error [$($this.Key)]: $($this.Message)"
-                    }
-                    else {
-                        Write-Output "Jira error [$($this.Message)]"
-                    }
+                    if ($this.Key) { Write-Output "Jira error [$($this.Key)]: $($this.Message)" }
+                    else { Write-Output "Jira error [$($this.Message)]" }
                 }
 
                 Write-Output $obj
@@ -86,10 +83,9 @@
             }
 
             if (-not $hasErrors -and $i) {
-                $rawContent = if ($i -is [string]) { $i } else { $i | ConvertTo-Json -Compress -ErrorAction SilentlyContinue }
-                if ($rawContent) {
-                    Write-JiraError -Message "Unknown error: $rawContent" -Target $i
-                }
+                $rawContent = if ($i -is [string]) { $i }
+                else { $i | ConvertTo-Json -Compress -ErrorAction SilentlyContinue }
+                if ($rawContent) { Write-JiraError -Message "Unknown error: $rawContent" -Target $i }
             }
         }
     }

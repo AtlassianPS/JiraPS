@@ -63,9 +63,7 @@ InModuleScope JiraPS {
                             $_.Exception.Message -like '*HTTP 405 Method Not Allowed*'
                         )
                         $isLastAttempt = ($attempt -eq $maxAttempts)
-                        if (-not $isMethodNotAllowed) {
-                            throw
-                        }
+                        if (-not $isMethodNotAllowed) { throw }
 
                         if ($isLastAttempt) {
                             Invoke-JiraMethod -Uri "/rest/api/2/version/$($Version.Id)/removeAndSwap" -Method 'POST' -Body '{}' -ErrorAction Stop
@@ -84,9 +82,7 @@ InModuleScope JiraPS {
                     & $script:removeVersionEventually -Version $version
                 }
                 catch {
-                    if ($_.Exception.Message -notlike "*Could not find version for id*") {
-                        throw
-                    }
+                    if ($_.Exception.Message -notlike "*Could not find version for id*") { throw }
                 }
             }
             Remove-JiraSession -ErrorAction SilentlyContinue
@@ -103,17 +99,13 @@ InModuleScope JiraPS {
                     { Get-JiraVersion -Project $fixtures.TestProject } | Should -Not -Throw
 
                     $versions = Get-JiraVersion -Project $fixtures.TestProject
-                    if ($versions) {
-                        @($versions)[0] | Should -BeOfType [PSCustomObject]
-                    }
+                    if ($versions) { @($versions)[0] | Should -BeOfType [PSCustomObject] }
                 }
 
                 It "returns version objects with correct type" {
                     $versions = Get-JiraVersion -Project $fixtures.TestProject
 
-                    if ($versions) {
-                        @($versions)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version'
-                    }
+                    if ($versions) { @($versions)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version' }
                 }
             }
 

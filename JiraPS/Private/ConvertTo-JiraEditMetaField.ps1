@@ -35,9 +35,7 @@
                 # and its data keys are NoteProperties. Synthetic Script/
                 # AliasProperty would otherwise leak into the output object.
                 foreach ($extraProperty in $item.PSObject.Properties.Where({ $_.MemberType -eq 'NoteProperty' }).Name) {
-                    if (-not $props.ContainsKey($extraProperty)) {
-                        $extraProperties.$extraProperty = $item.$extraProperty
-                    }
+                    if (-not $props.ContainsKey($extraProperty)) { $extraProperties.$extraProperty = $item.$extraProperty }
                 }
 
                 $result = [AtlassianPS.JiraPS.EditMetaField]$props

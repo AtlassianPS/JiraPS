@@ -30,9 +30,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        $filterObject = if ($Filter.RestUrl) {
-            $Filter
-        }
+        $filterObject = if ($Filter.RestUrl) { $Filter }
         else {
             Get-JiraFilter -Id $Filter.Id -Credential $Credential -ErrorAction Stop
         }
@@ -40,10 +38,8 @@
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filterObject]"
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filterObject [$filterObject]"
 
-        $permissions = $Permission
-        if (-not $PSBoundParameters.ContainsKey('Permission')) {
-            $permissions = $filterObject.FilterPermissions
-        }
+        $permissions = if ($PSBoundParameters.ContainsKey('Permission')) { $Permission }
+        else { $filterObject.FilterPermissions }
 
         if (-not $permissions) {
             ThrowError -ExceptionType 'System.ArgumentException' `
@@ -74,9 +70,7 @@
             }
 
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($filterObject.Name, "Remove permission $($permissionToRemove.Id)")) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($filterObject.Name, "Remove permission $($permissionToRemove.Id)")) { Invoke-JiraMethod @parameter }
         }
     }
 

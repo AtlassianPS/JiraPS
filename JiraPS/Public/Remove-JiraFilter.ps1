@@ -24,9 +24,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $filters = foreach ($item in $InputObject) {
-            if ($item.RestUrl) {
-                $item
-            }
+            if ($item.RestUrl) { $item }
             else {
                 Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop
             }
@@ -42,9 +40,7 @@
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) { Invoke-JiraMethod @parameter }
         }
     }
 

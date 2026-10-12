@@ -37,9 +37,7 @@
                     $errorItem.ErrorDetails = "Invalid path '$_'."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
-                else {
-                    return $true
-                }
+                else { return $true }
             }
         )]
         [String]
@@ -60,12 +58,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         foreach ($_Attachment in $Attachment) {
-            if ($Path) {
-                $filename = Join-Path $Path $_Attachment.Filename
-            }
-            else {
-                $filename = $_Attachment.Filename
-            }
+            $filename = if ($Path) { Join-Path $Path $_Attachment.Filename } else { $_Attachment.Filename }
 
             $iwParameters = @{
                 Uri        = $_Attachment.Content

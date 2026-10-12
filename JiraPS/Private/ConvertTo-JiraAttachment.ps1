@@ -10,10 +10,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            if ($i -is [AtlassianPS.JiraPS.Attachment]) {
-                $i
-                continue
-            }
+            if ($i -is [AtlassianPS.JiraPS.Attachment]) { $i; continue }
 
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Attachment"
 

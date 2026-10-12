@@ -26,9 +26,7 @@ Describe "Style rules" -Tag "Unit" {
                 $lineCount = $lines.Count
 
                 for ($i = 0; $i -lt $lineCount; $i++) {
-                    if ($lines[$i] -match '\s+$') {
-                        'File: {0}, Line: {1}' -f $file.FullName, ($i + 1)
-                    }
+                    if ($lines[$i] -match '\s+$') { 'File: {0}, Line: {1}' -f $file.FullName, ($i + 1) }
                 }
             }
         )
@@ -42,24 +40,18 @@ Describe "Style rules" -Tag "Unit" {
         $badFiles = @(
             foreach ($file in $crlfFiles) {
                 $string = [System.IO.File]::ReadAllText($file.FullName)
-                if ($string.Length -gt 0 -and $string[-1] -ne "`n") {
-                    $file.FullName
-                }
+                if ($string.Length -gt 0 -and $string[-1] -ne "`n") { $file.FullName }
             }
         )
 
-        if ($badFiles.Count -gt 0) {
-            throw "The following files do not end with a newline:`n  $($badFiles -join "`n  ")"
-        }
+        if ($badFiles.Count -gt 0) { throw "The following files do not end with a newline:`n  $($badFiles -join "`n  ")" }
     }
 
     It "uses UTF-8 with BOM for PowerShell files" {
         $badFiles = @(
             foreach ($file in $powershellFiles) {
                 $encoding = Get-FileEncoding -Path $file.FullName
-                if ($encoding -and $encoding.encoding -ne "UTF8-BOM") {
-                    $file.FullName
-                }
+                if ($encoding -and $encoding.encoding -ne "UTF8-BOM") { $file.FullName }
             }
         )
 
@@ -72,9 +64,7 @@ Describe "Style rules" -Tag "Unit" {
         $badFiles = @(
             foreach ($file in $docFiles) {
                 $encoding = Get-FileEncoding -Path $file.FullName
-                if ($encoding -and $encoding.encoding -ne "UTF8") {
-                    $file.FullName
-                }
+                if ($encoding -and $encoding.encoding -ne "UTF8") { $file.FullName }
             }
         )
 
@@ -87,14 +77,10 @@ Describe "Style rules" -Tag "Unit" {
         $badFiles = @(
             foreach ($file in $crlfFiles) {
                 $string = [System.IO.File]::ReadAllText($file.FullName)
-                if ($string.Length -gt 0 -and $string -match "(?<!`r)`n|`r(?!`n)") {
-                    $file.FullName
-                }
+                if ($string.Length -gt 0 -and $string -match "(?<!`r)`n|`r(?!`n)") { $file.FullName }
             }
         )
 
-        if ($badFiles.Count -gt 0) {
-            throw "The following files do not use CRLF as line break:`n  $($badFiles -join "`n  ")"
-        }
+        if ($badFiles.Count -gt 0) { throw "The following files do not use CRLF as line break:`n  $($badFiles -join "`n  ")" }
     }
 }

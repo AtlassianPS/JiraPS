@@ -24,16 +24,10 @@
                 RestUrl     = [uri]$i.self
             }
 
-            if ($null -ne $i.projectId) {
-                $hash.Project = [long]$i.projectId
-            }
+            if ($null -ne $i.projectId) { $hash.Project = [long]$i.projectId }
 
-            if ($i.startDate) {
-                $hash.StartDate = Get-Date $i.startDate
-            }
-            if ($i.releaseDate) {
-                $hash.ReleaseDate = Get-Date $i.releaseDate
-            }
+            if ($i.startDate) { $hash.StartDate = Get-Date $i.startDate }
+            if ($i.releaseDate) { $hash.ReleaseDate = Get-Date $i.releaseDate }
 
             [AtlassianPS.JiraPS.Version]$hash
         }

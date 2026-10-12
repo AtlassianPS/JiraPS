@@ -85,9 +85,7 @@
         $transitionId = $Transition.Id
         if ($null -eq $transitionId -and $Transition.Name) {
             $matchingTransitions = @($issueObj.Transition | Where-Object -FilterScript { $_.Name -eq $Transition.Name })
-            if ($matchingTransitions.Count -eq 1) {
-                $transitionId = $matchingTransitions[0].Id
-            }
+            if ($matchingTransitions.Count -eq 1) { $transitionId = $matchingTransitions[0].Id }
         }
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Checking that the issue can perform the given transition"
@@ -98,12 +96,7 @@
                 [System.Management.Automation.ErrorCategory]::InvalidArgument,
                 $Issue
             )
-            $requestedTransition = if ($null -ne $transitionId) {
-                $transitionId
-            }
-            else {
-                $Transition.Name
-            }
+            $requestedTransition = if ($null -ne $transitionId) { $transitionId } else { $Transition.Name }
             $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$requestedTransition]. Check the issue's Transition property and provide a transition valid for its current state."
             ThrowError -ErrorRecord $errorItem
         }
@@ -160,9 +153,7 @@
             ) {
                 ConvertTo-JiraEditMetaField -InputObject $transitionMeta
             }
-            else {
-                @()
-            }
+            else { @() }
 
             foreach ($assignment in ConvertTo-JiraFieldAssignment `
                     -Fields $Fields `
@@ -206,9 +197,7 @@
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         Invoke-JiraMethod @parameter
 
-        if ($Passthru) {
-            Get-JiraIssue $issueObj
-        }
+        if ($Passthru) { Get-JiraIssue $issueObj }
     }
 
     end {

@@ -514,9 +514,7 @@ InModuleScope JiraPS {
                 } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
-                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") {
-                        return $false
-                    }
+                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") { return $false }
 
                     $payload = $Body | ConvertFrom-Json
                     $set = $payload.update.description[0].set
@@ -536,9 +534,7 @@ InModuleScope JiraPS {
                 } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
-                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") {
-                        return $false
-                    }
+                    if ($Method -ne 'Post' -or $URI -notlike "*/rest/api/3/issue/$issueID/transitions") { return $false }
 
                     $payload = $Body | ConvertFrom-Json
                     $payload.update.customfield_12345[0].set -eq 'plain'

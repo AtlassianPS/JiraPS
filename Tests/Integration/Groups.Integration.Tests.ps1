@@ -76,9 +76,7 @@ InModuleScope JiraPS {
                 It "returns user objects" {
                     $members = Get-JiraGroupMember -Group $fixtures.TestGroup
 
-                    if ($members) {
-                        @($members)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
-                    }
+                    if ($members) { @($members)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User' }
                 }
 
                 It "retrieves members for a resolved group object on Jira Cloud" -Skip:(-not $IsCloud) {

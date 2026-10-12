@@ -42,12 +42,7 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_watcher]"
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_watcher [$_watcher]"
 
-            if ($isCloud) {
-                $watcherBody = ConvertTo-Json -InputObject $_watcher
-            }
-            else {
-                $watcherBody = '"{0}"' -f $_watcher
-            }
+            $watcherBody = if ($isCloud) { ConvertTo-Json -InputObject $_watcher } else { '"{0}"' -f $_watcher }
             $parameter = @{
                 URI        = $resourceURi -f $issueObj.RestURL
                 Method     = "POST"
@@ -55,9 +50,7 @@
                 Credential = $Credential
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Adding user '$_watcher' as watcher.")) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Adding user '$_watcher' as watcher.")) { Invoke-JiraMethod @parameter }
         }
     }
 

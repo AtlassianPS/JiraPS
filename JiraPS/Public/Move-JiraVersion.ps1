@@ -47,13 +47,9 @@
 
         $requestBody = @{ }
         switch ($PsCmdlet.ParameterSetName) {
-            'ByPosition' {
-                $requestBody["position"] = $Position
-            }
+            'ByPosition' { $requestBody["position"] = $Position }
             'ByAfter' {
-                if ($After.RestUrl) {
-                    $afterSelfUri = $After.RestUrl
-                }
+                if ($After.RestUrl) { $afterSelfUri = $After.RestUrl }
                 else {
                     if (-not $After.Id) {
                         $errorItem = [System.Management.Automation.ErrorRecord]::new(

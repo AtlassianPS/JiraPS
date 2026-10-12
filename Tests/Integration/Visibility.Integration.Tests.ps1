@@ -57,9 +57,7 @@ InModuleScope JiraPS {
                 }
                 finally {
                     try {
-                        if ($group) {
-                            Remove-JiraGroup -Group $group -Force -ErrorAction Stop
-                        }
+                        if ($group) { Remove-JiraGroup -Group $group -Force -ErrorAction Stop }
                     }
                     finally {
                         Remove-JiraSession -ErrorAction SilentlyContinue
@@ -107,9 +105,7 @@ InModuleScope JiraPS {
                 $parameters.DateStarted = Get-Date
                 $created = Add-JiraIssueWorklog @parameters @visibility
             }
-            else {
-                $created = Add-JiraIssueComment @parameters @visibility
-            }
+            else { $created = Add-JiraIssueComment @parameters @visibility }
             $created.Id | Should -Not -BeNullOrEmpty
             $persisted = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)/$resource/$($created.Id)" -ErrorAction Stop
             $persisted.visibility | Should -BeNullOrEmpty
@@ -136,9 +132,7 @@ InModuleScope JiraPS {
                 $parameters.DateStarted = Get-Date
                 $created = Add-JiraIssueWorklog @parameters
             }
-            else {
-                $created = Add-JiraIssueComment @parameters
-            }
+            else { $created = Add-JiraIssueComment @parameters }
             $created.Visibility.Type | Should -Be $restriction
             $created.Visibility.Value | Should -Be $value
             $persisted = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)/$resource/$($created.Id)" -ErrorAction Stop
@@ -169,9 +163,7 @@ InModuleScope JiraPS {
                 $parameters.DateStarted = Get-Date
                 $created = Add-JiraIssueWorklog @parameters
             }
-            else {
-                $created = Add-JiraIssueComment @parameters
-            }
+            else { $created = Add-JiraIssueComment @parameters }
             $persisted = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)/$resource/$($created.Id)" -ErrorAction Stop
             $persisted.visibility.type | Should -Be 'group'
             $persisted.visibility.identifier | Should -Be $group.Id

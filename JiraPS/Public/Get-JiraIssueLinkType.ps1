@@ -45,12 +45,8 @@
             $result = Invoke-JiraMethod @parameter
             $allLinkTypes = ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes
 
-            if ($LinkType) {
-                Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType.Name })
-            }
-            else {
-                Write-Output $allLinkTypes
-            }
+            if ($LinkType) { Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType.Name }) }
+            else { Write-Output $allLinkTypes }
         }
     }
 

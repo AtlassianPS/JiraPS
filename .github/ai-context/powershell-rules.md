@@ -49,6 +49,56 @@ Group/watcher membership cmdlets and `Resolve-JiraUser` are also affected.
 
 ## PowerShell Patterns
 
+### Compact conditional blocks
+
+Prefer inline braces for short, single-statement bodies in `if`/`elseif`/`else` branches and `switch` cases.
+Keep the entire conditional on one line when it is short and easy to read.
+When it becomes long, put each branch on its own line and align `if`, `elseif`, and `else`.
+Keep each short branch body inline.
+When branches only select a value for one variable, assign the result of `if`/`elseif`/`else` once.
+Use this form for both default/fallback selection and branches that repeat the same assignment target.
+Keep separate steps when a later condition normalizes the selected value or a conditional expression would change array or null behavior.
+
+Choose the layout of each body independently.
+A short branch can stay inline while another branch expands for a long command, a multiline expression, comments, or multiple statements.
+Keep nested control flow expanded.
+Do not join statements with semicolons to make a body fit inline.
+The only exceptions are a single statement followed by `; break` or `; continue`.
+
+```powershell
+$apiVersion = if ($cloud) { '3' } elseif ($server) { '2' } else { '1' }
+
+$apiVersion = if ($deploymentType -eq 'Cloud') { '3' }
+elseif ($deploymentType -eq 'Server') { '2' }
+else { '1' }
+
+$permissions = if ($PSBoundParameters.ContainsKey('Permission')) { $Permission }
+else { $filterObject.FilterPermissions }
+
+if ($item.RestUrl) { $item }
+else {
+    Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop
+}
+
+switch ($deploymentType) {
+    'Cloud' { $apiVersion = '3'; break }
+    'Server' { $apiVersion = '2'; break }
+}
+
+if ($cloud) {
+    $apiVersion = '3'
+    Write-Verbose 'Using the Cloud API.'
+}
+elseif ($server) {
+    $apiVersion = '2'
+    Write-Verbose 'Using the Server API.'
+}
+else {
+    $apiVersion = '1'
+    Write-Verbose 'Using the fallback API.'
+}
+```
+
 ### REST API Calls
 
 All HTTP calls go through `Invoke-JiraMethod`:
@@ -63,7 +113,9 @@ $result = Invoke-JiraMethod @parameter
 
 ### Type Conversion
 
-Use `ConvertTo-*` functions to transform API responses:
+Use `ConvertTo-*` functions to transform API responses.
+Pass optional nested objects directly to converters that accept null input; they return no object for null.
+Keep guards when they enforce additional behavior or the converter requires a non-null value:
 
 ```powershell
 $result = Invoke-JiraMethod @parameter

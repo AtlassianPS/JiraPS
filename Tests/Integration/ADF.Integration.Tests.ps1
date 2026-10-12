@@ -53,9 +53,7 @@ InModuleScope JiraPS {
 
                     $issue = Get-JiraIssue -Query $jql
 
-                    if (@($issue)[0].Description) {
-                        @($issue)[0].Description | Should -Not -Match '"type":\s*"doc"'
-                    }
+                    if (@($issue)[0].Description) { @($issue)[0].Description | Should -Not -Match '"type":\s*"doc"' }
                 }
             }
 
@@ -75,12 +73,8 @@ InModuleScope JiraPS {
         Describe "ADF in Comments" {
             Context "Comment Body Conversion" {
                 BeforeAll {
-                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        $script:comments = $null
-                    }
-                    else {
-                        $script:comments = Get-JiraIssueComment -Issue $fixtures.TestIssue
-                    }
+                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) { $script:comments = $null }
+                    else { $script:comments = Get-JiraIssueComment -Issue $fixtures.TestIssue }
                 }
 
                 It "returns comment body as string" {
@@ -188,12 +182,8 @@ InModuleScope JiraPS {
 
         Describe "Markdown -> ADF round-trip on Cloud" -Skip:$SkipWrite {
             BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                    $script:tempIssue = $null
-                }
-                else {
-                    $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures
-                }
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:tempIssue = $null }
+                else { $script:tempIssue = New-TemporaryTestIssue -Fixtures $fixtures }
             }
 
             Context "New-JiraIssue -Description (create path)" {

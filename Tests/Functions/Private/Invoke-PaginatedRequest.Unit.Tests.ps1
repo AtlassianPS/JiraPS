@@ -88,8 +88,8 @@ InModuleScope JiraPS {
             BeforeAll {
                 $script:countItems = @('A', 'B', 'C', 'D', 'E') | ForEach-Object { [PSCustomObject]@{ id = $_ } }
                 Mock Invoke-JiraMethod -ModuleName JiraPS {
-                    $pageSize = 2
-                    if ($GetParameter.ContainsKey('maxResults')) { $pageSize = [Math]::Min(2, [int]$GetParameter.maxResults) }
+                    $pageSize = if ($GetParameter.ContainsKey('maxResults')) { [Math]::Min(2, [int]$GetParameter.maxResults) }
+                    else { 2 }
                     [PSCustomObject]@{
                         startAt = $GetParameter.startAt; maxResults = $pageSize; total = 5
                         values = @($countItems | Select-Object -Skip $GetParameter.startAt -First $pageSize)
@@ -239,9 +239,7 @@ InModuleScope JiraPS {
                 $script:pageCallCount = 0
                 Mock Invoke-JiraMethod -ModuleName JiraPS {
                     $script:pageCallCount++
-                    if ($script:pageCallCount -gt 1) {
-                        return $null
-                    }
+                    if ($script:pageCallCount -gt 1) { return $null }
                     return [PSCustomObject]@{
                         issues     = @([PSCustomObject]@{ key = "TEST-$script:pageCallCount" })
                         startAt    = 0

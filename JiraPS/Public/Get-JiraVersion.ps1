@@ -61,12 +61,7 @@
         switch ($PsCmdlet.ParameterSetName) {
             'byInputProject' {
                 $Project = @($InputProject | ForEach-Object {
-                        if ($_.Key) {
-                            $_.Key
-                        }
-                        else {
-                            $_.Id
-                        }
+                        if ($_.Key) { $_.Key } else { $_.Id }
                     })
                 $ParameterSetName = 'byProject'
             }
@@ -84,12 +79,8 @@
                 $Id = $InputVersion.Id
                 $ParameterSetName = 'byId'
             }
-            'byProject' {
-                $ParameterSetName = 'byProject'
-            }
-            'byId' {
-                $ParameterSetName = 'byId'
-            }
+            'byProject' { $ParameterSetName = 'byProject' }
+            'byId' { $ParameterSetName = 'byId' }
         }
 
         switch ($ParameterSetName) {

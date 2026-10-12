@@ -36,9 +36,7 @@ BeforeDiscovery {
         $envDiscovery = Initialize-IntegrationEnvironment
         $script:SkipNotServer = $envDiscovery.IsCloud
     }
-    else {
-        $script:SkipNotServer = $true
-    }
+    else { $script:SkipNotServer = $true }
 }
 
 InModuleScope JiraPS {

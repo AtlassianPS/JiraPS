@@ -21,9 +21,7 @@ InModuleScope JiraPS {
             $script:session = Connect-JiraTestServer -Environment $environment
             $script:fixtures = Get-TestFixture -Environment $environment
             foreach ($required in 'TestProject', 'TestUser', 'TestGroup') {
-                if ([string]::IsNullOrWhiteSpace($fixtures[$required])) {
-                    throw "Enum integration tests require fixture '$required'."
-                }
+                if ([string]::IsNullOrWhiteSpace($fixtures[$required])) { throw "Enum integration tests require fixture '$required'." }
             }
             $script:apiRoot = '/rest/api/' + $(if ($fixtures.IsCloud) { '3' } else { '2' })
             $script:role = $null
@@ -37,12 +35,7 @@ InModuleScope JiraPS {
                 } | ConvertTo-Json) -ErrorAction Stop
             $script:roleUri = "$apiRoot/project/$($project.Id)/role/$($role.id)"
             $actors = @{ user = @($fixtures.TestUser) }
-            if ($fixtures.IsCloud) {
-                $actors.groupId = @($group.Id)
-            }
-            else {
-                $actors.group = @($group.Name)
-            }
+            if ($fixtures.IsCloud) { $actors.groupId = @($group.Id) } else { $actors.group = @($group.Name) }
             $null = Invoke-JiraMethod -URI $roleUri -Method Post -Body ($actors | ConvertTo-Json) -ErrorAction Stop
             $script:filter = New-JiraFilter -Name $name -JQL "project = $($project.Key)" -ErrorAction Stop
             $permission = @{
@@ -50,9 +43,7 @@ InModuleScope JiraPS {
                 projectId     = [string]$project.Id
                 projectRoleId = [string]$role.id
             }
-            if ($fixtures.IsCloud) {
-                $permission.rights = 1
-            }
+            if ($fixtures.IsCloud) { $permission.rights = 1 }
             else {
                 $permission.view = $true
                 $permission.edit = $false

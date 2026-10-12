@@ -21,9 +21,7 @@
             if ($i.users) {
                 if ($null -ne $i.users.size) {
                     $size = 0
-                    if ([int]::TryParse([string]$i.users.size, [ref]$size)) {
-                        $hash.Size = $size
-                    }
+                    if ([int]::TryParse([string]$i.users.size, [ref]$size)) { $hash.Size = $size }
                 }
 
                 if ($null -ne $i.users.items) {

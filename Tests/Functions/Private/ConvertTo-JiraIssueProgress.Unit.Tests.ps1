@@ -43,12 +43,8 @@ InModuleScope JiraPS {
             $first = [PSCustomObject]@{ progress = 1 }
             $second = [PSCustomObject]@{ progress = 2 }
             $inputs = @($null, $first, $null, $second, $null)
-            $results = if ($delivery -eq 'array') {
-                @(ConvertTo-JiraIssueProgress -InputObject $inputs)
-            }
-            else {
-                @($inputs | ConvertTo-JiraIssueProgress)
-            }
+            $results = if ($delivery -eq 'array') { @(ConvertTo-JiraIssueProgress -InputObject $inputs) }
+            else { @($inputs | ConvertTo-JiraIssueProgress) }
             $results.Count | Should -Be 2
             $results[0].Progress | Should -Be 1
             $results[1].Progress | Should -Be 2

@@ -68,21 +68,19 @@
                     -Cmdlet $PSCmdlet
             }
 
-            $inwardTarget = if ($typedIssueLink.InwardIssue.Key) { $typedIssueLink.InwardIssue.Key } else { $typedIssueLink.InwardIssue.Id }
+            $inwardTarget = if ($typedIssueLink.InwardIssue.Key) { $typedIssueLink.InwardIssue.Key }
+            else { $typedIssueLink.InwardIssue.Id }
             $inwardField = if ($typedIssueLink.InwardIssue.Key) { "key" } else { "id" }
             $inwardIssue = @{ $inwardField = $inwardTarget }
 
-            $outwardTarget = if ($typedIssueLink.OutwardIssue.Key) { $typedIssueLink.OutwardIssue.Key } else { $typedIssueLink.OutwardIssue.Id }
+            $outwardTarget = if ($typedIssueLink.OutwardIssue.Key) { $typedIssueLink.OutwardIssue.Key }
+            else { $typedIssueLink.OutwardIssue.Id }
             $outwardField = if ($typedIssueLink.OutwardIssue.Key) { "key" } else { "id" }
             $outwardIssue = @{ $outwardField = $outwardTarget }
 
             $typePayload = @{}
-            if ($typedIssueLink.Type.Name) {
-                $typePayload.name = $typedIssueLink.Type.Name
-            }
-            if ($typedIssueLink.Type.Id) {
-                $typePayload.id = $typedIssueLink.Type.Id
-            }
+            if ($typedIssueLink.Type.Name) { $typePayload.name = $typedIssueLink.Type.Name }
+            if ($typedIssueLink.Type.Id) { $typePayload.id = $typedIssueLink.Type.Id }
 
             $body = @{
                 type         = $typePayload
@@ -90,9 +88,7 @@
                 outwardIssue = $outwardIssue
             }
 
-            if ($Comment) {
-                $body.comment = @{ body = $Comment }
-            }
+            if ($Comment) { $body.comment = @{ body = $Comment } }
 
             $parameter = @{
                 URI        = $resourceURi
@@ -103,9 +99,7 @@
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             $typeTarget = if ($typedIssueLink.Type.Name) { $typedIssueLink.Type.Name } else { $typedIssueLink.Type.Id }
             $whatIfTarget = "$inwardTarget -[$typeTarget]-> $outwardTarget"
-            if ($PSCmdlet.ShouldProcess($whatIfTarget)) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($whatIfTarget)) { Invoke-JiraMethod @parameter }
         }
     }
 

@@ -57,16 +57,12 @@
         $IsCloud
     )
 
-    if (-not $IsCloud) {
-        return $Text
-    }
+    if (-not $IsCloud) { return $Text }
 
     # `$null` / empty string on Cloud: return verbatim. ADF text nodes
     # cannot have empty text, and the public cmdlets already filter empty
     # input upstream (e.g. `if ($Description) { ... }`).
-    if ([string]::IsNullOrEmpty($Text)) {
-        return $Text
-    }
+    if ([string]::IsNullOrEmpty($Text)) { return $Text }
 
     # Whitespace-only on Cloud: trust the caller and wrap the literal
     # value in a single paragraph node. ConvertTo-AtlassianDocumentFormat

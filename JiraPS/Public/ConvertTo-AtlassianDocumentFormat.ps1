@@ -171,10 +171,7 @@ function script:ConvertTo-AdfContent {
         }
 
         # ── Empty line ────────────────────────────────────────────────────────
-        if ([string]::IsNullOrWhiteSpace($line)) {
-            $i++
-            continue
-        }
+        if ([string]::IsNullOrWhiteSpace($line)) { $i++; continue }
 
         # ── Paragraph (default) ───────────────────────────────────────────────
         # Handle hard breaks: lines ending with two spaces continue into the next line
@@ -197,9 +194,7 @@ function script:ConvertTo-AdfContent {
             if ($endsWithHardBreak -and $i -lt $Lines.Count -and -not [string]::IsNullOrWhiteSpace($Lines[$i])) {
                 $paraContent.Add(@{ type = 'hardBreak' })
             }
-            else {
-                break
-            }
+            else { break }
         }
         if ($paraContent.Count -gt 0) {
             $nodes.Add(@{
@@ -231,9 +226,7 @@ function script:ConvertTo-AdfInline {
     $lastEnd = 0
     foreach ($m in $script:AdfRegex.InlineMarks.Matches($Text)) {
         # Plain text before this match
-        if ($m.Index -gt $lastEnd) {
-            $nodes.Add(@{ type = 'text'; text = $Text.Substring($lastEnd, $m.Index - $lastEnd) })
-        }
+        if ($m.Index -gt $lastEnd) { $nodes.Add(@{ type = 'text'; text = $Text.Substring($lastEnd, $m.Index - $lastEnd) }) }
 
         if ($m.Groups['biText'].Success) {
             # ***bold italic*** - combined strong + em
@@ -257,9 +250,7 @@ function script:ConvertTo-AdfInline {
         elseif ($m.Groups['bText'].Success) {
             $nodes.Add(@{ type = 'text'; text = $m.Groups['bText'].Value; marks = @(@{ type = 'strong' }) })
         }
-        elseif ($m.Groups['eText'].Success) {
-            $nodes.Add(@{ type = 'text'; text = $m.Groups['eText'].Value; marks = @(@{ type = 'em' }) })
-        }
+        elseif ($m.Groups['eText'].Success) { $nodes.Add(@{ type = 'text'; text = $m.Groups['eText'].Value; marks = @(@{ type = 'em' }) }) }
         elseif ($m.Groups['sText'].Success) {
             $nodes.Add(@{ type = 'text'; text = $m.Groups['sText'].Value; marks = @(@{ type = 'strike' }) })
         }
@@ -271,9 +262,7 @@ function script:ConvertTo-AdfInline {
     }
 
     # Remaining plain text
-    if ($lastEnd -lt $Text.Length) {
-        $nodes.Add(@{ type = 'text'; text = $Text.Substring($lastEnd) })
-    }
+    if ($lastEnd -lt $Text.Length) { $nodes.Add(@{ type = 'text'; text = $Text.Substring($lastEnd) }) }
 
     $nodes.ToArray()
 }
@@ -343,12 +332,8 @@ function script:ConvertTo-AdfList {
 
     # Indentation pattern for current level (each level = 2 spaces)
     $indentSpaces = ' ' * ($IndentLevel * 2)
-    if ($ListType -eq 'bullet') {
-        $itemPattern = "^$indentSpaces\*\s+(?!\[[ x]\])(.+)$"
-    }
-    else {
-        $itemPattern = "^$indentSpaces\d+\.\s+(.+)$"
-    }
+    $itemPattern = if ($ListType -eq 'bullet') { "^$indentSpaces\*\s+(?!\[[ x]\])(.+)$" }
+    else { "^$indentSpaces\d+\.\s+(.+)$" }
 
     # Pattern to detect nested items (one level deeper)
     $nestedIndent = ' ' * (($IndentLevel + 1) * 2)
@@ -384,12 +369,8 @@ function script:ConvertTo-AdfList {
             })
     }
 
-    $listNode = if ($ListType -eq 'bullet') {
-        @{ type = 'bulletList'; content = @($listItems) }
-    }
-    else {
-        @{ type = 'orderedList'; attrs = @{ order = 1 }; content = @($listItems) }
-    }
+    $listNode = if ($ListType -eq 'bullet') { @{ type = 'bulletList'; content = @($listItems) } }
+    else { @{ type = 'orderedList'; attrs = @{ order = 1 }; content = @($listItems) } }
 
     @{
         Node      = $listNode

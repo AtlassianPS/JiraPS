@@ -25,12 +25,8 @@
         [Alias('VisibleRole')]
         [AtlassianPS.JiraPS.VisibilityTransformation()]
         [ValidateScript({
-                if ($null -eq $_.Type -and $null -eq $_.Value -and $null -eq $_.Identifier) {
-                    return $true
-                }
-                if ($_.Type -notin 'role', 'group') {
-                    throw "Visibility.Type must be 'role' or 'group'."
-                }
+                if ($null -eq $_.Type -and $null -eq $_.Value -and $null -eq $_.Identifier) { return $true }
+                if ($_.Type -notin 'role', 'group') { throw "Visibility.Type must be 'role' or 'group'." }
                 if ([String]::IsNullOrWhiteSpace($_.Value) -and [String]::IsNullOrWhiteSpace($_.Identifier)) {
                     throw 'Visibility requires a non-empty Value or Identifier.'
                 }
@@ -88,12 +84,8 @@
                 $Visibility.Type -eq 'role' -and $Visibility.Value -eq 'All Users' -and -not $Visibility.Identifier
             )) {
             $requestBody.visibility = @{ type = $Visibility.Type }
-            if ($Visibility.Value) {
-                $requestBody.visibility.value = $Visibility.Value
-            }
-            if ($Visibility.Identifier) {
-                $requestBody.visibility.identifier = $Visibility.Identifier
-            }
+            if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
+            if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }
         }
 
         $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud

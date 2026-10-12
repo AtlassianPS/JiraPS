@@ -16,9 +16,7 @@ BeforeDiscovery {
             $script:TestIssueKey = $testEnv.TestIssue
             $script:TestProjectKey = $testEnv.TestProject
         }
-        else {
-            $script:Skip = $true
-        }
+        else { $script:Skip = $true }
     }
 }
 
@@ -28,17 +26,11 @@ InModuleScope JiraPS {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
             $script:env = Initialize-IntegrationEnvironment
-            if (-not $env) {
-                throw "Initialize-IntegrationEnvironment returned null - tests cannot run"
-            }
+            if (-not $env) { throw "Initialize-IntegrationEnvironment returned null - tests cannot run" }
             $script:session = Connect-JiraTestServer -Environment $env
             $script:fixtures = Get-TestFixture -Environment $env
-            if (-not $fixtures) {
-                throw "Get-TestFixture returned null - tests cannot run"
-            }
-            if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                throw "fixtures.TestIssue is empty - tests should have been skipped"
-            }
+            if (-not $fixtures) { throw "Get-TestFixture returned null - tests cannot run" }
+            if ([string]::IsNullOrEmpty($fixtures.TestIssue)) { throw "fixtures.TestIssue is empty - tests should have been skipped" }
         }
 
         AfterAll {

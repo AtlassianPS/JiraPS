@@ -22,7 +22,8 @@
                 RestUrl         = if ($i.self) { [uri]$i.self } else { [uri]$i.RestUrl }
                 ViewUrl         = [uri]$i.viewUrl
                 SearchUrl       = [uri]$i.searchUrl
-                Favourite       = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) } else { $false }
+                Favourite       = if ($null -ne $i.favourite) { [System.Convert]::ToBoolean($i.favourite) }
+                else { $false }
                 SharePermission = [AtlassianPS.JiraPS.FilterPermission[]]@()
                 SharedUser      = $null
                 Subscription    = $null
@@ -60,15 +61,11 @@
             if ($PSBoundParameters.ContainsKey('FilterPermissions')) {
                 $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@(ConvertTo-JiraFilterPermission -InputObject $FilterPermissions)
             }
-            elseif ($i -is [AtlassianPS.JiraPS.Filter]) {
-                $hash.FilterPermissions = $i.FilterPermissions
-            }
+            elseif ($i -is [AtlassianPS.JiraPS.Filter]) { $hash.FilterPermissions = $i.FilterPermissions }
             elseif ($i.sharePermissions) {
                 $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@(ConvertTo-JiraFilterPermission -InputObject $i.sharePermissions)
             }
-            else {
-                $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@()
-            }
+            else { $hash.FilterPermissions = [AtlassianPS.JiraPS.FilterPermission[]]@() }
 
             if ($i.description) { $hash.Description = $i.description }
 

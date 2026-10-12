@@ -61,27 +61,15 @@
                 $requestBody["description"] = $InputObject.Description
                 $requestBody["archived"] = [bool]($InputObject.Archived)
                 $requestBody["released"] = [bool]($InputObject.Released)
-                if ($InputObject.ReleaseDate) {
-                    $requestBody["releaseDate"] = $InputObject.ReleaseDate.ToString('yyyy-MM-dd')
-                }
-                if ($InputObject.StartDate) {
-                    $requestBody["startDate"] = $InputObject.StartDate.ToString('yyyy-MM-dd')
-                }
-                if ($InputObject.Project) {
-                    $requestBody["projectId"] = $InputObject.Project
-                }
+                if ($InputObject.ReleaseDate) { $requestBody["releaseDate"] = $InputObject.ReleaseDate.ToString('yyyy-MM-dd') }
+                if ($InputObject.StartDate) { $requestBody["startDate"] = $InputObject.StartDate.ToString('yyyy-MM-dd') }
+                if ($InputObject.Project) { $requestBody["projectId"] = $InputObject.Project }
             }
             'byParameters' {
                 $requestBody["name"] = $Name
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
-                    $requestBody["description"] = $Description
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Archived")) {
-                    $requestBody["archived"] = $Archived
-                }
-                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Released")) {
-                    $requestBody["released"] = $Released
-                }
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) { $requestBody["description"] = $Description }
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Archived")) { $requestBody["archived"] = $Archived }
+                if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Released")) { $requestBody["released"] = $Released }
                 if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("ReleaseDate")) {
                     $requestBody["releaseDate"] = Get-Date $ReleaseDate -Format 'yyyy-MM-dd'
                 }
@@ -93,12 +81,8 @@
                 # Project object or a numeric scalar coerced by the transformer);
                 # otherwise fall back to the project key, which the v2/v3 create
                 # endpoint accepts under the "project" field.
-                if ($Project.Id) {
-                    $requestBody["projectId"] = $Project.Id
-                }
-                elseif ($Project.Key) {
-                    $requestBody["project"] = $Project.Key
-                }
+                if ($Project.Id) { $requestBody["projectId"] = $Project.Id }
+                elseif ($Project.Key) { $requestBody["project"] = $Project.Key }
             }
         }
 

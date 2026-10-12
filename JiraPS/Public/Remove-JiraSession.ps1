@@ -16,9 +16,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
-        if ($Session = Get-JiraSession) {
-            $MyInvocation.MyCommand.Module.PrivateData.Session = $null
-        }
+        if ($Session = Get-JiraSession) { $MyInvocation.MyCommand.Module.PrivateData.Session = $null }
     }
 
     end {

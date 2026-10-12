@@ -17,9 +17,7 @@
                 'RestUrl' = [uri]$i.self
             }
 
-            if ($i.globalId) {
-                $props.GlobalId = $i.globalId
-            }
+            if ($i.globalId) { $props.GlobalId = $i.globalId }
 
             if ($i.application) {
                 $props.Application = [AtlassianPS.JiraPS.LinkApplication]@{
@@ -28,35 +26,34 @@
                 }
             }
 
-            if ($i.relationship) {
-                $props.Relationship = $i.relationship
-            }
+            if ($i.relationship) { $props.Relationship = $i.relationship }
 
             if ($i.object) {
-                if ($i.object.icon) {
-                    $icon = [AtlassianPS.JiraPS.RemoteLinkIcon]@{
+                $icon = if ($i.object.icon) {
+                    [AtlassianPS.JiraPS.RemoteLinkIcon]@{
                         title    = $i.object.icon.title
                         url16x16 = $i.object.icon.url16x16
                     }
                 }
-                else { $icon = $null }
+                else { $null }
 
-                if ($i.object.status.icon) {
-                    $statusIcon = [AtlassianPS.JiraPS.RemoteLinkIcon]@{
+                $statusIcon = if ($i.object.status.icon) {
+                    [AtlassianPS.JiraPS.RemoteLinkIcon]@{
                         link     = $i.object.status.icon.link
                         title    = $i.object.status.icon.title
                         url16x16 = $i.object.status.icon.url16x16
                     }
                 }
-                else { $statusIcon = $null }
+                else { $null }
 
-                if ($i.object.status) {
-                    $status = [AtlassianPS.JiraPS.RemoteLinkStatus]@{
-                        resolved = if ($null -ne $i.object.status.resolved) { [System.Convert]::ToBoolean($i.object.status.resolved) } else { $null }
+                $status = if ($i.object.status) {
+                    [AtlassianPS.JiraPS.RemoteLinkStatus]@{
+                        resolved = if ($null -ne $i.object.status.resolved) { [System.Convert]::ToBoolean($i.object.status.resolved) }
+                        else { $null }
                         icon     = $statusIcon
                     }
                 }
-                else { $status = $null }
+                else { $null }
 
                 $props.RemoteObject = [AtlassianPS.JiraPS.RemoteLinkObject]@{
                     url     = $i.object.url

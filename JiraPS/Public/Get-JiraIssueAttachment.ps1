@@ -31,12 +31,8 @@
 
         if ($issueObj.Attachment) {
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Found Attachments on the Issue."
-            if ($FileName) {
-                $attachments = $issueObj.Attachment | Where-Object { $_.Filename -like $FileName }
-            }
-            else {
-                $attachments = $issueObj.Attachment
-            }
+            if ($FileName) { $attachments = $issueObj.Attachment | Where-Object { $_.Filename -like $FileName } }
+            else { $attachments = $issueObj.Attachment }
 
             ConvertTo-JiraAttachment -InputObject $attachments
         }

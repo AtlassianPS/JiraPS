@@ -61,23 +61,14 @@
         $null = $PSBoundParameters.Remove("Skip")
         $null = $PSBoundParameters.Remove("Response")
 
-        if (-not $PSBoundParameters["GetParameter"]) {
-            $PSBoundParameters["GetParameter"] = $GetParameter
-        }
+        if (-not $PSBoundParameters["GetParameter"]) { $PSBoundParameters["GetParameter"] = $GetParameter }
 
         $total = 0
-        $offset = 0
-        if ($PSCmdlet.PagingParameters.Skip) {
-            $offset = $PSCmdlet.PagingParameters.Skip
-        }
+        $offset = if ($PSCmdlet.PagingParameters.Skip) { $PSCmdlet.PagingParameters.Skip } else { 0 }
 
         if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
-            if ($null -ne $Response.total) {
-                $PSCmdlet.PagingParameters.NewTotalCount($Response.total, 1.0)
-            }
-            else {
-                $PSCmdlet.PagingParameters.NewTotalCount(0, 0.0)
-            }
+            if ($null -ne $Response.total) { $PSCmdlet.PagingParameters.NewTotalCount($Response.total, 1.0) }
+            else { $PSCmdlet.PagingParameters.NewTotalCount(0, 0.0) }
         }
 
         $isTokenPaged = $Response.PSObject.Properties.Name -contains "nextPageToken"
@@ -87,10 +78,8 @@
             $result = Expand-Result -InputObject $Response
 
             $total += @($result).Count
-            $pageSize = $script:DefaultPageSize
-            if (-not [string]::IsNullOrEmpty($Response.maxResults)) {
-                $pageSize = $Response.maxResults
-            }
+            $pageSize = if (-not [string]::IsNullOrEmpty($Response.maxResults)) { $Response.maxResults }
+            else { $script:DefaultPageSize }
 
             if ($total -gt $PSCmdlet.PagingParameters.First) {
                 $remaining = $PSCmdlet.PagingParameters.First - ($total - @($result).Count)
@@ -116,16 +105,11 @@
                 if ($Response.PSObject.Properties.Name -contains "nextPageToken" -and $Response.nextPageToken) {
                     $PSBoundParameters["GetParameter"]["nextPageToken"] = $Response.nextPageToken
                 }
-                else {
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] No nextPageToken found; stopping pagination"
-                    break
-                }
+                else { Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] No nextPageToken found; stopping pagination"; break }
             }
             else {
                 # Both v2 and v3 APIs support offset-based pagination.
-                if ($null -ne $Response.total -and ($total + $offset) -ge $Response.total) {
-                    break
-                }
+                if ($null -ne $Response.total -and ($total + $offset) -ge $Response.total) { break }
 
                 if (@($result).Count -lt $pageSize) {
                     Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $pageSize"

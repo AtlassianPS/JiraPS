@@ -88,9 +88,7 @@ InModuleScope JiraPS {
                     if ($value) { $result.$($property) | Should -Be $value }
                     else { $result.$($property) | Should -Not -BeNullOrEmpty }
 
-                    if ($type -is [string]) {
-                        $result.$($property).PSObject.TypeNames[0] | Should -Be $type
-                    }
+                    if ($type -is [string]) { $result.$($property).PSObject.TypeNames[0] | Should -Be $type }
                     else { $result.$($property) | Should -BeOfType $type }
                 }
             }

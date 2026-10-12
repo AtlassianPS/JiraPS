@@ -21,9 +21,7 @@
                     $errorItem.ErrorDetails = "No file could be found with the provided path '$_'."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
-                else {
-                    return $true
-                }
+                else { return $true }
             }
         )]
         [Alias('InFile', 'FullName', 'Path')]
@@ -71,9 +69,7 @@
             if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Adding attachment '$($fileName)'.")) {
                 $rawResult = Invoke-JiraMethod @parameter
 
-                if ($PassThru) {
-                    Write-Output (ConvertTo-JiraAttachment -InputObject $rawResult)
-                }
+                if ($PassThru) { Write-Output (ConvertTo-JiraAttachment -InputObject $rawResult) }
             }
         }
     }

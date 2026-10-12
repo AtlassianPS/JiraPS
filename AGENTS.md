@@ -74,6 +74,7 @@ Server tests use Dockerized Jira Data Center and can be slow.
 
 ## Coding Rules
 
+- Follow [compact conditional block rules](.github/ai-context/powershell-rules.md#compact-conditional-blocks) for PowerShell branch layout.
 - Follow existing cmdlet patterns: public cmdlet -> `Invoke-JiraMethod` -> private converter or resolver.
 - Prefer small, focused changes that preserve backward compatibility.
 - Use approved PowerShell verbs, PascalCase function/parameter names, and descriptive variable names.

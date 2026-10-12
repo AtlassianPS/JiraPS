@@ -26,7 +26,7 @@
             }
             [AtlassianPS.JiraPS.IssueHistoryEntry]@{
                 Id      = $i.id
-                Author  = if ($i.author) { ConvertTo-JiraUser $i.author } else { $null }
+                Author  = ConvertTo-JiraUser -InputObject $i.author
                 Created = ConvertTo-JiraDateTimeOffsetValue $i.created
                 Items   = [AtlassianPS.JiraPS.IssueHistoryItem[]]@($items)
             }

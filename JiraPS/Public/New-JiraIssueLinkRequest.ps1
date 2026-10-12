@@ -35,12 +35,8 @@
 
     process {
         $typeRef = [AtlassianPS.JiraPS.IssueLinkTypeRef]@{}
-        if ($LinkType.Name) {
-            $typeRef.Name = $LinkType.Name
-        }
-        if ($LinkType.Id) {
-            $typeRef.Id = $LinkType.Id
-        }
+        if ($LinkType.Name) { $typeRef.Name = $LinkType.Name }
+        if ($LinkType.Id) { $typeRef.Id = $LinkType.Id }
 
         if (-not $typeRef.Name -and -not $typeRef.Id) {
             ThrowError `
@@ -53,12 +49,8 @@
         }
 
         $inwardRef = [AtlassianPS.JiraPS.LinkedIssueRef]@{}
-        if ($FromIssue.Key) {
-            $inwardRef.Key = $FromIssue.Key
-        }
-        if ($FromIssue.Id) {
-            $inwardRef.Id = $FromIssue.Id
-        }
+        if ($FromIssue.Key) { $inwardRef.Key = $FromIssue.Key }
+        if ($FromIssue.Id) { $inwardRef.Id = $FromIssue.Id }
         if (-not $inwardRef.Key -and -not $inwardRef.Id) {
             ThrowError `
                 -ExceptionType "System.ArgumentException" `
@@ -70,12 +62,8 @@
         }
 
         $outwardRef = [AtlassianPS.JiraPS.LinkedIssueRef]@{}
-        if ($ToIssue.Key) {
-            $outwardRef.Key = $ToIssue.Key
-        }
-        if ($ToIssue.Id) {
-            $outwardRef.Id = $ToIssue.Id
-        }
+        if ($ToIssue.Key) { $outwardRef.Key = $ToIssue.Key }
+        if ($ToIssue.Id) { $outwardRef.Id = $ToIssue.Id }
         if (-not $outwardRef.Key -and -not $outwardRef.Id) {
             ThrowError `
                 -ExceptionType "System.ArgumentException" `

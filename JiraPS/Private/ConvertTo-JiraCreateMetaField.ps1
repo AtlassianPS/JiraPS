@@ -21,22 +21,16 @@
                 'Operations'      = [string[]]$item.operations
             }
 
-            if ($null -ne $item.allowedValues) {
-                $props.AllowedValues = $item.allowedValues
-            }
+            if ($null -ne $item.allowedValues) { $props.AllowedValues = $item.allowedValues }
 
-            if ($item.autoCompleteUrl) {
-                $props.AutoCompleteUrl = [uri]$item.autoCompleteUrl
-            }
+            if ($item.autoCompleteUrl) { $props.AutoCompleteUrl = [uri]$item.autoCompleteUrl }
 
             $extraProperties = @{}
             # NoteProperty only: $item is a JSON-deserialized field spec and
             # its data keys are NoteProperties. Synthetic Script/AliasProperty
             # would otherwise leak into the output object.
             foreach ($extraProperty in $item.PSObject.Properties.Where({ $_.MemberType -eq 'NoteProperty' }).Name) {
-                if (-not $props.ContainsKey($extraProperty)) {
-                    $extraProperties.$extraProperty = $item.$extraProperty
-                }
+                if (-not $props.ContainsKey($extraProperty)) { $extraProperties.$extraProperty = $item.$extraProperty }
             }
 
             $result = [AtlassianPS.JiraPS.CreateMetaField]$props

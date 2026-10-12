@@ -86,12 +86,7 @@
 
         $ProjectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop -Debug:$false
         $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {
-            if ($null -ne $IssueType.Id) {
-                $_.Id -eq $IssueType.Id
-            }
-            else {
-                $_.Name -eq $IssueType.Name
-            }
+            if ($null -ne $IssueType.Id) { $_.Id -eq $IssueType.Id } else { $_.Name -eq $IssueType.Name }
         }
 
         if ($null -eq $issueTypeObj.Id) {
@@ -127,9 +122,7 @@
             $requestBody["priority"] = @{"id" = [String] $priorityId }
         }
 
-        if ($Description) {
-            $requestBody["description"] = Resolve-JiraTextFieldPayload -Text $Description -IsCloud $isCloud
-        }
+        if ($Description) { $requestBody["description"] = Resolve-JiraTextFieldPayload -Text $Description -IsCloud $isCloud }
 
         if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
             if ($reporterUser = Resolve-JiraUser -InputObject $Reporter -Exact -Credential $Credential) {
@@ -172,9 +165,7 @@
             $requestBody["assignee"] = Resolve-JiraUserPayload -UserObject $assigneeUser -IsCloud $isCloud
         }
 
-        if ($Parent) {
-            $requestBody["parent"] = @{"key" = $Parent }
-        }
+        if ($Parent) { $requestBody["parent"] = @{"key" = $Parent } }
 
         if ($Label) {
             $requestBody["labels"] = [System.Collections.Generic.List[string]]::new()
@@ -184,12 +175,7 @@
         if ($Components) {
             $requestBody["components"] = [System.Collections.Generic.List[hashtable]]::new()
             $Components.ForEach({
-                    $componentValue = if ($_.Id) {
-                        @{ id = $_.Id }
-                    }
-                    else {
-                        @{ name = $_.Name }
-                    }
+                    $componentValue = if ($_.Id) { @{ id = $_.Id } } else { @{ name = $_.Name } }
                     $null = $requestBody["components"].Add($componentValue)
                 })
         }
@@ -197,12 +183,7 @@
         if ($FixVersion) {
             $requestBody['fixVersions'] = [System.Collections.Generic.List[hashtable]]::new()
             $FixVersion.ForEach({
-                    $versionValue = if ($_.Id) {
-                        @{ id = $_.Id }
-                    }
-                    else {
-                        @{ name = $_.Name }
-                    }
+                    $versionValue = if ($_.Id) { @{ id = $_.Id } } else { @{ name = $_.Name } }
                     $null = $requestBody["fixVersions"].Add($versionValue)
                 })
         }

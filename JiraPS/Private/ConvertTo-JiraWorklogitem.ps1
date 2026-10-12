@@ -19,33 +19,19 @@
                 'RestUrl'    = [uri]$i.self
             }
 
-            if ($i.author) {
-                $props.Author = ConvertTo-JiraUser -InputObject $i.author
-            }
+            if ($i.author) { $props.Author = ConvertTo-JiraUser -InputObject $i.author }
 
-            if ($i.updateAuthor) {
-                $props.UpdateAuthor = ConvertTo-JiraUser -InputObject $i.updateAuthor
-            }
+            if ($i.updateAuthor) { $props.UpdateAuthor = ConvertTo-JiraUser -InputObject $i.updateAuthor }
 
-            if ($i.created) {
-                $props.Created = ConvertTo-JiraDateTimeOffsetValue $i.created
-            }
+            if ($i.created) { $props.Created = ConvertTo-JiraDateTimeOffsetValue $i.created }
 
-            if ($i.updated) {
-                $props.Updated = ConvertTo-JiraDateTimeOffsetValue $i.updated
-            }
+            if ($i.updated) { $props.Updated = ConvertTo-JiraDateTimeOffsetValue $i.updated }
 
-            if ($i.started) {
-                $props.Started = ConvertTo-JiraDateTimeOffsetValue $i.started
-            }
+            if ($i.started) { $props.Started = ConvertTo-JiraDateTimeOffsetValue $i.started }
 
-            if ($i.timeSpent) {
-                $props.TimeSpent = $i.timeSpent
-            }
+            if ($i.timeSpent) { $props.TimeSpent = $i.timeSpent }
 
-            if ($i.timeSpentSeconds) {
-                $props.TimeSpentSeconds = $i.timeSpentSeconds
-            }
+            if ($i.timeSpentSeconds) { $props.TimeSpentSeconds = $i.timeSpentSeconds }
 
             [AtlassianPS.JiraPS.Worklogitem]$props
         }

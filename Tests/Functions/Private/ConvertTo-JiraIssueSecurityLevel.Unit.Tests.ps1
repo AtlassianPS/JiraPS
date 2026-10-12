@@ -46,12 +46,8 @@ InModuleScope JiraPS {
             $first = [PSCustomObject]@{ id = 1 }
             $second = [PSCustomObject]@{ id = 2 }
             $inputs = @($null, $first, $null, $second, $null)
-            $results = if ($delivery -eq 'array') {
-                @(ConvertTo-JiraIssueSecurityLevel -InputObject $inputs)
-            }
-            else {
-                @($inputs | ConvertTo-JiraIssueSecurityLevel)
-            }
+            $results = if ($delivery -eq 'array') { @(ConvertTo-JiraIssueSecurityLevel -InputObject $inputs) }
+            else { @($inputs | ConvertTo-JiraIssueSecurityLevel) }
             $results.Count | Should -Be 2
             $results[0].Id | Should -Be 1
             $results[1].Id | Should -Be 2

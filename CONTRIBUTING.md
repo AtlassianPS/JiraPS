@@ -2,6 +2,10 @@
 
 For contribution guidelines, see **[Contributing to AtlassianPS](https://atlassianps.org/docs/Contributing/)**.
 
+## PowerShell style
+
+Follow the [compact conditional block rules](.github/ai-context/powershell-rules.md#compact-conditional-blocks) for branch layout and examples.
+
 ## Object model reference
 
 The [v3 object model reference](.github/ai-context/v3-object-contracts.md) maps domain types to converters, command parameters and tests.

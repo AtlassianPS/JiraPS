@@ -26,16 +26,15 @@
     process {
         $GetParameter = @{}
 
-        if ($Uri) {
-            $Query = $Uri.Query
-        }
+        if ($Uri) { $Query = $Uri.Query }
 
         if ($Query -match "^\?.+") {
             $Query.TrimStart("?").Split("&") | ForEach-Object {
                 $key, $value = $_.Split('=', 2)
                 if (-not [String]::IsNullOrEmpty($key)) {
                     $decodedKey = ConvertFrom-URLEncoded $key
-                    $decodedValue = if ([String]::IsNullOrEmpty($value)) { $value } else { ConvertFrom-URLEncoded $value }
+                    $decodedValue = if ([String]::IsNullOrEmpty($value)) { $value }
+                    else { ConvertFrom-URLEncoded $value }
                     $GetParameter[$decodedKey] = $decodedValue
                 }
             }

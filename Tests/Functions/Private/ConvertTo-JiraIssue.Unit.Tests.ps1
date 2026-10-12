@@ -1158,9 +1158,7 @@ InModuleScope JiraPS {
                             $issue.$property.GetType().IsArray | Should -BeTrue
                             $issue.$property.Count | Should -Be 0
                         }
-                        else {
-                            ($null -eq $issue.$property) | Should -BeTrue
-                        }
+                        else { ($null -eq $issue.$property) | Should -BeTrue }
                     }
                 }
             }

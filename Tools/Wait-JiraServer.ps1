@@ -195,24 +195,17 @@ catch {
     }
 
     $message = $_.Exception.Message
-    $bodyText = $null
-    if ($_.ErrorDetails -and $_.ErrorDetails.Message) {
-        $bodyText = $_.ErrorDetails.Message
-    }
+    $bodyText = if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $null }
 
     $alreadyExists = $false
     if ($statusCode -in 400, 409) {
         if ($bodyText -and ($bodyText -match 'already exists' -or $bodyText -match 'username' -or $bodyText -match 'user with that')) {
             $alreadyExists = $true
         }
-        elseif ($message -match 'already exists') {
-            $alreadyExists = $true
-        }
+        elseif ($message -match 'already exists') { $alreadyExists = $true }
     }
 
-    if ($alreadyExists) {
-        Write-Host "==> User '$NormalUser' already exists; treating as success."
-    }
+    if ($alreadyExists) { Write-Host "==> User '$NormalUser' already exists; treating as success." }
     else {
         Write-Error "Failed to provision normal user '$NormalUser' (status=$statusCode): $message`n$bodyText"
         exit 2
@@ -222,15 +215,14 @@ catch {
 Write-Host "==> Provisioning test project '$ProjectKey' via $projectApiUrl"
 
 $testGroup = if ($env:JIRA_TEST_GROUP) { $env:JIRA_TEST_GROUP } else { $null }
-if ($testGroup) {
-    Write-Host "==> Using preconfigured test group '$testGroup'"
-}
+if ($testGroup) { Write-Host "==> Using preconfigured test group '$testGroup'" }
 else {
     Write-Host "==> Discovering a reusable test group for '$NormalUser'"
 
     try {
         $userWithGroups = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/user?username=$([uri]::EscapeDataString($NormalUser))&expand=groups" -Method Get -Headers $headers -TimeoutSec 30
-        $groupItems = if ($userWithGroups.groups -and $userWithGroups.groups.items) { @($userWithGroups.groups.items) } else { @() }
+        $groupItems = if ($userWithGroups.groups -and $userWithGroups.groups.items) { @($userWithGroups.groups.items) }
+        else { @() }
         $preferredGroup = $groupItems |
             Sort-Object -Property @{
                 Expression = {
@@ -342,9 +334,7 @@ Write-Host ("    Resolved schemes: permission={0} notification={1} security={2} 
 # advertises so future debugging doesn't need another CI round-trip.
 try {
     $projectTypes = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/project/type" -Method Get -Headers $headers -TimeoutSec 30
-    if ($projectTypes) {
-        Write-Host ("    Available project types: {0}" -f (($projectTypes | ForEach-Object { $_.key }) -join ', '))
-    }
+    if ($projectTypes) { Write-Host ("    Available project types: {0}" -f (($projectTypes | ForEach-Object { $_.key }) -join ', ')) }
 }
 catch {
     Write-Host "    (project/type lookup failed: $($_.Exception.Message))"
@@ -374,8 +364,8 @@ try {
 
     if ($rawTemplates.projectTemplates) {
         foreach ($tpl in @($rawTemplates.projectTemplates)) {
-            $typeKey = $tpl.projectTypeKey
-            if (-not $typeKey -and $tpl.projectTypeBean) { $typeKey = $tpl.projectTypeBean.projectTypeKey }
+            $typeKey = if (-not $tpl.projectTypeKey -and $tpl.projectTypeBean) { $tpl.projectTypeBean.projectTypeKey }
+            else { $tpl.projectTypeKey }
             $tplKey = & $extractTemplateKey $tpl
             if ($typeKey -and $tplKey) {
                 $discoveredPairs.Add(@{ ProjectTypeKey = $typeKey; ProjectTemplateKey = $tplKey; Source = 'flat' })
@@ -424,9 +414,7 @@ try {
         $names = ($existing | ForEach-Object { "$($_.key) ($($_.projectTypeKey))" }) -join ', '
         Write-Host ("    Existing projects: {0}" -f $names)
     }
-    else {
-        Write-Host "    No existing projects."
-    }
+    else { Write-Host "    No existing projects." }
 }
 catch {
     Write-Host "    (project list failed: $($_.Exception.Message))"
@@ -536,12 +524,8 @@ try {
             if ($candidate) { $issueTypeName = $candidate.name }
         }
     }
-    if ($issueTypeName) {
-        Write-Host ("    Using discovered issuetype: '{0}'" -f $issueTypeName)
-    }
-    else {
-        Write-Host "    /createmeta returned no issuetypes for '$ProjectKey'; falling back to conventional names."
-    }
+    if ($issueTypeName) { Write-Host ("    Using discovered issuetype: '{0}'" -f $issueTypeName) }
+    else { Write-Host "    /createmeta returned no issuetypes for '$ProjectKey'; falling back to conventional names." }
 }
 catch {
     Write-Host "    (createmeta lookup failed: $($_.Exception.Message))"
@@ -598,7 +582,8 @@ if ($issue -and $issueTypeName) {
     try {
         $cmFields = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issue/createmeta?projectKeys=$ProjectKey&issuetypeNames=$([uri]::EscapeDataString($issueTypeName))&expand=projects.issuetypes.fields" -Method Get -Headers $headers -TimeoutSec 30
         $proj = $cmFields.projects | Where-Object { $_.key -eq $ProjectKey } | Select-Object -First 1
-        $itype = if ($proj) { $proj.issuetypes | Where-Object { $_.name -eq $issueTypeName } | Select-Object -First 1 } else { $null }
+        $itype = if ($proj) { $proj.issuetypes | Where-Object { $_.name -eq $issueTypeName } | Select-Object -First 1 }
+        else { $null }
         if ($itype -and $itype.fields) {
             $allFields = @()
             foreach ($prop in $itype.fields.PSObject.Properties) {
@@ -618,13 +603,9 @@ if ($issue -and $issueTypeName) {
                     Write-Host ("    Required-no-default: id='{0}' name='{1}'" -f $f.Id, $f.Name)
                 }
             }
-            else {
-                Write-Host "    No tightened (required-no-default) fields detected."
-            }
+            else { Write-Host "    No tightened (required-no-default) fields detected." }
         }
-        else {
-            Write-Host "    /createmeta did not return field metadata for the chosen project/issuetype."
-        }
+        else { Write-Host "    /createmeta did not return field metadata for the chosen project/issuetype." }
     }
     catch {
         Write-Host ("    (createmeta diagnostic failed: {0})" -f $_.Exception.Message)
@@ -677,9 +658,7 @@ if ($issue -and $issue.key) {
         }
         Start-Sleep -Seconds 1
     }
-    if (-not $luceneReady) {
-        Write-Host "    Lucene did not return '$($issue.key)' within 60s — tests that race the indexer may flake."
-    }
+    if (-not $luceneReady) { Write-Host "    Lucene did not return '$($issue.key)' within 60s — tests that race the indexer may flake." }
 }
 
 # Export the provisioned fixture identifiers to the current process and, in CI,

@@ -16,17 +16,11 @@
                 'Id' = ConvertTo-JiraNullableInt64 $i.id
             }
 
-            if ($i.type) {
-                $props.Type = ConvertTo-JiraIssueLinkType $i.type
-            }
+            if ($i.type) { $props.Type = ConvertTo-JiraIssueLinkType $i.type }
 
-            if ($i.inwardIssue) {
-                $props['InwardIssue'] = ConvertTo-JiraIssue $i.inwardIssue
-            }
+            if ($i.inwardIssue) { $props['InwardIssue'] = ConvertTo-JiraIssue $i.inwardIssue }
 
-            if ($i.outwardIssue) {
-                $props['OutwardIssue'] = ConvertTo-JiraIssue $i.outwardIssue
-            }
+            if ($i.outwardIssue) { $props['OutwardIssue'] = ConvertTo-JiraIssue $i.outwardIssue }
 
             [AtlassianPS.JiraPS.IssueLink]$props
         }

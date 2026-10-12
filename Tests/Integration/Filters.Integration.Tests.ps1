@@ -222,9 +222,7 @@ InModuleScope JiraPS {
 
         Describe "Set-JiraFilter" -Skip:$SkipWrite {
             BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                    $script:testFilter = $null
-                }
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:testFilter = $null }
                 else {
                     $filterName = New-TestResourceName -Type "FilterSet"
                     $script:testFilter = New-JiraFilter -Name $filterName -JQL "project = $($fixtures.TestProject)"

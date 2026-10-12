@@ -34,9 +34,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $filters = foreach ($item in $Filter) {
-            if ($item.RestUrl) {
-                $item
-            }
+            if ($item.RestUrl) { $item }
             else {
                 Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop
             }
@@ -46,15 +44,9 @@
             type = $Type.ToLower()
         }
         switch ($Type) {
-            "Group" {
-                $body["groupname"] = $Value
-            }
-            "Project" {
-                $body["projectId"] = $Value
-            }
-            "ProjectRole" {
-                $body["projectRoleId"] = $Value
-            }
+            "Group" { $body["groupname"] = $Value }
+            "Project" { $body["projectId"] = $Value }
+            "ProjectRole" { $body["projectRoleId"] = $Value }
             "Authenticated" { }
             "Global" { }
         }

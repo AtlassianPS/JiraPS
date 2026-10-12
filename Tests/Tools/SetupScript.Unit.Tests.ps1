@@ -11,9 +11,7 @@ Describe 'Tools/setup.ps1' -Tag Unit {
         else {
             $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
             while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
-                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
-                    break
-                }
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) { break }
 
                 $candidate = Split-Path -Path $candidate -Parent
             }
@@ -121,9 +119,7 @@ Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement
         else {
             $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
             while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
-                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
-                    break
-                }
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) { break }
 
                 $candidate = Split-Path -Path $candidate -Parent
             }
@@ -225,9 +221,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
                 Remove-Item -LiteralPath Function:Global:Install-PackageProvider
             }
 
-            if (Test-Path -LiteralPath Function:Global:Set-PSRepository) {
-                Remove-Item -LiteralPath Function:Global:Set-PSRepository
-            }
+            if (Test-Path -LiteralPath Function:Global:Set-PSRepository) { Remove-Item -LiteralPath Function:Global:Set-PSRepository }
         }
 
         Test-Path -LiteralPath $installPackageProviderCapturePath | Should -BeTrue
@@ -252,9 +246,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
         else {
             $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
             while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
-                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
-                    break
-                }
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) { break }
 
                 $candidate = Split-Path -Path $candidate -Parent
             }
@@ -310,9 +302,7 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
         else {
             $candidate = (Resolve-Path -LiteralPath $PSScriptRoot).ProviderPath
             while ($candidate -and ($candidate -ne [System.IO.Path]::GetPathRoot($candidate))) {
-                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) {
-                    break
-                }
+                if (Test-Path -LiteralPath (Join-Path -Path $candidate -ChildPath 'CODEOWNERS')) { break }
 
                 $candidate = Split-Path -Path $candidate -Parent
             }

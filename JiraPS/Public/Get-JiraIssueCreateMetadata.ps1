@@ -32,12 +32,7 @@
 
         $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
         $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {
-            if ($null -ne $IssueType.Id) {
-                $_.Id -eq $IssueType.Id
-            }
-            else {
-                $_.Name -eq $IssueType.Name
-            }
+            if ($null -ne $IssueType.Id) { $_.Id -eq $IssueType.Id } else { $_.Name -eq $IssueType.Name }
         }
 
         if ($null -eq $issueTypeObj.Id) {

@@ -18,9 +18,7 @@
                     $errorItem.ErrorDetails = "No file could be found with the provided path '$_'."
                     $PSCmdlet.ThrowTerminatingError($errorItem)
                 }
-                else {
-                    return $true
-                }
+                else { return $true }
             }
         )]
         [Alias( 'FullName', 'PSPath' )]

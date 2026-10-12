@@ -56,12 +56,8 @@ InModuleScope JiraPS {
             $first = [PSCustomObject]@{ votes = 1 }
             $second = [PSCustomObject]@{ votes = 2 }
             $inputs = @($null, $first, $null, $second, $null)
-            $results = if ($delivery -eq 'array') {
-                @(ConvertTo-JiraIssueVote -InputObject $inputs)
-            }
-            else {
-                @($inputs | ConvertTo-JiraIssueVote)
-            }
+            $results = if ($delivery -eq 'array') { @(ConvertTo-JiraIssueVote -InputObject $inputs) }
+            else { @($inputs | ConvertTo-JiraIssueVote) }
             $results.Count | Should -Be 2
             $results[0].Votes | Should -Be 1
             $results[1].Votes | Should -Be 2

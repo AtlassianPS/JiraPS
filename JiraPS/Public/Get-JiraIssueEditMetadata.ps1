@@ -41,9 +41,7 @@
 
         Write-Debug ($result | Out-String)
 
-        if ($result) {
-            Write-Output (ConvertTo-JiraEditMetaField -InputObject $result)
-        }
+        if ($result) { Write-Output (ConvertTo-JiraEditMetaField -InputObject $result) }
         else {
             $exception = ([System.ArgumentException]"No results")
             $errorId = 'IssueMetadata.ObjectNotFound'

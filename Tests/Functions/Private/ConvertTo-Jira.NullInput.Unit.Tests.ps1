@@ -22,9 +22,7 @@ InModuleScope JiraPS {
             $script:arrayInputConverterCases = @(
                 foreach ($case in $script:nullInputConverterCases) {
                     $command = Get-Command -Name $case.converter
-                    if ($command.Parameters['InputObject'].ParameterType.IsArray) {
-                        $case
-                    }
+                    if ($command.Parameters['InputObject'].ParameterType.IsArray) { $case }
                 }
             )
         }
@@ -90,9 +88,7 @@ InModuleScope JiraPS {
                 $item = if ($converter -eq 'ConvertTo-JiraEditMetaField') {
                     [PSCustomObject]@{ fields = [PSCustomObject]@{ summary = [PSCustomObject]@{} } }
                 }
-                else {
-                    [PSCustomObject]@{}
-                }
+                else { [PSCustomObject]@{} }
 
                 $result = @(& $converter -InputObject @($null, $item, $null, $item, $null))
                 $result.Count | Should -Be 2
@@ -128,6 +124,65 @@ InModuleScope JiraPS {
             }
         }
 
+        Context 'Projects on issue type scopes' {
+            It 'handles <shape> scope project input' -TestCases @(
+                @{ shape = 'omitted' }
+                @{ shape = 'explicit null' }
+                @{ shape = 'empty' }
+                @{ shape = 'populated' }
+                @{ shape = 'already typed' }
+            ) {
+                param($shape)
+                $project = switch ($shape) {
+                    'empty' { [PSCustomObject]@{} }
+                    'populated' { [PSCustomObject]@{ id = '123'; key = 'TEST' } }
+                    'already typed' { [AtlassianPS.JiraPS.Project]@{ Id = '123'; Key = 'TEST' } }
+                }
+                $scope = [PSCustomObject]@{ type = 'PROJECT' }
+                if ($shape -ne 'omitted') { $scope | Add-Member -NotePropertyName project -NotePropertyValue $project }
+
+                $result = ConvertTo-JiraIssueType -InputObject ([PSCustomObject]@{ id = '1'; scope = $scope })
+                $result.Scope | Should -BeOfType [AtlassianPS.JiraPS.IssueTypeScope]
+                $result.Scope.Type | Should -Be 'PROJECT'
+                if ($shape -in 'omitted', 'explicit null') { ($null -eq $result.Scope.Project) | Should -BeTrue }
+                else {
+                    $result.Scope.Project | Should -BeOfType [AtlassianPS.JiraPS.Project]
+                    if ($shape -eq 'empty') { $result.Scope.Project.Id | Should -BeExactly ([string]::Empty) }
+                    else {
+                        $result.Scope.Project.Id | Should -BeExactly '123'
+                        $result.Scope.Project.Key | Should -Be 'TEST'
+                    }
+                }
+            }
+        }
+
+        Context 'Optional nested users and groups' {
+            It '<converter> keeps <property> null when <shape>' -TestCases @(
+                foreach ($case in @(
+                        @{ converter = 'ConvertTo-JiraIssueHistoryEntry'; property = 'Author'; sourceProperty = 'author' }
+                        @{ converter = 'ConvertTo-JiraProject'; property = 'Lead'; sourceProperty = 'lead' }
+                        @{ converter = 'ConvertTo-JiraFilterSubscription'; property = 'User'; sourceProperty = 'user' }
+                        @{ converter = 'ConvertTo-JiraFilterSubscription'; property = 'Group'; sourceProperty = 'group' }
+                        @{ converter = 'ConvertTo-JiraRoleActor'; property = 'ActorUser'; sourceProperty = 'actorUser' }
+                        @{ converter = 'ConvertTo-JiraRoleActor'; property = 'ActorGroup'; sourceProperty = 'actorGroup' }
+                    )) {
+                    foreach ($shape in 'omitted', 'explicit null') {
+                        $testCase = $case.Clone()
+                        $testCase.shape = $shape
+                        $testCase
+                    }
+                }
+            ) {
+                param($converter, $property, $sourceProperty, $shape)
+                $inputObject = [PSCustomObject]@{}
+                if ($shape -eq 'explicit null') { $inputObject | Add-Member -NotePropertyName $sourceProperty -NotePropertyValue $null }
+
+                $result = @(& $converter -InputObject $inputObject)
+                $result.Count | Should -Be 1
+                ($null -eq $result[0].$property) | Should -BeTrue
+            }
+        }
+
         Context 'Schemas on containing objects' {
             It '<converter> keeps an <shape> schema null' -TestCases @(
                 foreach ($converter in 'ConvertTo-JiraCreateMetaField', 'ConvertTo-JiraEditMetaField', 'ConvertTo-JiraField') {
@@ -137,15 +192,11 @@ InModuleScope JiraPS {
             ) {
                 param($converter, $shape)
                 $field = [PSCustomObject]@{ fieldId = 'summary'; id = 'summary'; name = 'Summary' }
-                if ($shape -eq 'explicit null') {
-                    $field | Add-Member -NotePropertyName schema -NotePropertyValue $null
-                }
+                if ($shape -eq 'explicit null') { $field | Add-Member -NotePropertyName schema -NotePropertyValue $null }
                 $response = if ($converter -eq 'ConvertTo-JiraEditMetaField') {
                     [PSCustomObject]@{ fields = [PSCustomObject]@{ summary = $field } }
                 }
-                else {
-                    $field
-                }
+                else { $field }
 
                 $result = @(& $converter -InputObject $response)
                 $result.Count | Should -Be 1
@@ -174,16 +225,12 @@ InModuleScope JiraPS {
                 $response = if ($converter -eq 'ConvertTo-JiraEditMetaField') {
                     [PSCustomObject]@{ fields = [PSCustomObject]@{ summary = $field } }
                 }
-                else {
-                    $field
-                }
+                else { $field }
 
                 $result = @(& $converter -InputObject $response)
                 $result.Count | Should -Be 1
                 $result[0].Schema.GetType() | Should -Be ([AtlassianPS.JiraPS.FieldSchema])
-                if ($shape -eq 'empty') {
-                    $result[0].Schema.Type | Should -BeExactly ([string]::Empty)
-                }
+                if ($shape -eq 'empty') { $result[0].Schema.Type | Should -BeExactly ([string]::Empty) }
                 else {
                     $result[0].Schema.Type | Should -Be 'string'
                     $result[0].Schema.System | Should -Be 'summary'

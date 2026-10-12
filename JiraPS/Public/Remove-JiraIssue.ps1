@@ -64,15 +64,12 @@
 
         $issuesToRemove = switch ($PsCmdlet.ParameterSetName) {
             "ByInputObject" { , $InputObject }
-            "ByIssueId" { $IssueID | ForEach-Object { Get-JiraIssue -Key $_ -Credential $Credential -ErrorAction Stop } }
+            "ByIssueId" {
+                $IssueID | ForEach-Object { Get-JiraIssue -Key $_ -Credential $Credential -ErrorAction Stop }
+            }
         }
 
-        if ($IncludeSubTasks) {
-            $ActionText = "Remove issue and sub-tasks"
-        }
-        else {
-            $ActionText = "Remove issue"
-        }
+        $ActionText = if ($IncludeSubTasks) { "Remove issue and sub-tasks" } else { "Remove issue" }
 
         foreach ($_issue in $issuesToRemove) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"

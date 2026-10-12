@@ -81,9 +81,7 @@ InModuleScope JiraPS {
                 if ($Uri -like '*/field') {
                     ConvertFrom-Json '[{"id":"customfield_1","name":"Duplicate"},{"id":"customfield_2","name":"Duplicate"}]'
                 }
-                elseif ($Uri -like '*/issuetype') {
-                    ConvertFrom-Json '[{"id":"1","name":"Bug"},{"id":"2","name":"Bug"}]'
-                }
+                elseif ($Uri -like '*/issuetype') { ConvertFrom-Json '[{"id":"1","name":"Bug"},{"id":"2","name":"Bug"}]' }
             }
             $fields = @(Get-JiraField -Field ([AtlassianPS.JiraPS.Field]@{ Id = 'customfield_1'; Name = 'Duplicate' }))
             $fields.Count | Should -Be 1

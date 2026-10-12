@@ -82,9 +82,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                             $_.Name + $(if ($_.IsDefault) { ' (Default)' })
                         })
                     $actual.Count | Should -Be $expected.Count
-                    if ($expected.Count -gt 0) {
-                        @($actual | Sort-Object) | Should -Be @($expected | Sort-Object)
-                    }
+                    if ($expected.Count -gt 0) { @($actual | Sort-Object) | Should -Be @($expected | Sort-Object) }
                 }
 
                 It "does not have Comment-Based Help" {
@@ -220,7 +218,8 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                     It "matches the type of the parameter in code and help" {
                         $codeType = $parameterCode.ParameterType.Name
-                        $elementType = if ($parameterCode.ParameterType.IsArray) { $parameterCode.ParameterType.GetElementType() } else { $parameterCode.ParameterType }
+                        $elementType = if ($parameterCode.ParameterType.IsArray) { $parameterCode.ParameterType.GetElementType() }
+                        else { $parameterCode.ParameterType }
                         if ($elementType.Namespace -eq 'AtlassianPS.JiraPS') {
                             $codeType = $parameterCode.ParameterType.FullName
                             $markdown = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/$($command.Name).md" -Raw
@@ -249,17 +248,11 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                                 # an array parameter so we line up with the
                                 # array form advertised in the markdown.
                                 $codeType = $psTypeAttr.PSTypeName
-                                if ($parameterCode.ParameterType.IsArray -and $codeType -notmatch '\[\]$') {
-                                    $codeType += '[]'
-                                }
+                                if ($parameterCode.ParameterType.IsArray -and $codeType -notmatch '\[\]$') { $codeType += '[]' }
                             }
                         }
-                        $helpType = if ($parameterHelp.parameterValue) {
-                            $parameterHelp.parameterValue.Trim()
-                        }
-                        elseif ($parameterHelp.type.name) {
-                            $parameterHelp.type.name.Trim()
-                        }
+                        $helpType = if ($parameterHelp.parameterValue) { $parameterHelp.parameterValue.Trim() }
+                        elseif ($parameterHelp.type.name) { $parameterHelp.type.name.Trim() }
                         if ($helpType -eq "PSCustomObject") { $helpType = "PSObject" }
                         # PlatyPS 1.0 uses "Switch" instead of "SwitchParameter"
                         if ($helpType -eq "Switch") { $helpType = "SwitchParameter" }
@@ -309,9 +302,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                 It "documents every public parameter exposed by the code" {
                     $documented = @()
-                    if ($help.Parameters | Get-Member -Name Parameter) {
-                        $documented = @($help.Parameters.Parameter.Name)
-                    }
+                    if ($help.Parameters | Get-Member -Name Parameter) { $documented = @($help.Parameters.Parameter.Name) }
 
                     foreach ($paramName in $command.Parameters.Keys) {
                         if ($paramName -in $DefaultParams) { continue }

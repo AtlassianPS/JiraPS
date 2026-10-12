@@ -82,9 +82,7 @@ InModuleScope JiraPS {
                     # next `It` block.
                     { Get-JiraComponent -Project $fixtures.TestProject } | Should -Not -Throw
 
-                    if ($components) {
-                        @($components)[0] | Should -BeOfType [AtlassianPS.JiraPS.Component]
-                    }
+                    if ($components) { @($components)[0] | Should -BeOfType [AtlassianPS.JiraPS.Component] }
                 }
 
                 It "returns component objects with correct type" {

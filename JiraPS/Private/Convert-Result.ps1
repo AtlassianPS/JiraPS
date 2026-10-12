@@ -10,9 +10,7 @@
     process {
         $InputObject | ForEach-Object {
             $item = $_
-            if ($OutputType) {
-                $converter = "ConvertTo-$OutputType"
-            }
+            if ($OutputType) { $converter = "ConvertTo-$OutputType" }
 
             if ($converter -and (Test-Path function:\$converter)) {
                 Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Outputting `$result as $OutputType"

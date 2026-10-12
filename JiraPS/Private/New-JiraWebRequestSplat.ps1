@@ -57,23 +57,17 @@
         Verbose         = $false
     }
 
-    if ($TimeoutSec -gt 0) {
-        $splatParameters["TimeoutSec"] = $TimeoutSec
-    }
+    if ($TimeoutSec -gt 0) { $splatParameters["TimeoutSec"] = $TimeoutSec }
 
     if ($Headers.ContainsKey("Content-Type")) {
         $splatParameters["ContentType"] = $Headers["Content-Type"]
         $splatParameters["Headers"].Remove("Content-Type")
         $Headers.Remove("Content-Type")
     }
-    elseif ($Body) {
-        $splatParameters["ContentType"] = $DefaultContentType
-    }
+    elseif ($Body) { $splatParameters["ContentType"] = $DefaultContentType }
 
     if ($Body) {
-        if ($RawBody) {
-            $splatParameters["Body"] = $Body
-        }
+        if ($RawBody) { $splatParameters["Body"] = $Body }
         else {
             # Encode Body to preserve special chars
             # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
@@ -83,9 +77,7 @@
 
     if ((-not $Credential) -or ($Credential -eq [System.Management.Automation.PSCredential]::Empty)) {
         $splatParameters.Remove("Credential")
-        if ($session = Get-JiraSession -ErrorAction SilentlyContinue) {
-            $splatParameters["WebSession"] = $session.WebSession
-        }
+        if ($session = Get-JiraSession -ErrorAction SilentlyContinue) { $splatParameters["WebSession"] = $session.WebSession }
     }
 
     if ($StoreSession) {
@@ -93,12 +85,8 @@
         $splatParameters.Remove("WebSession")
     }
 
-    if ($InFile) {
-        $splatParameters["InFile"] = $InFile
-    }
-    if ($OutFile) {
-        $splatParameters["OutFile"] = $OutFile
-    }
+    if ($InFile) { $splatParameters["InFile"] = $InFile }
+    if ($OutFile) { $splatParameters["OutFile"] = $OutFile }
 
     $splatParameters
 }

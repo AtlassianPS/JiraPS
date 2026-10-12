@@ -76,7 +76,8 @@ InModuleScope JiraPS {
             # This one needs to be able to output multiple objects
             Mock Get-JiraField -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraField'
-                $(if ($null -eq $Field) {
+                $(
+                    if ($null -eq $Field) {
                         @(
                             'Project'
                             'IssueType'
@@ -87,9 +88,8 @@ InModuleScope JiraPS {
                             'CustomField'
                         )
                     }
-                    else {
-                        $Field
-                    }) | ForEach-Object {
+                    else { $Field }
+                ) | ForEach-Object {
                     $object = [PSCustomObject] @{
                         'Id' = $_
                     }
@@ -631,7 +631,8 @@ InModuleScope JiraPS {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
                     Mock Resolve-JiraUser -ModuleName JiraPS {
-                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name } else { [string]$InputObject }
+                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name }
+                        else { [string]$InputObject }
                         $object = [PSCustomObject]@{ 'Name' = $name }
                         $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
                         return $object
@@ -664,7 +665,8 @@ InModuleScope JiraPS {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
                     Mock Resolve-JiraUser -ModuleName JiraPS {
-                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name } else { [string]$InputObject }
+                        $name = if ($InputObject -is [AtlassianPS.JiraPS.User]) { $InputObject.Name }
+                        else { [string]$InputObject }
                         $object = [PSCustomObject]@{
                             'Name'      = $name
                             'AccountId' = '5b10ac8d82e05b22cc7d4ef5'

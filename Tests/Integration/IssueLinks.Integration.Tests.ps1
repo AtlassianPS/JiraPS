@@ -125,14 +125,10 @@ InModuleScope JiraPS {
                 }
                 else {
                     $script:sourceIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "LinkSource")
-                    if ($sourceIssue) {
-                        $null = $script:createdIssues.Add($sourceIssue.Key)
-                    }
+                    if ($sourceIssue) { $null = $script:createdIssues.Add($sourceIssue.Key) }
 
                     $script:targetIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "LinkTarget")
-                    if ($targetIssue) {
-                        $null = $script:createdIssues.Add($targetIssue.Key)
-                    }
+                    if ($targetIssue) { $null = $script:createdIssues.Add($targetIssue.Key) }
                 }
             }
 
@@ -145,9 +141,7 @@ InModuleScope JiraPS {
 
                     $linkTypes = Get-JiraIssueLinkType
                     $relatesType = $linkTypes | Where-Object { $_.Name -like '*Relates*' -or $_.Name -like '*relates*' } | Select-Object -First 1
-                    if (-not $relatesType) {
-                        $relatesType = $linkTypes[0]
-                    }
+                    if (-not $relatesType) { $relatesType = $linkTypes[0] }
 
                     $issueLink = [PSCustomObject]@{
                         inwardIssue  = @{ key = $sourceIssue.Key }
@@ -167,9 +161,7 @@ InModuleScope JiraPS {
 
                     $linkTypes = Get-JiraIssueLinkType
                     $blocksType = $linkTypes | Where-Object { $_.Name -like '*Block*' } | Select-Object -First 1
-                    if (-not $blocksType) {
-                        $blocksType = $linkTypes[0]
-                    }
+                    if (-not $blocksType) { $blocksType = $linkTypes[0] }
 
                     $issueLink = [PSCustomObject]@{
                         type         = @{ name = $blocksType.Name }
@@ -261,19 +253,13 @@ InModuleScope JiraPS {
 
         Describe "Get-JiraIssueLink" -Skip:$SkipWrite {
             BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                    $script:linkTestIssue = $null
-                }
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:linkTestIssue = $null }
                 else {
                     $script:linkTestIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "GetLinkSource")
-                    if ($linkTestIssue) {
-                        $null = $script:createdIssues.Add($linkTestIssue.Key)
-                    }
+                    if ($linkTestIssue) { $null = $script:createdIssues.Add($linkTestIssue.Key) }
 
                     $script:linkTestTarget = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "GetLinkTarget")
-                    if ($linkTestTarget) {
-                        $null = $script:createdIssues.Add($linkTestTarget.Key)
-                    }
+                    if ($linkTestTarget) { $null = $script:createdIssues.Add($linkTestTarget.Key) }
 
                     if ($linkTestIssue -and $linkTestTarget) {
                         $linkTypes = Get-JiraIssueLinkType

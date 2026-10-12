@@ -49,12 +49,8 @@
     process {
         if (!$ErrorRecord) {
             if ($PSCmdlet.ParameterSetName -eq "NewException") {
-                if ($Exception) {
-                    $Exception = New-Object $ExceptionType $Message, $Exception
-                }
-                else {
-                    $Exception = New-Object $ExceptionType $Message
-                }
+                $Exception = if ($Exception) { New-Object $ExceptionType $Message, $Exception }
+                else { New-Object $ExceptionType $Message }
             }
             $errorRecord = New-Object System.Management.Automation.ErrorRecord $Exception, $ErrorId, $Category, $TargetObject
         }

@@ -127,9 +127,7 @@ InModuleScope JiraPS {
                         if ($value) { $summary.$($property) | Should -Be $value }
                         else { $summary.$($property) | Should -Not -BeNullOrEmpty }
 
-                        if ($type -is [string]) {
-                            $summary.$($property).PSObject.TypeNames[0] | Should -Be $type
-                        }
+                        if ($type -is [string]) { $summary.$($property).PSObject.TypeNames[0] | Should -Be $type }
                         else { $summary.$($property) | Should -BeOfType $type }
                     }
                 }
@@ -150,9 +148,7 @@ InModuleScope JiraPS {
                     if ($value) { $priority.$($property) | Should -Be $value }
                     else { $priority.$($property) | Should -Not -BeNullOrEmpty }
 
-                    if ($type -is [string]) {
-                        $priority.$($property).PSObject.TypeNames[0] | Should -Be $type
-                    }
+                    if ($type -is [string]) { $priority.$($property).PSObject.TypeNames[0] | Should -Be $type }
                     else { $priority.$($property) | Should -BeOfType $type }
                 }
             }

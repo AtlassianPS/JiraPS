@@ -39,9 +39,7 @@
             "notification" = $Notify
         }
 
-        if ($DisplayName) {
-            $requestBody.displayName = $DisplayName
-        }
+        if ($DisplayName) { $requestBody.displayName = $DisplayName }
         else {
             Write-DebugMessage "[New-JiraUser] DisplayName was not specified; defaulting to UserName parameter [$UserName]"
             $requestBody.displayName = $UserName

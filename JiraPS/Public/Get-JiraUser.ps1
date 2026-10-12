@@ -61,15 +61,9 @@
             $exactResourceUri = "/rest/api/2/user?username={0}"
         }
 
-        if ($IncludeInactive) {
-            $searchResourceUri += "&includeInactive=true"
-        }
-        if ($MaxResults) {
-            $searchResourceUri += "&maxResults=$MaxResults"
-        }
-        if ($Skip) {
-            $searchResourceUri += "&startAt=$Skip"
-        }
+        if ($IncludeInactive) { $searchResourceUri += "&includeInactive=true" }
+        if ($MaxResults) { $searchResourceUri += "&maxResults=$MaxResults" }
+        if ($Skip) { $searchResourceUri += "&startAt=$Skip" }
     }
 
     process {
@@ -120,9 +114,7 @@
                 elseif ($result.Name) {
                     Get-JiraUser -UserName $result.Name -Exact -Credential $Credential
                 }
-                else {
-                    Write-Output (ConvertTo-JiraUser -InputObject $result)
-                }
+                else { Write-Output (ConvertTo-JiraUser -InputObject $result) }
             }
             "ByLookupValue" {
                 $resourceURi = if ($Exact) { $exactResourceUri } else { $searchResourceUri }

@@ -46,18 +46,10 @@
         }
 
         $requestBody = @{}
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) {
-            $requestBody["name"] = $Name
-        }
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) {
-            $requestBody["description"] = $Description
-        }
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("JQL")) {
-            $requestBody["jql"] = $JQL
-        }
-        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Favorite")) {
-            $requestBody["favourite"] = $Favorite
-        }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) { $requestBody["name"] = $Name }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) { $requestBody["description"] = $Description }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("JQL")) { $requestBody["jql"] = $JQL }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Favorite")) { $requestBody["favourite"] = $Favorite }
 
         if ($requestBody.Keys.Count) {
             $parameter = @{

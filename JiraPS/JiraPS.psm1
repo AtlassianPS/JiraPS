@@ -1,13 +1,7 @@
 ﻿#region Dependencies
-if (!("System.Web.HttpUtility" -as [Type])) {
-    Add-Type -AssemblyName "System.Web"
-}
-if (!("System.Net.Http.HttpRequestException" -as [Type])) {
-    Add-Type -AssemblyName "System.Net.Http"
-}
-if (!("System.Net.Http" -as [Type])) {
-    Add-Type -Assembly System.Net.Http
-}
+if (!("System.Web.HttpUtility" -as [Type])) { Add-Type -AssemblyName "System.Web" }
+if (!("System.Net.Http.HttpRequestException" -as [Type])) { Add-Type -AssemblyName "System.Net.Http" }
+if (!("System.Net.Http" -as [Type])) { Add-Type -Assembly System.Net.Http }
 
 # Strongly-typed POCOs for the most-used JiraPS domain objects.
 # Compiled once per session; the type-presence guard keeps re-imports cheap.
@@ -24,9 +18,7 @@ if ($loadedJiraTypes.Count -eq 0) {
     $typesPath = Join-Path $PSScriptRoot 'Types'
     if (Test-Path -LiteralPath $typesPath) {
         $typeFiles = Get-ChildItem -Path $typesPath -Filter '*.cs' -File | Sort-Object -Property Name
-        if ($typeFiles) {
-            Add-Type -Path $typeFiles.FullName -ErrorAction Stop
-        }
+        if ($typeFiles) { Add-Type -Path $typeFiles.FullName -ErrorAction Stop }
     }
 }
 elseif ($loadedJiraTypes.Count -lt $requiredJiraTypes.Count) {
@@ -43,9 +35,7 @@ if (-not (Test-Path $script:serverConfig)) {
         $null = New-Item -Path $script:serverConfig -ItemType File -Force -ErrorAction Stop
     }
     catch {
-        if (-not (Test-Path $script:serverConfig)) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to create config file: $_"
-        }
+        if (-not (Test-Path $script:serverConfig)) { Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to create config file: $_" }
     }
 }
 
@@ -55,9 +45,7 @@ if (Test-Path $script:serverConfig) {
         $serverConfigContent = Get-Content $script:serverConfig -Raw -ErrorAction Stop
         if ($serverConfigContent) {
             $firstLine = ($serverConfigContent -split '\r?\n')[0].Trim()
-            if ($firstLine) {
-                $script:JiraServerUrl = [Uri]$firstLine
-            }
+            if ($firstLine) { $script:JiraServerUrl = [Uri]$firstLine }
         }
     }
     catch {

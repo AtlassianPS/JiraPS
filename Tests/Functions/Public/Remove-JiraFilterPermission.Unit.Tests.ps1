@@ -136,6 +136,26 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/4444' }
                 }
 
+                It "selects embedded permissions separately for each pipeline filter" {
+                    $otherFilter = [AtlassianPS.JiraPS.Filter]@{
+                        Id                = 23456
+                        RestUrl           = "$jiraServer/rest/api/2/filter/23456"
+                        FilterPermissions = @([AtlassianPS.JiraPS.FilterPermission]@{ Id = 5555 })
+                    }
+                    @($fullFilter, $otherFilter) | Remove-JiraFilterPermission -Confirm:$false
+
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 3
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                        $URI -like '*/filter/12345/permission/1111'
+                    }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                        $URI -like '*/filter/12345/permission/2222'
+                    }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                        $URI -like '*/filter/23456/permission/5555'
+                    }
+                }
+
                 It "preserves zero permission IDs accepted by the former UInt32 parameter" {
                     Remove-JiraFilterPermission -Filter $basicFilter -PermissionId 0 -Confirm:$false
 

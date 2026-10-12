@@ -17,9 +17,7 @@ function Get-DotEnvExcludedName {
     [OutputType([string[]])]
     param()
 
-    if ($env:CI_JIRA_TYPE -eq 'Server') {
-        return $script:ServerDotEnvFixtureExclusions
-    }
+    if ($env:CI_JIRA_TYPE -eq 'Server') { return $script:ServerDotEnvFixtureExclusions }
 
     return @()
 }
@@ -97,9 +95,7 @@ function Initialize-IntegrationEnvironment {
     [OutputType([PSCustomObject])]
     param()
 
-    if ($script:_EnvLoaded) {
-        return $script:_CachedIntegrationEnv
-    }
+    if ($script:_EnvLoaded) { return $script:_CachedIntegrationEnv }
 
     $projectRoot = Resolve-ProjectRoot
 
@@ -114,9 +110,7 @@ function Initialize-IntegrationEnvironment {
     # the `server_integration_tests` job in integration_tests.yml (and locally by
     # the StartJiraDocker task).
     $deploymentType = if ($env:CI_JIRA_TYPE) { $env:CI_JIRA_TYPE } else { 'Cloud' }
-    if ($deploymentType -notin @('Cloud', 'Server')) {
-        throw "Invalid CI_JIRA_TYPE '$deploymentType'. Must be 'Cloud' or 'Server'."
-    }
+    if ($deploymentType -notin @('Cloud', 'Server')) { throw "Invalid CI_JIRA_TYPE '$deploymentType'. Must be 'Cloud' or 'Server'." }
 
     $requiredVars = if ($deploymentType -eq 'Server') {
         @(
@@ -139,9 +133,7 @@ function Initialize-IntegrationEnvironment {
 
     $missing = @()
     foreach ($var in $requiredVars) {
-        if ([string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($var))) {
-            $missing += $var
-        }
+        if ([string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($var))) { $missing += $var }
     }
 
     if ($missing.Count -gt 0) {
@@ -155,9 +147,7 @@ function Initialize-IntegrationEnvironment {
             if ($deploymentType -eq 'Server') {
                 Write-Warning "Set CI_JIRA_TYPE=Server and the CI_JIRA_* vars (defaults match the moveworkforward/atlas-run-standalone Docker image). See .env.example."
             }
-            else {
-                Write-Warning "Copy .env.example to .env and configure your Jira Cloud connection."
-            }
+            else { Write-Warning "Copy .env.example to .env and configure your Jira Cloud connection." }
             $global:_JiraPSIntegrationEnvWarned = $true
         }
         $script:_EnvLoaded = $true
@@ -165,7 +155,7 @@ function Initialize-IntegrationEnvironment {
         return $null
     }
 
-    if ($deploymentType -eq 'Server') {
+    $result = if ($deploymentType -eq 'Server') {
         # Server track fixture sourcing:
         #   - Wait-JiraServer.ps1 (run by the `server_integration_tests` job in
         #     integration_tests.yml and by the StartJiraDocker build task) provisions
@@ -183,7 +173,7 @@ function Initialize-IntegrationEnvironment {
         #     stay null on a clean boot and the dependent tests self-skip with a
         #     clear message — but if a follow-up commit teaches Wait-JiraServer.ps1
         #     to seed them, this branch picks the values up automatically.
-        $result = [PSCustomObject]@{
+        [PSCustomObject]@{
             DeploymentType = 'Server'
             IsCloud        = $false
             UserIdProperty = 'name'
@@ -204,7 +194,7 @@ function Initialize-IntegrationEnvironment {
         }
     }
     else {
-        $result = [PSCustomObject]@{
+        [PSCustomObject]@{
             DeploymentType = 'Cloud'
             IsCloud        = $true
             UserIdProperty = 'accountId'
@@ -276,9 +266,7 @@ function Connect-JiraTestServer {
 
     if (-not $Environment) {
         $Environment = Initialize-IntegrationEnvironment
-        if (-not $Environment) {
-            throw "Integration environment not configured. See .env.example for required variables."
-        }
+        if (-not $Environment) { throw "Integration environment not configured. See .env.example for required variables." }
     }
 
     $currentServer = Get-JiraConfigServer -ErrorAction SilentlyContinue
@@ -363,9 +351,7 @@ function Get-TestFixture {
 
     if (-not $Environment) {
         $Environment = Initialize-IntegrationEnvironment
-        if (-not $Environment) {
-            throw "Integration environment not configured. See .env.example for required variables."
-        }
+        if (-not $Environment) { throw "Integration environment not configured. See .env.example for required variables." }
     }
 
     @{
@@ -481,21 +467,15 @@ function New-TemporaryTestIssue {
         [string]$IssueType = 'Task'
     )
 
-    if (-not $Fixtures) {
-        $Fixtures = Get-TestFixture
-    }
+    if (-not $Fixtures) { $Fixtures = Get-TestFixture }
 
-    if ($Fixtures.ReadOnly) {
-        throw "Cannot create test issues in read-only mode. Set JIRA_TEST_READONLY=false in .env"
-    }
+    if ($Fixtures.ReadOnly) { throw "Cannot create test issues in read-only mode. Set JIRA_TEST_READONLY=false in .env" }
 
     if ([string]::IsNullOrEmpty($Fixtures.TestProject)) {
         throw "Cannot create test issue without a configured test project (Fixtures.TestProject is empty). Wait-JiraServer.ps1 should set JIRA_TEST_PROJECT for the Server track; for the Cloud track set JIRA_TEST_PROJECT in .env."
     }
 
-    if ([string]::IsNullOrEmpty($Summary)) {
-        $Summary = New-TestResourceName -Type 'Issue'
-    }
+    if ([string]::IsNullOrEmpty($Summary)) { $Summary = New-TestResourceName -Type 'Issue' }
 
     $issueParams = @{
         Project     = $Fixtures.TestProject
@@ -604,15 +584,9 @@ function Get-MinimumValidIssueParameter {
     # / Create Issue permissions), fall back to the admin so the helper still
     # works when `Initialize-IntegrationEnvironment` is used by an ad-hoc setup
     # that did not stand up a normal user.
-    $userCandidate = if ($Fixtures.TestUser) {
-        $Fixtures.TestUser
-    }
-    elseif ($env:CI_JIRA_USER) {
-        $env:CI_JIRA_USER
-    }
-    else {
-        $env:CI_JIRA_ADMIN
-    }
+    $userCandidate = if ($Fixtures.TestUser) { $Fixtures.TestUser }
+    elseif ($env:CI_JIRA_USER) { $env:CI_JIRA_USER }
+    else { $env:CI_JIRA_ADMIN }
 
     # Fields the New-JiraIssue parameter set already covers via top-level switches.
     $alwaysProvidedById = @('project', 'issuetype', 'summary') + @($SkipFieldId | Where-Object { $_ })
@@ -629,20 +603,15 @@ function Get-MinimumValidIssueParameter {
         # (so we route via $result.Reporter), but it has no top-level -Assignee
         # equivalent for the create path — we therefore drop assignee into
         # $result.Fields so it ends up in the request payload.
-        if ($field.Id -eq 'reporter' -and $userCandidate) {
-            $result.Reporter = $userCandidate
-            continue
-        }
-        if ($field.Id -eq 'assignee' -and $userCandidate) {
-            $result.Fields['assignee'] = @{ name = "$userCandidate" }
-            continue
-        }
+        if ($field.Id -eq 'reporter' -and $userCandidate) { $result.Reporter = $userCandidate; continue }
+        if ($field.Id -eq 'assignee' -and $userCandidate) { $result.Fields['assignee'] = @{ name = "$userCandidate" }; continue }
 
         $allowed = @($field.AllowedValues)
         if ($allowed.Count -gt 0) {
             $first = $allowed[0]
             # Prefer {id:...} since it is universally accepted; fall back to {name:...}.
-            $result.Fields[$field.Id] = if ($first.id) { @{ id = "$($first.id)" } } else { @{ name = "$($first.name)" } }
+            $result.Fields[$field.Id] = if ($first.id) { @{ id = "$($first.id)" } }
+            else { @{ name = "$($first.name)" } }
             continue
         }
 
@@ -657,9 +626,7 @@ function Get-MinimumValidIssueParameter {
                 # Server / Data Center; on Cloud the helper stays silent for
                 # these fields since createmeta there does not surface them
                 # without `hasDefaultValue: true`.
-                if ($userCandidate) {
-                    $result.Fields[$field.Id] = @{ name = "$userCandidate" }
-                }
+                if ($userCandidate) { $result.Fields[$field.Id] = @{ name = "$userCandidate" } }
                 else {
                     Write-Warning "Get-MinimumValidIssueParameter: required user field [$($field.Name)] (id=[$($field.Id)]) cannot be defaulted because no test user is configured."
                 }
@@ -682,9 +649,7 @@ function Test-StaleTestResourceName {
         [datetime]$CutoffTime
     )
 
-    if ($Name -notmatch "^$([regex]::Escape($script:TestResourcePrefix)).+-(?<Timestamp>\d{14})-[0-9a-f]{6}$") {
-        return $false
-    }
+    if ($Name -notmatch "^$([regex]::Escape($script:TestResourcePrefix)).+-(?<Timestamp>\d{14})-[0-9a-f]{6}$") { return $false }
     $createdAt = [datetime]::MinValue
     $validTimestamp = [datetime]::TryParseExact(
         $Matches.Timestamp, 'yyyyMMddHHmmss', [cultureinfo]::InvariantCulture,
@@ -749,9 +714,7 @@ function Remove-StaleTestResource {
     }
     $script:_CleanupInProgress = $true
 
-    if (-not $Fixtures) {
-        $Fixtures = Get-TestFixture
-    }
+    if (-not $Fixtures) { $Fixtures = Get-TestFixture }
 
     if ($Fixtures.ReadOnly) {
         Write-Verbose "Read-only mode: skipping stale resource cleanup"

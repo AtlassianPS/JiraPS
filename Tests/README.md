@@ -145,7 +145,9 @@ InModuleScope JiraPS {
 **Reference File**: [`Tests/Functions/Private/ConvertTo-JiraAttachment.Unit.Tests.ps1`](Functions/Private/ConvertTo-JiraAttachment.Unit.Tests.ps1)
 
 Shared null handling is covered by [`ConvertTo-Jira.NullInput.Unit.Tests.ps1`](Functions/Private/ConvertTo-Jira.NullInput.Unit.Tests.ps1).
-It discovers all `ConvertTo-Jira*` functions, checks their null-input contracts, and verifies omitted, null, empty, populated and typed schemas through the field converters.
+It discovers all `ConvertTo-Jira*` functions and checks their null-input contracts.
+It also checks field schemas and issue type scope projects with omitted, null, empty, populated and already typed values.
+Optional nested users and groups have shared tests for omitted and null values.
 
 **Use For**: Functions that transform JSON to PowerShell objects - ConvertTo-*, ConvertFrom-* functions
 

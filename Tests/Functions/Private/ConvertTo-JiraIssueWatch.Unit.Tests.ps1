@@ -56,12 +56,8 @@ InModuleScope JiraPS {
             $first = [PSCustomObject]@{ watchCount = 1 }
             $second = [PSCustomObject]@{ watchCount = 2 }
             $inputs = @($null, $first, $null, $second, $null)
-            $results = if ($delivery -eq 'array') {
-                @(ConvertTo-JiraIssueWatch -InputObject $inputs)
-            }
-            else {
-                @($inputs | ConvertTo-JiraIssueWatch)
-            }
+            $results = if ($delivery -eq 'array') { @(ConvertTo-JiraIssueWatch -InputObject $inputs) }
+            else { @($inputs | ConvertTo-JiraIssueWatch) }
             $results.Count | Should -Be 2
             $results[0].WatchCount | Should -Be 1
             $results[1].WatchCount | Should -Be 2

@@ -49,12 +49,8 @@ InModuleScope JiraPS {
             $first = [PSCustomObject]@{ timeSpentSeconds = 1 }
             $second = [PSCustomObject]@{ timeSpentSeconds = 2 }
             $inputs = @($null, $first, $null, $second, $null)
-            $results = if ($delivery -eq 'array') {
-                @(ConvertTo-JiraIssueTimeTracking -InputObject $inputs)
-            }
-            else {
-                @($inputs | ConvertTo-JiraIssueTimeTracking)
-            }
+            $results = if ($delivery -eq 'array') { @(ConvertTo-JiraIssueTimeTracking -InputObject $inputs) }
+            else { @($inputs | ConvertTo-JiraIssueTimeTracking) }
             $results.Count | Should -Be 2
             $results[0].TimeSpentSeconds | Should -Be 1
             $results[1].TimeSpentSeconds | Should -Be 2

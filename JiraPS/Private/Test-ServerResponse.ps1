@@ -82,13 +82,11 @@
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] #Retry: $RetryCount / $MaxRetries"
 
             if ($RetryCount -lt $MaxRetries) {
-                $_retryAfter = 0
-                if ($InputObject.Headers -and $InputObject.Headers['Retry-After']) {
-                    $_retryAfter = [int]$InputObject.Headers['Retry-After']
+                $_retryAfter = if ($InputObject.Headers -and $InputObject.Headers['Retry-After']) {
+                    [int]$InputObject.Headers['Retry-After']
                 }
-                if ($_retryAfter -lt 1) {
-                    $_retryAfter = [math]::Pow(2, $RetryCount + 1) * 10
-                }
+                else { 0 }
+                if ($_retryAfter -lt 1) { $_retryAfter = [math]::Pow(2, $RetryCount + 1) * 10 }
 
                 $maxRetryDelay = 60
                 $jitter = Get-Random -Minimum 0.5 -Maximum 1.0

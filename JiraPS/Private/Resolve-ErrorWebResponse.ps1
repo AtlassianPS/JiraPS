@@ -17,9 +17,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $responseBody = $null
-        if ($PSVersionTable.PSEdition -eq 'Core') {
-            $responseBody = $Exception.ErrorDetails.Message
-        }
+        if ($PSVersionTable.PSEdition -eq 'Core') { $responseBody = $Exception.ErrorDetails.Message }
         elseif ($Exception.Exception.Response) {
             $responseStream = $Exception.Exception.Response.GetResponseStream()
             if ($null -ne $responseStream) {
@@ -54,47 +52,33 @@
                 if ($null -ne $responseObject.errorMessages) {
                     foreach ($_error in @($responseObject.errorMessages)) {
                         $messageText = "$_error".Trim()
-                        if ($messageText) {
-                            $null = $allErrors.Add($messageText)
-                        }
+                        if ($messageText) { $null = $allErrors.Add($messageText) }
                     }
                 }
                 if ($null -ne $responseObject.message) {
                     $messageText = "$($responseObject.message)".Trim()
-                    if ($messageText) {
-                        $null = $allErrors.Add($messageText)
-                    }
+                    if ($messageText) { $null = $allErrors.Add($messageText) }
                 }
                 if ($null -ne $responseObject.errors) {
                     if ($responseObject.errors -is [PSCustomObject]) {
                         foreach ($property in $responseObject.errors.PSObject.Properties) {
                             $messageText = "$($property.Value)".Trim()
-                            if (-not $messageText) {
-                                continue
-                            }
+                            if (-not $messageText) { continue }
 
                             $fieldName = "$($property.Name)".Trim()
-                            if ($fieldName) {
-                                $null = $allErrors.Add("${fieldName}: $messageText")
-                            }
-                            else {
-                                $null = $allErrors.Add($messageText)
-                            }
+                            if ($fieldName) { $null = $allErrors.Add("${fieldName}: $messageText") }
+                            else { $null = $allErrors.Add($messageText) }
                         }
                     }
                     else {
                         foreach ($_error in @($responseObject.errors)) {
                             $messageText = "$_error".Trim()
-                            if ($messageText) {
-                                $null = $allErrors.Add($messageText)
-                            }
+                            if ($messageText) { $null = $allErrors.Add($messageText) }
                         }
                     }
                 }
 
-                if ($allErrors.Count -eq 0) {
-                    throw "Unable to handle error"
-                }
+                if ($allErrors.Count -eq 0) { throw "Unable to handle error" }
 
                 foreach ($_error in $allErrors) {
                     $writeErrorSplat = @{

@@ -23,12 +23,7 @@
 
         $isCloud = Test-JiraCloudServer -Credential $Credential
 
-        if ($isCloud) {
-            $resourceURi = "/rest/api/2/user?accountId={0}"
-        }
-        else {
-            $resourceURi = "/rest/api/2/user?username={0}"
-        }
+        $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" } else { "/rest/api/2/user?username={0}" }
 
         if ($Force) {
             Write-DebugMessage "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -50,9 +45,7 @@
             Credential = $Credential
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        if ($PSCmdlet.ShouldProcess($userObj.DisplayName, 'Remove user')) {
-            Invoke-JiraMethod @parameter
-        }
+        if ($PSCmdlet.ShouldProcess($userObj.DisplayName, 'Remove user')) { Invoke-JiraMethod @parameter }
     }
 
     end {

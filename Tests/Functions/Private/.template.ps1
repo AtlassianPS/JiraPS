@@ -62,12 +62,8 @@ InModuleScope JiraPS {
                     @{ property = "Created"; type = [System.DateTime]; value = (Get-Date "2025-01-01T00:00:00.000Z") }
                 ) {
                     # Check value (if specified)
-                    if ($value) {
-                        $result.$($property) | Should -Be $value
-                    }
-                    else {
-                        $result.$($property) | Should -Not -BeNullOrEmpty
-                    }
+                    if ($value) { $result.$($property) | Should -Be $value }
+                    else { $result.$($property) | Should -Not -BeNullOrEmpty }
 
                     # Check type
                     if ($type -is [string]) {

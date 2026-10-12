@@ -10,10 +10,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            if ($i -is [AtlassianPS.JiraPS.User]) {
-                $i
-                continue
-            }
+            if ($i -is [AtlassianPS.JiraPS.User]) { $i; continue }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.User"
 
             $hash = @{
@@ -27,17 +24,14 @@
                 AvatarUrl    = ConvertTo-JiraUriMap -InputObject $i.avatarUrls
                 TimeZone     = $i.timeZone
                 Locale       = $i.locale
-                Groups       = if ($i.groups) { , [string[]]@($i.groups.items | ForEach-Object { $_.name }) } else { $null }
+                Groups       = if ($i.groups) { , [string[]]@($i.groups.items | ForEach-Object { $_.name }) }
+                else { $null }
                 RestUrl      = [uri]$i.self
             }
 
-            if ($null -ne $i.deleted) {
-                $hash.Deleted = [System.Convert]::ToBoolean($i.deleted)
-            }
+            if ($null -ne $i.deleted) { $hash.Deleted = [System.Convert]::ToBoolean($i.deleted) }
 
-            if ($i.lastLoginTime) {
-                $hash.LastLoginTime = Get-Date $i.lastLoginTime
-            }
+            if ($i.lastLoginTime) { $hash.LastLoginTime = Get-Date $i.lastLoginTime }
 
             [AtlassianPS.JiraPS.User]$hash
         }

@@ -71,12 +71,7 @@ InModuleScope JiraPS {
                 $arguments.DateStarted = [datetime]'2026-10-10T10:00:00'
             }
             & $command @arguments
-            $apiVersion = if ($cloud) {
-                '3'
-            }
-            else {
-                '2'
-            }
+            $apiVersion = if ($cloud) { '3' } else { '2' }
             Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $payload = $Body | ConvertFrom-Json
                 $Uri -eq "https://jira.example/rest/api/$apiVersion/issue/1/$suffix" -and

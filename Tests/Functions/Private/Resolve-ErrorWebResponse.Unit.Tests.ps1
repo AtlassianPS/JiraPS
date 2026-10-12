@@ -257,12 +257,8 @@ InModuleScope JiraPS {
             }
 
             BeforeEach {
-                $script:response = if ($Edition -eq 'Core') {
-                    [System.Net.Http.HttpResponseMessage]::new()
-                }
-                else {
-                    Get-TestErrorResponse -Body ''
-                }
+                $script:response = if ($Edition -eq 'Core') { [System.Net.Http.HttpResponseMessage]::new() }
+                else { Get-TestErrorResponse -Body '' }
                 $script:exception = [PSCustomObject]@{
                     ErrorDetails = $null
                     Exception    = [PSCustomObject]@{ Response = $response }
@@ -270,12 +266,8 @@ InModuleScope JiraPS {
             }
 
             AfterEach {
-                if ($Edition -eq 'Core') {
-                    $response.Dispose()
-                }
-                elseif ($response.Stream) {
-                    $response.Stream.Dispose()
-                }
+                if ($Edition -eq 'Core') { $response.Dispose() }
+                elseif ($response.Stream) { $response.Stream.Dispose() }
             }
 
             It "reports HTTP <Status> with <Details> ErrorDetails and no body" -ForEach @(
@@ -284,9 +276,7 @@ InModuleScope JiraPS {
                 @{ Status = 500; Details = 'null' }
                 @{ Status = 404; Details = 'empty' }
             ) {
-                if ($Details -eq 'empty') {
-                    $exception.ErrorDetails = [PSCustomObject]@{ Message = '' }
-                }
+                if ($Details -eq 'empty') { $exception.ErrorDetails = [PSCustomObject]@{ Message = '' } }
                 $expectedMessage = "Server responded with $([System.Net.HttpStatusCode]$Status)"
                 $expectedErrorId = "InvalidResponse.Status$Status"
 
@@ -314,9 +304,7 @@ InModuleScope JiraPS {
 
             It "uses the edition's response body for Jira messages" {
                 $body = '{"errorMessages":["Top-level failure"],"errors":{"summary":"Summary is required."}}'
-                if ($Edition -eq 'Core') {
-                    $exception.ErrorDetails = [PSCustomObject]@{ Message = $body }
-                }
+                if ($Edition -eq 'Core') { $exception.ErrorDetails = [PSCustomObject]@{ Message = $body } }
                 else {
                     $response.Stream.Dispose()
                     $response.Stream = [System.IO.MemoryStream]::new([System.Text.Encoding]::UTF8.GetBytes($body))

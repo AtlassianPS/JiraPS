@@ -80,9 +80,7 @@ InModuleScope JiraPS {
 
                     $watchers = Get-JiraIssueWatcher -Issue $fixtures.TestIssue
 
-                    if ($watchers) {
-                        $watchers[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
-                    }
+                    if ($watchers) { $watchers[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User' }
                 }
 
                 It "accepts issue key as string" {
@@ -107,12 +105,8 @@ InModuleScope JiraPS {
 
             Context "Watcher Properties" {
                 BeforeAll {
-                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        $script:watchers = $null
-                    }
-                    else {
-                        $script:watchers = Get-JiraIssueWatcher -Issue $fixtures.TestIssue
-                    }
+                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) { $script:watchers = $null }
+                    else { $script:watchers = Get-JiraIssueWatcher -Issue $fixtures.TestIssue }
                 }
 
                 It "watcher has AccountId property (Cloud)" {
@@ -137,15 +131,11 @@ InModuleScope JiraPS {
 
         Describe "Add-JiraIssueWatcher" -Skip:$SkipWrite {
             BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                    $script:watcherTestIssue = $null
-                }
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:watcherTestIssue = $null }
                 else {
                     $summary = New-TestResourceName -Type "WatcherTest"
                     $script:watcherTestIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
-                    if ($watcherTestIssue) {
-                        $null = $script:createdIssues.Add($watcherTestIssue.Key)
-                    }
+                    if ($watcherTestIssue) { $null = $script:createdIssues.Add($watcherTestIssue.Key) }
                 }
             }
 

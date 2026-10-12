@@ -27,18 +27,9 @@
         [scriptblock]$FallbackFieldFetcher
     )
 
-    $scopedFieldsById = if ($ScopedMeta) {
-        $ScopedMeta | Group-Object -Property Id -AsHashTable -AsString
-    }
-    else {
-        @{}
-    }
-    $scopedFieldsByName = if ($ScopedMeta) {
-        $ScopedMeta | Group-Object -Property Name -AsHashTable -AsString
-    }
-    else {
-        @{}
-    }
+    $scopedFieldsById = if ($ScopedMeta) { $ScopedMeta | Group-Object -Property Id -AsHashTable -AsString } else { @{} }
+    $scopedFieldsByName = if ($ScopedMeta) { $ScopedMeta | Group-Object -Property Name -AsHashTable -AsString }
+    else { @{} }
 
     $fallbackFieldsById = $null
     $fallbackFieldsByName = $null
@@ -62,12 +53,8 @@
             $fallbackFieldsByName = if ($fb) { $fb | Group-Object -Property Name -AsHashTable -AsString } else { @{} }
         }
 
-        $fallbackByIdForResolve = @{}
-        $fallbackByNameForResolve = @{}
-        if ($null -ne $fallbackFieldsById) {
-            $fallbackByIdForResolve = $fallbackFieldsById
-            $fallbackByNameForResolve = $fallbackFieldsByName
-        }
+        $fallbackByIdForResolve = if ($null -ne $fallbackFieldsById) { $fallbackFieldsById } else { @{} }
+        $fallbackByNameForResolve = if ($null -ne $fallbackFieldsById) { $fallbackFieldsByName } else { @{} }
 
         $field = Resolve-JiraField `
             -Name $name `

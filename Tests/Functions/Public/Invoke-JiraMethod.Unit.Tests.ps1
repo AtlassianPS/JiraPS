@@ -107,12 +107,8 @@ InModuleScope JiraPS {
                     [hashtable] $ResponseHeaders = @{}
                 )
 
-                $statusCode = if ($Uri.AbsolutePath -match '/status/(\d+)') {
-                    [System.Net.HttpStatusCode][int]$Matches[1]
-                }
-                else {
-                    [System.Net.HttpStatusCode]::OK
-                }
+                $statusCode = if ($Uri.AbsolutePath -match '/status/(\d+)') { [System.Net.HttpStatusCode][int]$Matches[1] }
+                else { [System.Net.HttpStatusCode]::OK }
 
                 $data = if ($null -eq $Body) { $null }
                 elseif ($Body -is [byte[]]) { [System.Text.Encoding]::UTF8.GetString($Body) }

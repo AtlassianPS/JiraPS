@@ -23,12 +23,8 @@
         $folder = Split-Path -Path $Path -Parent
         $file = Split-Path -Path $Path -Leaf
 
-        if ( -not ([String]::IsNullOrEmpty($folder))) {
-            $folderResolved = Resolve-Path -Path $folder
-        }
-        else {
-            $folderResolved = Resolve-Path -Path $ExecutionContext.SessionState.Path.CurrentFileSystemLocation
-        }
+        $folderResolved = if ( -not ([String]::IsNullOrEmpty($folder))) { Resolve-Path -Path $folder }
+        else { Resolve-Path -Path $ExecutionContext.SessionState.Path.CurrentFileSystemLocation }
 
         Join-Path -Path $folderResolved.ProviderPath -ChildPath $file
     }

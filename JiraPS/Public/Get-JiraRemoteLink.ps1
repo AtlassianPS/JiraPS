@@ -32,10 +32,7 @@
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
 
-        $urlAppendix = ""
-        if ($LinkId) {
-            $urlAppendix = "/$LinkId"
-        }
+        $urlAppendix = if ($LinkId) { "/$LinkId" } else { "" }
 
         $parameter = @{
             URI        = "{0}/remotelink{1}" -f $issueObj.RestUrl, $urlAppendix

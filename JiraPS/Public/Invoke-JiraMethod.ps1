@@ -122,9 +122,7 @@
         if ($webRequestResult.SessionVariableName -and $null -ne $webRequestResult.SessionVariableValue) {
             Set-Variable -Name $webRequestResult.SessionVariableName -Value $webRequestResult.SessionVariableValue -Scope Local
         }
-        if ($exception) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to get an answer from the server"
-        }
+        if ($exception) { Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to get an answer from the server" }
 
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
         $shouldRetry = Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet -RetryCount $_RetryCount

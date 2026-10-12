@@ -62,9 +62,7 @@
         return @{ accountId = $null }
     }
 
-    if ($UserObject) {
-        return @{ name = $UserObject.Name }
-    }
+    if ($UserObject) { return @{ name = $UserObject.Name } }
 
     return @{ name = $UserString }
 }

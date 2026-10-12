@@ -105,9 +105,7 @@ InModuleScope JiraPS {
                     @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
                     $command | Should -HaveParameter $parameter
-                    if ($parameter -eq 'Owner') {
-                        $command.Parameters[$parameter].ParameterType.FullName | Should -Be $type
-                    }
+                    if ($parameter -eq 'Owner') { $command.Parameters[$parameter].ParameterType.FullName | Should -Be $type }
                 }
             }
 

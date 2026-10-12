@@ -8,9 +8,7 @@
 
     begin {
         $oldDebugPreference = $DebugPreference
-        if (-not ($DebugPreference -eq "SilentlyContinue")) {
-            $DebugPreference = 'Continue'
-        }
+        if (-not ($DebugPreference -eq "SilentlyContinue")) { $DebugPreference = 'Continue' }
     }
 
     process {

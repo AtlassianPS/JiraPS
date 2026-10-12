@@ -41,9 +41,7 @@
                     Locale = $i.defaultLocale.locale
                 }
             }
-            if ($null -ne $i.versionNumbers) {
-                $hash.VersionNumbers = [int[]]@($i.versionNumbers)
-            }
+            if ($null -ne $i.versionNumbers) { $hash.VersionNumbers = [int[]]@($i.versionNumbers) }
 
             [AtlassianPS.JiraPS.ServerInfo]$hash
         }

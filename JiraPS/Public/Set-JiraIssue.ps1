@@ -202,9 +202,7 @@
                 GetParameter = $SkipNotificationParams
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue")) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue")) { Invoke-JiraMethod @parameter }
         }
 
         if ($assigneeProps) {
@@ -220,18 +218,14 @@
                 GetParameter = $SkipNotificationParams
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue [Assignee] from JIRA")) {
-                Invoke-JiraMethod @parameter
-            }
+            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue [Assignee] from JIRA")) { Invoke-JiraMethod @parameter }
         }
 
         if ($Label) {
             Set-JiraIssueLabel -Issue $issueObj -Set $Label -Credential $Credential
         }
 
-        if ($PassThru) {
-            Get-JiraIssue -Key $issueObj.Key -Credential $Credential
-        }
+        if ($PassThru) { Get-JiraIssue -Key $issueObj.Key -Credential $Credential }
     }
 
     end {

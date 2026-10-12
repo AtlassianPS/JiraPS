@@ -66,9 +66,7 @@ InModuleScope JiraPS {
 
             Mock ConvertTo-JiraGroup -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraGroup'
-                if ($null -eq $InputObject -or @($InputObject).Count -eq 0) {
-                    return
-                }
+                if ($null -eq $InputObject -or @($InputObject).Count -eq 0) { return }
 
                 $object = [PSCustomObject]@{
                     Name = $InputObject.name

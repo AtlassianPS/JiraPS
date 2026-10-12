@@ -94,14 +94,10 @@ InModuleScope JiraPS {
 
         Context "Transition Operations" -Skip:$SkipWrite {
             BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                    $script:transitionIssue = $null
-                }
+                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:transitionIssue = $null }
                 else {
                     $script:transitionIssue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "Transition")
-                    if ($transitionIssue) {
-                        $null = $script:createdIssues.Add($transitionIssue.Key)
-                    }
+                    if ($transitionIssue) { $null = $script:createdIssues.Add($transitionIssue.Key) }
                 }
             }
 
