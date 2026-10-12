@@ -15,7 +15,7 @@
             $hash = @{
                 ID         = $i.id
                 Body       = ConvertFrom-AtlassianDocumentFormat -InputObject $i.body
-                Visibility = ConvertTo-JiraVisibility -InputObject $i.visibility
+                Visibility = if ($null -ne $i.visibility) { ConvertTo-JiraVisibility -InputObject $i.visibility } else { $null }
                 RestUrl    = [uri]$i.self
             }
 

@@ -26,7 +26,7 @@
             if ($i.scope) {
                 $props.Scope = [AtlassianPS.JiraPS.IssueTypeScope]@{
                     Type    = $i.scope.type
-                    Project = ConvertTo-JiraProject -InputObject $i.scope.project
+                    Project = if ($null -ne $i.scope.project) { ConvertTo-JiraProject -InputObject $i.scope.project } else { $null }
                 }
             }
 

@@ -22,7 +22,7 @@
                     'Name'            = $item.name
                     'HasDefaultValue' = [System.Convert]::ToBoolean($item.hasDefaultValue)
                     'Required'        = [System.Convert]::ToBoolean($item.required)
-                    'Schema'          = ConvertTo-JiraFieldSchema -InputObject $item.schema
+                    'Schema'          = if ($null -ne $item.schema) { ConvertTo-JiraFieldSchema -InputObject $item.schema } else { $null }
                     'Operations'      = [string[]]$item.operations
                 }
 

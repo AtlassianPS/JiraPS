@@ -156,9 +156,15 @@ InModuleScope JiraPS {
             }
         }
 
-        Context 'Optional nested users and groups' {
+        Context 'Optional nested objects and maps' {
             It '<converter> keeps <property> null when <shape>' -TestCases @(
                 foreach ($case in @(
+                        @{ converter = 'ConvertTo-JiraAttachment'; property = 'Author'; sourceProperty = 'author' }
+                        @{ converter = 'ConvertTo-JiraComment'; property = 'Visibility'; sourceProperty = 'visibility' }
+                        @{ converter = 'ConvertTo-JiraWorklogitem'; property = 'Visibility'; sourceProperty = 'visibility' }
+                        @{ converter = 'ConvertTo-JiraUser'; property = 'AvatarUrl'; sourceProperty = 'avatarUrls' }
+                        @{ converter = 'ConvertTo-JiraProject'; property = 'Roles'; sourceProperty = 'roles' }
+                        @{ converter = 'ConvertTo-JiraTransition'; property = 'ResultStatus'; sourceProperty = 'to' }
                         @{ converter = 'ConvertTo-JiraIssueHistoryEntry'; property = 'Author'; sourceProperty = 'author' }
                         @{ converter = 'ConvertTo-JiraProject'; property = 'Lead'; sourceProperty = 'lead' }
                         @{ converter = 'ConvertTo-JiraFilterSubscription'; property = 'User'; sourceProperty = 'user' }

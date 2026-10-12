@@ -14,8 +14,8 @@
 
             [AtlassianPS.JiraPS.FilterSubscription]@{
                 Id    = ConvertTo-JiraNullableInt64 $i.id
-                User  = ConvertTo-JiraUser -InputObject $i.user
-                Group = ConvertTo-JiraGroup -InputObject $i.group
+                User  = if ($null -ne $i.user) { ConvertTo-JiraUser -InputObject $i.user } else { $null }
+                Group = if ($null -ne $i.group) { ConvertTo-JiraGroup -InputObject $i.group } else { $null }
             }
         }
     }

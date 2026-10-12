@@ -18,8 +18,8 @@
                 DisplayName = $i.displayName
                 Type        = ConvertTo-JiraEnum -Type ([AtlassianPS.JiraPS.ActorType]) -Value $i.type
                 AvatarUrl   = [uri]$i.avatarUrl
-                ActorUser   = ConvertTo-JiraUser -InputObject $i.actorUser
-                ActorGroup  = ConvertTo-JiraGroup -InputObject $i.actorGroup
+                ActorUser   = if ($null -ne $i.actorUser) { ConvertTo-JiraUser -InputObject $i.actorUser } else { $null }
+                ActorGroup  = if ($null -ne $i.actorGroup) { ConvertTo-JiraGroup -InputObject $i.actorGroup } else { $null }
             }
         }
     }

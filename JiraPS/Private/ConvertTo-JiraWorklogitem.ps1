@@ -14,7 +14,7 @@
 
             $props = @{
                 'ID'         = ConvertTo-JiraNullableInt64 $i.id
-                'Visibility' = ConvertTo-JiraVisibility -InputObject $i.visibility
+                'Visibility' = if ($null -ne $i.visibility) { ConvertTo-JiraVisibility -InputObject $i.visibility } else { $null }
                 'Comment'    = ConvertFrom-AtlassianDocumentFormat -InputObject $i.comment
                 'RestUrl'    = [uri]$i.self
             }

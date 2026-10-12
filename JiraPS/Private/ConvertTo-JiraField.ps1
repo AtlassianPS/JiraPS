@@ -20,7 +20,7 @@
                 'Navigable'   = [System.Convert]::ToBoolean($i.navigable)
                 'Searchable'  = [System.Convert]::ToBoolean($i.searchable)
                 'ClauseNames' = [string[]]$i.clauseNames
-                'Schema'      = ConvertTo-JiraFieldSchema -InputObject $i.schema
+                'Schema'      = if ($null -ne $i.schema) { ConvertTo-JiraFieldSchema -InputObject $i.schema } else { $null }
             }
 
             [AtlassianPS.JiraPS.Field]$props

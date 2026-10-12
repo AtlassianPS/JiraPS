@@ -21,7 +21,7 @@
                 DisplayName  = $i.displayName
                 EmailAddress = $i.emailAddress
                 Active       = if ($null -ne $i.active) { [System.Convert]::ToBoolean($i.active) } else { $false }
-                AvatarUrl    = ConvertTo-JiraUriMap -InputObject $i.avatarUrls
+                AvatarUrl    = if ($null -ne $i.avatarUrls) { ConvertTo-JiraUriMap -InputObject $i.avatarUrls } else { $null }
                 TimeZone     = $i.timeZone
                 Locale       = $i.locale
                 Groups       = if ($i.groups) { , [string[]]@($i.groups.items | ForEach-Object { $_.name }) }

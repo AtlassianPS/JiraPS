@@ -17,8 +17,8 @@
                 Key            = $i.key
                 Name           = $i.name
                 Description    = $i.description
-                Lead           = ConvertTo-JiraUser -InputObject $i.lead
-                Roles          = ConvertTo-JiraUriMap -InputObject $i.roles
+                Lead           = if ($null -ne $i.lead) { ConvertTo-JiraUser -InputObject $i.lead } else { $null }
+                Roles          = if ($null -ne $i.roles) { ConvertTo-JiraUriMap -InputObject $i.roles } else { $null }
                 RestUrl        = [uri]$i.self
                 Style          = $i.style
                 Category       = $null
