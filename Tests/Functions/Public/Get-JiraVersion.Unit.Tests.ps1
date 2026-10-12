@@ -273,6 +273,93 @@ InModuleScope JiraPS {
                 Should -Invoke ConvertTo-JiraVersion -ModuleName JiraPS -Exactly 0
             }
 
+            Context 'CLR project and version parameter binding' {
+                BeforeAll {
+                    Mock Get-JiraProject -ModuleName JiraPS -ParameterFilter {
+                        $Project -eq $projectKey -or $Project -eq $projectId
+                    } {
+                        Write-MockDebugInfo 'Get-JiraProject' 'Project'
+                        [AtlassianPS.JiraPS.Project]@{
+                            Key = $projectKey
+                            Id  = $projectId
+                        }
+                    }
+                }
+
+                It 'gets versions from a typed <identity> project using <binding>' -TestCases @(
+                    @{ identity = 'keyed'; binding = 'pipeline' }
+                    @{ identity = 'ID-only'; binding = 'pipeline' }
+                    @{ identity = 'keyed'; binding = '-InputProject' }
+                    @{ identity = 'ID-only'; binding = '-InputProject' }
+                ) {
+                    param($identity, $binding)
+
+                    $typedProject = [AtlassianPS.JiraPS.Project]@{ Id = $projectId }
+                    $expectedProject = $projectId
+                    if ($identity -eq 'keyed') {
+                        $typedProject.Key = $projectKey
+                        $expectedProject = $projectKey
+                    }
+
+                    $results = if ($binding -eq 'pipeline') {
+                        @($typedProject | Get-JiraVersion -ErrorAction Stop)
+                    }
+                    else {
+                        @(Get-JiraVersion -InputProject $typedProject -ErrorAction Stop)
+                    }
+
+                    @($results).Count | Should -Be 3
+                    $results.Id | Should -Be @($versionID1, $versionID2, $versionID3)
+                    Should -Invoke Get-JiraProject -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+                        $Project -eq $expectedProject
+                    }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+                        $Method -eq 'Get' -and $URI -eq "/rest/api/2/project/$projectKey/version" -and $Paging
+                    }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 0 -Exactly -ParameterFilter {
+                        $URI -like '/rest/api/*/version/*'
+                    }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly
+                }
+
+                It 'routes mixed typed <identity> project and version input with project first <projectFirst>' -TestCases @(
+                    @{ identity = 'keyed'; projectFirst = $true }
+                    @{ identity = 'keyed'; projectFirst = $false }
+                    @{ identity = 'ID-only'; projectFirst = $true }
+                    @{ identity = 'ID-only'; projectFirst = $false }
+                ) {
+                    param($identity, $projectFirst)
+
+                    $typedProject = [AtlassianPS.JiraPS.Project]@{ Id = $projectId }
+                    $expectedProject = $projectId
+                    if ($identity -eq 'keyed') {
+                        $typedProject.Key = $projectKey
+                        $expectedProject = $projectKey
+                    }
+                    $typedVersion = [AtlassianPS.JiraPS.Version]@{ Id = "$versionID2" }
+
+                    $inputs = if ($projectFirst) { @($typedProject, $typedVersion) }
+                    else { @($typedVersion, $typedProject) }
+                    $expectedIds = if ($projectFirst) { @($versionID1, $versionID2, $versionID3, $versionID2) }
+                    else { @($versionID2, $versionID1, $versionID2, $versionID3) }
+
+                    $results = @($inputs | Get-JiraVersion -ErrorAction Stop)
+
+                    $results.Count | Should -Be 4
+                    $results.Id | Should -Be $expectedIds
+                    Should -Invoke Get-JiraProject -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+                        $Project -eq $expectedProject
+                    }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+                        $Method -eq 'Get' -and $URI -eq "/rest/api/2/project/$projectKey/version" -and $Paging
+                    }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+                        $Method -eq 'Get' -and $URI -eq "/rest/api/2/version/$versionID2"
+                    }
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 2 -Exactly
+                }
+            }
+
             It "gets all Versions from multiple Projects" {
                 $results = Get-JiraVersion -Project $projectKey, "foo"
 
