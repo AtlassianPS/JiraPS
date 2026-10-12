@@ -26,7 +26,9 @@
     3. Discovers the (projectTypeKey, projectTemplateKey) pairs the running Jira advertises
        via /rest/project-templates/1.0/templates, sorts them so 'task' / 'software-development'
        templates come first (the Task issuetype the Server-tagged tests rely on), and POSTs
-       to /rest/api/2/project until one of the candidates is accepted. Hardcoded canonical
+       to /rest/api/2/project with the AMPS seed's classic workflow scheme until one of
+       the candidates is accepted. Its Resolve Issue screen is extended with summary and
+       description for the transition-payload tests. Hardcoded canonical
        Server templates are tried as a last-resort fallback. This is necessary because the
        AMPS standalone image only registers a single 'business' projectType and rejects every
        canonical Jira Software template key.
@@ -174,6 +176,12 @@ if (-not $ready) {
     exit 1
 }
 
+Write-Host "==> Enabling unassigned issues for the disposable test site"
+$propertyBody = @{ id = 'jira.option.allowunassigned'; value = 'true' } | ConvertTo-Json -Compress
+$null = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/application-properties/jira.option.allowunassigned" -Method Put -Headers $headers -ContentType 'application/json' -Body $propertyBody -TimeoutSec 30
+$configuration = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/configuration" -Method Get -Headers $headers -TimeoutSec 30
+if ($configuration.unassignedIssuesAllowed -ne $true) { throw 'The disposable Jira fixture must allow unassigned issues.' }
+
 Write-Host "==> Provisioning normal test user '$NormalUser' via $userApiUrl"
 
 $body = @{
@@ -209,6 +217,37 @@ catch {
     else {
         Write-Error "Failed to provision normal user '$NormalUser' (status=$statusCode): $message`n$bodyText"
         exit 2
+    }
+}
+
+# The pinned AMPS Jira 11 seed ships scheme 10000 and maps legacy resolveissue
+# transitions to screen 3. Verify this fixture before extending its screen.
+$workflowSchemeId = 10000
+$fixtureWorkflow = 'classic default workflow'
+$workflowScheme = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/workflowscheme/$workflowSchemeId" -Method Get -Headers $headers -TimeoutSec 30
+if ($workflowScheme.name -ne 'classic' -or $workflowScheme.defaultWorkflow -ne $fixtureWorkflow) {
+    throw "The disposable Jira image must provide AMPS classic workflow scheme $workflowSchemeId. Check the pinned Jira seed."
+}
+
+Write-Host "==> Preparing the classic Resolve Issue screen for transition-payload tests"
+$transitionScreenId = 3
+$screenTabs = @(Invoke-RestMethod -Uri "$baseUrl/rest/api/2/screens/$transitionScreenId/tabs" -Method Get -Headers $headers -TimeoutSec 30)
+if ($screenTabs.Count -eq 0) { throw 'The AMPS Resolve Issue screen must have a field tab.' }
+$screenFieldIds = @(
+    foreach ($tab in $screenTabs) {
+        $tabFields = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/screens/$transitionScreenId/tabs/$($tab.id)/fields" -Method Get -Headers $headers -TimeoutSec 30
+        $tabFields | ForEach-Object { $_.id }
+    }
+)
+foreach ($fieldId in 'resolution', 'assignee', 'worklog') {
+    if ($fieldId -notin $screenFieldIds) {
+        throw "The AMPS Resolve Issue screen is missing '$fieldId'. Check the pinned Jira seed."
+    }
+}
+foreach ($fieldId in 'summary', 'description') {
+    if ($fieldId -notin $screenFieldIds) {
+        $fieldBody = @{ fieldId = $fieldId } | ConvertTo-Json -Compress
+        $null = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/screens/$transitionScreenId/tabs/$($screenTabs[0].id)/fields" -Method Post -Headers $headers -ContentType 'application/json' -Body $fieldBody -TimeoutSec 30
     }
 }
 
@@ -462,6 +501,7 @@ foreach ($pair in $candidatePairs) {
         assigneeType       = 'PROJECT_LEAD'
         description        = 'Created by Tools/Wait-JiraServer.ps1 for JiraPS integration tests. Safe to delete.'
         notificationScheme = $notificationScheme
+        workflowSchemeId   = $workflowSchemeId
     }
     if ($permissionScheme) { $payload['permissionScheme'] = $permissionScheme }
     if ($issueSecurityScheme) { $payload['issueSecurityScheme'] = $issueSecurityScheme }
@@ -505,6 +545,12 @@ if (-not $project) {
     # instance is so bare that integration tests cannot run; same conclusion.
     Write-Error "Project '$ProjectKey' could not be provisioned with any of the $($candidatePairs.Count) candidate (type, template) pair(s). Last error: $lastError"
     exit 3
+}
+
+$assignedWorkflowScheme = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/project/$ProjectKey/workflowscheme" -Method Get -Headers $headers -TimeoutSec 30
+$unexpectedWorkflowMappings = @($assignedWorkflowScheme.issueTypeMappings.PSObject.Properties | Where-Object { $_.Value -ne $fixtureWorkflow })
+if ($assignedWorkflowScheme.id -ne $workflowSchemeId -or $assignedWorkflowScheme.defaultWorkflow -ne $fixtureWorkflow -or $unexpectedWorkflowMappings.Count -gt 0) {
+    throw "Project '$ProjectKey' must use the AMPS classic workflow scheme. Recreate the disposable Jira fixture if this volume predates transition-payload coverage."
 }
 
 Write-Host "==> Seeding baseline issue in project '$ProjectKey'"

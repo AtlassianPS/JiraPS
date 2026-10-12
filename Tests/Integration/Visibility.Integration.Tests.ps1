@@ -66,46 +66,17 @@ InModuleScope JiraPS {
             }
         }
 
-        It 'persists unrestricted <resource> for <description>' -TestCases @(
-            foreach ($resource in 'comment', 'worklog') {
-                @{
-                    resource    = $resource
-                    description = 'omitted visibility'
-                    visibility  = @{}
-                }
-                @{
-                    resource    = $resource
-                    description = 'All Users'
-                    visibility  = @{
-                        Visibility = 'All Users'
-                    }
-                }
-                @{
-                    resource    = $resource
-                    description = 'VisibleRole alias'
-                    visibility  = @{
-                        VisibleRole = 'All Users'
-                    }
-                }
-                @{
-                    resource    = $resource
-                    description = 'typed All Users role'
-                    visibility  = @{
-                        Visibility = [AtlassianPS.JiraPS.Visibility]@{
-                            Type  = 'role'
-                            Value = 'All Users'
-                        }
-                    }
-                }
-            }
+        It 'persists an unrestricted <resource>' -TestCases @(
+            @{ resource = 'comment' }
+            @{ resource = 'worklog' }
         ) {
             $parameters = @{ Issue = $issue; Comment = "Unrestricted $resource"; ErrorAction = 'Stop' }
             if ($resource -eq 'worklog') {
                 $parameters.TimeSpent = [TimeSpan]::FromMinutes(1)
                 $parameters.DateStarted = Get-Date
-                $created = Add-JiraIssueWorklog @parameters @visibility
+                $created = Add-JiraIssueWorklog @parameters
             }
-            else { $created = Add-JiraIssueComment @parameters @visibility }
+            else { $created = Add-JiraIssueComment @parameters }
             $created.Id | Should -Not -BeNullOrEmpty
             $persisted = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)/$resource/$($created.Id)" -ErrorAction Stop
             $persisted.visibility | Should -BeNullOrEmpty

@@ -50,14 +50,8 @@
         @{
             File   = 'Visibility.Integration.Tests.ps1'
             Common = @(
-                'Comment and worklog visibility.persists unrestricted comment for omitted visibility'
-                'Comment and worklog visibility.persists unrestricted comment for All Users'
-                'Comment and worklog visibility.persists unrestricted comment for VisibleRole alias'
-                'Comment and worklog visibility.persists unrestricted comment for typed All Users role'
-                'Comment and worklog visibility.persists unrestricted worklog for omitted visibility'
-                'Comment and worklog visibility.persists unrestricted worklog for All Users'
-                'Comment and worklog visibility.persists unrestricted worklog for VisibleRole alias'
-                'Comment and worklog visibility.persists unrestricted worklog for typed All Users role'
+                'Comment and worklog visibility.persists an unrestricted comment'
+                'Comment and worklog visibility.persists an unrestricted worklog'
                 'Comment and worklog visibility.persists a role restriction on a comment'
                 'Comment and worklog visibility.persists a group restriction on a comment'
                 'Comment and worklog visibility.persists a role restriction on a worklog'
@@ -67,6 +61,40 @@
                 'Comment and worklog visibility.persists a Cloud group identifier restriction on a comment'
                 'Comment and worklog visibility.persists a Cloud group identifier restriction on a worklog'
             )
+            Server = @()
+        }
+        @{
+            File   = 'IssueIdentity.Integration.Tests.ps1'
+            Common = @(
+                'Issue user identity.persists typed reporter and assignee through creation, unassignment, project default and reassignment'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
+            File   = 'FilterPermissions.Integration.Tests.ps1'
+            Common = @(
+                'Filter Permissions.adds and removes a project share using typed filter permissions'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
+            File   = 'IssueWatchers.Integration.Tests.ps1'
+            Common = @(
+                'Issue Watchers.Watcher Write Operations.adds and removes a watcher using deployment-specific identity'
+                'Issue Watchers.Watcher Write Operations.accepts issue objects via pipeline when adding and removing watchers'
+            )
+            Cloud  = @()
+            Server = @()
+        }
+        @{
+            File   = 'TransitionFields.Integration.Tests.ps1'
+            Common = @(
+                'Transition screen fields.persists fields, assignment, a comment and a worklog on a screened transition'
+                'Transition screen fields.persists unassignment on a screened transition'
+            )
+            Cloud  = @()
             Server = @()
         }
     )

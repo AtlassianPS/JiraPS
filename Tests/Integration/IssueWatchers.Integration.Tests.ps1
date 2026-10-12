@@ -5,7 +5,7 @@
     Integration tests for Issue Watcher cmdlets.
 
 .DESCRIPTION
-    Tests issue watcher functionality against a live Jira Cloud instance.
+    Tests issue watcher functionality against a live Jira Cloud or Data Center instance.
     Covers:
     - Get-JiraIssueWatcher
     - Add-JiraIssueWatcher
@@ -16,8 +16,8 @@
     On Jira Cloud, watchers are identified by accountId.
     On Jira Data Center, watchers are identified by username.
 
-    These tests require JIRA_TEST_USER to be configured with the accountId
-    of a valid user that can be added as a watcher.
+    These tests require JIRA_TEST_USER to identify a valid user by accountId
+    on Cloud or username on Data Center.
 #>
 
 BeforeDiscovery {
@@ -34,7 +34,7 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Issue Watchers" -Tag 'Integration', 'Cloud' -Skip:$Skip {
+    Describe "Issue Watchers" -Tag 'Integration', 'Server', 'Cloud' -Skip:$Skip {
         BeforeAll {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
@@ -72,26 +72,6 @@ InModuleScope JiraPS {
                     { Get-JiraIssueWatcher -Issue $fixtures.TestIssue } | Should -Not -Throw
                 }
 
-                It "returns user objects" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
-                        return
-                    }
-
-                    $watchers = Get-JiraIssueWatcher -Issue $fixtures.TestIssue
-
-                    if ($watchers) { $watchers[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User' }
-                }
-
-                It "accepts issue key as string" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
-                        return
-                    }
-
-                    { Get-JiraIssueWatcher -Issue $fixtures.TestIssue } | Should -Not -Throw
-                }
-
                 It "accepts issue object via pipeline" {
                     if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
                         Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
@@ -103,161 +83,56 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Watcher Properties" {
-                BeforeAll {
-                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) { $script:watchers = $null }
-                    else { $script:watchers = Get-JiraIssueWatcher -Issue $fixtures.TestIssue }
-                }
-
-                It "watcher has AccountId property (Cloud)" {
-                    if (-not $watchers -or $watchers.Count -eq 0) {
-                        Set-ItResult -Skipped -Because "No watchers on test issue"
-                        return
-                    }
-
-                    $watchers[0].AccountId | Should -Not -BeNullOrEmpty
-                }
-
-                It "watcher has DisplayName property" {
-                    if (-not $watchers -or $watchers.Count -eq 0) {
-                        Set-ItResult -Skipped -Because "No watchers on test issue"
-                        return
-                    }
-
-                    $watchers[0].DisplayName | Should -Not -BeNullOrEmpty
-                }
-            }
         }
 
-        Describe "Add-JiraIssueWatcher" -Skip:$SkipWrite {
-            BeforeAll {
-                if ([string]::IsNullOrEmpty($fixtures.TestProject)) { $script:watcherTestIssue = $null }
-                else {
-                    $summary = New-TestResourceName -Type "WatcherTest"
-                    $script:watcherTestIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
-                    if ($watcherTestIssue) { $null = $script:createdIssues.Add($watcherTestIssue.Key) }
+        Context "Watcher Write Operations" -Skip:$SkipWrite {
+            It "adds and removes a watcher using deployment-specific identity" {
+                foreach ($required in 'TestProject', 'TestUser') {
+                    if ([string]::IsNullOrWhiteSpace($fixtures[$required])) { throw "Watcher integration tests require fixture '$required'." }
                 }
+                $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "WatcherRoundTrip")
+                $null = $script:createdIssues.Add($issue.Key)
+                $existing = @(Get-JiraIssueWatcher -Issue $issue -ErrorAction Stop)
+                if ($existing | Where-Object { $_.($fixtures.UserIdProperty) -eq $fixtures.TestUser }) {
+                    Remove-JiraIssueWatcher -Issue $issue -Watcher $fixtures.TestUser -ErrorAction Stop
+                }
+                $before = @(Get-JiraIssueWatcher -Issue $issue -ErrorAction Stop)
+                @($before | Where-Object { $_.($fixtures.UserIdProperty) -eq $fixtures.TestUser }).Count | Should -Be 0
+
+                Add-JiraIssueWatcher -Issue $issue.Key -Watcher $fixtures.TestUser -ErrorAction Stop
+
+                $watchers = @(Get-JiraIssueWatcher -Issue $issue.Key -ErrorAction Stop)
+                $matching = @($watchers | Where-Object { $_.($fixtures.UserIdProperty) -eq $fixtures.TestUser })
+                $matching.Count | Should -Be 1
+                $matching[0] | Should -BeOfType ([AtlassianPS.JiraPS.User])
+                $matching[0].DisplayName | Should -Not -BeNullOrEmpty
+
+                Remove-JiraIssueWatcher -Issue $issue.Key -Watcher $fixtures.TestUser -ErrorAction Stop
+
+                $remaining = @(Get-JiraIssueWatcher -Issue $issue.Key -ErrorAction Stop)
+                @($remaining | Where-Object { $_.($fixtures.UserIdProperty) -eq $fixtures.TestUser }).Count | Should -Be 0
             }
 
-            Context "Adding Watchers" {
-                It "adds a watcher to an issue using accountId" {
-                    if (-not $watcherTestIssue) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
-                        return
-                    }
-                    if ([string]::IsNullOrEmpty($fixtures.TestUser)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_USER not configured"
-                        return
-                    }
-
-                    { Add-JiraIssueWatcher -Issue $watcherTestIssue.Key -Watcher $fixtures.TestUser } |
-                        Should -Not -Throw
+            It "accepts issue objects via pipeline when adding and removing watchers" {
+                foreach ($required in 'TestProject', 'TestUser') {
+                    if ([string]::IsNullOrWhiteSpace($fixtures[$required])) { throw "Watcher integration tests require fixture '$required'." }
                 }
-
-                It "added watcher appears in watcher list" {
-                    if (-not $watcherTestIssue) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
-                        return
-                    }
-                    if ([string]::IsNullOrEmpty($fixtures.TestUser)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_USER not configured"
-                        return
-                    }
-
-                    Add-JiraIssueWatcher -Issue $watcherTestIssue.Key -Watcher $fixtures.TestUser -ErrorAction SilentlyContinue
-
-                    $watchers = Get-JiraIssueWatcher -Issue $watcherTestIssue.Key
-                    $matchingWatcher = $watchers | Where-Object { $_.AccountId -eq $fixtures.TestUser }
-                    $matchingWatcher | Should -Not -BeNullOrEmpty
+                $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "WatcherPipeline")
+                $null = $script:createdIssues.Add($issue.Key)
+                $existing = @(Get-JiraIssueWatcher -Issue $issue -ErrorAction Stop)
+                if ($existing | Where-Object { $_.($fixtures.UserIdProperty) -eq $fixtures.TestUser }) {
+                    Remove-JiraIssueWatcher -Issue $issue -Watcher $fixtures.TestUser -ErrorAction Stop
                 }
+                $before = @(Get-JiraIssueWatcher -Issue $issue -ErrorAction Stop)
+                @($before | Where-Object { $_.($fixtures.UserIdProperty) -eq $fixtures.TestUser }).Count | Should -Be 0
 
-                It "accepts issue object via pipeline" {
-                    if (-not $watcherTestIssue) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
-                        return
-                    }
-                    if ([string]::IsNullOrEmpty($fixtures.TestUser)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_USER not configured"
-                        return
-                    }
+                $issue | Add-JiraIssueWatcher -Watcher $fixtures.TestUser -ErrorAction Stop
+                $watchers = @($issue | Get-JiraIssueWatcher -ErrorAction Stop)
+                @($watchers | Where-Object { $_.($fixtures.UserIdProperty) -eq $fixtures.TestUser }).Count | Should -Be 1
 
-                    $summary = New-TestResourceName -Type "WatcherPipeline"
-                    $pipelineIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
-                    $null = $script:createdIssues.Add($pipelineIssue.Key)
-
-                    { $pipelineIssue | Add-JiraIssueWatcher -Watcher $fixtures.TestUser } |
-                        Should -Not -Throw
-                }
-
-                It "adds multiple watchers" {
-                    if (-not $watcherTestIssue) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
-                        return
-                    }
-                    if ([string]::IsNullOrEmpty($fixtures.TestUser)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_USER not configured"
-                        return
-                    }
-
-                    $summary = New-TestResourceName -Type "MultiWatcher"
-                    $multiIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
-                    $null = $script:createdIssues.Add($multiIssue.Key)
-
-                    { Add-JiraIssueWatcher -Issue $multiIssue.Key -Watcher $fixtures.TestUser } |
-                        Should -Not -Throw
-                }
-            }
-        }
-
-        Describe "Remove-JiraIssueWatcher" -Skip:$SkipWrite {
-            Context "Removing Watchers" {
-                It "removes a watcher from an issue" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
-                        return
-                    }
-                    if ([string]::IsNullOrEmpty($fixtures.TestUser)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_USER not configured"
-                        return
-                    }
-
-                    $summary = New-TestResourceName -Type "RemoveWatcher"
-                    $removeIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
-                    $null = $script:createdIssues.Add($removeIssue.Key)
-
-                    Add-JiraIssueWatcher -Issue $removeIssue.Key -Watcher $fixtures.TestUser
-
-                    $watchersBefore = Get-JiraIssueWatcher -Issue $removeIssue.Key
-                    $watcherExistsBefore = $watchersBefore | Where-Object { $_.AccountId -eq $fixtures.TestUser }
-                    $watcherExistsBefore | Should -Not -BeNullOrEmpty -Because "Watcher should exist before removal"
-
-                    { Remove-JiraIssueWatcher -Issue $removeIssue.Key -Watcher $fixtures.TestUser } |
-                        Should -Not -Throw
-
-                    $watchersAfter = Get-JiraIssueWatcher -Issue $removeIssue.Key
-                    $watcherExistsAfter = $watchersAfter | Where-Object { $_.AccountId -eq $fixtures.TestUser }
-                    $watcherExistsAfter | Should -BeNullOrEmpty -Because "Watcher should not exist after removal"
-                }
-
-                It "accepts issue object via pipeline" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
-                        return
-                    }
-                    if ([string]::IsNullOrEmpty($fixtures.TestUser)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_USER not configured"
-                        return
-                    }
-
-                    $summary = New-TestResourceName -Type "RemoveWatcherPipe"
-                    $pipeIssue = New-JiraIssue -Project $fixtures.TestProject -IssueType 'Task' -Summary $summary
-                    $null = $script:createdIssues.Add($pipeIssue.Key)
-
-                    Add-JiraIssueWatcher -Issue $pipeIssue.Key -Watcher $fixtures.TestUser
-
-                    { $pipeIssue | Remove-JiraIssueWatcher -Watcher $fixtures.TestUser } |
-                        Should -Not -Throw
-                }
+                $issue | Remove-JiraIssueWatcher -Watcher $fixtures.TestUser -ErrorAction Stop
+                $remaining = @($issue | Get-JiraIssueWatcher -ErrorAction Stop)
+                @($remaining | Where-Object { $_.($fixtures.UserIdProperty) -eq $fixtures.TestUser }).Count | Should -Be 0
             }
         }
 

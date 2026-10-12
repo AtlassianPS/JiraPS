@@ -467,7 +467,7 @@ The check fails if the NUnit report is missing or malformed, a required suite or
 It checks test cases because Pester can mark a suite `Ignored` when it contains intentional deployment-specific skips.
 Result artifacts still upload when verification fails.
 
-`Tests/Integration/RequiredSuites.psd1` maintains the required suites, including groups, HTTP error handling, enum conversion and comment/worklog visibility.
+`Tests/Integration/RequiredSuites.psd1` maintains the required suites, including groups, HTTP error handling, enum conversion, comment/worklog visibility, issue user identity, watchers and filter permissions.
 Each entry specifies the file name and full NUnit test names under `Common`, `Cloud`, and `Server`.
 Common tests and tests for the selected track must execute successfully.
 Only tests listed exclusively for the other track may skip.
@@ -506,7 +506,8 @@ Live reserved-character coverage would require provisioning and cleaning up a di
 ### Comment and worklog visibility coverage
 
 `Visibility.Integration.Tests.ps1` creates a temporary issue, project role and group, and adds the test account to the temporary role and group.
-It creates and reads back unrestricted comments and worklogs, including the `All Users` shorthand, `VisibleRole` alias and typed role form.
+It creates and reads back unrestricted comments and worklogs.
+Unit tests cover the equivalent `All Users` shorthand, `VisibleRole` alias and typed role payloads.
 It also verifies role and group restrictions on both deployments and group identifier restrictions on Cloud.
 The suite requires a writable Jira administrator account and a configured `TestProject` fixture.
 On Cloud, configure **Settings > System > General Configuration > Comment visibility** as **groups & project Roles** on the dedicated test site.
@@ -517,6 +518,45 @@ The visibility suite does not change site settings.
 Data Center fixtures outside Docker must enable **groups & project Roles** before running the suite.
 Cleanup removes the temporary issue, role and group.
 Run writable integration tests only against a dedicated test site.
+
+### User identity and filter permission coverage
+
+`IssueIdentity.Integration.Tests.ps1` creates an issue with typed reporter and assignee inputs, clears the assignee, selects the project default, then reassigns the returned user.
+Each step reads the issue independently and checks `accountId` on Cloud or `name` on Data Center.
+The dedicated test project must permit the test user as reporter and assignee, use **Project lead** as its default assignee, and expose an assignable lead with a deployment-specific identity.
+The default must be a real user so an accidental unassignment cannot pass the project-default check.
+The site must allow unassigned issues.
+The disposable Data Center setup enables `jira.option.allowunassigned` through the application-properties API and verifies the effective configuration.
+Configure the equivalent general setting on the dedicated Cloud test site; the suite checks it before creating an issue.
+`IssueWatchers.Integration.Tests.ps1` verifies watcher addition and removal, including issue pipeline inputs, on both deployments.
+`FilterPermissions.Integration.Tests.ps1` adds a project share through the public cmdlet, reads it back, removes it using returned typed objects, and verifies its removal.
+These suites are required on both tracks and need writable `TestProject` and `TestUser` fixtures (filter permissions needs only `TestProject`).
+The watcher retrieval cases also require the baseline `TestIssue` fixture.
+Cleanup removes the temporary issues and filter.
+
+### Transition screen field coverage
+
+`TransitionFields.Integration.Tests.ps1` creates two temporary Task issues and discovers an available transition whose screen exposes Summary, Description, Assignee and Log Work.
+The first case starts unassigned, then transitions with typed assignment, `-Fields`, a unique comment and one minute of work.
+It independently reads the issue, comments and worklogs and verifies the exact persisted values, including ADF description storage on Cloud and plain text on Data Center.
+The second case starts assigned, then transitions with `-Unassign` and verifies the persisted assignee is null.
+Both cases must execute successfully on both tracks; unsuitable fixture metadata fails with setup instructions instead of skipping.
+Reads allow ten seconds for the disposable Data Center store to converge.
+
+Configure the dedicated Cloud fixture once:
+
+1. Use a company-managed `TestProject` with Task issues and a workflow editable by the test-site administrator.
+2. Add a transition available immediately after creating a Task (a global self-loop is sufficient), and attach a dedicated screen containing **Summary**, **Description**, **Assignee** and **Log Work**.
+3. Publish the workflow and associate it with the project's Task issue type.
+4. Keep Assignee, Log Work and Comment optional, with no other required fields or validators that prevent the two test payloads (Resolution is supported using a value advertised by transition metadata).
+5. Enable time tracking and unassigned issues, and grant the authenticated test account permission to assign issues, add comments and log work.
+
+Use the **Log Work** field (`worklog`), rather than **Time Tracking** (`timetracking`); Jira uses different fields for these operations.
+The suite checks live transition metadata for `set` support on the three issue fields and `add` support on `worklog` before invoking the cmdlet.
+Only temporary issues are modified by the suite, and cleanup removes them.
+The disposable Data Center setup selects the pinned AMPS Jira 11 seed's classic workflow scheme (`10000`) and adds Summary and Description to its Resolve Issue Screen (`3`), which already exposes Assignee and Log Work.
+The suite supplies a valid Resolution from live metadata when that screen requires one.
+Startup verifies the expected scheme and screen fields and fails on an incompatible image instead of silently running a different workflow.
 
 ## Troubleshooting
 
