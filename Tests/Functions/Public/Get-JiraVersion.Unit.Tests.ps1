@@ -187,6 +187,32 @@ InModuleScope JiraPS {
                 Should -Invoke ConvertTo-JiraVersion -ModuleName JiraPS -Exactly 2
             }
 
+            It 'gets versions from piped <shape> without resolving a project' -TestCases @(
+                @{ shape = 'integer IDs' }
+                @{ shape = 'string IDs' }
+                @{ shape = 'typed versions' }
+            ) {
+                param($shape)
+
+                $inputs = foreach ($versionId in $versionID1, $versionID2) {
+                    switch ($shape) {
+                        'integer IDs' { $versionId }
+                        'string IDs' { [string]$versionId }
+                        'typed versions' { [AtlassianPS.JiraPS.Version]@{ Id = "$versionId" } }
+                    }
+                }
+
+                $results = @($inputs | Get-JiraVersion -ErrorAction Stop)
+
+                $results.Id | Should -Be @($versionID1, $versionID2)
+                Should -Invoke Get-JiraProject -ModuleName JiraPS -Times 0 -Exactly
+                foreach ($versionId in $versionID1, $versionID2) {
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+                        $Method -eq 'Get' -and $URI -eq "/rest/api/2/version/$versionId"
+                    }
+                }
+            }
+
             It "gets a Version using the pipeline from another Version" {
                 $version1 = ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2) })
                 $version2 = ConvertTo-JiraVersion ([PSCustomObject]@{Id = [int]($versionID2); project = "lorem" })

@@ -14,14 +14,14 @@ Returns versions in a Jira project.
 
 ## SYNTAX
 
-### byId (Default)
+### byId
 
 ```powershell
 Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>]
  [-First <ulong>] [<CommonParameters>]
 ```
 
-### byInputVersion
+### byInputVersion (Default)
 
 ```powershell
 Get-JiraVersion [-InputVersion] <AtlassianPS.JiraPS.Version> [-PageSize <uint>] [-Credential <pscredential>]
