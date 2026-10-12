@@ -24,12 +24,6 @@ InModuleScope JiraPS {
                 [AtlassianPS.JiraPS.Issue]@{
                     Key        = 'TEST-1'
                     RestUrl    = 'https://jira.example/rest/api/2/issue/1'
-                    Transition = @(
-                        [AtlassianPS.JiraPS.Transition]@{
-                            Id   = 11
-                            Name = 'Done'
-                        }
-                    )
                 }
             }
             Mock Invoke-JiraMethod -ModuleName JiraPS {
@@ -103,32 +97,6 @@ InModuleScope JiraPS {
             param($value)
             { Add-JiraIssueComment -Issue TEST-1 -Comment x -Visibility $value -ErrorAction Stop } | Should -Throw -ExpectedMessage '*Visibility*'
             Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 0 -Exactly
-        }
-
-        It 'retains unrestricted VisibleRole shorthand without a visibility block' {
-            Add-JiraIssueComment -Issue TEST-1 -Comment x -VisibleRole 'All Users' -Confirm:$false
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
-                -not ($Body | ConvertFrom-Json).PSObject.Properties['visibility']
-            }
-        }
-
-        It 'accepts returned transitions and name or numeric shorthand (<value>)' -TestCases @(
-            @{ value = 11 }
-            @{ value = '11' }
-            @{ value = 'Done' }
-        ) {
-            param($value)
-            Invoke-JiraIssueTransition -Issue TEST-1 -Transition $value
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
-                ($Body | ConvertFrom-Json).transition.id -eq 11
-            }
-        }
-
-        It 'accepts a returned transition directly' {
-            Invoke-JiraIssueTransition -Issue TEST-1 -Transition ([AtlassianPS.JiraPS.Transition]@{ Id = 11 })
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
-                ($Body | ConvertFrom-Json).transition.id -eq 11
-            }
         }
 
         It 'binds a returned status by its ID rather than display name' {

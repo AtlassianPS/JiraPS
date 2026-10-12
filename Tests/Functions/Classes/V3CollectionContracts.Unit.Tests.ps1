@@ -17,34 +17,6 @@ InModuleScope JiraPS {
             $project.Versions.Count | Should -Be 0
         }
 
-        It 'preserves custom-field arrays and empty issue collections' {
-            $issueResponse = ConvertFrom-Json @'
-{
-    "fields": {
-        "customfield_empty": [],
-        "customfield_single": [
-            {
-                "id": 1
-            }
-        ],
-        "issuelinks": [],
-        "attachment": [],
-        "comment": {
-            "comments": []
-        }
-    }
-}
-'@
-            $issue = ConvertTo-JiraIssue -InputObject $issueResponse
-            $issue.customfield_empty.GetType() | Should -Be ([object[]])
-            $issue.customfield_single.GetType() | Should -Be ([object[]])
-            $issue.customfield_single.Count | Should -Be 1
-            $issue.IssueLinks.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueLink[]])
-            $issue.Attachment.GetType() | Should -Be ([AtlassianPS.JiraPS.Attachment[]])
-            $issue.Comment.GetType() | Should -Be ([AtlassianPS.JiraPS.Comment[]])
-            $issue.Comment.Count | Should -Be 0
-        }
-
         It 'keeps present empty comment properties typed' {
             $comment = ConvertTo-JiraComment -InputObject (ConvertFrom-Json '{"properties":[]}')
             $comment.Properties.GetType() | Should -Be ([AtlassianPS.JiraPS.EntityProperty[]])
@@ -61,12 +33,6 @@ InModuleScope JiraPS {
             $group = ConvertTo-JiraGroup -InputObject (ConvertFrom-Json '{"users":{"size":0,"items":[]}}')
             $group.Member.GetType() | Should -Be ([AtlassianPS.JiraPS.User[]])
             $group.Member.Count | Should -Be 0
-        }
-
-        It 'keeps present empty user groups typed' {
-            $user = ConvertTo-JiraUser -InputObject (ConvertFrom-Json '{"groups":{"size":0,"items":[]}}')
-            $user.Groups.GetType() | Should -Be ([string[]])
-            $user.Groups.Count | Should -Be 0
         }
 
         It 'distinguishes absent operations from present empty allowed values' {

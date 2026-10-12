@@ -1131,7 +1131,11 @@ InModuleScope JiraPS {
                     $wire = [PSCustomObject]@{
                         changelog   = [PSCustomObject]@{ histories = $entries }
                         transitions = $entries
-                        fields      = [PSCustomObject]@{ comment = [PSCustomObject]@{ comments = $entries } }
+                        fields      = [PSCustomObject]@{
+                            comment    = [PSCustomObject]@{ comments = $entries }
+                            attachment = $entries
+                            issuelinks = $entries
+                        }
                     }
                     $issue = ConvertTo-JiraIssue $wire
                     $issue.History.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueHistoryEntry[]])
@@ -1140,6 +1144,10 @@ InModuleScope JiraPS {
                     $issue.History.Count | Should -Be $count
                     $issue.Comment.Count | Should -Be $count
                     $issue.Transition.Count | Should -Be $count
+                    $issue.Attachment.GetType() | Should -Be ([AtlassianPS.JiraPS.Attachment[]])
+                    $issue.Attachment.Count | Should -Be $count
+                    $issue.IssueLinks.GetType() | Should -Be ([AtlassianPS.JiraPS.IssueLink[]])
+                    $issue.IssueLinks.Count | Should -Be $count
                     for ($index = 0; $index -lt $count; $index++) {
                         $issue.History[$index].Id | Should -Be "$index"
                         $issue.Comment[$index].Body | Should -Be "comment$index"

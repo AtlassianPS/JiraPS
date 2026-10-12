@@ -230,6 +230,8 @@ InModuleScope JiraPS {
 
             Context "Transition binding and validation" {
                 It "sends the ID for <description>" -TestCases @(
+                    @{ description = 'numeric ID'; value = 11 }
+                    @{ description = 'returned transition'; value = [AtlassianPS.JiraPS.Transition]@{ Id = 11 } }
                     @{ description = 'numeric string'; value = '11' }
                     @{ description = 'transition name'; value = 'Start Progress' }
                     @{ description = 'case-insensitive transition name'; value = 'start progress' }

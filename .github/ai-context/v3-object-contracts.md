@@ -22,7 +22,8 @@ Producing commands return the class directly or within a declared containing obj
 Commands using transport `OutputType` conversion are included.
 A command that only resolves an object internally is not listed as a producer.
 The tests are under `Tests/Functions/Private`, `Tests/Functions/Public`, and `Tests/Functions/Classes`.
-`V3CollectionContracts.Unit.Tests.ps1` covers empty collections, raw custom arrays and duplicate-name selectors.
+`V3CollectionContracts.Unit.Tests.ps1` covers empty collections and duplicate-name selectors.
+`ConvertTo-JiraIssue.Unit.Tests.ps1` covers raw custom arrays and expanded issue collections.
 `V3ReturnContracts.Unit.Tests.ps1` verifies the nested types and collections.
 `V3ParameterContracts.Unit.Tests.ps1` verifies cross-cmdlet binding, request bodies and regression cases.
 The existing `AtlassianPS.JiraPS.Types.Unit.Tests.ps1` and `ConvertTo-Jira.Roundtrip.Unit.Tests.ps1` cover core types and transformer fallthrough.
@@ -902,7 +903,7 @@ Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTrans
 
 Consuming parameters: `Invoke-JiraIssueTransition -Transition`.
 
-Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraTransition.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
+Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraTransition.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `Invoke-JiraIssueTransition.Unit.Tests.ps1`.
 
 ### `User`
 
