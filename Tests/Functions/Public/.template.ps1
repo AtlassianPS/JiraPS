@@ -77,7 +77,7 @@ InModuleScope JiraPS {
             Context "Default Values" {
                 It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
                     @{ parameter = "%PARAMETER1%"; defaultValue = "%DEFAULT VALUE%" }
-                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
+                    @{ parameter = "Credential"; defaultValue = $null }
                 ) {
                     $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
                 }

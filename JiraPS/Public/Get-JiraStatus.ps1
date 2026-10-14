@@ -11,56 +11,93 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential,
+
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
-
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        $resourceURi = "$server/rest/api/latest/status{0}"
+            $server = $RequestContext.BaseUri.AbsoluteUri.TrimEnd('/')
+
+            $resourceURi = "$server/rest/api/latest/status{0}"
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        switch ($PSCmdlet.ParameterSetName) {
-            '_All' {
-                $parameter = @{
-                    URI        = $resourceURi -f ""
-                    Method     = "GET"
-                    Credential = $Credential
-                }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
-
-                Write-Output (ConvertTo-JiraStatus -InputObject $result)
-            }
-            '_Search' {
-                foreach ($_status in $Status) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_status]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_status [$_status]"
-
-                    $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id } else { $_status.Name }
-                    $encodedIdentifier = ConvertTo-URLEncoded -InputString $statusIdentifier
-
+            switch ($PSCmdlet.ParameterSetName) {
+                '_All' {
                     $parameter = @{
-                        URI        = $resourceURi -f "/$encodedIdentifier"
-                        Method     = "GET"
-                        Credential = $Credential
+                        URI    = $resourceURi -f ""
+                        Method = "GET"
+
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
+                    $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraStatus -InputObject $result)
                 }
+                '_Search' {
+                    foreach ($_status in $Status) {
+                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_status]"
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_status [$_status]"
+
+                        $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id } else { $_status.Name }
+                        $encodedIdentifier = ConvertTo-URLEncoded -InputString $statusIdentifier
+
+                        $parameter = @{
+                            URI    = $resourceURi -f "/$encodedIdentifier"
+                            Method = "GET"
+
+                        }
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                        $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+
+                        Write-Output (ConvertTo-JiraStatus -InputObject $result)
+                    }
+                }
             }
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

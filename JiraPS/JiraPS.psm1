@@ -1,4 +1,13 @@
 ﻿#region Dependencies
+$loadedConfiguration = @(Get-Module AtlassianPS.Configuration -All)
+if (-not $loadedConfiguration.Count -or @($loadedConfiguration | Where-Object { $_.Version -lt [Version]'0.3.0' -or $_.Version.Major -ne 0 }).Count -or
+    -not ('AtlassianPS.Connection' -as [Type])) {
+    throw 'JiraPS requires AtlassianPS.Configuration >=0.3.0 within major 0. Start a fresh process with a compatible dependency.'
+}
+if ('AtlassianPS.JiraPS.Session' -as [Type]) {
+    throw 'JiraPS v2 session types are already loaded. Use a fresh PowerShell process for this v3 connection candidate.'
+}
+
 if (!("System.Web.HttpUtility" -as [Type])) { Add-Type -AssemblyName "System.Web" }
 if (!("System.Net.Http.HttpRequestException" -as [Type])) { Add-Type -AssemblyName "System.Net.Http" }
 if (!("System.Net.Http" -as [Type])) { Add-Type -Assembly System.Net.Http }
@@ -30,15 +39,6 @@ elseif ($loadedJiraTypes.Count -lt $requiredJiraTypes.Count) {
 #region Configuration
 $script:serverConfig = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData', 'Create'))
 
-if (-not (Test-Path $script:serverConfig)) {
-    try {
-        $null = New-Item -Path $script:serverConfig -ItemType File -Force -ErrorAction Stop
-    }
-    catch {
-        if (-not (Test-Path $script:serverConfig)) { Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to create config file: $_" }
-    }
-}
-
 $script:JiraServerUrl = $null
 if (Test-Path $script:serverConfig) {
     try {
@@ -69,8 +69,8 @@ $script:PagingContainers = @(
     "values"
     "worklogs"
 )
-$script:SessionTransformationMethod = "ConvertTo-JiraSession"
-$script:JiraServerInfo = $null
+
+
 #endregion Configuration
 
 #region LoadFunctions

@@ -10,50 +10,99 @@ permalink: /docs/JiraPS/commands/Get-JiraSession/
 
 ## SYNOPSIS
 
-Obtains a reference to the currently saved JIRA session
+List Jira connections through the legacy command name.
 
 ## SYNTAX
 
 ```powershell
-Get-JiraSession [<CommonParameters>]
+Get-JiraSession [-Name <String>] [-Id <Int32>] [-Default] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function obtains a reference to the currently saved JIRA session.
+List Jira connections through the legacy command name.
 
-This can provide a JIRA session ID, as well as the username used to connect to JIRA.
+This compatibility name uses the shared connection implementation.
+It does not retain the v2 singleton or AtlassianPS.JiraPS.Session return type.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 
 ```powershell
-New-JiraSession -Credential (Get-Credential jiraUsername)
 Get-JiraSession
 ```
 
-Creates a Jira session for jiraUsername, then obtains a reference to it.
+List all Jira connections. The output type is AtlassianPS.Connection.
 
 ## PARAMETERS
 
+### -Name
+
+Friendly connection name, unique without case sensitivity within Jira.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Id
+
+Runtime numeric connection ID, unique across products for the current shared runtime.
+
+```yaml
+Type: Int32
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Default
+
+Select the successful new connection as Jira default, or filter the listing to the current default. The first successful connection selects itself automatically; later connections leave an existing default unchanged unless this switch is supplied.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+Supports standard PowerShell common parameters.
 
 ## INPUTS
 
+### AtlassianPS.Connection
+
 ## OUTPUTS
 
-### AtlassianPS.JiraPS.Session
+### AtlassianPS.Connection
 
 ## NOTES
 
+Connections belong to one runspace and are never persisted as profiles.
+
 ## RELATED LINKS
 
-[about_JiraPS_Authentication](../../about/authentication.html)
+[Shared authentication](https://atlassianps.org/docs/AtlassianPS.Configuration/about/authentication.html)
 
-[New-JiraSession](../New-JiraSession/)
+[Jira authentication](https://atlassianps.org/docs/JiraPS/about/authentication.html)

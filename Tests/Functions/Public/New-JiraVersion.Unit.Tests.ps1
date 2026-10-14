@@ -52,14 +52,14 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraProject -ModuleName JiraPS {
+            Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject'
                 $Projects = ConvertFrom-Json $JiraProjectData
                 $Projects | ForEach-Object { $_.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project') }
                 $Projects | Where-Object { $_.Key -in $projectKey }
             }
 
-            Mock Get-JiraVersion -ModuleName JiraPS {
+            Mock Get-JiraVersionOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraVersion'
                 $Version = [PSCustomObject]@{
                     Name        = "v1"

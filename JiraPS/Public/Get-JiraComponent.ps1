@@ -16,61 +16,98 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential,
+
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
-
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $resourceURi = "/rest/api/2{0}"
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+            $resourceURi = "/rest/api/2{0}"
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        switch ($PSCmdlet.ParameterSetName) {
-            "ByProject" {
-                foreach ($_project in $Project) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
+            switch ($PSCmdlet.ParameterSetName) {
+                "ByProject" {
+                    foreach ($_project in $Project) {
+                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
 
-                    # The /project/{projectIdOrKey}/components endpoint accepts
-                    # either a project key or a numeric ID, so we forward whichever
-                    # the typed parameter has populated.
-                    $projectIdent = if ($_project.Key) { $_project.Key } else { $_project.ID }
+                        # The /project/{projectIdOrKey}/components endpoint accepts
+                        # either a project key or a numeric ID, so we forward whichever
+                        # the typed parameter has populated.
+                        $projectIdent = if ($_project.Key) { $_project.Key } else { $_project.ID }
 
-                    $parameter = @{
-                        URI        = $resourceURi -f "/project/$projectIdent/components"
-                        Method     = "GET"
-                        Credential = $Credential
+                        $parameter = @{
+                            URI    = $resourceURi -f "/project/$projectIdent/components"
+                            Method = "GET"
+
+                        }
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                        $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+
+                        Write-Output (ConvertTo-JiraComponent -InputObject $result)
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
+                }
+                "ByID" {
+                    foreach ($_id in $ComponentId) {
+                        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
 
-                    Write-Output (ConvertTo-JiraComponent -InputObject $result)
+                        $parameter = @{
+                            URI    = $resourceURi -f "/component/$_id"
+                            Method = "GET"
+
+                        }
+                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                        $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+
+                        Write-Output (ConvertTo-JiraComponent -InputObject $result)
+                    }
                 }
             }
-            "ByID" {
-                foreach ($_id in $ComponentId) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
-
-                    $parameter = @{
-                        URI        = $resourceURi -f "/component/$_id"
-                        Method     = "GET"
-                        Credential = $Credential
-                    }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
-
-                    Write-Output (ConvertTo-JiraComponent -InputObject $result)
-                }
-            }
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

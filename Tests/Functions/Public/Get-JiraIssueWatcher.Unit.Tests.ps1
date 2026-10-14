@@ -44,7 +44,7 @@ InModuleScope JiraPS {
                 Write-Output $jiraServer
             }
 
-            Mock Get-JiraIssue -ModuleName JiraPS {
+            Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     ID      = $issueID
@@ -93,7 +93,7 @@ InModuleScope JiraPS {
                 $watchers.RestUrl | Should -Be "$jiraServer/jira/rest/api/2/user?username=fred"
 
                 # Get-JiraIssue should be called to identify the -Issue parameter
-                Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly 1
+                Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly 1
 
                 # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueWatcher, but
                 # since we've mocked Get-JiraIssue out, it will only be called once.

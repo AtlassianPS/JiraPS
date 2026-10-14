@@ -12,13 +12,12 @@
         $Exact,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $RequestContext
     )
 
     begin {
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
     }
 
     process {
@@ -30,7 +29,7 @@
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve User to object"
 
         if ($isCloud -and $InputObject.AccountId) {
-            return (Get-JiraUser -AccountId $InputObject.AccountId -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+            return (Get-JiraUserOperation -AccountId $InputObject.AccountId -Exact:$Exact -RequestContext $RequestContext -ErrorAction Stop)
         }
 
         # Legacy compatibility: if the caller handed us a stub user whose
@@ -41,11 +40,11 @@
                 $InputObject.Name -match '^[0-9a-f]{24}$' -or
                 $InputObject.Name -match '^[A-Za-z0-9]+:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$'
             )) {
-            return (Get-JiraUser -AccountId $InputObject.Name -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+            return (Get-JiraUserOperation -AccountId $InputObject.Name -Exact:$Exact -RequestContext $RequestContext -ErrorAction Stop)
         }
 
         if ($InputObject.Name) {
-            return (Get-JiraUser -UserName $InputObject.Name -Exact:$Exact -Credential $Credential -ErrorAction Stop)
+            return (Get-JiraUserOperation -UserName $InputObject.Name -Exact:$Exact -RequestContext $RequestContext -ErrorAction Stop)
         }
 
         $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord (

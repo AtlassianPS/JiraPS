@@ -44,101 +44,58 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
-    )
+        $Credential,
 
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
+    )
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $resourceURi = "/rest/api/2/{0}"
-    }
-
-    process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        $ParameterSetName = ''
-        switch ($PsCmdlet.ParameterSetName) {
-            'byInputProject' {
-                $Project = @($InputProject | ForEach-Object {
-                        if ($_.Key) { $_.Key } else { $_.Id }
-                    })
-                $ParameterSetName = 'byProject'
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $operationParameters = @{ RequestContext = $requestContext }
+        foreach ($parameterName in $PSBoundParameters.Keys) {
+            if ($parameterName -notin @('Connection', 'ConnectionName', 'Uri', 'Credential', 'EmailAddress', 'ApiToken', 'PersonalAccessToken', 'Anonymous')) {
+                $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
             }
-            'byInputVersion' {
-                if (-not $InputVersion.Id) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Version ID is required"),
-                        'ParameterValue.VersionIdRequired',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $InputVersion
-                    )
-                    $errorItem.ErrorDetails = "Get-JiraVersion requires a version ID when -InputVersion is used. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
-                    ThrowError -ErrorRecord $errorItem
-                }
-                $Id = $InputVersion.Id
-                $ParameterSetName = 'byId'
-            }
-            'byProject' { $ParameterSetName = 'byProject' }
-            'byId' { $ParameterSetName = 'byId' }
         }
-
-        switch ($ParameterSetName) {
-            "byId" {
-                foreach ($_id in $ID) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
-
-                    $parameter = @{
-                        URI        = $resourceURi -f "version/$_id"
-                        Method     = "GET"
-                        Credential = $Credential
-                    }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
-
-                    Write-Output (ConvertTo-JiraVersion -InputObject $result)
-                }
-            }
-            "byProject" {
-                foreach ($_project in $Project) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
-
-                    $projectData = Get-JiraProject -Project $_project -Credential $Credential
-
-                    $parameter = @{
-                        URI          = $resourceURi -f "project/$($projectData.key)/version"
-                        Method       = "GET"
-                        GetParameter = @{
-                            orderBy    = $Sort
-                            maxResults = $PageSize
-                        }
-                        Paging       = $true
-                        OutputType   = "JiraVersion"
-                        Credential   = $Credential
-                    }
-                    # Paging
-                    ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
-                        $parameter[$_] = $PSCmdlet.PagingParameters.$_
-                    }
-
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    if ($result = Invoke-JiraMethod @parameter) {
-                        $result | Where-Object {
-                            $__ = $_.Name
-                            Write-DebugMessage ($__ | Out-String)
-                            $Name | ForEach-Object {
-                                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Matching $_ against $($__)"
-                                $__ -like $_
-                            }
-                        }
-                    }
-                }
-            }
+        try {
+            $operation = { Get-JiraVersionOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+            $operation.Begin($PSCmdlet)
+        }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
+        }
+    }
+    process {
+        try { $operation.Process($_) }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
         }
     }
     end {
+        try { $operation.End() }
+        finally {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+        }
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

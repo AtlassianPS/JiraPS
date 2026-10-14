@@ -17,54 +17,91 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        $Credential,
 
         [Switch]
-        $Force
+        $Force,
+
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
-
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $resourceURi = "/rest/api/2/issue/{0}/remotelink/{1}"
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        if ($Force) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
-            $oldConfirmPreference = $ConfirmPreference
-            $ConfirmPreference = 'None'
+            $resourceURi = "/rest/api/2/issue/{0}/remotelink/{1}"
+
+            if ($Force) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+                $oldConfirmPreference = $ConfirmPreference
+                $ConfirmPreference = 'None'
+            }
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
 
-        # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+            # Find the proper object for the Issue
+            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
-        foreach ($_link in $LinkId) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_link]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_link [$_link]"
+            foreach ($_link in $LinkId) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_link]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_link [$_link]"
 
-            $parameter = @{
-                URI        = $resourceURi -f $issueObj.Key, $_link.Id
-                Method     = "DELETE"
-                Credential = $Credential
+                $parameter = @{
+                    URI    = $resourceURi -f $issueObj.Key, $_link.Id
+                    Method = "DELETE"
+
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) { Invoke-JiraMethod @parameter }
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        if ($Force) {
-            Write-DebugMessage "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
-            $ConfirmPreference = $oldConfirmPreference
-        }
+        try {
+            if ($Force) {
+                Write-DebugMessage "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
+                $ConfirmPreference = $oldConfirmPreference
+            }
 
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

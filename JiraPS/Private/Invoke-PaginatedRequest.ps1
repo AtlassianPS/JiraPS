@@ -1,6 +1,13 @@
 ﻿function Invoke-PaginatedRequest {
     [CmdletBinding(SupportsPaging)]
     param(
+        [AtlassianPS.Connection]$RequestContext,
+        [String]$CacheKey,
+        [TimeSpan]$CacheExpiry = [TimeSpan]::FromHours(1),
+        [Switch]$BypassCache,
+        [Int]$TimeoutSec = 100,
+        [Int]$_RetryCount = 0,
+
         [Parameter( Mandatory )]
         [Uri]
         $URI,

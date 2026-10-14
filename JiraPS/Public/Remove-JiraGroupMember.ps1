@@ -19,70 +19,107 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        $Credential,
 
         [Switch]
         $PassThru,
 
         [Switch]
-        $Force
+        $Force,
+
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
-
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        $resourceURi = "/rest/api/2/group/user"
+            $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
-        if ($Force) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
-            $oldConfirmPreference = $ConfirmPreference
-            $ConfirmPreference = 'None'
+            $resourceURi = "/rest/api/2/group/user"
+
+            if ($Force) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+                $oldConfirmPreference = $ConfirmPreference
+                $ConfirmPreference = 'None'
+            }
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        foreach ($_group in $Group) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
+            foreach ($_group in $Group) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
 
-            foreach ($_user in $User) {
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
+                foreach ($_user in $User) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
-                $userObj = Resolve-JiraUser -InputObject $_user -Exact -Credential $Credential -ErrorAction Stop
-                $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
+                    $userObj = Resolve-JiraUser -InputObject $_user -Exact -RequestContext $RequestContext -ErrorAction Stop
+                    $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
 
-                $getParameter = if ($isCloud -and $_group.Id) { @{ groupId = $_group.Id } }
-                else { @{ groupname = $_group.Name } }
+                    $getParameter = if ($isCloud -and $_group.Id) { @{ groupId = $_group.Id } }
+                    else { @{ groupname = $_group.Name } }
 
-                if ($isCloud) { $getParameter['accountId'] = $userIdentifier }
-                else { $getParameter['username'] = $userIdentifier }
-                $target = if ($_group.Name) { $_group.Name } else { $_group.Id }
-                $parameter = @{
-                    URI          = $resourceURi
-                    Method       = "DELETE"
-                    GetParameter = $getParameter
-                    Credential   = $Credential
+                    if ($isCloud) { $getParameter['accountId'] = $userIdentifier }
+                    else { $getParameter['username'] = $userIdentifier }
+                    $target = if ($_group.Name) { $_group.Name } else { $_group.Id }
+                    $parameter = @{
+                        URI          = $resourceURi
+                        Method       = "DELETE"
+                        GetParameter = $getParameter
+
+                    }
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    if ($PSCmdlet.ShouldProcess($target, "Remove $($userObj.DisplayName) from group")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($target, "Remove $($userObj.DisplayName) from group")) { Invoke-JiraMethod @parameter }
-            }
 
-            if ($PassThru) { Write-Output $_group }
+                if ($PassThru) { Write-Output $_group }
+            }
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        if ($Force) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
-            $ConfirmPreference = $oldConfirmPreference
-        }
+        try {
+            if ($Force) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
+                $ConfirmPreference = $oldConfirmPreference
+            }
 
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

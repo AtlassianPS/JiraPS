@@ -5,45 +5,64 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        $Credential,
 
         [Switch]
-        $Force
-    )
+        $Force,
 
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
+    )
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $resourceURi = "/rest/api/2/serverInfo"
-    }
-
-    process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        $parameter = @{
-            URI         = $resourceURi
-            Method      = "GET"
-            Credential  = $Credential
-            CacheKey    = 'ServerInfo'
-            CacheExpiry = [TimeSpan]::FromMinutes(5)
-            BypassCache = $Force
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $operationParameters = @{ RequestContext = $requestContext }
+        foreach ($parameterName in $PSBoundParameters.Keys) {
+            if ($parameterName -notin @('Connection', 'ConnectionName', 'Uri', 'Credential', 'EmailAddress', 'ApiToken', 'PersonalAccessToken', 'Anonymous')) {
+                $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
+            }
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-
         try {
-            $result = Invoke-JiraMethod @parameter
-            Write-Output (ConvertTo-JiraServerInfo -InputObject $result)
+            $operation = { Get-JiraServerInformationOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+            $operation.Begin($PSCmdlet)
         }
         catch {
-            Write-Warning "[$($MyInvocation.MyCommand.Name)] Could not retrieve server information: $_"
-            [AtlassianPS.JiraPS.ServerInfo]@{ DeploymentType = 'Server' }
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
         }
     }
-
+    process {
+        try { $operation.Process($_) }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
+        }
+    }
     end {
+        try { $operation.End() }
+        finally {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+        }
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
+
 
 New-Alias -Name "Get-JiraServerInfo" -Value "Get-JiraServerInformation" -ErrorAction SilentlyContinue

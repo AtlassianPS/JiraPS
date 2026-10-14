@@ -14,33 +14,28 @@ Returns versions in a Jira project.
 
 ## SYNTAX
 
-### byId
-
-```powershell
-Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>]
- [-First <ulong>] [<CommonParameters>]
-```
-
 ### byInputVersion (Default)
 
 ```powershell
-Get-JiraVersion [-InputVersion] <AtlassianPS.JiraPS.Version> [-PageSize <uint>] [-Credential <pscredential>]
- [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraVersion -InputVersion <AtlassianPS.JiraPS.Version> [-PageSize <UInt32>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-Uri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+```
+
+### byId
+
+```powershell
+Get-JiraVersion -Id <Int32[]> [-PageSize <UInt32>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-Uri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
 ```
 
 ### byProject
 
 ```powershell
-Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
- [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraVersion -Project <String[]> [-Name <String[]>] [-Sort <String>] [-PageSize <UInt32>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-Uri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
 ```
 
 ### byInputProject
 
 ```powershell
-Get-JiraVersion [-InputProject] <AtlassianPS.JiraPS.Project[]> [-Name <string[]>] [-Sort <string>]
- [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
- [<CommonParameters>]
+Get-JiraVersion -InputProject <AtlassianPS.JiraPS.Project[]> [-Name <String[]>] [-Sort <String>] [-PageSize <UInt32>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-Uri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -86,24 +81,18 @@ The command uses anonymous access when no credentials or JiraPS session are avai
 
 ### -Credential
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Username/password or compatible Cloud email/token as PSCredential. Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection. An empty credential fails; omitted input uses the selected connection.
 
 ```yaml
 Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### -First
@@ -129,23 +118,18 @@ HelpMessage: ''
 
 ### -Id
 
-The version ID.
+Runtime numeric connection ID, unique across products for the current shared runtime.
 
 ```yaml
 Type: Int32[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: byId
-  Position: Named
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Parameter Sets: byId
+Aliases: None
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### -IncludeTotalCount
@@ -215,30 +199,18 @@ HelpMessage: ''
 
 ### -Name
 
-The version name.
+Friendly connection name, unique without case sensitivity within Jira.
 
 ```yaml
 Type: String[]
-DefaultValue: '"*"'
-SupportsWildcards: false
-Aliases:
-- Versions
-ParameterSets:
-- Name: byInputProject
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-- Name: byProject
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Parameter Sets: byInputProject, byProject
+Aliases: Versions
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### -PageSize
@@ -347,6 +319,118 @@ AcceptedValues:
 - startDate
 - releaseDate
 HelpMessage: ''
+```
+
+### -Connection
+
+Live shared connection for this operation. Session is a compatibility alias. The object must be active in this runspace and belong to Jira.
+
+```yaml
+Type: AtlassianPS.Connection
+Parameter Sets: (All)
+Aliases: Session
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ConnectionName
+
+Case-insensitive name of an active Jira connection. Server and ServerName are compatibility aliases. This parameter is mutually exclusive with Connection and a standalone endpoint.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases: Server, ServerName
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Uri
+
+Standalone Jira product endpoint for this logical operation. Cannot be combined with Connection or ConnectionName. Supply one explicit authentication mode; use Anonymous for anonymous access. Normal HTTPS commercial Atlassian site URLs resolve cloudId and the API gateway automatically for ApiToken authentication.
+
+```yaml
+Type: Uri
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -EmailAddress
+
+Cloud authentication email for ApiToken. Email is an alias. An override must supply both its own email and token.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases: Email
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ApiToken
+
+Cloud API token as a nonempty string or SecureString. Supply the authentication email in the same call. The module normalizes the secret and resolves a normal Cloud site URL automatically.
+
+```yaml
+Type: Object
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -PersonalAccessToken
+
+Data Center PAT as a nonempty string or SecureString. PAT and BearerToken are aliases. No dummy username is required.
+
+```yaml
+Type: Object
+Parameter Sets: (All)
+Aliases: PAT, BearerToken
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Anonymous
+
+Explicit anonymous authentication when the Jira endpoint permits it. Never borrows the default connection identity.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### CommonParameters

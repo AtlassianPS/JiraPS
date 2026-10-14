@@ -64,7 +64,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraIssue -ModuleName JiraPS {
+            Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue'
                 $typedAttachments = foreach ($attachment in (ConvertFrom-Json -InputObject $script:attachments)) {
                     [AtlassianPS.JiraPS.Attachment]@{

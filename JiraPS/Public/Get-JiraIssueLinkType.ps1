@@ -11,46 +11,83 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential,
+
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
-
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $resourceURi = "/rest/api/2/issueLinkType{0}"
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+            $resourceURi = "/rest/api/2/issueLinkType{0}"
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        if ($LinkType -and $LinkType.Id) {
-            $parameter = @{
-                URI        = $resourceURi -f "/$($LinkType.Id)"
-                Method     = "GET"
-                Credential = $Credential
+            if ($LinkType -and $LinkType.Id) {
+                $parameter = @{
+                    URI    = $resourceURi -f "/$($LinkType.Id)"
+                    Method = "GET"
+
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+
+                Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod @parameter
+            else {
+                $parameter = @{
+                    URI    = $resourceURi -f ""
+                    Method = "GET"
 
-            Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                $allLinkTypes = ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes
+
+                if ($LinkType) { Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType.Name }) }
+                else { Write-Output $allLinkTypes }
+            }
         }
-        else {
-            $parameter = @{
-                URI        = $resourceURi -f ""
-                Method     = "GET"
-                Credential = $Credential
-            }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod @parameter
-            $allLinkTypes = ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes
-
-            if ($LinkType) { Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType.Name }) }
-            else { Write-Output $allLinkTypes }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

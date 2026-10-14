@@ -11,76 +11,113 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential,
+
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
-
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        $cloudResourceUri = "/rest/api/2/group/bulk"
-        $serverResourceUri = "/rest/api/2/group/member"
+            $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
+
+            $cloudResourceUri = "/rest/api/2/group/bulk"
+            $serverResourceUri = "/rest/api/2/group/member"
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        foreach ($group in $GroupName) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$group]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$group [$group]"
+            foreach ($group in $GroupName) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$group]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$group [$group]"
 
-            if ($isCloud) {
-                $parameter = @{
-                    Uri          = $cloudResourceUri
-                    Method       = "GET"
-                    GetParameter = @{ groupName = $group }
-                    Paging       = $true
-                    Credential   = $Credential
-                }
+                if ($isCloud) {
+                    $parameter = @{
+                        Uri          = $cloudResourceUri
+                        Method       = "GET"
+                        GetParameter = @{ groupName = $group }
+                        Paging       = $true
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
-
-                $result = @($result | Where-Object { $_.name -eq $group })
-
-                if ($result.Count -ne 1) {
-                    $message = "Jira did not return exactly one canonical group for '$group'."
-                    WriteError -Cmdlet $PSCmdlet -ExceptionType 'System.Management.Automation.ItemNotFoundException' -Message $message -TargetObject $group -ErrorId 'GroupNotFound' -Category ObjectNotFound
-                    continue
-                }
-
-                $groupResult = Resolve-JiraGroupPayload -InputObject $result[0] -RequestedGroupName $group
-            }
-            else {
-                $parameter = @{
-                    Uri          = $serverResourceUri
-                    Method       = "GET"
-                    GetParameter = @{
-                        groupname  = $group
-                        maxResults = 1
                     }
-                    Credential   = $Credential
+
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+
+                    $result = @($result | Where-Object { $_.name -eq $group })
+
+                    if ($result.Count -ne 1) {
+                        $message = "Jira did not return exactly one canonical group for '$group'."
+                        WriteError -Cmdlet $PSCmdlet -ExceptionType 'System.Management.Automation.ItemNotFoundException' -Message $message -TargetObject $group -ErrorId 'GroupNotFound' -Category ObjectNotFound
+                        continue
+                    }
+
+                    $groupResult = Resolve-JiraGroupPayload -InputObject $result[0] -RequestedGroupName $group
+                }
+                else {
+                    $parameter = @{
+                        Uri          = $serverResourceUri
+                        Method       = "GET"
+                        GetParameter = @{
+                            groupname  = $group
+                            maxResults = 1
+                        }
+
+                    }
+
+                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+
+                    if (-not $result) {
+                        $message = "Jira did not return a canonical group payload for '$group'."
+                        WriteError -Cmdlet $PSCmdlet -ExceptionType 'System.Management.Automation.ItemNotFoundException' -Message $message -TargetObject $group -ErrorId 'GroupNotFound' -Category ObjectNotFound
+                        continue
+                    }
+
+                    $groupResult = Resolve-JiraGroupPayload -InputObject $result -RequestedGroupName $group
                 }
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
-
-                if (-not $result) {
-                    $message = "Jira did not return a canonical group payload for '$group'."
-                    WriteError -Cmdlet $PSCmdlet -ExceptionType 'System.Management.Automation.ItemNotFoundException' -Message $message -TargetObject $group -ErrorId 'GroupNotFound' -Category ObjectNotFound
-                    continue
-                }
-
-                $groupResult = Resolve-JiraGroupPayload -InputObject $result -RequestedGroupName $group
+                Write-Output (ConvertTo-JiraGroup -InputObject $groupResult)
             }
-
-            Write-Output (ConvertTo-JiraGroup -InputObject $groupResult)
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

@@ -10,93 +10,171 @@ permalink: /docs/JiraPS/commands/Remove-JiraSession/
 
 ## SYNOPSIS
 
-[DEPRECATED] Removes a persistent JIRA authenticated session
+Disconnect Jira through the legacy command name.
 
 ## SYNTAX
 
+### Default (Default)
+
 ```powershell
-Remove-JiraSession [[-Session] <Object>] [<CommonParameters>]
+Remove-JiraSession [<CommonParameters>]
+```
+
+### Object
+
+```powershell
+Remove-JiraSession -Connection <AtlassianPS.Connection> [<CommonParameters>]
+```
+
+### Name
+
+```powershell
+Remove-JiraSession -Name <String> [<CommonParameters>]
+```
+
+### Id
+
+```powershell
+Remove-JiraSession -Id <Int32> [<CommonParameters>]
+```
+
+### All
+
+```powershell
+Remove-JiraSession -All [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-> This command has currently no functionality
+Disconnect Jira through the legacy command name.
 
-This function removes a persistent JIRA authenticated session and closes the session for JIRA.
-This can be used to "log out" of JIRA once work is complete.
-
-If called with the Session parameter, this function will attempt to close the provided `AtlassianPS.JiraPS.Session` object.
-
-If called with no parameters, this function will close the saved JIRA session in the module's PrivateData.
+This compatibility name uses the shared connection implementation.
+It does not retain the v2 singleton or AtlassianPS.JiraPS.Session return type.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 
 ```powershell
-New-JiraSession -Credential (Get-Credential jiraUsername)
-Get-JiraIssue TEST-01
-Remove-JiraSession
+$work | Remove-JiraSession
 ```
 
-This example creates a JIRA session for jiraUsername, runs Get-JiraIssue, and closes the JIRA session.
+Disconnect through the compatibility command.
 
 ### EXAMPLE 2
 
 ```powershell
-$s = New-JiraSession -Credential (Get-Credential jiraUsername)
-Remove-JiraSession $s
+Remove-JiraSession
 ```
 
-This example creates a JIRA session and saves it to a variable, then uses the variable reference to
-close the session.
+Disconnect the Jira default.
+
+### EXAMPLE 3
+
+```powershell
+Remove-JiraSession -All
+```
+
+Disconnect every Jira connection.
+
+### EXAMPLE 4
+
+```powershell
+Remove-JiraSession -Name work
+```
+
+Disconnect a named Jira connection.
+
+### EXAMPLE 5
+
+```powershell
+Remove-JiraSession -Id $work.Id
+```
+
+Disconnect by ID.
 
 ## PARAMETERS
 
-### -Session
+### -Connection
 
-A Jira session to be closed.
-
-If not specified, this function will use a saved session.
+Live shared connection for this operation. Session is a compatibility alias. The object must be active in this runspace and belong to Jira.
 
 ```yaml
-Type: Object
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: 0
-  IsRequired: false
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Type: AtlassianPS.Connection
+Parameter Sets: Object
+Aliases: Session
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: True (ByValue)
+Accept wildcard characters: False
+```
+
+### -Name
+
+Friendly connection name, unique without case sensitivity within Jira.
+
+```yaml
+Type: String
+Parameter Sets: Name
+Aliases: None
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Id
+
+Runtime numeric connection ID, unique across products for the current shared runtime.
+
+```yaml
+Type: Int32
+Parameter Sets: Id
+Aliases: None
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -All
+
+Disconnect every Jira connection. Without a selector or All, Disconnect-Jira removes only the current Jira default.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: All
+Aliases: None
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+Supports standard PowerShell common parameters.
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Session
+### AtlassianPS.Connection
 
 ## OUTPUTS
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+Connections belong to one runspace and are never persisted as profiles.
 
 ## RELATED LINKS
 
-[Get-JiraSession](../Get-JiraSession/)
+[Shared authentication](https://atlassianps.org/docs/AtlassianPS.Configuration/about/authentication.html)
 
-[New-JiraSession](../New-JiraSession/)
+[Jira authentication](https://atlassianps.org/docs/JiraPS/about/authentication.html)

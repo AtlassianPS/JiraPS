@@ -17,50 +17,87 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential,
+
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
-
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $resourceURi = "/rest/api/2/issueLink/{0}"
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+            $resourceURi = "/rest/api/2/issueLink/{0}"
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        $linksToRemove = switch ($PSCmdlet.ParameterSetName) {
-            'ByIssue' {
-                foreach ($currentIssue in $Issue) {
-                    $resolvedIssue = if ($currentIssue.IssueLinks) { $currentIssue }
-                    else {
-                        Resolve-JiraIssueObject -InputObject $currentIssue -Credential $Credential -ErrorAction Stop
-                    }
+            $linksToRemove = switch ($PSCmdlet.ParameterSetName) {
+                'ByIssue' {
+                    foreach ($currentIssue in $Issue) {
+                        $resolvedIssue = if ($currentIssue.IssueLinks) { $currentIssue }
+                        else {
+                            Resolve-JiraIssueObject -InputObject $currentIssue -RequestContext $RequestContext -ErrorAction Stop
+                        }
 
-                    foreach ($link in @($resolvedIssue.IssueLinks)) {
-                        if ($link) { $link }
+                        foreach ($link in @($resolvedIssue.IssueLinks)) {
+                            if ($link) { $link }
+                        }
                     }
                 }
+                default { $IssueLink }
             }
-            default { $IssueLink }
+
+            foreach ($link in $linksToRemove) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$link]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$link [$link]"
+
+                $parameter = @{
+                    URI    = $resourceURi -f $link.id
+                    Method = "DELETE"
+
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+            }
         }
-
-        foreach ($link in $linksToRemove) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$link]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$link [$link]"
-
-            $parameter = @{
-                URI        = $resourceURi -f $link.id
-                Method     = "DELETE"
-                Credential = $Credential
-            }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) { Invoke-JiraMethod @parameter }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

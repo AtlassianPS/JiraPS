@@ -231,13 +231,12 @@ function Connect-JiraTestServer {
         Data Center, depending on `$Environment.IsCloud`) and creates an authenticated
         session using the credentials from the environment configuration.
 
-        - Cloud: uses `New-JiraSession -ApiToken -EmailAddress` (Atlassian API token).
-        - Data Center: uses `New-JiraSession -Credential` with admin Basic auth (the
+        - Cloud: uses `Connect-Jira -ApiToken -EmailAddress` (Atlassian API token).
+        - Data Center: uses `Connect-Jira -Credential` with admin Basic auth (the
           moveworkforward/atlas-run-standalone Docker container ships with `admin/admin`
           and Wait-JiraServer.ps1 provisions a normal user on top).
 
-        Only calls Set-JiraConfigServer if the URL differs from current config,
-        avoiding unnecessary file writes in parallel test runs.
+        Selects an in-memory default without changing saved endpoint profiles.
 
     .PARAMETER Environment
         The environment configuration object from Initialize-IntegrationEnvironment.
@@ -269,36 +268,21 @@ function Connect-JiraTestServer {
         if (-not $Environment) { throw "Integration environment not configured. See .env.example for required variables." }
     }
 
-    $currentServer = Get-JiraConfigServer -ErrorAction SilentlyContinue
-    if (-not $currentServer -or $currentServer.ToString().TrimEnd('/') -ne $Environment.CloudUrl) {
-        Set-JiraConfigServer -Server $Environment.CloudUrl
-    }
-
-    if ($Environment.IsCloud) {
-        $secureToken = ConvertTo-SecureString -String $Environment.Password -AsPlainText -Force
-        $session = New-JiraSession -ApiToken $secureToken -EmailAddress $Environment.Username
-        if (-not $session) {
-            throw "Failed to establish Jira session. Check credentials and server URL. For Jira Cloud, JIRA_CLOUD_PASSWORD must be an API token (not your account password)."
+    $name = '__integration-default'
+    $existing = Get-JiraConnection -Name $name
+    if ($existing) { $existing | Disconnect-Jira }
+    $parameters = @{ Name = $name; Uri = $Environment.CloudUrl; Default = $true }
+    $secureSecret = ConvertTo-SecureString -String $Environment.Password -AsPlainText -Force
+    try {
+        if ($Environment.IsCloud) {
+            $session = Connect-Jira @parameters -ApiToken $secureSecret -EmailAddress $Environment.Username
         }
-        Write-Verbose "Connected to Jira Cloud: $($Environment.CloudUrl)"
-    }
-    else {
-        # Server / Data Center: send Basic auth proactively via an explicit Authorization
-        # header. PowerShell's `Invoke-WebRequest -Credential` uses challenge-response
-        # (it sends the first request unauthenticated and only retries with credentials
-        # if the server responds with `WWW-Authenticate: Basic`). Atlassian Seraph on
-        # /rest/api/2/myself does not always advertise Basic in its 401, so the retry
-        # never happens and the JiraPS session never gets established. Sending the
-        # header up-front bypasses the handshake entirely and matches what
-        # Wait-JiraServer.ps1 does successfully against the same image.
-        $authPair = "$($Environment.Username):$($Environment.Password)"
-        $basicAuthHeader = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($authPair))
-        $session = New-JiraSession -Headers @{ Authorization = $basicAuthHeader }
-        if (-not $session) {
-            throw "Failed to establish Jira session. Check credentials and server URL. For Jira Data Center, CI_JIRA_ADMIN_PASSWORD must be the admin user's password (default: 'admin' for the moveworkforward/atlas-run-standalone image)."
+        else {
+            $credential = [PSCredential]::new($Environment.Username, $secureSecret)
+            $session = Connect-Jira @parameters -Credential $credential
         }
-        Write-Verbose "Connected to Jira Data Center: $($Environment.CloudUrl)"
     }
+    finally { $secureSecret.Dispose() }
 
     # Sweep stale resources from previous failed runs once per runspace.
     # Remove-StaleTestResource short-circuits via $script:_CleanupInProgress, so

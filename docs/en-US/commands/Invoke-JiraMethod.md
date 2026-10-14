@@ -15,12 +15,7 @@ Invoke a specific call to a Jira REST Api endpoint
 ## SYNTAX
 
 ```powershell
-Invoke-JiraMethod [-URI] <uri> [[-Method] <WebRequestMethod>] [[-Body] <string>]
- [[-Headers] <hashtable>] [[-GetParameter] <hashtable>] [[-InFile] <string>] [[-OutFile] <string>]
- [[-OutputType] <string>] [[-Credential] <pscredential>] [[-Cmdlet] <PSCmdlet>]
- [[-CacheKey] <string>] [[-CacheExpiry] <timespan>] [-RawBody] [-Paging]
- [-StoreSession] [-BypassCache] [-TimeoutSec <int>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
- [<CommonParameters>]
+Invoke-JiraMethod -URI <Uri> [-Method <WebRequestMethod>] [-Body <String>] [-RawBody] [-Headers <Hashtable>] [-GetParameter <Hashtable>] [-Paging] [-InFile <String>] [-OutFile <String>] [-StoreSession] [-OutputType <String>] [-Credential <PSCredential>] [-CacheKey <String>] [-CacheExpiry <TimeSpan>] [-BypassCache] [-TimeoutSec <Int32>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-BaseUri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -342,26 +337,18 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use for the authentication with the REST Api.
-
-If none are provided, `Get-JiraSession` will be used for authentication.
-If no sessions is available, the request will be executed anonymously.
+Username/password or compatible Cloud email/token as PSCredential. Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection. An empty credential fails; omitted input uses the selected connection.
 
 ```yaml
 Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: 8
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### -First
@@ -408,23 +395,18 @@ HelpMessage: ''
 
 ### -Headers
 
-Define a key-value set of HTTP headers that should be used in the call.
+Ordinary request headers. Authorization and Cookie headers are rejected; supply authentication through the supported parameters.
 
 ```yaml
 Type: Hashtable
-DefaultValue: '@{}'
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: 3
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### -IncludeTotalCount
@@ -616,23 +598,18 @@ HelpMessage: ''
 
 ### -StoreSession
 
-Instead of returning the response, it returns a `[AtlassianPS.JiraPS.Session]` which contains the `[WebRequestSession]`.
+Obsolete in this connection API. Use Connect-Jira rather than transport session capture.
 
 ```yaml
 Type: SwitchParameter
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### -TimeoutSec
@@ -686,6 +663,118 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -Connection
+
+Live shared connection for this operation. Session is a compatibility alias. The object must be active in this runspace and belong to Jira.
+
+```yaml
+Type: AtlassianPS.Connection
+Parameter Sets: (All)
+Aliases: Session
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ConnectionName
+
+Case-insensitive name of an active Jira connection. Server and ServerName are compatibility aliases. This parameter is mutually exclusive with Connection and a standalone endpoint.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases: Server, ServerName
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -BaseUri
+
+Standalone Jira product endpoint. Uri remains the REST resource. Cannot be combined with Connection or ConnectionName. Normal HTTPS Cloud site URLs discover their gateway for ApiToken authentication.
+
+```yaml
+Type: Uri
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -EmailAddress
+
+Cloud authentication email for ApiToken. Email is an alias. An override must supply both its own email and token.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases: Email
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ApiToken
+
+Cloud API token as a nonempty string or SecureString. Supply the authentication email in the same call. The module normalizes the secret and resolves a normal Cloud site URL automatically.
+
+```yaml
+Type: Object
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -PersonalAccessToken
+
+Data Center PAT as a nonempty string or SecureString. PAT and BearerToken are aliases. No dummy username is required.
+
+```yaml
+Type: Object
+Parameter Sets: (All)
+Aliases: PAT, BearerToken
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Anonymous
+
+Explicit anonymous authentication when the Jira endpoint permits it. Never borrows the default connection identity.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -703,6 +792,20 @@ This command is designed to handle JSON responses only.
 The response is convert to PSCustomObject with `ConvertFrom-Json`
 
 ## NOTES
+
+Uri is a REST resource and retains that meaning.
+Use BaseUri to supply a standalone product endpoint.
+Relative resources preserve application and gateway context paths.
+Absolute URLs must match the selected endpoint; matching Cloud site REST URLs are mapped to its resolved gateway.
+Foreign origins, redirects and escaped context paths fail before a second authenticated request.
+When no connection is selected, supply BaseUri rather than relying on an arbitrary absolute resource URL.
+
+Uri is a REST resource and retains that meaning.
+Use BaseUri to supply a standalone product endpoint.
+Relative resources preserve application and gateway context paths.
+Absolute URLs must match the selected endpoint; matching Cloud site REST URLs are mapped to its resolved gateway.
+Foreign origins, redirects and escaped context paths fail before a second authenticated request.
+When no connection is selected, supply BaseUri rather than relying on an arbitrary absolute resource URL.
 
 ## RELATED LINKS
 

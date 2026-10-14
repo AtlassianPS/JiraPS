@@ -24,7 +24,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraUser -ModuleName JiraPS {
+            Mock Get-JiraUserOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser'
                 $object = [PSCustomObject] @{
                     'Name' = 'username'

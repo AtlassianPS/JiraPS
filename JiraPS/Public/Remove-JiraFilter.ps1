@@ -12,39 +12,76 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
-    )
+        $Credential,
 
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
+    )
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        $filters = foreach ($item in $InputObject) {
-            if ($item.RestUrl) { $item }
-            else {
-                Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop
+            $filters = foreach ($item in $InputObject) {
+                if ($item.RestUrl) { $item }
+                else {
+                    Get-JiraFilterOperation -Id $item.Id -RequestContext $RequestContext -ErrorAction Stop
+                }
+            }
+
+            foreach ($filter in $filters) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filter]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filter [$filter]"
+
+                $parameter = @{
+                    URI    = $filter.RestURL
+                    Method = 'DELETE'
+
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
         }
-
-        foreach ($filter in $filters) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filter]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filter [$filter]"
-
-            $parameter = @{
-                URI        = $filter.RestURL
-                Method     = 'DELETE'
-                Credential = $Credential
-            }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) { Invoke-JiraMethod @parameter }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

@@ -46,7 +46,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraIssue {
+            Mock Get-JiraIssueOperation {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     RestURL = 'https://jira.example.com/rest/api/2/issue/12345'

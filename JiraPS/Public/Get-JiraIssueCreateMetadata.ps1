@@ -16,52 +16,58 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
-    )
+        $Credential,
 
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
+    )
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $isCloud = Test-JiraCloudServer -Credential $Credential
-        $resourceURi = "/rest/api/2/issue/createmeta/{0}/issuetypes/{1}"
-    }
-
-    process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
-        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {
-            if ($null -ne $IssueType.Id) { $_.Id -eq $IssueType.Id } else { $_.Name -eq $IssueType.Name }
-        }
-
-        if ($null -eq $issueTypeObj.Id) {
-            $errorMessage = @{
-                Category         = "InvalidResult"
-                CategoryActivity = "Validating parameters"
-                Message          = "No issue types were found in the project [$Project] for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $operationParameters = @{ RequestContext = $requestContext }
+        foreach ($parameterName in $PSBoundParameters.Keys) {
+            if ($parameterName -notin @('Connection', 'ConnectionName', 'Uri', 'Credential', 'EmailAddress', 'ApiToken', 'PersonalAccessToken', 'Anonymous')) {
+                $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
             }
-            Write-Error @errorMessage
         }
-
-        $parameter = @{
-            URI          = ConvertTo-JiraRestApiV3Url -Url ($resourceURi -f $projectObj.Id, $issueTypeObj.Id) -IsCloud $isCloud
-            Method       = "GET"
-            GetParameter = @{ maxResults = $script:DefaultPageSize }
-            Paging       = $true
-            Credential   = $Credential
+        try {
+            $operation = { Get-JiraIssueCreateMetadataOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+            $operation.Begin($PSCmdlet)
         }
-
-        # Forward PowerShell's SupportsPaging common parameters (First/Skip/IncludeTotalCount)
-        ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
-            $parameter[$_] = $PSCmdlet.PagingParameters.$_
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
         }
-
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        Invoke-JiraMethod @parameter | ConvertTo-JiraCreateMetaField
     }
-
+    process {
+        try { $operation.Process($_) }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
+        }
+    }
     end {
+        try { $operation.End() }
+        finally {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+        }
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

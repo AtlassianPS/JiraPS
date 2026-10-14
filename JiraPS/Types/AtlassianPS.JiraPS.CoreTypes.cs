@@ -280,21 +280,6 @@ namespace AtlassianPS.JiraPS
         }
     }
 
-    public class Session
-    {
-        // Runtime type is Microsoft.PowerShell.Commands.WebRequestSession.
-        public object WebSession { get; set; }
-        public string Username { get; set; }
-        public string JSessionID { get; set; }
-
-        public Session() { }
-
-        public override string ToString()
-        {
-            if (string.IsNullOrEmpty(JSessionID)) { return "JiraSession"; }
-            return string.Format("JiraSession[JSessionID={0}]", JSessionID);
-        }
-    }
 
     public class ServerInfo
     {

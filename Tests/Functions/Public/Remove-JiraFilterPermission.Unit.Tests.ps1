@@ -1,4 +1,6 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Nonsecret unit-test credential fixture.')]
+param()
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
@@ -42,7 +44,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraFilter -ModuleName JiraPS {
+            Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'Id'
                 $basicFilter
             }
@@ -87,13 +89,13 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             Context "Permission Deletion" {
                 It "uses credentials for both filter hydration and permission deletion" {
-                    $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
+                    $credential = [PSCredential]::new('filter-owner', (ConvertTo-SecureString 'fixture-password' -AsPlainText -Force))
                     Remove-JiraFilterPermission -FilterId 23456 -PermissionId 1111 -Credential $credential -Confirm:$false
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
-                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
+                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
+                        $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
                     }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
                 }
 
                 It "does not delete permissions under WhatIf" {
@@ -111,7 +113,7 @@ InModuleScope JiraPS {
                     $permission = [AtlassianPS.JiraPS.FilterPermission]@{ Id = 1111 }
                     $filter | Remove-JiraFilterPermission -Permission $permission -Confirm:$false
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 0
+                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 0
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/1111' }
                 }
 
@@ -218,7 +220,7 @@ InModuleScope JiraPS {
                 It "finds the filter by FilterId" {
                     { Remove-JiraFilterPermission -FilterId 1 -PermissionId 1111 } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "can process multiple PermissionIds" {

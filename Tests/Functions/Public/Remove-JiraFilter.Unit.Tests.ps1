@@ -1,4 +1,6 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Nonsecret unit-test credential fixture.')]
+param()
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
@@ -77,7 +79,7 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Get-JiraFilter -ModuleName JiraPS {
+            Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
                 foreach ($i in $InputObject) {
                     ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
@@ -140,20 +142,20 @@ InModuleScope JiraPS {
                     $arguments = @{ $parameter = '12844'; Confirm = $false }
                     Remove-JiraFilter @arguments
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $InputObject.Id -eq 12844 }
+                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter { $InputObject.Id -eq 12844 }
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'DELETE' -and $URI -like '*/filter/12844'
                     }
                 }
 
                 It "forwards credentials when resolving filter IDs and deleting filters" {
-                    $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
+                    $credential = [PSCredential]::new('filter-owner', (ConvertTo-SecureString 'fixture-password' -AsPlainText -Force))
                     Remove-JiraFilter -Id 12844 -Credential $credential -Confirm:$false
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
-                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
+                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
+                        $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
                     }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
                 }
 
                 It "does not delete any filters when a later array lookup fails through '<parameter>'" -TestCases @(
@@ -161,14 +163,14 @@ InModuleScope JiraPS {
                     @{ parameter = 'Id' }
                 ) {
                     param($parameter)
-                    Mock Get-JiraFilter -ModuleName JiraPS -ParameterFilter { $InputObject.Id -eq 67890 } {
+                    Mock Get-JiraFilterOperation -ModuleName JiraPS -ParameterFilter { $InputObject.Id -eq 67890 } {
                         throw 'Filter 67890 is not accessible.'
                     }
                     $arguments = @{ $parameter = @(12844, 67890); Confirm = $false }
 
                     { Remove-JiraFilter @arguments } | Should -Throw -ExpectedMessage '*Filter 67890 is not accessible*'
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 2
+                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 0 -ParameterFilter { $Method -eq 'DELETE' }
                 }
 
@@ -186,7 +188,7 @@ InModuleScope JiraPS {
                     }
                     $filter | Remove-JiraFilter -Confirm:$false
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 0
+                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 0
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1
                 }
 
@@ -199,7 +201,7 @@ InModuleScope JiraPS {
                 It "deletes a filter based on one or more filter ids" {
                     { Remove-JiraFilter -Id 12844 } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 1
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844' }
                 }
             }

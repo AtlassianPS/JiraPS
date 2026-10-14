@@ -13,7 +13,15 @@ Import-Module AtlassianPS.Standards -RequiredVersion $script:_StandardsRequireme
 # to the shared Standards primitives.
 
 function Initialize-TestEnvironment {
-    Initialize-AtlassianPSModuleTestEnvironment -ModuleName 'JiraPS' -StartPath $script:_TestToolsDir -Global
+    $env:ATLASSIANPS_CONFIGURATION_ROOT = Join-Path ([IO.Path]::GetTempPath()) ('jiraps-tests-' + $PID)
+    $manifest = Initialize-AtlassianPSModuleTestEnvironment -ModuleName 'JiraPS' -StartPath $script:_TestToolsDir -Global
+    $integrationCall = @(Get-PSCallStack | Where-Object { $_.ScriptName -match '[\\/]Integration[\\/]' }).Count -gt 0
+    if (-not $integrationCall -and -not (AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira -Default)) {
+        $candidate = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name '__unit-fixture' -Product Jira -BaseUri https://jira.example.com -Anonymous
+        $candidate.SetValidationResult('Server', $null)
+        $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $candidate
+    }
+    $manifest
 }
 
 function Resolve-ModuleSource {

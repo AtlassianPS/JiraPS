@@ -1,4 +1,6 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Nonsecret unit-test credential fixture.')]
+param()
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
@@ -118,7 +120,7 @@ InModuleScope JiraPS {
                 $i
             }
 
-            Mock Get-JiraFilter -ModuleName JiraPS {
+            Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
                 foreach ($item in $InputObject) {
                     [AtlassianPS.JiraPS.Filter]@{
@@ -169,7 +171,7 @@ InModuleScope JiraPS {
 
             Context "Default Values" {
                 It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
+                    @{ parameter = "Credential"; defaultValue = $null }
                 ) {
                     $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
                 }
@@ -235,13 +237,13 @@ InModuleScope JiraPS {
 
             Context "Filter ID Input" {
                 It "forwards credentials when resolving filter IDs and adding permissions" {
-                    $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
+                    $credential = [PSCredential]::new('filter-owner', (ConvertTo-SecureString 'fixture-password' -AsPlainText -Force))
                     Add-JiraFilterPermission -Id 12844 -Type Global -Credential $credential -Confirm:$false
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
-                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
+                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
+                        $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
                     }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
                 }
 
                 It "does not add permissions under WhatIf" {
@@ -284,7 +286,7 @@ InModuleScope JiraPS {
                 It "can find a filter by it's Id" {
                     { Add-JiraFilterPermission -Id 1 -Type "Global" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 
@@ -296,7 +298,7 @@ InModuleScope JiraPS {
                 It "allows for the filter's Id to be passed over the pipeline" {
                     { 1, 2 | Add-JiraFilterPermission -Type "Global" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 2
                 }
             }
 
@@ -313,7 +315,7 @@ InModuleScope JiraPS {
                 It "can process multiple FilterIds" {
                     { Add-JiraFilterPermission -Id 1, 2, 3, 4, 5 -Type "Global" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 5
+                    Should -Invoke -CommandName Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 5
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 5
                 }
             }

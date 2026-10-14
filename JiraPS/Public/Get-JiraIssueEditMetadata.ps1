@@ -6,54 +6,62 @@
         [Parameter( Mandatory )]
         [String]
         $Issue,
-        <#
-          #ToDo:CustomClass
-          Now that we have custom classes, this could be typed as [AtlassianPS.JiraPS.Issue]
-        #>
 
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
-    )
+        $Credential,
 
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
+    )
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $resourceURi = "/rest/api/2/issue/{0}/editmeta"
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $operationParameters = @{ RequestContext = $requestContext }
+        foreach ($parameterName in $PSBoundParameters.Keys) {
+            if ($parameterName -notin @('Connection', 'ConnectionName', 'Uri', 'Credential', 'EmailAddress', 'ApiToken', 'PersonalAccessToken', 'Anonymous')) {
+                $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
+            }
+        }
+        try {
+            $operation = { Get-JiraIssueEditMetadataOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+            $operation.Begin($PSCmdlet)
+        }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
+        }
     }
-
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        $parameter = @{
-            URI        = $resourceURi -f $Issue
-            <#
-              #ToDo:CustomClass
-              When the Input is typecasted to a AtlassianPS.JiraPS.Issue, the `self` of the issue can be used
-            #>
-            Method     = "GET"
-            Credential = $Credential
-        }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
-
-        Write-Debug ($result | Out-String)
-
-        if ($result) { Write-Output (ConvertTo-JiraEditMetaField -InputObject $result) }
-        else {
-            $exception = ([System.ArgumentException]"No results")
-            $errorId = 'IssueMetadata.ObjectNotFound'
-            $errorCategory = 'ObjectNotFound'
-            $errorTarget = $Issue
-            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-            $errorItem.ErrorDetails = "No edit metadata found for issue [$Issue]."
-            $PSCmdlet.ThrowTerminatingError($errorItem)
+        try { $operation.Process($_) }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
         }
     }
-
     end {
+        try { $operation.End() }
+        finally {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+        }
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

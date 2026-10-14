@@ -82,9 +82,6 @@ InModuleScope JiraPS {
             Mock Test-ServerResponse -ModuleName 'JiraPS' {
                 Write-MockDebugInfo 'Test-ServerResponse'
             }
-            Mock ConvertTo-JiraSession -ModuleName 'JiraPS' {
-                Write-MockDebugInfo 'ConvertTo-JiraSession'
-            }
             foreach ($type in $supportedTypes) {
                 Mock -CommandName "ConvertTo-$type" -ModuleName 'JiraPS' {
                     Write-MockDebugInfo "ConvertTo-$type"
@@ -188,7 +185,7 @@ InModuleScope JiraPS {
 
         Describe "Behavior" {
             It "uses Invoke-WebMethod under the hood" {
-                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop
 
                 $assertMockCalledSplat = @{
                     CommandName = 'Invoke-WebRequest'
@@ -201,19 +198,19 @@ InModuleScope JiraPS {
             }
 
             It "parses a JSON response" {
-                $response = Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+                $response = Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop
 
                 $response | Should -BeOfType [PSCustomObject]
             }
 
             It "resolves errors" {
-                Invoke-JiraMethod -URI "https://postman-echo.com/status/400" -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/status/400" -ErrorAction Stop
 
                 Should -Invoke -CommandName Resolve-ErrorWebResponse -ModuleName 'JiraPS' -Exactly -Times 1
             }
 
             It "supports TLS1.2 connections" {
-                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop
 
                 Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -Exactly -Times 2
                 Should -Invoke -CommandName Set-TlsLevel -ModuleName 'JiraPS' -ParameterFilter { $Tls12 -eq $true } -Exactly -Times 1
@@ -221,7 +218,7 @@ InModuleScope JiraPS {
             }
 
             It "uses global default values for parameters" {
-                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop
 
                 Should -Invoke -CommandName Resolve-DefaultParameterValue -ModuleName 'JiraPS' -Exactly -Times 1
             }
@@ -235,7 +232,7 @@ InModuleScope JiraPS {
                 Mock Write-DebugMessage -ModuleName 'JiraPS' {}
 
                 $script:JiraResponseHeaderLogConfiguration = $null
-                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop
 
                 Should -Invoke -CommandName Write-DebugMessage -ModuleName 'JiraPS' -ParameterFilter {
                     $Message -like '*Jira response headers*'
@@ -253,7 +250,7 @@ InModuleScope JiraPS {
                 Mock Write-DebugMessage -ModuleName 'JiraPS' {}
 
                 Set-JiraResponseHeaderLogConfiguration -Include 'X-A*' -Exclude 'X-Auth*'
-                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop
 
                 Should -Invoke -CommandName Write-DebugMessage -ModuleName 'JiraPS' -ParameterFilter {
                     $Message -like '*Jira response headers*'
@@ -267,14 +264,14 @@ InModuleScope JiraPS {
 
             It "logs configured response headers from terminal error responses" {
                 Mock Invoke-WebRequest -ModuleName 'JiraPS' {
-                    New-FakeEchoResponse -Uri ([Uri]'https://postman-echo.com/status/400') -Method $Method -Body $Body -Headers $Headers -ResponseHeaders @{
+                    New-FakeEchoResponse -Uri ([Uri]'https://jira.example.com/status/400') -Method $Method -Body $Body -Headers $Headers -ResponseHeaders @{
                         'X-AREQUESTID' = 'failed-request-123'
                     }
                 }
                 Mock Write-DebugMessage -ModuleName 'JiraPS' {}
 
                 Set-JiraResponseHeaderLogConfiguration -Pattern '^X-A(?!uth)'
-                Invoke-JiraMethod -URI "https://postman-echo.com/status/400" -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/status/400" -ErrorAction Stop
 
                 Should -Invoke -CommandName Write-DebugMessage -ModuleName 'JiraPS' -ParameterFilter {
                     $Message -like '*X-AREQUESTID*failed-request-123*'
@@ -294,7 +291,7 @@ InModuleScope JiraPS {
                 Mock Write-DebugMessage -ModuleName 'JiraPS' {}
 
                 Set-JiraResponseHeaderLogConfiguration -Include '*'
-                Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop
 
                 Should -Invoke -CommandName Write-DebugMessage -ModuleName 'JiraPS' -ParameterFilter {
                     $Message -like '*X-ANODEID*node-1*' -and
@@ -315,19 +312,19 @@ InModuleScope JiraPS {
 
                 Set-JiraResponseHeaderLogConfiguration -Include '*'
 
-                { Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop } | Should -Not -Throw
+                { Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop } | Should -Not -Throw
             }
         }
 
         Context "Input testing" {
             It "parses a string to URi" {
-                [Uri]$Uri = "https://postman-echo.com/get?test=123"
+                [Uri]$Uri = "https://jira.example.com/get?test=123"
                 $Uri | Should -BeOfType [Uri]
 
-                { Invoke-JiraMethod -URI "https://postman-echo.com/get?test=123" -ErrorAction Stop } | Should -Not -Throw
+                { Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop } | Should -Not -Throw
                 { Invoke-JiraMethod -URI $Uri -ErrorAction Stop } | Should -Not -Throw
 
-                { Invoke-JiraMethod -URI "hello" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*must start with '/'*"
+                { Invoke-JiraMethod -URI "hello" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*must start with one slash*"
             }
 
             It "resolves relative URIs against configured Jira server" {
@@ -338,10 +335,14 @@ InModuleScope JiraPS {
                 } -Exactly -Times 1
             }
 
-            It "throws when relative URI is used without configured Jira server" {
-                Mock Get-JiraConfigServer -ModuleName 'JiraPS' { $null }
-
-                { Invoke-JiraMethod -URI "/rest/api/2/field" -ErrorAction Stop } | Should -Throw -ExpectedMessage "*no Jira server is configured*"
+            It 'requires a selected connection before resolving relative resources' {
+                $previous = Get-JiraConnection -Default
+                & (Get-Module AtlassianPS.Configuration) { $script:DefaultConnections.Remove('Jira') }
+                try {
+                    { Invoke-JiraMethod -Uri '/rest/api/2/field' -ErrorAction Stop } | Should -Throw '*No Jira connection selected*'
+                    Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 0 -Exactly
+                }
+                finally { $previous | Select-JiraConnection | Out-Null }
             }
 
             It "validates URI before returning cached data" {
@@ -352,11 +353,11 @@ InModuleScope JiraPS {
                     }
                 }
 
-                { Invoke-JiraMethod -URI "hello" -CacheKey 'TestCache' -ErrorAction Stop } | Should -Throw -ExpectedMessage "*must start with '/'*"
+                { Invoke-JiraMethod -URI "hello" -CacheKey 'TestCache' -ErrorAction Stop } | Should -Throw -ExpectedMessage "*must start with one slash*"
             }
 
             It "accepts [<_>] as HTTP method" -ForEach @('GET', 'POST', 'PUT', 'DELETE') {
-                Invoke-JiraMethod -Method $_ -URI "https://postman-echo.com/$_" -ErrorAction Stop
+                Invoke-JiraMethod -Method $_ -URI "https://jira.example.com/$_" -ErrorAction Stop
 
                 $assertMockCalledSplat = @{
                     CommandName     = 'Invoke-WebRequest'
@@ -374,7 +375,7 @@ InModuleScope JiraPS {
             It "encodes the Body with UTF-8 to support special chars" {
                 $invokeJiraMethodSplat = @{
                     Method = 'Post'
-                    URI    = "https://postman-echo.com/post"
+                    URI    = "https://jira.example.com/post"
                     Body   = $utf8String
                 }
                 Invoke-JiraMethod @invokeJiraMethodSplat
@@ -397,7 +398,7 @@ InModuleScope JiraPS {
             It "allows for skipping the UTF-8 encoding of the Body" {
                 $invokeJiraMethodSplat = @{
                     Method  = 'Post'
-                    URI     = "https://postman-echo.com/post"
+                    URI     = "https://jira.example.com/post"
                     Body    = $utf8String
                     RawBody = $true
                 }
@@ -434,7 +435,7 @@ InModuleScope JiraPS {
                     $table
                 }
 
-                $null = Invoke-JiraMethod -Method 'Get' -URI 'https://postman-echo.com/headers' -ErrorAction SilentlyContinue
+                $null = Invoke-JiraMethod -Method 'Get' -URI 'https://jira.example.com/headers' -ErrorAction SilentlyContinue
 
                 Should -Invoke -CommandName 'Invoke-WebRequest' -ModuleName 'JiraPS' -Exactly -Times 1 -ParameterFilter {
                     $Headers.ContainsKey('X-From-Default') -and $Headers['X-From-Default'] -eq 'default-value'
@@ -454,7 +455,7 @@ InModuleScope JiraPS {
 
                 $global:PSDefaultParameterValues['Invoke-WebRequest:Headers'] = @{ 'X-Precedence' = 'from-global' }
                 try {
-                    $null = Invoke-JiraMethod -Method 'Get' -URI 'https://postman-echo.com/headers' -Header @{ 'X-Precedence' = 'from-param' } -ErrorAction SilentlyContinue
+                    $null = Invoke-JiraMethod -Method 'Get' -URI 'https://jira.example.com/headers' -Header @{ 'X-Precedence' = 'from-param' } -ErrorAction SilentlyContinue
 
                     Should -Invoke -CommandName 'Invoke-WebRequest' -ModuleName 'JiraPS' -Exactly -Times 1 -ParameterFilter {
                         $Headers['X-Precedence'] -eq 'from-param'
@@ -476,7 +477,7 @@ InModuleScope JiraPS {
                     $table
                 }
 
-                $null = Invoke-JiraMethod -Method 'Get' -URI 'https://postman-echo.com/headers' -Header @{ 'X-Override' = 'caller-value' } -ErrorAction SilentlyContinue
+                $null = Invoke-JiraMethod -Method 'Get' -URI 'https://jira.example.com/headers' -Header @{ 'X-Override' = 'caller-value' } -ErrorAction SilentlyContinue
 
                 Should -Invoke -CommandName 'Invoke-WebRequest' -ModuleName 'JiraPS' -Exactly -Times 1 -ParameterFilter {
                     $Headers.ContainsKey('X-Override') -and $Headers['X-Override'] -eq 'caller-value'
@@ -486,7 +487,7 @@ InModuleScope JiraPS {
             It "passes the -InFile to Invoke-WebRequest" {
                 $invokeJiraMethodSplat = @{
                     Method = 'Post'
-                    URI    = "https://postman-echo.com/post"
+                    URI    = "https://jira.example.com/post"
                     InFile = "./file-does-not-exist.txt"
                 }
                 Invoke-JiraMethod @invokeJiraMethodSplat
@@ -507,7 +508,7 @@ InModuleScope JiraPS {
             It "passes the -OutFile to Invoke-WebRequest" {
                 $invokeJiraMethodSplat = @{
                     Method  = 'Post'
-                    URI     = "https://postman-echo.com/post"
+                    URI     = "https://jira.example.com/post"
                     OutFile = "./file-does-not-exist.txt"
                 }
                 Invoke-JiraMethod @invokeJiraMethodSplat
@@ -526,7 +527,7 @@ InModuleScope JiraPS {
             }
 
             It "forwards the default 100s -TimeoutSec to Invoke-WebRequest" {
-                Invoke-JiraMethod -URI "https://postman-echo.com/get" -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/get" -ErrorAction Stop
 
                 Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $TimeoutSec -eq 100
@@ -534,7 +535,7 @@ InModuleScope JiraPS {
             }
 
             It "forwards an explicit -TimeoutSec to Invoke-WebRequest" {
-                Invoke-JiraMethod -URI "https://postman-echo.com/get" -TimeoutSec 30 -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/get" -TimeoutSec 30 -ErrorAction Stop
 
                 Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $TimeoutSec -eq 30
@@ -542,7 +543,7 @@ InModuleScope JiraPS {
             }
 
             It "omits TimeoutSec from the Invoke-WebRequest splat when -TimeoutSec is 0" {
-                Invoke-JiraMethod -URI "https://postman-echo.com/get" -TimeoutSec 0 -ErrorAction Stop
+                Invoke-JiraMethod -URI "https://jira.example.com/get" -TimeoutSec 0 -ErrorAction Stop
 
                 Should -Invoke -CommandName Invoke-WebRequest -ModuleName 'JiraPS' -ParameterFilter {
                     -not $PSBoundParameters.ContainsKey('TimeoutSec')
@@ -550,34 +551,18 @@ InModuleScope JiraPS {
             }
 
             It "rejects a negative -TimeoutSec via ValidateRange" {
-                { Invoke-JiraMethod -URI "https://postman-echo.com/get" -TimeoutSec -1 -ErrorAction Stop } |
+                { Invoke-JiraMethod -URI "https://jira.example.com/get" -TimeoutSec -1 -ErrorAction Stop } |
                     Should -Throw -ErrorId 'ParameterArgumentValidationError,Invoke-JiraMethod'
             }
 
-            It "uses ConvertTo-JiraSession to store the Session" {
-                $invokeJiraMethodSplat = @{
-                    Method       = 'Get'
-                    URI          = "https://postman-echo.com/get"
-                    StoreSession = $true
-                    ErrorAction  = "Stop"
-                }
-                Invoke-JiraMethod @invokeJiraMethodSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName     = "Invoke-WebRequest"
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = { $SessionVariable -eq "newSessionVar" }
-                    Exactly         = $true
-                    Times           = 1
-                    Scope           = 'It'
-                }
-                Should -Invoke @assertMockCalledSplat
-                Should -Invoke -CommandName ConvertTo-JiraSession -ModuleName 'JiraPS' -Exactly -Times 1
+            It 'directs obsolete StoreSession callers to Connect-Jira' {
+                { Invoke-JiraMethod -Uri '/get' -StoreSession } | Should -Throw '*Connect-Jira*'
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 0 -Exactly
             }
 
             foreach ($type in $supportedTypes) {
                 It "uses ConvertTo-$type to transform the results" {
-                    Invoke-JiraMethod -Method get -URI "https://postman-echo.com/get" -OutputType $type -Paging -ErrorAction Stop
+                    Invoke-JiraMethod -Method get -URI "https://jira.example.com/get" -OutputType $type -Paging -ErrorAction Stop
 
                     $assertMockCalledSplat = @{
                         CommandName     = "Convert-Result"
@@ -591,7 +576,7 @@ InModuleScope JiraPS {
                 }
 
                 It "only uses -OutputType with -Paging [$type]" {
-                    Invoke-JiraMethod -Method get -URI "https://postman-echo.com/get" -OutputType $type -ErrorAction Stop
+                    Invoke-JiraMethod -Method get -URI "https://jira.example.com/get" -OutputType $type -ErrorAction Stop
 
                     $assertMockCalledSplat = @{
                         CommandName     = "Convert-Result"
@@ -605,57 +590,22 @@ InModuleScope JiraPS {
                 }
             }
 
-            It "uses session if no -Credential are passed" {
-                $invokeJiraMethodSplat = @{
-                    URI         = "https://postman-echo.com/get"
-                    Method      = 'get'
-                    ErrorAction = "Stop"
+            It 'uses the selected shared connection web session' {
+                $script:expectedWebSession = (Get-JiraConnection -Default).GetWebSession()
+                $null = Invoke-JiraMethod -Uri '/get'
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    [Object]::ReferenceEquals($WebSession, $expectedWebSession) -and -not $Credential
                 }
-                Invoke-JiraMethod @invokeJiraMethodSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-WebRequest'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $WebSession -is [Microsoft.PowerShell.Commands.WebRequestSession] -and
-                        $Credential -eq $null
-                    }
-                    Exactly         = $true
-                    Times           = 1
-                    Scope           = 'It'
-                }
-                Should -Invoke @assertMockCalledSplat
-                Should -Invoke -CommandName Get-JiraSession -ModuleName 'JiraPS' -Exactly -Times 1
             }
 
-            It "uses -Credential even if session is present" {
-                Mock Get-JiraSession -ModuleName 'JiraPS' {
-                    [PSCustomObject]@{
-                        WebSession = New-Object -TypeName Microsoft.PowerShell.Commands.WebRequestSession
-                    }
+            It 'uses an isolated Basic identity for a credential override' {
+                $script:stored = Get-JiraConnection -Default
+                $null = Invoke-JiraMethod -Uri '/get' -Credential $testCred
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $Headers.Authorization -eq ('Basic ' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('testUsername:password123'))) -and
+                    -not [Object]::ReferenceEquals($WebSession, $stored.GetWebSession()) -and -not $Credential
                 }
-
-                $invokeJiraMethodSplat = @{
-                    URI         = "https://postman-echo.com/get"
-                    Method      = 'get'
-                    Credential  = $testCred
-                    ErrorAction = "Stop"
-                }
-                Invoke-JiraMethod @invokeJiraMethodSplat
-
-                $assertMockCalledSplat = @{
-                    CommandName     = 'Invoke-WebRequest'
-                    ModuleName      = 'JiraPS'
-                    ParameterFilter = {
-                        $SessionVariable -eq $null -and
-                        $Credential -ne $null
-                    }
-                    Exactly         = $true
-                    Times           = 1
-                    Scope           = 'It'
-                }
-                Should -Invoke @assertMockCalledSplat
-                Should -Invoke -CommandName Get-JiraSession -ModuleName 'JiraPS' -Exactly -Times 0
+                $stored.AuthenticationMode | Should -Be Anonymous
             }
 
             It "uses -Headers for the call" {
@@ -671,7 +621,7 @@ InModuleScope JiraPS {
 
                 $invokeJiraMethodSplat = @{
                     Method      = 'Get'
-                    URI         = "https://postman-echo.com/headers"
+                    URI         = "https://jira.example.com/headers"
                     Headers     = @{
                         "X-Fake" = "lorem ipsum"
                     }
@@ -704,7 +654,7 @@ InModuleScope JiraPS {
 
                 $invokeJiraMethodSplat = @{
                     Method      = 'Get'
-                    URI         = "https://postman-echo.com/headers"
+                    URI         = "https://jira.example.com/headers"
                     ErrorAction = "Stop"
                 }
                 Invoke-JiraMethod @invokeJiraMethodSplat
@@ -736,7 +686,7 @@ InModuleScope JiraPS {
 
                 $invokeJiraMethodSplat = @{
                     Method      = 'Post'
-                    URI         = "https://postman-echo.com/post"
+                    URI         = "https://jira.example.com/post"
                     Body        = '{}'
                     ErrorAction = "Stop"
                 }
@@ -770,8 +720,8 @@ InModuleScope JiraPS {
             }
 
             It "omits Invoke-WebRequest -ContentType for file transfers unless explicitly requested" {
-                Invoke-JiraMethod -Method 'Post' -URI "https://postman-echo.com/post" -InFile "./file-does-not-exist.txt"
-                Invoke-JiraMethod -Method 'Get' -URI "https://postman-echo.com/get" -OutFile "./file-does-not-exist.txt"
+                Invoke-JiraMethod -Method 'Post' -URI "https://jira.example.com/post" -InFile "./file-does-not-exist.txt"
+                Invoke-JiraMethod -Method 'Get' -URI "https://jira.example.com/get" -OutFile "./file-does-not-exist.txt"
 
                 Should -Invoke -CommandName "Invoke-WebRequest" -ModuleName 'JiraPS' -Exactly -Times 2 -Scope It -ParameterFilter {
                     -not $PSBoundParameters.ContainsKey('ContentType')
@@ -781,7 +731,7 @@ InModuleScope JiraPS {
             It "can handle UTF-8 chars in the response" {
                 $invokeJiraMethodSplat = @{
                     Method      = 'Post'
-                    URI         = "https://postman-echo.com/post"
+                    URI         = "https://jira.example.com/post"
                     Body        = $utf8String
                     ErrorAction = "Stop"
                 }
@@ -835,7 +785,7 @@ InModuleScope JiraPS {
                 {
                     $invokeJiraMethodSplat = @{
                         Method      = 'Get'
-                        URI         = "https://postman-echo.com/Get"
+                        URI         = "https://jira.example.com/Get"
                         Paging      = $true
                         ErrorAction = "Stop"
                     }
@@ -855,7 +805,7 @@ InModuleScope JiraPS {
             It "expands the data container" {
                 $invokeJiraMethodSplat = @{
                     Method      = 'Get'
-                    URI         = "https://postman-echo.com/Get"
+                    URI         = "https://jira.example.com/Get"
                     Paging      = $true
                     ErrorAction = "Stop"
                 }
@@ -874,7 +824,7 @@ InModuleScope JiraPS {
             It "fetches only the necessary amount of pages when -First is used" {
                 $invokeJiraMethodSplat = @{
                     Method      = 'Get'
-                    URI         = "https://postman-echo.com/Get"
+                    URI         = "https://jira.example.com/Get"
                     Paging      = $true
                     First       = 4
                     ErrorAction = "Stop"
@@ -896,7 +846,7 @@ InModuleScope JiraPS {
             It "limits the number of results when -First is used" {
                 $invokeJiraMethodSplat = @{
                     Method      = 'Get'
-                    URI         = "https://postman-echo.com/Get"
+                    URI         = "https://jira.example.com/Get"
                     Paging      = $true
                     First       = 6
                     ErrorAction = "Stop"
@@ -918,7 +868,7 @@ InModuleScope JiraPS {
             It "starts looking for results with an offset when -Skip is provided" {
                 $invokeJiraMethodSplat = @{
                     Method      = 'Get'
-                    URI         = "https://postman-echo.com/Get"
+                    URI         = "https://jira.example.com/Get"
                     Paging      = $true
                     Skip        = 5
                     ErrorAction = "Stop"
@@ -938,7 +888,7 @@ InModuleScope JiraPS {
             }
 
             It "returns the server total before First/Skip results through the HTTP response path" {
-                $result = @(Invoke-JiraMethod -Method Get -URI "https://postman-echo.com/Get" -Paging -IncludeTotalCount -Skip 5 -First 1 -ErrorAction Stop)
+                $result = @(Invoke-JiraMethod -Method Get -URI "https://jira.example.com/Get" -Paging -IncludeTotalCount -Skip 5 -First 1 -ErrorAction Stop)
 
                 $result | Should -HaveCount 2
                 $result[0] | Should -BeOfType ([uint64])
@@ -957,96 +907,61 @@ InModuleScope JiraPS {
             Context "Type Validation - Negative Cases" {}
         }
 
-        Describe "Caching Behavior" {
-            BeforeAll {
-                $jiraServer = 'http://jiraserver.example.com'
-
-                Mock Get-JiraConfigServer -ModuleName JiraPS { $jiraServer }
-
-                Mock Invoke-WebRequest -ModuleName JiraPS {
-                    $result = [PSCustomObject]@{
-                        StatusCode       = 200
-                        Content          = '{"id": "test-data", "name": "Test"}'
-                        RawContentStream = [System.IO.MemoryStream]::new([System.Text.Encoding]::UTF8.GetBytes('{"id": "test-data", "name": "Test"}'))
-                    }
-                    $result
-                }
-            }
-
+        Context 'Caching Behavior' {
             BeforeEach {
                 $script:JiraCache = @{}
-            }
-
-            It "caches GET responses when CacheKey is provided" {
-                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
-
-                $script:JiraCache.Keys | Should -Contain "TestCache:$jiraServer"
-                $script:JiraCache["TestCache:$jiraServer"].Data | Should -Not -BeNullOrEmpty
-            }
-
-            It "returns cached data on subsequent calls" {
-                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
-                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
-
-                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 1 -Exactly
-            }
-
-            It "bypasses cache when -BypassCache is specified" {
-                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
-                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache' -BypassCache
-
-                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 2 -Exactly
-            }
-
-            It "does not cache non-GET requests" {
-                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/issue" -Method POST -CacheKey 'TestCache' -Body '{}'
-
-                $script:JiraCache.Keys | Should -Not -Contain "TestCache:$jiraServer"
-            }
-
-            It "sets correct expiry time based on CacheExpiry TimeSpan" {
-                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache' -CacheExpiry ([TimeSpan]::FromMinutes(30))
-
-                $entry = $script:JiraCache["TestCache:$jiraServer"]
-                $entry.Expiry | Should -BeGreaterThan (Get-Date)
-                $entry.Expiry | Should -BeLessThan (Get-Date).AddMinutes(31)
-            }
-
-            It "accepts CacheExpiry in various TimeSpan units" {
-                $null = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestHours' -CacheExpiry ([TimeSpan]::FromHours(2))
-
-                $entry = $script:JiraCache["TestHours:$jiraServer"]
-                $entry.Expiry | Should -BeGreaterThan (Get-Date).AddMinutes(119)
-                $entry.Expiry | Should -BeLessThan (Get-Date).AddMinutes(121)
-            }
-
-            It "fetches fresh data when cache is expired" {
-                $script:JiraCache["TestCache:$jiraServer"] = @{
-                    Data   = @{ id = "old-data" }
-                    Expiry = (Get-Date).AddMinutes(-1)
+                Mock Join-Hashtable {
+                    $merged = @{}
+                    foreach ($item in $Hashtable) {
+                        foreach ($key in $item.Keys) { $merged[$key] = $item[$key] }
+                    }
+                    $merged
                 }
-
-                $result = Invoke-JiraMethod -Uri "$jiraServer/rest/api/2/field" -CacheKey 'TestCache'
-
-                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 1 -Exactly
-                $result.id | Should -Be "test-data"
             }
-
-            It "creates separate cache entries for different servers" {
-                $server1 = 'http://server1.example.com'
-                $server2 = 'http://server2.example.com'
-
-                Mock Get-JiraConfigServer -ModuleName JiraPS { $server1 }
-                $null = Invoke-JiraMethod -Uri "$server1/rest/api/2/field" -CacheKey 'Fields'
-
-                Mock Get-JiraConfigServer -ModuleName JiraPS { $server2 }
-                $null = Invoke-JiraMethod -Uri "$server2/rest/api/2/field" -CacheKey 'Fields'
-
-                $script:JiraCache.Keys | Should -HaveCount 2
-                $script:JiraCache.Keys | Should -Contain "Fields:$server1"
-                $script:JiraCache.Keys | Should -Contain "Fields:$server2"
+            It 'caches a GET for the selected runtime identity and URI' {
+                $null = Invoke-JiraMethod -Uri '/get' -CacheKey TestCache
+                $null = Invoke-JiraMethod -Uri '/get' -CacheKey TestCache
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 1 -Exactly
+                $script:JiraCache.Count | Should -Be 1
+                @($script:JiraCache.Keys)[0] | Should -Match ([regex]::Escape((Get-JiraConnection -Default).InstanceId.ToString()))
+            }
+            It 'bypasses cache explicitly and does not cache writes' {
+                $null = Invoke-JiraMethod -Uri '/get' -CacheKey TestCache
+                $null = Invoke-JiraMethod -Uri '/get' -CacheKey TestCache -BypassCache
+                $null = Invoke-JiraMethod -Uri '/post' -Method Post -CacheKey WriteCache
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 3 -Exactly
+                $script:JiraCache.Count | Should -Be 1
+            }
+            It 'honors expiry and distinguishes request parameters' {
+                $null = Invoke-JiraMethod -Uri '/get?fields=one' -CacheKey TestCache -CacheExpiry ([TimeSpan]::FromMinutes(5))
+                @($script:JiraCache.Values)[0].Expiry | Should -BeGreaterThan (Get-Date).AddMinutes(4)
+                @($script:JiraCache.Values)[0].Expiry = (Get-Date).AddMinutes(-1)
+                $null = Invoke-JiraMethod -Uri '/get?fields=one' -CacheKey TestCache
+                $null = Invoke-JiraMethod -Uri '/get?fields=two' -CacheKey TestCache
+                Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 3 -Exactly
+                $script:JiraCache.Count | Should -Be 2
+            }
+            It 'separates same-server identities and never caches temporary overrides' {
+                $first = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name cache-first -Product Jira -BaseUri https://jira.example.com -PersonalAccessToken first-identity
+                $second = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name cache-second -Product Jira -BaseUri https://jira.example.com -PersonalAccessToken second-identity
+                foreach ($candidate in @($first, $second)) {
+                    $candidate.SetValidationResult('Server', $null)
+                    $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $candidate
+                }
+                try {
+                    $one = Invoke-JiraMethod -Uri '/get' -Connection $first -CacheKey Identity
+                    $two = Invoke-JiraMethod -Uri '/get' -Connection $second -CacheKey Identity
+                    $temporary = Invoke-JiraMethod -Uri '/get' -Connection $first -PersonalAccessToken temporary-identity -CacheKey Identity
+                    $again = Invoke-JiraMethod -Uri '/get' -Connection $first -CacheKey Identity
+                    $one.headers.authorization | Should -Be 'Bearer first-identity'
+                    $two.headers.authorization | Should -Be 'Bearer second-identity'
+                    $temporary.headers.authorization | Should -Be 'Bearer temporary-identity'
+                    $again.headers.authorization | Should -Be 'Bearer first-identity'
+                    $script:JiraCache.Count | Should -Be 2
+                    Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 3 -Exactly
+                }
+                finally { @($first, $second) | Disconnect-Jira }
             }
         }
     }
 }
-

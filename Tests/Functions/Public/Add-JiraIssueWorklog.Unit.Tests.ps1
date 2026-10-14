@@ -66,7 +66,7 @@ InModuleScope JiraPS {
                 Write-Output $jiraServer
             }
 
-            Mock Get-JiraIssue -ModuleName JiraPS {
+            Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $result = [AtlassianPS.JiraPS.Issue]@{
                     ID      = $issueID
@@ -125,7 +125,7 @@ InModuleScope JiraPS {
             Context "Default Values" {
                 It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
                     @{ parameter = "Visibility"; defaultValue = $null }
-                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
+                    @{ parameter = "Credential"; defaultValue = $null }
                 ) {
                     $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
                 }
@@ -150,7 +150,7 @@ InModuleScope JiraPS {
                 $commentResult | Should -Not -BeNullOrEmpty
 
                 # Get-JiraIssue should be used to identify the issue parameter
-                Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke -CommandName Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 1
 
                 # Invoke-JiraMethod should be used to add the comment
                 Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
@@ -368,7 +368,7 @@ InModuleScope JiraPS {
                     $commentResult | Should -Not -BeNullOrEmpty
 
                     # Get-JiraIssue should be called once here to fetch the initial test issue
-                    Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }

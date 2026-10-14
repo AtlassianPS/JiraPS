@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Added
+
+* Named shared Jira connections with Connect/Get/Select/Disconnect, per-operation targeting and isolated authentication overrides.
+* Automatic Cloud site discovery and gateway context metadata for API-token calls.
+* Local exact Configuration alpha provisioning and connection-path inventory.
+
+### Changed
+
+* Replaced the v2 singleton/session type with AtlassianPS.Connection.
+* Legacy session commands use the shared registry; repeated New calls preserve an existing default unless Default is supplied.
+* Set-JiraConfigServer saves a non-secret shared profile; legacy server_config is read-only migration input.
+* Request headers and low-level defaults can no longer inject authentication.
+* New-JiraUser and Set-JiraUser preserve their EmailAddress user field and use AuthenticationEmailAddress for token overrides.
+* Live scoped/unscoped routing and platform coverage remain subject to the candidate validation ledger.
+
+
+
 This release focuses on Cloud and Data Center compatibility, strongly typed objects, and automation.
 
 ### Highlights for users

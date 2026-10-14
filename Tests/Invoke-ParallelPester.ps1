@@ -93,6 +93,11 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $canParallel = $PSVersionTable.PSVersion.Major -ge 7
+if ($canParallel) {
+    $moduleManifest = Join-Path (Split-Path -Parent $PSScriptRoot) 'JiraPS/JiraPS.psd1'
+    Import-Module $moduleManifest -ErrorAction Stop
+}
+
 
 if (-not $canParallel) { Write-Warning "PowerShell 5.1 detected: running tests sequentially. Use PowerShell 7+ for parallel execution." }
 

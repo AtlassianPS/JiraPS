@@ -42,120 +42,58 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
-    )
+        $Credential,
 
+        [Alias('Session')][AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })][String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')][String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
+    )
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $isCloud = Test-JiraCloudServer -Credential $Credential
-
-        $selfResourceUri = "/rest/api/2/myself"
-
-        if ($isCloud) {
-            $searchResourceUri = "/rest/api/2/user/search?query={0}"
-            $exactResourceUri = "/rest/api/2/user?accountId={0}"
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $operationParameters = @{ RequestContext = $requestContext }
+        foreach ($parameterName in $PSBoundParameters.Keys) {
+            if ($parameterName -notin @('Connection', 'ConnectionName', 'Uri', 'Credential', 'EmailAddress', 'ApiToken', 'PersonalAccessToken', 'Anonymous')) {
+                $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
+            }
         }
-        else {
-            $searchResourceUri = "/rest/api/2/user/search?username={0}"
-            $exactResourceUri = "/rest/api/2/user?username={0}"
+        try {
+            $operation = { Get-JiraUserOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+            $operation.Begin($PSCmdlet)
         }
-
-        if ($IncludeInactive) { $searchResourceUri += "&includeInactive=true" }
-        if ($MaxResults) { $searchResourceUri += "&maxResults=$MaxResults" }
-        if ($Skip) { $searchResourceUri += "&startAt=$Skip" }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
+        }
     }
-
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        $ParameterSetName = ''
-        switch ($PsCmdlet.ParameterSetName) {
-            'ByInputObject' {
-                if ($isCloud) {
-                    $lookupValue = foreach ($inputUser in $InputObject) {
-                        if ($inputUser.AccountId) { $inputUser.AccountId } else { $inputUser.Name }
-                    }
-                }
-                else {
-                    $lookupValue = foreach ($inputUser in $InputObject) { $inputUser.Name }
-                }
-                $ParameterSetName = 'ByLookupValue'
-                $Exact = $true
-            }
-            'ByAccountId' {
-                $lookupValue = $AccountId
-                $ParameterSetName = 'ByLookupValue'
-                $Exact = $true
-            }
-            'ByUserName' {
-                $lookupValue = $UserName
-                $ParameterSetName = 'ByLookupValue'
-            }
-            'Self' { $ParameterSetName = 'Self' }
-        }
-
-        switch ($ParameterSetName) {
-            "Self" {
-                $resourceURi = $selfResourceUri
-
-                $parameter = @{
-                    URI        = $resourceURi
-                    Method     = "GET"
-                    Credential = $Credential
-                }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
-
-                if ($isCloud -and $result.accountId) {
-                    Get-JiraUser -AccountId $result.accountId -Exact -Credential $Credential
-                }
-                elseif ($result.Name) {
-                    Get-JiraUser -UserName $result.Name -Exact -Credential $Credential
-                }
-                else { Write-Output (ConvertTo-JiraUser -InputObject $result) }
-            }
-            "ByLookupValue" {
-                $resourceURi = if ($Exact) { $exactResourceUri } else { $searchResourceUri }
-
-                foreach ($user in $lookupValue) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$user [$user]"
-
-                    $parameter = @{
-                        URI        = $resourceURi -f $user
-                        Method     = "GET"
-                        Credential = $Credential
-                    }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    if ($users = Invoke-JiraMethod @parameter) {
-                        foreach ($item in $users) {
-                            $parameter = @{
-                                URI        = "{0}&expand=groups" -f $item.self
-                                Method     = "GET"
-                                Credential = $Credential
-                            }
-                            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                            $result = Invoke-JiraMethod @parameter
-
-                            Write-Output (ConvertTo-JiraUser -InputObject $result)
-                        }
-                    }
-                    else {
-                        $errorMessage = @{
-                            Category         = "ObjectNotFound"
-                            CategoryActivity = "Searching for user"
-                            Message          = "No results when searching for user $user"
-                        }
-                        Write-Error @errorMessage
-                    }
-                }
-            }
+        try { $operation.Process($_) }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
         }
     }
-
     end {
+        try { $operation.End() }
+        finally {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+        }
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

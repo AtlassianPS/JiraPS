@@ -38,7 +38,7 @@ InModuleScope JiraPS {
                 return $InputObject
             }
 
-            Mock Get-JiraIssue -ModuleName JiraPS {
+            Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     ID      = $issueID
@@ -95,7 +95,7 @@ InModuleScope JiraPS {
             Context "Default Values" {
                 It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
                     @{ parameter = "Visibility"; defaultValue = $null }
-                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
+                    @{ parameter = "Credential"; defaultValue = $null }
                 ) {
                     $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
                 }
@@ -116,7 +116,7 @@ InModuleScope JiraPS {
                 $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
                 $commentResult | Should -Not -BeNullOrEmpty
 
-                Should -Invoke 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke 'Get-JiraIssueOperation' -ModuleName JiraPS -Exactly -Times 1
                 Should -Invoke 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1
                 Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
             }

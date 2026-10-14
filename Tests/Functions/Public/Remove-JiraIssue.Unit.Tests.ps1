@@ -201,7 +201,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraIssue {
+            Mock Get-JiraIssueOperation {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $raw = $TestIssueJSONs[$Key] | ConvertFrom-Json
 

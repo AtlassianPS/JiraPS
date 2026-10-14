@@ -39,7 +39,7 @@ InModuleScope JiraPS {
                 Write-Output $jiraServer
             }
 
-            Mock Get-JiraUser -ModuleName JiraPS {
+            Mock Get-JiraUserOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                 $object = ConvertFrom-Json $restResultGet
                 $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
@@ -86,7 +86,7 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             It "Accepts a username as a String to the -User parameter" {
                 { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Get-JiraUser -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Get-JiraUserOperation -ModuleName JiraPS -Exactly -Times 1
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
             }
 
@@ -134,7 +134,7 @@ InModuleScope JiraPS {
 
                 Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
-                Mock Get-JiraUser -ModuleName JiraPS {
+                Mock Get-JiraUserOperation -ModuleName JiraPS {
                     Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                     $object = ConvertFrom-Json $restResultGet
                     $object | Add-Member -MemberType NoteProperty -Name 'AccountId' -Value $testAccountId

@@ -29,7 +29,7 @@ InModuleScope JiraPS {
             Mock Invoke-JiraMethod -ModuleName JiraPS {
                 Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
             }
-            Mock Get-JiraFilter -ModuleName JiraPS {
+            Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject', 'Credential'
                 [AtlassianPS.JiraPS.Filter]@{
                     Id      = '10'
@@ -102,7 +102,7 @@ InModuleScope JiraPS {
         It 'binds a returned status by its ID rather than display name' {
             [AtlassianPS.JiraPS.Status]@{ Id = 7; Name = 'In progress' } | Get-JiraStatus
             Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
-                $Uri -eq 'https://jira.example/rest/api/latest/status/7'
+                $Uri -eq 'https://jira.example.com/rest/api/latest/status/7'
             }
         }
 
@@ -114,7 +114,7 @@ InModuleScope JiraPS {
         }
 
         It 'binds an ID-only project through the competing version parameter sets' {
-            Mock Get-JiraProject -ModuleName JiraPS {
+            Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project', 'Credential'
                 [AtlassianPS.JiraPS.Project]@{ Id = '123'; Key = 'TEST' }
             }
@@ -122,7 +122,7 @@ InModuleScope JiraPS {
             Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -like '/rest/api/2/project/TEST/*'
             }
-            Should -Invoke Get-JiraProject -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Project.Key -eq '123'
             }
         }
