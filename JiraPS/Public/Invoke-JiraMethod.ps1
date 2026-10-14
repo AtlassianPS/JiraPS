@@ -134,7 +134,8 @@
                         'ApiToken',
                         'PersonalAccessToken',
                         'Anonymous' |
-                            Where-Object { $PSBoundParameters.ContainsKey($_) }).Count) {
+                            Where-Object { $PSBoundParameters.ContainsKey($_) }).Count
+                ) {
                     throw 'An internal context cannot be combined with another selector or authentication input.'
                 }
                 $RequestContext = AtlassianPS.Configuration\Resolve-AtlassianRequestContext -Product Jira -RequestContext $RequestContext
@@ -156,7 +157,8 @@
                 $RequestContext = Resolve-JiraOperationContext -BoundParameters $selection
             }
             if ($RequestContext.State -eq 'Candidate' -and
-                ($Method -ne 'GET' -or $Uri.OriginalString -notin @('/rest/api/2/serverInfo', '/rest/api/2/myself'))) {
+                ($Method -ne 'GET' -or $Uri.OriginalString -notin @('/rest/api/2/serverInfo', '/rest/api/2/myself'))
+            ) {
                 throw 'Unregistered candidates are restricted to creation-time Jira validation GETs.'
             }
             $PSBoundParameters['RequestContext'] = $RequestContext

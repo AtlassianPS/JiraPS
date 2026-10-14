@@ -1,7 +1,8 @@
 ﻿#region Dependencies
 $loadedConfiguration = @(Get-Module AtlassianPS.Configuration -All)
 if (-not $loadedConfiguration.Count -or @($loadedConfiguration | Where-Object { $_.Version -lt [Version]'0.3.0' -or $_.Version.Major -ne 0 }).Count -or
-    -not ('AtlassianPS.Connection' -as [Type])) {
+    -not ('AtlassianPS.Connection' -as [Type])
+) {
     throw 'JiraPS requires AtlassianPS.Configuration >=0.3.0 within major 0. Start a fresh process with a compatible dependency.'
 }
 if ('AtlassianPS.JiraPS.Session' -as [Type]) {

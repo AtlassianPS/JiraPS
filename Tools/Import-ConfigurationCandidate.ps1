@@ -32,7 +32,8 @@ $manifestPath = Join-Path $ModuleRoot 'AtlassianPS.Configuration/AtlassianPS.Con
 $data = Import-PowerShellDataFile -LiteralPath $manifestPath
 $parts = $Version -split '-', 2
 if ([Version]$data.ModuleVersion -ne [Version]$parts[0] -or
-    [String]$data.PrivateData.PSData.Prerelease -cne $parts[1]) {
+    [String]$data.PrivateData.PSData.Prerelease -cne $parts[1]
+) {
     throw 'Configuration candidate numeric version or exact alpha label does not match.'
 }
 
@@ -46,7 +47,8 @@ Import-Module -Name $manifestPath -Global -ErrorAction Stop
 
 $loaded = Get-Module AtlassianPS.Configuration
 if ($loaded.ModuleBase -ne (Split-Path (Resolve-Path $manifestPath).Path -Parent) -or
-    $loaded.PrivateData.PSData.Prerelease -cne $parts[1]) {
+    $loaded.PrivateData.PSData.Prerelease -cne $parts[1]
+) {
     throw 'The imported Configuration module is not the exact candidate.'
 }
 

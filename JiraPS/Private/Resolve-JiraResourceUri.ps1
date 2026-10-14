@@ -11,7 +11,8 @@
 
     $raw = $Uri.OriginalString.Split('?', 2)[0]
     if ($Uri.OriginalString.Contains('#') -or $raw.Contains([string][char]92) -or $raw -match '(?i)%2e|%2f|%5c|%25|(?:^|/)\.\.(?:/|$)' -or
-        ($Uri.IsAbsoluteUri -and ($Uri.Fragment -or $Uri.UserInfo))) {
+        ($Uri.IsAbsoluteUri -and ($Uri.Fragment -or $Uri.UserInfo))
+    ) {
         throw 'Jira resource URI contains an unsupported path escape, fragment or user information.'
     }
 
@@ -24,14 +25,16 @@
     $site = $RequestContext.SiteUri
     if ($RequestContext.CloudId -and $site -and
         $Uri.GetLeftPart('Authority') -eq $site.GetLeftPart('Authority') -and
-        $Uri.AbsolutePath.StartsWith('/rest/', [StringComparison]::Ordinal)) {
+        $Uri.AbsolutePath.StartsWith('/rest/', [StringComparison]::Ordinal)
+    ) {
         return [Uri]($base.AbsoluteUri.TrimEnd('/') + $Uri.PathAndQuery)
     }
 
     $prefix = $base.AbsolutePath.TrimEnd('/')
     if ($Uri.GetLeftPart('Authority') -ne $base.GetLeftPart('Authority') -or
         ($prefix -and $Uri.AbsolutePath -ne $prefix -and
-        -not $Uri.AbsolutePath.StartsWith($prefix + '/', [StringComparison]::Ordinal))) {
+        -not $Uri.AbsolutePath.StartsWith($prefix + '/', [StringComparison]::Ordinal))
+    ) {
         throw 'Jira resource URI does not belong to the selected connection endpoint.'
     }
 

@@ -114,7 +114,8 @@
             # Unrestricted access omits visibility; older Jira versions reject an "All Users" role.
             if ($Visibility -and $Visibility.Type -and -not (
                     $Visibility.Type -eq 'role' -and $Visibility.Value -eq 'All Users' -and -not $Visibility.Identifier
-                )) {
+                )
+            ) {
                 $requestBody.visibility = @{ type = $Visibility.Type }
                 if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
                 if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }

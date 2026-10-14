@@ -54,7 +54,8 @@
                     'ApiToken',
                     'PersonalAccessToken',
                     'Anonymous'
-                )) {
+                )
+            ) {
                 $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
             }
         }

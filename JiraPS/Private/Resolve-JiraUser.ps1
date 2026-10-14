@@ -39,7 +39,8 @@
         if ($isCloud -and $InputObject.Name -and (
                 $InputObject.Name -match '^[0-9a-f]{24}$' -or
                 $InputObject.Name -match '^[A-Za-z0-9]+:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$'
-            )) {
+            )
+        ) {
             return (Get-JiraUserOperation -AccountId $InputObject.Name -Exact:$Exact -RequestContext $RequestContext -ErrorAction Stop)
         }
 
