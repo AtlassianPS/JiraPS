@@ -40,7 +40,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraUser -ModuleName JiraPS {
+            Mock Get-JiraUserOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser'
                 $object = [PSCustomObject] @{
                     'Name' = 'username'
@@ -49,7 +49,7 @@ InModuleScope JiraPS {
                 return $object
             }
 
-            Mock Get-JiraFilter -ModuleName JiraPS {
+            Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter'
                 [PSCustomObject]@{
                     PSTypeName = "AtlassianPS.JiraPS.Filter"

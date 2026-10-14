@@ -56,10 +56,16 @@ InModuleScope JiraPS {
 
             Context "Current User" {
                 It "retrieves the current authenticated user via session" {
-                    $session = Get-JiraSession
+                    $connection = Get-JiraSession -Default
 
-                    $session | Should -Not -BeNullOrEmpty
-                    $session.WebSession | Should -Not -BeNullOrEmpty -Because "session should have a valid WebSession"
+                    $connection | Should -BeOfType [AtlassianPS.Connection]
+                    $connection.State | Should -Be 'Active'
+                    $connection.InstanceId | Should -Be $session.InstanceId
+
+                    $user = Get-JiraUser -ErrorAction Stop
+                    $identityProperty = $env.UserIdProperty
+                    $user.$identityProperty | Should -Not -BeNullOrEmpty
+                    $user.$identityProperty | Should -Be $connection.Username
                 }
             }
 

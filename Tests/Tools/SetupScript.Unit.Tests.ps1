@@ -37,6 +37,9 @@ Describe 'Tools/setup.ps1' -Tag Unit {
         $null = New-Item -Path $mockModulePath -ItemType Directory -Force
 
         Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'setup.ps1') -Destination $scriptPath
+        foreach ($helper in @('configuration-candidate.psd1', 'Assert-RuntimeDependency.ps1')) {
+            Copy-Item -LiteralPath (Join-Path $sourceToolsPath $helper) -Destination $toolsPath
+        }
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
@@ -143,6 +146,9 @@ Export-ModuleMember -Function Install-AtlassianPSDependencyRequirement
         $null = New-Item -Path $mockModulePath -ItemType Directory -Force
 
         Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'setup.ps1') -Destination $scriptPath
+        foreach ($helper in @('configuration-candidate.psd1', 'Assert-RuntimeDependency.ps1')) {
+            Copy-Item -LiteralPath (Join-Path $sourceToolsPath $helper) -Destination $toolsPath
+        }
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
@@ -268,6 +274,9 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
         $null = New-Item -Path $modulePath -ItemType Directory -Force
 
         Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'setup.ps1') -Destination $scriptPath
+        foreach ($helper in @('configuration-candidate.psd1', 'Assert-RuntimeDependency.ps1')) {
+            Copy-Item -LiteralPath (Join-Path $sourceToolsPath $helper) -Destination $toolsPath
+        }
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(
@@ -326,6 +335,9 @@ Set-Content -LiteralPath '$setPSRepositoryCapturePathEscaped' -Value 'called'
         $null = New-Item -Path $mockModulePath -ItemType Directory -Force
 
         Copy-Item -LiteralPath (Join-Path -Path $sourceToolsPath -ChildPath 'setup.ps1') -Destination $scriptPath
+        foreach ($helper in @('configuration-candidate.psd1', 'Assert-RuntimeDependency.ps1')) {
+            Copy-Item -LiteralPath (Join-Path $sourceToolsPath $helper) -Destination $toolsPath
+        }
 
         Set-Content -LiteralPath (Join-Path -Path $toolsPath -ChildPath 'build.requirements.psd1') -Value @'
 @(

@@ -1,29 +1,24 @@
-﻿function Set-JiraConfigServer {
+﻿
+function Set-JiraConfigServer {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding()]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
-        [Parameter( Mandatory )]
+        [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [Alias('Uri')]
-        [Uri]
-        $Server
+        [Uri]$Server
     )
 
-    begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        if (-not($Server.IsAbsoluteUri)) { throw "Server must be an absolute URI (e.g., https://jira.domain.com/)" }
-    }
-
-    process {
+    Write-Warning 'Set-JiraConfigServer is obsolete. Save a named profile and use Connect-Jira -Profile with explicit authentication.'
+    $null = Resolve-JiraEndpoint -Uri $Server
+    if ($PSCmdlet.ShouldProcess($Server.GetLeftPart('Path'), 'Save legacy Jira endpoint profile')) {
+        $existing = AtlassianPS.Configuration\Get-AtlassianServerConfiguration -Name 'JiraPS.LegacyEndpoint'
+        if ($existing) {
+            AtlassianPS.Configuration\Set-AtlassianServerConfiguration -Id $existing.Id -Uri $Server -Confirm:$false
+        }
+        else {
+            AtlassianPS.Configuration\Add-AtlassianServerConfiguration -Name 'JiraPS.LegacyEndpoint' -Uri $Server -Type Jira -Confirm:$false
+        }
         $script:JiraServerUrl = $Server
-        $script:JiraServerInfo = $null
-
-        Set-Content -Value $Server -Path "$script:serverConfig"
-    }
-
-    end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

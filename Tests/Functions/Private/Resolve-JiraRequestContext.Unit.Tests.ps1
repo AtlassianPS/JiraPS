@@ -26,7 +26,7 @@ InModuleScope JiraPS {
                     $DefaultPageSize = 25
                 )
 
-                Resolve-JiraRequestContext -Uri $Uri -GetParameter $GetParameter -DefaultPageSize $DefaultPageSize -Cmdlet $PSCmdlet
+                Resolve-JiraRequestContext -RequestContext (AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira -Default) -Uri $Uri -GetParameter $GetParameter -DefaultPageSize $DefaultPageSize -Cmdlet $PSCmdlet
             }
         }
 
@@ -65,19 +65,18 @@ InModuleScope JiraPS {
         }
 
         It "throws for relative URIs that do not start with '/'" {
-            { Invoke-ResolveJiraRequestContext -Uri 'hello' } | Should -Throw -ExpectedMessage "*must start with '/'*"
+            { Invoke-ResolveJiraRequestContext -Uri 'hello' } | Should -Throw -ExpectedMessage "*must start with one slash*"
         }
 
-        It "throws when a relative URI is used without a configured Jira server" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { $null }
-
-            { Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/search' } | Should -Throw -ExpectedMessage "*no Jira server is configured*"
+        It 'resolves against the supplied context without looking up a global endpoint' {
+            Mock Get-JiraConfigServer { throw 'Unexpected global lookup.' }
+            $result = Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/field'
+            $result.Uri.Host | Should -Be jira.example.com
+            Should -Invoke Get-JiraConfigServer -Times 0 -Exactly
         }
 
-        It "throws when resolving a relative URI still results in a non-absolute URI" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'jira.example.com' }
-
-            { Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/search' } | Should -Throw -ExpectedMessage "*must be an absolute URI*"
+        It 'rejects absolute resources from another origin' {
+            { Invoke-ResolveJiraRequestContext -Uri https://another.example.com/rest/api/2/field } | Should -Throw '*selected connection endpoint*'
         }
     }
 }

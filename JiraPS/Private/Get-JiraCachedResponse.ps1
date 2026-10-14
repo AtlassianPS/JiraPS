@@ -18,8 +18,7 @@
 
     if (-not $script:JiraCache) { $script:JiraCache = @{} }
 
-    $cacheServer = Get-JiraConfigServer -ErrorAction SilentlyContinue
-    $fullCacheKey = "${CacheKey}:${cacheServer}"
+    $fullCacheKey = $CacheKey
     $cached = $script:JiraCache[$fullCacheKey]
     if ($cached -and (Get-Date) -lt $cached.Expiry) {
         Write-Verbose "[$CommandName] Cache hit for $CacheKey"

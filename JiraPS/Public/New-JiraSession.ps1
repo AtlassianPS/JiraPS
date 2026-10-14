@@ -1,80 +1,50 @@
 ﻿function New-JiraSession {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding(DefaultParameterSetName = 'Credential')]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Compatibility wrapper establishes local validated state without persisting configuration.')]
+    [CmdletBinding()]
+    [OutputType([AtlassianPS.Connection])]
     param(
-        [Parameter(ParameterSetName = 'Credential')]
-        [System.Management.Automation.PSCredential]
+        [String]$Name,
+
+        [Uri]$Uri,
+
+        [PSCredential]
         [System.Management.Automation.Credential()]
         $Credential,
 
-        [Parameter(Mandatory, ParameterSetName = 'PersonalAccessToken')]
-        [Alias('BearerToken', 'PAT')]
-        [SecureString]
-        $PersonalAccessToken,
+        [Alias('Email')]
+        [String]$EmailAddress,
 
-        [Parameter(Mandatory, ParameterSetName = 'ApiToken')]
-        [SecureString]
-        $ApiToken,
+        [Object]$ApiToken,
 
-        [Parameter(Mandatory, ParameterSetName = 'ApiToken')]
-        [string]
-        $EmailAddress,
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
 
-        [Hashtable]
-        $Headers = @{ }
+        [Switch]$Anonymous,
+
+        [Switch]$Default,
+
+        [Hashtable]$Headers = @{}
     )
 
-    begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $resourceURi = "/rest/api/2/myself"
+    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+    if ($Headers.Count) {
+        throw 'New-JiraSession headers are no longer an authentication API. Use explicit authentication parameters.'
     }
-
-    process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        switch ($PSCmdlet.ParameterSetName) {
-            'PersonalAccessToken' {
-                $tokenPlain = [System.Net.NetworkCredential]::new('', $PersonalAccessToken).Password
-                $Headers['Authorization'] = "Bearer $tokenPlain"
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using Personal Access Token (PAT) authentication"
-            }
-            'ApiToken' {
-                $tokenPlain = [System.Net.NetworkCredential]::new('', $ApiToken).Password
-                $authString = "${EmailAddress}:${tokenPlain}"
-                $base64Auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($authString))
-                $Headers['Authorization'] = "Basic $base64Auth"
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Using API token authentication (Cloud)"
-            }
+    if (-not $Uri) {
+        $current = Get-JiraConnection -Default
+        $Uri = if ($current) {
+            $(if ($current.SiteUri) { $current.SiteUri } else { $current.BaseUri })
         }
-
-        $parameter = @{
-            URI          = $resourceURi
-            Method       = "GET"
-            Headers      = $Headers
-            StoreSession = $true
-        }
-        if ($Credential) { $parameter.Add('Credential', $Credential) }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
-
-        if ($MyInvocation.MyCommand.Module.PrivateData) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding session result to existing module PrivateData"
-            $MyInvocation.MyCommand.Module.PrivateData.Session = $result
-        }
-        else {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Creating module PrivateData"
-            $MyInvocation.MyCommand.Module.PrivateData = @{
-                'Session' = $result
-            }
-        }
-
-        Write-Output $result
+        else { Get-JiraConfigServer -ErrorAction Stop }
     }
-
-    end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+    if (-not $Uri) { throw 'Specify Uri or configure a migration endpoint before New-JiraSession.' }
+    $authentication = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters
+    $candidate = New-JiraCandidate -Name $Name -Uri $Uri -Authentication $authentication
+    try {
+        AtlassianPS.Configuration\Register-AtlassianConnection -Connection $candidate -Default:$Default
+    }
+    finally {
+        if ($candidate.State -ne 'Active') { $candidate.Dispose() }
     }
 }

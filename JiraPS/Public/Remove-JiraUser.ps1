@@ -12,48 +12,92 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        $Credential,
 
         [Switch]
-        $Force
+        $Force,
+
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })]
+        [String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')]
+        [String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" } else { "/rest/api/2/user?username={0}" }
+            $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
-        if ($Force) {
-            Write-DebugMessage "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
-            $oldConfirmPreference = $ConfirmPreference
-            $ConfirmPreference = 'None'
+            $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" }
+            else { "/rest/api/2/user?username={0}" }
+
+            if ($Force) {
+                Write-DebugMessage "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+                $oldConfirmPreference = $ConfirmPreference
+                $ConfirmPreference = 'None'
+            }
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        $userObj = Resolve-JiraUser -InputObject $User -Credential $Credential -ErrorAction Stop
+            $userObj = Resolve-JiraUser -InputObject $User -RequestContext $RequestContext -ErrorAction Stop
 
-        $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
-        $parameter = @{
-            URI        = $resourceURi -f $userIdentifier
-            Method     = "DELETE"
-            Credential = $Credential
+            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId }
+            else { $userObj.Name }
+            $parameter = @{
+                URI    = $resourceURi -f $userIdentifier
+                Method = "DELETE"
+
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($userObj.DisplayName, 'Remove user')) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        if ($PSCmdlet.ShouldProcess($userObj.DisplayName, 'Remove user')) { Invoke-JiraMethod @parameter }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
+        }
     }
 
     end {
-        if ($Force) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
-            $ConfirmPreference = $oldConfirmPreference
-        }
+        try {
+            if ($Force) {
+                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
+                $ConfirmPreference = $oldConfirmPreference
+            }
 
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

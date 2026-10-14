@@ -10,237 +10,195 @@ permalink: /docs/JiraPS/commands/New-JiraSession/
 
 ## SYNOPSIS
 
-Creates a persistent JIRA authenticated session which can be used by other JiraPS functions
+Open a Jira connection through the legacy command name.
 
 ## SYNTAX
 
-### Credential (Default)
-
 ```powershell
-New-JiraSession [-Credential <pscredential>] [-Headers <hashtable>] [<CommonParameters>]
-```
-
-### PersonalAccessToken
-
-```powershell
-New-JiraSession -PersonalAccessToken <securestring> [-Headers <hashtable>] [<CommonParameters>]
-```
-
-### ApiToken
-
-```powershell
-New-JiraSession -ApiToken <securestring> -EmailAddress <string> [-Headers <hashtable>]
- [<CommonParameters>]
+New-JiraSession [-Name <String>] [-Uri <Uri>] [-Credential <PSCredential>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-Default] [-Headers <Hashtable>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function creates a persistent, authenticated session in to JIRA which can be used by all other JiraPS functions instead of explicitly passing parameters.
+Open a Jira connection through the legacy command name.
 
-This removes the need to use the `-Credential` parameter constantly for each function call.
-
-JiraPS supports multiple authentication methods:
-
-- **Credential**: Traditional username/password authentication (Jira Data Center)
-- **PersonalAccessToken**: Personal Access Token (PAT) authentication (Jira Data Center 8.14+)
-- **ApiToken**: API Token authentication with email address (Jira Cloud)
-
-You can find more information in [about_JiraPS_Authentication](../../about/authentication.html)
+This compatibility name uses the shared connection implementation.
+It does not retain the v2 singleton or AtlassianPS.JiraPS.Session return type.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 
 ```powershell
-New-JiraSession -Credential (Get-Credential jiraUsername)
-Get-JiraIssue TEST-01
+New-JiraSession -PersonalAccessToken $env:JIRA_PAT
 ```
 
-Creates a Jira session for jiraUsername using basic authentication.
-The following `Get-JiraIssue` is run using the saved session for jiraUsername.
-
-### EXAMPLE 2
-
-```powershell
-$pat = Read-Host -AsSecureString "Enter your PAT"
-New-JiraSession -PersonalAccessToken $pat
-Get-JiraIssue TEST-01
-```
-
-Creates a Jira session using a Personal Access Token (PAT) with Bearer authentication.
-This is the recommended method for Jira Data Center 8.14 and later.
-
-### EXAMPLE 3
-
-```powershell
-$apiToken = Read-Host -AsSecureString "Enter your API token"
-New-JiraSession -ApiToken $apiToken -EmailAddress "user@example.com"
-Get-JiraIssue TEST-01
-```
-
-Creates a Jira session using an API token with your Atlassian account email.
-This is the recommended method for Jira Cloud.
-
-### EXAMPLE 4
-
-```powershell
-$headers = @{ "X-Custom-Header" = "value" }
-New-JiraSession -PersonalAccessToken $pat -Headers $headers
-```
-
-Creates a Jira session with a PAT and additional custom headers.
-
-### EXAMPLE 5
-
-```powershell
-$pat = ConvertTo-SecureString $env:JIRA_PAT -AsPlainText -Force
-New-JiraSession -PAT $pat
-```
-
-Uses the `-PAT` alias for brevity.
-The `-BearerToken` alias is also supported for backward compatibility.
+Reuse the current default endpoint or configured migration endpoint and allocate a unique name. Existing defaults remain unchanged unless Default is supplied.
 
 ## PARAMETERS
 
-### -ApiToken
+### -Name
 
-An API token for Jira Cloud authentication.
-Must be used together with `-EmailAddress`.
-
-Create an API token at: https://id.atlassian.com/manage-profile/security/api-tokens
+Friendly connection name, unique without case sensitivity within Jira.
 
 ```yaml
-Type: SecureString
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ApiToken
-  Position: Named
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Type: String
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Uri
+
+Standalone Jira product endpoint for this logical operation. Cannot be combined with Connection or ConnectionName. Supply one explicit authentication mode; use Anonymous for anonymous access. Normal HTTPS commercial Atlassian site URLs resolve cloudId and the API gateway automatically for ApiToken authentication.
+
+```yaml
+Type: Uri
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### -Credential
 
-Credentials to use to connect to JIRA using basic authentication.
+Username/password or compatible Cloud email/token as PSCredential. Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection. An empty credential fails; omitted input uses the selected connection.
 
 ```yaml
 Type: PSCredential
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: Credential
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### -EmailAddress
 
-The email address associated with your Atlassian account.
-Required when using `-ApiToken` for Jira Cloud authentication.
+Cloud authentication email for ApiToken. Email is an alias. An override must supply both its own email and token.
 
 ```yaml
 Type: String
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ApiToken
-  Position: Named
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Parameter Sets: (All)
+Aliases: Email
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
-### -Headers
+### -ApiToken
 
-Additional headers to include in requests.
+Cloud API token as a nonempty string or SecureString. Supply the authentication email in the same call. The module normalizes the secret and resolves a normal Cloud site URL automatically.
 
 ```yaml
-Type: Hashtable
-DefaultValue: '@{}'
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Type: Object
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### -PersonalAccessToken
 
-A Personal Access Token (PAT) for Bearer token authentication.
-Use this for Jira Data Center 8.14 and later.
-
-Create a PAT in Jira: Profile > Personal Access Tokens > Create token
-
-Aliases: `BearerToken`, `PAT`
+Data Center PAT as a nonempty string or SecureString. PAT and BearerToken are aliases. No dummy username is required.
 
 ```yaml
-Type: SecureString
-DefaultValue: ''
-SupportsWildcards: false
-Aliases:
-- BearerToken
-- PAT
-ParameterSets:
-- Name: PersonalAccessToken
-  Position: Named
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
+Type: Object
+Parameter Sets: (All)
+Aliases: PAT, BearerToken
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Anonymous
+
+Explicit anonymous authentication when the Jira endpoint permits it. Never borrows the default connection identity.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Default
+
+Select the successful new connection as Jira default, or filter the listing to the current default. The first successful connection selects itself automatically; later connections leave an existing default unchanged unless this switch is supplied.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Headers
+
+Ordinary request headers. Authorization and Cookie headers are rejected; supply authentication through the supported parameters.
+
+```yaml
+Type: Hashtable
+Parameter Sets: (All)
+Aliases: None
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
--InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
--ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
-[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+Supports standard PowerShell common parameters.
 
 ## INPUTS
 
-### PSCredential
+### AtlassianPS.Connection
 
 ## OUTPUTS
 
-### AtlassianPS.JiraPS.Session
+### AtlassianPS.Connection
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+Connections belong to one runspace and are never persisted as profiles.
 
 ## RELATED LINKS
 
-[about_JiraPS_Authentication](../../about/authentication.html)
+[Shared authentication](https://atlassianps.org/docs/AtlassianPS.Configuration/about/authentication.html)
 
-[Get-JiraSession](../Get-JiraSession/)
+[Jira authentication](https://atlassianps.org/docs/JiraPS/about/authentication.html)

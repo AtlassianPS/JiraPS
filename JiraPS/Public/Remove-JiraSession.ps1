@@ -1,25 +1,21 @@
 ﻿function Remove-JiraSession {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding()]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Compatibility wrapper delegates WhatIf and Confirm to Disconnect-Jira.')]
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
     param(
-        [Parameter( ValueFromPipeline )]
-        [Object]
-        $Session
+        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Object')]
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
+
+        [Parameter(Mandatory, ParameterSetName = 'Name')]
+        [String]$Name,
+
+        [Parameter(Mandatory, ParameterSetName = 'Id')]
+        [Int]$Id,
+
+        [Parameter(Mandatory, ParameterSetName = 'All')]
+        [Switch]$All
     )
 
-    begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-    }
-
-    process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        if ($Session = Get-JiraSession) { $MyInvocation.MyCommand.Module.PrivateData.Session = $null }
-    }
-
-    end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-    }
+    process { Disconnect-Jira @PSBoundParameters }
 }

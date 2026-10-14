@@ -14,7 +14,6 @@
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
 
         $responseBody = $null
         if ($PSVersionTable.PSEdition -eq 'Core') { $responseBody = $Exception.ErrorDetails.Message }

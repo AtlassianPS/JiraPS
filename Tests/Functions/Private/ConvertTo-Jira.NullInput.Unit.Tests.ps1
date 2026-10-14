@@ -35,7 +35,6 @@ InModuleScope JiraPS {
                 'ConvertTo-JiraEnum'
                 'ConvertTo-JiraFieldAssignment'
                 'ConvertTo-JiraRestApiV3Url'
-                'ConvertTo-JiraSession'
                 'ConvertTo-JiraTable'
             )
             $uncovered = @($converters | Where-Object -FilterScript {
@@ -101,9 +100,7 @@ InModuleScope JiraPS {
                 ($null -eq $result) | Should -BeTrue
             }
 
-            It 'ConvertTo-JiraSession rejects a null required session' {
-                { ConvertTo-JiraSession -Session $null } | Should -Throw -ExpectedMessage '*Session*null*'
-            }
+
 
             It 'ConvertTo-JiraTable rejects null input' {
                 { ConvertTo-JiraTable -InputObject $null } | Should -Throw -ExpectedMessage '*InputObject*null*'

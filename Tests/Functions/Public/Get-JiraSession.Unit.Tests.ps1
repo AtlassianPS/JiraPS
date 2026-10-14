@@ -1,47 +1,36 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
-
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-
     $script:moduleToTest = Initialize-TestEnvironment
 }
+Describe 'Get-JiraSession' -Tag Unit {
 
-InModuleScope JiraPS {
-    Describe "Get-JiraSession" -Tag 'Unit' {
-        BeforeAll {
-            . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-            # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
-
-            #region Definitions
-            #endregion Definitions
-
-            #region Mocks
-            #endregion Mocks
-        }
-
-        Describe "Signature" {
-            Context "Parameter Types" {
-                # TODO: Add parameter type validation tests
+    BeforeAll {
+        . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+        $script:moduleToTest = Initialize-TestEnvironment
+    }
+    InModuleScope JiraPS {
+        BeforeEach {
+            $script:previousDefault = Get-JiraConnection -Default
+            Mock Invoke-JiraMethod {
+                if ($Uri -eq '/rest/api/2/serverInfo') { return [PSCustomObject]@{ version = '11.0'; deploymentType = 'Server' } }
+                if ($Uri -eq '/rest/api/2/myself') { return [PSCustomObject]@{ name = 'validated-user' } }
+                throw 'Unexpected validation request.'
             }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
-
-        Describe "Behavior" {
-            It "obtains a saved AtlassianPS.JiraPS.Session object from module PrivateData" {
-                # I don't know how to test this, since I can't access module PrivateData from Pester.
-                # The tests for New-JiraSession use this function to validate that they work, so if
-                # those tests pass, this function should be working as well.
-                # $true | Should -Be $true
+        AfterEach {
+            Get-JiraConnection | Where-Object Name -Like 'contract-*' | Disconnect-Jira
+            if ($script:previousDefault -and $script:previousDefault.State -eq 'Active') {
+                $script:previousDefault | Select-JiraConnection | Out-Null
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
 
-            Context "Type Validation - Negative Cases" {}
+        It 'lists the same shared connections as the canonical command' {
+            $connection = Connect-Jira -Name contract-first -Uri https://jira.example.com -Anonymous
+            (Get-JiraSession -Name contract-first).InstanceId | Should -Be $connection.InstanceId
+            @(Get-JiraSession).Count | Should -Be @(Get-JiraConnection).Count
         }
+
     }
 }

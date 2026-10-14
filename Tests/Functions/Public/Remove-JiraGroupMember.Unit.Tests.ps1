@@ -57,7 +57,7 @@ InModuleScope JiraPS {
                 $obj
             }
 
-            Mock Get-JiraGroupMember -ModuleName JiraPS {
+            Mock Get-JiraGroupMemberOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraGroupMember' 'Group'
                 [PSCustomObject]@{
                     PSTypeName = "AtlassianPS.JiraPS.User"
@@ -115,7 +115,7 @@ InModuleScope JiraPS {
 
                 It "Removes multiple users from a JIRA group if they are passed to the -User parameter" {
                     # Override our previous mock so we have two group members
-                    Mock Get-JiraGroupMember -ModuleName JiraPS {
+                    Mock Get-JiraGroupMemberOperation -ModuleName JiraPS {
                         Write-MockDebugInfo 'Get-JiraGroupMember' 'Group'
                         @(
                             [PSCustomObject] @{

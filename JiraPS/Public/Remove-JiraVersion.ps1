@@ -11,59 +11,102 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        $Credential,
 
         [Switch]
-        $Force
+        $Force,
+
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })]
+        [String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')]
+        [String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        if ($Force) {
-            Write-DebugMessage "[Remove-JiraVersion] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
-            $oldConfirmPreference = $ConfirmPreference
-            $ConfirmPreference = 'None'
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+            if ($Force) {
+                Write-DebugMessage "[Remove-JiraVersion] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+                $oldConfirmPreference = $ConfirmPreference
+                $ConfirmPreference = 'None'
+            }
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        foreach ($_version in $Version) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
+            foreach ($_version in $Version) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
 
-            if (-not $_version.Id) {
-                $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                    ([System.ArgumentException]"Version ID is required"),
-                    'ParameterValue.VersionIdRequired',
-                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                    $_version
-                )
-                $errorItem.ErrorDetails = "Remove-JiraVersion requires a version ID. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
-                ThrowError -ErrorRecord $errorItem
+                if (-not $_version.Id) {
+                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
+                        ([System.ArgumentException]"Version ID is required"),
+                        'ParameterValue.VersionIdRequired',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $_version
+                    )
+
+                    $errorItem.ErrorDetails = "Remove-JiraVersion requires a version ID. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
+                    ThrowError -ErrorRecord $errorItem
+                }
+
+                $versionObj = Get-JiraVersionOperation -Id $_version.Id -RequestContext $RequestContext -ErrorAction Stop
+
+                $parameter = @{
+                    URI    = $versionObj.RestUrl
+                    Method = "DELETE"
+
+                }
+                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                if ($PSCmdlet.ShouldProcess($versionObj.Name, "Removing Version")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
-
-            $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
-
-            $parameter = @{
-                URI        = $versionObj.RestUrl
-                Method     = "DELETE"
-                Credential = $Credential
-            }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($versionObj.Name, "Removing Version")) { Invoke-JiraMethod @parameter }
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        if ($Force) {
-            Write-Debug "[Remove-JiraVersion] Restoring ConfirmPreference to [$oldConfirmPreference]"
-            $ConfirmPreference = $oldConfirmPreference
-        }
+        try {
+            if ($Force) {
+                Write-Debug "[Remove-JiraVersion] Restoring ConfirmPreference to [$oldConfirmPreference]"
+                $ConfirmPreference = $oldConfirmPreference
+            }
 
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

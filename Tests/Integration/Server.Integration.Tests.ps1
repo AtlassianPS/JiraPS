@@ -89,7 +89,7 @@ InModuleScope JiraPS {
         Context "Basic-auth session" {
             It "establishes a session via Connect-JiraTestServer" {
                 $session | Should -Not -BeNullOrEmpty
-                $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Session'
+                $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.Connection'
             }
 
             It "permits authenticated calls without explicit credentials" {

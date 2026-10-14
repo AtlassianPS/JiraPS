@@ -5,20 +5,6 @@
 
         $Exception,
 
-        [Switch]
-        $StoreSession,
-
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
-        [ValidateNotNullOrEmpty()]
-        [String]
-        $SessionTransformationMethod = "ConvertTo-JiraSession",
-
-        $Session,
-
         [String]
         $CacheKey,
 
@@ -56,8 +42,6 @@
         Resolve-ErrorWebResponse -Exception $Exception -StatusCode $statusCode -Cmdlet $Cmdlet
         return
     }
-
-    if ($StoreSession) { return & $SessionTransformationMethod -Session $Session -Username $Credential.UserName }
 
     if (-not $WebResponse.Content) {
         # No content, although statusCode < 400

@@ -38,7 +38,7 @@ Update-Module JiraPS
 # To use each session:
 Import-Module JiraPS
 Set-JiraConfigServer 'https://YourCloud.atlassian.net'
-New-JiraSession -Credential $cred
+$connection = Connect-Jira -Name work -Uri 'https://jira.example.com' -Credential $cred
 ```
 
 You can find the full documentation on our [homepage](https://atlassianps.org/docs/JiraPS) and in the console.
@@ -118,3 +118,10 @@ See [LICENSING.md](LICENSING.md) for the project's licensing history and the ong
   [replicaJunction]: https://github.com/replicaJunction
   [MIT license]: https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE
   [Contributing]: https://atlassianps.org/docs/Contributing/
+
+## Shared connection candidate
+
+Named connections and per-call selectors are part of the JiraPS v3 candidate.
+See [authentication and v2 migration](docs/en-US/about_JiraPS_Authentication.md).
+The shared dependency is an exact experimental Configuration alpha in development; JiraPS publication remains disabled.
+JiraAgilePS adoption is a later task.

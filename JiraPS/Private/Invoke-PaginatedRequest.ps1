@@ -1,6 +1,13 @@
 ﻿function Invoke-PaginatedRequest {
     [CmdletBinding(SupportsPaging)]
     param(
+        [AtlassianPS.Connection]$RequestContext,
+        [String]$CacheKey,
+        [TimeSpan]$CacheExpiry = [TimeSpan]::FromHours(1),
+        [Switch]$BypassCache,
+        [Int]$TimeoutSec = 100,
+        [Int]$_RetryCount = 0,
+
         [Parameter( Mandatory )]
         [Uri]
         $URI,
@@ -64,7 +71,8 @@
         if (-not $PSBoundParameters["GetParameter"]) { $PSBoundParameters["GetParameter"] = $GetParameter }
 
         $total = 0
-        $offset = if ($PSCmdlet.PagingParameters.Skip) { $PSCmdlet.PagingParameters.Skip } else { 0 }
+        $offset = if ($PSCmdlet.PagingParameters.Skip) { $PSCmdlet.PagingParameters.Skip }
+        else { 0 }
 
         if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
             if ($null -ne $Response.total) { $PSCmdlet.PagingParameters.NewTotalCount($Response.total, 1.0) }
@@ -105,7 +113,10 @@
                 if ($Response.PSObject.Properties.Name -contains "nextPageToken" -and $Response.nextPageToken) {
                     $PSBoundParameters["GetParameter"]["nextPageToken"] = $Response.nextPageToken
                 }
-                else { Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] No nextPageToken found; stopping pagination"; break }
+                else {
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] No nextPageToken found; stopping pagination"
+                    break
+                }
             }
             else {
                 # Both v2 and v3 APIs support offset-based pagination.

@@ -58,14 +58,14 @@ Describe "General project validation" -Tag Unit {
 
                     function global:Test-Path {
                         [CmdletBinding()]
-                        param([string]$Path, [string]$LiteralPath)
+                        param([string]$Path, [string]$LiteralPath, [Alias('Type')][Microsoft.PowerShell.Commands.TestPathType]$PathType)
                         if ($Path -eq $script:configFile) { return $true }
                         Microsoft.PowerShell.Management\Test-Path @PSBoundParameters
                     }
 
                     function global:Get-Content {
                         [CmdletBinding()]
-                        param([string]$Path, [switch]$Raw)
+                        param([string]$Path, [string]$LiteralPath, [string]$Encoding, [switch]$Raw)
                         if ($Path -eq $script:configFile) {
                             $script:configReads++
                             return [IO.File]::ReadAllText($script:fixturePath)

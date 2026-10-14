@@ -24,11 +24,11 @@ InModuleScope JiraPS {
         }
 
         Describe "Get-JiraConfigServer" {
-            It "returns the configured server URL" {
+            It "returns the active connection API endpoint" {
                 $server = Get-JiraConfigServer
 
                 $server | Should -Not -BeNullOrEmpty
-                $server | Should -Be $fixtures.CloudUrl
+                $server | Should -Be $session.BaseUri.AbsoluteUri.TrimEnd('/')
             }
         }
 

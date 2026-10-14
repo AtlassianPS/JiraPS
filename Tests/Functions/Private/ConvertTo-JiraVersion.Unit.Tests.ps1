@@ -36,7 +36,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraProject -ModuleName JiraPS {
+            Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 $Project = [PSCustomObject]@{
                     Id  = $projectId
                     Key = "ABC"

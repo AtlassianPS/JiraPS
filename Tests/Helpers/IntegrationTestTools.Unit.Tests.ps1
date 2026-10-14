@@ -119,3 +119,51 @@ Describe 'Remove-StaleTestResource' -Tag Unit {
         Should -Invoke Remove-JiraFilter -Times 1 -Exactly -ParameterFilter { $InputObject.Id -eq 1 }
     }
 }
+
+Describe 'Cloud integration token names' -Tag Unit {
+    BeforeEach {
+        $savedEnvironment = @{}
+        foreach ($name in @('CI_JIRA_TYPE',
+                'JIRA_CLOUD_URL',
+                'JIRA_CLOUD_USERNAME',
+                'JIRA_CLOUD_PASSWORD',
+                'JIRA_CLOUD_API_TOKEN',
+                'JIRA_TEST_PROJECT',
+                'JIRA_TEST_ISSUE')) {
+            $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name)
+            [Environment]::SetEnvironmentVariable($name, $null)
+        }
+        $env:JIRA_CLOUD_URL = 'https://example.atlassian.net'
+        $env:JIRA_CLOUD_USERNAME = 'test@example.test'
+        $env:JIRA_TEST_PROJECT = 'TEST'
+        $env:JIRA_TEST_ISSUE = 'TEST-1'
+        $script:_EnvLoaded = $false
+        $script:_CachedIntegrationEnv = $null
+        Mock Resolve-ProjectRoot { $TestDrive }
+    }
+
+    AfterEach {
+        foreach ($name in $savedEnvironment.Keys) {
+            [Environment]::SetEnvironmentVariable($name, $savedEnvironment[$name])
+        }
+        $script:_EnvLoaded = $false
+        $script:_CachedIntegrationEnv = $null
+    }
+
+    It 'uses the API token name ahead of a legacy process value' {
+        $env:JIRA_CLOUD_PASSWORD = 'legacy-fixture'
+        $env:JIRA_CLOUD_API_TOKEN = 'current-fixture'
+
+        $configuration = Initialize-IntegrationEnvironment
+
+        $configuration.Password | Should -Be 'current-fixture'
+    }
+
+    It 'continues to accept the legacy token name' {
+        $env:JIRA_CLOUD_PASSWORD = 'legacy-fixture'
+
+        $configuration = Initialize-IntegrationEnvironment
+
+        $configuration.Password | Should -Be 'legacy-fixture'
+    }
+}

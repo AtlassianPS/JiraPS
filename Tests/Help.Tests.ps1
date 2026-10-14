@@ -220,7 +220,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         $codeType = $parameterCode.ParameterType.Name
                         $elementType = if ($parameterCode.ParameterType.IsArray) { $parameterCode.ParameterType.GetElementType() }
                         else { $parameterCode.ParameterType }
-                        if ($elementType.Namespace -eq 'AtlassianPS.JiraPS') {
+                        if ($elementType.Namespace -in @('AtlassianPS.JiraPS', 'AtlassianPS')) {
                             $codeType = $parameterCode.ParameterType.FullName
                             $markdown = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/$($command.Name).md" -Raw
                             $sectionPattern = '(?ms)^### -' + [regex]::Escape($parameterName) + '\r?\n(.*?)(?=^### |^## |\z)'

@@ -29,85 +29,78 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
+        $Credential,
 
         [Switch]
-        $PassThru
+        $PassThru,
+
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })]
+        [String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [Alias('Email')]
+        [String]$EmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $operationParameters = @{ RequestContext = $requestContext }
+        foreach ($parameterName in $PSBoundParameters.Keys) {
+            if ($parameterName -notin @(
+                    'Connection',
+                    'ConnectionName',
+                    'Uri',
+                    'Credential',
+                    'EmailAddress',
+                    'ApiToken',
+                    'PersonalAccessToken',
+                    'Anonymous'
+                )
+            ) {
+                $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
+            }
+        }
+        try {
+            $operation = { Set-JiraIssueLabelOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+            $operation.Begin($PSCmdlet)
+        }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
-
-        # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
-
-        $labels = [System.Collections.Generic.List[string]]::new(
-            [string[]]@($issueObj.labels | Where-Object { $_ })
-        )
-
-        # As of JIRA 6.4, the Add and Remove verbs in the REST API for
-        # updating issues do not support arrays of parameters - you
-        # need to pass a single label to add or remove per API call.
-
-        # Instead, we'll do some fancy footwork with the existing
-        # issue object and use the Set verb for everything, so we only
-        # have to make one call to JIRA.
-        switch ($PSCmdlet.ParameterSetName) {
-            'ClearLabels' {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Clearing all labels"
-                $labels.Clear()
-            }
-            'ReplaceLabels' {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Replacing existing labels"
-                $labels = [System.Collections.Generic.List[string]]::new([string[]]$Set)
-            }
-            'ModifyLabels' {
-                if ($Add) {
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding labels"
-                    $Add.ForEach({ $null = $labels.Add($_) })
-                }
-                if ($Remove) {
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Removing labels"
-                    # [List[T]].Remove() returns a bool that .ForEach() would
-                    # otherwise propagate to the cmdlet's output stream.
-                    $Remove.ForEach({ $null = $labels.Remove($_) })
-                }
-            }
-        }
-
-        $requestBody = @{
-            'update' = @{
-                'labels' = @(
-                    @{
-                        'set' = @($labels)
-                    }
-                )
-            }
-        }
-
-        $parameter = @{
-            URI        = $issueObj.RestURL
-            Method     = "PUT"
-            Body       = ConvertTo-Json -InputObject $requestBody -Depth 6
-            Credential = $Credential
-        }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Updating Issue labels")) {
-            Invoke-JiraMethod @parameter
-
-            if ($PassThru) { Get-JiraIssue -Key $issueObj.Key -Credential $Credential }
+        try { $operation.Process($_) }
+        catch {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+            throw
         }
     }
 
     end {
+        try { $operation.End() }
+        finally {
+            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
+        }
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

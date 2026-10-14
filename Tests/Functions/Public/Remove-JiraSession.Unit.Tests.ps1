@@ -1,67 +1,37 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
-
-Describe "Remove-JiraSession" -Tag 'Unit' {
+BeforeDiscovery {
+    . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+    $script:moduleToTest = Initialize-TestEnvironment
+}
+Describe 'Remove-JiraSession' -Tag Unit {
 
     BeforeAll {
         . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-        # $VerbosePreference = 'Continue'
-
         $script:moduleToTest = Initialize-TestEnvironment
-
-        #region Definitions
-        #endregion Definitions
-
-        #region Mocks
-        Mock Get-JiraSession -ModuleName JiraPS {
-            Write-MockDebugInfo 'Get-JiraSession'
-            (Get-Module JiraPS).PrivateData.Session
-        }
-        #endregion Mocks
     }
-
-    Describe "Signature" {
-        BeforeAll {
-            $script:command = Get-Command -Name Remove-JiraSession
+    InModuleScope JiraPS {
+        BeforeEach {
+            $script:previousDefault = Get-JiraConnection -Default
+            Mock Invoke-JiraMethod {
+                if ($Uri -eq '/rest/api/2/serverInfo') { return [PSCustomObject]@{ version = '11.0'; deploymentType = 'Server' } }
+                if ($Uri -eq '/rest/api/2/myself') { return [PSCustomObject]@{ name = 'validated-user' } }
+                throw 'Unexpected validation request.'
+            }
         }
-
-        Context "Parameter Types" {
-            It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                @{ parameter = 'Session'; type = 'Object' }
-            ) {
-                param($parameter, $type)
-                $command | Should -HaveParameter $parameter -Type $type
+        AfterEach {
+            Get-JiraConnection | Where-Object Name -Like 'contract-*' | Disconnect-Jira
+            if ($script:previousDefault -and $script:previousDefault.State -eq 'Active') {
+                $script:previousDefault | Select-JiraConnection | Out-Null
             }
         }
 
-        Context "Mandatory Parameters" {
-            # TODO: Add tests for mandatory parameters
+
+        It 'disconnects a pipeline handle through the canonical implementation' {
+            $connection = Connect-Jira -Name contract-first -Uri https://jira.example.com -Anonymous
+            $connection | Remove-JiraSession
+            $connection.State | Should -Be Disconnected
+            Get-JiraConnection -Name contract-first | Should -BeNullOrEmpty
         }
 
-        Context "Default Values" {
-            # TODO: Add tests for parameter default values
-        }
-    }
-
-    Describe "Behavior" {
-        Context "Session Cleanup" {
-            It "Closes and removes the AtlassianPS.JiraPS.Session data from module PrivateData" {
-                (Get-Module JiraPS).PrivateData = @{ Session = $true }
-                (Get-Module JiraPS).PrivateData.Session | Should -Not -BeNullOrEmpty
-
-                Remove-JiraSession
-
-                $script:command.Module.PrivateData.Session | Should -BeNullOrEmpty
-            }
-        }
-    }
-
-    Describe "Input Validation" {
-        Context "Positive cases" {
-            # TODO: Add positive input validation tests
-        }
-
-        Context "Negative cases" {
-            # TODO: Add negative input validation tests
-        }
     }
 }

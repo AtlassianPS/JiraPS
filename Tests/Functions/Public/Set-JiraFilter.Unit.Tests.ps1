@@ -77,7 +77,7 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Get-JiraFilter -ModuleName JiraPS {
+            Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
                 foreach ($i in $InputObject) {
                     ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)

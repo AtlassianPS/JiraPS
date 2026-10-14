@@ -59,7 +59,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraProject -ModuleName JiraPS {
+            Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject'
                 $issueObject = [PSCustomObject] @{
                     ID   = 2

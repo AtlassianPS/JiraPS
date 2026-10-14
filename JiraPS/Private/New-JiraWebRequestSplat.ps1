@@ -18,16 +18,14 @@
         [Hashtable]
         $Headers,
 
+        [Parameter(Mandatory)]
+        [AtlassianPS.Connection]$RequestContext,
+
         [String]
         $Body,
 
         [Switch]
         $RawBody,
-
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
 
         [ValidateRange(0, [int]::MaxValue)]
         [Int]
@@ -39,22 +37,19 @@
         [String]
         $OutFile,
 
-        [Switch]
-        $StoreSession,
-
         [ValidateNotNullOrEmpty()]
         [String]
         $DefaultContentType = "application/json; charset=utf-8"
     )
 
     $splatParameters = @{
-        Uri             = $Uri
-        Method          = $Method
-        Headers         = $Headers
-        UseBasicParsing = $true
-        Credential      = $Credential
-        ErrorAction     = "Stop"
-        Verbose         = $false
+        Uri                = $Uri
+        Method             = $Method
+        Headers            = $Headers
+        UseBasicParsing    = $true
+        MaximumRedirection = 0
+        ErrorAction        = "Stop"
+        Verbose            = $false
     }
 
     if ($TimeoutSec -gt 0) { $splatParameters["TimeoutSec"] = $TimeoutSec }
@@ -75,15 +70,9 @@
         }
     }
 
-    if ((-not $Credential) -or ($Credential -eq [System.Management.Automation.PSCredential]::Empty)) {
-        $splatParameters.Remove("Credential")
-        if ($session = Get-JiraSession -ErrorAction SilentlyContinue) { $splatParameters["WebSession"] = $session.WebSession }
-    }
-
-    if ($StoreSession) {
-        $splatParameters["SessionVariable"] = "newSessionVar"
-        $splatParameters.Remove("WebSession")
-    }
+    $splatParameters['WebSession'] = $RequestContext.GetWebSession()
+    $authorization = $RequestContext.GetAuthorizationHeader()
+    if ($authorization) { $splatParameters['Headers']['Authorization'] = $authorization }
 
     if ($InFile) { $splatParameters["InFile"] = $InFile }
     if ($OutFile) { $splatParameters["OutFile"] = $OutFile }

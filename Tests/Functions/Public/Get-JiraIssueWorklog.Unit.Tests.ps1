@@ -46,7 +46,7 @@ InModuleScope JiraPS {
                 Write-Output $jiraServer
             }
 
-            Mock Get-JiraIssue -ModuleName JiraPS {
+            Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     ID      = $issueID
@@ -96,7 +96,7 @@ InModuleScope JiraPS {
                     $worklogs.TimeSpentSeconds | Should -Be 180
 
                     # Get-JiraIssue should be called to identify the -Issue parameter
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 1
 
                     # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueComment, but
                     # since we've mocked Get-JiraIssue out, it will only be called once.

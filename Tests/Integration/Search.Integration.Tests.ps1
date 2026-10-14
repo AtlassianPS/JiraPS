@@ -21,10 +21,29 @@ InModuleScope JiraPS {
             $script:env = Initialize-IntegrationEnvironment
             $script:session = Connect-JiraTestServer -Environment $env
             $script:fixtures = Get-TestFixture -Environment $env
+            $script:ownedSearchIssue = $null
+            if ([string]::IsNullOrWhiteSpace($fixtures.TestIssue)) { throw 'Search integration requires JIRA_TEST_ISSUE to identify a stable baseline issue.' }
+            $script:searchKeys = @($fixtures.TestIssue)
+            if (-not $fixtures.ReadOnly) {
+                $script:ownedSearchIssue = New-TemporaryTestIssue -Fixtures $fixtures -ErrorAction Stop
+                $script:searchKeys += $ownedSearchIssue.Key
+            }
+            # Other suites create and delete project issues concurrently; keep search membership stable.
+            $script:searchJql = 'key in (' + ($searchKeys -join ',') + ')'
+            $deadline = (Get-Date).AddSeconds(15)
+            do {
+                $indexed = @(Get-JiraIssue -Query $searchJql -Fields summary -ErrorAction Stop)
+                if ((@($indexed.Key | Sort-Object) -join ',') -eq (@($searchKeys | Sort-Object) -join ',')) { break }
+                if ((Get-Date) -ge $deadline) { throw 'Search fixtures did not become visible in the Jira index.' }
+                Start-Sleep -Milliseconds 500
+            } while ($true)
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            try {
+                if ($ownedSearchIssue) { Remove-JiraIssue -IssueId $ownedSearchIssue.Key -Force -ErrorAction Stop }
+            }
+            finally { Remove-JiraSession -ErrorAction SilentlyContinue }
         }
 
         Describe "Get-JiraIssue -Query" {
@@ -96,12 +115,7 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    # Keep this OR query anchored to project-scoped predicates that only
-                    # reference real indexed issues. Jira 11 can intermittently throw a
-                    # backend null-deref when one OR branch targets a non-existent key,
-                    # which flakes the Server workflow without exercising JiraPS logic.
-                    # This still validates OR parsing while avoiding brittle server behavior.
-                    $jql = "project = $($fixtures.TestProject) AND (key = $($fixtures.TestIssue) OR key != $($fixtures.TestIssue))"
+                    $jql = "key = $($searchKeys[0]) OR key = $($searchKeys[-1])"
 
                     $results = Get-JiraIssue -Query $jql -ErrorAction Stop
 
@@ -131,11 +145,12 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    $jql = "project = $($fixtures.TestProject)"
+                    $jql = $searchJql
 
-                    $results = Get-JiraIssue -Query $jql -First 1
+                    $results = @(Get-JiraIssue -Query $jql -First 1 -ErrorAction Stop)
 
-                    @($results).Count | Should -BeLessOrEqual 1
+                    @($results).Count | Should -Be 1
+                    $searchKeys | Should -Contain $results[0].Key
                 }
 
                 It "supports -Skip parameter" {
@@ -151,17 +166,18 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    $jql = "project = $($fixtures.TestProject) ORDER BY key ASC"
+                    $jql = "$searchJql ORDER BY key ASC"
 
-                    $firstPage = Get-JiraIssue -Query $jql -First 1 -Skip 0
-                    $secondPage = Get-JiraIssue -Query $jql -First 1 -Skip 1
+                    $firstPage = @(Get-JiraIssue -Query $jql -First 1 -Skip 0 -ErrorAction Stop)
+                    $secondPage = @(Get-JiraIssue -Query $jql -First 1 -Skip 1 -ErrorAction Stop)
 
-                    # If there's a second page with results, verify it's different from first
-                    if ($secondPage -and @($secondPage).Count -gt 0) { @($firstPage)[0].Key | Should -Not -Be @($secondPage)[0].Key }
-                    else {
-                        # Only one issue in project - just verify first page works
-                        $firstPage | Should -Not -BeNullOrEmpty
+                    $firstPage.Count | Should -Be 1
+                    if ($searchKeys.Count -gt 1) {
+                        $secondPage.Count | Should -Be 1
+                        $firstPage[0].Key | Should -Not -Be $secondPage[0].Key
+                        @($firstPage[0].Key, $secondPage[0].Key | Sort-Object) | Should -Be @($searchKeys | Sort-Object)
                     }
+                    else { $secondPage.Count | Should -Be 0 }
                 }
 
                 It "supports -PageSize for automatic paging" {
@@ -169,9 +185,12 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    $jql = "project = $($fixtures.TestProject)"
+                    $jql = $searchJql
 
-                    { Get-JiraIssue -Query $jql -PageSize 10 } | Should -Not -Throw
+                    $results = @(Get-JiraIssue -Query $jql -PageSize 1 -ErrorAction Stop)
+
+                    $results.Count | Should -Be $searchKeys.Count
+                    @($results.Key | Sort-Object) | Should -Be @($searchKeys | Sort-Object)
                 }
             }
 

@@ -74,28 +74,10 @@ InModuleScope JiraPS {
             $script:result | Should -BeNullOrEmpty
         }
 
-        It "returns transformed session when -StoreSession is set" {
-            Mock ConvertTo-JiraSession -ModuleName 'JiraPS' {
-                [PSCustomObject]@{
-                    Username = $Username
-                }
-            }
-
-            $response = New-FakeWebResponse -StatusCode 200
-            $securePassword = [System.Security.SecureString]::new()
-            'pw'.ToCharArray() | ForEach-Object { $securePassword.AppendChar($_) }
-            $securePassword.MakeReadOnly()
-            $credential = [pscredential]::new('user@example.com', $securePassword)
-            $session = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
-            $result = Invoke-ResolveJiraWebResponse -Remaining @{
-                WebResponse                 = $response
-                StoreSession                = $true
-                Credential                  = $credential
-                SessionTransformationMethod = 'ConvertTo-JiraSession'
-                Session                     = $session
-            }
-
-            $result.Username | Should -Be 'user@example.com'
+        It 'returns JSON without constructing a legacy session' {
+            $response = New-FakeWebResponse -StatusCode 200 -Json '{"name":"validated-user"}'
+            $result = Invoke-ResolveJiraWebResponse -Remaining @{ WebResponse = $response }
+            $result.name | Should -Be validated-user
         }
 
         It "stores cache entries for GET responses when CacheKey is provided" {
@@ -110,8 +92,8 @@ InModuleScope JiraPS {
                 CacheExpiry = [TimeSpan]::FromMinutes(30)
             }
 
-            $script:JiraCache.ContainsKey('Fields:https://jira.example.com') | Should -BeTrue
-            $script:JiraCache['Fields:https://jira.example.com'].Data.name | Should -Be 'field'
+            $script:JiraCache.ContainsKey('Fields') | Should -BeTrue
+            $script:JiraCache['Fields'].Data.name | Should -Be 'field'
         }
 
         It "does not create a cache entry for non-GET responses" {

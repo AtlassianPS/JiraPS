@@ -1,21 +1,11 @@
-﻿function Get-JiraConfigServer {
+﻿
+function Get-JiraConfigServer {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
-    [OutputType([System.String])]
     param()
-
-    begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-    }
-
-    process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        return ($script:JiraServerUrl -replace "\/$", "")
-    }
-
-    end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-    }
+    $default = Get-JiraConnection -Default
+    if ($default) { return $default.BaseUri.AbsoluteUri.TrimEnd('/') }
+    $profile = AtlassianPS.Configuration\Get-AtlassianServerConfiguration -Name 'JiraPS.LegacyEndpoint'
+    if ($profile -and $profile.Type -eq 'Jira') { return $profile.Uri.AbsoluteUri.TrimEnd('/') }
+    if ($script:JiraServerUrl) { return $script:JiraServerUrl.AbsoluteUri.TrimEnd('/') }
 }
