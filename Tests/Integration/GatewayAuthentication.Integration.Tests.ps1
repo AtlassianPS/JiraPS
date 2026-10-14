@@ -10,10 +10,11 @@ Describe 'Cloud gateway token coverage' -Tag Integration, Cloud -Skip:$Skip {
         $script:integration = Initialize-IntegrationEnvironment
     }
     It 'validates gateway metadata, identity and issue read for <Kind> tokens' -ForEach @(
-        @{ Kind = 'scoped'; Variable = 'JIRA_CLOUD_SCOPED_TOKEN' }
-        @{ Kind = 'unscoped'; Variable = 'JIRA_CLOUD_UNSCOPED_TOKEN' }
+        @{ Kind = 'scoped'; Variable = 'JIRA_CLOUD_SCOPED_API_TOKEN'; LegacyVariable = 'JIRA_CLOUD_SCOPED_TOKEN' }
+        @{ Kind = 'unscoped'; Variable = 'JIRA_CLOUD_API_TOKEN'; LegacyVariable = 'JIRA_CLOUD_UNSCOPED_TOKEN' }
     ) {
         $token = [Environment]::GetEnvironmentVariable($Variable)
+        if (-not $token) { $token = [Environment]::GetEnvironmentVariable($LegacyVariable) }
         if (-not $token) {
             Set-ItResult -Skipped -Because "$Variable is unavailable; this token-kind acceptance criterion is unverified."
             return

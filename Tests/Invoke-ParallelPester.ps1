@@ -93,10 +93,10 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $canParallel = $PSVersionTable.PSVersion.Major -ge 7
-if ($canParallel) {
-    $moduleManifest = Join-Path (Split-Path -Parent $PSScriptRoot) 'JiraPS/JiraPS.psd1'
-    Import-Module $moduleManifest -ErrorAction Stop
-}
+$moduleManifest = Join-Path (Split-Path -Parent $PSScriptRoot) 'JiraPS/JiraPS.psd1'
+Import-Module $moduleManifest -ErrorAction Stop
+$configurationModule = Get-Module AtlassianPS.Configuration -All | Select-Object -First 1
+$configurationManifest = Join-Path $configurationModule.ModuleBase 'AtlassianPS.Configuration.psd1'
 
 
 if (-not $canParallel) { Write-Warning "PowerShell 5.1 detected: running tests sequentially. Use PowerShell 7+ for parallel execution." }
@@ -142,7 +142,7 @@ $generateXml = [bool]$OutputPath
 $helpersPath = Join-Path $PSScriptRoot 'Helpers/IntegrationTestTools.ps1'
 
 $runTestBodyText = @'
-param($testFile, $projectRoot, $tagFilter, $excludeTagFilter, $outputVerbosity, $tempResultsDir, $generateXml, $helpersPath)
+param($testFile, $projectRoot, $tagFilter, $excludeTagFilter, $outputVerbosity, $tempResultsDir, $generateXml, $helpersPath, $configurationManifest)
 
 try {
     function Get-PesterTestInBlock {
@@ -162,6 +162,7 @@ try {
         Read-DotEnvFile -Path (Join-Path $projectRoot '.env') -ExcludeName (Get-DotEnvExcludedName)
     }
 
+    Import-Module $configurationManifest -Global -ErrorAction Stop
     Import-Module Pester -MinimumVersion 6.2.0 -MaximumVersion 6.999 -Force
     Set-Location $projectRoot
 
@@ -285,7 +286,7 @@ if ($canParallel) {
         # Receive-Job replays the buffered output after each file completes.
         $job = Start-ThreadJob `
             -ScriptBlock ([scriptblock]::Create($runTestBodyText)) `
-            -ArgumentList @($testFile, $projectRoot, $Tag, $ExcludeTag, $Output, $tempResultsDir, $generateXml, $helpersPath) `
+            -ArgumentList @($testFile, $projectRoot, $Tag, $ExcludeTag, $Output, $tempResultsDir, $generateXml, $helpersPath, $configurationManifest) `
             -ThrottleLimit $ThrottleLimit `
             -Name "Pester:$($testFile.BaseName)"
         $jobInfos.Add(@{ File = $testFile; Job = $job })
@@ -357,7 +358,7 @@ if ($canParallel) {
 else {
     $runTestFile = [scriptblock]::Create($runTestBodyText)
     foreach ($testFile in $testFiles) {
-        $results += & $runTestFile $testFile $projectRoot $Tag $ExcludeTag $Output $tempResultsDir $generateXml $helpersPath
+        $results += & $runTestFile $testFile $projectRoot $Tag $ExcludeTag $Output $tempResultsDir $generateXml $helpersPath $configurationManifest
     }
 }
 

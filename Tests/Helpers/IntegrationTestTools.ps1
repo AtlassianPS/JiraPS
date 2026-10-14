@@ -47,6 +47,7 @@ function Read-DotEnvFile {
     )
 
     Import-AtlassianPSDotEnvFile -Path $Path -ExcludeName $ExcludeName
+    if ($env:JIRA_CLOUD_API_TOKEN) { $env:JIRA_CLOUD_PASSWORD = $env:JIRA_CLOUD_API_TOKEN }
 }
 
 function Initialize-IntegrationEnvironment {
@@ -100,8 +101,8 @@ function Initialize-IntegrationEnvironment {
     $projectRoot = Resolve-ProjectRoot
 
     $envFile = Join-Path $projectRoot '.env'
+    Read-DotEnvFile -Path $envFile -ExcludeName (Get-DotEnvExcludedName)
     if (Test-Path $envFile) {
-        Read-DotEnvFile -Path $envFile -ExcludeName (Get-DotEnvExcludedName)
         Write-Verbose "Loaded environment from: $envFile"
     }
 

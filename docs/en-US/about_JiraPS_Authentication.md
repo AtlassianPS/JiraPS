@@ -80,7 +80,8 @@ Creation-time identity validation needs permission to access Jira and the scopes
 Its classic scope is read:jira-user; granular alternatives include read:application-role:jira, read:group:jira, read:user:jira and read:avatar:jira.
 Issue retrieval needs the scopes of [Get issue](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get), in addition to project and issue permissions.
 A successful Connect does not establish access to every operation.
-A 403 can indicate missing scopes or ordinary Jira permissions; it does not always mean a bad token.
+For a read-only scoped API token that validates identity and reads issues, the complete classic scope list is `read:jira-user` and `read:jira-work`.
+A 401 with "scope does not match" or a 403 can indicate missing scopes; check the requested operation before replacing otherwise valid credentials.
 
 ### Standalone requests and overrides
 
