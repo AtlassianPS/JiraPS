@@ -54,7 +54,8 @@
         [Switch]
         $SkipNotification,
 
-        [Alias('Session')][AtlassianPS.Connection]$Connection,
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
 
         [Alias('Server', 'ServerName')]
         [ArgumentCompleter({
@@ -62,18 +63,22 @@
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })][String]$ConnectionName,
+            })]
+        [String]$ConnectionName,
 
         [Uri]$Uri,
 
-        [Alias('Email')][String]$EmailAddress,
+        [Alias('Email')]
+        [String]$EmailAddress,
 
         [Object]$ApiToken,
 
-        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
 
         [Switch]$Anonymous
     )
+
     begin {
         try {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
@@ -173,7 +178,6 @@
                     }
                 )
             }
-
 
             if ($Fields) {
 

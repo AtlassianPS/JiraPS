@@ -22,6 +22,7 @@ $requiredJiraTypes = @(
     'AtlassianPS.JiraPS.Status'
     'AtlassianPS.JiraPS.VersionTransformationAttribute'
 )
+
 $loadedJiraTypes = @($requiredJiraTypes | Where-Object { $_ -as [Type] })
 if ($loadedJiraTypes.Count -eq 0) {
     $typesPath = Join-Path $PSScriptRoot 'Types'
@@ -69,7 +70,6 @@ $script:PagingContainers = @(
     "values"
     "worklogs"
 )
-
 
 #endregion Configuration
 

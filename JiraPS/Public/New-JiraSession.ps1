@@ -5,21 +5,38 @@
     [OutputType([AtlassianPS.Connection])]
     param(
         [String]$Name,
+
         [Uri]$Uri,
-        [PSCredential][System.Management.Automation.Credential()]$Credential,
-        [Alias('Email')][String]$EmailAddress,
+
+        [PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential,
+
+        [Alias('Email')]
+        [String]$EmailAddress,
+
         [Object]$ApiToken,
-        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
+
         [Switch]$Anonymous,
+
         [Switch]$Default,
+
         [Hashtable]$Headers = @{}
     )
 
     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-    if ($Headers.Count) { throw 'New-JiraSession headers are no longer an authentication API. Use explicit authentication parameters.' }
+    if ($Headers.Count) {
+        throw 'New-JiraSession headers are no longer an authentication API. Use explicit authentication parameters.'
+    }
     if (-not $Uri) {
         $current = Get-JiraConnection -Default
-        $Uri = if ($current) { $(if ($current.SiteUri) { $current.SiteUri } else { $current.BaseUri }) } else { Get-JiraConfigServer -ErrorAction Stop }
+        $Uri = if ($current) {
+            $(if ($current.SiteUri) { $current.SiteUri } else { $current.BaseUri })
+        }
+        else { Get-JiraConfigServer -ErrorAction Stop }
     }
     if (-not $Uri) { throw 'Specify Uri or configure a migration endpoint before New-JiraSession.' }
     $authentication = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters

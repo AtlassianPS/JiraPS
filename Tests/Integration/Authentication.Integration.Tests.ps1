@@ -33,6 +33,7 @@ InModuleScope JiraPS {
                 Set-JiraConfigServer -Server $env.CloudUrl
 
                 $server = Get-JiraConfigServer
+
                 $server | Should -Be $env.CloudUrl
             }
         }
@@ -63,6 +64,7 @@ InModuleScope JiraPS {
                 New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
                 $serverInfo = Get-JiraServerInformation
+
                 $serverInfo | Should -Not -BeNullOrEmpty
             }
 
@@ -74,7 +76,9 @@ InModuleScope JiraPS {
             }
 
             It "fails with invalid email address" {
-                { New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress "invalid@example.com" -ErrorAction Stop } |
+                {
+                    New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress "invalid@example.com" -ErrorAction Stop
+                } |
                     Should -Throw
             }
         }
@@ -90,6 +94,7 @@ InModuleScope JiraPS {
                 Get-JiraConnection | Remove-JiraSession -ErrorAction SilentlyContinue
 
                 $session = Get-JiraSession
+
                 $session | Should -BeNullOrEmpty
             }
 
@@ -97,6 +102,7 @@ InModuleScope JiraPS {
                 New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
                 $session = Get-JiraSession
+
                 $session | Should -Not -BeNullOrEmpty
                 $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.Connection'
             }
@@ -111,6 +117,7 @@ InModuleScope JiraPS {
 
             It "removes an existing session" {
                 New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
+
                 Get-JiraSession | Should -Not -BeNullOrEmpty
 
                 Get-JiraConnection | Remove-JiraSession

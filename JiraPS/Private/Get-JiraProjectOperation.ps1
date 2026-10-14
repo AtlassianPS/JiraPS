@@ -10,6 +10,7 @@
         [AtlassianPS.Connection]
         $RequestContext
     )
+
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 

@@ -47,6 +47,7 @@
         [Switch]
         $IncludeHistory
     )
+
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 

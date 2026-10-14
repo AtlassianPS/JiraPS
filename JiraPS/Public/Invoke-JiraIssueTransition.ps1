@@ -42,7 +42,8 @@
         [Switch]
         $Passthru,
 
-        [Alias('Session')][AtlassianPS.Connection]$Connection,
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
 
         [Alias('Server', 'ServerName')]
         [ArgumentCompleter({
@@ -50,18 +51,22 @@
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })][String]$ConnectionName,
+            })]
+        [String]$ConnectionName,
 
         [Uri]$Uri,
 
-        [Alias('Email')][String]$EmailAddress,
+        [Alias('Email')]
+        [String]$EmailAddress,
 
         [Object]$ApiToken,
 
-        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
 
         [Switch]$Anonymous
     )
+
     begin {
         try {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
@@ -123,6 +128,7 @@
                     [System.Management.Automation.ErrorCategory]::InvalidArgument,
                     $Issue
                 )
+
                 $requestedTransition = if ($null -ne $transitionId) { $transitionId } else { $Transition.Name }
                 $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$requestedTransition]. Check the issue's Transition property and provide a transition valid for its current state."
                 ThrowError -ErrorRecord $errorItem

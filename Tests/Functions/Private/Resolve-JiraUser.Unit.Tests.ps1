@@ -7,6 +7,7 @@ BeforeAll {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
     $script:moduleToTest = Initialize-TestEnvironment
 }
+
 InModuleScope JiraPS {
 
     Describe 'Resolve-JiraUser' -Tag Unit {
@@ -21,6 +22,7 @@ InModuleScope JiraPS {
             Mock Get-JiraUserOperation { [AtlassianPS.JiraPS.User]@{ Name = $UserName; AccountId = $AccountId } }
             try {
                 $result = Resolve-JiraUser -InputObject ([AtlassianPS.JiraPS.User]$Identity) -RequestContext $context
+
                 if ($Deployment -eq 'Cloud') { $result.AccountId | Should -Be account-1 }
                 else { $result.Name | Should -Be user-1 }
                 Should -Invoke Get-JiraUserOperation -Exactly 1 -ParameterFilter {

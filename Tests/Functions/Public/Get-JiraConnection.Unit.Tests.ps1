@@ -3,12 +3,14 @@ BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
     $script:moduleToTest = Initialize-TestEnvironment
 }
+
 Describe 'Get-JiraConnection' -Tag Unit {
 
     BeforeAll {
         . "$PSScriptRoot/../../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
     }
+
     InModuleScope JiraPS {
         BeforeEach {
             $script:previousDefault = Get-JiraConnection -Default
@@ -18,6 +20,7 @@ Describe 'Get-JiraConnection' -Tag Unit {
                 throw 'Unexpected validation request.'
             }
         }
+
         AfterEach {
             Get-JiraConnection | Where-Object Name -Like 'contract-*' | Disconnect-Jira
             if ($script:previousDefault -and $script:previousDefault.State -eq 'Active') {
@@ -25,9 +28,9 @@ Describe 'Get-JiraConnection' -Tag Unit {
             }
         }
 
-
         It 'lists Jira connections using shared names and IDs' {
             $connection = Connect-Jira -Name contract-first -Uri https://jira.example.com -Anonymous
+
             (Get-JiraConnection -Name CONTRACT-FIRST).InstanceId | Should -Be $connection.InstanceId
             (Get-JiraConnection -Id $connection.Id).InstanceId | Should -Be $connection.InstanceId
         }

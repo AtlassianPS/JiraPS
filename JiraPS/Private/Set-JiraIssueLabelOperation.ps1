@@ -32,6 +32,7 @@
         [Switch]
         $PassThru
     )
+
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
     }

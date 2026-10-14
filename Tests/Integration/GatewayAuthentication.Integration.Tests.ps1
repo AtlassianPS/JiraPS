@@ -4,14 +4,24 @@ BeforeDiscovery {
     $script:moduleToTest = Initialize-TestEnvironment
     $script:Skip = Skip-IntegrationTest
 }
+
 Describe 'Cloud gateway token coverage' -Tag Integration, Cloud -Skip:$Skip {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
         $script:integration = Initialize-IntegrationEnvironment
     }
+
     It 'validates gateway metadata, identity and issue read for <Kind> tokens' -ForEach @(
-        @{ Kind = 'scoped'; Variable = 'JIRA_CLOUD_SCOPED_API_TOKEN'; LegacyVariable = 'JIRA_CLOUD_SCOPED_TOKEN' }
-        @{ Kind = 'unscoped'; Variable = 'JIRA_CLOUD_API_TOKEN'; LegacyVariable = 'JIRA_CLOUD_UNSCOPED_TOKEN' }
+        @{
+            Kind           = 'scoped'
+            Variable       = 'JIRA_CLOUD_SCOPED_API_TOKEN'
+            LegacyVariable = 'JIRA_CLOUD_SCOPED_TOKEN'
+        }
+        @{
+            Kind           = 'unscoped'
+            Variable       = 'JIRA_CLOUD_API_TOKEN'
+            LegacyVariable = 'JIRA_CLOUD_UNSCOPED_TOKEN'
+        }
     ) {
         $token = [Environment]::GetEnvironmentVariable($Variable)
         if (-not $token) { $token = [Environment]::GetEnvironmentVariable($LegacyVariable) }
@@ -22,6 +32,7 @@ Describe 'Cloud gateway token coverage' -Tag Integration, Cloud -Skip:$Skip {
         $connection = $null
         try {
             $connection = Connect-Jira -Name ("gateway-" + $Kind) -Uri $integration.CloudUrl -EmailAddress $integration.Username -ApiToken $token
+
             $connection.DeploymentType | Should -Be Cloud
             $connection.Username | Should -Not -BeNullOrEmpty
             $connection.CloudId | Should -Match '^[0-9a-f-]{36}$'

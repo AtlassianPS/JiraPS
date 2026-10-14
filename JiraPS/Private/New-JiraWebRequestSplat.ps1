@@ -18,7 +18,8 @@
         [Hashtable]
         $Headers,
 
-        [Parameter(Mandatory)][AtlassianPS.Connection]$RequestContext,
+        [Parameter(Mandatory)]
+        [AtlassianPS.Connection]$RequestContext,
 
         [String]
         $Body,

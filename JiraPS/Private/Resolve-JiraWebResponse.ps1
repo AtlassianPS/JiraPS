@@ -43,7 +43,6 @@
         return
     }
 
-
     if (-not $WebResponse.Content) {
         # No content, although statusCode < 400
         # This could be wanted behavior of the API

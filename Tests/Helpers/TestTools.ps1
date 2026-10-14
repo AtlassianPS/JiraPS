@@ -245,9 +245,15 @@ function Get-FileEncoding {
                 $sampleEncoding = foreach ($sequence in $signatures[$name]) {
                     $sample = $bytes.GetRange(0, $sequence.Count)
 
-                    if ([System.Linq.Enumerable]::SequenceEqual($sample, $sequence)) { $name; break }
+                    if ([System.Linq.Enumerable]::SequenceEqual($sample, $sequence)) {
+                        $name
+                        break
+                    }
                 }
-                if ($sampleEncoding) { $encoding = $sampleEncoding; break }
+                if ($sampleEncoding) {
+                    $encoding = $sampleEncoding
+                    break
+                }
             }
 
             if (-not $encoding) { $encoding = "ASCII" }

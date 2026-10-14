@@ -3,12 +3,14 @@ BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
     $script:moduleToTest = Initialize-TestEnvironment
 }
+
 Describe 'Select-JiraConnection' -Tag Unit {
 
     BeforeAll {
         . "$PSScriptRoot/../../Helpers/TestTools.ps1"
         $script:moduleToTest = Initialize-TestEnvironment
     }
+
     InModuleScope JiraPS {
         BeforeEach {
             $script:previousDefault = Get-JiraConnection -Default
@@ -18,6 +20,7 @@ Describe 'Select-JiraConnection' -Tag Unit {
                 throw 'Unexpected validation request.'
             }
         }
+
         AfterEach {
             Get-JiraConnection | Where-Object Name -Like 'contract-*' | Disconnect-Jira
             if ($script:previousDefault -and $script:previousDefault.State -eq 'Active') {
@@ -25,12 +28,13 @@ Describe 'Select-JiraConnection' -Tag Unit {
             }
         }
 
-
         It 'selects using pipeline input and names' {
             $connection = Connect-Jira -Name contract-first -Uri https://jira.example.com -Anonymous
             $connection | Select-JiraConnection | Out-Null
+
             (Get-JiraConnection -Default).InstanceId | Should -Be $connection.InstanceId
             Select-JiraConnection -Name contract-first | Out-Null
+
             (Get-JiraConnection -Default).InstanceId | Should -Be $connection.InstanceId
         }
 

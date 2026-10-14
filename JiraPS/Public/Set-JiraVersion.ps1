@@ -36,7 +36,8 @@
         [System.Management.Automation.Credential()]
         $Credential,
 
-        [Alias('Session')][AtlassianPS.Connection]$Connection,
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
 
         [Alias('Server', 'ServerName')]
         [ArgumentCompleter({
@@ -44,18 +45,22 @@
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })][String]$ConnectionName,
+            })]
+        [String]$ConnectionName,
 
         [Uri]$Uri,
 
-        [Alias('Email')][String]$EmailAddress,
+        [Alias('Email')]
+        [String]$EmailAddress,
 
         [Object]$ApiToken,
 
-        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
 
         [Switch]$Anonymous
     )
+
     begin {
         try {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
@@ -83,6 +88,7 @@
                         [System.Management.Automation.ErrorCategory]::InvalidArgument,
                         $_version
                     )
+
                     $errorItem.ErrorDetails = "Set-JiraVersion requires a version ID. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
                     ThrowError -ErrorRecord $errorItem
                 }

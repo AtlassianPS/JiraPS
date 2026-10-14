@@ -112,7 +112,10 @@
                 if ($Response.PSObject.Properties.Name -contains "nextPageToken" -and $Response.nextPageToken) {
                     $PSBoundParameters["GetParameter"]["nextPageToken"] = $Response.nextPageToken
                 }
-                else { Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] No nextPageToken found; stopping pagination"; break }
+                else {
+                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] No nextPageToken found; stopping pagination"
+                    break
+                }
             }
             else {
                 # Both v2 and v3 APIs support offset-based pagination.

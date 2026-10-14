@@ -10,7 +10,8 @@
         [Switch]
         $Force,
 
-        [Alias('Session')][AtlassianPS.Connection]$Connection,
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
 
         [Alias('Server', 'ServerName')]
         [ArgumentCompleter({
@@ -18,24 +19,37 @@
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })][String]$ConnectionName,
+            })]
+        [String]$ConnectionName,
 
         [Uri]$Uri,
 
-        [Alias('Email')][String]$EmailAddress,
+        [Alias('Email')]
+        [String]$EmailAddress,
 
         [Object]$ApiToken,
 
-        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
 
         [Switch]$Anonymous
     )
+
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
         $operationParameters = @{ RequestContext = $requestContext }
         foreach ($parameterName in $PSBoundParameters.Keys) {
-            if ($parameterName -notin @('Connection', 'ConnectionName', 'Uri', 'Credential', 'EmailAddress', 'ApiToken', 'PersonalAccessToken', 'Anonymous')) {
+            if ($parameterName -notin @(
+                    'Connection',
+                    'ConnectionName',
+                    'Uri',
+                    'Credential',
+                    'EmailAddress',
+                    'ApiToken',
+                    'PersonalAccessToken',
+                    'Anonymous'
+                )) {
                 $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
             }
         }
@@ -48,6 +62,7 @@
             throw
         }
     }
+
     process {
         try { $operation.Process($_) }
         catch {
@@ -55,6 +70,7 @@
             throw
         }
     }
+
     end {
         try { $operation.End() }
         finally {
@@ -63,6 +79,5 @@
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
-
 
 New-Alias -Name "Get-JiraServerInfo" -Value "Get-JiraServerInformation" -ErrorAction SilentlyContinue

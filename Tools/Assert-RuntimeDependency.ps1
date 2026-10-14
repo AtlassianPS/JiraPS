@@ -1,5 +1,9 @@
 ﻿[CmdletBinding()]
-param([Parameter(Mandatory)][String]$ManifestPath)
+param(
+    [Parameter(Mandatory)]
+    [String]$ManifestPath
+)
+
 $ErrorActionPreference = 'Stop'
 $data = Import-PowerShellDataFile -LiteralPath $ManifestPath
 foreach ($requirement in $data.RequiredModules) {
@@ -13,5 +17,7 @@ foreach ($requirement in $data.RequiredModules) {
         throw "An incompatible $($requirement.ModuleName) is loaded. Start a fresh process with the manifest's supported dependency range."
     }
     $compatible = @(Get-Module -ListAvailable -FullyQualifiedName $specification)
-    if (-not $compatible.Count) { throw "No compatible $($requirement.ModuleName) is available within the manifest's supported dependency range." }
+    if (-not $compatible.Count) {
+        throw "No compatible $($requirement.ModuleName) is available within the manifest's supported dependency range."
+    }
 }

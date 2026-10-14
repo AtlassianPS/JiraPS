@@ -272,7 +272,11 @@ function Connect-JiraTestServer {
     $name = '__integration-default'
     $existing = Get-JiraConnection -Name $name
     if ($existing) { $existing | Disconnect-Jira }
-    $parameters = @{ Name = $name; Uri = $Environment.CloudUrl; Default = $true }
+    $parameters = @{
+        Name    = $name
+        Uri     = $Environment.CloudUrl
+        Default = $true
+    }
     $secureSecret = ConvertTo-SecureString -String $Environment.Password -AsPlainText -Force
     try {
         if ($Environment.IsCloud) {
@@ -640,6 +644,7 @@ function Test-StaleTestResourceName {
         $Matches.Timestamp, 'yyyyMMddHHmmss', [cultureinfo]::InvariantCulture,
         [System.Globalization.DateTimeStyles]::None, [ref]$createdAt
     )
+
     return $validTimestamp -and $createdAt -lt $CutoffTime
 }
 

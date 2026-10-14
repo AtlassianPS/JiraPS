@@ -58,7 +58,8 @@
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })][String]$ConnectionName,
+            })]
+        [String]$ConnectionName,
 
         [Uri]$Uri,
 
@@ -70,6 +71,7 @@
 
         [Switch]$Anonymous
     )
+
     begin {
         try {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"

@@ -8,6 +8,7 @@
         [Switch]
         $Force
     )
+
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 

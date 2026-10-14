@@ -4,9 +4,16 @@
     [CmdletBinding(DefaultParameterSetName = 'Object')]
     [OutputType([AtlassianPS.Connection])]
     param(
-        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Object')][Alias('Session')][AtlassianPS.Connection]$Connection,
-        [Parameter(Mandatory, ParameterSetName = 'Name')][String]$Name,
-        [Parameter(Mandatory, ParameterSetName = 'Id')][Int]$Id
+        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Object')]
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
+
+        [Parameter(Mandatory, ParameterSetName = 'Name')]
+        [String]$Name,
+
+        [Parameter(Mandatory, ParameterSetName = 'Id')]
+        [Int]$Id
     )
+
     process { Select-JiraConnection @PSBoundParameters }
 }

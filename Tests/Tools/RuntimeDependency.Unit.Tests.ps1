@@ -16,6 +16,7 @@ if ($actual -ne ($Expected -eq 'True')) { exit 1 }
 exit 0
 '@
     }
+
     It 'accepts compatible versions and rejects lower or next-major-only installations' {
         foreach ($requirement in $script:requirements) {
             $minimum = [Version]$requirement.ModuleVersion
@@ -36,10 +37,15 @@ exit 0
                     $null = New-Item $dependencyRoot -ItemType Directory -Force
                     New-ModuleManifest -Path (Join-Path $dependencyRoot 'FixtureDependency.psd1') -ModuleVersion $version
                 }
-                $spec = @{ ModuleName = 'FixtureDependency'; ModuleVersion = $requirement.ModuleVersion; MaximumVersion = $requirement.MaximumVersion }
+                $spec = @{
+                    ModuleName     = 'FixtureDependency'
+                    ModuleVersion  = $requirement.ModuleVersion
+                    MaximumVersion = $requirement.MaximumVersion
+                }
                 $parent = Join-Path $fixtureRoot 'FixtureParent.psd1'
                 New-ModuleManifest -Path $parent -ModuleVersion 1.0 -RequiredModules @($spec)
                 & $script:engine -NoLogo -NonInteractive -NoProfile -File $script:runner $fixtureRoot $parent $case.Expected
+
                 $LASTEXITCODE | Should -Be 0 -Because "$($requirement.ModuleName) versions $($case.Versions -join ', ') should resolve=$($case.Expected)"
             }
         }
