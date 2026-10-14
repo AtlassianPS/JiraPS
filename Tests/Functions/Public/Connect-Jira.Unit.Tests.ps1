@@ -42,6 +42,15 @@ Describe 'Connect-Jira' -Tag Unit {
             Get-JiraConnection -Name contract-invalid | Should -BeNullOrEmpty
             (Get-JiraConnection -Default).InstanceId | Should -Be $before
         }
+        It 'preserves metadata transport failures without registering a connection' {
+            Mock Invoke-JiraMethod { Write-Error 'Metadata transport failed.' }
+            $before = (Get-JiraConnection -Default).InstanceId
+
+            { Connect-Jira -Name contract-transport -Uri https://jira.example.com -Anonymous } | Should -Throw '*Metadata transport failed*'
+
+            Get-JiraConnection -Name contract-transport | Should -BeNullOrEmpty
+            (Get-JiraConnection -Default).InstanceId | Should -Be $before
+        }
         It 'rejects invalid authentication before HTTP' {
             { Connect-Jira -Name contract-invalid -Uri https://jira.example.com -PersonalAccessToken '' } | Should -Throw
             { Connect-Jira -Name contract-invalid -Uri https://jira.example.com -ApiToken token } | Should -Throw

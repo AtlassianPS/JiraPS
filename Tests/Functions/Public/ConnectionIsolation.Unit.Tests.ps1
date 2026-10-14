@@ -60,7 +60,8 @@ InModuleScope JiraPS {
                 }
                 $false
             }
-            $null = Invoke-JiraMethod -Uri '/rest/api/2/field' -PersonalAccessToken override-secret
+            $result = Invoke-JiraMethod -Uri '/rest/api/2/field' -PersonalAccessToken override-secret
+            $result.name | Should -Be 'result'
             $requests.Count | Should -Be 2
             foreach ($request in $requests) { $request.Authorization | Should -Be 'Bearer override-secret' }
             [Object]::ReferenceEquals($requests[0].Session, $requests[1].Session) | Should -BeTrue

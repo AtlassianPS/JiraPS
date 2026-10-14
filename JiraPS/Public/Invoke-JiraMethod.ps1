@@ -94,6 +94,7 @@
     )
 
     begin {
+        $requestCompleted = $false
         try {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 

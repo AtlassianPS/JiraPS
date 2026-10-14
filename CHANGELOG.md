@@ -15,7 +15,8 @@
 * Set-JiraConfigServer saves a non-secret shared profile; legacy server_config is read-only migration input.
 * Request headers and low-level defaults can no longer inject authentication.
 * New-JiraUser and Set-JiraUser preserve their EmailAddress user field and use AuthenticationEmailAddress for token overrides.
-* Live scoped/unscoped routing and platform coverage remain subject to the candidate validation ledger.
+* Retry responses retain their payload and resolved connection; creation validation preserves transport errors.
+* Live scoped/unscoped routing and platform coverage are recorded in the candidate validation ledger.
 
 
 
