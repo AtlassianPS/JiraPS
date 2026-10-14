@@ -50,7 +50,8 @@
 
             $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
-            $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" } else { "/rest/api/2/user?username={0}" }
+            $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" }
+            else { "/rest/api/2/user?username={0}" }
 
             if ($Force) {
                 Write-DebugMessage "[Remove-JiraGroup] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
@@ -70,7 +71,8 @@
 
             $userObj = Resolve-JiraUser -InputObject $User -RequestContext $RequestContext -ErrorAction Stop
 
-            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
+            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId }
+            else { $userObj.Name }
             $parameter = @{
                 URI    = $resourceURi -f $userIdentifier
                 Method = "DELETE"

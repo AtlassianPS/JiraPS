@@ -129,7 +129,8 @@
                     $Issue
                 )
 
-                $requestedTransition = if ($null -ne $transitionId) { $transitionId } else { $Transition.Name }
+                $requestedTransition = if ($null -ne $transitionId) { $transitionId }
+                else { $Transition.Name }
                 $errorItem.ErrorDetails = "The specified Jira issue cannot perform transition [$requestedTransition]. Check the issue's Transition property and provide a transition valid for its current state."
                 ThrowError -ErrorRecord $errorItem
             }

@@ -80,7 +80,8 @@
 
             $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
-            $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" } else { "/rest/api/2/user?username={0}" }
+            $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" }
+            else { "/rest/api/2/user?username={0}" }
         }
         catch {
             if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
@@ -117,7 +118,8 @@
                 'ByHashtable' { $requestBody = $Property }
             }
 
-            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
+            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId }
+            else { $userObj.Name }
             $parameter = @{
                 URI    = $resourceURi -f $userIdentifier
                 Method = "PUT"

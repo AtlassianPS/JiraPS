@@ -126,7 +126,8 @@ if ($testFiles.Count -eq 0) {
     return
 }
 
-$executionMode = if ($canParallel) { "ThrottleLimit=$ThrottleLimit" } else { "sequential (PS 5.1)" }
+$executionMode = if ($canParallel) { "ThrottleLimit=$ThrottleLimit" }
+else { "sequential (PS 5.1)" }
 Write-Host "Running $($testFiles.Count) test files ($executionMode)" -ForegroundColor Cyan
 Write-Host ""
 

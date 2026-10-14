@@ -207,7 +207,8 @@
             if ($Components) {
                 $requestBody["components"] = [System.Collections.Generic.List[hashtable]]::new()
                 $Components.ForEach({
-                        $componentValue = if ($_.Id) { @{ id = $_.Id } } else { @{ name = $_.Name } }
+                        $componentValue = if ($_.Id) { @{ id = $_.Id } }
+                        else { @{ name = $_.Name } }
                         $null = $requestBody["components"].Add($componentValue)
                     })
             }
@@ -215,7 +216,8 @@
             if ($FixVersion) {
                 $requestBody['fixVersions'] = [System.Collections.Generic.List[hashtable]]::new()
                 $FixVersion.ForEach({
-                        $versionValue = if ($_.Id) { @{ id = $_.Id } } else { @{ name = $_.Name } }
+                        $versionValue = if ($_.Id) { @{ id = $_.Id } }
+                        else { @{ name = $_.Name } }
                         $null = $requestBody["fixVersions"].Add($versionValue)
                     })
             }

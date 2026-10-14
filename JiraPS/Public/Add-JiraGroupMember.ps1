@@ -77,7 +77,8 @@
 
                 foreach ($user in $users) {
 
-                    $userDisplayIdentifier = if ($user.AccountId) { $user.AccountId } else { $user.Name }
+                    $userDisplayIdentifier = if ($user.AccountId) { $user.AccountId }
+                    else { $user.Name }
                     $memberExists = if ($isCloud -and $user.AccountId) { @($existingMembers.AccountId) -contains $user.AccountId }
                     elseif ($user.Name) { @($existingMembers.Name) -contains $user.Name }
                     else { $false }

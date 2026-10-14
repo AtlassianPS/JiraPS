@@ -3,7 +3,8 @@ Describe 'Numeric runtime dependency bounds' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
         $root = Resolve-ProjectRoot
-        $moduleName = if (Test-Path (Join-Path $root 'JiraPS/JiraPS.psd1')) { 'JiraPS' } else { 'AtlassianPS.Configuration' }
+        $moduleName = if (Test-Path (Join-Path $root 'JiraPS/JiraPS.psd1')) { 'JiraPS' }
+        else { 'AtlassianPS.Configuration' }
         $script:requirements = (Import-PowerShellDataFile (Join-Path $root "$moduleName/$moduleName.psd1")).RequiredModules
         $script:engine = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
         $script:runner = Join-Path $TestDrive 'import-fixture.ps1'
@@ -20,7 +21,8 @@ exit 0
     It 'accepts compatible versions and rejects lower or next-major-only installations' {
         foreach ($requirement in $script:requirements) {
             $minimum = [Version]$requirement.ModuleVersion
-            $lower = if ($minimum.Build -gt 0) { [Version]::new($minimum.Major, $minimum.Minor, $minimum.Build - 1) } else { [Version]::new($minimum.Major, $minimum.Minor - 1, 99) }
+            $lower = if ($minimum.Build -gt 0) { [Version]::new($minimum.Major, $minimum.Minor, $minimum.Build - 1) }
+            else { [Version]::new($minimum.Major, $minimum.Minor - 1, 99) }
             $later = [Version]::new($minimum.Major, $minimum.Minor + 1, 0)
             $nextMajor = [Version]::new($minimum.Major + 1, 0, 0)
             foreach ($case in @(

@@ -75,7 +75,8 @@
                         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_status]"
                         Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_status [$_status]"
 
-                        $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id } else { $_status.Name }
+                        $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id }
+                        else { $_status.Name }
                         $encodedIdentifier = ConvertTo-URLEncoded -InputString $statusIdentifier
 
                         $parameter = @{

@@ -100,7 +100,8 @@
                 }
             }
 
-            $ActionText = if ($IncludeSubTasks) { "Remove issue and sub-tasks" } else { "Remove issue" }
+            $ActionText = if ($IncludeSubTasks) { "Remove issue and sub-tasks" }
+            else { "Remove issue" }
 
             foreach ($_issue in $issuesToRemove) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"

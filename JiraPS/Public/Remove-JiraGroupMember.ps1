@@ -87,7 +87,8 @@
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
 
                     $userObj = Resolve-JiraUser -InputObject $_user -Exact -RequestContext $RequestContext -ErrorAction Stop
-                    $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
+                    $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId }
+                    else { $userObj.Name }
 
                     $getParameter = if ($isCloud -and $_group.Id) { @{ groupId = $_group.Id } }
                     else { @{ groupname = $_group.Name } }

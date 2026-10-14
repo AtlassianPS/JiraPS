@@ -69,7 +69,8 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
 
-                    $expandValue = if ($IncludeHistory) { "transitions,changelog" } else { "transitions" }
+                    $expandValue = if ($IncludeHistory) { "transitions,changelog" }
+                    else { "transitions" }
                     $getParameter = @{ expand = $expandValue }
                     if ($Fields) { $getParameter["fields"] = $Fields }
 
@@ -94,7 +95,8 @@
                 Write-Output (Get-JiraIssueOperation -Key $InputObject.Key -Fields $Fields -RequestContext $RequestContext -IncludeHistory:$IncludeHistory)
             }
             'ByJQL' {
-                $expandValue = if ($IncludeHistory) { "transitions,changelog" } else { "transitions" }
+                $expandValue = if ($IncludeHistory) { "transitions,changelog" }
+                else { "transitions" }
                 $parameter = @{
                     URI          = if ($isCloud) { $searchURi_v3 } else { $searchURi }
                     Method       = "GET"
@@ -119,7 +121,8 @@
             }
             'ByFilter' {
                 $filterObj = (Get-JiraFilterOperation -Id $Filter.ID -RequestContext $RequestContext -ErrorAction Stop).SearchUrl
-                $expandValue = if ($IncludeHistory) { "transitions,changelog" } else { "transitions" }
+                $expandValue = if ($IncludeHistory) { "transitions,changelog" }
+                else { "transitions" }
                 $parameter = @{
                     URI          = $filterObj
                     Method       = "GET"

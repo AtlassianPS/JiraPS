@@ -30,7 +30,8 @@
         $username = $null
         if ($candidate.AuthenticationMode -ne 'Anonymous') {
             $identity = Invoke-JiraMethod -Uri '/rest/api/2/myself' -RequestContext $candidate -ErrorAction Stop
-            $username = if ($info.deploymentType -eq 'Cloud') { $identity.accountId } else { $identity.name }
+            $username = if ($info.deploymentType -eq 'Cloud') { $identity.accountId }
+            else { $identity.name }
             if ([String]::IsNullOrWhiteSpace($username)) { throw 'Jira did not validate the supplied identity.' }
         }
 

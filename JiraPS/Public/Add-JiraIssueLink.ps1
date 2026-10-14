@@ -129,7 +129,8 @@
 
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $typeTarget = if ($typedIssueLink.Type.Name) { $typedIssueLink.Type.Name } else { $typedIssueLink.Type.Id }
+                $typeTarget = if ($typedIssueLink.Type.Name) { $typedIssueLink.Type.Name }
+                else { $typedIssueLink.Type.Id }
                 $whatIfTarget = "$inwardTarget -[$typeTarget]-> $outwardTarget"
                 if ($PSCmdlet.ShouldProcess($whatIfTarget)) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }

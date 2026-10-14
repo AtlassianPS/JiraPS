@@ -92,7 +92,8 @@
             Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
             foreach ($_Attachment in $Attachment) {
-                $filename = if ($Path) { Join-Path $Path $_Attachment.Filename } else { $_Attachment.Filename }
+                $filename = if ($Path) { Join-Path $Path $_Attachment.Filename }
+                else { $_Attachment.Filename }
 
                 $contentUri = $_Attachment.Content
                 if ($RequestContext.DeploymentType -eq 'Cloud') {

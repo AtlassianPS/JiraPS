@@ -71,7 +71,8 @@
         if (-not $PSBoundParameters["GetParameter"]) { $PSBoundParameters["GetParameter"] = $GetParameter }
 
         $total = 0
-        $offset = if ($PSCmdlet.PagingParameters.Skip) { $PSCmdlet.PagingParameters.Skip } else { 0 }
+        $offset = if ($PSCmdlet.PagingParameters.Skip) { $PSCmdlet.PagingParameters.Skip }
+        else { 0 }
 
         if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
             if ($null -ne $Response.total) { $PSCmdlet.PagingParameters.NewTotalCount($Response.total, 1.0) }

@@ -70,7 +70,8 @@
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_watcher]"
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_watcher [$_watcher]"
 
-                $watcherBody = if ($isCloud) { ConvertTo-Json -InputObject $_watcher } else { '"{0}"' -f $_watcher }
+                $watcherBody = if ($isCloud) { ConvertTo-Json -InputObject $_watcher }
+                else { '"{0}"' -f $_watcher }
                 $parameter = @{
                     URI    = $resourceURi -f $issueObj.RestURL
                     Method = "POST"
