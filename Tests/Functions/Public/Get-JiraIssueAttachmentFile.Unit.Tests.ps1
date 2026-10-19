@@ -57,7 +57,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraIssueAttachment -ModuleName JiraPS {
+            Mock Get-JiraIssueAttachmentOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssueAttachment'
                 $script:attachmentFixtures
             }
@@ -126,6 +126,18 @@ InModuleScope JiraPS {
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
                     $OutFile -like "..*.pdf"
                 } -Exactly 2
+            }
+
+            It 'downloads Cloud attachment content without following redirects' {
+                $cloud = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name attachment-cloud -Product Jira -BaseUri https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111 -Anonymous
+                $cloud.SetValidationResult('Cloud', $null)
+                $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $cloud
+                Mock Invoke-JiraMethod {} -ParameterFilter { "$Uri" -eq '/rest/api/3/attachment/content/10013?redirect=false' }
+                try {
+                    Get-JiraIssueAttachmentFile -Attachment $attachmentFixtures[0] -Connection $cloud
+                    Should -Invoke Invoke-JiraMethod -Exactly 1 -ParameterFilter { "$Uri" -eq '/rest/api/3/attachment/content/10013?redirect=false' -and [Object]::ReferenceEquals($RequestContext, $cloud) }
+                }
+                finally { AtlassianPS.Configuration\Disconnect-AtlassianConnection -Connection $cloud }
             }
 
             It 'does not force an Accept header for attachment downloads' {

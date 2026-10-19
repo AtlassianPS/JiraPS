@@ -20,46 +20,87 @@
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        $Credential,
+
+        [Alias('Session')]
+        [AtlassianPS.Connection]$Connection,
+
+        [Alias('Server', 'ServerName')]
+        [ArgumentCompleter({
+                param($commandName, $parameterName, $wordToComplete)
+                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
+                    Where-Object { $_.Name -like "$wordToComplete*" } |
+                    ForEach-Object { $_.Name }
+            })]
+        [String]$ConnectionName,
+
+        [Uri]$Uri,
+
+        [String]$AuthenticationEmailAddress,
+
+        [Object]$ApiToken,
+
+        [Alias('PAT', 'BearerToken')]
+        [Object]$PersonalAccessToken,
+
+        [Switch]$Anonymous
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $resourceURi = "/rest/api/2/user"
+            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters -UserEmailField
+
+            $resourceURi = "/rest/api/2/user"
+        }
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        try {
+            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
 
-        $requestBody = @{
-            "name"         = $UserName
-            "emailAddress" = $EmailAddress
-            "notification" = $Notify
+            $requestBody = @{
+                "name"         = $UserName
+                "emailAddress" = $EmailAddress
+                "notification" = $Notify
+            }
+
+            if ($DisplayName) { $requestBody.displayName = $DisplayName }
+            else {
+                Write-DebugMessage "[New-JiraUser] DisplayName was not specified; defaulting to UserName parameter [$UserName]"
+                $requestBody.displayName = $UserName
+            }
+
+            $parameter = @{
+                URI    = $resourceURi
+                Method = "POST"
+                Body   = ConvertTo-Json -InputObject $requestBody
+
+            }
+            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {
+                $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+
+                Write-Output (ConvertTo-JiraUser -InputObject $result)
+            }
         }
-
-        if ($DisplayName) { $requestBody.displayName = $DisplayName }
-        else {
-            Write-DebugMessage "[New-JiraUser] DisplayName was not specified; defaulting to UserName parameter [$UserName]"
-            $requestBody.displayName = $UserName
-        }
-
-        $parameter = @{
-            URI        = $resourceURi
-            Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $requestBody
-            Credential = $Credential
-        }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {
-            $result = Invoke-JiraMethod @parameter
-
-            Write-Output (ConvertTo-JiraUser -InputObject $result)
+        catch {
+            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+            throw
         }
     }
 
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        try {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        }
+        finally {
+            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        }
     }
 }

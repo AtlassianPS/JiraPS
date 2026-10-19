@@ -21,7 +21,7 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Get-JiraConnection | Remove-JiraSession -ErrorAction SilentlyContinue
         }
 
         Context "Set-JiraConfigServer" {
@@ -33,6 +33,7 @@ InModuleScope JiraPS {
                 Set-JiraConfigServer -Server $env.CloudUrl
 
                 $server = Get-JiraConfigServer
+
                 $server | Should -Be $env.CloudUrl
             }
         }
@@ -44,37 +45,40 @@ InModuleScope JiraPS {
             }
 
             AfterEach {
-                Remove-JiraSession -ErrorAction SilentlyContinue
+                Get-JiraConnection | Remove-JiraSession -ErrorAction SilentlyContinue
             }
 
             It "creates a session with valid API token" {
-                $session = New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
+                $session = New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
                 $session | Should -Not -BeNullOrEmpty
             }
 
             It "returns a session object with correct type" {
-                $session = New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
+                $session = New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
-                $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Session'
+                $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.Connection'
             }
 
             It "enables subsequent API calls without explicit credentials" {
-                New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
+                New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
                 $serverInfo = Get-JiraServerInformation
+
                 $serverInfo | Should -Not -BeNullOrEmpty
             }
 
             It "fails with invalid API token" {
                 $badToken = ConvertTo-SecureString -String "invalid-token" -AsPlainText -Force
 
-                { New-JiraSession -ApiToken $badToken -EmailAddress $env.Username -ErrorAction Stop } |
+                { New-JiraSession -Uri $env.CloudUrl -ApiToken $badToken -EmailAddress $env.Username -ErrorAction Stop } |
                     Should -Throw
             }
 
             It "fails with invalid email address" {
-                { New-JiraSession -ApiToken $secureToken -EmailAddress "invalid@example.com" -ErrorAction Stop } |
+                {
+                    New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress "invalid@example.com" -ErrorAction Stop
+                } |
                     Should -Throw
             }
         }
@@ -87,18 +91,20 @@ InModuleScope JiraPS {
             }
 
             It "returns null when no session exists" {
-                Remove-JiraSession -ErrorAction SilentlyContinue
+                Get-JiraConnection | Remove-JiraSession -ErrorAction SilentlyContinue
 
                 $session = Get-JiraSession
+
                 $session | Should -BeNullOrEmpty
             }
 
             It "returns the current session after authentication" {
-                New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
+                New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
                 $session = Get-JiraSession
+
                 $session | Should -Not -BeNullOrEmpty
-                $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Session'
+                $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.Connection'
             }
         }
 
@@ -110,16 +116,17 @@ InModuleScope JiraPS {
             }
 
             It "removes an existing session" {
-                New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
+                New-JiraSession -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
+
                 Get-JiraSession | Should -Not -BeNullOrEmpty
 
-                Remove-JiraSession
+                Get-JiraConnection | Remove-JiraSession
 
                 Get-JiraSession | Should -BeNullOrEmpty
             }
 
             It "succeeds even when no session exists" {
-                Remove-JiraSession -ErrorAction SilentlyContinue
+                Get-JiraConnection | Remove-JiraSession -ErrorAction SilentlyContinue
 
                 { Remove-JiraSession } | Should -Not -Throw
             }

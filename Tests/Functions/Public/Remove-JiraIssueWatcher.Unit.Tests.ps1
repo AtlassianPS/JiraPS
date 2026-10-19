@@ -27,7 +27,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraIssue -ModuleName JiraPS {
+            Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     ID      = $issueID
@@ -86,7 +86,7 @@ InModuleScope JiraPS {
                     $WatcherResult | Should -BeNullOrEmpty
 
                     # Get-JiraIssue should be used to identify the issue parameter (called twice total)
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
 
                     # Invoke-JiraMethod should be used to remove the Watcher (called twice total)
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -ParameterFilter {
@@ -102,7 +102,7 @@ InModuleScope JiraPS {
                     $WatcherResult | Should -BeNullOrEmpty
 
                     # Get-JiraIssue called once in test, once inside Remove-JiraIssueWatcher
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }

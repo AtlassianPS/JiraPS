@@ -18,7 +18,7 @@ InModuleScope JiraPS {
         }
 
         It "returns null when cache should be bypassed" {
-            $script:JiraCache['Fields:https://jira.example.com'] = @{
+            $script:JiraCache['Fields'] = @{
                 Data   = @{ id = 1 }
                 Expiry = (Get-Date).AddMinutes(5)
             }
@@ -29,7 +29,7 @@ InModuleScope JiraPS {
         }
 
         It "returns null for non-GET methods" {
-            $script:JiraCache['Fields:https://jira.example.com'] = @{
+            $script:JiraCache['Fields'] = @{
                 Data   = @{ id = 1 }
                 Expiry = (Get-Date).AddMinutes(5)
             }
@@ -44,7 +44,7 @@ InModuleScope JiraPS {
                 Data   = @{ id = 1 }
                 Expiry = (Get-Date).AddMinutes(5)
             }
-            $script:JiraCache['Fields:https://jira.example.com'] = $entry
+            $script:JiraCache['Fields'] = $entry
 
             $result = Get-JiraCachedResponse -CacheKey 'Fields'
 

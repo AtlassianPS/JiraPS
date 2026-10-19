@@ -60,7 +60,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraProject -ModuleName JiraPS {
+            Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project'
                 [PSCustomObject]@{
                     Id  = '1'
@@ -68,7 +68,7 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Get-JiraUser -ModuleName JiraPS {
+            Mock Get-JiraUserOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'InputObject'
                 $mockOwner
             }
@@ -226,7 +226,7 @@ InModuleScope JiraPS {
                     # Get-JiraUser -UserName (DC) or -AccountId (Cloud).
                     # The Find-JiraFilter mock setup leaves Test-JiraCloudServer
                     # at its default behaviour, so we accept either dispatch.
-                    Should -Invoke Get-JiraUser -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke Get-JiraUserOperation -ModuleName JiraPS -ParameterFilter {
                         $UserName -contains $mockOwner.Name -or $AccountId -contains $mockOwner.Name
                     } -Exactly 1
                 }

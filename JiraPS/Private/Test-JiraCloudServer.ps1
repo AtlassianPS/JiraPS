@@ -1,11 +1,11 @@
 ﻿function Test-JiraCloudServer {
     [CmdletBinding()]
-    [OutputType([System.Boolean])]
+    [OutputType([Boolean])]
     param(
-        [PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Parameter(Mandatory)]
+        [AtlassianPS.Connection]$RequestContext
     )
 
-    (Get-JiraServerInformation -Credential $Credential -ErrorAction SilentlyContinue).DeploymentType -eq 'Cloud'
+    if (-not $RequestContext.DeploymentType) { throw 'Jira deployment type has not been validated.' }
+    $RequestContext.DeploymentType -eq 'Cloud'
 }

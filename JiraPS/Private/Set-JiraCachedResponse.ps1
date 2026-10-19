@@ -26,8 +26,7 @@
 
     if (-not $script:JiraCache) { $script:JiraCache = @{} }
 
-    $cacheServer = Get-JiraConfigServer -ErrorAction SilentlyContinue
-    $fullCacheKey = "${CacheKey}:${cacheServer}"
+    $fullCacheKey = $CacheKey
     $script:JiraCache[$fullCacheKey] = @{
         Data   = $Response
         Expiry = (Get-Date).Add($CacheExpiry)

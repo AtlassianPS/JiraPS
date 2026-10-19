@@ -97,7 +97,7 @@ InModuleScope JiraPS {
                 Write-Output $jiraServer
             }
 
-            Mock Get-JiraProject -ModuleName JiraPS {
+            Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject'
                 $json = ConvertFrom-Json $JiraProjectData
                 $object = $json | Where-Object { $_.Key -in $Project }
@@ -205,7 +205,7 @@ InModuleScope JiraPS {
                 $results = @($inputs | Get-JiraVersion -ErrorAction Stop)
 
                 $results.Id | Should -Be @($versionID1, $versionID2)
-                Should -Invoke Get-JiraProject -ModuleName JiraPS -Times 0 -Exactly
+                Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Times 0 -Exactly
                 foreach ($versionId in $versionID1, $versionID2) {
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                         $Method -eq 'Get' -and $URI -eq "/rest/api/2/version/$versionId"
@@ -250,7 +250,7 @@ InModuleScope JiraPS {
                     $Paging -eq $true
                 } -Exactly 1
 
-                Should -Invoke Get-JiraProject -ModuleName JiraPS -Exactly 1
+                Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Exactly 1
 
                 Should -Invoke ConvertTo-JiraVersion -ModuleName JiraPS -Exactly 0
             }
@@ -268,14 +268,14 @@ InModuleScope JiraPS {
 
                 # Get-JiraProject is called once in the It block
                 # and once in the `Get-JiraVersion`
-                Should -Invoke Get-JiraProject -ModuleName JiraPS -Exactly 2
+                Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Exactly 2
 
                 Should -Invoke ConvertTo-JiraVersion -ModuleName JiraPS -Exactly 0
             }
 
             Context 'CLR project and version parameter binding' {
                 BeforeAll {
-                    Mock Get-JiraProject -ModuleName JiraPS -ParameterFilter {
+                    Mock Get-JiraProjectOperation -ModuleName JiraPS -ParameterFilter {
                         $Project -eq $projectKey -or $Project -eq $projectId
                     } {
                         Write-MockDebugInfo 'Get-JiraProject' 'Project'
@@ -310,7 +310,7 @@ InModuleScope JiraPS {
 
                     @($results).Count | Should -Be 3
                     $results.Id | Should -Be @($versionID1, $versionID2, $versionID3)
-                    Should -Invoke Get-JiraProject -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+                    Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                         $Project -eq $expectedProject
                     }
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
@@ -347,7 +347,7 @@ InModuleScope JiraPS {
 
                     $results.Count | Should -Be 4
                     $results.Id | Should -Be $expectedIds
-                    Should -Invoke Get-JiraProject -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+                    Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                         $Project -eq $expectedProject
                     }
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
@@ -371,7 +371,7 @@ InModuleScope JiraPS {
                     $Paging -eq $true
                 } -Exactly 2
 
-                Should -Invoke Get-JiraProject -ModuleName JiraPS -Exactly 2
+                Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Exactly 2
 
                 Should -Invoke ConvertTo-JiraVersion -ModuleName JiraPS -Exactly 0
             }
@@ -387,7 +387,7 @@ InModuleScope JiraPS {
                     $Paging -eq $true
                 } -Exactly 1
 
-                Should -Invoke Get-JiraProject -ModuleName JiraPS -Exactly 1
+                Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Exactly 1
 
                 Should -Invoke ConvertTo-JiraVersion -ModuleName JiraPS -Exactly 0
             }
@@ -403,7 +403,7 @@ InModuleScope JiraPS {
                     $Paging -eq $true
                 } -Exactly 1
 
-                Should -Invoke Get-JiraProject -ModuleName JiraPS -Exactly 1
+                Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Exactly 1
 
                 Should -Invoke ConvertTo-JiraVersion -ModuleName JiraPS -Exactly 0
             }

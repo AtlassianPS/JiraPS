@@ -1,4 +1,6 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Nonsecret unit-test credential fixture.')]
+param()
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
@@ -33,7 +35,7 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
             }
 
-            Mock Get-JiraFilter -ModuleName JiraPS {
+            Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
                 foreach ($item in $InputObject) {
                     [AtlassianPS.JiraPS.Filter]@{
@@ -105,13 +107,13 @@ InModuleScope JiraPS {
 
             Context "Behavior testing" {
                 It "forwards credentials and terminating lookup behavior for IDs" {
-                    $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
+                    $credential = [PSCredential]::new('filter-owner', (ConvertTo-SecureString 'fixture-password' -AsPlainText -Force))
                     Get-JiraFilterPermission -Id 23456 -Credential $credential
 
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
-                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
+                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
+                        $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
                     }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
+                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
                 }
 
                 It "Retrieves the permissions of a Filter by Object" {
@@ -141,7 +143,7 @@ InModuleScope JiraPS {
                 It "can process multiple Ids" {
                     { Get-JiraFilterPermission -Id 23456, 23456 } | Should -Not -Throw
 
-                    Should -Invoke Get-JiraFilter -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
                 }
 

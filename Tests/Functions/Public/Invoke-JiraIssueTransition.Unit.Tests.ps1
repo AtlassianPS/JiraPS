@@ -26,7 +26,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraField -ModuleName JiraPS {
+            Mock Get-JiraFieldOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraField' 'Field', 'Credential'
                 # The cmdlet pre-fetches the full field catalogue (no -Field
                 # filter) and looks each requested key up in an in-memory
@@ -55,7 +55,7 @@ InModuleScope JiraPS {
                     })
             }
 
-            Mock Get-JiraIssue -ModuleName JiraPS {
+            Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $t1 = [AtlassianPS.JiraPS.Transition]@{
                     Name = 'Start Progress'
@@ -213,7 +213,7 @@ InModuleScope JiraPS {
                 It "performs a transition when given an issue key and transition ID" {
                     { Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 } | Should -Not -Throw
 
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 1
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
@@ -223,7 +223,7 @@ InModuleScope JiraPS {
                     { Invoke-JiraIssueTransition -Issue $issue -Transition $transition } | Should -Not -Throw
 
                     # Get-JiraIssue called once in test setup, once in Invoke-JiraIssueTransition
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
@@ -349,7 +349,7 @@ InModuleScope JiraPS {
                 }
 
                 It "updates assignee name if provided to the -Assignee parameter" {
-                    Mock Get-JiraUser -ModuleName JiraPS {
+                    Mock Get-JiraUserOperation -ModuleName JiraPS {
                         Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                         [PSCustomObject] @{
                             'Name'    = 'powershell-user'
@@ -422,7 +422,7 @@ InModuleScope JiraPS {
                     $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11 -Passthru
                     $result | Should -Not -BeNullOrEmpty
 
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 4
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 4
                 }
 
                 It "does not return a value when -Passthru is omitted" {
@@ -430,7 +430,7 @@ InModuleScope JiraPS {
                     $result = Invoke-JiraIssueTransition -Issue $issueKey -Transition 11
                     $result | Should -BeNullOrEmpty
 
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
                 }
             }
         }
@@ -440,7 +440,7 @@ InModuleScope JiraPS {
                 It "handles pipeline input from Get-JiraIssue" {
                     { Get-JiraIssue -Key $issueKey | Invoke-JiraIssueTransition -Transition 11 } | Should -Not -Throw
 
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }
@@ -555,7 +555,7 @@ InModuleScope JiraPS {
                 }
 
                 # Fields are in the transition metadata — global catalogue not needed
-                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 0
+                Should -Invoke Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 0
 
                 # Transition metadata GET was made exactly once
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
@@ -577,7 +577,7 @@ InModuleScope JiraPS {
                     customfield_12345 = 'foo'
                 }
 
-                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "fetches the global field list at most once when multiple unscoped keys are present" {
@@ -594,7 +594,7 @@ InModuleScope JiraPS {
                     customfield_67890 = 'bar'
                 }
 
-                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "fetches transition metadata once per call regardless of how many -Fields keys are supplied" {

@@ -49,7 +49,7 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Get-JiraGroupMember -ModuleName JiraPS {
+            Mock Get-JiraGroupMemberOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraGroupMember'
                 @(
                     [PSCustomObject] @{
@@ -88,7 +88,7 @@ InModuleScope JiraPS {
 
             Context "Default Values" {
                 It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
+                    @{ parameter = "Credential"; defaultValue = $null }
                 ) {
                     $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
                 }
@@ -107,7 +107,7 @@ InModuleScope JiraPS {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 -PassThru } | Should -Not -Throw
 
-                Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 2
+                Should -Invoke -CommandName Get-JiraGroupMemberOperation -Exactly -Times 2
                 Should -Invoke -CommandName Resolve-JiraUser -Exactly -Times 2
                 Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
                     $URI -eq '/rest/api/2/group/user' -and
@@ -141,7 +141,7 @@ InModuleScope JiraPS {
             It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to add them" {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername1 -ErrorAction Stop } | Should -Throw -ExpectedMessage "*already a member*"
 
-                Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 1
+                Should -Invoke -CommandName Get-JiraGroupMemberOperation -Exactly -Times 1
             }
 
             It "Adds a user to a JIRA group if the user is not a member" {
@@ -157,7 +157,7 @@ InModuleScope JiraPS {
 
             It "Adds multiple users to a JIRA group if they are passed to the -User parameter" {
                 # Override our previous mock so we have no group members
-                Mock Get-JiraGroupMember -ModuleName JiraPS { @() }
+                Mock Get-JiraGroupMemberOperation -ModuleName JiraPS { @() }
 
                 # Should use the REST method twice, since at present, you can only add one group member per API call
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 } | Should -Not -Throw
@@ -192,7 +192,7 @@ InModuleScope JiraPS {
             BeforeAll {
                 Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
-                Mock Get-JiraGroupMember -ModuleName JiraPS {
+                Mock Get-JiraGroupMemberOperation -ModuleName JiraPS {
                     Write-MockDebugInfo 'Get-JiraGroupMember'
                     @()
                 }

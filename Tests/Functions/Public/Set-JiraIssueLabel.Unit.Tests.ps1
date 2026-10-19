@@ -21,7 +21,7 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraIssue -ModuleName JiraPS {
+            Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     Id      = 123
@@ -127,20 +127,20 @@ InModuleScope JiraPS {
             Context "Positive cases" {
                 It "Accepts an issue key for the -Issue parameter" {
                     { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1' } | Should -Not -Throw
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 1
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts an issue object for the -Issue parameter" {
                     $issue = Get-JiraIssue -Key TEST-001
                     { Set-JiraIssueLabel -Issue $issue -Set 'testLabel1' } | Should -Not -Throw
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts the output of Get-JiraIssue by pipeline for the -Issue parameter" {
                     { Get-JiraIssue -Key TEST-001 | Set-JiraIssueLabel -Set 'testLabel1' } | Should -Not -Throw
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
             }

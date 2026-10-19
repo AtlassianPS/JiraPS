@@ -41,14 +41,14 @@ InModuleScope JiraPS {
                 $jiraServer
             }
 
-            Mock Get-JiraProject -ModuleName JiraPS {
+            Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project'
                 $Projects = ConvertFrom-Json $JiraProjectData
                 $Projects.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Project')
                 $Projects | Where-Object { $_.Key -in $Project }
             }
 
-            Mock Get-JiraVersion -ModuleName JiraPS {
+            Mock Get-JiraVersionOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraVersion' 'Id'
                 foreach ($_id in $Id) {
                     $Version = [PSCustomObject]@{
@@ -118,8 +118,8 @@ InModuleScope JiraPS {
             Context "Version Deletion" {
                 It 'removes a Version using its ID' {
                     { Remove-JiraVersion -Version $versionID1 -Force -ErrorAction Stop } | Should -Not -Throw
-                    Should -Invoke 'Get-JiraVersion' -Times 1 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Get-JiraProject' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraVersionOperation' -Times 1 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraProjectOperation' -Times 1 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$versionID1" }
                 }
 
@@ -128,8 +128,8 @@ InModuleScope JiraPS {
                         $version = Get-JiraVersion -Id $versionID1
                         Remove-JiraVersion $version -Force -ErrorAction Stop
                     } | Should -Not -Throw
-                    Should -Invoke 'Get-JiraVersion' -Times 2 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Get-JiraProject' -Times 2 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraVersionOperation' -Times 2 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraProjectOperation' -Times 2 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$versionID1" }
                 }
 
@@ -138,16 +138,16 @@ InModuleScope JiraPS {
                         $version = Get-JiraVersion -Id $versionID1, $versionID2
                         Remove-JiraVersion -Version $version -Force -ErrorAction Stop
                     } | Should -Not -Throw
-                    Should -Invoke 'Get-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Get-JiraProject' -Times 4 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraVersionOperation' -Times 3 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraProjectOperation' -Times 4 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$versionID1" }
                     Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$versionID2" }
                 }
 
                 It 'removes a Version using Version as input over the pipeline' {
                     { Get-JiraVersion -Id $versionID1, $versionID2 | Remove-JiraVersion -Force -ErrorAction Stop } | Should -Not -Throw
-                    Should -Invoke 'Get-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Get-JiraProject' -Times 4 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraVersionOperation' -Times 3 -ModuleName JiraPS -Exactly
+                    Should -Invoke 'Get-JiraProjectOperation' -Times 4 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$versionID1" }
                     Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/2/version/$versionID2" }
                 }

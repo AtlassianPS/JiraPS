@@ -22,8 +22,8 @@ InModuleScope JiraPS {
 
             Set-JiraCachedResponse -CacheKey 'Fields' -Method 'GET' -Response $response -CacheExpiry ([TimeSpan]::FromMinutes(5))
 
-            $script:JiraCache.ContainsKey('Fields:https://jira.example.com') | Should -BeTrue
-            $script:JiraCache['Fields:https://jira.example.com'].Data | Should -Be $response
+            $script:JiraCache.ContainsKey('Fields') | Should -BeTrue
+            $script:JiraCache['Fields'].Data | Should -Be $response
         }
 
         It "does not cache non-GET requests" {
