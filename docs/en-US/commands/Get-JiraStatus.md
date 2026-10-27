@@ -144,6 +144,8 @@ For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
 
+[about_JiraPS_Authentication](../../about/authentication.html)
+
 [Get-JiraIssue](../Get-JiraIssue/)
 
 [Atlassian Cloud status lookup](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-workflow-statuses/#api-rest-api-3-status-idOrName-get)

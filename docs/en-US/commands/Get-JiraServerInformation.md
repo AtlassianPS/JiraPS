@@ -149,3 +149,5 @@ Jira Cloud returns `"Cloud"`, while Data Center and older Server instances
 return `"Server"` or omit the field entirely (defaulting to `"Server"`).
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)

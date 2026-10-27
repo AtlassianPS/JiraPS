@@ -357,6 +357,8 @@ For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
 
+[about_JiraPS_Authentication](../../about/authentication.html)
+
 [about_JiraPS_CustomFields](../../about/custom-fields.html)
 
 [about_JiraPS_UpdatingIssues](../../about/updating-issues.html)

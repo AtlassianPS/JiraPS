@@ -180,6 +180,8 @@ Remaining operations for `field` have not yet been implemented in the module.
 
 ## RELATED LINKS
 
+[about_JiraPS_Authentication](../../about/authentication.html)
+
 [Get-JiraIssueCreateMetadata](../Get-JiraIssueCreateMetadata/)
 
 [Clear-JiraCache](../Clear-JiraCache/)

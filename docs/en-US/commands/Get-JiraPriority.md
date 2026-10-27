@@ -151,3 +151,5 @@ For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 Remaining operations for `priority` have not yet been implemented in the module.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)

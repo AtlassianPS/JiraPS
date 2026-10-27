@@ -364,6 +364,8 @@ When working with Cloud, use the `AccountId` property for user-related operation
 
 ## RELATED LINKS
 
+[about_JiraPS_Authentication](../../about/authentication.html)
+
 [New-JiraUser](../New-JiraUser/)
 
 [Remove-JiraUser](../Remove-JiraUser/)

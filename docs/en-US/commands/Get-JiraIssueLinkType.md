@@ -132,6 +132,8 @@ Remaining operations for `issuetype` have not yet been implemented in the module
 
 ## RELATED LINKS
 
+[about_JiraPS_Authentication](../../about/authentication.html)
+
 [Add-JiraIssueLink](../Add-JiraIssueLink/)
 
 [Get-JiraIssueLink](../Get-JiraIssueLink/)

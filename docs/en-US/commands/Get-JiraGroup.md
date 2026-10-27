@@ -148,6 +148,8 @@ If you only need to work with a known group name, prefer the cmdlets that accept
 
 ## RELATED LINKS
 
+[about_JiraPS_Authentication](../../about/authentication.html)
+
 [Get-JiraGroupMember](../Get-JiraGroupMember/)
 
 [Get-JiraUser](../Get-JiraUser/)

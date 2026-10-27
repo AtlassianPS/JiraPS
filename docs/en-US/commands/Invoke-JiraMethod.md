@@ -809,6 +809,8 @@ When no connection is selected, supply BaseUri rather than relying on an arbitra
 
 ## RELATED LINKS
 
+[about_JiraPS_Authentication](../../about/authentication.html)
+
 [Jira Cloud API](https://developer.atlassian.com/cloud/jira/platform/rest/)
 
 [Jira Server API](https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/)

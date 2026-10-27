@@ -258,6 +258,8 @@ For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
 
+[about_JiraPS_Authentication](../../about/authentication.html)
+
 [Get-JiraGroup](../Get-JiraGroup/)
 
 [Add-JiraGroupMember](../Add-JiraGroupMember/)
