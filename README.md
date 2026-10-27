@@ -123,5 +123,5 @@ See [LICENSING.md](LICENSING.md) for the project's licensing history and the ong
 
 Named connections and per-call selectors are part of the JiraPS v3 candidate.
 See [authentication and v2 migration](docs/en-US/about_JiraPS_Authentication.md).
-The shared dependency is an exact experimental Configuration alpha in development; JiraPS publication remains disabled.
+Development uses the pinned experimental Configuration alpha dependency.
 JiraAgilePS adoption is a later task.

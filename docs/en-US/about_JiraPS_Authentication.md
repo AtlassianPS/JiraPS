@@ -17,7 +17,6 @@ Connect to Jira, choose an identity and migrate v2 session scripts.
 JiraPS uses AtlassianPS.Configuration for named live connections.
 The shared [authentication guide](https://atlassianps.org/docs/AtlassianPS.Configuration/about/authentication.html) owns token handling, defaults, overrides and non-secret profiles.
 This Jira candidate is experimental.
-Final scoped/unscoped Cloud, Data Center and Windows PowerShell acceptance remains subject to the candidate's recorded integration results.
 
 ### Quick start
 
@@ -139,7 +138,6 @@ Explicit gateway endpoints are an advanced alternative when site discovery is un
 Custom domains and other Atlassian environments require separately validated support; JiraPS does not guess their gateway.
 
 Atlassian's [API-token guide](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/) documents gateway routing for scoped tokens.
-The candidate ledger records the configured-token gateway experiment and any missing token coverage.
 No token kind is inferred from its length or prefix, and domain operations do not retry against another authentication endpoint.
 
 ### Permissions and scopes

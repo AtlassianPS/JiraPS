@@ -6,7 +6,6 @@
 
 * Named shared Jira connections with Connect/Get/Select/Disconnect, per-operation targeting and isolated authentication overrides.
 * Automatic Cloud site discovery and gateway context metadata for API-token calls.
-* Local exact Configuration alpha provisioning and connection-path inventory.
 
 ### Changed
 
@@ -17,7 +16,6 @@
 * Ordinary Jira commands use Connection (alias Session) and the existing Credential parameter.
   Endpoint and token inputs belong on Connect-Jira; resolve names through Get-JiraConnection.
 * Retry responses retain their payload and resolved connection; creation validation preserves transport errors.
-* Live scoped/unscoped routing and platform coverage are recorded in the candidate validation ledger.
 
 
 
