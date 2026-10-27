@@ -110,9 +110,9 @@
 
     begin {
         $requestCompleted = $false
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        try {
             $ownsRequestContext = -not $PSBoundParameters.ContainsKey('RequestContext')
             if ($StoreSession) { throw 'StoreSession is obsolete. Use Connect-Jira to create a reusable connection.' }
             if ($Discovery) {

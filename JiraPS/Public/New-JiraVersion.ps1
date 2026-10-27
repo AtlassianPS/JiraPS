@@ -49,9 +49,9 @@
     )
 
     begin {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        try {
             $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
             $resourceURi = "/rest/api/2/version"
