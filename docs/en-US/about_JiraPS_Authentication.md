@@ -1,7 +1,9 @@
 ---
-Module Name: JiraPS
 locale: en-US
 layout: documentation
+title: Authentication
+online version: https://atlassianps.org/docs/JiraPS/about/authentication.html
+Module Name: JiraPS
 permalink: /docs/JiraPS/about/authentication.html
 ---
 # about_JiraPS_Authentication
