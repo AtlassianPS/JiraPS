@@ -25,32 +25,29 @@ This allows JiraPS to be used by system administrators (eg: to create new Users)
 
 ## GETTING STARTED
 
+Create a named connection with the authentication method supported by your Jira deployment.
+For Jira Cloud, supply your site URL, authentication email and API token:
+
 ```powershell
-# Tell the module what is the server's address
-Set-JiraConfigServer -Server "https://jira.example.com"
-
-# Authenticate (choose one method):
-
-# Option 1: Jira Cloud (API Token)
-$token = ConvertTo-SecureString $env:JIRA_API_TOKEN -AsPlainText -Force
-New-JiraSession -ApiToken $token -EmailAddress "you@example.com"
-
-# Option 2: Jira Data Center (Personal Access Token)
-$pat = ConvertTo-SecureString $env:JIRA_PAT -AsPlainText -Force
-New-JiraSession -PersonalAccessToken $pat
-
-# Option 3: Username/Password
-$cred = Get-Credential
-New-JiraSession -Credential $cred
-
-# Now use JiraPS commands without passing credentials each time
-Get-JiraIssue -Issue "PR-123"
+$token = Read-Host 'Jira API token' -AsSecureString
+$work = Connect-Jira -Name work -Uri 'https://work.atlassian.net' -EmailAddress 'you@example.com' -ApiToken $token
+Get-JiraIssue -Key PROJ-1
 ```
 
-JiraPS uses the information provided by `Set-JiraConfigServer` to resolve what server to connect to.
-(`Get-JiraConfigServer` can be used to inspect what server is currently being used).
+The first successful connection becomes the Jira default.
+Subsequent commands use that connection when Connection is omitted.
 
-JiraPS automatically detects whether you're connecting to Jira Cloud or Data Center and adapts its API calls accordingly. See [about_JiraPS_Authentication](about/authentication.html) for details.
+For Data Center with a personal access token, connect to the Data Center endpoint:
+
+```powershell
+$token = Read-Host 'Jira PAT' -AsSecureString
+$internal = Connect-Jira -Name internal -Uri 'https://jira.example.com/jira' -PersonalAccessToken $token
+Get-JiraIssue -Key PROJ-1 -Connection $internal
+```
+
+Passing Connection chooses that connection for one operation and leaves the default unchanged.
+JiraPS detects the deployment during connection validation and adapts its API calls accordingly.
+See [about_JiraPS_Authentication](about/authentication.html) for username/password, anonymous access, saved profiles, multiple connections and v2 migration examples.
 
 ## DISCOVERING YOUR ENVIRONMENT
 

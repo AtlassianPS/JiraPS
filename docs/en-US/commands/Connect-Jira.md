@@ -28,7 +28,13 @@ Connect-Jira -Name <String> -Profile <String> [-Credential <PSCredential>] [-Ema
 
 ## DESCRIPTION
 
-Validate and open a named Jira connection.
+Create and return a named AtlassianPS.Connection after validating the Jira deployment and, for authenticated connections, the current user.
+Supply exactly one authentication method: Credential, EmailAddress with ApiToken, PersonalAccessToken, or Anonymous.
+Authentication is supplied for the new connection; it is never borrowed from an existing connection or a saved profile.
+
+Pass the returned object to Jira commands through Connection.
+The first successful connection becomes the Jira default, so subsequent commands can omit Connection.
+Later connections preserve the existing default unless Default is supplied.
 
 ## EXAMPLES
 
@@ -36,25 +42,53 @@ Validate and open a named Jira connection.
 
 ```powershell
 $work = Connect-Jira -Name work -Uri 'https://work.atlassian.net' -EmailAddress 'me@example.com' -ApiToken $env:JIRA_API_TOKEN
+Get-JiraIssue -Key PROJ-1 -Connection $work
 ```
 
-Use the normal Cloud site URL. Discovery identifies the site and resolves the API gateway.
+Connect to Jira Cloud and retrieve an issue using the returned connection.
+Use the normal Cloud site URL; discovery identifies the site and resolves the API gateway.
 
 ### EXAMPLE 2
 
 ```powershell
-$internal = Connect-Jira -Name internal -Uri 'https://jira.example.com/jira' -PersonalAccessToken (Read-Host 'Jira PAT' -AsSecureString)
+$token = Read-Host 'Jira PAT' -AsSecureString
+$internal = Connect-Jira -Name internal -Uri 'https://jira.example.com/jira' -PersonalAccessToken $token
+Get-JiraProject -Connection $internal
 ```
 
-Open a Data Center connection using a masked PAT input.
+Connect to Data Center using a masked PAT input and list accessible projects.
 
 ### EXAMPLE 3
 
 ```powershell
+Add-AtlassianServerConfiguration -Name work -Type Jira -Uri 'https://work.atlassian.net'
 $work = Connect-Jira -Name work -Profile work -EmailAddress 'me@example.com' -ApiToken (Get-Secret JiraToken)
+Get-JiraIssue -Key PROJ-1 -Connection $work
 ```
 
-Compose a saved non-secret profile with an already-installed secret vault. The vault module is optional.
+Save a non-secret endpoint profile, supply its token from a secret vault, and retrieve an issue.
+Get-Secret requires Microsoft.PowerShell.SecretManagement and a configured vault; the vault module is optional.
+The profile stores endpoint settings, so each new connection still needs authentication.
+
+### EXAMPLE 4
+
+```powershell
+$credential = Get-Credential
+$internal = Connect-Jira -Name internal -Uri 'https://jira.example.com/jira' -Credential $credential
+Get-JiraIssue -Key PROJ-1 -Connection $internal
+```
+
+Connect to Data Center with a username and password, then retrieve an issue through that connection.
+
+### EXAMPLE 5
+
+```powershell
+$public = Connect-Jira -Name public -Uri 'https://jira.example.com' -Anonymous
+Get-JiraProject -Connection $public
+```
+
+Create an anonymous connection and list publicly accessible projects.
+The Jira endpoint and requested operation must permit anonymous access.
 
 ## PARAMETERS
 
@@ -76,7 +110,10 @@ Accept wildcard characters: False
 
 ### -Uri
 
-Standalone Jira product endpoint for this logical operation. Cannot be combined with Connection or ConnectionName. Supply one explicit authentication mode; use Anonymous for anonymous access. Normal HTTPS commercial Atlassian site URLs resolve cloudId and the API gateway automatically for ApiToken authentication.
+Jira endpoint for the new connection.
+Supply the normal HTTPS Jira Cloud site URL when using ApiToken; site discovery resolves the API gateway automatically.
+For Data Center, include any Jira context path, such as /jira.
+Uri and Profile cannot be combined.
 
 ```yaml
 Type: Uri
@@ -92,7 +129,10 @@ Accept wildcard characters: False
 
 ### -Profile
 
-Saved Jira server profile. Only approved non-secret endpoint settings are copied; saved Session values are ignored. Supply authentication explicitly.
+Name of a saved Jira endpoint profile.
+Create profiles with Add-AtlassianServerConfiguration.
+Connect-Jira copies the endpoint and ignores saved Session values.
+Remove legacy profile headers and certificates before connecting, and supply authentication explicitly.
 
 ```yaml
 Type: String
@@ -108,7 +148,10 @@ Accept wildcard characters: False
 
 ### -Credential
 
-Username/password or compatible Cloud email/token as PSCredential. Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection. An empty credential fails; omitted input uses the selected connection.
+Credential for the new connection: Data Center username/password or compatible Jira Cloud email/API token.
+Both the username and password must be nonempty; null or empty credentials fail.
+If Credential is omitted, supply another authentication method.
+For automatic Cloud site discovery and scoped-token routing, use EmailAddress with ApiToken.
 
 ```yaml
 Type: PSCredential
@@ -124,7 +167,9 @@ Accept wildcard characters: False
 
 ### -EmailAddress
 
-Cloud authentication email for ApiToken. Email is an alias. An override must supply both its own email and token.
+Jira Cloud authentication email to use with ApiToken in the same call.
+Email is an alias.
+EmailAddress cannot be used with another authentication method.
 
 ```yaml
 Type: String
@@ -188,7 +233,9 @@ Accept wildcard characters: False
 
 ### -Default
 
-Select the successful new connection as Jira default, or filter the listing to the current default. The first successful connection selects itself automatically; later connections leave an existing default unchanged unless this switch is supplied.
+Select the successfully validated new connection as the Jira default.
+The first successful connection becomes the default automatically.
+Later connections preserve an existing default unless this switch is supplied.
 
 ```yaml
 Type: SwitchParameter
@@ -208,7 +255,9 @@ Supports standard PowerShell common parameters.
 
 ## INPUTS
 
-### AtlassianPS.Connection
+### None
+
+This command does not accept pipeline input.
 
 ## OUTPUTS
 

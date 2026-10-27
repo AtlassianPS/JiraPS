@@ -54,6 +54,68 @@ Use HTTPS for production endpoints.
 Explicit HTTP endpoints remain available for local Data Center test environments.
 No browser OAuth, SSO, automatic refresh or cookie-login requirement is added.
 
+### Authentication examples
+
+Choose the authentication method supported by your Jira deployment.
+Each example creates a connection and uses it for a Jira operation.
+
+#### Jira Cloud API token
+
+```powershell
+$token = Read-Host 'Jira API token' -AsSecureString
+$cloud = Connect-Jira -Name cloud -Uri 'https://work.atlassian.net' -EmailAddress 'me@example.com' -ApiToken $token
+Get-JiraIssue -Key PROJ-1 -Connection $cloud
+```
+
+Supply the normal Cloud site URL and your authentication email.
+Connect-Jira discovers the API gateway and validates the supplied identity before returning the connection.
+
+#### Data Center personal access token
+
+```powershell
+$token = Read-Host 'Jira PAT' -AsSecureString
+$internal = Connect-Jira -Name internal -Uri 'https://jira.example.com/jira' -PersonalAccessToken $token
+Get-JiraProject -Connection $internal
+```
+
+Use the Data Center endpoint, including its context path when Jira is hosted below /jira.
+A PAT authenticates without a username.
+
+#### Username and password
+
+```powershell
+$credential = Get-Credential
+$basic = Connect-Jira -Name basic -Uri 'https://jira.example.com/jira' -Credential $credential
+Get-JiraIssue -Key PROJ-1 -Connection $basic
+```
+
+Supply a Data Center username and password through the credential prompt.
+For Jira Cloud credential compatibility, the credential contains an email and API token; use EmailAddress with ApiToken for automatic site discovery and scoped-token routing.
+
+#### Anonymous access
+
+```powershell
+$public = Connect-Jira -Name public -Uri 'https://jira.example.com' -Anonymous
+Get-JiraProject -Connection $public
+```
+
+The endpoint and requested operation must permit anonymous access.
+Anonymous is explicit and never borrows an existing connection's identity.
+Omitting Credential from an ordinary Jira command uses its selected connection; it does not request anonymous access.
+
+#### Saved endpoint profiles
+
+```powershell
+Add-AtlassianServerConfiguration -Name work -Type Jira -Uri 'https://work.atlassian.net'
+$token = Read-Host 'Jira API token' -AsSecureString
+$profile = Connect-Jira -Name profile -Profile work -EmailAddress 'me@example.com' -ApiToken $token
+Get-JiraIssue -Key PROJ-1 -Connection $profile
+```
+
+The saved profile can be reused in another PowerShell session.
+It stores endpoint settings; supply authentication each time you create a live connection.
+Profile names and live connection names are independent.
+
 ### Cloud site and API endpoints
 
 Supply your normal HTTPS commercial Atlassian site URL.
@@ -93,6 +155,7 @@ A 401 with "scope does not match" or a 403 can indicate missing scopes; check th
 
 ```powershell
 $work = Get-JiraConnection -Name work
+$oneOffCredential = Get-Credential
 Get-JiraIssue -Key PROJ-1 -Connection $work
 Get-JiraIssue -Key PROJ-1 -Session $work
 Get-JiraIssue -Key PROJ-1 -Connection $work -Credential $oneOffCredential
