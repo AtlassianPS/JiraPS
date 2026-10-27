@@ -1,10 +1,14 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
 }
+
 BeforeAll {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
 }
 
@@ -23,8 +27,8 @@ InModuleScope JiraPS {
             try {
                 $result = Resolve-JiraUser -InputObject ([AtlassianPS.JiraPS.User]$Identity) -RequestContext $context
 
-                if ($Deployment -eq 'Cloud') { $result.AccountId | Should -Be account-1 }
-                else { $result.Name | Should -Be user-1 }
+                if ($Deployment -eq 'Cloud') { $result.AccountId | Should -Be 'account-1' }
+                else { $result.Name | Should -Be 'user-1' }
                 Should -Invoke Get-JiraUserOperation -Exactly 1 -ParameterFilter {
                     [Object]::ReferenceEquals($RequestContext, $script:context) -and
                     $RequestContext.GetAuthorizationHeader() -eq 'Bearer override-secret'

@@ -46,7 +46,6 @@
             Method       = "GET"
             GetParameter = @{ maxResults = $script:DefaultPageSize }
             Paging       = $true
-
         }
 
         # Forward PowerShell's SupportsPaging common parameters (First/Skip/IncludeTotalCount)

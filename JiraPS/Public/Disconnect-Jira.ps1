@@ -1,19 +1,23 @@
 ﻿function Disconnect-Jira {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
+    [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'Default' )]
     param(
-        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Object')]
+        [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'Object' )]
         [Alias('Session')]
-        [AtlassianPS.Connection]$Connection,
+        [AtlassianPS.Connection]
+        $Connection,
 
-        [Parameter(Mandatory, ParameterSetName = 'Name')]
-        [String]$Name,
+        [Parameter( Mandatory, ParameterSetName = 'Name' )]
+        [String]
+        $Name,
 
-        [Parameter(Mandatory, ParameterSetName = 'Id')]
-        [Int]$Id,
+        [Parameter( Mandatory, ParameterSetName = 'Id' )]
+        [Int]
+        $Id,
 
-        [Parameter(Mandatory, ParameterSetName = 'All')]
-        [Switch]$All
+        [Parameter( Mandatory, ParameterSetName = 'All' )]
+        [Switch]
+        $All
     )
 
     process {

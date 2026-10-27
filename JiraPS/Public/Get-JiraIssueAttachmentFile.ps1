@@ -1,7 +1,7 @@
 ﻿function Get-JiraIssueAttachmentFile {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
-    [OutputType([Bool])]
+    [OutputType( [Bool] )]
     param(
         [Parameter( Mandatory, ValueFromPipeline )]
         [AtlassianPS.JiraPS.Attachment[]]
@@ -51,28 +51,36 @@
         $Credential,
 
         [Alias('Session')]
-        [AtlassianPS.Connection]$Connection,
+        [AtlassianPS.Connection]
+        $Connection,
 
         [Alias('Server', 'ServerName')]
-        [ArgumentCompleter({
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete)
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })]
-        [String]$ConnectionName,
+            }
+        )]
+        [String]
+        $ConnectionName,
 
-        [Uri]$Uri,
+        [Uri]
+        $Uri,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous
+        [Switch]
+        $Anonymous
     )
 
     begin {
@@ -105,7 +113,6 @@
                     Uri     = $contentUri
                     Method  = 'Get'
                     OutFile = $filename
-
                 }
 
                 $null = Invoke-JiraMethod -RequestContext $RequestContext @iwParameters

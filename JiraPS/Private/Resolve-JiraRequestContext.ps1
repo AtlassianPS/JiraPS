@@ -1,17 +1,18 @@
 ﻿function Resolve-JiraRequestContext {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [Uri]
         $Uri,
 
-        [Parameter(Mandatory)]
-        [AtlassianPS.Connection]$RequestContext,
+        [Parameter( Mandatory )]
+        [AtlassianPS.Connection]
+        $RequestContext,
 
         [Hashtable]
         $GetParameter = @{},
 
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [ValidateRange(1, [int]::MaxValue)]
         [int]
         $DefaultPageSize,

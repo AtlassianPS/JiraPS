@@ -46,7 +46,6 @@
                     $parameter = @{
                         URI    = $resourceURi -f "/$_id"
                         Method = "GET"
-
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter

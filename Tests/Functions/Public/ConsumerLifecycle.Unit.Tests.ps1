@@ -1,12 +1,15 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
 }
 
 Describe 'Product module lifecycle' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
     }
 
@@ -20,8 +23,8 @@ Describe 'Product module lifecycle' -Tag Unit {
         try {
             Remove-Module JiraPS -Force
 
-            $jira.State | Should -Be Active
-            $other.State | Should -Be Active
+            $jira.State | Should -Be 'Active'
+            $other.State | Should -Be 'Active'
             Import-Module $moduleToTest -Global
 
             (Get-JiraConnection -Name lifecycle-jira).InstanceId | Should -Be $jira.InstanceId

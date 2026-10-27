@@ -1,39 +1,48 @@
 ﻿function Connect-Jira {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding(DefaultParameterSetName = 'Uri')]
-    [OutputType([AtlassianPS.Connection])]
+    [CmdletBinding( DefaultParameterSetName = 'Uri' )]
+    [OutputType( [AtlassianPS.Connection] )]
     param(
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
-        [String]$Name,
+        [String]
+        $Name,
 
-        [Parameter(Mandatory, ParameterSetName = 'Uri')]
-        [Uri]$Uri,
+        [Parameter( Mandatory, ParameterSetName = 'Uri' )]
+        [Uri]
+        $Uri,
 
-        [Parameter(Mandatory, ParameterSetName = 'Profile')]
-        [ArgumentCompleter({
+        [Parameter( Mandatory, ParameterSetName = 'Profile' )]
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete)
                 AtlassianPS.Configuration\Get-AtlassianServerConfiguration |
                     Where-Object { $_.Type -eq 'Jira' -and $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })]
-        [String]$Profile,
+            }
+        )]
+        [String]
+        $Profile,
 
         [PSCredential]
         [System.Management.Automation.Credential()]
         $Credential,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous,
+        [Switch]
+        $Anonymous,
 
-        [Switch]$Default
+        [Switch]
+        $Default
     )
 
     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"

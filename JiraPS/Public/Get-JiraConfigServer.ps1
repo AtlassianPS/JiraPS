@@ -1,5 +1,4 @@
-﻿
-function Get-JiraConfigServer {
+﻿function Get-JiraConfigServer {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param()

@@ -35,34 +35,44 @@
         $PassThru,
 
         [Alias('Session')]
-        [AtlassianPS.Connection]$Connection,
+        [AtlassianPS.Connection]
+        $Connection,
 
         [Alias('Server', 'ServerName')]
-        [ArgumentCompleter({
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete)
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })]
-        [String]$ConnectionName,
+            }
+        )]
+        [String]
+        $ConnectionName,
 
-        [Uri]$Uri,
+        [Uri]
+        $Uri,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous
+        [Switch]
+        $Anonymous
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
         $operationParameters = @{ RequestContext = $requestContext }
+
         foreach ($parameterName in $PSBoundParameters.Keys) {
             if ($parameterName -notin @(
                     'Connection',
@@ -78,6 +88,7 @@
                 $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
             }
         }
+
         try {
             $operation = { Set-JiraIssueLabelOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
             $operation.Begin($PSCmdlet)

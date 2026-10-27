@@ -31,7 +31,6 @@
               When the Input is typecasted to a AtlassianPS.JiraPS.Issue, the `self` of the issue can be used
             #>
             Method = "GET"
-
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter

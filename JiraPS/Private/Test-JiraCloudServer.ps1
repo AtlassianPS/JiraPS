@@ -1,9 +1,10 @@
 ﻿function Test-JiraCloudServer {
     [CmdletBinding()]
-    [OutputType([Boolean])]
+    [OutputType( [Boolean] )]
     param(
-        [Parameter(Mandatory)]
-        [AtlassianPS.Connection]$RequestContext
+        [Parameter( Mandatory )]
+        [AtlassianPS.Connection]
+        $RequestContext
     )
 
     if (-not $RequestContext.DeploymentType) { throw 'Jira deployment type has not been validated.' }

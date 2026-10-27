@@ -94,7 +94,6 @@
             URI    = $issueObj.RestURL
             Method = "PUT"
             Body   = ConvertTo-Json -InputObject $requestBody -Depth 6
-
         }
         Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Updating Issue labels")) {

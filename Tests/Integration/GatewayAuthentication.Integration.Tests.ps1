@@ -1,6 +1,8 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 BeforeDiscovery {
     . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
     $script:Skip = Skip-IntegrationTest
 }
@@ -33,10 +35,10 @@ Describe 'Cloud gateway token coverage' -Tag Integration, Cloud -Skip:$Skip {
         try {
             $connection = Connect-Jira -Name ("gateway-" + $Kind) -Uri $integration.CloudUrl -EmailAddress $integration.Username -ApiToken $token
 
-            $connection.DeploymentType | Should -Be Cloud
+            $connection.DeploymentType | Should -Be 'Cloud'
             $connection.Username | Should -Not -BeNullOrEmpty
             $connection.CloudId | Should -Match '^[0-9a-f-]{36}$'
-            $connection.BaseUri.Host | Should -Be api.atlassian.com
+            $connection.BaseUri.Host | Should -Be 'api.atlassian.com'
             $connection.BaseUri.AbsolutePath | Should -Be ("/ex/jira/" + $connection.CloudId)
             Get-JiraIssue -Key $integration.TestIssue -Fields summary -Connection $connection | Should -Not -BeNullOrEmpty
         }

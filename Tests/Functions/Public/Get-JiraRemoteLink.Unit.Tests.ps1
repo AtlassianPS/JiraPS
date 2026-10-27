@@ -2,6 +2,7 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
 }
 

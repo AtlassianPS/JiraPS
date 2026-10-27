@@ -20,7 +20,7 @@
         [Hashtable]
         $BoundParameters = @{},
 
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.PSCmdlet]
         $Cmdlet,

@@ -1,4 +1,5 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'Numeric runtime dependency bounds' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
@@ -11,7 +12,10 @@ Describe 'Numeric runtime dependency bounds' -Tag Unit {
         Set-Content $script:runner @'
 param($ModuleRoot, $Manifest, [string]$Expected)
 $env:PSModulePath = $ModuleRoot
-try { Import-Module $Manifest -ErrorAction Stop; $actual = $true }
+try {
+    Import-Module $Manifest -ErrorAction Stop
+    $actual = $true
+}
 catch { $actual = $false }
 if ($actual -ne ($Expected -eq 'True')) { exit 1 }
 exit 0

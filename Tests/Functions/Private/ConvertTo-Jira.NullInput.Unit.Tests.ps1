@@ -100,8 +100,6 @@ InModuleScope JiraPS {
                 ($null -eq $result) | Should -BeTrue
             }
 
-
-
             It 'ConvertTo-JiraTable rejects null input' {
                 { ConvertTo-JiraTable -InputObject $null } | Should -Throw -ExpectedMessage '*InputObject*null*'
             }

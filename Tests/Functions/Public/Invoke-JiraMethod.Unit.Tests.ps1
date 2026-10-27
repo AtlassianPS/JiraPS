@@ -605,7 +605,7 @@ InModuleScope JiraPS {
                     $Headers.Authorization -eq ('Basic ' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('testUsername:password123'))) -and
                     -not [Object]::ReferenceEquals($WebSession, $stored.GetWebSession()) -and -not $Credential
                 }
-                $stored.AuthenticationMode | Should -Be Anonymous
+                $stored.AuthenticationMode | Should -Be 'Anonymous'
             }
 
             It "uses -Headers for the call" {
@@ -918,6 +918,7 @@ InModuleScope JiraPS {
                     $merged
                 }
             }
+
             It 'caches a GET for the selected runtime identity and URI' {
                 $null = Invoke-JiraMethod -Uri '/get' -CacheKey TestCache
                 $null = Invoke-JiraMethod -Uri '/get' -CacheKey TestCache
@@ -925,6 +926,7 @@ InModuleScope JiraPS {
                 $script:JiraCache.Count | Should -Be 1
                 @($script:JiraCache.Keys)[0] | Should -Match ([regex]::Escape((Get-JiraConnection -Default).InstanceId.ToString()))
             }
+
             It 'bypasses cache explicitly and does not cache writes' {
                 $null = Invoke-JiraMethod -Uri '/get' -CacheKey TestCache
                 $null = Invoke-JiraMethod -Uri '/get' -CacheKey TestCache -BypassCache
@@ -932,6 +934,7 @@ InModuleScope JiraPS {
                 Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 3 -Exactly
                 $script:JiraCache.Count | Should -Be 1
             }
+
             It 'honors expiry and distinguishes request parameters' {
                 $null = Invoke-JiraMethod -Uri '/get?fields=one' -CacheKey TestCache -CacheExpiry ([TimeSpan]::FromMinutes(5))
                 @($script:JiraCache.Values)[0].Expiry | Should -BeGreaterThan (Get-Date).AddMinutes(4)
@@ -941,6 +944,7 @@ InModuleScope JiraPS {
                 Should -Invoke Invoke-WebRequest -ModuleName JiraPS -Times 3 -Exactly
                 $script:JiraCache.Count | Should -Be 2
             }
+
             It 'separates same-server identities and never caches temporary overrides' {
                 $first = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name cache-first -Product Jira -BaseUri https://jira.example.com -PersonalAccessToken first-identity
                 $second = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name cache-second -Product Jira -BaseUri https://jira.example.com -PersonalAccessToken second-identity

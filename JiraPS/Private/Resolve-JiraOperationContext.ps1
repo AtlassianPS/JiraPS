@@ -1,15 +1,23 @@
 ﻿function Resolve-JiraOperationContext {
     [CmdletBinding()]
-    [OutputType([AtlassianPS.Connection])]
+    [OutputType( [AtlassianPS.Connection] )]
     param(
-        [Parameter(Mandatory)]
-        [System.Collections.IDictionary]$BoundParameters,
+        [Parameter( Mandatory )]
+        [System.Collections.IDictionary]
+        $BoundParameters,
 
-        [Switch]$UserEmailField
+        [Switch]
+        $UserEmailField
     )
 
     $parameters = Get-JiraAuthenticationParameter -BoundParameters $BoundParameters -UserEmailField:$UserEmailField
-    $selectors = @('Connection', 'ConnectionName', 'Uri', 'BaseUri' | Where-Object { ($BoundParameters.Keys -contains $_) })
+    $selectors = @(
+        'Connection',
+        'ConnectionName',
+        'Uri',
+        'BaseUri' |
+            Where-Object { ($BoundParameters.Keys -contains $_) }
+    )
     if ($selectors.Count -gt 1) { throw 'Supply only one connection selector or standalone endpoint.' }
     foreach ($key in @('Connection', 'ConnectionName')) {
         if (($BoundParameters.Keys -contains $key)) { $parameters[$key] = $BoundParameters[$key] }

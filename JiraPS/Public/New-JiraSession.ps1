@@ -1,30 +1,42 @@
 ﻿function New-JiraSession {
     # .ExternalHelp ..\JiraPS-help.xml
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Compatibility wrapper establishes local validated state without persisting configuration.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSUseShouldProcessForStateChangingFunctions',
+        '',
+        Justification = 'Compatibility wrapper establishes local validated state without persisting configuration.'
+    )]
     [CmdletBinding()]
-    [OutputType([AtlassianPS.Connection])]
+    [OutputType( [AtlassianPS.Connection] )]
     param(
-        [String]$Name,
+        [String]
+        $Name,
 
-        [Uri]$Uri,
+        [Uri]
+        $Uri,
 
         [PSCredential]
         [System.Management.Automation.Credential()]
         $Credential,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous,
+        [Switch]
+        $Anonymous,
 
-        [Switch]$Default,
+        [Switch]
+        $Default,
 
-        [Hashtable]$Headers = @{}
+        [Hashtable]
+        $Headers = @{}
     )
 
     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"

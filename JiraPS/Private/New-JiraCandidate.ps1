@@ -1,14 +1,21 @@
 ﻿function New-JiraCandidate {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Creates an unregistered candidate and performs read-only validation.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSUseShouldProcessForStateChangingFunctions',
+        '',
+        Justification = 'Creates an unregistered candidate and performs read-only validation.'
+    )]
     [CmdletBinding()]
     param(
-        [String]$Name,
+        [String]
+        $Name,
 
-        [Parameter(Mandatory)]
-        [Uri]$Uri,
+        [Parameter( Mandatory )]
+        [Uri]
+        $Uri,
 
-        [Parameter(Mandatory)]
-        [Hashtable]$Authentication
+        [Parameter( Mandatory )]
+        [Hashtable]
+        $Authentication
     )
 
     $preflight = AtlassianPS.Configuration\New-AtlassianConnectionContext -Product Jira -BaseUri $Uri @Authentication

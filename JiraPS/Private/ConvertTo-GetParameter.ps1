@@ -10,10 +10,11 @@
         values; do NOT pre-encode them at the call site.
     #>
     [CmdletBinding()]
-    [OutputType([string])]
+    [OutputType( [string] )]
     param (
         [Parameter( Position = 0, Mandatory = $true, ValueFromPipeline = $true )]
-        [hashtable]$InputObject
+        [hashtable]
+        $InputObject
     )
 
     process {

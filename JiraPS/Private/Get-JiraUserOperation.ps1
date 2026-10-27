@@ -21,7 +21,8 @@
         [Parameter( ParameterSetName = 'ByInputObject' )]
         [Parameter( ParameterSetName = 'ByUserName' )]
         [Parameter( ParameterSetName = 'ByAccountId' )]
-        [Switch]$Exact,
+        [Switch]
+        $Exact,
 
         [Switch]
         $IncludeInactive,
@@ -100,7 +101,6 @@
                 $parameter = @{
                     URI    = $resourceURi
                     Method = "GET"
-
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
@@ -123,7 +123,6 @@
                     $parameter = @{
                         URI    = $resourceURi -f $user
                         Method = "GET"
-
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     if ($users = Invoke-JiraMethod -RequestContext $RequestContext @parameter) {
@@ -131,7 +130,6 @@
                             $parameter = @{
                                 URI    = "{0}&expand=groups" -f $item.self
                                 Method = "GET"
-
                             }
                             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                             $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter

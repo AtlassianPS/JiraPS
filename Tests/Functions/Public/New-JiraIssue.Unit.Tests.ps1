@@ -133,7 +133,6 @@ InModuleScope JiraPS {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type
                 }
-
             }
 
             Context "Mandatory Parameters" {}
@@ -282,6 +281,7 @@ InModuleScope JiraPS {
                     $Body -match '10004'
                 }
             }
+
             It "Creates an issue in JIRA from pipeline" {
                 { $pipelineParams | New-JiraIssue } | Should -Not -Throw
                 # The String in the ParameterFilter is made from the keywords

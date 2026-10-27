@@ -135,6 +135,7 @@ InModuleScope JiraPS {
                 Should -Invoke 'Invoke-JiraMethod' -Times 1 -Exactly -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/2/version" }
                 Should -Invoke 'ConvertTo-JiraVersion' -Times 1 -Exactly -ModuleName JiraPS
             }
+
             It "creates a Version using parameters" {
                 $results = New-JiraVersion -Name $versionName -Project $projectKey -ErrorAction Stop
                 $results | Should -Not -BeNullOrEmpty
@@ -142,6 +143,7 @@ InModuleScope JiraPS {
                 Should -Invoke 'Invoke-JiraMethod' -Times 1 -Exactly -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/2/version" }
                 Should -Invoke 'ConvertTo-JiraVersion' -Times 1 -Exactly -ModuleName JiraPS
             }
+
             It "creates a Version using splatting" {
                 $password = (ConvertTo-SecureString -AsPlainText -Force -String "password")
                 $credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("username", $password)

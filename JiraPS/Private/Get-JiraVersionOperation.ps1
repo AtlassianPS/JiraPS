@@ -27,8 +27,8 @@
         [String[]]
         $Name = "*",
 
-        [Parameter( ParameterSetName = 'byProject')]
-        [Parameter( ParameterSetName = 'byInputProject')]
+        [Parameter( ParameterSetName = 'byProject' )]
+        [Parameter( ParameterSetName = 'byInputProject' )]
         [ValidateSet("sequence",
             "name",
             "startDate",
@@ -90,7 +90,6 @@
                     $parameter = @{
                         URI    = $resourceURi -f "version/$_id"
                         Method = "GET"
-
                     }
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
@@ -114,7 +113,6 @@
                         }
                         Paging       = $true
                         OutputType   = "JiraVersion"
-
                     }
                     # Paging
                     ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {

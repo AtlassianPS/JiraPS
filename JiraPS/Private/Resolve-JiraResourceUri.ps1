@@ -1,12 +1,14 @@
 ﻿function Resolve-JiraResourceUri {
     [CmdletBinding()]
-    [OutputType([Uri])]
+    [OutputType( [Uri] )]
     param(
-        [Parameter(Mandatory)]
-        [Uri]$Uri,
+        [Parameter( Mandatory )]
+        [Uri]
+        $Uri,
 
-        [Parameter(Mandatory)]
-        [AtlassianPS.Connection]$RequestContext
+        [Parameter( Mandatory )]
+        [AtlassianPS.Connection]
+        $RequestContext
     )
 
     $raw = $Uri.OriginalString.Split('?', 2)[0]
@@ -33,7 +35,8 @@
     $prefix = $base.AbsolutePath.TrimEnd('/')
     if ($Uri.GetLeftPart('Authority') -ne $base.GetLeftPart('Authority') -or
         ($prefix -and $Uri.AbsolutePath -ne $prefix -and
-        -not $Uri.AbsolutePath.StartsWith($prefix + '/', [StringComparison]::Ordinal))
+        -not $Uri.AbsolutePath.StartsWith($prefix + '/', [StringComparison]::Ordinal)
+        )
     ) {
         throw 'Jira resource URI does not belong to the selected connection endpoint.'
     }

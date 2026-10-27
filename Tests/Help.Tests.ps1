@@ -40,6 +40,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
             'Confirm'
         )
     }
+
     BeforeAll {
         $script:module = Get-Module JiraPS
     }
@@ -57,6 +58,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                 }
                 $script:parameters = $cmd.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and -not (& $isDontShow $_) }
             }
+
             BeforeAll {
                 $script:command = $_.Command
                 # The first call per cmdlet parses the MAML; sibling contexts below
@@ -339,7 +341,6 @@ Describe "Help tests" -Tag "Documentation", "Build" {
             }
         }
     }
-
 
     Context "Missing classes" {
         It "has a documentation file for every class" {

@@ -72,28 +72,36 @@
         $Credential,
 
         [Alias('Session')]
-        [AtlassianPS.Connection]$Connection,
+        [AtlassianPS.Connection]
+        $Connection,
 
         [Alias('Server', 'ServerName')]
-        [ArgumentCompleter({
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete)
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })]
-        [String]$ConnectionName,
+            }
+        )]
+        [String]
+        $ConnectionName,
 
-        [Uri]$Uri,
+        [Uri]
+        $Uri,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous
+        [Switch]
+        $Anonymous
     )
 
     begin {
@@ -207,8 +215,7 @@
             if ($Components) {
                 $requestBody["components"] = [System.Collections.Generic.List[hashtable]]::new()
                 $Components.ForEach({
-                        $componentValue = if ($_.Id) { @{ id = $_.Id } }
-                        else { @{ name = $_.Name } }
+                        $componentValue = if ($_.Id) { @{ id = $_.Id } } else { @{ name = $_.Name } }
                         $null = $requestBody["components"].Add($componentValue)
                     })
             }
@@ -216,8 +223,7 @@
             if ($FixVersion) {
                 $requestBody['fixVersions'] = [System.Collections.Generic.List[hashtable]]::new()
                 $FixVersion.ForEach({
-                        $versionValue = if ($_.Id) { @{ id = $_.Id } }
-                        else { @{ name = $_.Name } }
+                        $versionValue = if ($_.Id) { @{ id = $_.Id } } else { @{ name = $_.Name } }
                         $null = $requestBody["fixVersions"].Add($versionValue)
                     })
             }
@@ -259,7 +265,6 @@
                 URI    = $resourceURi
                 Method = "POST"
                 Body   = (ConvertTo-Json -InputObject ([PSCustomObject]$hashtable) -Depth 20)
-
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($Summary, "Creating new Issue on JIRA")) {
@@ -279,10 +284,6 @@
     }
 
     end {
-        try {
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
     }
 }

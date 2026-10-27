@@ -33,28 +33,36 @@
         $Credential,
 
         [Alias('Session')]
-        [AtlassianPS.Connection]$Connection,
+        [AtlassianPS.Connection]
+        $Connection,
 
         [Alias('Server', 'ServerName')]
-        [ArgumentCompleter({
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete)
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })]
-        [String]$ConnectionName,
+            }
+        )]
+        [String]
+        $ConnectionName,
 
-        [Uri]$Uri,
+        [Uri]
+        $Uri,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous
+        [Switch]
+        $Anonymous
     )
 
     begin {
@@ -88,7 +96,6 @@
                     URI    = $InputObject.RestURL
                     Method = "PUT"
                     Body   = ConvertTo-Json -InputObject $requestBody
-
                 }
                 Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($InputObject.Name, "Update Filter")) {

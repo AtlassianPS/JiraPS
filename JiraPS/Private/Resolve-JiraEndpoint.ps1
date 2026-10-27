@@ -1,10 +1,12 @@
 ﻿function Resolve-JiraEndpoint {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)]
-        [Uri]$Uri,
+        [Parameter( Mandatory )]
+        [Uri]
+        $Uri,
 
-        [Switch]$ApiToken
+        [Switch]
+        $ApiToken
     )
 
     if (-not $Uri.IsAbsoluteUri -or $Uri.Scheme -notin @('http', 'https') -or $Uri.UserInfo -or $Uri.Query -or $Uri.Fragment) {

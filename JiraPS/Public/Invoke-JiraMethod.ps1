@@ -75,28 +75,37 @@
         $TimeoutSec = 100,
 
         [Alias('Session')]
-        [AtlassianPS.Connection]$Connection,
+        [AtlassianPS.Connection]
+        $Connection,
 
         [Alias('Server', 'ServerName')]
-        [String]$ConnectionName,
+        [String]
+        $ConnectionName,
 
-        [Uri]$BaseUri,
+        [Uri]
+        $BaseUri,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous,
+        [Switch]
+        $Anonymous,
 
-        [Parameter(DontShow)]
-        [AtlassianPS.Connection]$RequestContext,
+        [Parameter( DontShow )]
+        [AtlassianPS.Connection]
+        $RequestContext,
 
-        [Parameter(DontShow)]
-        [Switch]$Discovery
+        [Parameter( DontShow )]
+        [Switch]
+        $Discovery
     )
 
     begin {

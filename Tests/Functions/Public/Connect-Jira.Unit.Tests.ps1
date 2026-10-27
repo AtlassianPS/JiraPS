@@ -1,21 +1,28 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
 }
 
-Describe 'Connect-Jira' -Tag Unit {
+InModuleScope JiraPS {
+    Describe 'Connect-Jira' -Tag Unit {
+        BeforeAll {
+            . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-        $script:moduleToTest = Initialize-TestEnvironment
-    }
+            $script:moduleToTest = Initialize-TestEnvironment
+        }
 
-    InModuleScope JiraPS {
         BeforeEach {
             $script:previousDefault = Get-JiraConnection -Default
             Mock Invoke-JiraMethod {
-                if ($Uri -eq '/rest/api/2/serverInfo') { return [PSCustomObject]@{ version = '11.0'; deploymentType = 'Server' } }
+                if ($Uri -eq '/rest/api/2/serverInfo') {
+                    return [PSCustomObject]@{
+                        version        = '11.0'
+                        deploymentType = 'Server'
+                    }
+                }
                 if ($Uri -eq '/rest/api/2/myself') { return [PSCustomObject]@{ name = 'validated-user' } }
                 throw 'Unexpected validation request.'
             }
@@ -33,14 +40,19 @@ Describe 'Connect-Jira' -Tag Unit {
             $second = Connect-Jira -Name contract-second -Uri https://jira.example.com -PersonalAccessToken second -Default
 
             $first | Should -BeOfType ([AtlassianPS.Connection])
-            $first.Username | Should -Be validated-user
+            $first.Username | Should -Be 'validated-user'
             (Get-JiraConnection -Default).InstanceId | Should -Be $second.InstanceId
             $first.GetAuthorizationHeader() | Should -Be 'Bearer first'
             $second.GetAuthorizationHeader() | Should -Be 'Bearer second'
         }
 
         It 'does not register or change defaults after anonymous metadata with failed identity validation' {
-            Mock Invoke-JiraMethod { [PSCustomObject]@{ version = '11.0'; deploymentType = 'Server' } }
+            Mock Invoke-JiraMethod {
+                [PSCustomObject]@{
+                    version        = '11.0'
+                    deploymentType = 'Server'
+                }
+            }
             $before = (Get-JiraConnection -Default).InstanceId
 
             { Connect-Jira -Name contract-invalid -Uri https://jira.example.com -PersonalAccessToken sentinel -Default } | Should -Throw '*identity*'
@@ -70,6 +82,5 @@ Describe 'Connect-Jira' -Tag Unit {
 
             { Connect-Jira -Name contract-invalid -Uri https://jira.example.com -Anonymous } | Should -Throw '*Jira server information*'
         }
-
     }
 }

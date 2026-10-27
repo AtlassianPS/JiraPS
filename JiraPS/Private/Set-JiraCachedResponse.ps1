@@ -12,7 +12,7 @@
         [Microsoft.PowerShell.Commands.WebRequestMethod]
         $Method = "GET",
 
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         $Response,
 
         [TimeSpan]

@@ -78,7 +78,6 @@
                         URI          = $resourceURi -f $_key
                         Method       = "GET"
                         GetParameter = $getParameter
-
                     }
 
                     Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
@@ -108,7 +107,6 @@
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
-
                 }
                 if ($Fields) { $parameter["GetParameter"]["fields"] = $Fields }
                 # Paging
@@ -133,7 +131,6 @@
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
-
                 }
                 if ($Fields) { $parameter["GetParameter"]["fields"] = $Fields }
                 # Paging

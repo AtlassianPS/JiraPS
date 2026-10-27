@@ -104,7 +104,6 @@ InModuleScope JiraPS {
                 }
             }
 
-
             Context "Behavior testing" {
                 It "forwards credentials and terminating lookup behavior for IDs" {
                     $credential = [PSCredential]::new('filter-owner', (ConvertTo-SecureString 'fixture-password' -AsPlainText -Force))

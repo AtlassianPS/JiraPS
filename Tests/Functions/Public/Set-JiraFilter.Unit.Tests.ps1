@@ -216,7 +216,6 @@ InModuleScope JiraPS {
 
                 It "fails if something other than [AtlassianPS.JiraPS.Filter] is provided to InputObject" {
                     { Get-Date | Set-JiraFilter -ErrorAction Stop } | Should -Throw -ExpectedMessage "*Filter*"
-
                 }
             }
         }

@@ -1,13 +1,16 @@
 ﻿function Get-JiraSession {
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
-    [OutputType([AtlassianPS.Connection])]
+    [OutputType( [AtlassianPS.Connection] )]
     param(
-        [String]$Name,
+        [String]
+        $Name,
 
-        [Int]$Id,
+        [Int]
+        $Id,
 
-        [Switch]$Default
+        [Switch]
+        $Default
     )
 
     Get-JiraConnection @PSBoundParameters

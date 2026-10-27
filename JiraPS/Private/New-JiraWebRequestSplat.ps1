@@ -6,20 +6,21 @@
         Justification = 'Private helper used internally by Invoke-JiraMethod; it does not perform an external side-effectful action itself.'
     )]
     param(
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [Uri]
         $Uri,
 
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [Microsoft.PowerShell.Commands.WebRequestMethod]
         $Method,
 
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [Hashtable]
         $Headers,
 
-        [Parameter(Mandatory)]
-        [AtlassianPS.Connection]$RequestContext,
+        [Parameter( Mandatory )]
+        [AtlassianPS.Connection]
+        $RequestContext,
 
         [String]
         $Body,

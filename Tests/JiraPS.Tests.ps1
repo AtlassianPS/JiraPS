@@ -12,6 +12,7 @@ Describe "General project validation" -Tag Unit {
 
         $script:manifest = Test-ModuleManifest -Path $moduleToTest -ErrorAction Stop -WarningAction SilentlyContinue
     }
+
     AfterEach {
         Remove-Module JiraPS -ErrorAction SilentlyContinue
     }

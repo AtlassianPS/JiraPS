@@ -7,7 +7,8 @@
         $Field,
 
         [Parameter()]
-        [switch]$Force,
+        [switch]
+        $Force,
 
         [Parameter()]
         [AtlassianPS.Connection]

@@ -124,6 +124,7 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
+
                 It "-Name and -Description and -JQL" {
                     {
                         $parameter = @{
@@ -136,6 +137,7 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
+
                 It "-Name and -Description and -JQL and -Favorite" {
                     {
                         $parameter = @{
@@ -149,6 +151,7 @@ InModuleScope JiraPS {
 
                     Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
                 }
+
                 It "maps the properties of an object to the parameters" {
                     { Get-JiraFilter "12345" | New-JiraFilter } | Should -Not -Throw
                 }

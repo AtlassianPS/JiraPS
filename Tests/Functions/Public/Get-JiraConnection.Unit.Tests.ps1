@@ -1,21 +1,28 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
 }
 
-Describe 'Get-JiraConnection' -Tag Unit {
+InModuleScope JiraPS {
+    Describe 'Get-JiraConnection' -Tag Unit {
+        BeforeAll {
+            . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
-    BeforeAll {
-        . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-        $script:moduleToTest = Initialize-TestEnvironment
-    }
+            $script:moduleToTest = Initialize-TestEnvironment
+        }
 
-    InModuleScope JiraPS {
         BeforeEach {
             $script:previousDefault = Get-JiraConnection -Default
             Mock Invoke-JiraMethod {
-                if ($Uri -eq '/rest/api/2/serverInfo') { return [PSCustomObject]@{ version = '11.0'; deploymentType = 'Server' } }
+                if ($Uri -eq '/rest/api/2/serverInfo') {
+                    return [PSCustomObject]@{
+                        version        = '11.0'
+                        deploymentType = 'Server'
+                    }
+                }
                 if ($Uri -eq '/rest/api/2/myself') { return [PSCustomObject]@{ name = 'validated-user' } }
                 throw 'Unexpected validation request.'
             }
@@ -34,6 +41,5 @@ Describe 'Get-JiraConnection' -Tag Unit {
             (Get-JiraConnection -Name CONTRACT-FIRST).InstanceId | Should -Be $connection.InstanceId
             (Get-JiraConnection -Id $connection.Id).InstanceId | Should -Be $connection.InstanceId
         }
-
     }
 }

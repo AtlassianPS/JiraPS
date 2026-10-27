@@ -71,7 +71,7 @@ InModuleScope JiraPS {
         It 'resolves against the supplied context without looking up a global endpoint' {
             Mock Get-JiraConfigServer { throw 'Unexpected global lookup.' }
             $result = Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/field'
-            $result.Uri.Host | Should -Be jira.example.com
+            $result.Uri.Host | Should -Be 'jira.example.com'
             Should -Invoke Get-JiraConfigServer -Times 0 -Exactly
         }
 

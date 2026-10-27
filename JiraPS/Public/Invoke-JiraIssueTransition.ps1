@@ -43,28 +43,36 @@
         $Passthru,
 
         [Alias('Session')]
-        [AtlassianPS.Connection]$Connection,
+        [AtlassianPS.Connection]
+        $Connection,
 
         [Alias('Server', 'ServerName')]
-        [ArgumentCompleter({
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete)
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })]
-        [String]$ConnectionName,
+            }
+        )]
+        [String]
+        $ConnectionName,
 
-        [Uri]$Uri,
+        [Uri]
+        $Uri,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous
+        [Switch]
+        $Anonymous
     )
 
     begin {
@@ -170,7 +178,6 @@
                         URI          = "{0}/transitions" -f $issueRestUrl
                         Method       = "GET"
                         GetParameter = @{ expand = "transitions.fields"; transitionId = "$transitionId" }
-
                     }
                     $transitionMeta = (Invoke-JiraMethod -RequestContext $RequestContext @transitionMetaParam -Debug:$false).transitions |
                         Where-Object { "$($_.id)" -eq "$transitionId" } |
@@ -226,7 +233,6 @@
                 URI    = "{0}/transitions" -f $issueRestUrl
                 Method = "POST"
                 Body   = ConvertTo-Json -InputObject $requestBody -Depth 20
-
             }
             Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
             Invoke-JiraMethod -RequestContext $RequestContext @parameter

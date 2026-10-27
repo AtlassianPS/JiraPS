@@ -2,23 +2,26 @@
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( DefaultParameterSetName = 'ByAccountId', SupportsPaging )]
     param(
-        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [string[]]$Name,
+        [Parameter( ValueFromPipeline, ValueFromPipelineByPropertyName )]
+        [string[]]
+        $Name,
 
-        [Parameter(ParameterSetName = 'ByAccountId', ValueFromPipelineByPropertyName)]
-        [string]$AccountId,
+        [Parameter( ParameterSetName = 'ByAccountId', ValueFromPipelineByPropertyName )]
+        [string]
+        $AccountId,
 
-        [Parameter(ParameterSetName = 'ByOwner', ValueFromPipelineByPropertyName)]
+        [Parameter( ParameterSetName = 'ByOwner', ValueFromPipelineByPropertyName )]
         [ValidateNotNull()]
         [AtlassianPS.JiraPS.UserTransformation()]
         [Alias('UserName')]
         [AtlassianPS.JiraPS.User]
         $Owner,
 
-        [Parameter(ValueFromPipelineByPropertyName)]
-        [string]$GroupName,
+        [Parameter( ValueFromPipelineByPropertyName )]
+        [string]
+        $GroupName,
 
-        [Parameter(ValueFromPipelineByPropertyName)]
+        [Parameter( ValueFromPipelineByPropertyName )]
         [ValidateNotNull()]
         [AtlassianPS.JiraPS.ProjectTransformation()]
         [AtlassianPS.JiraPS.Project]
@@ -37,35 +40,44 @@
             'viewUrl'),
 
         [Validateset('description', 'favourite_count', 'is_favourite', 'id', 'name', 'owner')]
-        [string]$Sort,
+        [string]
+        $Sort,
 
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
         $Credential,
 
         [Alias('Session')]
-        [AtlassianPS.Connection]$Connection,
+        [AtlassianPS.Connection]
+        $Connection,
 
         [Alias('Server', 'ServerName')]
-        [ArgumentCompleter({
+        [ArgumentCompleter( {
                 param($commandName, $parameterName, $wordToComplete)
                 AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
                     Where-Object { $_.Name -like "$wordToComplete*" } |
                     ForEach-Object { $_.Name }
-            })]
-        [String]$ConnectionName,
+            }
+        )]
+        [String]
+        $ConnectionName,
 
-        [Uri]$Uri,
+        [Uri]
+        $Uri,
 
         [Alias('Email')]
-        [String]$EmailAddress,
+        [String]
+        $EmailAddress,
 
-        [Object]$ApiToken,
+        [Object]
+        $ApiToken,
 
         [Alias('PAT', 'BearerToken')]
-        [Object]$PersonalAccessToken,
+        [Object]
+        $PersonalAccessToken,
 
-        [Switch]$Anonymous
+        [Switch]
+        $Anonymous
     )
 
     begin {
@@ -93,7 +105,6 @@
                     expand = $Fields
                 }
                 Paging       = $true
-
             }
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('AccountId')) { $parameter['GetParameter']['accountId'] = $AccountId }
             elseif ($PSCmdlet.ParameterSetName -eq 'ByOwner') {
@@ -131,7 +142,6 @@
 
                 Write-Output (Invoke-JiraMethod -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
             }
-
         }
         catch {
             if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }

@@ -1,7 +1,9 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+
 Describe 'Configuration candidate provisioning' -Tag Unit {
     BeforeAll {
         . "$PSScriptRoot/../Helpers/TestTools.ps1"
+
         $script:moduleToTest = Initialize-TestEnvironment
         $script:tools = Join-Path (Resolve-ProjectRoot) 'Tools'
     }
@@ -20,7 +22,12 @@ Describe 'Configuration candidate provisioning' -Tag Unit {
 
     It 'rejects an explicitly selected package when a runtime is already loaded' {
         Mock Install-Module {}
-        Mock Get-PSRepository { [PSCustomObject]@{ Name = 'PSGallery'; InstallationPolicy = 'Trusted' } }
+        Mock Get-PSRepository {
+            [PSCustomObject]@{
+                Name               = 'PSGallery'
+                InstallationPolicy = 'Trusted'
+            }
+        }
         Mock Save-Module {}
         {
             & (Join-Path $script:tools 'setup.ps1') -RuntimePSEdition Core -ConfigurationCandidatePackage 'candidate.zip' -ConfigurationCandidateSha256 ('0' * 64)

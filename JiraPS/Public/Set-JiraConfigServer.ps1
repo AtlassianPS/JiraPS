@@ -1,12 +1,12 @@
-﻿
-function Set-JiraConfigServer {
+﻿function Set-JiraConfigServer {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [ValidateNotNullOrEmpty()]
         [Alias('Uri')]
-        [Uri]$Server
+        [Uri]
+        $Server
     )
 
     Write-Warning 'Set-JiraConfigServer is obsolete. Save a named profile and use Connect-Jira -Profile with explicit authentication.'

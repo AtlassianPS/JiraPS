@@ -98,7 +98,6 @@ Import-Module $moduleManifest -ErrorAction Stop
 $configurationModule = Get-Module AtlassianPS.Configuration -All | Select-Object -First 1
 $configurationManifest = Join-Path $configurationModule.ModuleBase 'AtlassianPS.Configuration.psd1'
 
-
 if (-not $canParallel) { Write-Warning "PowerShell 5.1 detected: running tests sequentially. Use PowerShell 7+ for parallel execution." }
 
 $projectRoot = Split-Path -Parent $PSScriptRoot

@@ -1,11 +1,13 @@
 ﻿function Get-JiraAuthenticationParameter {
     [CmdletBinding()]
-    [OutputType([Hashtable])]
+    [OutputType( [Hashtable] )]
     param(
-        [Parameter(Mandatory)]
-        [System.Collections.IDictionary]$BoundParameters,
+        [Parameter( Mandatory )]
+        [System.Collections.IDictionary]
+        $BoundParameters,
 
-        [Switch]$UserEmailField
+        [Switch]
+        $UserEmailField
     )
 
     $result = @{}

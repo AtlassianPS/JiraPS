@@ -49,7 +49,6 @@
                 GetParameter = $getParameter
                 OutputType   = "JiraUser"
                 Paging       = $true
-
             }
 
             # Paging

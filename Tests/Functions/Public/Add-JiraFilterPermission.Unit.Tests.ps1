@@ -165,7 +165,6 @@ InModuleScope JiraPS {
                     param($parameter, $type)
 
                     $command | Should -HaveParameter $parameter -Type $type
-
                 }
             }
 
@@ -217,7 +216,6 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraMethod -Exactly -Times 1
                 }
             }
-
 
             Context "Filter Object Input" {
                 It "Adds share permission to Filter Object" {
