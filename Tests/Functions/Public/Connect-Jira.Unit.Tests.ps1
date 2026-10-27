@@ -46,6 +46,29 @@ InModuleScope JiraPS {
             $second.GetAuthorizationHeader() | Should -Be 'Bearer second'
         }
 
+        It 'uses only the profile endpoint and explicitly supplied authentication' {
+            Add-AtlassianServerConfiguration -Name contract-saved -Type Jira -Uri https://jira.example.com/jira
+            $profile = Get-AtlassianServerConfiguration -Name contract-saved
+            $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate]::new()
+
+            try {
+                $profile.Headers = @{ Authorization = 'stored-header' }
+                $profile.Certificate = $certificate
+                $profile.Session = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
+                $profile.Session.Headers['Authorization'] = 'stored-session'
+
+                $connection = Connect-Jira -Name contract-profile -Profile contract-saved -PersonalAccessToken supplied-token
+
+                $connection.BaseUri.AbsoluteUri | Should -Be 'https://jira.example.com/jira'
+                $connection.GetAuthorizationHeader() | Should -Be 'Bearer supplied-token'
+                $connection.Username | Should -Be 'validated-user'
+            }
+            finally {
+                Remove-AtlassianServerConfiguration -Name contract-saved -Confirm:$false
+                $certificate.Dispose()
+            }
+        }
+
         It 'does not register or change defaults after anonymous metadata with failed identity validation' {
             Mock Invoke-JiraMethod {
                 [PSCustomObject]@{

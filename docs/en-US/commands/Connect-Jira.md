@@ -131,8 +131,8 @@ Accept wildcard characters: False
 
 Name of a saved Jira endpoint profile.
 Create profiles with Add-AtlassianServerConfiguration.
-Connect-Jira copies the endpoint and ignores saved Session values.
-Remove legacy profile headers and certificates before connecting, and supply authentication explicitly.
+Connect-Jira uses the profile's endpoint.
+Supply authentication explicitly.
 
 ```yaml
 Type: String

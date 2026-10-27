@@ -50,9 +50,6 @@
     if ($Profile) {
         $saved = @(AtlassianPS.Configuration\Get-AtlassianServerConfiguration -Name $Profile)
         if ($saved.Count -ne 1 -or $saved[0].Type -ne 'Jira') { throw 'A Jira profile with that name was not found.' }
-        if ($saved[0].Headers.Count -or $saved[0].Certificate) {
-            throw 'Remove legacy profile headers and certificates; supply authentication to Connect-Jira.'
-        }
         $Uri = $saved[0].Uri
     }
 
