@@ -36,31 +36,7 @@
         [Switch]
         $PassThru,
 
-        [Alias('Session')][AtlassianPS.Connection]$Connection,
-
-        [Alias('Server', 'ServerName')]
-        [ArgumentCompleter( {
-                param($commandName, $parameterName, $wordToComplete)
-                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
-                    Where-Object { $_.Name -like "$wordToComplete*" } |
-                    ForEach-Object { $_.Name }
-            }
-        )]
-        [String]
-        $ConnectionName,
-
-        [Uri]
-        $Uri,
-
-        [Alias('Email')][String]$EmailAddress,
-
-        [Object]
-        $ApiToken,
-
-        [Alias('PAT', 'BearerToken')][Object]$PersonalAccessToken,
-
-        [Switch]
-        $Anonymous
+        [Alias('Session')][AtlassianPS.Connection]$Connection
     )
 
     begin {

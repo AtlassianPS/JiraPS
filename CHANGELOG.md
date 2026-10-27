@@ -14,7 +14,9 @@
 * Legacy session commands use the shared registry; repeated New calls preserve an existing default unless Default is supplied.
 * Set-JiraConfigServer saves a non-secret shared profile; legacy server_config is read-only migration input.
 * Request headers and low-level defaults can no longer inject authentication.
-* New-JiraUser and Set-JiraUser preserve their EmailAddress user field and use AuthenticationEmailAddress for token overrides.
+* Ordinary Jira commands use Connection (alias Session) and the existing Credential parameter.
+  Endpoint and token inputs belong on Connect-Jira; resolve names through Get-JiraConnection.
+* New-JiraUser and Set-JiraUser use EmailAddress only for the user field.
 * Retry responses retain their payload and resolved connection; creation validation preserves transport errors.
 * Live scoped/unscoped routing and platform coverage are recorded in the candidate validation ledger.
 

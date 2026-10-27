@@ -17,25 +17,25 @@ Returns a user from Jira.
 ### Self (Default)
 
 ```powershell
-Get-JiraUser [-IncludeInactive] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-Uri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [<CommonParameters>]
+Get-JiraUser [-IncludeInactive] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### ByUserName
 
 ```powershell
-Get-JiraUser -UserName <String[]> [-Exact] [-IncludeInactive] [-MaxResults <UInt32>] [-Skip <UInt64>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-Uri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [<CommonParameters>]
+Get-JiraUser -UserName <String[]> [-Exact] [-IncludeInactive] [-MaxResults <UInt32>] [-Skip <UInt64>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### ByAccountId
 
 ```powershell
-Get-JiraUser -AccountId <String[]> [-Exact] [-IncludeInactive] [-MaxResults <UInt32>] [-Skip <UInt64>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-Uri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [<CommonParameters>]
+Get-JiraUser -AccountId <String[]> [-Exact] [-IncludeInactive] [-MaxResults <UInt32>] [-Skip <UInt64>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
-Get-JiraUser -InputObject <AtlassianPS.JiraPS.User[]> [-Exact] [-IncludeInactive] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-Uri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [<CommonParameters>]
+Get-JiraUser -InputObject <AtlassianPS.JiraPS.User[]> [-Exact] [-IncludeInactive] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -140,7 +140,9 @@ HelpMessage: ''
 
 ### -Credential
 
-Username/password or compatible Cloud email/token as PSCredential. Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection. An empty credential fails; omitted input uses the selected connection.
+Username/password or compatible Cloud email/token as PSCredential.
+Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
+An empty credential fails; omitted input uses the selected connection.
 
 ```yaml
 Type: PSCredential
@@ -314,108 +316,15 @@ HelpMessage: ''
 
 ### -Connection
 
-Live shared connection for this operation. Session is a compatibility alias. The object must be active in this runspace and belong to Jira.
+Active Jira connection for this operation.
+Session is a compatibility alias.
+When omitted, the command uses the selected Jira default.
+Use Get-JiraConnection -Name to resolve a named connection.
 
 ```yaml
 Type: AtlassianPS.Connection
 Parameter Sets: (All)
 Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ConnectionName
-
-Case-insensitive name of an active Jira connection. Server and ServerName are compatibility aliases. This parameter is mutually exclusive with Connection and a standalone endpoint.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases: Server, ServerName
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Uri
-
-Standalone Jira product endpoint for this logical operation. Cannot be combined with Connection or ConnectionName. Supply one explicit authentication mode; use Anonymous for anonymous access. Normal HTTPS commercial Atlassian site URLs resolve cloudId and the API gateway automatically for ApiToken authentication.
-
-```yaml
-Type: Uri
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -EmailAddress
-
-Cloud authentication email for ApiToken. Email is an alias. An override must supply both its own email and token.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases: Email
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ApiToken
-
-Cloud API token as a nonempty string or SecureString. Supply the authentication email in the same call. The module normalizes the secret and resolves a normal Cloud site URL automatically.
-
-```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -PersonalAccessToken
-
-Data Center PAT as a nonempty string or SecureString. PAT and BearerToken are aliases. No dummy username is required.
-
-```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases: PAT, BearerToken
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Anonymous
-
-Explicit anonymous authentication when the Jira endpoint permits it. Never borrows the default connection identity.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: None
 
 Required: False
 Position: Named
@@ -445,9 +354,9 @@ Existing user object(s) to refresh from Jira via `-InputObject`.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 **Jira Cloud vs Data Center**: On Jira Cloud, users are identified by `accountId` instead of `username` due to GDPR requirements.
 The returned user object includes both `Name` (username, may be empty on Cloud) and `AccountId` (always present on Cloud).

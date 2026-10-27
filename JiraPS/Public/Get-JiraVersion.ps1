@@ -48,58 +48,17 @@
 
         [Alias('Session')]
         [AtlassianPS.Connection]
-        $Connection,
-
-        [Alias('Server', 'ServerName')]
-        [ArgumentCompleter( {
-                param($commandName, $parameterName, $wordToComplete)
-                AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira |
-                    Where-Object { $_.Name -like "$wordToComplete*" } |
-                    ForEach-Object { $_.Name }
-            }
-        )]
-        [String]
-        $ConnectionName,
-
-        [Uri]
-        $Uri,
-
-        [Alias('Email')]
-        [String]
-        $EmailAddress,
-
-        [Object]
-        $ApiToken,
-
-        [Alias('PAT', 'BearerToken')]
-        [Object]
-        $PersonalAccessToken,
-
-        [Switch]
-        $Anonymous
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{ RequestContext = $requestContext }
-
-        foreach ($parameterName in $PSBoundParameters.Keys) {
-            if ($parameterName -notin @(
-                    'Connection',
-                    'ConnectionName',
-                    'Uri',
-                    'Credential',
-                    'EmailAddress',
-                    'ApiToken',
-                    'PersonalAccessToken',
-                    'Anonymous'
-                )
-            ) {
-                $operationParameters[$parameterName] = $PSBoundParameters[$parameterName]
-            }
-        }
+        $operationParameters = @{} + $PSBoundParameters
+        $null = $operationParameters.Remove('Connection')
+        $null = $operationParameters.Remove('Credential')
+        $operationParameters['RequestContext'] = $requestContext
 
         try {
             $operation = { Get-JiraVersionOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)

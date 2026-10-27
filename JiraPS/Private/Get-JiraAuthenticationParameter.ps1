@@ -16,9 +16,5 @@
         if (($BoundParameters.Keys -contains $key)) { $result[$key] = $BoundParameters[$key] }
     }
 
-    if ($BoundParameters.Keys -contains 'AuthenticationEmailAddress') {
-        $result['EmailAddress'] = $BoundParameters['AuthenticationEmailAddress']
-    }
-
     $result
 }

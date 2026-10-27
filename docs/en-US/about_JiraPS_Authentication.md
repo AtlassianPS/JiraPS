@@ -24,7 +24,7 @@ $work = Connect-Jira -Name work -Uri 'https://work.atlassian.net' -EmailAddress 
 Get-JiraIssue -Key PROJ-1
 $admin = Connect-Jira -Name admin -Uri 'https://work.atlassian.net' -EmailAddress 'admin@example.com' -ApiToken (Read-Host 'Admin Jira token' -AsSecureString)
 Get-JiraIssue -Key PROJ-1 -Connection $admin
-Get-JiraIssue -Key PROJ-1 -ConnectionName work
+Get-JiraIssue -Key PROJ-1 -Connection (Get-JiraConnection -Name work)
 $admin | Select-JiraConnection
 $admin | Disconnect-Jira
 ```
@@ -33,6 +33,10 @@ The first successful connection becomes the Jira default.
 Opening admin leaves work selected unless Default is requested.
 An explicit per-call connection or authentication override does not change the default.
 Removing the default clears it without selecting another connection.
+
+Ordinary Jira commands accept an optional Connection object and the existing Credential parameter.
+Use Connect-Jira to set the endpoint and authentication.
+Use Get-JiraConnection -Name to resolve a connection by name.
 
 ### Deployment support
 
@@ -64,7 +68,7 @@ Failed discovery does not select Data Center or change an existing default.
 The gateway prefix survives leading-slash resources, nested lookups, retries and pagination.
 Matching site REST URLs returned by Jira are translated to the selected gateway.
 Another cloudId, another product path, unexpected origin or encoded path escape is rejected before authentication is attached.
-A new identity override keeps the selected connection's API endpoint.
+A Credential override keeps the selected connection's API endpoint.
 If it cannot authenticate there, create a new connection with the normal site URL.
 
 Explicit gateway endpoints are an advanced alternative when site discovery is unavailable.
@@ -83,20 +87,37 @@ A successful Connect does not establish access to every operation.
 For a read-only scoped API token that validates identity and reads issues, the complete classic scope list is `read:jira-user` and `read:jira-work`.
 A 401 with "scope does not match" or a 403 can indicate missing scopes; check the requested operation before replacing otherwise valid credentials.
 
-### Standalone requests and overrides
+### Connection selection and credential compatibility
 
 ```powershell
-Get-JiraIssue -Key PROJ-1 -Uri 'https://work.atlassian.net' -EmailAddress 'me@example.com' -ApiToken $env:JIRA_API_TOKEN
-Invoke-JiraMethod -BaseUri 'https://jira.example.com/jira' -Uri '/rest/api/2/myself' -PersonalAccessToken $env:JIRA_PAT
+$work = Get-JiraConnection -Name work
+Get-JiraIssue -Key PROJ-1 -Connection $work
+Get-JiraIssue -Key PROJ-1 -Session $work
 Get-JiraIssue -Key PROJ-1 -Connection $work -Credential $oneOffCredential
 ```
 
-Standalone calls validate one context for the logical operation without registering or selecting it.
-Nested lookups and subsequent pages reuse that same context.
-Explicit empty authentication fails instead of falling back to the stored identity.
-Each API-token override includes its own authentication email and token.
-New-JiraUser and Set-JiraUser retain EmailAddress for the user field and use AuthenticationEmailAddress for a token override.
-Other request commands use EmailAddress, with Email as an alias.
+Connection chooses an active Jira connection for one operation.
+Session is its compatibility alias.
+Omitting Connection uses the selected Jira default.
+Credential remains available for existing scripts and creates an isolated override for that operation.
+The stored connection's credentials, cookies and default selection remain unchanged.
+Nested lookups, retries and subsequent pages reuse the same resolved context.
+Explicit empty credentials fail instead of falling back to the stored identity.
+
+For a different token or endpoint, create another connection with Connect-Jira and pass that object to the command.
+New-JiraUser and Set-JiraUser use EmailAddress only for the user field.
+
+### Low-level standalone requests
+
+Invoke-JiraMethod also supports an explicit endpoint and authentication for direct REST requests.
+
+```powershell
+Invoke-JiraMethod -BaseUri 'https://jira.example.com/jira' -Uri '/rest/api/2/myself' -PersonalAccessToken $env:JIRA_PAT
+```
+
+These standalone requests validate one context without registering a connection or changing the Jira default.
+Uri is the REST resource and BaseUri is the Jira product endpoint.
+Token inputs, ConnectionName and standalone endpoints belong on Connect-Jira or Invoke-JiraMethod, rather than ordinary Jira commands.
 
 ### Migration from JiraPS v2
 
@@ -107,12 +128,12 @@ Other request commands use EmailAddress, with Email as an alias.
 | Set-JiraSession | Compatibility selection entry point |
 | Remove-JiraSession | Thin Disconnect adapter; no selector removes only the Jira default |
 | Session parameter | Alias for Connection |
-| Server/ServerName request selectors | Aliases for ConnectionName; never interpreted as URLs |
+| Named connection selection | Resolve with Get-JiraConnection -Name and pass the returned object through Connection |
 | AtlassianPS.JiraPS.Session | Replaced by the shared AtlassianPS.Connection type |
 | Set-JiraConfigServer | Obsolete non-secret endpoint/profile adapter; persists through shared configuration rather than the installed module |
 | Credential-only request | Uses the live default, then a configured migration endpoint when no default exists |
 | Invoke-JiraMethod StoreSession | Obsolete; use Connect-Jira |
-| Injected Authorization/Cookie headers or low-level authentication defaults | Rejected; use Credential, ApiToken or PersonalAccessToken |
+| Injected Authorization/Cookie headers or low-level authentication defaults | Rejected; configure authentication on Connect-Jira or use the existing Credential parameter |
 
 Repeated New-JiraSession calls do not replace an existing default unless Default is supplied.
 Legacy server_config is read as a migration input without rewriting it.

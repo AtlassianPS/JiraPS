@@ -75,6 +75,13 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
+            It "Does not update labels when WhatIf is supplied" {
+                Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1' -WhatIf
+                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 0 -Exactly -ParameterFilter {
+                    $Method -eq 'Put'
+                }
+            }
+
             It "Replaces all issue labels if the Set parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1', 'testLabel2' } | Should -Not -Throw
                 Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
