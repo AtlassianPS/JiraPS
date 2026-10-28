@@ -6,19 +6,21 @@ online version: https://atlassianps.org/docs/JiraPS/about/authentication.html
 Module Name: JiraPS
 permalink: /docs/JiraPS/about/authentication.html
 ---
-# about_JiraPS_Authentication
+# Authentication
 
-## SHORT DESCRIPTION
+## about_JiraPS_Authentication
+
+# SHORT DESCRIPTION
 
 Connect to Jira, choose an identity and migrate v2 session scripts.
 
-## LONG DESCRIPTION
+# LONG DESCRIPTION
 
 JiraPS uses AtlassianPS.Configuration for named live connections.
 The shared [authentication guide](https://atlassianps.org/docs/AtlassianPS.Configuration/about/authentication.html) owns token handling, defaults, overrides and non-secret profiles.
 This Jira candidate is experimental.
 
-### Quick start
+## Quick start
 
 ```powershell
 $work = Connect-Jira -Name work -Uri 'https://work.atlassian.net' -EmailAddress 'me@example.com' -ApiToken $env:JIRA_API_TOKEN
@@ -39,7 +41,7 @@ Ordinary Jira commands accept an optional Connection object and the existing Cre
 Use Connect-Jira to set the endpoint and authentication.
 Use Get-JiraConnection -Name to resolve a connection by name.
 
-### Deployment support
+## Deployment support
 
 | Deployment | Inputs | Request authentication |
 | --- | --- | --- |
@@ -53,7 +55,7 @@ Use HTTPS for production endpoints.
 Explicit HTTP endpoints remain available for local Data Center test environments.
 No browser OAuth, SSO, automatic refresh or cookie-login requirement is added.
 
-### Deployment discovery on restricted installations
+## Deployment discovery on restricted installations
 
 Connect-Jira prefers a recognized deploymentType from serverInfo without requiring a version.
 If metadata is absent or restricted with HTTP 403, 404 or 405, a successful myself response identifies Cloud through accountId or Server/Data Center through name.
@@ -75,12 +77,12 @@ Anonymous fallback without metadata requires an explicit DeploymentType and a re
 At least one project must be visible anonymously.
 If anonymous browsing is restricted or the probe returns no recognizable project, use an authenticated connection or ask the Jira administrator to allow anonymous project browsing.
 
-### Authentication examples
+## Authentication examples
 
 Choose the authentication method supported by your Jira deployment.
 Each example creates a connection and uses it for a Jira operation.
 
-#### Jira Cloud API token
+### Jira Cloud API token
 
 ```powershell
 $token = Read-Host 'Jira API token' -AsSecureString
@@ -91,7 +93,7 @@ Get-JiraIssue -Key PROJ-1 -Connection $cloud
 Supply the normal Cloud site URL and your authentication email.
 Connect-Jira discovers the API gateway and validates the supplied identity before returning the connection.
 
-#### Data Center personal access token
+### Data Center personal access token
 
 ```powershell
 $token = Read-Host 'Jira PAT' -AsSecureString
@@ -102,7 +104,7 @@ Get-JiraProject -Connection $internal
 Use the Data Center endpoint, including its context path when Jira is hosted below /jira.
 A PAT authenticates without a username.
 
-#### Username and password
+### Username and password
 
 ```powershell
 $credential = Get-Credential
@@ -113,7 +115,7 @@ Get-JiraIssue -Key PROJ-1 -Connection $basic
 Supply a Data Center username and password through the credential prompt.
 For Jira Cloud credential compatibility, the credential contains an email and API token; use EmailAddress with ApiToken for automatic site discovery and scoped-token routing.
 
-#### Anonymous access
+### Anonymous access
 
 ```powershell
 $public = Connect-Jira -Name public -Uri 'https://jira.example.com' -Anonymous
@@ -124,7 +126,7 @@ The endpoint and requested operation must permit anonymous access.
 Anonymous is explicit and never borrows an existing connection's identity.
 Omitting Credential from an ordinary Jira command uses its selected connection; it does not request anonymous access.
 
-#### Saved endpoint profiles
+### Saved endpoint profiles
 
 ```powershell
 Add-AtlassianServerConfiguration -Name work -Type Jira -Uri 'https://work.atlassian.net'
@@ -137,7 +139,7 @@ The saved profile can be reused in another PowerShell session.
 It stores endpoint settings; supply authentication each time you create a live connection.
 Profile names and live connection names are independent.
 
-### Cloud site and API endpoints
+## Cloud site and API endpoints
 
 Supply your normal HTTPS commercial Atlassian site URL.
 For ApiToken authentication, JiraPS reads /_edge/tenant_info without authentication, validates cloudId and builds the fixed api.atlassian.com Jira gateway route.
@@ -162,7 +164,7 @@ Custom domains and other Atlassian environments require separately validated sup
 Atlassian's [API-token guide](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/) documents gateway routing for scoped tokens.
 No token kind is inferred from its length or prefix, and domain operations do not retry against another authentication endpoint.
 
-### Permissions and scopes
+## Permissions and scopes
 
 Creation-time identity validation needs permission to access Jira and the scopes documented for [Get current user](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-myself/#api-rest-api-3-myself-get).
 Its classic scope is read:jira-user; granular alternatives include read:application-role:jira, read:group:jira, read:user:jira and read:avatar:jira.
@@ -171,7 +173,7 @@ A successful Connect does not establish access to every operation.
 For a read-only scoped API token that validates identity and reads issues, the complete classic scope list is `read:jira-user` and `read:jira-work`.
 A 401 with "scope does not match" or a 403 can indicate missing scopes; check the requested operation before replacing otherwise valid credentials.
 
-### Connection selection and credential compatibility
+## Connection selection and credential compatibility
 
 ```powershell
 $work = Get-JiraConnection -Name work
@@ -192,7 +194,7 @@ Explicit empty credentials fail instead of falling back to the stored identity.
 For a different token or endpoint, create another connection with Connect-Jira and pass that object to the command.
 New-JiraUser and Set-JiraUser use EmailAddress only for the user field.
 
-### Low-level standalone requests
+## Low-level standalone requests
 
 Invoke-JiraMethod also supports an explicit endpoint and authentication for direct REST requests.
 
@@ -204,7 +206,7 @@ These standalone requests validate one context without registering a connection 
 Uri is the REST resource and BaseUri is the Jira product endpoint.
 Token inputs, ConnectionName and standalone endpoints belong on Connect-Jira or Invoke-JiraMethod, rather than ordinary Jira commands.
 
-### Migration from JiraPS v2
+## Migration from JiraPS v2
 
 | Existing interface | Current behavior |
 | --- | --- |
@@ -226,15 +228,15 @@ Saved profiles and live connections remain independent.
 JiraAgilePS's existing package still pins JiraPS 2.16.0 and has not adopted this v3 contract.
 Use separate processes for existing Agile/v2 workflows and the v3 candidate.
 
-## SEE ALSO
-
-[about_AtlassianPS_Authentication](https://atlassianps.org/docs/AtlassianPS.Configuration/about/authentication.html)
-
-[Connect-Jira](https://atlassianps.org/docs/JiraPS/commands/Connect-Jira/)
-
 ## Pipeline cancellation
 
 Temporary request contexts are disposed after normal completion and errors inside the command.
 The commands use lifecycle blocks compatible with Windows PowerShell 5.1, which has no script-function cleanup block for upstream pipeline failures or cancellation.
 In that case, unreferenced secure secret copies are reclaimed by .NET; removing AtlassianPS.Configuration also disposes any retained temporary contexts.
 Cancellation therefore does not guarantee immediate disposal.
+
+# SEE ALSO
+
+[about_AtlassianPS_Authentication](https://atlassianps.org/docs/AtlassianPS.Configuration/about/authentication.html)
+
+[Connect-Jira](https://atlassianps.org/docs/JiraPS/commands/Connect-Jira/)
