@@ -14,44 +14,27 @@ Share a filter with other users.
 
 ## SYNTAX
 
-```powershell
-Add-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> -Type <string> [-Value <string>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+Add-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> -Type <string> [-Value <string>]
+ [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
-Share a filter with a group, project role, authenticated users or everyone.
-Use `Type` to choose the permission and `Value` to identify the group, project or role.
+Adds filter sharing permissions and returns the typed permission records Jira supplies.
+It does not return a whole filter or perform a follow-up lookup.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-Add-JiraFilterPermission -Filter (Get-JiraFilter 12345) -Type 'Global'
-# Or use the ID directly.
-Add-JiraFilterPermission -Id 12345 -Type 'Global'
+Add-JiraFilterPermission -Filter 12345 -Type Global
 ```
 
-Two methods of sharing filter 12345 with everyone.
-
-### Example 2
-
-```powershell
-12345 | Add-JiraFilterPermission -Type 'Authenticated'
-```
-
-Share filter 12345 with authenticated users.
-
-The ID can be read from a file.
-
-### Example 3
-
-```powershell
-Get-JiraFilter 12345 | Add-JiraFilterPermission -Type 'Group' -Value 'administrators'
-```
-
-Share filter 12345 only with users in the administrators group.
+Add global sharing and return the permission records Jira supplies.
 
 ## PARAMETERS
 
@@ -77,29 +60,33 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Filter
 
-Filter objects or positive numeric filter IDs to share.
-Accepts numeric strings and pipeline input.
-`Id` is an alias for `Filter`.
+Filter identifiers or typed filter objects.
+Pipe filter objects to this parameter.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter[]
@@ -136,12 +123,7 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues:
-- Group
-- Project
-- ProjectRole
-- Authenticated
-- Global
+AcceptedValues: []
 HelpMessage: ''
 ```
 
@@ -199,38 +181,20 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Filter
-
+### AtlassianPS.JiraPS.Filter[]
 
 ## OUTPUTS
 
-### AtlassianPS.JiraPS.Filter
+### AtlassianPS.JiraPS.FilterPermission
 
 ## NOTES
 

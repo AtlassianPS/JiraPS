@@ -24,7 +24,7 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Context "Delete Operations" -Skip:$SkipWrite {
@@ -35,7 +35,7 @@ InModuleScope JiraPS {
                 }
                 $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "DeleteKey")
 
-                { Remove-JiraIssue -IssueId $issue.Key -Force } | Should -Not -Throw
+                { Remove-JiraIssue -Issue $issue.Key -Confirm:$false } | Should -Not -Throw
 
                 { Get-JiraIssue -Key $issue.Key -ErrorAction Stop } | Should -Throw
             }
@@ -47,7 +47,7 @@ InModuleScope JiraPS {
                 }
                 $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "DeletePipe")
 
-                { $issue | Remove-JiraIssue -Force } | Should -Not -Throw
+                { $issue | Remove-JiraIssue -Confirm:$false } | Should -Not -Throw
 
                 { Get-JiraIssue -Key $issue.Key -ErrorAction Stop } | Should -Throw
             }
@@ -59,7 +59,7 @@ InModuleScope JiraPS {
                 }
                 $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "DeleteObj")
 
-                { Remove-JiraIssue -Issue $issue -Force } | Should -Not -Throw
+                { Remove-JiraIssue -Issue $issue -Confirm:$false } | Should -Not -Throw
 
                 { Get-JiraIssue -Key $issue.Key -ErrorAction Stop } | Should -Throw
             }
@@ -67,7 +67,7 @@ InModuleScope JiraPS {
 
         Context "Error Handling" -Skip:$SkipWrite {
             It "fails for non-existent issue" {
-                { Remove-JiraIssue -IssueId 'NONEXISTENT-99999' -Force -ErrorAction Stop } |
+                { Remove-JiraIssue -Issue 'NONEXISTENT-99999' -Confirm:$false -ErrorAction Stop } |
                     Should -Throw
             }
         }

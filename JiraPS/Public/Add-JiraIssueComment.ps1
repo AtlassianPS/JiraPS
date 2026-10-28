@@ -29,11 +29,6 @@
         $Visibility,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -41,67 +36,50 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-            $resourceURi = "{0}/comment"
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $resourceURi = "{0}/comment"
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
-            $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
-            $requestBody = @{
-                'body' = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
-            }
-
-            # Unrestricted access omits visibility; older Jira versions reject an "All Users" role.
-            if ($Visibility -and $Visibility.Type -and -not (
-                    $Visibility.Type -eq 'role' -and $Visibility.Value -eq 'All Users' -and -not $Visibility.Identifier
-                )
-            ) {
-                $requestBody.visibility = @{ type = $Visibility.Type }
-                if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
-                if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }
-            }
-
-            $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
-
-            $parameter = @{
-                URI    = $resourceURi -f $issueRestUrl
-                Method = "POST"
-                Body   = ConvertTo-Json -InputObject $requestBody -Depth 20
-            }
-            Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
-                $rawResult = Invoke-JiraRequest -RequestContext $RequestContext @parameter
-
-                Write-Output (ConvertTo-JiraComment -InputObject $rawResult)
-            }
+        $requestBody = @{
+            'body' = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
         }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+
+        # Unrestricted access omits visibility; older Jira versions reject an "All Users" role.
+        if ($Visibility -and $Visibility.Type -and -not (
+                $Visibility.Type -eq 'role' -and $Visibility.Value -eq 'All Users' -and -not $Visibility.Identifier
+            )
+        ) {
+            $requestBody.visibility = @{ type = $Visibility.Type }
+            if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
+            if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }
+        }
+
+        $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
+
+        $parameter = @{
+            URI    = $resourceURi -f $issueRestUrl
+            Method = "POST"
+            Body   = ConvertTo-Json -InputObject $requestBody -Depth 20
+        }
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
+            $rawResult = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+            Write-Output (ConvertTo-JiraComment -InputObject $rawResult)
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

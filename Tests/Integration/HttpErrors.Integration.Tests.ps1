@@ -19,7 +19,7 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         It "preserves Jira's message for a missing issue" {

@@ -31,11 +31,6 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             # If we don't override this in a context or test, we don't want it to
             # actually try to query a JIRA instance
             Mock Invoke-JiraRequest -ModuleName JiraPS {
@@ -128,7 +123,6 @@ InModuleScope JiraPS {
                     @{ parameter = 'Label'; type = 'String[]' }
                     @{ parameter = 'Components'; type = 'AtlassianPS.JiraPS.Component[]' }
                     @{ parameter = 'Fields'; type = 'PSObject' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type

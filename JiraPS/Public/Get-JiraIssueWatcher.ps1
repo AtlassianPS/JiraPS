@@ -10,11 +10,6 @@
         $Issue,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -22,44 +17,27 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
-            foreach ($issue in $issueObj) {
-                $parameter = @{
-                    URI    = "{0}/watchers" -f $issue.RestURL
-                    Method = "GET"
-                }
-                Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($result = Invoke-JiraRequest -RequestContext $RequestContext @parameter) { $result.watchers | ConvertTo-JiraUser }
+        foreach ($issue in $issueObj) {
+            $parameter = @{
+                URI    = "{0}/watchers" -f $issue.RestURL
+                Method = "GET"
             }
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($result = Invoke-JiraRequest -RequestContext $RequestContext @parameter) { $result.watchers | ConvertTo-JiraUser }
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

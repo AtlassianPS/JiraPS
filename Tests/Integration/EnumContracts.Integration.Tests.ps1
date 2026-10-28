@@ -54,7 +54,7 @@ InModuleScope JiraPS {
         AfterAll {
             try {
                 if ($filter) {
-                    Remove-JiraFilter -InputObject $filter -Confirm:$false -ErrorAction Stop
+                    Remove-JiraFilter -Filter $filter -Confirm:$false -ErrorAction Stop
                 }
             }
             finally {
@@ -64,7 +64,7 @@ InModuleScope JiraPS {
                     }
                 }
                 finally {
-                    Remove-JiraSession -ErrorAction SilentlyContinue
+                    Disconnect-Jira -ErrorAction SilentlyContinue
                 }
             }
         }

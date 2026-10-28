@@ -14,10 +14,10 @@ InModuleScope JiraPS {
 
         BeforeEach {
             $script:JiraCache = @{
-                "Fields:http://server1.example.com"     = @{ Data = "Fields1"; Expiry = (Get-Date).AddHours(1) }
-                "Fields:http://server2.example.com"     = @{ Data = "Fields2"; Expiry = (Get-Date).AddHours(1) }
-                "IssueTypes:http://server1.example.com" = @{ Data = "Types1"; Expiry = (Get-Date).AddHours(1) }
-                "ServerInfo:http://server1.example.com" = @{ Data = "Info1"; Expiry = (Get-Date).AddHours(1) }
+                "connection-server1:http://server1.example.com:Fields"     = @{ Data = "Fields1"; Expiry = (Get-Date).AddHours(1) }
+                "connection-server2:http://server2.example.com:Fields"     = @{ Data = "Fields2"; Expiry = (Get-Date).AddHours(1) }
+                "connection-server1:http://server1.example.com:IssueTypes" = @{ Data = "Types1"; Expiry = (Get-Date).AddHours(1) }
+                "connection-server1:http://server1.example.com:ServerInfo" = @{ Data = "Info1"; Expiry = (Get-Date).AddHours(1) }
             }
         }
 
@@ -39,24 +39,24 @@ InModuleScope JiraPS {
             It "clears only 'Fields' entries" {
                 Clear-JiraCache -Type Fields
 
-                $script:JiraCache.Keys | Should -Not -Contain "Fields:http://server1.example.com"
-                $script:JiraCache.Keys | Should -Not -Contain "Fields:http://server2.example.com"
-                $script:JiraCache.Keys | Should -Contain "IssueTypes:http://server1.example.com"
-                $script:JiraCache.Keys | Should -Contain "ServerInfo:http://server1.example.com"
+                $script:JiraCache.Keys | Should -Not -Contain "connection-server1:http://server1.example.com:Fields"
+                $script:JiraCache.Keys | Should -Not -Contain "connection-server2:http://server2.example.com:Fields"
+                $script:JiraCache.Keys | Should -Contain "connection-server1:http://server1.example.com:IssueTypes"
+                $script:JiraCache.Keys | Should -Contain "connection-server1:http://server1.example.com:ServerInfo"
             }
 
             It "clears only 'IssueTypes' entries" {
                 Clear-JiraCache -Type IssueTypes
 
-                $script:JiraCache.Keys | Should -Contain "Fields:http://server1.example.com"
-                $script:JiraCache.Keys | Should -Not -Contain "IssueTypes:http://server1.example.com"
+                $script:JiraCache.Keys | Should -Contain "connection-server1:http://server1.example.com:Fields"
+                $script:JiraCache.Keys | Should -Not -Contain "connection-server1:http://server1.example.com:IssueTypes"
             }
 
             It "clears only 'ServerInfo' entries" {
                 Clear-JiraCache -Type ServerInfo
 
-                $script:JiraCache.Keys | Should -Contain "Fields:http://server1.example.com"
-                $script:JiraCache.Keys | Should -Not -Contain "ServerInfo:http://server1.example.com"
+                $script:JiraCache.Keys | Should -Contain "connection-server1:http://server1.example.com:Fields"
+                $script:JiraCache.Keys | Should -Not -Contain "connection-server1:http://server1.example.com:ServerInfo"
             }
         }
 

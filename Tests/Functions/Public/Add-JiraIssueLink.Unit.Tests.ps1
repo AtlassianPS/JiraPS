@@ -12,7 +12,6 @@ InModuleScope JiraPS {
             . "$PSScriptRoot/../../Helpers/TestTools.ps1" -Force
 
             #region Definitions
-            $jiraServer = 'http://jiraserver.example.com'
 
             $script:issueLink = [PSCustomObject]@{
                 inwardIssue  = [PSCustomObject]@{ key = "TEST-01" }
@@ -22,11 +21,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'POST' -and
                 $URI -eq "/rest/api/2/issueLink"
@@ -52,18 +46,12 @@ InModuleScope JiraPS {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = "IssueLink"; type = "AtlassianPS.JiraPS.IssueLinkCreateRequest[]" }
                     @{ parameter = "Comment"; type = "String" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
                 }
             }
 
             Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = $null }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
             }
 
             Context "Mandatory Parameters" {

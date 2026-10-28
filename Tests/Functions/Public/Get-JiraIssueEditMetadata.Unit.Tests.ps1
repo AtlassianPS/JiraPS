@@ -177,11 +177,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 [PSCustomObject] @{
@@ -221,12 +216,12 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             Context "Behavior testing" {
                 It "Queries Jira for metadata information about editing an issue" {
-                    { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
+                    { Get-JiraIssueEditMetadata -Issue "$issueID" } | Should -Not -Throw
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
-                    { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
+                    { Get-JiraIssueEditMetadata -Issue "$issueID" } | Should -Not -Throw
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
 
                     # The editmeta endpoint returns a single envelope { fields: { fieldId: ... } }
@@ -237,7 +232,7 @@ InModuleScope JiraPS {
 
                 It "Does not write to the error stream on a successful call" {
                     $errorsBefore = $global:Error.Count
-                    $null = Get-JiraIssueEditMetadata -Issue $issueID
+                    $null = Get-JiraIssueEditMetadata -Issue "$issueID"
                     ($global:Error.Count - $errorsBefore) | Should -Be 0
                 }
             }
@@ -250,14 +245,14 @@ InModuleScope JiraPS {
                 }
 
                 It "Throws a terminating ObjectNotFound error when no metadata is returned" {
-                    { Get-JiraIssueEditMetadata -Issue $issueID -ErrorAction Stop } |
+                    { Get-JiraIssueEditMetadata -Issue "$issueID" -ErrorAction Stop } |
                         Should -Throw -ErrorId 'IssueMetadata.ObjectNotFound,Get-JiraIssueEditMetadataOperation'
                 }
 
                 It "References the -Issue parameter in the error message instead of the legacy 'project ... issueType ...' template" {
                     $caught = $null
                     try {
-                        Get-JiraIssueEditMetadata -Issue $issueID -ErrorAction Stop
+                        Get-JiraIssueEditMetadata -Issue "$issueID" -ErrorAction Stop
                     }
                     catch {
                         $caught = $_

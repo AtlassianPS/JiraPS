@@ -17,12 +17,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraIssueOperation -ModuleName JiraPS {
+                $Key = $Issue.Key
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     Id      = 123
@@ -61,7 +57,6 @@ InModuleScope JiraPS {
                     @{ parameter = 'Add'; type = 'String[]' }
                     @{ parameter = 'Remove'; type = 'String[]' }
                     @{ parameter = 'Clear'; type = 'SwitchParameter' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter

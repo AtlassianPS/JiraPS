@@ -1,4 +1,10 @@
 ﻿function Get-JiraIssueTypeOperation {
+    <#
+    .SYNOPSIS
+        Retrieve and cache Jira issue types, or match typed issue-type selectors.
+    .DESCRIPTION
+        Refresh fetches a new response and replaces the connection-scoped cache entry.
+    #>
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
@@ -8,7 +14,7 @@
 
         [Parameter()]
         [Switch]
-        $Force,
+        $Refresh,
 
         [Parameter()]
         [AtlassianPS.Connection]
@@ -33,7 +39,7 @@
 
                     CacheKey    = 'IssueTypes'
                     CacheExpiry = [TimeSpan]::FromHours(1)
-                    BypassCache = $Force
+                    BypassCache = $Refresh
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
@@ -45,7 +51,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issueType]"
                     Write-DebugMessage "Processing `$_issueType [$_issueType]"
 
-                    $allIssueTypes = Get-JiraIssueTypeOperation -Force:$Force -RequestContext $RequestContext
+                    $allIssueTypes = Get-JiraIssueTypeOperation -Refresh:$Refresh -RequestContext $RequestContext
 
                     Write-Output ($allIssueTypes | Where-Object -FilterScript {
                             if ($null -ne $_issueType.Id) { $_.Id -eq $_issueType.Id }

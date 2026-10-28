@@ -34,7 +34,7 @@ InModuleScope JiraPS {
                 throw 'Transition field integration tests require time tracking and unassigned issues on the dedicated test site.'
             }
 
-            $script:user = Get-JiraUser -InputObject $fixtures.TestUser -ErrorAction Stop
+            $script:user = Get-JiraUser -User $fixtures.TestUser -ErrorAction Stop
             $script:identity = $fixtures.UserIdProperty
             $user.$identity | Should -Not -BeNullOrEmpty
         }
@@ -84,10 +84,10 @@ InModuleScope JiraPS {
 
         AfterAll {
             try {
-                foreach ($key in $createdIssues) { Remove-JiraIssue -IssueId $key -Force -ErrorAction Stop }
+                foreach ($key in $createdIssues) { Remove-JiraIssue -Issue $key -Confirm:$false -ErrorAction Stop }
             }
             finally {
-                Remove-JiraSession -ErrorAction SilentlyContinue
+                Disconnect-Jira -ErrorAction SilentlyContinue
             }
         }
 

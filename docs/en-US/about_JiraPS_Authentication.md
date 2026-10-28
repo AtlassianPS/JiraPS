@@ -117,7 +117,8 @@ Get-JiraProject -Connection $public
 
 The endpoint and requested operation must permit anonymous access.
 Anonymous is explicit and never borrows an existing connection's identity.
-Omitting Credential from an ordinary Jira command uses its selected connection; it does not request anonymous access.
+Ordinary Jira commands use their selected connection.
+Create an anonymous connection explicitly when the endpoint permits it.
 
 ### Saved endpoint profiles
 
@@ -148,8 +149,6 @@ Failed discovery does not select Data Center or change an existing default.
 The gateway prefix survives leading-slash resources, nested lookups, retries and pagination.
 Matching site REST URLs returned by Jira are translated to the selected gateway.
 Another cloudId, another product path, unexpected origin or encoded path escape is rejected before authentication is attached.
-A Credential override keeps the selected connection's API endpoint.
-If it cannot authenticate there, create a new connection with the normal site URL.
 
 Explicit gateway endpoints are an advanced alternative when site discovery is unavailable.
 Custom domains and other Atlassian environments require separately validated support; JiraPS does not guess their gateway.
@@ -166,25 +165,20 @@ A successful Connect does not establish access to every operation.
 For a read-only scoped API token that validates identity and reads issues, the complete classic scope list is `read:jira-user` and `read:jira-work`.
 A 401 with "scope does not match" or a 403 can indicate missing scopes; check the requested operation before replacing otherwise valid credentials.
 
-## Connection selection and credential compatibility
+## Connection selection
 
 ```powershell
 $work = Get-JiraConnection -Name work
-$oneOffCredential = Get-Credential
-Get-JiraIssue -Key PROJ-1 -Connection $work
-Get-JiraIssue -Key PROJ-1 -Session $work
-Get-JiraIssue -Key PROJ-1 -Connection $work -Credential $oneOffCredential
+Get-JiraIssue -Issue PROJ-1 -Connection $work
+Select-JiraConnection -Connection $work
+Get-JiraIssue -Issue PROJ-2
 ```
 
-Connection chooses an active Jira connection for one operation.
-Session is its compatibility alias.
+Connection chooses an active Jira connection for an operation.
 Omitting Connection uses the selected Jira default.
-Credential remains available for existing scripts and creates an isolated override for that operation.
-The stored connection's credentials, cookies and default selection remain unchanged.
-Nested lookups, retries and subsequent pages reuse the same resolved context.
-Explicit empty credentials fail instead of falling back to the stored identity.
-
-For a different token or endpoint, create another connection with Connect-Jira and pass that object to the command.
+Nested lookups, retries and subsequent pages reuse that same resolved context.
+Authentication is supplied when creating the connection; per-call Credential and the Session alias are removed.
+For a different identity or endpoint, create another connection with Connect-Jira and pass it to the command.
 New-JiraUser and Set-JiraUser use EmailAddress only for the user field.
 
 ## Low-level standalone requests
@@ -204,22 +198,20 @@ Token inputs, ConnectionName and standalone endpoints belong on Connect-Jira or 
 
 ## Migration from JiraPS v2
 
-| Existing interface | Current behavior |
+| Removed interface | Replacement |
 | --- | --- |
-| New-JiraSession | Thin Connect adapter; omitted name gets a unique generated name; omitted endpoint uses the current default then configured migration endpoint |
-| Get-JiraSession | Lists shared AtlassianPS.Connection objects, including multiple connections |
-| Set-JiraSession | Compatibility selection entry point |
-| Remove-JiraSession | Thin Disconnect adapter; no selector removes only the Jira default |
-| Session parameter | Alias for Connection |
-| Named connection selection | Resolve with Get-JiraConnection -Name and pass the returned object through Connection |
-| AtlassianPS.JiraPS.Session | Replaced by the shared AtlassianPS.Connection type |
-| Set-JiraConfigServer | Obsolete non-secret endpoint/profile adapter; persists through shared configuration rather than the installed module |
-| Credential-only request | Uses the live default, then a configured migration endpoint when no default exists |
-| Invoke-JiraMethod StoreSession | Removed; use Connect-Jira |
-| Injected Authorization/Cookie headers or low-level authentication defaults | Rejected; configure authentication on Connect-Jira or use the existing Credential parameter |
+| New-JiraSession | Connect-Jira with an explicit endpoint or saved profile |
+| Get-JiraSession | Get-JiraConnection; use Default for the selected Jira connection |
+| Set-JiraSession | Select-JiraConnection |
+| Remove-JiraSession | Disconnect-Jira |
+| Session parameter | Connection |
+| Get-JiraConfigServer | Get-JiraConnection endpoint properties or an explicit shared profile |
+| Set-JiraConfigServer | Add/Set-AtlassianServerConfiguration for a named endpoint profile |
+| Credential-only request or per-call credential override | Create a connection with authentication and pass Connection |
+| AtlassianPS.JiraPS.Session | AtlassianPS.Connection |
+| Invoke-JiraMethod StoreSession | Connect-Jira |
 
-Repeated New-JiraSession calls do not replace an existing default unless Default is supplied.
-Legacy server_config is read as a migration input without rewriting it.
+No command imports the installed module's legacy server_config automatically.
 Saved profiles and live connections remain independent.
 JiraAgilePS's existing package still pins JiraPS 2.16.0 and has not adopted this v3 contract.
 Use separate processes for existing Agile/v2 workflows and the v3 candidate.

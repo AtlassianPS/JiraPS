@@ -65,7 +65,7 @@ InModuleScope JiraPS {
             $requests[1].Authorization | Should -Be 'Bearer second-secret'
         }
 
-        It 'isolates legacy credentials on an ordinary Jira command' {
+        It 'rejects legacy credentials on an ordinary Jira command before transport' {
             $null = $first | Select-JiraConnection
             $cookie = [Net.Cookie]::new('session', 'original-cookie', '/', 'jira.example.com')
             $first.GetWebSession().Cookies.Add($cookie)
@@ -76,13 +76,8 @@ InModuleScope JiraPS {
             $credential = [PSCredential]::new('override-user', $password)
 
             try {
-                $null = Get-JiraField -Force -Connection $first -Credential $credential
-
-                $expected = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('override-user:override-secret'))
-                $requests.Count | Should -Be 1
-                $requests[0].Authorization | Should -Be $expected
-                $requests[0].Session.Cookies.Count | Should -Be 0
-                [Object]::ReferenceEquals($requests[0].Session, $first.GetWebSession()) | Should -BeFalse
+                { Get-JiraField -Refresh -Connection $first -Credential $credential } | Should -Throw -ErrorId 'NamedParameterNotFound,*'
+                $requests.Count | Should -Be 0
                 $first.GetWebSession().Cookies.Count | Should -Be 1
                 $first.GetAuthorizationHeader() | Should -Be 'Bearer first-secret'
                 (Get-JiraConnection -Default).InstanceId | Should -Be $first.InstanceId

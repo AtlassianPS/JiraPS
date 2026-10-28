@@ -37,11 +37,6 @@
         $Visibility,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -49,86 +44,69 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-            $resourceURi = "{0}/worklog"
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $resourceURi = "{0}/worklog"
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
-            if (-not $issueObj) {
-                $errorMessage = @{
-                    Category         = "ObjectNotFound"
-                    CategoryActivity = "Searching for Issue"
-                    Message          = "Invalid Issue provided."
-                }
-                Write-Error @errorMessage
+        if (-not $issueObj) {
+            $errorMessage = @{
+                Category         = "ObjectNotFound"
+                CategoryActivity = "Searching for Issue"
+                Message          = "Invalid Issue provided."
             }
-
-            # Harmonize DateStarted:
-            # `Get-Date -Date "01.01.2000"` does not return the local timezone
-            # which is required by the API
-            $DateStarted = [DateTime]::new($DateStarted.Ticks, 'Local')
-
-            $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
-
-            $requestBody = @{
-                'comment'          = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
-                # We need to fix the date with a RegEx replace because the API does not like:
-                # * miliseconds with more than 3 digits
-                # * `:` in the TimeZone
-                'started'          = $DateStarted.ToString("o") -replace "\.(\d{3})\d*([\+\-]\d{2}):", ".`$1`$2"
-                'timeSpentSeconds' = $TimeSpent.TotalSeconds.ToString()
-            }
-
-            # Unrestricted access omits visibility; older Jira versions reject an "All Users" role.
-            if ($Visibility -and $Visibility.Type -and -not (
-                    $Visibility.Type -eq 'role' -and $Visibility.Value -eq 'All Users' -and -not $Visibility.Identifier
-                )
-            ) {
-                $requestBody.visibility = @{ type = $Visibility.Type }
-                if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
-                if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }
-            }
-
-            $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
-
-            $parameter = @{
-                URI    = $resourceURi -f $issueRestUrl
-                Method = "POST"
-                Body   = ConvertTo-Json -InputObject $requestBody -Depth 20
-            }
-            Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
-                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
-
-                Write-Output (ConvertTo-JiraWorklogitem -InputObject $result)
-            }
+            Write-Error @errorMessage
         }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+
+        # Harmonize DateStarted:
+        # `Get-Date -Date "01.01.2000"` does not return the local timezone
+        # which is required by the API
+        $DateStarted = [DateTime]::new($DateStarted.Ticks, 'Local')
+
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
+
+        $requestBody = @{
+            'comment'          = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
+            # We need to fix the date with a RegEx replace because the API does not like:
+            # * miliseconds with more than 3 digits
+            # * `:` in the TimeZone
+            'started'          = $DateStarted.ToString("o") -replace "\.(\d{3})\d*([\+\-]\d{2}):", ".`$1`$2"
+            'timeSpentSeconds' = $TimeSpent.TotalSeconds.ToString()
+        }
+
+        # Unrestricted access omits visibility; older Jira versions reject an "All Users" role.
+        if ($Visibility -and $Visibility.Type -and -not (
+                $Visibility.Type -eq 'role' -and $Visibility.Value -eq 'All Users' -and -not $Visibility.Identifier
+            )
+        ) {
+            $requestBody.visibility = @{ type = $Visibility.Type }
+            if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
+            if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }
+        }
+
+        $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
+
+        $parameter = @{
+            URI    = $resourceURi -f $issueRestUrl
+            Method = "POST"
+            Body   = ConvertTo-Json -InputObject $requestBody -Depth 20
+        }
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+            Write-Output (ConvertTo-JiraWorklogitem -InputObject $result)
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

@@ -13,11 +13,6 @@
         $FileName,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -29,32 +24,18 @@
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
         $operationParameters = @{} + $PSBoundParameters
         $null = $operationParameters.Remove('Connection')
-        $null = $operationParameters.Remove('Credential')
         $operationParameters['RequestContext'] = $requestContext
 
-        try {
-            $operation = { Get-JiraIssueAttachmentOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-            $operation.Begin($PSCmdlet)
-        }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $operation = { Get-JiraIssueAttachmentOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+        $operation.Begin($PSCmdlet)
     }
 
     process {
-        try { $operation.Process($_) }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $operation.Process($_)
     }
 
     end {
-        try { $operation.End() }
-        finally {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-        }
+        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

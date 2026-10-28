@@ -28,42 +28,50 @@
         [String]$OutFile,
         [String]$OutputType,
         [Parameter(Mandatory)]
-        [PSCustomObject]$Response,
+        [AllowNull()]
+        [AllowEmptyCollection()]
+        [Object]$Response,
         [System.Management.Automation.PSCmdlet]$Cmdlet = $PSCmdlet
     )
 
     $parameters = @{} + $PSBoundParameters
     foreach ($key in @('Paging', 'Skip', 'IncludeTotalCount', 'First', 'Response')) { $null = $parameters.Remove($key) }
     $parameters['GetParameter'] = $GetParameter.Clone()
-    $isTokenPaged = $Response.PSObject.Properties.Name -contains 'nextPageToken' -or $Uri.AbsolutePath -match '/rest/api/[23]/search/jql$'
+    $isArrayPaged = $Uri.AbsolutePath -match '/rest/api/[23]/users?/search$'
+    $isCursorPaged = $Uri.AbsolutePath -match '/rest/api/2/user/list$'
+    $isTokenPaged = $Response.PSObject.Properties.Name -contains 'nextPageToken' -or $Uri.AbsolutePath -match '/rest/api/[23]/search/jql$' -or $isCursorPaged
+    $tokenKey = if ($isCursorPaged) { 'cursor' } else { 'nextPageToken' }
     if ($isTokenPaged -and $Method -ne 'Get') { throw 'Automatic token pagination supports GET query parameters. Manage body-based continuation explicitly.' }
     if ($isTokenPaged) { $null = $parameters.GetParameter.Remove('startAt') }
     $skipRemaining = if ($isTokenPaged) { $PSCmdlet.PagingParameters.Skip } else { 0 }
     $offset = if ($GetParameter.ContainsKey('startAt')) { [long]$GetParameter['startAt'] } else { [long]$PSCmdlet.PagingParameters.Skip }
     $emitted = 0
     $seenTokens = [Collections.Generic.HashSet[String]]::new([StringComparer]::Ordinal)
-    if ($GetParameter.nextPageToken) { $null = $seenTokens.Add([String]$GetParameter.nextPageToken) }
+    if ($GetParameter[$tokenKey]) { $null = $seenTokens.Add([String]$GetParameter[$tokenKey]) }
 
     if ($PSCmdlet.PagingParameters.IncludeTotalCount) {
-        if ($null -ne $Response.total) { $PSCmdlet.PagingParameters.NewTotalCount($Response.total, 1.0) }
+        if (-not $isArrayPaged -and $null -ne $Response.total) { $PSCmdlet.PagingParameters.NewTotalCount($Response.total, 1.0) }
         else { $PSCmdlet.PagingParameters.NewTotalCount(0, 0.0) }
     }
 
     while ($null -ne $Response) {
-        $containers = @($script:PagingContainers | Where-Object { $Response.PSObject.Properties[$_] })
-        if ($containers.Count -ne 1 -or ($null -ne $Response.($containers[0]) -and $Response.($containers[0]) -isnot [Array])) {
-            throw 'Unsupported or ambiguous Jira paging response. Use an endpoint with a supported item array, or manage continuation explicitly.'
+        if ($isArrayPaged) { $items = @($Response) }
+        else {
+            $containers = @($script:PagingContainers | Where-Object { $Response.PSObject.Properties[$_] })
+            if ($containers.Count -ne 1 -or ($null -ne $Response.($containers[0]) -and $Response.($containers[0]) -isnot [Array])) {
+                throw 'Unsupported or ambiguous Jira paging response. Use an endpoint with a supported item array, or manage continuation explicitly.'
+            }
+            if (-not $isTokenPaged -and -not @('startAt', 'maxResults', 'total', 'isLast' | Where-Object { $Response.PSObject.Properties[$_] }).Count) {
+                throw 'Jira did not return recognized paging metadata. Manage continuation explicitly.'
+            }
+            $items = @(if ($null -ne $Response.($containers[0])) { $Response.($containers[0]) })
         }
-        if (-not $isTokenPaged -and -not @('startAt', 'maxResults', 'total', 'isLast' | Where-Object { $Response.PSObject.Properties[$_] }).Count) {
-            throw 'Jira did not return recognized paging metadata. Manage continuation explicitly.'
-        }
-        $items = @(if ($null -ne $Response.($containers[0])) { $Response.($containers[0]) })
         $count = $items.Count
         if ($PSCmdlet.PagingParameters.First -eq 0 -or (-not $count -and -not $isTokenPaged)) { break }
-        $pageLimit = if ($null -ne $Response.maxResults -and [int]$Response.maxResults -gt 0) { [int]$Response.maxResults }
+        $pageLimit = if (-not $isArrayPaged -and $null -ne $Response.maxResults -and [int]$Response.maxResults -gt 0) { [int]$Response.maxResults }
         elseif ($GetParameter.ContainsKey('maxResults')) { [int]$GetParameter['maxResults'] }
         else { $PageSize }
-        $pageStart = if ($null -ne $Response.startAt) { [long]$Response.startAt } else { $offset }
+        $pageStart = if (-not $isArrayPaged -and $null -ne $Response.startAt) { [long]$Response.startAt } else { $offset }
 
         if ($skipRemaining) {
             $skipOnPage = [Math]::Min($skipRemaining, $count)
@@ -74,17 +82,17 @@
         if ($items.Count -gt $remaining) { $items = @($items | Select-Object -First $remaining) }
         if ($items.Count) { Convert-Result -InputObject $items -OutputType $OutputType }
         $emitted += $items.Count
-        if ($Response.isLast -eq $true -or $emitted -ge $PSCmdlet.PagingParameters.First) { break }
+        if ((-not $isArrayPaged -and $Response.isLast -eq $true) -or $emitted -ge $PSCmdlet.PagingParameters.First) { break }
 
         if ($isTokenPaged) {
-            $token = $Response.nextPageToken
+            $token = if ($isCursorPaged) { $Response.nextCursor } else { $Response.nextPageToken }
             if (-not $token) { break }
             if (-not $seenTokens.Add([String]$token)) { throw 'Jira repeated a pagination token. Stopped to avoid requesting the same page indefinitely.' }
-            $parameters.GetParameter['nextPageToken'] = $token
+            $parameters.GetParameter[$tokenKey] = $token
         }
         else {
             $offset = $pageStart + $count
-            if ($null -ne $Response.total -and $offset -ge $Response.total) { break }
+            if (-not $isArrayPaged -and $null -ne $Response.total -and $offset -ge $Response.total) { break }
             if ($count -lt $pageLimit) { break }
             $parameters.GetParameter['startAt'] = $offset
             $remaining = $PSCmdlet.PagingParameters.First - $emitted

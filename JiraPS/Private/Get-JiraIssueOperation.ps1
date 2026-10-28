@@ -1,21 +1,16 @@
 ﻿function Get-JiraIssueOperation {
-    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'ByIssueKey' )]
+    <#
+    .SYNOPSIS
+        Retrieve exact issues or explicitly search by JQL or saved filter.
+    #>
+    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'Issue' )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByIssueKey' )]
-        [ValidateNotNullOrEmpty()]
-        [Alias('Issue')]
-        [String[]]
-        $Key,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'Issue' )]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueTransformation()]
-        [AtlassianPS.JiraPS.Issue]
-        $InputObject,
-        <#
-          #ToDo:Deprecate
-          This is not necessary if $Key uses ValueFromPipelineByPropertyName
-        #>
+        [Alias('Key', 'Id', 'InputObject')]
+        [AtlassianPS.JiraPS.IssueTransformation(AllowCollection = $true, AllowPipelineFallthrough = $true)]
+        [AtlassianPS.JiraPS.Issue[]]
+        $Issue,
 
         [Parameter( Mandatory, ParameterSetName = 'ByJQL' )]
         [Alias('JQL')]
@@ -65,8 +60,9 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
-            'ByIssueKey' {
-                foreach ($_key in $Key) {
+            'Issue' {
+                foreach ($item in $Issue) {
+                    $_key = if ($item.Key) { $item.Key } else { $item.Id }
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
                     Write-DebugMessage "Processing `$_key [$_key]"
 
@@ -86,13 +82,6 @@
 
                     Write-Output (ConvertTo-JiraIssue -InputObject $result)
                 }
-            }
-            'ByInputObject' {
-                # Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-InputObject' has been marked as deprecated."
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$InputObject]"
-                Write-DebugMessage "Processing `$InputObject [$InputObject]"
-
-                Write-Output (Get-JiraIssueOperation -Key $InputObject.Key -Fields $Fields -RequestContext $RequestContext -IncludeHistory:$IncludeHistory)
             }
             'ByJQL' {
                 $expandValue = if ($IncludeHistory) { "transitions,changelog" }

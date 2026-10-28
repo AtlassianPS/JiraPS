@@ -20,11 +20,6 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraUserOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser'
                 $object = [PSCustomObject] @{

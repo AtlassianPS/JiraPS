@@ -3,7 +3,6 @@
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'Default' )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'Object' )]
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection,
 

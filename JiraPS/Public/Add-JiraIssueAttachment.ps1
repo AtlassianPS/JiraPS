@@ -29,72 +29,51 @@
         $FilePath,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
         [Switch]
         $PassThru,
 
-        [Alias('Session')][AtlassianPS.Connection]$Connection
+        [AtlassianPS.Connection]$Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-            $resourceURi = "{0}/attachments"
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $resourceURi = "{0}/attachments"
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
-            foreach ($file in $FilePath) {
-                $file = Resolve-FilePath -Path $file
+        foreach ($file in $FilePath) {
+            $file = Resolve-FilePath -Path $file
 
-                $fileName = Split-Path -Path $file -Leaf
+            $fileName = Split-Path -Path $file -Leaf
 
-                $headers = @{
-                    'X-Atlassian-Token' = 'nocheck'
-                }
-
-                $parameter = @{
-                    URI     = $resourceURi -f $issueObj.RestURL
-                    Method  = "POST"
-                    InFile  = $file
-                    Headers = $headers
-                }
-                Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Adding attachment '$($fileName)'.")) {
-                    $rawResult = Invoke-JiraRequest -RequestContext $RequestContext @parameter
-
-                    if ($PassThru) { Write-Output (ConvertTo-JiraAttachment -InputObject $rawResult) }
-                }
+            $headers = @{
+                'X-Atlassian-Token' = 'nocheck'
             }
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+
+            $parameter = @{
+                URI     = $resourceURi -f $issueObj.RestURL
+                Method  = "POST"
+                InFile  = $file
+                Headers = $headers
+            }
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Adding attachment '$($fileName)'.")) {
+                $rawResult = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+                if ($PassThru) { Write-Output (ConvertTo-JiraAttachment -InputObject $rawResult) }
+            }
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

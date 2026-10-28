@@ -14,9 +14,12 @@ Adds a user to a Jira group.
 
 ## SYNTAX
 
-```powershell
-Add-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-UserName] <AtlassianPS.JiraPS.User[]> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+Add-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-User] <AtlassianPS.JiraPS.User[]> [[-Connection] <AtlassianPS.Connection>] [-PassThru]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -66,22 +69,27 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 2
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Group
@@ -128,9 +136,10 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -UserName
+### -User
 
-Username or user object obtained from Get-JiraUser.
+Exact user identifiers or typed user objects.
+Cloud strings are literal account IDs; Data Center strings are literal usernames.
 
 ```yaml
 Type: AtlassianPS.JiraPS.User[]
@@ -172,35 +181,16 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Group
-
-Group(s) to which users should be added
+### AtlassianPS.JiraPS.Group[]
 
 ## OUTPUTS
 

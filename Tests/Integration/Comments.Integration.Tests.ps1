@@ -25,9 +25,9 @@ InModuleScope JiraPS {
 
         AfterAll {
             if ($tempIssue -and $tempIssue.Key) {
-                Remove-JiraIssue -IssueId $tempIssue.Key -Force -ErrorAction SilentlyContinue
+                Remove-JiraIssue -Issue $tempIssue.Key -Confirm:$false -ErrorAction SilentlyContinue
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraIssueComment" {

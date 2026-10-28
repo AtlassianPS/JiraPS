@@ -45,11 +45,6 @@
         [string]
         $Sort,
 
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -58,78 +53,65 @@
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-
-            $searchURi = "/rest/api/2/filter/search"
-
-            [String]$Fields = $Fields -join ','
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        if (-not (Test-JiraCloudServer -RequestContext $RequestContext)) {
+            throw 'Jira Data Center does not expose the filter search API. Use Get-JiraFilter -Filter or -Favorite.'
         }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+
+        $searchURi = "/rest/api/2/filter/search"
+
+        [String]$Fields = $Fields -join ','
     }
 
     process {
-        try {
-            $parameter = @{
-                URI          = $searchURi
-                Method       = 'GET'
-                GetParameter = @{
-                    expand = $Fields
-                }
-                Paging       = $true
+        $parameter = @{
+            URI          = $searchURi
+            Method       = 'GET'
+            GetParameter = @{
+                expand = $Fields
             }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('AccountId')) { $parameter['GetParameter']['accountId'] = $AccountId }
-            elseif ($PSCmdlet.ParameterSetName -eq 'ByOwner') {
-                $userObj = Resolve-JiraUser -InputObject $Owner -Exact -RequestContext $RequestContext -ErrorAction Stop
-                $parameter['GetParameter']['accountId'] = $userObj.AccountId
-            }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('GroupName')) { $parameter['GetParameter']['groupName'] = $GroupName }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Project')) {
-                if ($Project.Id) {
-                    # Caller passed a Project that already had its numeric ID
-                    # (either a real object or a numeric scalar coerced by the
-                    # transformer); use it directly and skip the lookup.
-                    $parameter['GetParameter']['projectId'] = $Project.Id
-                }
-                else {
-                    $projectObj = Get-JiraProjectOperation -Project $Project.Key -RequestContext $RequestContext -ErrorAction Stop
-                    $parameter['GetParameter']['projectId'] = $projectObj.Id
-                }
-            }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Sort')) { $parameter['GetParameter']['orderBy'] = $Sort }
-            # Paging
-            ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
-                $parameter[$_] = $PSCmdlet.PagingParameters.$_
-            }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Name')) {
-                foreach ($_name in $Name) {
-                    $parameter['GetParameter']['filterName'] = $_name
-                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
-
-                    Write-Output (Invoke-JiraRequest -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
-                }
+            Paging       = $true
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('AccountId')) { $parameter['GetParameter']['accountId'] = $AccountId }
+        elseif ($PSCmdlet.ParameterSetName -eq 'ByOwner') {
+            $userObj = Resolve-JiraUser -InputObject $Owner -RequestContext $RequestContext -ErrorAction Stop
+            if (-not $userObj.AccountId) { throw 'Filter Owner requires a Jira Cloud accountId.' }
+            $parameter['GetParameter']['accountId'] = $userObj.AccountId
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('GroupName')) { $parameter['GetParameter']['groupName'] = $GroupName }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Project')) {
+            if ($Project.Id) {
+                # Caller passed a Project that already had its numeric ID
+                # (either a real object or a numeric scalar coerced by the
+                # transformer); use it directly and skip the lookup.
+                $parameter['GetParameter']['projectId'] = $Project.Id
             }
             else {
+                $projectObj = Get-JiraProjectOperation -Project $Project.Key -RequestContext $RequestContext -ErrorAction Stop
+                $parameter['GetParameter']['projectId'] = $projectObj.Id
+            }
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Sort')) { $parameter['GetParameter']['orderBy'] = $Sort }
+        # Paging
+        ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
+            $parameter[$_] = $PSCmdlet.PagingParameters.$_
+        }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Name')) {
+            foreach ($_name in $Name) {
+                $parameter['GetParameter']['filterName'] = $_name
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
 
                 Write-Output (Invoke-JiraRequest -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
             }
         }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+        else {
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+
+            Write-Output (Invoke-JiraRequest -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

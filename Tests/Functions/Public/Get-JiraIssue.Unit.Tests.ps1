@@ -36,11 +36,6 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraUserOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser'
                 $object = [PSCustomObject] @{
@@ -169,7 +164,7 @@ InModuleScope JiraPS {
                         ID  = '12345'
                     }
 
-                    { Get-JiraIssue -InputObject $issue -IncludeHistory } | Should -Not -Throw
+                    { Get-JiraIssue -Issue $issue -IncludeHistory } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
@@ -210,7 +205,7 @@ InModuleScope JiraPS {
                     { Get-JiraIssue -Key TEST-001 -Fields "key" } | Should -Not -Throw
                     { Get-JiraIssue -Key TEST-001 -Fields "-summary" } | Should -Not -Throw
                     { Get-JiraIssue -Key TEST-001 -Fields "key", "summary", "status" } | Should -Not -Throw
-                    { Get-JiraIssue -InputObject $issue -Fields "key", "summary", "status" } | Should -Not -Throw
+                    { Get-JiraIssue -Issue $issue -Fields "key", "summary", "status" } | Should -Not -Throw
                     { Get-JiraIssue -Query $jql -Fields "key", "summary", "status" } | Should -Not -Throw
                     { Get-JiraIssue -Filter "12345" -Fields "key", "summary", "status" } | Should -Not -Throw
 
@@ -253,7 +248,7 @@ InModuleScope JiraPS {
                     }
 
                     # Should call Get-JiraIssue using the -Key parameter, so our URL should reflect the key we provided
-                    { Get-JiraIssue -InputObject $Issue } | Should -Not -Throw
+                    { Get-JiraIssue -Issue $Issue } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
@@ -302,7 +297,7 @@ InModuleScope JiraPS {
                     # accepted pipeline input. Now the Key property binds to -Key.
                     $obj = [PSCustomObject]@{ Key = 'TEST-001' }
 
-                    { $obj | Get-JiraIssue } | Should -Not -Throw
+                    { $obj | Get-JiraIssue -ErrorAction Stop } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $URI -like "*/rest/api/*/issue/TEST-001*"
@@ -331,7 +326,7 @@ InModuleScope JiraPS {
                         ID  = '12345'
                     }
 
-                    { Get-JiraIssue -InputObject $issue } | Should -Not -Throw
+                    { Get-JiraIssue -Issue $issue } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $URI -like "*/rest/api/*/issue/TEST-001*"

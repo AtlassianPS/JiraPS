@@ -2,16 +2,14 @@
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
-        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [Int[]]
-        $Id,
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNull()]
+        [Alias('Id')]
+        [AtlassianPS.JiraPS.IssueLinkTransformation()]
+        [AtlassianPS.JiraPS.IssueLink[]]
+        $IssueLink,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -19,59 +17,33 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-            $resourceURi = "/rest/api/2/issueLink/{0}"
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $resourceURi = "/rest/api/2/issueLink/{0}"
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            # Validate input object from Pipeline
-            if (($_) -and ("JiraPS.IssueLink" -notin $_.PSObject.TypeNames)) {
-                $exception = ([System.ArgumentException]"Invalid Parameter")
-                $errorId = 'ParameterProperties.WrongObjectType'
-                $errorCategory = [System.Management.Automation.ErrorCategory]::InvalidArgument
-                $errorTarget = $Id
-                $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-                $errorItem.ErrorDetails = "The IssueLink provided did not match the constraints."
-                $PSCmdlet.ThrowTerminatingError($errorItem)
+        foreach ($link in $IssueLink) {
+            if ($null -eq $link.Id -or $link.Id -le 0) { throw 'IssueLink requires a positive issue-link ID.' }
+            $_id = $link.Id
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+            Write-DebugMessage "Processing `$_id [$_id]"
+
+            $parameter = @{
+                URI    = $resourceURi -f $_id
+                Method = "GET"
             }
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
-            foreach ($_id in $Id) {
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                Write-DebugMessage "Processing `$_id [$_id]"
-
-                $parameter = @{
-                    URI    = $resourceURi -f $_id
-                    Method = "GET"
-                }
-                Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
-
-                Write-Output (ConvertTo-JiraIssueLink -InputObject $result)
-            }
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+            Write-Output (ConvertTo-JiraIssueLink -InputObject $result)
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

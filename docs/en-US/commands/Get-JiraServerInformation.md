@@ -14,16 +14,18 @@ This function returns the information about the JIRA Server
 
 ## SYNTAX
 
-```powershell
-Get-JiraServerInformation [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-Force] [<CommonParameters>]
 ```
+Get-JiraServerInformation [[-Connection] <AtlassianPS.Connection>] [-Refresh] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
 This functions shows all the information about the JIRA server, such as version, time, etc.
 
 The result is cached for 5 minutes to improve performance.
-Use the `-Force` parameter to bypass the cache and re-fetch from the server.
+Use the `-Refresh` parameter to fetch and replace the cached response and re-fetch from the server.
 You can also use `Clear-JiraCache -Type ServerInfo` to manually clear the cache.
 
 The returned object includes a `DeploymentType` property (`Cloud` or `Server`) that JiraPS uses internally to adapt API calls for Jira Cloud vs.
@@ -44,7 +46,7 @@ Subsequent calls return the cached result.
 ### EXAMPLE 2
 
 ```powershell
-Get-JiraServerInformation -Force
+Get-JiraServerInformation -Refresh
 ```
 
 Bypasses the cache and re-fetches server information from the API.
@@ -60,31 +62,36 @@ Returns `Cloud` or `Server`, indicating which Jira platform is in use.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: 0
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
-### -Force
+### -Refresh
 
-Bypasses the cached server information and re-fetches from the API.
+Fetch fresh data and replace the selected connection's cached response.
 
 ```yaml
 Type: SwitchParameter
-DefaultValue: False
+DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -99,25 +106,6 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -126,6 +114,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
+
+None.
 
 ## OUTPUTS
 
@@ -139,7 +129,7 @@ For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 The result is cached for 5 minutes after the first successful call.
 Subsequent calls return the cached value without making an API request.
-Use `-Force` to manually refresh the cache, or `Clear-JiraCache -Type ServerInfo` to clear it.
+Use `-Refresh` to manually refresh the cache, or `Clear-JiraCache -Type ServerInfo` to clear it.
 If the API call fails (e.g., network error, server not configured),
 a stub object with `DeploymentType = 'Server'` is returned to allow operations to continue.
 

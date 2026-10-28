@@ -25,7 +25,7 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Cleared all $count cached items"
         }
         else {
-            $keysToRemove = $script:JiraCache.Keys | Where-Object { $_ -like "${Type}:*" }
+            $keysToRemove = @($script:JiraCache.Keys | Where-Object { $_ -like "*:${Type}" })
             foreach ($key in $keysToRemove) {
                 $script:JiraCache.Remove($key)
             }

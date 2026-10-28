@@ -21,7 +21,7 @@ BeforeDiscovery {
         'Get-JiraGroupMember'
         'Get-JiraIssue'
         'Get-JiraIssueAttachment'
-        'Get-JiraIssueAttachmentFile'
+        'Save-JiraIssueAttachment'
         'Get-JiraIssueComment'
         'Get-JiraIssueCreateMetadata'
         'Get-JiraIssueEditMetadata'
@@ -64,14 +64,13 @@ BeforeDiscovery {
 }
 
 Describe 'Jira request connection parameters' -Tag Unit {
-    It 'keeps only connection and legacy credential inputs on <Name>' -ForEach $requestCommands {
+    It 'uses connection selection as the sole authentication input on <Name>' -ForEach $requestCommands {
         $command = Get-Command -Name $Name -Module JiraPS
 
         $command.Parameters['Connection'].ParameterType | Should -Be ([AtlassianPS.Connection])
-        $command.Parameters['Connection'].Aliases | Should -Contain 'Session'
-        $command.Parameters['Credential'].ParameterType | Should -Be ([PSCredential])
+        $command.Parameters['Connection'].Aliases | Should -Not -Contain 'Session'
 
-        foreach ($parameter in @('ConnectionName', 'Uri', 'ApiToken', 'PersonalAccessToken', 'Anonymous', 'AuthenticationEmailAddress')) {
+        foreach ($parameter in @('Credential', 'ConnectionName', 'Uri', 'ApiToken', 'PersonalAccessToken', 'Anonymous', 'AuthenticationEmailAddress')) {
             $command.Parameters.ContainsKey($parameter) | Should -BeFalse -Because "$Name uses a connection created by Connect-Jira"
         }
 

@@ -34,7 +34,7 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Context "Issue Retrieval by Key" {
@@ -104,7 +104,7 @@ InModuleScope JiraPS {
         Context "Issue Object Input" {
             It "accepts a AtlassianPS.JiraPS.Issue object via -InputObject" {
                 $firstIssue = Get-JiraIssue -Key $fixtures["TestIssue"]
-                $refreshed = Get-JiraIssue -InputObject $firstIssue
+                $refreshed = Get-JiraIssue -Issue $firstIssue
                 $refreshed.Key | Should -Be $fixtures["TestIssue"]
             }
 

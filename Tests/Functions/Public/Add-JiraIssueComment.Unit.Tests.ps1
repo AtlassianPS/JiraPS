@@ -28,11 +28,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock ConvertTo-JiraComment -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraComment' 'InputObject'
                 return $InputObject
@@ -86,7 +81,6 @@ InModuleScope JiraPS {
                     @{ parameter = 'Comment'; type = 'String' }
                     @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
                     @{ parameter = 'Visibility'; type = 'AtlassianPS.JiraPS.Visibility' }
-                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
                 }
@@ -95,7 +89,6 @@ InModuleScope JiraPS {
             Context "Default Values" {
                 It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
                     @{ parameter = "Visibility"; defaultValue = $null }
-                    @{ parameter = "Credential"; defaultValue = $null }
                 ) {
                     $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
                 }

@@ -23,11 +23,6 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock Get-JiraGroup -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraGroup'
                 $object = [PSCustomObject] @{
@@ -78,8 +73,7 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = "Group"; type = "AtlassianPS.JiraPS.Group[]" }
-                    @{ parameter = "UserName"; type = "AtlassianPS.JiraPS.User[]" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                    @{ parameter = "User"; type = "AtlassianPS.JiraPS.User[]" }
                     @{ parameter = "Passthru"; type = "Switch" }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
@@ -87,17 +81,12 @@ InModuleScope JiraPS {
             }
 
             Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = $null }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
             }
 
             Context "Mandatory Parameters" {
                 It "parameter '<parameter>' is mandatory" -TestCases @(
                     @{ parameter = "Group" }
-                    @{ parameter = "UserName" }
+                    @{ parameter = "User" }
                 ) {
                     $command | Should -HaveParameter $parameter -Mandatory
                 }

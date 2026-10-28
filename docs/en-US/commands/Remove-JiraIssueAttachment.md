@@ -16,15 +16,19 @@ Removes an attachment from a Jira issue.
 
 ### byId (Default)
 
-```powershell
-Remove-JiraIssueAttachment [-AttachmentId] <int[]> [-Credential <pscredential>] [-Force] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+Remove-JiraIssueAttachment [-Attachment] <AtlassianPS.JiraPS.Attachment[]> [-Connection <AtlassianPS.Connection>] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ### byIssue
 
-```powershell
-Remove-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FileName <string[]>] [-Credential <pscredential>] [-Force] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+Remove-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FileName <string[]>] [-Connection <AtlassianPS.Connection>]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -58,22 +62,24 @@ Removes all *.png attachments from issue FOO-1234 without prompting for confirma
 
 ## PARAMETERS
 
-### -AttachmentId
+### -Attachment
 
-ID of the attachment to delete.
+Positive attachment IDs or typed attachment objects.
+Use Issue and optional FileName to select attachments belonging to an issue.
 
 ```yaml
-Type: Int32[]
+Type: AtlassianPS.JiraPS.Attachment[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - Id
+- AttachmentId
 ParameterSets:
 - Name: byId
   Position: 0
   IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
@@ -102,22 +108,27 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -FileName
@@ -141,32 +152,9 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Force
-
-Suppress user confirmation.
-
-```yaml
-Type: SwitchParameter
-DefaultValue: False
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -Issue
 
-Issue from which to delete one or more attachments.
-
-Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -209,34 +197,16 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String / Int
-
+### AtlassianPS.JiraPS.Attachment[]
 
 ## OUTPUTS
 

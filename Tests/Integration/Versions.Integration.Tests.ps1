@@ -54,7 +54,7 @@ InModuleScope JiraPS {
 
                 for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
                     try {
-                        Remove-JiraVersion -Version $Version -Force -ErrorAction Stop
+                        Remove-JiraVersion -Version $Version -Confirm:$false -ErrorAction Stop
                         return
                     }
                     catch {
@@ -85,7 +85,7 @@ InModuleScope JiraPS {
                     if ($_.Exception.Message -notlike "*Could not find version for id*") { throw }
                 }
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraVersion" {

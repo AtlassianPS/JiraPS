@@ -438,7 +438,7 @@ function New-TemporaryTestIssue {
 
         AfterAll {
             if ($tempIssue -and $tempIssue.Key) {
-                Remove-JiraIssue -IssueId $tempIssue.Key -Force -ErrorAction SilentlyContinue
+                Remove-JiraIssue -Issue $tempIssue.Key -Confirm:$false -ErrorAction SilentlyContinue
             }
         }
     #>
@@ -723,7 +723,7 @@ function Remove-StaleTestResource {
         foreach ($issue in $staleIssues) {
             if ($issue.Created -lt $cutoffTime) {
                 Write-Verbose "Removing stale test issue: $($issue.Key) (created $($issue.Created))"
-                Remove-JiraIssue -IssueId $issue.Key -Force -ErrorAction SilentlyContinue
+                Remove-JiraIssue -Issue $issue.Key -Confirm:$false -ErrorAction SilentlyContinue
             }
         }
     }
@@ -736,7 +736,7 @@ function Remove-StaleTestResource {
         foreach ($version in $versions) {
             if (Test-StaleTestResourceName -Name $version.Name -CutoffTime $cutoffTime) {
                 Write-Verbose "Removing stale test version: $($version.Name)"
-                Remove-JiraVersion -Version $version -Force -ErrorAction SilentlyContinue
+                Remove-JiraVersion -Version $version -Confirm:$false -ErrorAction SilentlyContinue
             }
         }
     }
@@ -749,7 +749,7 @@ function Remove-StaleTestResource {
         foreach ($filter in $filters) {
             if (Test-StaleTestResourceName -Name $filter.Name -CutoffTime $cutoffTime) {
                 Write-Verbose "Removing stale test filter: $($filter.Name)"
-                Remove-JiraFilter -InputObject $filter -ErrorAction SilentlyContinue -Confirm:$false
+                Remove-JiraFilter -Filter $filter -ErrorAction SilentlyContinue -Confirm:$false
             }
         }
     }

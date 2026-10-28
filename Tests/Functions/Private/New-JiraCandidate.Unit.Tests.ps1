@@ -126,13 +126,6 @@ InModuleScope JiraPS {
             $connection.CloudId | Should -BeNullOrEmpty
         }
 
-        It 'discovers the deployment through New-JiraSession when metadata is unavailable' {
-            $script:metadataStatus = [System.Net.HttpStatusCode]::NotFound
-            $connection = New-JiraSession -Name validation-legacy -Uri https://jira.example.com -PersonalAccessToken sentinel-token
-            $connection.DeploymentType | Should -Be 'Server'
-            $connection.Username | Should -Be 'validated-user'
-        }
-
         It 'rejects identity denial with HTTP <Status> despite recognized metadata' -ForEach @(
             @{ Status = 401 }
             @{ Status = 403 }
@@ -259,7 +252,6 @@ InModuleScope JiraPS {
 
         It '<CommandName> rejects a deployment argument before making requests' -ForEach @(
             @{ CommandName = 'Connect-Jira' }
-            @{ CommandName = 'New-JiraSession' }
         ) {
             { & $CommandName -Name validation-binding -Uri https://jira.example.com -Anonymous -DeploymentType Server } | Should -Throw -ErrorId 'NamedParameterNotFound,*'
             Should -Invoke Invoke-WebRequest -Exactly 0

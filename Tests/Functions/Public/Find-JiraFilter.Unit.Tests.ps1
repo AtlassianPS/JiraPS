@@ -55,11 +55,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
+            Mock Test-JiraCloudServer { $true }
             Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project'
                 [PSCustomObject]@{
@@ -102,7 +98,6 @@ InModuleScope JiraPS {
                     @{ parameter = "Project"; type = "AtlassianPS.JiraPS.Project" }
                     @{ parameter = "Fields"; type = "String[]" }
                     @{ parameter = "Sort"; type = "String" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
                     $command | Should -HaveParameter $parameter
                     if ($parameter -eq 'Owner') { $command.Parameters[$parameter].ParameterType.FullName | Should -Be $type }
@@ -222,12 +217,8 @@ InModuleScope JiraPS {
                         $URI -like '*rest/api/*/filter/search*'
                     } -Exactly 1
 
-                    # Resolve-JiraUser routes a Name-only stub through
-                    # Get-JiraUser -UserName (DC) or -AccountId (Cloud).
-                    # The Find-JiraFilter mock setup leaves Test-JiraCloudServer
-                    # at its default behaviour, so we accept either dispatch.
                     Should -Invoke Get-JiraUserOperation -ModuleName JiraPS -ParameterFilter {
-                        $UserName -contains $mockOwner.Name -or $AccountId -contains $mockOwner.Name
+                        $User.Name -contains $mockOwner.Name
                     } -Exactly 1
                 }
             }

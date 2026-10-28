@@ -1,4 +1,10 @@
 ﻿function Get-JiraFieldOperation {
+    <#
+    .SYNOPSIS
+        Retrieve and cache Jira fields, or match typed field selectors.
+    .DESCRIPTION
+        Refresh fetches a new response and replaces the connection-scoped cache entry.
+    #>
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
@@ -8,7 +14,7 @@
 
         [Parameter()]
         [switch]
-        $Force,
+        $Refresh,
 
         [Parameter()]
         [AtlassianPS.Connection]
@@ -33,7 +39,7 @@
 
                     CacheKey    = 'Fields'
                     CacheExpiry = [TimeSpan]::FromHours(1)
-                    BypassCache = $Force
+                    BypassCache = $Refresh
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
@@ -46,7 +52,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_field]"
                     Write-DebugMessage "Processing `$_field [$_field]"
 
-                    $allFields = Get-JiraFieldOperation -Force:$Force -RequestContext $RequestContext
+                    $allFields = Get-JiraFieldOperation -Refresh:$Refresh -RequestContext $RequestContext
 
                     $matchesById = @($allFields | Where-Object -FilterScript { $_field.Id -and $_.Id -eq $_field.Id })
                     if ($matchesById.Count -gt 0 -or ($_field.Id -and $_field.Name)) { Write-Output $matchesById }

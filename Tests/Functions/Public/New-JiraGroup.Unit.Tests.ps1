@@ -33,11 +33,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -eq "/rest/api/2/group" } {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $testJson
@@ -61,7 +56,6 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'GroupName'; type = 'String[]' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter

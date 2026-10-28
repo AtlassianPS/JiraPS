@@ -20,12 +20,12 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
-        Describe "Get-JiraConfigServer" {
+        Describe "Connection endpoint" {
             It "returns the active connection API endpoint" {
-                $server = Get-JiraConfigServer
+                $server = (Get-JiraConnection -Default).BaseUri.AbsoluteUri.TrimEnd('/')
 
                 $server | Should -Not -BeNullOrEmpty
                 $server | Should -Be $session.BaseUri.AbsoluteUri.TrimEnd('/')

@@ -10,14 +10,6 @@
         $Group,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Switch]
-        $Force,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -25,65 +17,37 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-            $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
-            $resourceUri = "/rest/api/2/group"
-
-            if ($Force) {
-                Write-DebugMessage "-Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
-                $oldConfirmPreference = $ConfirmPreference
-                $ConfirmPreference = 'None'
-            }
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $resourceUri = "/rest/api/2/group"
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            foreach ($_group in $Group) {
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
-                Write-DebugMessage "Processing `$_group [$_group]"
+        foreach ($_group in $Group) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
+            Write-DebugMessage "Processing `$_group [$_group]"
 
-                $getParameter = if ($isCloud -and $_group.Id) { @{ groupId = $_group.Id } }
-                else { @{ groupname = $_group.Name } }
+            $getParameter = if ($isCloud -and $_group.Id) { @{ groupId = $_group.Id } }
+            else { @{ groupname = $_group.Name } }
 
-                $target = if ($_group.Name) { $_group.Name } else { $_group.Id }
+            $target = if ($_group.Name) { $_group.Name } else { $_group.Id }
 
-                $parameter = @{
-                    URI          = $resourceUri
-                    Method       = "DELETE"
-                    GetParameter = $getParameter
-                }
-                Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($target, "Remove group")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
+            $parameter = @{
+                URI          = $resourceUri
+                Method       = "DELETE"
+                GetParameter = $getParameter
             }
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($target, "Remove group")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
         }
     }
 
     end {
-        try {
-            if ($Force) {
-                Write-DebugMessage "Restoring ConfirmPreference to [$oldConfirmPreference]"
-                $ConfirmPreference = $oldConfirmPreference
-            }
-
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

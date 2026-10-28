@@ -14,17 +14,12 @@ Removes an existing issue from Jira.
 
 ## SYNTAX
 
-### ByInputObject (Default)
-
-```powershell
-Remove-JiraIssue [-InputObject] <AtlassianPS.JiraPS.Issue> [-IncludeSubTasks] [-Credential <pscredential>] [-Force] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+Remove-JiraIssue [-Issue] <AtlassianPS.JiraPS.Issue[]> [-IncludeSubTasks] [-Connection <AtlassianPS.Connection>] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
-### ByIssueId
-
-```powershell
-Remove-JiraIssue [-IssueId] <string[]> [-IncludeSubTasks] [-Credential <pscredential>] [-Force] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
-```
+## ALIASES
 
 ## DESCRIPTION
 
@@ -85,31 +80,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Force
-
-Suppress user confirmation.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: SwitchParameter
-DefaultValue: False
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -149,48 +128,22 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -InputObject
+### -Issue
 
-One or more issues to delete, specified as `AtlassianPS.JiraPS.Issue` objects (e.g. from `Get-JiraIssue`).
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
-Type: AtlassianPS.JiraPS.Issue
+Type: AtlassianPS.JiraPS.Issue[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
-- Issue
+- Key
+- Id
 ParameterSets:
-- Name: ByInputObject
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -IssueId
-
-One or more issues to delete, either:
-
-* Issue Keys (e.g. "TEST-1234")
-* Numerical issue IDs.
-
-```yaml
-Type: String[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases:
-- Id
-- Key
-- issueIdOrKey
-ParameterSets:
-- Name: ByIssueId
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
@@ -221,34 +174,16 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String
-
+### AtlassianPS.JiraPS.Issue[]
 
 ## OUTPUTS
 

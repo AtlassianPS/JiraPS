@@ -14,9 +14,11 @@ Clears cached data stored by JiraPS.
 
 ## SYNTAX
 
-```powershell
+```
 Clear-JiraCache [[-Type] <string>] [<CommonParameters>]
 ```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -83,13 +85,7 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues:
-- All
-- Fields
-- IssueTypes
-- Priorities
-- Statuses
-- ServerInfo
+AcceptedValues: []
 HelpMessage: ''
 ```
 
@@ -101,6 +97,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
+
+None.
 
 ## OUTPUTS
 

@@ -59,11 +59,6 @@ InModuleScope JiraPS {
                 $false
             }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock ConvertTo-JiraGroup -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraGroup'
                 if ($null -eq $InputObject -or @($InputObject).Count -eq 0) { return }
@@ -102,7 +97,6 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = "GroupName"; type = "String[]" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
                 }

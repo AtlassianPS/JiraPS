@@ -21,11 +21,6 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraFieldOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraField' 'Field', 'Credential'
                 # The cmdlet pre-fetches the full field catalogue (no -Field
@@ -168,7 +163,6 @@ InModuleScope JiraPS {
                     @{ parameter = 'Unassign'; type = 'Switch' }
                     @{ parameter = 'Fields'; type = 'PSCustomObject' }
                     @{ parameter = 'Passthru'; type = 'Switch' }
-                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
                 }

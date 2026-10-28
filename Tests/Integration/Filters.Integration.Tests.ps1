@@ -91,9 +91,9 @@ InModuleScope JiraPS {
 
         AfterAll {
             foreach ($filter in $script:createdFilters) {
-                Remove-JiraFilter -InputObject $filter -ErrorAction SilentlyContinue -Confirm:$false
+                Remove-JiraFilter -Filter $filter -ErrorAction SilentlyContinue -Confirm:$false
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraFilter" {
@@ -238,7 +238,7 @@ InModuleScope JiraPS {
                     }
                     $newName = New-TestResourceName -Type "FilterUpdated"
 
-                    Set-JiraFilter -InputObject $testFilter -Name $newName
+                    Set-JiraFilter -Filter $testFilter -Name $newName
 
                     $updated = Get-JiraFilter -Id $testFilter.Id
                     $updated.Name | Should -Be $newName
@@ -251,7 +251,7 @@ InModuleScope JiraPS {
                     }
                     $newDescription = "Updated at $(Get-Date)"
 
-                    Set-JiraFilter -InputObject $testFilter -Description $newDescription
+                    Set-JiraFilter -Filter $testFilter -Description $newDescription
 
                     $updated = Get-JiraFilter -Id $testFilter.Id
                     $updated.Description | Should -Be $newDescription
@@ -264,7 +264,7 @@ InModuleScope JiraPS {
                     }
                     $newJql = "project = $($fixtures.TestProject) ORDER BY created DESC"
 
-                    Set-JiraFilter -InputObject $testFilter -JQL $newJql
+                    Set-JiraFilter -Filter $testFilter -JQL $newJql
 
                     $updated = Get-JiraFilter -Id $testFilter.Id
                     $updated.JQL | Should -Be $newJql
@@ -282,7 +282,7 @@ InModuleScope JiraPS {
                     $filterName = New-TestResourceName -Type "FilterDelete"
                     $filter = New-JiraFilter -Name $filterName -JQL "project = $($fixtures.TestProject)"
 
-                    { Remove-JiraFilter -InputObject $filter -Confirm:$false } | Should -Not -Throw
+                    { Remove-JiraFilter -Filter $filter -Confirm:$false } | Should -Not -Throw
 
                     { Get-JiraFilter -Id $filter.Id -ErrorAction Stop } | Should -Throw
                 }

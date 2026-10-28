@@ -1,6 +1,6 @@
 ﻿function Get-JiraIssueWorklog {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding()]
+    [CmdletBinding(SupportsPaging)]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
         [ValidateNotNull()]
@@ -9,12 +9,11 @@
         [AtlassianPS.JiraPS.Issue]
         $Issue,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
+        [ValidateRange(1, [int]::MaxValue)]
+        [Int]
+        $PageSize = $script:DefaultPageSize,
 
-        [Alias('Session')]
+        [Parameter()]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -22,48 +21,35 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
-            $parameter = @{
-                URI          = "{0}/worklog" -f $issueObj.RestURL
-                Method       = "GET"
-                GetParameter = @{
-                    maxResults = $script:DefaultPageSize
-                }
-                OutputType   = "JiraWorklogItem"
-                Paging       = $true
+        $parameter = @{
+            URI               = "{0}/worklog" -f $issueObj.RestURL
+            Method            = "GET"
+            GetParameter      = @{
+                maxResults = $PageSize
             }
+            OutputType        = "JiraWorklogItem"
+            Paging            = $true
+            PageSize          = $PageSize
+            First             = $PSCmdlet.PagingParameters.First
+            Skip              = $PSCmdlet.PagingParameters.Skip
+            IncludeTotalCount = $PSCmdlet.PagingParameters.IncludeTotalCount
+        }
 
-            Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            Invoke-JiraRequest -RequestContext $RequestContext @parameter
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        Invoke-JiraRequest -RequestContext $RequestContext @parameter
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

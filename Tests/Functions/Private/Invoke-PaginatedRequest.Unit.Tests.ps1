@@ -16,6 +16,50 @@ InModuleScope JiraPS {
             #endregion Definitions
         }
 
+        Describe 'User pagination protocols' {
+            It 'pages bare user arrays using server offsets without extra user lookups' {
+                Mock Invoke-JiraRequest { [PSCustomObject]@{ name = 'third' } }
+                $response = @([PSCustomObject]@{ name = 'first' }, [PSCustomObject]@{ name = 'second' })
+                $result = @(Invoke-PaginatedRequest -Uri "$jiraServer/rest/api/2/user/search" -Response $response -PageSize 2 -GetParameter @{ maxResults = 2; startAt = 3 } -First 3)
+                $result.name | Should -Be @('first', 'second', 'third')
+                Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter {
+                    $GetParameter.startAt -eq 5 -and $GetParameter.maxResults -eq 1
+                }
+            }
+
+            It 'follows Data Center cursors and applies Skip locally' {
+                Mock Invoke-JiraRequest {
+                    [PSCustomObject]@{ values = @([PSCustomObject]@{ name = 'third' }, [PSCustomObject]@{ name = 'fourth' }); isLast = $true }
+                }
+                $response = [PSCustomObject]@{
+                    values     = @([PSCustomObject]@{ name = 'first' }, [PSCustomObject]@{ name = 'second' })
+                    nextCursor = 'opaque+cursor'
+                    isLast     = $false
+                }
+                $result = @(Invoke-PaginatedRequest -Uri "$jiraServer/rest/api/2/user/list" -Response $response -PageSize 2 -Skip 3 -First 1 -IncludeTotalCount)
+                $result.Count | Should -Be 2
+                $result[0].ToString() | Should -Match 'Unknown'
+                $result[1].name | Should -Be 'fourth'
+                Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter {
+                    $GetParameter.cursor -eq 'opaque+cursor' -and -not $GetParameter.ContainsKey('startAt')
+                }
+            }
+
+            It 'stops repeated Data Center cursors even when pages are empty' {
+                $response = [PSCustomObject]@{ values = @(); nextCursor = 'same'; isLast = $false }
+                Mock Invoke-JiraRequest { [PSCustomObject]@{ values = @(); nextCursor = 'same'; isLast = $false } }
+                { Invoke-PaginatedRequest -Uri "$jiraServer/rest/api/2/user/list" -Response $response } |
+                    Should -Throw '*repeated a pagination token*'
+                Should -Invoke Invoke-JiraRequest -Exactly 1
+            }
+
+            It 'returns no items for an empty user-search array' {
+                Mock Invoke-JiraRequest { throw 'Unexpected continuation' }
+                @(Invoke-PaginatedRequest -Uri "$jiraServer/rest/api/3/user/search" -Response @()) | Should -HaveCount 0
+                Should -Invoke Invoke-JiraRequest -Exactly 0
+            }
+        }
+
         Describe "Token pagination" {
             BeforeAll {
                 $script:tokenResponse = [PSCustomObject]@{

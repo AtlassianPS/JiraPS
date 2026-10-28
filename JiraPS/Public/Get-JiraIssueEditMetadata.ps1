@@ -3,16 +3,13 @@
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '')]
     [CmdletBinding()]
     param(
-        [Parameter( Mandatory )]
-        [String]
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
+        [AtlassianPS.JiraPS.Issue]
         $Issue,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -24,32 +21,18 @@
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
         $operationParameters = @{} + $PSBoundParameters
         $null = $operationParameters.Remove('Connection')
-        $null = $operationParameters.Remove('Credential')
         $operationParameters['RequestContext'] = $requestContext
 
-        try {
-            $operation = { Get-JiraIssueEditMetadataOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-            $operation.Begin($PSCmdlet)
-        }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $operation = { Get-JiraIssueEditMetadataOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+        $operation.Begin($PSCmdlet)
     }
 
     process {
-        try { $operation.Process($_) }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $operation.Process($_)
     }
 
     end {
-        try { $operation.End() }
-        finally {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-        }
+        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

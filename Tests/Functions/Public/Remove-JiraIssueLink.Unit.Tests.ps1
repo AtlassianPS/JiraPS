@@ -19,11 +19,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraIssueLink -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssueLink' 'Id'
                 [AtlassianPS.JiraPS.IssueLink]@{
@@ -77,7 +72,6 @@ InModuleScope JiraPS {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'IssueLink'; type = 'AtlassianPS.JiraPS.IssueLink[]' }
                     @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue[]' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type

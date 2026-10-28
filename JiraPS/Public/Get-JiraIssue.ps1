@@ -1,18 +1,13 @@
 ﻿function Get-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'ByIssueKey' )]
+    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'Issue' )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByIssueKey' )]
-        [ValidateNotNullOrEmpty()]
-        [Alias('Issue')]
-        [String[]]
-        $Key,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'Issue' )]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueTransformation()]
-        [AtlassianPS.JiraPS.Issue]
-        $InputObject,
+        [Alias('Key', 'Id')]
+        [AtlassianPS.JiraPS.IssueTransformation(AllowCollection = $true, AllowPipelineFallthrough = $true)]
+        [AtlassianPS.JiraPS.Issue[]]
+        $Issue,
 
         [Parameter( Mandatory, ParameterSetName = 'ByJQL' )]
         [Alias('JQL')]
@@ -36,16 +31,10 @@
         $PageSize = $script:DefaultPageSize,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Parameter()]
         [Alias('GetHistory')]
         [Switch]
         $IncludeHistory,
 
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -57,32 +46,18 @@
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
         $operationParameters = @{} + $PSBoundParameters
         $null = $operationParameters.Remove('Connection')
-        $null = $operationParameters.Remove('Credential')
         $operationParameters['RequestContext'] = $requestContext
 
-        try {
-            $operation = { Get-JiraIssueOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-            $operation.Begin($PSCmdlet)
-        }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $operation = { Get-JiraIssueOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+        $operation.Begin($PSCmdlet)
     }
 
     process {
-        try { $operation.Process($_) }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $operation.Process($_)
     }
 
     end {
-        try { $operation.End() }
-        finally {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-        }
+        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

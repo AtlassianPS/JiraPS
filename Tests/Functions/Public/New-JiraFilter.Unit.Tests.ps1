@@ -27,11 +27,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock ConvertTo-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
                 $i = (ConvertFrom-Json $responseFilter)
@@ -68,7 +63,6 @@ InModuleScope JiraPS {
                     @{ parameter = 'Description'; type = 'String' }
                     @{ parameter = 'JQL'; type = 'String' }
                     @{ parameter = 'Favorite'; type = 'SwitchParameter' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter

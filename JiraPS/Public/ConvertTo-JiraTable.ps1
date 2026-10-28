@@ -114,4 +114,3 @@
     }
 }
 
-New-Alias -Name "Format-Jira" -Value "ConvertTo-JiraTable" -ErrorAction SilentlyContinue

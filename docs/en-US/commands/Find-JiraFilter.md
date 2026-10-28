@@ -16,27 +16,27 @@ Find Jira filter(s).
 
 ### ByAccountId (Default)
 
-```powershell
-Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>] [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+```
+Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>]
+ [-Fields <string[]>] [-Sort <string>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount]
+ [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByOwner
 
-```powershell
-Find-JiraFilter [-Name <string[]>] [-Owner <AtlassianPS.JiraPS.User>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>] [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
+Find-JiraFilter [-Name <string[]>] [-Owner <AtlassianPS.JiraPS.User>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>]
+ [-Fields <string[]>] [-Sort <string>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount]
+ [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
-Searches for filters.
-This operation is similar to Get filters except that the results can be refined to include filters that have specific attributes.
-For example, filters with a particular name.
-When multiple attributes are specified only filters matching all attributes are returned.
-
-Disclaimer
-
-> This works with Jira Cloud only.
- It does not work with non-cloud Jira Server (v8.3.1 at the time of this writing).
+Searches Jira Cloud filters using explicit criteria.
+Owner uses the exact accountId.
+Data Center does not expose this filter-search API; use Get-JiraFilter -Filter or -Favorite.
 
 ## EXAMPLES
 
@@ -124,22 +124,27 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Fields
@@ -172,22 +177,13 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues:
-- description
-- favourite
-- favouritedCount
-- jql
-- owner
-- searchUrl
-- sharePermissions
-- subscriptions
-- viewUrl
+AcceptedValues: []
 HelpMessage: ''
 ```
 
 ### -First
 
-Indicates how many items to return.
+Maximum number of matching records to return.
 
 ```yaml
 Type: UInt64
@@ -229,9 +225,8 @@ HelpMessage: ''
 
 ### -IncludeTotalCount
 
-Causes an extra output of the total count at the beginning.
-
-Note this is actually a uInt64, but with a custom string representation.
+Return total-count information before the records.
+Accuracy is unknown when Jira does not provide a total.
 
 ```yaml
 Type: SwitchParameter
@@ -317,9 +312,7 @@ HelpMessage: ''
 
 ### -Skip
 
-Controls how many things will be skipped before starting output.
-
-Defaults to 0.
+Number of matching records to skip before returning output.
 
 ```yaml
 Type: UInt64
@@ -363,41 +356,20 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues:
-- description
-- favourite_count
-- is_favourite
-- id
-- name
-- owner
+AcceptedValues: []
 HelpMessage: ''
-```
-
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
+
+### System.String[]
 
 ## OUTPUTS
 

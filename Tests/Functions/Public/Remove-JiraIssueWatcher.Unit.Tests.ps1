@@ -20,12 +20,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Resolve-JiraUser { [AtlassianPS.JiraPS.User]@{ Name = $InputObject.Name; AccountId = $InputObject.Name } }
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
-
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
 
             Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
@@ -44,7 +40,7 @@ InModuleScope JiraPS {
 
             Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'DELETE' -and
-                $URI -like "$jiraServer/rest/api/2/issue/$issueID/watchers?username=*"
+                $URI -eq "$jiraServer/rest/api/2/issue/$issueID/watchers" -and $GetParameter.ContainsKey('username')
             } {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Uri', 'Method'
             }
@@ -64,9 +60,8 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Watcher'; type = 'String[]' }
+                    @{ parameter = 'Watcher'; type = 'AtlassianPS.JiraPS.User[]' }
                     @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type
@@ -122,7 +117,7 @@ InModuleScope JiraPS {
                 Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
                 Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
-                    $Method -eq 'Delete' -and $URI -match 'accountId='
+                    $Method -eq 'Delete' -and $GetParameter.ContainsKey('accountId')
                 } {
                     Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 }
@@ -138,7 +133,7 @@ InModuleScope JiraPS {
                 { Remove-JiraIssueWatcher -Issue 'TEST-001' -Watcher $testAccountId } | Should -Not -Throw
 
                 Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $Method -eq 'Delete' -and $URI -match "accountId=$testAccountId"
+                    $Method -eq 'Delete' -and $GetParameter.accountId -eq $testAccountId
                 }
             }
         }

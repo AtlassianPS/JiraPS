@@ -16,172 +16,104 @@ Returns a user from Jira.
 
 ### Self (Default)
 
-```powershell
-Get-JiraUser [-IncludeInactive] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+Get-JiraUser [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-### ByUserName
+### User
 
-```powershell
-Get-JiraUser [-UserName] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <uint>] [-Skip <ulong>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+Get-JiraUser [-User] <AtlassianPS.JiraPS.User[]> [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>]
+ [-First <ulong>] [<CommonParameters>]
 ```
 
-### ByAccountId
+### Query
 
-```powershell
-Get-JiraUser [-AccountId] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <uint>] [-Skip <ulong>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+Get-JiraUser -Query <string> [-IncludeInactive] [-PageSize <int>] [-Connection <AtlassianPS.Connection>]
+ [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-### ByInputObject
+### All
 
-```powershell
-Get-JiraUser [-InputObject] <AtlassianPS.JiraPS.User[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
+Get-JiraUser -All [-PageSize <int>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>]
+ [-First <ulong>] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
-This function returns information regarding a specified user from Jira.
+Returns the current user, exact users, explicit search results or an intentional user enumeration.
+User identifiers remain opaque: Cloud uses accountId and Data Center uses username.
+Query and All support First, Skip, PageSize and IncludeTotalCount.
+Cloud user search is limited to the first 1,000 matches.
+Data Center search limits depend on Jira's version.
+Data Center enumeration requires /rest/api/2/user/list and follows its cursor.
+Unavailable enumeration fails with guidance to use Query.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-Get-JiraUser -UserName user1
+Get-JiraUser
 ```
 
-Returns information about all users with username like user1
+Return the authenticated current user.
 
 ### Example 2
 
 ```powershell
-Get-ADUser -filter "Name -like 'John*Smith'" | Select-Object -ExpandProperty samAccountName | Get-JiraUser -Credential $cred
+Get-JiraUser -User 'opaque-account-id'
 ```
 
-This example searches Active Directory for "John*Smith", then obtains their Jira user accounts.
+Look up one exact Cloud account ID.
+Use a literal username with a Data Center connection.
 
 ### Example 3
 
 ```powershell
-Get-JiraUser -Credential $cred
+Get-JiraUser -Query 'John Smith' -First 10 -PageSize 25
 ```
 
-This example returns the Jira user that is executing the command.
+Search explicitly and return at most ten matching users.
 
 ### Example 4
 
 ```powershell
-Get-JiraUser -UserName user1 -Exact
+Get-JiraUser -All -Skip 20 -First 10
 ```
 
-Returns information about user user1
+Enumerate users intentionally and skip the first twenty records.
 
 ### Example 5
 
 ```powershell
-Get-JiraUser -UserName ''
+Get-JiraUser -Query 'John Smith' | Get-JiraUser
 ```
 
-Returns information about all users.
-The empty string "" matches all users.
-
-### Example 6
-
-```powershell
-Get-JiraUser -AccountId '5b10a2844c20165700ede21g'
-```
-
-Returns user information for the specified account ID.
-Use this on Jira Cloud where usernames are not available due to GDPR requirements.
-The `AccountId` property can then be used in other commands like `Set-JiraIssue -Assignee`.
-
-### Example 7
-
-```powershell
-# Find a user by display name and get their accountId for Cloud
-$user = Get-JiraUser -UserName 'John Smith' | Select-Object -First 1
-Set-JiraIssue TEST-1 -Assignee $user.AccountId
-```
-
-Searches for a user by name, then uses their account ID to assign an issue.
-This pattern is useful when migrating scripts from Data Center to Cloud.
-
-### Example 8
-
-```powershell
-Get-JiraUser -UserName user1 | Get-JiraUser
-```
-
-Refreshes user objects by piping existing `AtlassianPS.JiraPS.User` output back through `Get-JiraUser`.
-Use `-UserName` / `-AccountId` for string-based lookups, and `-InputObject` when requerying existing user objects.
+Refresh each returned user through its exact deployment-specific identity.
 
 ## PARAMETERS
 
-### -AccountId
+### -All
 
-Atlassian account ID of the user (used on Jira Cloud).
+Enumerate Jira users explicitly.
+Cloud includes active, inactive and previously deleted accounts.
+Data Center requires a supported /user/list endpoint.
 
 ```yaml
-Type: String[]
+Type: SwitchParameter
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: ByAccountId
-  Position: 0
+- Name: All
+  Position: Named
   IsRequired: true
   ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: true
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Credential
-
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Exact
-
-Limits the search to users where the username or account ID is exactly the term searched for.
-
-```yaml
-Type: SwitchParameter
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ByAccountId
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-- Name: ByUserName
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-- Name: ByInputObject
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
@@ -189,13 +121,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -IncludeInactive
+### -Connection
 
-Include inactive users in the search.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: SwitchParameter
-DefaultValue: False
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -210,21 +144,19 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -InputObject
+### -First
 
-User object(s) to refresh from Jira.
-Use this parameter when you already have `AtlassianPS.JiraPS.User` objects and want to requery the latest data.
-For string-based lookup, use `-UserName` (Data Center / generic) or `-AccountId` (Cloud).
+Maximum number of matching records to return.
 
 ```yaml
-Type: AtlassianPS.JiraPS.User[]
+Type: UInt64
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: ByInputObject
-  Position: 0
-  IsRequired: true
+- Name: (All)
+  Position: Named
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -233,27 +165,93 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -MaxResults
+### -IncludeInactive
 
-Maximum number of user to be returned.
-
-> The API does not allow for any value higher than 1000.
+Include inactive users in Data Center searches.
+Cloud search returns active users only; use All for other accounts.
 
 ```yaml
-Type: UInt32
-DefaultValue: 50
+Type: SwitchParameter
+DefaultValue: False
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: ByAccountId
+- Name: Query
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
-- Name: ByUserName
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -IncludeTotalCount
+
+Return total-count information before the records.
+Accuracy is unknown when Jira does not provide a total.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
   Position: Named
   IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -PageSize
+
+Number of records requested per page.
+Use First to limit output and Skip to skip records.
+
+```yaml
+Type: Int32
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: All
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: Query
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Query
+
+Search for users explicitly.
+Cloud uses the user/search query; Data Center uses the username search.
+Search results do not trigger an extra request per user.
+
+```yaml
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Query
+  Position: Named
+  IsRequired: true
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -264,9 +262,7 @@ HelpMessage: ''
 
 ### -Skip
 
-Controls how many objects will be skipped before starting output.
-
-Defaults to 0.
+Number of matching records to skip before returning output.
 
 ```yaml
 Type: UInt64
@@ -274,13 +270,7 @@ DefaultValue: 0
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: ByAccountId
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-- Name: ByUserName
+- Name: (All)
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -291,62 +281,38 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -UserName
+### -User
 
-Name of the user to search for.
+Exact user identifiers or typed user objects.
+Cloud strings are literal account IDs; Data Center strings are literal usernames.
 
 ```yaml
-Type: String[]
+Type: AtlassianPS.JiraPS.User[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases:
-- User
-- Name
+Aliases: []
 ParameterSets:
-- Name: ByUserName
+- Name: User
   Position: 0
   IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
 HelpMessage: ''
-```
-
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### String[]
-
-Username, name, or e-mail address
-
 ### AtlassianPS.JiraPS.User[]
-
-Existing user object(s) to refresh from Jira via `-InputObject`.
 
 ## OUTPUTS
 

@@ -1,4 +1,8 @@
 ﻿function Resolve-JiraOperationContext {
+    <#
+    .SYNOPSIS
+        Resolve a selected connection or validate an explicit standalone endpoint.
+    #>
     [CmdletBinding()]
     [OutputType( [AtlassianPS.Connection] )]
     param(
@@ -29,11 +33,6 @@
 
     $endpoint = if (($BoundParameters.Keys -contains 'BaseUri')) { $BoundParameters['BaseUri'] }
     elseif (($BoundParameters.Keys -contains 'Uri')) { $BoundParameters['Uri'] }
-
-    $default = AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira -Default
-    if (-not $selectors.Count -and -not $default -and ($BoundParameters.Keys -contains 'Credential')) {
-        $endpoint = Get-JiraConfigServer -ErrorAction Stop
-    }
 
     if ($endpoint) {
         $candidate = New-JiraCandidate -Name Standalone -Uri $endpoint -Authentication $parameters

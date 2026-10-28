@@ -3,7 +3,9 @@
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory )]
-        [string[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
+        [AtlassianPS.JiraPS.User[]]
         $Watcher,
 
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -14,11 +16,6 @@
         $Issue,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -26,51 +23,37 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-            $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            # Find the proper object for the Issue
-            $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
-            foreach ($watcherValue in $Watcher) {
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$watcherValue]"
-                Write-DebugMessage "Processing `$watcherValue [$watcherValue]"
+        foreach ($watcherValue in $Watcher) {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$watcherValue]"
+            Write-DebugMessage "Processing `$watcherValue [$watcherValue]"
 
-                $watcherUri = if ($isCloud) { "{0}/watchers?accountId={1}" -f $issueObj.RestURL, $watcherValue }
-                else { "{0}/watchers?username={1}" -f $issueObj.RestURL, $watcherValue }
-                $parameter = @{
-                    URI    = $watcherUri
-                    Method = "DELETE"
-                }
-                Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
+            $user = Resolve-JiraUser -InputObject $watcherValue -RequestContext $RequestContext -ErrorAction Stop
+            $identifier = if ($isCloud) { $user.AccountId } else { $user.Name }
+            if (-not $identifier) { throw 'Watcher requires an accountId on Cloud or a username on Data Center.' }
+            $queryParameters = if ($isCloud) { @{ accountId = $identifier } } else { @{ username = $identifier } }
+            $parameter = @{
+                URI          = "{0}/watchers" -f $issueObj.RestURL
+                Method       = "DELETE"
+                GetParameter = $queryParameters
             }
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

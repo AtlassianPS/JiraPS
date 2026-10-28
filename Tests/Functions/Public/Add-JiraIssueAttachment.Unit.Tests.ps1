@@ -92,7 +92,6 @@ InModuleScope JiraPS {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
                     @{ parameter = "FilePath"; type = "String[]" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                     @{ parameter = "Passthru"; type = "Switch" }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
@@ -100,11 +99,6 @@ InModuleScope JiraPS {
             }
 
             Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = $null }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
             }
 
             Context "Mandatory Parameters" {

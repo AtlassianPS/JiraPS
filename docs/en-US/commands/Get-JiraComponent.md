@@ -16,15 +16,17 @@ Returns a component from Jira.
 
 ### ByID (Default)
 
-```powershell
-Get-JiraComponent [-ComponentId] <int[]> [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+Get-JiraComponent [-ComponentId] <int[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### ByProject
 
-```powershell
-Get-JiraComponent [-Project] <AtlassianPS.JiraPS.Project[]> [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
+Get-JiraComponent [-Project] <AtlassianPS.JiraPS.Project[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -46,7 +48,7 @@ Returns information about the component with ID 10000
 ### Example 2
 
 ```powershell
-Get-JiraComponent 20000 -Credential $cred
+Get-JiraComponent 20000
 ```
 
 Returns information about the component with ID 20000
@@ -91,22 +93,27 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Project
@@ -130,43 +137,16 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Project
-
-Pipe a project object to retrieve its components.
-
-### System.String
-
-Pipe a project key or numeric project ID to retrieve its components.
-
-### System.Int64
-
-Pipe a numeric project ID to retrieve its components.
+### AtlassianPS.JiraPS.Project[]
 
 ## OUTPUTS
 

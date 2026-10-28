@@ -42,11 +42,6 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key', 'Credential'
                 $object = [AtlassianPS.JiraPS.Issue]@{
@@ -152,7 +147,6 @@ InModuleScope JiraPS {
                     @{ parameter = 'Label'; type = 'String[]' }
                     @{ parameter = 'AddComment'; type = 'String' }
                     @{ parameter = 'Fields'; type = 'PSCustomObject' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                     @{ parameter = 'PassThru'; type = 'Switch' }
                     @{ parameter = 'SkipNotification'; type = 'Switch' }
                 ) {
@@ -383,11 +377,20 @@ InModuleScope JiraPS {
             }
 
             Context "Label Updates" {
-                It "Delegates label updates to Set-JiraIssueLabel" {
+                It 'normalizes explicitly null labels to an empty clear operation' {
+                    Set-JiraIssue -Issue 'IT-3676' -Label $null
+                    Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter {
+                        $payload = ConvertFrom-Json $Body
+                        $payload.update.labels[0].set.Count -eq 0
+                    }
+                }
+
+                It "includes explicitly bound labels in the issue update" {
                     { Set-JiraIssue -Issue "IT-3676" -Label "label1", "label2" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Set-JiraIssueLabelOperation -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
-                        $Set -contains "label1" -and $Set -contains "label2"
+                    Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter {
+                        $payload = ConvertFrom-Json $Body
+                        $payload.update.labels[0].set -contains "label1" -and $payload.update.labels[0].set -contains "label2"
                     }
                 }
             }

@@ -31,7 +31,7 @@
         $authentication = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters
         New-JiraCandidate -Name $Name -Uri $Uri -Authentication $authentication
 
-        Forwards the authentication supplied to Connect-Jira or New-JiraSession.
+        Forwards the authentication supplied to Connect-Jira.
 
     .EXAMPLE
         $authentication = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters -UserEmailField

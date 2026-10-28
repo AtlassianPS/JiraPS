@@ -63,23 +63,9 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
-            Mock ConvertTo-JiraFilter -ModuleName JiraPS {
-                Write-MockDebugInfo 'ConvertTo-JiraFilter' 'InputObject'
-                foreach ($i in $InputObject) {
-                    $i.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
-                    $i | Add-Member -MemberType AliasProperty -Name 'RestURL' -Value 'self'
-                    $i
-                }
-            }
-
             Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
-                foreach ($i in $InputObject) {
+                foreach ($i in $Filter) {
                     ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
                 }
             }
@@ -103,12 +89,11 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'InputObject'; type = 'AtlassianPS.JiraPS.Filter' }
+                    @{ parameter = 'Filter'; type = 'AtlassianPS.JiraPS.Filter' }
                     @{ parameter = 'Name'; type = 'String' }
                     @{ parameter = 'Description'; type = 'String' }
                     @{ parameter = 'JQL'; type = 'String' }
                     @{ parameter = 'Favorite'; type = 'Boolean' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type
@@ -180,7 +165,7 @@ InModuleScope JiraPS {
                 ) {
                     param($parameter, $field, $value)
                     $arguments = @{ $parameter = $value }
-                    Set-JiraFilter -InputObject (Get-JiraFilter '12844') @arguments -Confirm:$false
+                    Set-JiraFilter -Filter (Get-JiraFilter '12844') @arguments -Confirm:$false
 
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $payload = ConvertFrom-Json -InputObject $Body
@@ -190,13 +175,13 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "accepts a filter object for the -InputObject parameter" {
-                    { Set-JiraFilter -InputObject (Get-JiraFilter "12345") -Name "test" } | Should -Not -Throw
+                It "accepts a filter object for the -Filter parameter" {
+                    { Set-JiraFilter -Filter (Get-JiraFilter "12345") -Name "test" } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
-                It "accepts a filter object without the -InputObject parameter" {
+                It "accepts a filter object without the -Filter parameter" {
                     { Set-JiraFilter (Get-JiraFilter "12345") -Name "test" } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
@@ -211,7 +196,7 @@ InModuleScope JiraPS {
 
             Context "Negative cases" {
                 It "fails with multiple filter objects to the -Filter parameter" {
-                    { Set-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) -Name "test" } | Should -Throw -ExpectedMessage "*Filter*"
+                    { Set-JiraFilter -Filter (Get-JiraFilter 12345, 12345) -Name "test" } | Should -Throw -ExpectedMessage "*Filter*"
                 }
 
                 It "fails if something other than [AtlassianPS.JiraPS.Filter] is provided to InputObject" {

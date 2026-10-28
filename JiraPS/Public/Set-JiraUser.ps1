@@ -43,98 +43,77 @@
         $Property,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
         [Switch]
         $PassThru,
 
-        [Alias('Session')][AtlassianPS.Connection]$Connection
+        [AtlassianPS.Connection]$Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters -UserEmailField
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters -UserEmailField
 
-            $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
-            $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" }
-            else { "/rest/api/2/user?username={0}" }
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        if ($isCloud) { throw 'Jira Cloud does not support updating user account fields through this API. Manage the user through Atlassian account administration.' }
+        $resourceURi = "/rest/api/2/user?username={0}"
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            $userObj = Resolve-JiraUser -InputObject $User -Exact -RequestContext $RequestContext -ErrorAction Stop
+        $userObj = Resolve-JiraUser -InputObject $User -RequestContext $RequestContext -ErrorAction Stop
 
-            $requestBody = @{}
+        $requestBody = @{}
 
-            switch ($PSCmdlet.ParameterSetName) {
-                'ByNamedParameters' {
-                    if (-not ($DisplayName -or $EmailAddress -or $PSBoundParameters.ContainsKey('Active'))) {
-                        $errorMessage = @{
-                            Category         = "InvalidArgument"
-                            CategoryActivity = "Validating Arguments"
-                            Message          = "The parameters provided do not change the User. No action will be performed"
-                        }
-                        Write-Error @errorMessage
-                        return
+        switch ($PSCmdlet.ParameterSetName) {
+            'ByNamedParameters' {
+                if (-not ($DisplayName -or $EmailAddress -or $PSBoundParameters.ContainsKey('Active'))) {
+                    $errorMessage = @{
+                        Category         = "InvalidArgument"
+                        CategoryActivity = "Validating Arguments"
+                        Message          = "The parameters provided do not change the User. No action will be performed"
                     }
-
-                    if ($DisplayName) { $requestBody.displayName = $DisplayName }
-
-                    if ($EmailAddress) { $requestBody.emailAddress = $EmailAddress }
-
-                    if ($PSBoundParameters.ContainsKey('Active')) { $requestBody.active = $Active }
+                    Write-Error @errorMessage
+                    return
                 }
-                'ByHashtable' { $requestBody = $Property }
-            }
 
-            $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId }
-            else { $userObj.Name }
-            $parameter = @{
-                URI    = $resourceURi -f $userIdentifier
-                Method = "PUT"
-                Body   = ConvertTo-Json -InputObject $requestBody -Depth 4
-            }
-            Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($UserObj.DisplayName, "Updating user")) {
-                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+                if ($DisplayName) { $requestBody.displayName = $DisplayName }
 
-                if ($PassThru) {
-                    if ($userObj.AccountId -or $userObj.Name) {
-                        $refreshUser = [AtlassianPS.JiraPS.User]@{
-                            AccountId = $userObj.AccountId
-                            Name      = $userObj.Name
-                        }
-                        Write-Output (Resolve-JiraUser -InputObject $refreshUser -Exact -RequestContext $RequestContext -ErrorAction Stop)
-                    }
-                    else { Write-Output (ConvertTo-JiraUser -InputObject $result) }
-                }
+                if ($EmailAddress) { $requestBody.emailAddress = $EmailAddress }
+
+                if ($PSBoundParameters.ContainsKey('Active')) { $requestBody.active = $Active }
             }
+            'ByHashtable' { $requestBody = $Property }
         }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+
+        $userIdentifier = $userObj.Name
+        if (-not $userIdentifier) { throw 'User requires a Data Center username.' }
+        $parameter = @{
+            URI    = $resourceURi -f [Uri]::EscapeDataString($userIdentifier)
+            Method = "PUT"
+            Body   = ConvertTo-Json -InputObject $requestBody -Depth 4
+        }
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        if ($PSCmdlet.ShouldProcess($UserObj.DisplayName, "Updating user")) {
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+            if ($PassThru) {
+                if ($userObj.AccountId -or $userObj.Name) {
+                    $refreshUser = [AtlassianPS.JiraPS.User]@{
+                        AccountId = $userObj.AccountId
+                        Name      = $userObj.Name
+                    }
+                    Write-Output (Resolve-JiraUser -InputObject $refreshUser -RequestContext $RequestContext -ErrorAction Stop)
+                }
+                else { Write-Output (ConvertTo-JiraUser -InputObject $result) }
+            }
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

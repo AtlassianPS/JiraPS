@@ -1,13 +1,13 @@
 ﻿function Get-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( DefaultParameterSetName = 'ByInputObject' )]
+    [CmdletBinding( DefaultParameterSetName = 'ByFilter' )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByFilter' )]
         [ValidateNotNull()]
         [Alias('Id')]
         [AtlassianPS.JiraPS.FilterTransformation()]
         [AtlassianPS.JiraPS.Filter[]]
-        $InputObject,
+        $Filter,
 
         [Parameter( Mandatory, ParameterSetName = 'MyFavorite' )]
         [Alias('Favourite')]
@@ -15,11 +15,6 @@
         $Favorite,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -31,32 +26,18 @@
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
         $operationParameters = @{} + $PSBoundParameters
         $null = $operationParameters.Remove('Connection')
-        $null = $operationParameters.Remove('Credential')
         $operationParameters['RequestContext'] = $requestContext
 
-        try {
-            $operation = { Get-JiraFilterOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-            $operation.Begin($PSCmdlet)
-        }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $operation = { Get-JiraFilterOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+        $operation.Begin($PSCmdlet)
     }
 
     process {
-        try { $operation.Process($_) }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $operation.Process($_)
     }
 
     end {
-        try { $operation.End() }
-        finally {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-        }
+        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

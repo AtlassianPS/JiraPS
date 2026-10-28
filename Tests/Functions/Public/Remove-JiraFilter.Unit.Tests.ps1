@@ -65,23 +65,9 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
-            Mock ConvertTo-JiraFilter -ModuleName JiraPS {
-                Write-MockDebugInfo 'ConvertTo-JiraFilter' 'InputObject'
-                foreach ($i in $InputObject) {
-                    $i.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
-                    $i | Add-Member -MemberType AliasProperty -Name 'RestURL' -Value 'self'
-                    $i
-                }
-            }
-
             Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
-                foreach ($i in $InputObject) {
+                foreach ($i in $Filter) {
                     ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
                 }
             }
@@ -105,8 +91,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'InputObject'; type = 'AtlassianPS.JiraPS.Filter[]' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
+                    @{ parameter = 'Filter'; type = 'AtlassianPS.JiraPS.Filter[]' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type
@@ -115,8 +100,8 @@ InModuleScope JiraPS {
 
             Context "Aliases" {
                 It "preserves the ID parameter spellings" {
-                    $command.Parameters.InputObject.Aliases | Should -Contain 'Id'
-                    $command.Parameters.InputObject.Aliases | Should -Contain 'FilterId'
+                    $command.Parameters.Filter.Aliases | Should -Contain 'Id'
+                    $command.Parameters.Filter.Aliases | Should -Contain 'FilterId'
                 }
             }
 
@@ -134,7 +119,7 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             Context "Filter Deletion" {
                 It "supports the '<parameter>' spelling with numeric strings" -TestCases @(
-                    @{ parameter = 'InputObject' }
+                    @{ parameter = 'Filter' }
                     @{ parameter = 'Id' }
                     @{ parameter = 'FilterId' }
                 ) {
@@ -142,28 +127,19 @@ InModuleScope JiraPS {
                     $arguments = @{ $parameter = '12844'; Confirm = $false }
                     Remove-JiraFilter @arguments
 
-                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter { $InputObject.Id -eq 12844 }
+                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter { $Filter.Id -eq 12844 }
                     Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'DELETE' -and $URI -like '*/filter/12844'
                     }
                 }
 
-                It "forwards credentials when resolving filter IDs and deleting filters" {
-                    $credential = [PSCredential]::new('filter-owner', (ConvertTo-SecureString 'fixture-password' -AsPlainText -Force))
-                    Remove-JiraFilter -Id 12844 -Credential $credential -Confirm:$false
-
-                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
-                        $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
-                    }
-                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
-                }
 
                 It "does not delete any filters when a later array lookup fails through '<parameter>'" -TestCases @(
-                    @{ parameter = 'InputObject' }
+                    @{ parameter = 'Filter' }
                     @{ parameter = 'Id' }
                 ) {
                     param($parameter)
-                    Mock Get-JiraFilterOperation -ModuleName JiraPS -ParameterFilter { $InputObject.Id -eq 67890 } {
+                    Mock Get-JiraFilterOperation -ModuleName JiraPS -ParameterFilter { $Filter.Id -eq 67890 } {
                         throw 'Filter 67890 is not accessible.'
                     }
                     $arguments = @{ $parameter = @(12844, 67890); Confirm = $false }
@@ -209,20 +185,20 @@ InModuleScope JiraPS {
 
         Describe "Input Validation" {
             Context "Positive cases" {
-                It "Accepts a filter object for the -InputObject parameter" {
-                    { Remove-JiraFilter -InputObject (Get-JiraFilter "12345") } | Should -Not -Throw
+                It "Accepts a filter object for the -Filter parameter" {
+                    { Remove-JiraFilter -Filter (Get-JiraFilter "12345") } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
-                It "Accepts a filter object without the -InputObject parameter" {
+                It "Accepts a filter object without the -Filter parameter" {
                     { Remove-JiraFilter (Get-JiraFilter "12345") } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts multiple filter objects to the -Filter parameter" {
-                    { Remove-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) } | Should -Not -Throw
+                    { Remove-JiraFilter -Filter (Get-JiraFilter 12345, 12345) } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }

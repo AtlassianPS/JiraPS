@@ -23,7 +23,7 @@ InModuleScope JiraPS {
             $source.SetValidationResult($Deployment, 'source-user')
             $null = Register-AtlassianConnection -Connection $source
             $script:context = Resolve-AtlassianRequestContext -Product Jira -Connection $source -PersonalAccessToken override-secret
-            Mock Get-JiraUserOperation { [AtlassianPS.JiraPS.User]@{ Name = $UserName; AccountId = $AccountId } }
+            Mock Get-JiraUserOperation { [AtlassianPS.JiraPS.User]@{ Name = $User.Name; AccountId = $User.AccountId } }
             try {
                 $result = Resolve-JiraUser -InputObject ([AtlassianPS.JiraPS.User]$Identity) -RequestContext $context
 

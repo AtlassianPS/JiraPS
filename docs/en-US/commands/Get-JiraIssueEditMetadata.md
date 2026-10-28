@@ -14,9 +14,11 @@ Returns metadata required to change an issue in JIRA
 
 ## SYNTAX
 
-```powershell
-Get-JiraIssueEditMetadata [-Issue] <string> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
+Get-JiraIssueEditMetadata [-Issue] <AtlassianPS.JiraPS.Issue> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -27,56 +29,31 @@ This function is particularly useful when your JIRA instance includes custom fie
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-Get-JiraIssueEditMetadata -Issue "TEST-001"
+Get-JiraIssue -Issue PROJ-1 | Get-JiraIssueEditMetadata
 ```
 
-This example returns the fields available when updating the issue "TEST-001".
-
-### EXAMPLE 2
-
-```powershell
-Get-JiraIssueEditMetadata -Issue "TEST-001" | ? {$_.Required -eq $true}
-```
-
-This example returns fields available when updating the issue "TEST-001".
-It then uses `Where-Object` (aliased by the question mark) to filter only the fields that are required.
+Retrieve edit metadata through a typed issue pipeline.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Issue
-
-Issue id or key of the reference issue.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: String
-DefaultValue: ''
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 0
-  IsRequired: true
+  Position: 1
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -85,23 +62,25 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
+### -Issue
 
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.JiraPS.Issue
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
@@ -112,6 +91,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
+
+### AtlassianPS.JiraPS.Issue
 
 ## OUTPUTS
 

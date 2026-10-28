@@ -16,21 +16,23 @@ Select an active connection as the Jira default.
 
 ### Object (Default)
 
-```powershell
+```
 Select-JiraConnection -Connection <AtlassianPS.Connection> [<CommonParameters>]
 ```
 
 ### Name
 
-```powershell
+```
 Select-JiraConnection -Name <string> [<CommonParameters>]
 ```
 
 ### Id
 
-```powershell
+```
 Select-JiraConnection -Id <int> [<CommonParameters>]
 ```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -66,36 +68,25 @@ Select by runtime ID.
 
 ### -Connection
 
-Live shared connection for this operation.
-Session is a compatibility alias.
-The object must be active in this runspace and belong to Jira.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
 Type: AtlassianPS.Connection
-Parameter Sets: Object
-Aliases: Session
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
-```
-
-### -Name
-
-Friendly connection name, unique without case sensitivity within Jira.
-
-```yaml
-Type: String
-Parameter Sets: Name
-Aliases: None
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Object
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Id
@@ -104,19 +95,48 @@ Runtime numeric connection ID, unique across products for the current shared run
 
 ```yaml
 Type: Int32
-Parameter Sets: Id
-Aliases: None
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Id
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -Name
+
+Friendly connection name, unique without case sensitivity within Jira.
+
+```yaml
+Type: String
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Name
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-Supports standard PowerShell common parameters.
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 

@@ -23,7 +23,6 @@ JiraPS exports these commands directly without an additional default command pre
 | `Disconnect-Jira` | [Disconnect-Jira](/docs/JiraPS/commands/Disconnect-Jira/) |
 | `Find-JiraFilter` | [Find-JiraFilter](/docs/JiraPS/commands/Find-JiraFilter/) |
 | `Get-JiraComponent` | [Get-JiraComponent](/docs/JiraPS/commands/Get-JiraComponent/) |
-| `Get-JiraConfigServer` | [Get-JiraConfigServer](/docs/JiraPS/commands/Get-JiraConfigServer/) |
 | `Get-JiraConnection` | [Get-JiraConnection](/docs/JiraPS/commands/Get-JiraConnection/) |
 | `Get-JiraField` | [Get-JiraField](/docs/JiraPS/commands/Get-JiraField/) |
 | `Get-JiraFilter` | [Get-JiraFilter](/docs/JiraPS/commands/Get-JiraFilter/) |
@@ -32,7 +31,7 @@ JiraPS exports these commands directly without an additional default command pre
 | `Get-JiraGroupMember` | [Get-JiraGroupMember](/docs/JiraPS/commands/Get-JiraGroupMember/) |
 | `Get-JiraIssue` | [Get-JiraIssue](/docs/JiraPS/commands/Get-JiraIssue/) |
 | `Get-JiraIssueAttachment` | [Get-JiraIssueAttachment](/docs/JiraPS/commands/Get-JiraIssueAttachment/) |
-| `Get-JiraIssueAttachmentFile` | [Get-JiraIssueAttachmentFile](/docs/JiraPS/commands/Get-JiraIssueAttachmentFile/) |
+| `Save-JiraIssueAttachment` | [Save-JiraIssueAttachment](/docs/JiraPS/commands/Save-JiraIssueAttachment/) |
 | `Get-JiraIssueComment` | [Get-JiraIssueComment](/docs/JiraPS/commands/Get-JiraIssueComment/) |
 | `Get-JiraIssueCreateMetadata` | [Get-JiraIssueCreateMetadata](/docs/JiraPS/commands/Get-JiraIssueCreateMetadata/) |
 | `Get-JiraIssueEditMetadata` | [Get-JiraIssueEditMetadata](/docs/JiraPS/commands/Get-JiraIssueEditMetadata/) |
@@ -46,7 +45,6 @@ JiraPS exports these commands directly without an additional default command pre
 | `Get-JiraRemoteLink` | [Get-JiraRemoteLink](/docs/JiraPS/commands/Get-JiraRemoteLink/) |
 | `Get-JiraResponseHeaderLogConfiguration` | [Get-JiraResponseHeaderLogConfiguration](/docs/JiraPS/commands/Get-JiraResponseHeaderLogConfiguration/) |
 | `Get-JiraServerInformation` | [Get-JiraServerInformation](/docs/JiraPS/commands/Get-JiraServerInformation/) |
-| `Get-JiraSession` | [Get-JiraSession](/docs/JiraPS/commands/Get-JiraSession/) |
 | `Get-JiraStatus` | [Get-JiraStatus](/docs/JiraPS/commands/Get-JiraStatus/) |
 | `Get-JiraUser` | [Get-JiraUser](/docs/JiraPS/commands/Get-JiraUser/) |
 | `Get-JiraVersion` | [Get-JiraVersion](/docs/JiraPS/commands/Get-JiraVersion/) |
@@ -57,7 +55,6 @@ JiraPS exports these commands directly without an additional default command pre
 | `New-JiraGroup` | [New-JiraGroup](/docs/JiraPS/commands/New-JiraGroup/) |
 | `New-JiraIssue` | [New-JiraIssue](/docs/JiraPS/commands/New-JiraIssue/) |
 | `New-JiraIssueLinkRequest` | [New-JiraIssueLinkRequest](/docs/JiraPS/commands/New-JiraIssueLinkRequest/) |
-| `New-JiraSession` | [New-JiraSession](/docs/JiraPS/commands/New-JiraSession/) |
 | `New-JiraUser` | [New-JiraUser](/docs/JiraPS/commands/New-JiraUser/) |
 | `New-JiraVersion` | [New-JiraVersion](/docs/JiraPS/commands/New-JiraVersion/) |
 | `Remove-JiraFilter` | [Remove-JiraFilter](/docs/JiraPS/commands/Remove-JiraFilter/) |
@@ -69,16 +66,13 @@ JiraPS exports these commands directly without an additional default command pre
 | `Remove-JiraIssueLink` | [Remove-JiraIssueLink](/docs/JiraPS/commands/Remove-JiraIssueLink/) |
 | `Remove-JiraIssueWatcher` | [Remove-JiraIssueWatcher](/docs/JiraPS/commands/Remove-JiraIssueWatcher/) |
 | `Remove-JiraRemoteLink` | [Remove-JiraRemoteLink](/docs/JiraPS/commands/Remove-JiraRemoteLink/) |
-| `Remove-JiraSession` | [Remove-JiraSession](/docs/JiraPS/commands/Remove-JiraSession/) |
 | `Remove-JiraUser` | [Remove-JiraUser](/docs/JiraPS/commands/Remove-JiraUser/) |
 | `Remove-JiraVersion` | [Remove-JiraVersion](/docs/JiraPS/commands/Remove-JiraVersion/) |
 | `Select-JiraConnection` | [Select-JiraConnection](/docs/JiraPS/commands/Select-JiraConnection/) |
-| `Set-JiraConfigServer` | [Set-JiraConfigServer](/docs/JiraPS/commands/Set-JiraConfigServer/) |
 | `Set-JiraFilter` | [Set-JiraFilter](/docs/JiraPS/commands/Set-JiraFilter/) |
 | `Set-JiraIssue` | [Set-JiraIssue](/docs/JiraPS/commands/Set-JiraIssue/) |
 | `Set-JiraIssueLabel` | [Set-JiraIssueLabel](/docs/JiraPS/commands/Set-JiraIssueLabel/) |
 | `Set-JiraResponseHeaderLogConfiguration` | [Set-JiraResponseHeaderLogConfiguration](/docs/JiraPS/commands/Set-JiraResponseHeaderLogConfiguration/) |
-| `Set-JiraSession` | [Set-JiraSession](/docs/JiraPS/commands/Set-JiraSession/) |
 | `Set-JiraUser` | [Set-JiraUser](/docs/JiraPS/commands/Set-JiraUser/) |
 | `Set-JiraVersion` | [Set-JiraVersion](/docs/JiraPS/commands/Set-JiraVersion/) |
 

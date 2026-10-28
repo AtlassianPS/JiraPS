@@ -1,4 +1,8 @@
 ﻿function Resolve-JiraIssueObject {
+    <#
+    .SYNOPSIS
+        Use a complete typed issue or retrieve its exact key or numeric ID.
+    #>
     [CmdletBinding()]
     [OutputType( [AtlassianPS.JiraPS.Issue] )]
     param(
@@ -18,6 +22,6 @@
         }
 
         Write-DebugMessage "Resolve Issue '$($InputObject.Key)' to object"
-        Get-JiraIssueOperation -Key $InputObject.Key -RequestContext $RequestContext -ErrorAction Stop
+        Get-JiraIssueOperation -Issue $InputObject -RequestContext $RequestContext -ErrorAction Stop
     }
 }

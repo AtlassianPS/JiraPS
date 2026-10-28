@@ -55,11 +55,6 @@ InModuleScope JiraPS {
 
             #endregion Definitions
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject'
                 $issueObject = [PSCustomObject] @{
@@ -202,11 +197,6 @@ InModuleScope JiraPS {
                     Mock Resolve-DefaultParameterValue -ModuleName JiraPS { @{} }
                     Mock Set-TlsLevel -ModuleName JiraPS {}
                     Mock Test-ServerResponse -ModuleName JiraPS {}
-                    Mock Get-JiraSession -ModuleName JiraPS {
-                        [PSCustomObject]@{
-                            WebSession = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
-                        }
-                    }
 
                     Mock Invoke-WebRequest -ModuleName JiraPS {
                         $startAt = 0

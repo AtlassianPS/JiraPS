@@ -21,11 +21,6 @@ InModuleScope JiraPS {
             $filterAll = { $Method -eq 'Get' -and $Uri -ceq "/rest/api/2/issueLinkType" }
             $filterOne = { $Method -eq 'Get' -and $Uri -ceq "/rest/api/2/issueLinkType/10000" }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock ConvertTo-JiraIssueLinkType {
                 Write-MockDebugInfo 'ConvertTo-JiraIssueLinkType'
                 # We also don't care what comes out of here - this function has its own tests
@@ -66,7 +61,6 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'LinkType'; type = 'AtlassianPS.JiraPS.IssueLinkType' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     (Get-Command -Name Get-JiraIssueLinkType) | Should -HaveParameter $parameter -Type $type

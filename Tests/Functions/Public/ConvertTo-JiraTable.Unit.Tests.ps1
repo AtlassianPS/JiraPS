@@ -144,27 +144,5 @@ InModuleScope JiraPS {
             }
         }
 
-        Context "Backward-compatibility alias 'Format-Jira'" {
-            It "Is exported as an alias of ConvertTo-JiraTable" {
-                $aliasCommand = Get-Command -Name Format-Jira -ErrorAction Stop
-
-                $aliasCommand.CommandType | Should -Be 'Alias'
-                $aliasCommand.Source | Should -Be 'JiraPS'
-                $aliasCommand.Definition | Should -Be 'ConvertTo-JiraTable'
-            }
-
-            It "Produces identical output when invoked via the alias" {
-                $expected = $obj | ConvertTo-JiraTable
-                # Invoke via Get-Command + call operator so the alias is the
-                # system-under-test without a literal `| Format-Jira` token in
-                # the source — that token would trip PSAvoidUsingCmdletAliases.
-                # This indirection keeps the file lint-clean without needing a
-                # file-level suppression attribute.
-                $formatJira = Get-Command -Name Format-Jira -ErrorAction Stop
-                $actual = $obj | & $formatJira
-
-                $actual | Should -Be $expected
-            }
-        }
     }
 }

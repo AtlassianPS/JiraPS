@@ -26,18 +26,13 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock ConvertTo-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
             }
 
             Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
-                foreach ($item in $InputObject) {
+                foreach ($item in $Filter) {
                     [AtlassianPS.JiraPS.Filter]@{
                         Id      = $item.Id
                         RestUrl = "$jiraServer/rest/api/2/filter/$($item.Id)"
@@ -105,15 +100,6 @@ InModuleScope JiraPS {
             }
 
             Context "Behavior testing" {
-                It "forwards credentials and terminating lookup behavior for IDs" {
-                    $credential = [PSCredential]::new('filter-owner', (ConvertTo-SecureString 'fixture-password' -AsPlainText -Force))
-                    Get-JiraFilterPermission -Id 23456 -Credential $credential
-
-                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
-                        $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
-                    }
-                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
-                }
 
                 It "Retrieves the permissions of a Filter by Object" {
                     { Get-JiraFilter -Id 23456 | Get-JiraFilterPermission } | Should -Not -Throw

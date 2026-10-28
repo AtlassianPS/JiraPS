@@ -6,294 +6,86 @@ BeforeDiscovery {
 }
 
 InModuleScope JiraPS {
-    Describe "Get-JiraUser" -Tag 'Unit' {
-        BeforeAll {
-            . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-            # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
-
-            #region Definitions
-            $script:jiraServer = 'http://jiraserver.example.com'
-            $script:testUsername = 'powershell-test'
-            $script:testEmail = "$testUsername@example.com"
-            $script:testGroup1 = 'testGroup1'
-            $script:testGroup2 = 'testGroup2'
-
-            $script:restResult = @"
-[
-    {
-        "self": "$jiraServer/rest/api/2/user?username=$testUsername",
-        "key": "$testUsername",
-        "name": "$testUsername",
-        "emailAddress": "$testEmail",
-        "displayName": "Powershell Test User",
-        "active": true
-    }
-]
-"@
-
-            # Removed from JSON: avatarUrls, timeZone
-            $script:restResult2 = @"
-{
-    "self": "$jiraServer/rest/api/2/user?username=$testUsername",
-    "key": "$testUsername",
-    "name": "$testUsername",
-    "emailAddress": "$testEmail",
-    "displayName": "Powershell Test User",
-    "active": true,
-    "groups": {
-        "size": 2,
-        "items": [
-            {
-                "name": "$testGroup1",
-                "self": "$jiraServer/rest/api/2/group?groupname=$testGroup1"
-            },
-            {
-                "name": "$testGroup2",
-                "self": "$jiraServer/rest/api/2/group?groupname=$testGroup2"
-            }
-        ]
-    },
-    "expand": "groups"
-}
-"@
-            #endregion Definitions
-
-            #region Mocks
-            Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
-
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
-            Mock ConvertTo-JiraUser -ModuleName JiraPS {
-                Write-MockDebugInfo 'ConvertTo-JiraUser'
-                $user = [AtlassianPS.JiraPS.User]@{
-                    Name         = $InputObject.name
-                    AccountId    = $InputObject.accountId
-                    DisplayName  = $InputObject.displayName
-                    EmailAddress = $InputObject.emailAddress
-                    Active       = $InputObject.active
-                    RestUrl      = $InputObject.self
-                }
-                $user | Add-Member -NotePropertyName self -NotePropertyValue $InputObject.self -Force
-                $user | Add-Member -NotePropertyName groups -NotePropertyValue $InputObject.groups -Force
-                $user
-            }
-
-            # Return information of the current user
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/myself" } {
-                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                ConvertFrom-Json -InputObject $restResult
-            }
-
-            # Searching for a user.
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user/search?*username=$testUsername*" } {
-                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                ConvertFrom-Json -InputObject $restResult
-            }
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user/search?*username=%*" } {
-                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                ConvertFrom-Json -InputObject $restResult
-            }
-
-            # Get exact user
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user?username=$testUsername" } {
-                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                ConvertFrom-Json -InputObject $restResult
-            }
-
-            # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" } {
-                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                ConvertFrom-Json -InputObject $restResult2
-            }
-
-            # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraRequest -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraRequest"
-            }
-            #endregion Mocks
-        }
-
-        Describe "Signature" {
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'InputObject'; type = 'AtlassianPS.JiraPS.User[]' }
-                    @{ parameter = 'UserName'; type = 'String[]' }
-                    @{ parameter = 'AccountId'; type = 'String[]' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                ) {
-                    param($parameter, $type)
-                    (Get-Command -Name Get-JiraUser) | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
-        Describe "Behavior" {
-            It "Gets information about the logged in Jira user" {
-                $getResult = Get-JiraUser
-
-                $getResult | Should -Not -BeNullOrEmpty
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/myself" }
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
-            }
-
-            It "Gets information about a provided Jira user" {
-                $getResult = Get-JiraUser -UserName $testUsername
-
-                $getResult | Should -Not -BeNullOrEmpty
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user/search?*username=$testUsername*" }
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
-            }
-
-            It "Gets information about a provided Jira exact user" {
-                $getResult = Get-JiraUser -UserName $testUsername -Exact
-
-                $getResult | Should -Not -BeNullOrEmpty
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user?username=$testUsername" }
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
-            }
-
-            It "Returns all available properties about the returned user object" {
-                $getResult = Get-JiraUser -UserName $testUsername
-
-                $restObj = ConvertFrom-Json -InputObject $restResult
-
-                $getResult.self | Should -Be $restObj.self
-                $getResult.Name | Should -Be $restObj.name
-                $getResult.DisplayName | Should -Be $restObj.displayName
-                $getResult.Active | Should -Be $restObj.active
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
-            }
-
-            It "Gets information for a provided Jira user if a AtlassianPS.JiraPS.User object is provided to the InputObject parameter" {
-                $getResult = Get-JiraUser -UserName $testUsername
-                $result2 = Get-JiraUser -InputObject $getResult
-
-                $result2 | Should -Not -BeNullOrEmpty
-                $result2.Name | Should -Be $testUsername
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 2 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
-            }
-
-            It "Allow it search for multiple users" {
-                Get-JiraUser -UserName "%"
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $URI -like "*rest/api/*/user/search?*username=%*"
-                }
-            }
-
-            It "Allows to change the max number of users to be returned" {
-                Get-JiraUser -UserName "%" -MaxResults 100
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $URI -like "*rest/api/*/user/search?*username=%*" -and
-                    $URI -like "*rest/api/*/user/search?*maxResults=100*"
-                }
-            }
-
-            It "Can skip a certain amount of results" {
-                Get-JiraUser -UserName "%" -Skip 10
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $URI -like "*rest/api/*/user/search?*username=%*" -and
-                    $URI -like "*rest/api/*/user/search?*startAt=10*"
-                }
-            }
-
-            It "Provides information about the user's group membership in Jira" {
-                $getResult = Get-JiraUser -UserName $testUsername
-
-                $getResult.groups.size | Should -Be 2
-                $getResult.groups.items[0].Name | Should -Be $testGroup1
-            }
-
-            Context "Output checking" {
-                It "Uses ConvertTo-JiraUser to beautify output" {
-                    Get-JiraUser -UserName $testUsername | Out-Null
-                    Should -Invoke ConvertTo-JiraUser -ModuleName JiraPS -Exactly 1
+    Describe 'Get-JiraUser caller contract' -Tag Unit {
+        BeforeEach {
+            Mock Test-JiraCloudServer { $false }
+            Mock Invoke-JiraRequest {
+                [PSCustomObject]@{
+                    name        = $GetParameter.username
+                    accountId   = $GetParameter.accountId
+                    displayName = 'Display name'
+                    self        = 'https://jira.example.com/rest/api/2/user'
+                    active      = $true
                 }
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
+        It 'looks up literal Data Center usernames exactly without a follow-up request' {
+            $result = Get-JiraUser -User 'opaque user+name'
+            $result.Name | Should -Be 'opaque user+name'
+            Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter {
+                $Uri -eq '/rest/api/2/user' -and $GetParameter.username -eq 'opaque user+name' -and $GetParameter.expand -eq 'groups'
+            }
         }
 
-        Describe "Cloud Deployment" {
-            BeforeAll {
-                Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
+        It 'uses opaque Cloud account IDs instead of their display names' {
+            Mock Test-JiraCloudServer { $true }
+            $user = [AtlassianPS.JiraPS.User]@{ AccountId = 'any:opaque value'; DisplayName = 'Human name' }
+            $result = $user | Get-JiraUser
+            $result.AccountId | Should -Be 'any:opaque value'
+            Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter { $GetParameter.accountId -eq 'any:opaque value' }
+        }
 
-                $script:testAccountId = '5b10ac8d82e05b22cc7d4ef5'
+        It 'interprets Cloud string inputs as literal account IDs without guessing their format' {
+            Mock Test-JiraCloudServer { $true }
+            Get-JiraUser -User 'literal opaque identifier'
+            Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter { $GetParameter.accountId -eq 'literal opaque identifier' }
+        }
 
-                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
-                    $Method -eq 'Get' -and $URI -like "/rest/api/*/user/search?*query=*"
-                } {
-                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                    ConvertFrom-Json -InputObject $restResult
-                }
+        It 'rejects display-name-only objects before making requests' {
+            $user = [AtlassianPS.JiraPS.User]@{ DisplayName = 'Human name' }
+            { $user | Get-JiraUser } | Should -Throw '*Display names*'
+            Should -Invoke Invoke-JiraRequest -Exactly 0
+        }
 
-                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
-                    $Method -eq 'Get' -and $URI -like "/rest/api/*/user?accountId=*"
-                } {
-                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                    ConvertFrom-Json -InputObject $restResult2
-                }
+        It 'returns the current-user response without fetching it again' {
+            Get-JiraUser
+            Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter { $Uri -eq '/rest/api/2/myself' }
+        }
 
-                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
-                    $Method -eq 'Get' -and $URI -like "/rest/api/*/myself"
-                } {
-                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                    $obj = ConvertFrom-Json -InputObject $restResult
-                    $obj | Add-Member -NotePropertyName 'accountId' -NotePropertyValue $testAccountId -Force
-                    $obj
-                }
-
-                Mock Invoke-JiraRequest -ModuleName JiraPS {
-                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                    throw "Unidentified call to Invoke-JiraRequest"
-                }
+        It 'forwards explicit query paging and emits no records for an empty search' {
+            Mock Invoke-JiraRequest {}
+            @(Get-JiraUser -Query 'name' -IncludeInactive -First 3 -Skip 2 -PageSize 10) | Should -HaveCount 0
+            Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter {
+                $Uri -eq '/rest/api/2/user/search' -and $GetParameter.username -eq 'name' -and
+                $GetParameter.includeInactive -eq 'true' -and $First -eq 3 -and $Skip -eq 2 -and $PageSize -eq 10 -and $Paging
             }
+        }
 
-            It "uses query parameter instead of username for search on Cloud" {
-                Get-JiraUser -UserName $testUsername
+        It 'rejects inactive-user search on Cloud with enumeration guidance' {
+            Mock Test-JiraCloudServer { $true }
+            { Get-JiraUser -Query 'name' -IncludeInactive } | Should -Throw '*Use -All*'
+            Should -Invoke Invoke-JiraRequest -Exactly 0
+        }
 
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $URI -like "*rest/api/*/user/search?*query=*"
-                }
-            }
+        It 'uses explicit deployment-specific enumeration endpoints' -ForEach @(
+            @{ Cloud = $true; Endpoint = '/rest/api/3/users/search' }
+            @{ Cloud = $false; Endpoint = '/rest/api/2/user/list' }
+        ) {
+            if ($Cloud) { Mock Test-JiraCloudServer { $true } }
+            else { Mock Test-JiraCloudServer { $false } }
+            Get-JiraUser -All -First 2
+            Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter { $Uri -eq $Endpoint -and $Paging }
+        }
 
-            It "uses accountId for exact lookup on Cloud" {
-                Get-JiraUser -AccountId $testAccountId -Exact
+        It 'explains unsupported Data Center enumeration without adding a version requirement' {
+            Mock Invoke-JiraRequest { throw [Management.Automation.ErrorRecord]::new([Exception]::new('missing'), 'NotFound', [Management.Automation.ErrorCategory]::ObjectNotFound, $null) }
+            { Get-JiraUser -All } | Should -Throw '*Use -Query*'
+        }
 
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $URI -like "*rest/api/*/user?accountId=$testAccountId*"
-                }
-            }
-
-            It "re-fetches by accountId when using -Self on Cloud" {
-                Get-JiraUser
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $URI -like "*rest/api/*/myself"
-                }
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
-                    $URI -like "*rest/api/*/user?accountId=$testAccountId*"
-                }
-            }
+        It 'rejects output paging on exact lookup' {
+            { Get-JiraUser -User 'name' -First 2 } | Should -Throw '*require -Query or -All*'
+            Should -Invoke Invoke-JiraRequest -Exactly 0
         }
     }
 }

@@ -87,11 +87,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock ConvertTo-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
                 foreach ($i in $InputObject) {
@@ -131,7 +126,7 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "keeps ID as an alias and has only the required parameter sets" {
                     $command = Get-Command Get-JiraFilter
-                    $command.Parameters.InputObject.Aliases | Should -Contain 'Id'
+                    $command.Parameters.Filter.Aliases | Should -Contain 'Id'
                     $command.ParameterSets.Count | Should -Be 2
                 }
 
@@ -146,7 +141,7 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             Context "Typed references and aliases" {
                 It "accepts arrays through '<parameter>'" -TestCases @(
-                    @{ parameter = 'InputObject' }
+                    @{ parameter = 'Filter' }
                     @{ parameter = 'Id' }
                 ) {
                     param($parameter)
@@ -214,7 +209,7 @@ InModuleScope JiraPS {
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.Filter object to the InputObject parameter" {
-                    { Get-JiraFilter -InputObject $sampleFilter } | Should -Not -Throw
+                    { Get-JiraFilter -Filter $sampleFilter } | Should -Not -Throw
 
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like '*rest/api/*/filter/12844' }
                 }

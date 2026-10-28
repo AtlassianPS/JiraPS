@@ -41,11 +41,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraIssueOperation {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
@@ -88,9 +83,7 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
-                    @{ parameter = 'LinkId'; type = 'AtlassianPS.JiraPS.Link[]' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                    @{ parameter = 'Force'; type = 'Switch' }
+                    @{ parameter = 'Link'; type = 'AtlassianPS.JiraPS.Link[]' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type
@@ -105,35 +98,35 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             Context "Remote Link Deletion" {
                 It "Accepts a issue key to the -Issue parameter" {
-                    { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force } | Should -Not -Throw
+                    { Remove-JiraRemoteLink -Issue $testIssueKey -Link 10000 -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.Issue object to the -Issue parameter" {
                     $Issue = Get-JiraIssue $testIssueKey
-                    { Remove-JiraRemoteLink -Issue $Issue -LinkId 10000 -Force } | Should -Not -Throw
+                    { Remove-JiraRemoteLink -Issue $Issue -Link 10000 -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts pipeline input from Get-JiraIssue" {
-                    { Get-JiraIssue $testIssueKey | Remove-JiraRemoteLink -LinkId 10000 -Force } | Should -Not -Throw
+                    { Get-JiraIssue $testIssueKey | Remove-JiraRemoteLink -Link 10000 -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts the output of Get-JiraRemoteLink" {
                     $issue = [AtlassianPS.JiraPS.Issue]@{ Key = $testIssueKey }
                     $remoteLink = Get-JiraRemoteLink $issue
-                    { Remove-JiraRemoteLink -Issue $issue -LinkId $remoteLink.id -Force } | Should -Not -Throw
+                    { Remove-JiraRemoteLink -Issue $issue -Link $remoteLink.id -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Removes a group from JIRA" {
-                    { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force } | Should -Not -Throw
+                    { Remove-JiraRemoteLink -Issue $testIssueKey -Link 10000 -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Provides no output" {
-                    Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force | Should -BeNullOrEmpty
+                    Remove-JiraRemoteLink -Issue $testIssueKey -Link 10000 -Confirm:$false | Should -BeNullOrEmpty
                 }
             }
         }

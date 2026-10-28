@@ -41,9 +41,9 @@ InModuleScope JiraPS {
 
         AfterAll {
             try {
-                if ($ownedSearchIssue) { Remove-JiraIssue -IssueId $ownedSearchIssue.Key -Force -ErrorAction Stop }
+                if ($ownedSearchIssue) { Remove-JiraIssue -Issue $ownedSearchIssue.Key -Confirm:$false -ErrorAction Stop }
             }
-            finally { Remove-JiraSession -ErrorAction SilentlyContinue }
+            finally { Disconnect-Jira -ErrorAction SilentlyContinue }
         }
 
         Describe "Get-JiraIssue -Query" {

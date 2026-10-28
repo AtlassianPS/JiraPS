@@ -34,7 +34,6 @@ InModuleScope JiraPS {
         }
 
         It "resolves a relative URI against the configured Jira server and applies default page size" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'https://jira.example.com' }
 
             $result = Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/search' -Paging
 
@@ -72,10 +71,8 @@ InModuleScope JiraPS {
         }
 
         It 'resolves against the supplied context without looking up a global endpoint' {
-            Mock Get-JiraConfigServer { throw 'Unexpected global lookup.' }
             $result = Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/field'
             $result.Uri.Host | Should -Be 'jira.example.com'
-            Should -Invoke Get-JiraConfigServer -Times 0 -Exactly
         }
 
         It 'rejects absolute resources from another origin' {

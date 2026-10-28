@@ -1,14 +1,16 @@
 ﻿function Get-JiraIssueEditMetadataOperation {
+    <#
+    .SYNOPSIS
+        Retrieve edit metadata for a typed Jira issue or issue identifier.
+    #>
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '')]
     [CmdletBinding()]
     param(
-        [Parameter( Mandatory )]
-        [String]
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
+        [AtlassianPS.JiraPS.Issue]
         $Issue,
-        <#
-          #ToDo:CustomClass
-          Now that we have custom classes, this could be typed as [AtlassianPS.JiraPS.Issue]
-        #>
 
         [Parameter()]
         [AtlassianPS.Connection]
@@ -26,11 +28,7 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $parameter = @{
-            URI    = $resourceURi -f $Issue
-            <#
-              #ToDo:CustomClass
-              When the Input is typecasted to a AtlassianPS.JiraPS.Issue, the `self` of the issue can be used
-            #>
+            URI    = $resourceURi -f $(if ($Issue.Key) { $Issue.Key } else { $Issue.Id })
             Method = "GET"
         }
         Write-DebugMessage "Invoking JiraMethod with `$parameter"

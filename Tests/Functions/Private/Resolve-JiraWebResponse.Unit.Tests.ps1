@@ -101,7 +101,6 @@ InModuleScope JiraPS {
         }
 
         It "stores cache entries for GET responses when CacheKey is provided" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'https://jira.example.com' }
             $script:JiraCache = @{}
 
             $response = New-FakeWebResponse -StatusCode 200 -Json '{"name":"field"}'
@@ -117,7 +116,6 @@ InModuleScope JiraPS {
         }
 
         It "does not create a cache entry for non-GET responses" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'https://jira.example.com' }
             $script:JiraCache = @{}
 
             $response = New-FakeWebResponse -StatusCode 200 -Json '{"name":"field"}'

@@ -13,7 +13,6 @@ InModuleScope JiraPS {
         }
 
         It "defaults ContentType only when a body is supplied" {
-            Mock Get-JiraSession -ModuleName 'JiraPS' { $null }
 
             $withBody = New-JiraWebRequestSplat -RequestContext (Get-JiraConnection -Default) -Uri 'https://jira.example.com/rest/api/2/issue' -Method Post -Headers @{} -Body '{}' -DefaultContentType 'application/json; charset=utf-8'
             $withoutBody = New-JiraWebRequestSplat -RequestContext (Get-JiraConnection -Default) -Uri 'https://jira.example.com/rest/api/2/issue' -Method Post -Headers @{} -InFile './attachment.bin' -DefaultContentType 'application/json; charset=utf-8'
@@ -23,7 +22,6 @@ InModuleScope JiraPS {
         }
 
         It "honors explicit Content-Type header and removes it from Headers" {
-            Mock Get-JiraSession -ModuleName 'JiraPS' { $null }
 
             $headers = @{
                 'Content-Type' = 'text/plain'

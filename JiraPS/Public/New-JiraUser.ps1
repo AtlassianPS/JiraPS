@@ -1,87 +1,45 @@
 ﻿function New-JiraUser {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsShouldProcess )]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
-        [Parameter( Mandatory )]
-        [String]
-        $UserName,
-
-        [Parameter( Mandatory )]
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
         [Alias('Email')]
-        [String]
-        $EmailAddress,
+        [String]$EmailAddress,
 
-        [String]
-        $DisplayName,
+        [ValidateNotNullOrEmpty()]
+        [String]$UserName,
 
-        [Boolean]
-        $Notify = $true,
+        [String]$DisplayName,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
+        [AllowEmptyCollection()]
+        [ValidateSet('jira-core', 'jira-servicedesk', 'jira-product-discovery', 'jira-software')]
+        [String[]]$Products,
 
-        [Alias('Session')]
-        [AtlassianPS.Connection]
-        $Connection
+        [AtlassianPS.Connection]$Connection
     )
 
-    begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters -UserEmailField
-
-            $resourceURi = "/rest/api/2/user"
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
-    }
-
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
-
-            $requestBody = @{
-                "name"         = $UserName
-                "emailAddress" = $EmailAddress
-                "notification" = $Notify
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters -UserEmailField
+        $isCloud = Test-JiraCloudServer -RequestContext $requestContext
+        $body = @{ emailAddress = $EmailAddress }
+        if ($isCloud) {
+            if ($PSBoundParameters.ContainsKey('UserName') -or $PSBoundParameters.ContainsKey('DisplayName')) {
+                throw 'Cloud user creation does not accept UserName or DisplayName. Supply EmailAddress and Products.'
             }
-
-            if ($DisplayName) { $requestBody.displayName = $DisplayName }
-            else {
-                Write-DebugMessage "[New-JiraUser] DisplayName was not specified; defaulting to UserName parameter [$UserName]"
-                $requestBody.displayName = $UserName
-            }
-
-            $parameter = @{
-                URI    = $resourceURi
-                Method = "POST"
-                Body   = ConvertTo-Json -InputObject $requestBody
-            }
-            Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {
-                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
-
-                Write-Output (ConvertTo-JiraUser -InputObject $result)
-            }
+            if (-not $PSBoundParameters.ContainsKey('Products')) { throw 'Cloud user creation requires an explicit Products array. Use @() for no product access.' }
+            $body['products'] = @($Products)
         }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+        else {
+            if (-not $UserName) { throw 'Data Center user creation requires UserName.' }
+            if ($PSBoundParameters.ContainsKey('Products')) { throw 'Products is a Cloud user-creation parameter.' }
+            $body['name'] = $UserName
+            $body['displayName'] = if ($PSBoundParameters.ContainsKey('DisplayName')) { $DisplayName } else { $UserName }
         }
-    }
-
-    end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
+        $apiVersion = if ($isCloud) { '3' } else { '2' }
+        if ($PSCmdlet.ShouldProcess($EmailAddress, 'Create Jira user')) {
+            $result = Invoke-JiraRequest -RequestContext $requestContext -Uri "/rest/api/$apiVersion/user" -Method Post -Body $body
+            ConvertTo-JiraUser -InputObject $result
         }
     }
 }

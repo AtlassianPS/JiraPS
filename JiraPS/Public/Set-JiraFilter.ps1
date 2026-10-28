@@ -6,7 +6,7 @@
         [ValidateNotNullOrEmpty()]
         [AtlassianPS.JiraPS.FilterTransformation()]
         [AtlassianPS.JiraPS.Filter]
-        $InputObject,
+        $Filter,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -27,12 +27,10 @@
         [Bool]
         $Favorite,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
+        [Switch]
+        $PassThru,
 
-        [Alias('Session')]
+        [Parameter()]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -40,56 +38,39 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            if ($InputObject -and -not $InputObject.RestUrl) {
-                $InputObject = Get-JiraFilterOperation -Id $InputObject.Id -RequestContext $RequestContext -ErrorAction Stop
-            }
-
-            $requestBody = @{}
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) { $requestBody["name"] = $Name }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) { $requestBody["description"] = $Description }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("JQL")) { $requestBody["jql"] = $JQL }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Favorite")) { $requestBody["favourite"] = $Favorite }
-
-            if ($requestBody.Keys.Count) {
-                $parameter = @{
-                    URI    = $InputObject.RestURL
-                    Method = "PUT"
-                    Body   = ConvertTo-Json -InputObject $requestBody
-                }
-                Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($InputObject.Name, "Update Filter")) {
-                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
-
-                    Write-Output (ConvertTo-JiraFilter -InputObject $result)
-                }
-            }
+        if ($Filter -and -not $Filter.RestUrl) {
+            $Filter = Get-JiraFilterOperation -Id $Filter.Id -RequestContext $RequestContext -ErrorAction Stop
         }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+
+        $requestBody = @{}
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Name")) { $requestBody["name"] = $Name }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) { $requestBody["description"] = $Description }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("JQL")) { $requestBody["jql"] = $JQL }
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Favorite")) { $requestBody["favourite"] = $Favorite }
+
+        if ($requestBody.Keys.Count) {
+            $parameter = @{
+                URI    = $Filter.RestURL
+                Method = "PUT"
+                Body   = ConvertTo-Json -InputObject $requestBody
+            }
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($Filter.Name, "Update Filter")) {
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+                if ($PassThru) { ConvertTo-JiraFilter -InputObject $result }
+            }
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

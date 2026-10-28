@@ -16,15 +16,17 @@ This function returns information about Jira fields.
 
 ### _All (Default)
 
-```powershell
-Get-JiraField [-Force] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+Get-JiraField [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```powershell
-Get-JiraField [-Field] <AtlassianPS.JiraPS.Field[]> [-Force] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
+Get-JiraField [-Field] <AtlassianPS.JiraPS.Field[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -35,7 +37,7 @@ Typically, this information is only needed when identifying what fields are nece
 See `Get-JiraIssueCreateMetadata` for more details.
 
 Results are cached for 60 minutes to reduce API calls.
-Use the `-Force` parameter to bypass the cache and fetch fresh data from the server.
+Use the `-Refresh` parameter to fetch and replace the cached response and fetch fresh data from the server.
 
 ## EXAMPLES
 
@@ -58,29 +60,34 @@ This example returns information about the Key field.
 ### Example 3
 
 ```powershell
-Get-JiraField -Force
+Get-JiraField -Refresh
 ```
 
 This example bypasses the cache and fetches fresh field data from the server.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Field
@@ -105,16 +112,13 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Force
+### -Refresh
 
-Bypass the cache and fetch fresh data from the server.
-
-By default, field data is cached for 60 minutes to reduce API calls.
-Use this parameter when you need the most up-to-date field information, for example after making configuration changes in Jira.
+Fetch fresh data and replace the selected connection's cached response.
 
 ```yaml
 Type: SwitchParameter
-DefaultValue: False
+DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -129,39 +133,16 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Field
-
-Pipe a field object to retrieve its current details.
-
-### System.String
-
-Pipe a field ID or name pattern.
+### AtlassianPS.JiraPS.Field[]
 
 ## OUTPUTS
 
@@ -174,7 +155,7 @@ Use `Connect-Jira` to create a connection.
 For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 Results are cached for 60 minutes per server.
-Use `-Force` to bypass the cache, or use `Clear-JiraCache -Type Fields` to clear all cached field data.
+Use `-Refresh` to fetch and replace the cached response, or use `Clear-JiraCache -Type Fields` to clear all cached field data.
 
 Remaining operations for `field` have not yet been implemented in the module.
 

@@ -14,37 +14,47 @@ Creates a new user in JIRA
 
 ## SYNTAX
 
-```powershell
-New-JiraUser [-UserName] <string> [-EmailAddress] <string> [[-DisplayName] <string>] [[-Notify] <bool>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+New-JiraUser [-EmailAddress] <string> [[-UserName] <string>] [[-DisplayName] <string>]
+ [[-Products] <string[]>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
-This function creates a new user in JIRA.
-
-By default, the new user will be notified via e-mail.
-
-The new user's password is also randomly generated.
+Creates users through the deployment-specific Jira API.
+Cloud requires EmailAddress and an explicit Products array.
+Data Center requires EmailAddress and UserName, with optional DisplayName.
+Cloud rejects Data Center-only parameters; Data Center rejects Products.
+Returns the typed user from the creation response without a follow-up lookup.
+Invitation behavior is controlled by Atlassian or Jira; no Boolean notification flag is sent.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-New-JiraUser -UserName "testUser" -EmailAddress "testUser@example.com"
+New-JiraUser -EmailAddress 'me@example.com' -Products jira-software -Connection $cloud
 ```
 
-This example creates a new JIRA user named testUser,
-and sends a notification e-mail.
-The user's DisplayName will be set to "testUser" since it is not specified.
+Create a Cloud user with Jira Software access.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-New-JiraUser -UserName "testUser2" -EmailAddress "testUser2@example.com" -DisplayName "Test User 2"
+New-JiraUser -EmailAddress 'me@example.com' -Products @() -Connection $cloud
 ```
 
-This example illustrates setting a user's display name during user creation.
+Create a Cloud user without product access.
+
+### Example 3
+
+```powershell
+New-JiraUser -EmailAddress 'me@example.com' -UserName me -DisplayName 'My Name' -Connection $dataCenter
+```
+
+Create a Data Center user with an explicit username and display name.
 
 ## PARAMETERS
 
@@ -70,27 +80,34 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: 4
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 4
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -DisplayName
 
-Display name of the user.
+Data Center display name.
+When omitted, Data Center uses UserName.
+This parameter is unavailable on Cloud.
 
 ```yaml
 Type: String
@@ -111,7 +128,7 @@ HelpMessage: ''
 
 ### -EmailAddress
 
-E-mail address of the user.
+Email address of the user to create.
 
 ```yaml
 Type: String
@@ -121,7 +138,7 @@ Aliases:
 - Email
 ParameterSets:
 - Name: (All)
-  Position: 1
+  Position: 0
   IsRequired: true
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -131,13 +148,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Notify
+### -Products
 
-Notify the user by e-mail
+Explicit Cloud product access list.
+Use @() to request no product access.
+This parameter is unavailable on Data Center.
 
 ```yaml
-Type: Boolean
-DefaultValue: True
+Type: String[]
+DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -154,7 +173,8 @@ HelpMessage: ''
 
 ### -UserName
 
-Name of user.
+Required username for Data Center.
+This parameter is unavailable on Cloud.
 
 ```yaml
 Type: String
@@ -163,8 +183,8 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 0
-  IsRequired: true
+  Position: 1
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -196,25 +216,6 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: 5
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -223,6 +224,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
+
+None.
 
 ## OUTPUTS
 

@@ -28,12 +28,12 @@ InModuleScope JiraPS {
         }
 
         It 'resolves a stub with the effective override identity and isolated cookies' {
-            Mock Get-JiraIssueOperation { [AtlassianPS.JiraPS.Issue]@{ Key = $Key; RestURL = 'https://jira.example.com/rest/api/2/issue/TEST-1' } }
+            Mock Get-JiraIssueOperation { [AtlassianPS.JiraPS.Issue]@{ Key = $Issue.Key; RestURL = 'https://jira.example.com/rest/api/2/issue/TEST-1' } }
             $result = Resolve-JiraIssueObject -InputObject ([AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }) -RequestContext $context
 
             $result.Key | Should -Be 'TEST-1'
             Should -Invoke Get-JiraIssueOperation -Exactly 1 -ParameterFilter {
-                $Key -eq 'TEST-1' -and [Object]::ReferenceEquals($RequestContext, $script:context) -and
+                $Issue.Key -eq 'TEST-1' -and [Object]::ReferenceEquals($RequestContext, $script:context) -and
                 $RequestContext.GetAuthorizationHeader() -eq 'Bearer override-secret' -and $RequestContext.GetWebSession().Cookies.Count -eq 0
             }
             $source.GetAuthorizationHeader() | Should -Be 'Bearer source-secret'

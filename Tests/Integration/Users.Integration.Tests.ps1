@@ -24,31 +24,31 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraUser" {
             Context "User Retrieval" -Skip:$SkipUserTests {
                 It "retrieves a user by account ID" {
-                    $user = Get-JiraUser -AccountId $fixtures.TestUser
+                    $user = Get-JiraUser -User $fixtures.TestUser
 
                     $user | Should -Not -BeNullOrEmpty
                 }
 
                 It "returns user object with correct type" {
-                    $user = Get-JiraUser -AccountId $fixtures.TestUser
+                    $user = Get-JiraUser -User $fixtures.TestUser
 
                     $user.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
                 }
 
                 It "includes display name" {
-                    $user = Get-JiraUser -AccountId $fixtures.TestUser
+                    $user = Get-JiraUser -User $fixtures.TestUser
 
                     $user.DisplayName | Should -Not -BeNullOrEmpty
                 }
 
                 It "includes account ID" {
-                    $user = Get-JiraUser -AccountId $fixtures.TestUser
+                    $user = Get-JiraUser -User $fixtures.TestUser
 
                     $user.AccountId | Should -Be $fixtures.TestUser
                 }
@@ -56,7 +56,7 @@ InModuleScope JiraPS {
 
             Context "Current User" {
                 It "retrieves the current authenticated user via session" {
-                    $connection = Get-JiraSession -Default
+                    $connection = Get-JiraConnection -Default
 
                     $connection | Should -BeOfType [AtlassianPS.Connection]
                     $connection.State | Should -Be 'Active'
@@ -71,7 +71,7 @@ InModuleScope JiraPS {
 
             Context "Error Handling" {
                 It "fails for non-existent account ID" {
-                    { Get-JiraUser -AccountId 'nonexistent-account-id-12345' -ErrorAction Stop } |
+                    { Get-JiraUser -User 'nonexistent-account-id-12345' -ErrorAction Stop } |
                         Should -Throw
                 }
             }

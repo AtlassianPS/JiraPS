@@ -16,21 +16,29 @@ Modifies an existing issue in Jira.
 
 ### AssignToUser (Default)
 
-```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>] [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
+ [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-PassThru]
+ [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Unassign
 
-```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>] [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
+ [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-PassThru]
+ [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### UseDefaultAssignee
 
-```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>] [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
+ [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-PassThru]
+ [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -180,27 +188,33 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Description
 
-New description of the issue.
+Replacement description.
+An empty string or null clears the description; omission preserves it.
 
 ```yaml
 Type: String
@@ -253,10 +267,11 @@ HelpMessage: ''
 
 ### -FixVersion
 
-Set the FixVersion of the issue, this will overwrite any present FixVersions.
+Typed versions or version names/IDs to replace on the issue.
+An empty array clears fix versions; omission preserves them.
 
 ```yaml
-Type: String[]
+Type: AtlassianPS.JiraPS.Version[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -275,9 +290,7 @@ HelpMessage: ''
 
 ### -Issue
 
-Issue to be changed.
-
-Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -299,11 +312,8 @@ HelpMessage: ''
 
 ### -Label
 
-Labels to be set on the issue.
-
-These will overwrite any existing labels on the issue.
-
-For more granular control over issue labels, use `Set-JiraIssueLabel`.
+Labels to replace on the issue.
+An empty array or null clears labels; omission preserves them.
 
 ```yaml
 Type: String[]
@@ -454,33 +464,16 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String / Int
+### AtlassianPS.JiraPS.Issue
 
 ## OUTPUTS
 

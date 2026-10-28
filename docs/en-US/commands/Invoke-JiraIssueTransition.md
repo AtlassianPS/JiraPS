@@ -16,15 +16,21 @@ Changes an issue's status by performing a Jira transition.
 
 ### AssignToUser (Default)
 
-```powershell
-Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>] [-Assignee <AtlassianPS.JiraPS.User>] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>]
+ [-Assignee <AtlassianPS.JiraPS.User>] [-Comment <string>] [-TimeSpent <timespan>] [-Passthru]
+ [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Unassign
 
-```powershell
-Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>] [-Unassign] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
+Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>] [-Unassign]
+ [-Comment <string>] [-TimeSpent <timespan>] [-Passthru] [-Connection <AtlassianPS.Connection>] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -142,22 +148,49 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Confirm
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Prompts you for confirmation before running the cmdlet.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- cf
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -Connection
+
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
+
+```yaml
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Fields
@@ -194,9 +227,7 @@ HelpMessage: ''
 
 ### -Issue
 
-The issue object or ID to transition.
-
-Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -237,27 +268,6 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Transition
-
-Transition object, numeric ID or unambiguous available transition name.
-
-```yaml
-Type: AtlassianPS.JiraPS.Transition
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -TimeSpent
 
 Time spent to record as a worklog during the transition.
@@ -274,6 +284,27 @@ ParameterSets:
 - Name: (All)
   Position: Named
   IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Transition
+
+Transition object, numeric ID or unambiguous available transition name.
+
+```yaml
+Type: AtlassianPS.JiraPS.Transition
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: true
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -305,43 +336,38 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
+### -WhatIf
 
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
+Runs the command in a mode that only reports what would happen without performing the actions.
 
 ```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ### AtlassianPS.JiraPS.Issue
-
-Pipe an issue object to transition it.
-
-### System.String
-
-Pipe an issue key or numeric issue ID.
-
-### System.Int64
-
-Pipe a numeric issue ID.
 
 ## OUTPUTS
 

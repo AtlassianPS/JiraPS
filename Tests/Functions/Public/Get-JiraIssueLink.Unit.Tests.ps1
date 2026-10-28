@@ -29,11 +29,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             # Generic catch-all. This will throw an exception if we forgot to mock something.
             Mock Invoke-JiraRequest -ModuleName JiraPS {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
@@ -70,8 +65,7 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Id"; type = "Int32[]" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
+                    @{ parameter = "IssueLink"; type = "AtlassianPS.JiraPS.IssueLink[]" }
                 ) {
                     $command | Should -HaveParameter $parameter
                 }
@@ -100,7 +94,7 @@ InModuleScope JiraPS {
             }
 
             It 'Fails if input from the pipeline is of the wrong type' {
-                { [PSCustomObject]@{id = $issueLinkId } | Get-JiraIssueLink } | Should -Throw -ExpectedMessage "*Invalid Parameter*"
+                { [PSCustomObject]@{name = 'invalid' } | Get-JiraIssueLink -ErrorAction Stop } | Should -Throw -ExpectedMessage "*IssueLink*"
             }
         }
 

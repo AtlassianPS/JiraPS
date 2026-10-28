@@ -1,4 +1,10 @@
 ﻿function Get-JiraServerInformationOperation {
+    <#
+    .SYNOPSIS
+        Retrieve cached deployment metadata from the selected Jira endpoint.
+    .DESCRIPTION
+        Refresh fetches a new response and replaces the connection-scoped cache entry.
+    #>
     [CmdletBinding()]
     param(
         [Parameter()]
@@ -6,7 +12,7 @@
         $RequestContext,
 
         [Switch]
-        $Force
+        $Refresh
     )
 
     begin {
@@ -25,7 +31,7 @@
 
             CacheKey    = 'ServerInfo'
             CacheExpiry = [TimeSpan]::FromMinutes(5)
-            BypassCache = $Force
+            BypassCache = $Refresh
         }
         Write-DebugMessage "Invoking JiraMethod with `$parameter"
 

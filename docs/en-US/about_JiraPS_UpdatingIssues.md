@@ -109,7 +109,8 @@ Get-JiraIssue TEST-1 | Add-JiraIssueComment "Current PowerShell processes:`n$com
 
 > `ConvertTo-JiraTable` (formerly `Format-Jira`) is a destructive transform: it walks the input pipeline and emits a single string, dropping any per-object data that is not selected via `-Property`.
 > Remember to "filter left, format right!"
-> The deprecated `Format-Jira` alias still works but will be removed in a future major version.
+> The deprecated `Format-Jira` alias is removed in v3.
+> Use `ConvertTo-JiraTable`.
 
 Comments can also be added while changing other fields of issues, e.g. the assignee:
 

@@ -1,12 +1,16 @@
 ﻿function Get-JiraFilterOperation {
-    [CmdletBinding( DefaultParameterSetName = 'ByInputObject' )]
+    <#
+    .SYNOPSIS
+        Retrieve exact filters or the authenticated user's favorite filters.
+    #>
+    [CmdletBinding( DefaultParameterSetName = 'ByFilter' )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByFilter' )]
         [ValidateNotNull()]
         [Alias('Id')]
         [AtlassianPS.JiraPS.FilterTransformation()]
         [AtlassianPS.JiraPS.Filter[]]
-        $InputObject,
+        $Filter,
 
         [Parameter( Mandatory, ParameterSetName = 'MyFavorite' )]
         [Alias('Favourite')]
@@ -29,8 +33,8 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
-            "ByInputObject" {
-                foreach ($filter in $InputObject) {
+            "ByFilter" {
+                foreach ($filter in $Filter) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filter]"
                     Write-DebugMessage "Processing `$filter [$filter]"
 

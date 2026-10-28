@@ -4,7 +4,6 @@
     [OutputType( [AtlassianPS.Connection] )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ParameterSetName = 'Object' )]
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection,
 

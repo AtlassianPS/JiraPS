@@ -16,10 +16,6 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'Test-JiraCloudServer' 'Credential'
                 $false
             }
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                'https://jira.example'
-            }
             Mock Resolve-JiraIssueObject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Resolve-JiraIssueObject' 'InputObject', 'Credential'
                 [AtlassianPS.JiraPS.Issue]@{
@@ -129,7 +125,7 @@ InModuleScope JiraPS {
         }
 
         It 'uses remote link identifiers without narrowing a long to Int32' {
-            Remove-JiraRemoteLink -Issue TEST-1 -LinkId ([AtlassianPS.JiraPS.Link]@{
+            Remove-JiraRemoteLink -Issue TEST-1 -Link ([AtlassianPS.JiraPS.Link]@{
                     Id = 4294967296
                 }) -Confirm:$false
             Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
@@ -157,7 +153,7 @@ InModuleScope JiraPS {
                 )
             }
             $legacy.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
-            $legacy | Remove-JiraFilterPermission -Confirm:$false
+            $legacy | Remove-JiraFilterPermission -Permission 20 -Confirm:$false
             Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -eq 'https://jira.example/rest/api/2/filter/10/permission/20'
             }

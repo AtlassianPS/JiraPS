@@ -101,11 +101,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock ConvertTo-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
                 $i = New-Object -TypeName PSCustomObject
@@ -122,7 +117,7 @@ InModuleScope JiraPS {
 
             Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
-                foreach ($item in $InputObject) {
+                foreach ($item in $Filter) {
                     [AtlassianPS.JiraPS.Filter]@{
                         Id      = $item.Id
                         RestUrl = "$jiraServer/rest/api/2/filter/$($item.Id)"
@@ -160,7 +155,6 @@ InModuleScope JiraPS {
                     @{ parameter = 'Filter'; type = 'AtlassianPS.JiraPS.Filter[]' }
                     @{ parameter = 'Type'; type = 'String' }
                     @{ parameter = 'Value'; type = 'String' }
-                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
                     param($parameter, $type)
 
@@ -169,11 +163,6 @@ InModuleScope JiraPS {
             }
 
             Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = $null }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
             }
 
             Context "Mandatory Parameters" {
@@ -229,20 +218,10 @@ InModuleScope JiraPS {
                         $URI -like '*/rest/api/*/filter/12844/permission'
                     }
 
-                    Should -Invoke 'ConvertTo-JiraFilter' -ModuleName 'JiraPS' -Exactly -Times 1
                 }
             }
 
             Context "Filter ID Input" {
-                It "forwards credentials when resolving filter IDs and adding permissions" {
-                    $credential = [PSCredential]::new('filter-owner', (ConvertTo-SecureString 'fixture-password' -AsPlainText -Force))
-                    Add-JiraFilterPermission -Id 12844 -Type Global -Credential $credential -Confirm:$false
-
-                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
-                        $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
-                    }
-                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
-                }
 
                 It "does not add permissions under WhatIf" {
                     Add-JiraFilterPermission -Id 12844 -Type Global -WhatIf
@@ -260,7 +239,6 @@ InModuleScope JiraPS {
                         $URI -like '*/rest/api/*/filter/12844/permission'
                     }
 
-                    Should -Invoke -CommandName ConvertTo-JiraFilter -ModuleName JiraPS -Exactly -Times 1
                 }
             }
         }

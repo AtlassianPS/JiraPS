@@ -1,89 +1,40 @@
 ﻿function Get-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'byInputVersion' )]
+    [CmdletBinding(SupportsPaging, DefaultParameterSetName = 'Version')]
     param(
-        [Parameter( Mandatory, ParameterSetName = 'byId' )]
-        [Int[]]
-        $Id,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputVersion' )]
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline, ParameterSetName = 'Version')]
         [ValidateNotNull()]
+        [Alias('Id')]
         [AtlassianPS.JiraPS.VersionTransformation(AllowPipelineFallthrough = $true)]
-        [AtlassianPS.JiraPS.Version]
-        $InputVersion,
+        [AtlassianPS.JiraPS.Version[]]$Version,
 
-        [Parameter( Position = 0, Mandatory , ParameterSetName = 'byProject' )]
+        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
+        [ValidateNotNull()]
         [Alias('Key')]
-        [String[]]
-        $Project,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputProject' )]
         [AtlassianPS.JiraPS.ProjectTransformation(AllowPipelineFallthrough = $true)]
-        [AtlassianPS.JiraPS.Project[]]
-        $InputProject,
+        [AtlassianPS.JiraPS.Project[]]$Project,
 
-        [Parameter( ParameterSetName = 'byProject' )]
-        [Parameter( ParameterSetName = 'byInputProject' )]
-        [Alias('Versions')]
-        [String[]]
-        $Name = "*",
+        [Parameter(ParameterSetName = 'Project')]
+        [String[]]$Name = '*',
 
-        [Parameter( ParameterSetName = 'byProject' )]
-        [Parameter( ParameterSetName = 'byInputProject' )]
-        [ValidateSet("sequence",
-            "name",
-            "startDate",
-            "releaseDate"
-        )]
-        [String]
-        $Sort = "name",
+        [Parameter(ParameterSetName = 'Project')]
+        [ValidateSet('sequence', 'name', 'startDate', 'releaseDate')]
+        [String]$Sort = 'name',
 
-        [UInt32]
-        $PageSize = $script:DefaultPageSize,
+        [ValidateRange(1, [int]::MaxValue)]
+        [Int]$PageSize = $script:DefaultPageSize,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
-        [AtlassianPS.Connection]
-        $Connection
+        [AtlassianPS.Connection]$Connection
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-        Write-DebugMessage -BoundParameters $PSBoundParameters
-
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{} + $PSBoundParameters
-        $null = $operationParameters.Remove('Connection')
-        $null = $operationParameters.Remove('Credential')
-        $operationParameters['RequestContext'] = $requestContext
-
-        try {
-            $operation = { Get-JiraVersionOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-            $operation.Begin($PSCmdlet)
-        }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $parameters = @{} + $PSBoundParameters
+        $null = $parameters.Remove('Connection')
+        $parameters['RequestContext'] = $requestContext
+        $operation = { Get-JiraVersionOperation @parameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+        $operation.Begin($PSCmdlet)
     }
-
-    process {
-        try { $operation.Process($_) }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
-    }
-
-    end {
-        try { $operation.End() }
-        finally {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-        }
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-    }
+    process { $operation.Process($_) }
+    end { $operation.End() }
 }

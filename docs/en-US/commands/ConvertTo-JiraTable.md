@@ -14,9 +14,11 @@ Converts an object into a Jira **wiki-markup** table string (Server / Data Cente
 
 ## SYNTAX
 
-```powershell
+```
 ConvertTo-JiraTable [-InputObject] <psobject[]> [[-Property] <Object[]>] [<CommonParameters>]
 ```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -30,7 +32,8 @@ Despite producing tabular output, this cmdlet is intentionally a `ConvertTo-*` r
 > Jira **Cloud** (REST v3) expects [Atlassian Document Format (ADF)](https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/) and renders `||header||` syntax as literal text rather than as a table.
 > Wrapping these payloads in ADF on Cloud is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
 
-Deprecated alias: `Format-Jira` (will be removed in a future major version; update scripts to call `ConvertTo-JiraTable` directly).
+The deprecated `Format-Jira` alias is removed in v3.
+Use `ConvertTo-JiraTable`.
 
 ## EXAMPLES
 
@@ -111,6 +114,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
+### System.Management.Automation.PSObject[]
+
 ## OUTPUTS
 
 ### System.String
@@ -123,8 +128,6 @@ Remember to "filter left, format right!"
 **Output format.**
 The output is Jira **wiki markup**, the native format for text fields on Jira Server / Data Center and for the legacy v2 REST API endpoints used by JiraPS write commands such as `Add-JiraIssueComment` and `Add-JiraIssueWorklog`.
 On Jira Cloud (REST v3 / ADF) the table syntax renders as literal text; ADF wrapping for the write-side cmdlets is tracked in [#602](https://github.com/AtlassianPS/JiraPS/issues/602).
-
-Alias: `Format-Jira` (deprecated)
 
 ## RELATED LINKS
 

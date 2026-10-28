@@ -87,11 +87,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock ConvertTo-JiraIssueType {
                 Write-MockDebugInfo 'ConvertTo-JiraIssueType'
                 $inputObject

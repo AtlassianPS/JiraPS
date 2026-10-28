@@ -18,12 +18,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
+            Mock Resolve-JiraUser { [AtlassianPS.JiraPS.User]@{ Name = $InputObject.Name; AccountId = $InputObject.Name } }
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
-
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
 
             Mock Get-JiraIssueOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
@@ -59,20 +55,14 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Watcher"; type = "String[]" }
+                    @{ parameter = "Watcher"; type = "AtlassianPS.JiraPS.User[]" }
                     @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
                 }
             }
 
             Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = $null }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
             }
 
             Context "Mandatory Parameters" {

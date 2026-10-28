@@ -14,9 +14,12 @@ Returns comments on an issue in Jira.
 
 ## SYNTAX
 
-```powershell
-Get-JiraIssueComment [-Issue] <AtlassianPS.JiraPS.Issue> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
+Get-JiraIssueComment [-Issue] <AtlassianPS.JiraPS.Issue> [[-PageSize] <int>] [[-Connection] <AtlassianPS.Connection>]
+ [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -27,44 +30,82 @@ This function obtains comments from existing issues in Jira.
 ### Example 1
 
 ```powershell
-Get-JiraIssueComment -Key TEST-001
+Get-JiraIssueComment -Issue PROJ-1 -First 10 -Skip 5 -PageSize 25
 ```
 
-This example returns all comments posted to issue TEST-001.
-
-### Example 2
-
-```powershell
-Get-JiraIssue TEST-002 | Get-JiraIssueComment
-```
-
-This example illustrates use of the pipeline to return all comments on issue TEST-002.
+Return ten comments after skipping five, using the shared Jira pager.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 2
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -First
+
+Maximum number of matching records to return.
+
+```yaml
+Type: UInt64
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -IncludeTotalCount
+
+Return total-count information before the records.
+Accuracy is unknown when Jira does not provide a total.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Issue
 
-Jira issue to check for comments.
-
-Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -84,33 +125,59 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
+### -PageSize
 
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
+Number of records requested per page.
+Use First to limit output and Skip to skip records.
 
 ```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
+Type: Int32
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
 
-Required: False
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+### -Skip
+
+Number of matching records to skip before returning output.
+
+```yaml
+Type: UInt64
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String
+### AtlassianPS.JiraPS.Issue
 
 ## OUTPUTS
 

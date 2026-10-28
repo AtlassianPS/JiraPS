@@ -27,10 +27,10 @@ InModuleScope JiraPS {
         AfterAll {
             foreach ($issue in $script:createdIssues) {
                 if ($issue -and $issue.Key) {
-                    Remove-JiraIssue -IssueId $issue.Key -Force -ErrorAction SilentlyContinue
+                    Remove-JiraIssue -Issue $issue.Key -Confirm:$false -ErrorAction SilentlyContinue
                 }
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraIssueWorklog" {

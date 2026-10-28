@@ -116,7 +116,7 @@ Describe 'Remove-StaleTestResource' -Tag Unit {
 
     It 'deletes only filters older than MaxAge and preserves active or unrecognized resources' {
         Should -Invoke Remove-JiraFilter -Times 1 -Exactly
-        Should -Invoke Remove-JiraFilter -Times 1 -Exactly -ParameterFilter { $InputObject.Id -eq 1 }
+        Should -Invoke Remove-JiraFilter -Times 1 -Exactly -ParameterFilter { $Filter.Id -eq 1 }
     }
 }
 

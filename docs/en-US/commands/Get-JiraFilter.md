@@ -14,17 +14,19 @@ Returns information about a filter in Jira.
 
 ## SYNTAX
 
-### ByInputObject (Default)
+### ByFilter (Default)
 
-```powershell
-Get-JiraFilter [-InputObject] <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+Get-JiraFilter [-Filter] <AtlassianPS.JiraPS.Filter[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### MyFavorite
 
-```powershell
-Get-JiraFilter -Favorite [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
+Get-JiraFilter -Favorite [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -63,22 +65,27 @@ Gets all filters makes as "favorite" by the user
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Favorite
@@ -103,11 +110,10 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -InputObject
+### -Filter
 
-Filter objects or positive numeric filter IDs to retrieve.
-Accepts numeric strings and pipeline input.
-`Id` is an alias for `InputObject`.
+Filter identifiers or typed filter objects.
+Pipe filter objects to this parameter.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter[]
@@ -116,7 +122,7 @@ SupportsWildcards: false
 Aliases:
 - Id
 ParameterSets:
-- Name: ByInputObject
+- Name: ByFilter
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
@@ -127,36 +133,16 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
-
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
-
-```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Filter / String
-
-The filter to look up in Jira.
-This can be a String (filter ID) or an AtlassianPS.JiraPS.Filter object.
+### AtlassianPS.JiraPS.Filter[]
 
 ## OUTPUTS
 

@@ -196,12 +196,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraIssueOperation {
+                $Key = $Issue.Key
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $raw = $TestIssueJSONs[$Key] | ConvertFrom-Json
 
@@ -217,12 +213,12 @@ InModuleScope JiraPS {
                 return $obj
             }
 
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-1?*" -and $Method -eq "Delete" } {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-1" -and $Method -eq "Delete" } {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 return $null
             }
 
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=False" -and $Method -eq "Delete" } {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2" -and $GetParameter.deleteSubtasks -eq "false" -and $Method -eq "Delete" } {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 $MockedResponse = @"
             {
@@ -244,7 +240,7 @@ InModuleScope JiraPS {
                 $PSCmdlet.WriteError($errorItem)
             }
 
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=True" -and $Method -eq "Delete" } {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2" -and $GetParameter.deleteSubtasks -eq "true" -and $Method -eq "Delete" } {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 return $null
             }
@@ -264,11 +260,9 @@ InModuleScope JiraPS {
 
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'IssueId'; type = 'String[]' }
-                    @{ parameter = 'InputObject'; type = 'AtlassianPS.JiraPS.Issue' }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue[]' }
+                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue[]' }
                     @{ parameter = 'IncludeSubTasks'; type = 'Switch' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                    @{ parameter = 'Force'; type = 'Switch' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type
@@ -285,23 +279,23 @@ InModuleScope JiraPS {
                 It "Accepts generic object with the correct properties" {
                     {
                         $issue = Get-JiraIssue -Key TEST-1
-                        Remove-JiraIssue -Issue $issue -Force
+                        Remove-JiraIssue -Issue $issue -Confirm:$false
                     } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts string-based input as a non-pipelined parameter" {
-                    { Remove-JiraIssue -IssueId TEST-1 -Force } | Should -Not -Throw
+                    { Remove-JiraIssue -Issue TEST-1 -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.Issue object over the pipeline" {
-                    { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Force } | Should -Not -Throw
+                    { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Writes an error on issues with subtasks" {
-                    Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorVariable removeError -ErrorAction SilentlyContinue
+                    Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Confirm:$false -ErrorVariable removeError -ErrorAction SilentlyContinue
 
                     $removeError | Should -Not -BeNullOrEmpty
                     $removeError[0].FullyQualifiedErrorId | Should -BeLike "ServerResponse*"
@@ -310,7 +304,7 @@ InModuleScope JiraPS {
                 }
 
                 It "Passes on issues with subtasks and -DeleteSubTasks" {
-                    { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Force } | Should -Not -Throw
+                    { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
             }

@@ -22,11 +22,6 @@
         $Favorite,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Alias('Session')]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -34,53 +29,36 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        try {
-            $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-            $resourceURi = "/rest/api/2/filter"
-        }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
-        }
+        $resourceURi = "/rest/api/2/filter"
     }
 
     process {
-        try {
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-            $requestBody = @{
-                name = $Name
-                jql  = $JQL
-            }
-            if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) { $requestBody["description"] = $Description }
-            $requestBody["favourite"] = [Bool]$Favorite
-
-            $parameter = @{
-                URI    = $resourceURi
-                Method = "POST"
-                Body   = ConvertTo-Json -InputObject $requestBody
-            }
-            Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($Name, "Creating new Filter")) {
-                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
-
-                Write-Output (ConvertTo-JiraFilter -InputObject $result)
-            }
+        $requestBody = @{
+            name = $Name
+            jql  = $JQL
         }
-        catch {
-            if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            throw
+        if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Description")) { $requestBody["description"] = $Description }
+        $requestBody["favourite"] = [Bool]$Favorite
+
+        $parameter = @{
+            URI    = $resourceURi
+            Method = "POST"
+            Body   = ConvertTo-Json -InputObject $requestBody
+        }
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        if ($PSCmdlet.ShouldProcess($Name, "Creating new Filter")) {
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+            Write-Output (ConvertTo-JiraFilter -InputObject $result)
         }
     }
 
     end {
-        try {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-        }
-        finally {
-            if ($RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        }
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

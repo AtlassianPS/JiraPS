@@ -39,22 +39,6 @@ elseif ($loadedJiraTypes.Count -lt $requiredJiraTypes.Count) {
 #endregion Dependencies
 
 #region Configuration
-$script:serverConfig = ("{0}/AtlassianPS/JiraPS/server_config" -f [Environment]::GetFolderPath('ApplicationData', 'Create'))
-
-$script:JiraServerUrl = $null
-if (Test-Path $script:serverConfig) {
-    try {
-        $serverConfigContent = Get-Content $script:serverConfig -Raw -ErrorAction Stop
-        if ($serverConfigContent) {
-            $firstLine = ($serverConfigContent -split '\r?\n')[0].Trim()
-            if ($firstLine) { $script:JiraServerUrl = [Uri]$firstLine }
-        }
-    }
-    catch {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to read config file: $_"
-    }
-}
-
 $script:DefaultContentType = "application/json; charset=utf-8"
 $script:DefaultPageSize = 25
 $script:DefaultHeaders = @{

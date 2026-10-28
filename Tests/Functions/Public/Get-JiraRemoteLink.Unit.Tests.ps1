@@ -40,11 +40,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock Get-JiraIssueOperation {
                 Write-MockDebugInfo 'Get-JiraIssue'
                 $object = [AtlassianPS.JiraPS.Issue]@{

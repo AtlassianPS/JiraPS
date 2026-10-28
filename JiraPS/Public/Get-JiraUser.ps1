@@ -1,88 +1,41 @@
 ﻿function Get-JiraUser {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( DefaultParameterSetName = 'Self' )]
+    [CmdletBinding(SupportsPaging, DefaultParameterSetName = 'Self')]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByUserName' )]
-        [AllowEmptyString()]
-        [Alias('User', 'Name')]
-        [String[]]
-        $UserName,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByAccountId' )]
-        [ValidateNotNullOrEmpty()]
-        [String[]]
-        $AccountId,
-
-        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline, ParameterSetName = 'User')]
         [ValidateNotNull()]
         [AtlassianPS.JiraPS.UserTransformation()]
-        [AtlassianPS.JiraPS.User[]]
-        $InputObject,
+        [AtlassianPS.JiraPS.User[]]$User,
 
-        [Parameter( ParameterSetName = 'ByInputObject' )]
-        [Parameter( ParameterSetName = 'ByUserName' )]
-        [Parameter( ParameterSetName = 'ByAccountId' )]
-        [Switch]
-        $Exact,
-
-        [Switch]
-        $IncludeInactive,
-
-        [Parameter( ParameterSetName = 'ByUserName' )]
-        [Parameter( ParameterSetName = 'ByAccountId' )]
-        [ValidateRange(1, 1000)]
-        [UInt32]
-        $MaxResults = 50,
-
-        [Parameter( ParameterSetName = 'ByUserName' )]
-        [Parameter( ParameterSetName = 'ByAccountId' )]
+        [Parameter(Mandatory, ParameterSetName = 'Query')]
         [ValidateNotNullOrEmpty()]
-        [UInt64]
-        $Skip = 0,
+        [String]$Query,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
+        [Parameter(Mandatory, ParameterSetName = 'All')]
+        [Switch]$All,
 
-        [Alias('Session')]
-        [AtlassianPS.Connection]
-        $Connection
+        [Parameter(ParameterSetName = 'Query')]
+        [Switch]$IncludeInactive,
+
+        [Parameter(ParameterSetName = 'Query')]
+        [Parameter(ParameterSetName = 'All')]
+        [ValidateRange(1, 1000)]
+        [Int]$PageSize = $script:DefaultPageSize,
+
+        [AtlassianPS.Connection]$Connection
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-        Write-DebugMessage -BoundParameters $PSBoundParameters
-
+        if ($PSCmdlet.ParameterSetName -in @('Self', 'User') -and @('First', 'Skip', 'IncludeTotalCount' | Where-Object { $PSBoundParameters.ContainsKey($_) }).Count) {
+            throw 'User paging parameters require -Query or -All.'
+        }
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{} + $PSBoundParameters
-        $null = $operationParameters.Remove('Connection')
-        $null = $operationParameters.Remove('Credential')
-        $operationParameters['RequestContext'] = $requestContext
-
-        try {
-            $operation = { Get-JiraUserOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-            $operation.Begin($PSCmdlet)
-        }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
+        $parameters = @{} + $PSBoundParameters
+        $null = $parameters.Remove('Connection')
+        $parameters['RequestContext'] = $requestContext
+        $operation = { Get-JiraUserOperation @parameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
+        $operation.Begin($PSCmdlet)
     }
-
-    process {
-        try { $operation.Process($_) }
-        catch {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-            throw
-        }
-    }
-
-    end {
-        try { $operation.End() }
-        finally {
-            if ($requestContext.State -eq 'Standalone') { $requestContext.Dispose() }
-        }
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
-    }
+    process { $operation.Process($_) }
+    end { $operation.End() }
 }

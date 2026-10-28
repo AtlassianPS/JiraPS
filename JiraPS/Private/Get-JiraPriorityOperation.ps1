@@ -1,4 +1,10 @@
 ﻿function Get-JiraPriorityOperation {
+    <#
+    .SYNOPSIS
+        Retrieve cached priorities or exact priority IDs.
+    .DESCRIPTION
+        Refresh fetches a new response and replaces the connection-scoped cache entry.
+    #>
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]
@@ -7,7 +13,7 @@
 
         [Parameter()]
         [Switch]
-        $Force,
+        $Refresh,
 
         [Parameter()]
         [AtlassianPS.Connection]
@@ -32,7 +38,7 @@
 
                     CacheKey    = 'Priorities'
                     CacheExpiry = [TimeSpan]::FromHours(1)
-                    BypassCache = $Force
+                    BypassCache = $Refresh
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter

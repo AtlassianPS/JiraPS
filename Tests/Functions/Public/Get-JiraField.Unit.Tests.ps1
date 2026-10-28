@@ -144,11 +144,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $Uri -eq "/rest/api/2/field" } {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResult
@@ -169,8 +164,7 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'Field'; type = 'AtlassianPS.JiraPS.Field[]' }
-                    @{ parameter = 'Force'; type = 'System.Management.Automation.SwitchParameter' }
-                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
+                    @{ parameter = 'Refresh'; type = 'System.Management.Automation.SwitchParameter' }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
                 }
@@ -276,16 +270,16 @@ InModuleScope JiraPS {
                 }
             }
 
-            It "passes BypassCache to Invoke-JiraRequest when -Force is specified" {
-                $null = Get-JiraField -Force
+            It "passes BypassCache to Invoke-JiraRequest when -Refresh is specified" {
+                $null = Get-JiraField -Refresh
 
                 Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $BypassCache -eq $true
                 }
             }
 
-            It "passes -Force to nested Get-JiraField call when searching" {
-                $null = Get-JiraField -Field 'issuetype' -Force
+            It "passes -Refresh to nested Get-JiraField call when searching" {
+                $null = Get-JiraField -Field 'issuetype' -Refresh
 
                 Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $BypassCache -eq $true

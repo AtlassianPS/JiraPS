@@ -47,11 +47,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject'
                 $Projects = ConvertFrom-Json $JiraProjectData
@@ -113,7 +108,6 @@ InModuleScope JiraPS {
                     @{ parameter = 'ReleaseDate'; type = 'DateTime' }
                     @{ parameter = 'StartDate'; type = 'DateTime' }
                     @{ parameter = 'Project'; type = 'Project' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter
@@ -145,8 +139,6 @@ InModuleScope JiraPS {
             }
 
             It "creates a Version using splatting" {
-                $password = (ConvertTo-SecureString -AsPlainText -Force -String "password")
-                $credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("username", $password)
                 $splat = @{
                     Name        = "v1"
                     Description = "A Description"
@@ -155,7 +147,6 @@ InModuleScope JiraPS {
                     ReleaseDate = "2017-12-01"
                     StartDate   = "2017-01-01"
                     Project     = (Get-JiraProject -Project $projectKey)
-                    Credential  = $credentials
                 }
                 $results = New-JiraVersion @splat -ErrorAction Stop
                 $results | Should -Not -BeNullOrEmpty

@@ -62,7 +62,7 @@ InModuleScope JiraPS {
             if ($script:createdIssues -and $script:createdIssues.Count -gt 0) {
                 foreach ($key in $script:createdIssues) {
                     try {
-                        Remove-JiraIssue -IssueId $key -Force -ErrorAction SilentlyContinue
+                        Remove-JiraIssue -Issue $key -Confirm:$false -ErrorAction SilentlyContinue
                     }
                     catch {
                         Write-Verbose "Cleanup: Failed to remove issue $key - $_"
@@ -70,7 +70,7 @@ InModuleScope JiraPS {
                 }
             }
 
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Context "Connectivity" {
@@ -92,15 +92,11 @@ InModuleScope JiraPS {
                 $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.Connection'
             }
 
-            It "permits authenticated calls without explicit credentials" {
-                $serverInfo = Get-JiraServerInformation
-                $serverInfo | Should -Not -BeNullOrEmpty
-            }
         }
 
         Context "Get-JiraUser by username (DC identity model)" {
             It "looks up the admin user by name" {
-                $user = Get-JiraUser -UserName $env.Username
+                $user = Get-JiraUser -User $env.Username
                 $user | Should -Not -BeNullOrEmpty
                 $user.Name | Should -Be $env.Username
             }

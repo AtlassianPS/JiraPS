@@ -46,11 +46,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraProjectOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project'
                 $Projects = ConvertFrom-Json $JiraProjectData
@@ -103,7 +98,6 @@ InModuleScope JiraPS {
                     @{ parameter = 'ReleaseDate'; type = 'DateTime' }
                     @{ parameter = 'StartDate'; type = 'DateTime' }
                     @{ parameter = 'Project'; type = 'AtlassianPS.JiraPS.Project' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type

@@ -38,11 +38,6 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraGroup -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraGroup' 'GroupName'
                 $object = ConvertFrom-Json $testJson
@@ -75,8 +70,6 @@ InModuleScope JiraPS {
             Context "Parameter Types" {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = 'Group'; type = 'AtlassianPS.JiraPS.Group[]' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                    @{ parameter = 'Force'; type = 'Switch' }
                 ) {
                     param($parameter, $type)
                     $command | Should -HaveParameter $parameter -Type $type
@@ -91,28 +84,28 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             Context "Group Deletion" {
                 It "Accepts a group name as a String to the -Group parameter" {
-                    { Remove-JiraGroup -Group $testGroupName -Force } | Should -Not -Throw
+                    { Remove-JiraGroup -Group $testGroupName -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts a JiraPS.Group object to the -Group parameter" {
                     $group = Get-JiraGroup -GroupName $testGroupName
-                    { Remove-JiraGroup -Group $group -Force } | Should -Not -Throw
+                    { Remove-JiraGroup -Group $group -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts pipeline input from Get-JiraGroup" {
-                    { Get-JiraGroup -GroupName $testGroupName | Remove-JiraGroup -Force } | Should -Not -Throw
+                    { Get-JiraGroup -GroupName $testGroupName | Remove-JiraGroup -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Removes a group from JIRA" {
-                    { Remove-JiraGroup -Group $testGroupName -Force } | Should -Not -Throw
+                    { Remove-JiraGroup -Group $testGroupName -Confirm:$false } | Should -Not -Throw
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Provides no output" {
-                    Remove-JiraGroup -Group $testGroupName -Force | Should -BeNullOrEmpty
+                    Remove-JiraGroup -Group $testGroupName -Confirm:$false | Should -BeNullOrEmpty
                 }
 
                 It "uses groupId for deletion on Cloud" {
@@ -128,7 +121,7 @@ InModuleScope JiraPS {
 
                     $group = Get-JiraGroup -GroupName $testGroupName
 
-                    { Remove-JiraGroup -Group $group -Force } | Should -Not -Throw
+                    { Remove-JiraGroup -Group $group -Confirm:$false } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'DELETE' -and

@@ -14,7 +14,6 @@ InModuleScope JiraPS {
 
         BeforeEach {
             $script:JiraCache = @{}
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'https://jira.example.com' }
         }
 
         It "stores response in cache for GET requests" {

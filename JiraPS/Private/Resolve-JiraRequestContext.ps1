@@ -49,7 +49,7 @@
 
     if ($Paging) {
         if (-not $internalGetParameter.ContainsKey('maxResults')) { $internalGetParameter['maxResults'] = $DefaultPageSize }
-        $tokenPaging = $Uri.AbsolutePath -match '/rest/api/[23]/search/jql$'
+        $tokenPaging = $Uri.AbsolutePath -match '/rest/api/[23]/search/jql$|/rest/api/2/user/list$'
         if ($tokenPaging -and $internalGetParameter.ContainsKey('startAt')) { throw 'Enhanced-search token paging does not support startAt. Use -Skip to skip items locally.' }
         foreach ($key in @('maxResults', 'startAt')) {
             if (-not $internalGetParameter.ContainsKey($key)) { continue }

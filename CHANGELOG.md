@@ -5,15 +5,27 @@
 ### Breaking changes
 
 - Minimum supported PowerShell version is now 5.1.
-- Session commands use shared `AtlassianPS.Connection` objects instead of `AtlassianPS.JiraPS.Session`.
-  `Get-JiraSession` lists connections; use `-Default` to retrieve the selected Jira connection.
-- `-Credential` no longer defaults to `PSCredential::Empty`; omitting it uses the selected connection.
-  Explicit null or empty credentials fail instead of falling back to another identity.
+- Removed `Get/Set-JiraConfigServer` and `New/Get/Set/Remove-JiraSession`, including implicit `server_config` loading.
+  Use shared endpoint profiles and `Connect/Get/Select/Disconnect-Jira` for live connections.
+- Ordinary Jira commands use the selected connection or explicit `-Connection`; per-call `-Credential` and the `-Session` alias are removed.
+  Supply authentication to `Connect-Jira`, or use `Invoke-JiraMethod -BaseUri` for standalone requests.
   Use `Connect-Jira -Anonymous` for anonymous access.
-- Nonempty `New-JiraSession -Headers`, Authorization/Cookie request headers, and low-level web request authentication defaults are unsupported.
+- Authorization/Cookie request headers and low-level web request authentication defaults are unsupported.
   Pass ordinary request headers to `Invoke-JiraMethod -Headers`.
-  Configure authentication with `Connect-Jira`; ordinary Jira commands retain `-Credential` for per-call overrides.
-- `Invoke-JiraMethod -StoreSession` no longer creates a session; use `Connect-Jira` to create a reusable connection.
+  Configure authentication with `Connect-Jira`.
+- Removed `Invoke-JiraMethod -StoreSession`, public internal transport controls and the deprecated `Format-Jira` alias.
+- `Get-JiraIssueAttachmentFile` is now `Save-JiraIssueAttachment`.
+  It returns `FileInfo`, supports `WhatIf`, and requires `-Force` to overwrite files.
+- Removal commands use `-Confirm:$false` instead of confirmation-only `-Force` switches.
+  Transitions and version moves now support `WhatIf` and `Confirm`.
+- `Get/Add-JiraFilterPermission` return permission records; bulk removal requires explicit `-All`.
+  `Set-JiraFilter` returns the successful update response only with `-PassThru`.
+- Exact users use `Get-JiraUser -User`; explicit `-Query` and `-All` provide search and enumeration.
+  User IDs remain opaque and deployment-specific.
+  `New-JiraUser` requires explicit Cloud products or a Data Center username; the unsupported Boolean `-Notify` option is removed.
+  `Set-JiraUser` fails actionably on Cloud, where the account-field update API is unavailable.
+- Cached metadata getters use `-Refresh` to fetch and replace cached data.
+  Version name filtering precedes `First` and `Skip`; comments and worklogs expose standard paging.
 - Domain objects use `AtlassianPS.JiraPS.<Type>` instead of the historic `JiraPS.<Type>` PSTypeNames.
   Update type checks and mocks to the new namespace; prefer `$obj -is [AtlassianPS.JiraPS.Issue]` for type checks.
 - Issue, user, group, project, version, filter, and issue-link parameters use strongly typed objects with argument transformation.
@@ -41,7 +53,7 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
 
 ### Added
 
-- `Connect-Jira` and `New-JiraSession` detect deployment automatically without requiring a Jira version.
+- `Connect-Jira` detects deployment automatically without requiring a Jira version.
   Authenticated connections always validate `myself` and reconcile metadata, gateway and identity evidence, including when deployment metadata is unavailable.
   Anonymous connections require recognized deployment metadata from `serverInfo`.
 - `Connect-Jira`, `Get-JiraConnection`, `Select-JiraConnection`, and `Disconnect-Jira` manage named connections for multiple Jira sites and identities.

@@ -22,11 +22,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             # TODO: Adjust the mock to return a valid %RESOURCE% object
             Mock ConvertTo-Jira%RESOURCE% -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-Jira%RESOURCE'
@@ -66,7 +61,6 @@ InModuleScope JiraPS {
                 It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
                     @{ parameter = "%PARAMETER1%"; type = "%DATA TYPE%" }
                     @{ parameter = "%PARAMETER2%"; type = "%DATA TYPE%" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
                 ) {
                     $command | Should -HaveParameter $parameter
 
@@ -77,7 +71,6 @@ InModuleScope JiraPS {
             Context "Default Values" {
                 It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
                     @{ parameter = "%PARAMETER1%"; defaultValue = "%DEFAULT VALUE%" }
-                    @{ parameter = "Credential"; defaultValue = $null }
                 ) {
                     $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
                 }

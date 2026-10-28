@@ -25,9 +25,9 @@ InModuleScope JiraPS {
 
         AfterAll {
             if ($tempIssue -and $tempIssue.Key) {
-                Remove-JiraIssue -IssueId $tempIssue.Key -Force -ErrorAction SilentlyContinue
+                Remove-JiraIssue -Issue $tempIssue.Key -Confirm:$false -ErrorAction SilentlyContinue
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "ADF in Issue Description" {
@@ -212,7 +212,7 @@ InModuleScope JiraPS {
                     }
                     finally {
                         if ($created -and $created.Key) {
-                            Remove-JiraIssue -IssueId $created.Key -Force -ErrorAction SilentlyContinue
+                            Remove-JiraIssue -Issue $created.Key -Confirm:$false -ErrorAction SilentlyContinue
                         }
                     }
                 }
@@ -399,7 +399,7 @@ InModuleScope JiraPS {
                     }
                     finally {
                         if ($created -and $created.Key) {
-                            Remove-JiraIssue -IssueId $created.Key -Force -ErrorAction SilentlyContinue
+                            Remove-JiraIssue -Issue $created.Key -Confirm:$false -ErrorAction SilentlyContinue
                         }
                     }
                 }

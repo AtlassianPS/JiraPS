@@ -430,9 +430,9 @@ Describe 'Domain parameter documentation' -Tag Documentation, Build {
         @{ CommandName = 'Get-JiraVersion'; ParameterName = 'Name'; Entity = 'version' }
         @{ CommandName = 'New-JiraVersion'; ParameterName = 'Name'; Entity = 'version' }
         @{ CommandName = 'Set-JiraVersion'; ParameterName = 'Name'; Entity = 'version' }
-        @{ CommandName = 'Get-JiraVersion'; ParameterName = 'Id'; Entity = 'version' }
+        @{ CommandName = 'Get-JiraVersion'; ParameterName = 'Version'; Entity = 'version' }
         @{ CommandName = 'Get-JiraPriority'; ParameterName = 'Id'; Entity = 'priority' }
-        @{ CommandName = 'Get-JiraIssueLink'; ParameterName = 'Id'; Entity = 'IssueLink' }
+        @{ CommandName = 'Get-JiraIssueLink'; ParameterName = 'IssueLink'; Entity = 'IssueLink' }
     ) {
         $description = ((Get-Help $CommandName -Parameter $ParameterName).Description.Text -join ' ')
 

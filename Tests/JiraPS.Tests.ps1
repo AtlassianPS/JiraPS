@@ -44,7 +44,7 @@ Describe "General project validation" -Tag Unit {
         [Version]($manifest.Version) | Should -BeOfType [Version]
     }
 
-    It "loads saved server configuration during initialization" {
+    It "does not import legacy server configuration during initialization" {
         $testServerConfig = Join-Path $TestDrive 'server_config'
         Set-Content -LiteralPath $testServerConfig -Value 'https://saved-config.example/'
 
@@ -76,15 +76,15 @@ Describe "General project validation" -Tag Unit {
 
                     Import-Module $modulePath -Force -ErrorAction Stop
                     [PSCustomObject]@{
-                        Server = Get-JiraConfigServer
-                        Reads  = $script:configReads
+                        LegacyCommandCount = @(Get-Command -Module JiraPS | Where-Object { $_.Name -in @('Get-JiraConfigServer', 'Set-JiraConfigServer', 'Get-JiraSession', 'New-JiraSession', 'Set-JiraSession', 'Remove-JiraSession') }).Count
+                        Reads              = $script:configReads
                     }
                 }).AddArgument($moduleToTest).AddArgument($testServerConfig)
             $result = $powerShell.Invoke()
             if ($powerShell.HadErrors) { throw $powerShell.Streams.Error[0] }
 
-            $result.Server | Should -Be 'https://saved-config.example'
-            $result.Reads | Should -Be 1
+            $result.LegacyCommandCount | Should -Be 0
+            $result.Reads | Should -Be 0
         }
         finally {
             $powerShell.Dispose()

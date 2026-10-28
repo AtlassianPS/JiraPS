@@ -59,17 +59,94 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | Project `Roles` and user `AvatarUrl` | These properties use dictionaries of URI values. Read entries by key. |
 | Filter and related object parameters | Commands declare the object types they accept. Identifier and name shorthand remain available where documented. |
 
-## Deprecations
+## Removed legacy commands
 
-The old command name continues to work as an exported alias in v3.
-The alias will be removed in a future major version.
-Update at your convenience.
-
-| Area          | What Changed                                                                  |
-| ------------- | ----------------------------------------------------------------------------- |
-| `Format-Jira` | Renamed to `ConvertTo-JiraTable`. The old name is preserved as a deprecated, exported alias. |
+`Format-Jira`, the session commands and the Jira-specific server configuration commands are removed in v3.
+Use `ConvertTo-JiraTable`, shared named endpoint profiles and the live connection commands below.
 
 ## Detailed migration guide
+
+### Connections and authentication
+
+```powershell
+# v2
+Set-JiraConfigServer 'https://jira.example.com'
+New-JiraSession -Credential $credential
+Get-JiraIssue -Key PROJ-1 -Credential $credential
+
+# v3
+$work = Connect-Jira -Name work -Uri 'https://jira.example.com' -Credential $credential
+Get-JiraIssue -Issue PROJ-1 -Connection $work
+Get-JiraConnection -Name work
+Select-JiraConnection -Connection $work
+Disconnect-Jira -Connection $work
+```
+
+Ordinary Jira commands accept `Connection` and otherwise use the selected Jira default.
+Authentication belongs to connection creation; the per-call `Credential` and `Session` parameters are removed.
+Use `Add-AtlassianServerConfiguration` for saved endpoints and `Connect-Jira -Profile` to connect explicitly.
+No command imports the installed module's legacy `server_config` automatically.
+For standalone REST work, `Invoke-JiraMethod` accepts `BaseUri` and authentication in the same call.
+
+### Exact selectors, search and paging
+
+```powershell
+Get-JiraIssue -Issue 'PROJ-1', 'PROJ-2'
+Get-JiraFilter -Filter 12345
+Get-JiraVersion -Version 10001
+Get-JiraVersion -Project PROJ -Name 'v3*', 'v4*' -Skip 1 -First 5
+Get-JiraUser -User 'opaque-account-id' -Connection $cloud
+Get-JiraUser -User 'username' -Connection $dataCenter
+Get-JiraUser -Query 'John Smith' -First 10
+Get-JiraUser -All -First 100
+Get-JiraIssueComment -Issue PROJ-1 -Skip 5 -First 10 -PageSize 25
+Get-JiraIssueWorklog -Issue PROJ-1 -Skip 5 -First 10 -PageSize 25
+```
+
+User strings are exact Cloud account IDs or Data Center usernames; display names require an explicit search.
+Cloud search returns active users among the first 1,000 matches; `All` includes inactive and previously deleted accounts.
+Data Center enumeration follows `/user/list` cursors when that endpoint is supported and fails actionably otherwise.
+`Find-JiraFilter` uses Cloud's filter-search API; Data Center callers use exact or favorite filter lookup.
+Use `User` for group membership, `Watcher` for watchers, `IssueLink` for issue links and `Link` for remote links.
+Cached metadata getters use `Refresh` to fetch and replace the cached response.
+
+### Mutation intent and outputs
+
+```powershell
+Invoke-JiraIssueTransition -Issue PROJ-1 -Transition 'Start Progress' -WhatIf
+Move-JiraVersion -Version 10001 -Position Last -WhatIf
+Remove-JiraIssue -Issue PROJ-1 -Confirm:$false
+Set-JiraIssue -Issue PROJ-1 -Description '' -Label @() -FixVersion @()
+Set-JiraFilter -Filter 12345 -Name 'Review' -PassThru
+$permissions = Get-JiraFilterPermission -Filter 12345
+Remove-JiraFilterPermission -Filter 12345 -Permission $permissions[0]
+Remove-JiraFilterPermission -Filter 12345 -All
+```
+
+Use `Confirm:$false` instead of confirmation-only `Force` switches.
+`Get/Add-JiraFilterPermission` return permission records.
+`All` fetches current filter permissions before removing them; omission does not imply bulk removal.
+`Set-JiraFilter -PassThru` returns the successful update response without an extra lookup.
+Explicitly empty description, label and fix-version inputs clear those fields; omission preserves them.
+Transitions and version moves support standard confirmation and `WhatIf`.
+
+### Saving attachments and creating users
+
+```powershell
+Get-JiraIssueAttachment -Issue PROJ-1 | Save-JiraIssueAttachment -Path './downloads'
+$attachment | Save-JiraIssueAttachment -Path './report.bin' -Force
+New-JiraUser -EmailAddress 'me@example.com' -Products jira-software -Connection $cloud
+New-JiraUser -EmailAddress 'me@example.com' -Products @() -Connection $cloud
+New-JiraUser -EmailAddress 'me@example.com' -UserName me -Connection $dataCenter
+```
+
+`Save-JiraIssueAttachment` replaces `Get-JiraIssueAttachmentFile` and returns `FileInfo` for each completed write.
+The destination directory must exist; an explicit file destination accepts one attachment.
+`Force` permits overwriting a file, while `WhatIf` performs no download or write.
+Cloud user creation requires an explicit product-access list, including an empty array for no access.
+Data Center requires a username and accepts an optional display name.
+The unsupported Boolean `Notify` parameter is removed.
+Manage Cloud account-field updates through Atlassian account administration.
 
 ### Pagination — `Get-JiraIssue` and `Get-JiraGroupMember`
 
@@ -213,8 +290,8 @@ The command returns a string containing Jira wiki-markup table syntax.
 It does not produce a formatting object like `Format-Table`.
 Treating it as a `ConvertTo-*` is also more honest about the destructive nature of the conversion.
 
-Existing scripts continue to work because `Format-Jira` is preserved as an exported deprecated alias.
-The alias will be removed in a future major version, so update scripts at your convenience.
+The deprecated `Format-Jira` alias is removed in v3.
+Update scripts to use `ConvertTo-JiraTable`.
 
 #### v2
 
@@ -677,7 +754,8 @@ Add-JiraIssueComment -Issue $issue -Comment 'Team note' -Visibility @{ Type = 'g
 Commands that accept filters and related Jira objects now declare their .NET types as parameter types.
 Check the command help for accepted objects, identifiers and names.
 Use a transition name that is available on the issue.
-`Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and optional typed permissions through `-Permission` (`-PermissionId` is an alias).
+`Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and requires explicit `Permission` or `All`.
+`PermissionId` remains an alias for `Permission`.
 Properties such as user `AccountType`, filter permission `Type` and server `DeploymentType` now use nullable enums.
 Unknown API values become `$null`.
 When exporting these properties as JSON, cast them to `[string]` to retain their names; `ConvertTo-Json` otherwise writes enum numbers.

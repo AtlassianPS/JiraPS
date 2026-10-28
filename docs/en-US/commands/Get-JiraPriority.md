@@ -16,15 +16,17 @@ Returns information about the available priorities in JIRA.
 
 ### _All (Default)
 
-```powershell
-Get-JiraPriority [-Force] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+Get-JiraPriority [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```powershell
-Get-JiraPriority [-Id] <int[]> [-Force] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
+Get-JiraPriority [-Id] <int[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+```
+
+## ALIASES
 
 ## DESCRIPTION
 
@@ -33,7 +35,7 @@ This function retrieves all the available Priorities on the JIRA server an retur
 This function can restrict the output to a subset of the available IssueTypes if told so.
 
 Results are cached for 60 minutes to improve performance.
-Use `-Force` to bypass the cache and fetch fresh data.
+Use `-Refresh` to fetch and replace the cached response and fetch fresh data.
 
 ## EXAMPLES
 
@@ -55,31 +57,15 @@ This example returns only the Priority with ID 1.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Username/password or compatible Cloud email/token as PSCredential.
-Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
-An empty credential fails; omitted input uses the selected connection.
-
-```yaml
-Type: PSCredential
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -Force
-
-Bypass the cache and fetch fresh data from the server.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: SwitchParameter
-DefaultValue: False
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -115,23 +101,25 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Connection
+### -Refresh
 
-Active Jira connection for this operation.
-Session is a compatibility alias.
-When omitted, the command uses the selected Jira default.
-Use Get-JiraConnection -Name to resolve a named connection.
+Fetch fresh data and replace the selected connection's cached response.
 
 ```yaml
-Type: AtlassianPS.Connection
-Parameter Sets: (All)
-Aliases: Session
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### CommonParameters
@@ -142,6 +130,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
+
+### System.Int32[]
 
 ## OUTPUTS
 
