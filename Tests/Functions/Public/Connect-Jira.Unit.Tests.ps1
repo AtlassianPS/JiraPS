@@ -112,10 +112,10 @@ InModuleScope JiraPS {
             . "$PSScriptRoot/../../Helpers/TestTools.ps1"
 
             function script:New-ReviewWebResponse {
-                param([String]$Json)
+                param([String]$Json, [System.Net.HttpStatusCode]$Status = 'OK')
 
                 [PSCustomObject]@{
-                    StatusCode       = [System.Net.HttpStatusCode]::OK
+                    StatusCode       = $Status
                     Content          = $Json
                     RawContentStream = [IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes($Json))
                     Headers          = @{}
@@ -145,14 +145,23 @@ InModuleScope JiraPS {
             Should -Invoke Invoke-WebRequest -Exactly 1
         }
 
-        It 'uses returned site resource links through the explicitly selected Cloud gateway' {
+        It 'uses site resource links through the Cloud gateway after metadata HTTP <Status>' -ForEach @(
+            @{ Status = 200 }
+            @{ Status = 403 }
+            @{ Status = 404 }
+            @{ Status = 405 }
+        ) {
+            $script:metadataStatus = [System.Net.HttpStatusCode]$Status
             Mock Invoke-WebRequest {
                 switch ($Uri.AbsolutePath) {
                     '/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/serverInfo' {
-                        New-ReviewWebResponse '{"version":"11.0","deploymentType":"Cloud","baseUrl":"https://site.atlassian.net"}'
+                        if ($script:metadataStatus -eq [System.Net.HttpStatusCode]::OK) {
+                            New-ReviewWebResponse '{"version":"11.0","deploymentType":"Cloud","baseUrl":"https://site.atlassian.net"}'
+                        }
+                        else { New-ReviewWebResponse '{}' $script:metadataStatus }
                     }
                     '/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/myself' {
-                        New-ReviewWebResponse '{"accountId":"review-account"}'
+                        New-ReviewWebResponse '{"accountId":"review-account","self":"https://site.atlassian.net/rest/api/2/user?accountId=review-account"}'
                     }
                     '/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/issue/TEST-1' {
                         New-ReviewWebResponse '{"id":"1","key":"TEST-1","self":"https://site.atlassian.net/rest/api/2/issue/1","fields":{"summary":"Test"}}'
@@ -170,11 +179,35 @@ InModuleScope JiraPS {
             $connection.SiteUri.AbsoluteUri | Should -Be 'https://site.atlassian.net/'
             $comments.Count | Should -Be 1
             $comments[0].Body | Should -Be 'Review comment'
+            { Invoke-JiraMethod -Uri https://foreign.atlassian.net/rest/api/2/issue/1 -Connection $connection } |
+                Should -Throw '*does not belong*'
             Should -Invoke Invoke-WebRequest -Exactly 4 -ParameterFilter {
                 $Uri.Host -eq 'api.atlassian.com' -and
                 $Uri.AbsolutePath.StartsWith('/ex/jira/11111111-1111-1111-1111-111111111111/')
             }
             Should -Invoke Invoke-WebRequest -Exactly 0 -ParameterFilter { $Uri.Host -ne 'api.atlassian.com' }
+        }
+
+        It 'rejects invalid site information in authenticated myself.self: <Self>' -ForEach @(
+            @{ Self = 'http://site.atlassian.net/rest/api/2/user' }
+            @{ Self = 'https://foreign.example.com/rest/api/2/user' }
+            @{ Self = 'https://user:secret@site.atlassian.net/rest/api/2/user' }
+            @{ Self = 'https://api.atlassian.com/ex/jira/22222222-2222-2222-2222-222222222222/rest/api/2/user' }
+        ) {
+            $script:identitySelf = $Self
+            Mock Invoke-WebRequest {
+                if ($Uri.AbsolutePath.EndsWith('/serverInfo')) {
+                    New-ReviewWebResponse '{}' ([System.Net.HttpStatusCode]::NotFound)
+                }
+                else {
+                    New-ReviewWebResponse (@{ accountId = 'review-account'; self = $script:identitySelf } | ConvertTo-Json -Compress)
+                }
+            }
+
+            { Connect-Jira -Name review-invalid-self -Uri https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111 -EmailAddress identity@example.com -ApiToken test-token } |
+                Should -Throw
+            Get-JiraConnection -Name review-invalid-self | Should -BeNullOrEmpty
+            Should -Invoke Invoke-WebRequest -Exactly 2
         }
 
         It 'rejects an invalid site origin in explicit gateway metadata: <BaseUrl>' -ForEach @(

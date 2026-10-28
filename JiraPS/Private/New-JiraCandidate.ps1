@@ -1,4 +1,8 @@
 ﻿function New-JiraCandidate {
+    <#
+    .SYNOPSIS
+        Resolve a Jira endpoint and validate deployment and identity before registering a connection.
+    #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',
@@ -52,25 +56,9 @@
             throw 'Anonymous Jira connections require deployment metadata from /rest/api/2/serverInfo. Allow anonymous access to that endpoint or use authenticated Connect-Jira.'
         }
 
-        if ($candidate.CloudId -and -not $candidate.SiteUri -and $null -ne $info.baseUrl) {
-            [Uri]$siteUri = $null
-            if (-not [Uri]::TryCreate([String]$info.baseUrl, [UriKind]::Absolute, [ref]$siteUri) -or
-                $siteUri.Scheme -ne 'https' -or $siteUri.Port -ne 443 -or
-                $siteUri.Host -notmatch '^[a-z0-9-]+\.atlassian\.net$' -or
-                $siteUri.AbsolutePath -ne '/' -or $siteUri.UserInfo -or $siteUri.Query -or $siteUri.Fragment
-            ) {
-                throw 'Jira Cloud baseUrl must be a valid HTTPS site origin.'
-            }
-
-            # Jira returns site URLs in resource links even when validation uses the gateway.
-            $endpoint['SiteUri'] = $siteUri
-            $gatewayCandidate = $candidate
-            $candidate = AtlassianPS.Configuration\New-AtlassianConnectionContext -Product Jira @endpoint @Authentication
-            $gatewayCandidate.Dispose()
-        }
-
         $username = $null
         $identityDeployment = $null
+        $identity = $null
         if ($candidate.AuthenticationMode -ne 'Anonymous') {
             $identity = Invoke-JiraRequest -Uri '/rest/api/2/myself' -RequestContext $candidate -ErrorAction Stop
             $hasAccountId = $identity.accountId -is [String] -and -not [String]::IsNullOrWhiteSpace($identity.accountId)
@@ -90,6 +78,44 @@
             # Preserve the first source's label while requiring agreement on the Cloud or Server API family.
             if (($deployment -eq 'Cloud') -ne ($resolvedDeployment -eq 'Cloud')) {
                 throw 'Conflicting Jira deployment information from serverInfo, the gateway or myself.'
+            }
+        }
+
+        if ($candidate.CloudId -and -not $candidate.SiteUri) {
+            $siteAddress = $info.baseUrl
+            if ($null -eq $siteAddress -and $identity.self) {
+                [Uri]$identityUri = $null
+                if (-not [Uri]::TryCreate([String]$identity.self, [UriKind]::Absolute, [ref]$identityUri) -or
+                    $identityUri.UserInfo -or $identityUri.Fragment
+                ) {
+                    throw 'Jira Cloud myself.self must be a valid Jira resource URL.'
+                }
+                if ($identityUri.GetLeftPart('Authority') -eq $candidate.BaseUri.GetLeftPart('Authority')) {
+                    $null = Resolve-JiraResourceUri -Uri $identityUri -RequestContext $candidate
+                }
+                else {
+                    if (-not $identityUri.AbsolutePath.StartsWith('/rest/', [StringComparison]::Ordinal)) {
+                        throw 'Jira Cloud myself.self must be a valid Jira resource URL.'
+                    }
+                    $siteAddress = $identityUri.GetLeftPart('Authority')
+                }
+            }
+
+            if ($null -ne $siteAddress) {
+                [Uri]$siteUri = $null
+                if (-not [Uri]::TryCreate([String]$siteAddress, [UriKind]::Absolute, [ref]$siteUri) -or
+                    $siteUri.Scheme -ne 'https' -or $siteUri.Port -ne 443 -or
+                    $siteUri.Host -notmatch '^[a-z0-9-]+\.atlassian\.net$' -or
+                    $siteUri.AbsolutePath -ne '/' -or $siteUri.UserInfo -or $siteUri.Query -or $siteUri.Fragment
+                ) {
+                    throw 'Jira Cloud baseUrl or myself.self must identify a valid HTTPS site origin.'
+                }
+
+                # Jira returns site URLs in resource links even when validation uses the gateway.
+                $endpoint['SiteUri'] = $siteUri
+                $gatewayCandidate = $candidate
+                $candidate = AtlassianPS.Configuration\New-AtlassianConnectionContext -Product Jira @endpoint @Authentication
+                $gatewayCandidate.Dispose()
             }
         }
 

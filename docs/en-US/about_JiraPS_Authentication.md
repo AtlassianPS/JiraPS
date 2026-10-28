@@ -34,10 +34,10 @@ $admin | Disconnect-Jira
 
 The first successful connection becomes the Jira default.
 Opening admin leaves work selected unless Default is requested.
-An explicit per-call connection or authentication override does not change the default.
+An explicit per-call connection does not change the default.
 Removing the default clears it without selecting another connection.
 
-Ordinary Jira commands accept an optional Connection object and the existing Credential parameter.
+Ordinary Jira commands accept an optional Connection object.
 Use Connect-Jira to set the endpoint and authentication.
 Use Get-JiraConnection -Name to resolve a connection by name.
 

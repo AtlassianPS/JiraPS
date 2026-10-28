@@ -85,9 +85,12 @@ InModuleScope JiraPS {
             }
         }
 
-        It 'uses explicit gateway relative resources without site metadata' {
+        It 'uses explicit gateway resources without site metadata: <Self>' -ForEach @(
+            @{ Self = $null }
+            @{ Self = 'https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/user?accountId=validated-account' }
+        ) {
             $script:metadataStatus = [System.Net.HttpStatusCode]::NotFound
-            $script:identity = '{"accountId":"validated-account"}'
+            $script:identity = @{ accountId = 'validated-account'; self = $Self } | ConvertTo-Json -Compress
             $connection = Connect-Jira -Name validation-gateway -Uri https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111 -EmailAddress user@example.com -ApiToken sentinel-token
 
             $projects = @(Invoke-JiraMethod -Uri '/rest/api/2/project' -Connection $connection)
