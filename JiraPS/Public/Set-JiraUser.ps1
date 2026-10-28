@@ -52,7 +52,7 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters -UserEmailField
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
         $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 

@@ -67,6 +67,14 @@ InModuleScope JiraPS {
             $requests[0].Uri.AbsoluteUri | Should -Be 'https://jira.example.com/rest/api/2/field'
         }
 
+        It 'rejects invalid transport contexts and conflicting discovery before requesting Jira' {
+            { Invoke-JiraRequest -Uri '/rest/api/2/field' -RequestContext $null } | Should -Throw '*RequestContext*'
+            { Invoke-JiraRequest -Uri '/rest/api/2/field' -RequestContext (Get-JiraConnection -Default) -Discovery } |
+                Should -Throw '*parameter set*'
+            { Invoke-JiraRequest -Uri '/_edge/tenant_info' -Discovery:$false } | Should -Throw '*Supply -Discovery*'
+            $requests.Count | Should -Be 0
+        }
+
         It 'preserves repeated query values and encodes supplied arrays as repeated keys' {
             $null = Invoke-JiraMethod '/rest/api/2/field?field=one&field=two' -QueryParameter @{ expand = @('a&b', 'Müller'); q = 'a?b=c' }
             $query = ConvertTo-ParameterHash -Uri $requests[0].Uri
@@ -354,7 +362,7 @@ InModuleScope JiraPS {
         It 'keeps cached and fresh paging output identical, including typed conversion and totals' {
             $script:json = '{"values":[{"id":"1","name":"v1"},{"id":"2","name":"v2"}],"total":2,"maxResults":25,"startAt":0}'
             foreach ($attempt in 1..2) {
-                $result = @(Invoke-JiraRequest -Uri '/rest/api/2/version' -Paging -OutputType JiraVersion -CacheKey Versions -IncludeTotalCount)
+                $result = @(Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri '/rest/api/2/version' -Paging -OutputType JiraVersion -CacheKey Versions -IncludeTotalCount)
                 $result.Count | Should -Be 3
                 $result[0] | Should -Be 2
                 $result[1] | Should -BeOfType ([AtlassianPS.JiraPS.Version])
@@ -364,17 +372,17 @@ InModuleScope JiraPS {
         }
 
         It 'refreshes cached responses and scopes entries to the full URI' {
-            $null = Invoke-JiraRequest -Uri '/rest/api/2/field?fields=a' -CacheKey Fields
+            $null = Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri '/rest/api/2/field?fields=a' -CacheKey Fields
             $script:json = '{"id":99}'
-            (Invoke-JiraRequest -Uri '/rest/api/2/field?fields=a' -CacheKey Fields -BypassCache).id | Should -Be 99
-            (Invoke-JiraRequest -Uri '/rest/api/2/field?fields=a' -CacheKey Fields).id | Should -Be 99
-            $null = Invoke-JiraRequest -Uri '/rest/api/2/field?fields=b' -CacheKey Fields
+            (Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri '/rest/api/2/field?fields=a' -CacheKey Fields -BypassCache).id | Should -Be 99
+            (Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri '/rest/api/2/field?fields=a' -CacheKey Fields).id | Should -Be 99
+            $null = Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri '/rest/api/2/field?fields=b' -CacheKey Fields
             $requests.Count | Should -Be 3
         }
 
         It 'validates resource URIs before serving cached responses' {
-            $null = Invoke-JiraRequest -Uri '/rest/api/2/field' -CacheKey Fields
-            { Invoke-JiraRequest -Uri 'invalid-relative-path' -CacheKey Fields } | Should -Throw '*must start with one slash*'
+            $null = Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri '/rest/api/2/field' -CacheKey Fields
+            { Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri 'invalid-relative-path' -CacheKey Fields } | Should -Throw '*must start with one slash*'
             $requests.Count | Should -Be 1
         }
 
@@ -388,12 +396,12 @@ InModuleScope JiraPS {
             }
             try {
                 $first | Select-JiraConnection | Out-Null
-                (Invoke-JiraRequest -Uri '/rest/api/2/field' -CacheKey Fields).id | Should -Be 42
+                (Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri '/rest/api/2/field' -CacheKey Fields).id | Should -Be 42
                 $script:json = '{"id":99}'
                 $second | Select-JiraConnection | Out-Null
-                (Invoke-JiraRequest -Uri '/rest/api/2/field' -CacheKey Fields).id | Should -Be 99
+                (Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri '/rest/api/2/field' -CacheKey Fields).id | Should -Be 99
                 $first | Select-JiraConnection | Out-Null
-                (Invoke-JiraRequest -Uri '/rest/api/2/field' -CacheKey Fields).id | Should -Be 42
+                (Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri '/rest/api/2/field' -CacheKey Fields).id | Should -Be 42
                 $requests.Count | Should -Be 2
             }
             finally {

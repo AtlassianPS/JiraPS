@@ -111,12 +111,13 @@
         if ($OutFile) { $target = "$target -> $OutFile" }
         if (($Method -notin @('Get', 'Head', 'Options') -or $OutFile) -and -not $PSCmdlet.ShouldProcess($target, "$Method Jira request")) { return }
 
-        $selection = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters
-        foreach ($key in @('Connection', 'ConnectionName', 'BaseUri')) {
-            if ($PSBoundParameters.ContainsKey($key)) { $selection[$key] = $PSBoundParameters[$key] }
+        if ($BaseUri) {
+            $authentication = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters
+            $context = New-JiraCandidate -Name Standalone -Uri $BaseUri -Authentication $authentication
         }
-        $context = Resolve-JiraOperationContext -BoundParameters $selection
+        else { $context = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters }
         try {
+            if ($BaseUri) { $context.MakeStandalone([Guid]::Empty) }
             $request = @{
                 Uri            = $Uri
                 Method         = $Method
@@ -131,7 +132,7 @@
             Invoke-JiraRequest @request
         }
         finally {
-            if ($context.State -eq 'Standalone') { $context.Dispose() }
+            if ($BaseUri) { $context.Dispose() }
         }
     }
 }

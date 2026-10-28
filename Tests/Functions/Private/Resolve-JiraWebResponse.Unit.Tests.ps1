@@ -180,7 +180,10 @@ InModuleScope JiraPS {
             $result = Invoke-ResolveJiraWebResponse -Remaining @{
                 WebResponse     = $response
                 Paging          = $true
-                BoundParameters = @{ Uri = 'https://jira.example.com' }
+                BoundParameters = @{
+                    Uri            = 'https://jira.example.com'
+                    RequestContext = (Get-JiraConnection -Default)
+                }
             }
 
             $result | Should -Be @('paged')

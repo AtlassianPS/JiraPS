@@ -20,7 +20,7 @@ InModuleScope JiraPS {
             It 'pages bare user arrays using server offsets without extra user lookups' {
                 Mock Invoke-JiraRequest { [PSCustomObject]@{ name = 'third' } }
                 $response = @([PSCustomObject]@{ name = 'first' }, [PSCustomObject]@{ name = 'second' })
-                $result = @(Invoke-PaginatedRequest -Uri "$jiraServer/rest/api/2/user/search" -Response $response -PageSize 2 -GetParameter @{ maxResults = 2; startAt = 3 } -First 3)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -Uri "$jiraServer/rest/api/2/user/search" -Response $response -PageSize 2 -GetParameter @{ maxResults = 2; startAt = 3 } -First 3)
                 $result.name | Should -Be @('first', 'second', 'third')
                 Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter {
                     $GetParameter.startAt -eq 5 -and $GetParameter.maxResults -eq 1
@@ -36,7 +36,7 @@ InModuleScope JiraPS {
                     nextCursor = 'opaque+cursor'
                     isLast     = $false
                 }
-                $result = @(Invoke-PaginatedRequest -Uri "$jiraServer/rest/api/2/user/list" -Response $response -PageSize 2 -Skip 3 -First 1 -IncludeTotalCount)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -Uri "$jiraServer/rest/api/2/user/list" -Response $response -PageSize 2 -Skip 3 -First 1 -IncludeTotalCount)
                 $result.Count | Should -Be 2
                 $result[0].ToString() | Should -Match 'Unknown'
                 $result[1].name | Should -Be 'fourth'
@@ -48,14 +48,14 @@ InModuleScope JiraPS {
             It 'stops repeated Data Center cursors even when pages are empty' {
                 $response = [PSCustomObject]@{ values = @(); nextCursor = 'same'; isLast = $false }
                 Mock Invoke-JiraRequest { [PSCustomObject]@{ values = @(); nextCursor = 'same'; isLast = $false } }
-                { Invoke-PaginatedRequest -Uri "$jiraServer/rest/api/2/user/list" -Response $response } |
+                { Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -Uri "$jiraServer/rest/api/2/user/list" -Response $response } |
                     Should -Throw '*repeated a pagination token*'
                 Should -Invoke Invoke-JiraRequest -Exactly 1
             }
 
             It 'returns no items for an empty user-search array' {
                 Mock Invoke-JiraRequest { throw 'Unexpected continuation' }
-                @(Invoke-PaginatedRequest -Uri "$jiraServer/rest/api/3/user/search" -Response @()) | Should -HaveCount 0
+                @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -Uri "$jiraServer/rest/api/3/user/search" -Response @()) | Should -HaveCount 0
                 Should -Invoke Invoke-JiraRequest -Exactly 0
             }
         }
@@ -76,7 +76,7 @@ InModuleScope JiraPS {
             }
 
             It "follows tokens even when a page has fewer items than the default page size" {
-                $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/3/search/jql" -Response $tokenResponse)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -URI "$jiraServer/rest/api/3/search/jql" -Response $tokenResponse)
 
                 ($result.key -join ',') | Should -Be 'TEST-1,TEST-2'
                 Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
@@ -85,7 +85,7 @@ InModuleScope JiraPS {
             }
 
             It "stops before requesting another token page when First is satisfied" {
-                $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/3/search/jql" -Response $tokenResponse -First 1)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -URI "$jiraServer/rest/api/3/search/jql" -Response $tokenResponse -First 1)
 
                 ($result.key -join ',') | Should -Be 'TEST-1'
                 Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 0 -Scope It
@@ -117,7 +117,7 @@ InModuleScope JiraPS {
             }
 
             It "returns the short final page on v<apiVersion> with total=<hasTotal> without First" {
-                $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/$apiVersion/issue/createmeta/1/issuetypes/2" -Response $shortPageResponse)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -URI "$jiraServer/rest/api/$apiVersion/issue/createmeta/1/issuetypes/2" -Response $shortPageResponse)
 
                 ($result.id -join ',') | Should -Be 'A,B,C'
                 $result | Should -HaveCount 3
@@ -152,7 +152,7 @@ InModuleScope JiraPS {
                     startAt = $offset; maxResults = 2; total = 5
                     values = @($countItems | Select-Object -Skip $offset -First 2)
                 }
-                $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/2/search" -Response $response -IncludeTotalCount -First $first -Skip $offset)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -URI "$jiraServer/rest/api/2/search" -Response $response -IncludeTotalCount -First $first -Skip $offset)
 
                 $result[0] | Should -BeOfType ([uint64])
                 $result[0] | Should -Be 5
@@ -189,7 +189,7 @@ InModuleScope JiraPS {
             }
 
             It "returns every item and stops when the third page omits its continuation token" {
-                $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/3/search/jql" -Response $threeTokenResponse)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -URI "$jiraServer/rest/api/3/search/jql" -Response $threeTokenResponse)
 
                 ($result.key -join ',') | Should -Be 'A,B,C,D,E'
                 $result | Should -HaveCount 5
@@ -201,7 +201,7 @@ InModuleScope JiraPS {
             }
 
             It "trims a token page when First falls inside the second page" {
-                $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/3/search/jql" -Response $threeTokenResponse -First 3)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -URI "$jiraServer/rest/api/3/search/jql" -Response $threeTokenResponse -First 3)
 
                 ($result.key -join ',') | Should -Be 'A,B,C'
                 $result | Should -HaveCount 3
@@ -212,7 +212,7 @@ InModuleScope JiraPS {
             }
 
             It "reports an unknown total before limited token results when the API provides no total" {
-                $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/3/search/jql" -Response $threeTokenResponse -First 3 -IncludeTotalCount)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) -URI "$jiraServer/rest/api/3/search/jql" -Response $threeTokenResponse -First 3 -IncludeTotalCount)
 
                 $result[0] | Should -BeOfType ([uint64])
                 $result[0].Accuracy | Should -Be 0.0
@@ -260,7 +260,7 @@ InModuleScope JiraPS {
                     }
                 }
 
-                $result = @(Invoke-JiraRequest -Uri $Resource -Paging -PageSize 1 -WarningAction SilentlyContinue -ErrorAction Stop)
+                $result = @(Invoke-JiraRequest -RequestContext (Get-JiraConnection -Default) -Uri $Resource -Paging -PageSize 1 -WarningAction SilentlyContinue -ErrorAction Stop)
 
                 $result.key | Should -Be @('TEST-1', 'TEST-2')
                 $retryPageAttempts.first | Should -Be 4
@@ -296,7 +296,7 @@ InModuleScope JiraPS {
                     Response = $initialResponse
                 }
 
-                $result = @(Invoke-PaginatedRequest @params -WarningVariable capturedWarnings -WarningAction SilentlyContinue)
+                $result = @(Invoke-PaginatedRequest -RequestContext (Get-JiraConnection -Default) @params -WarningVariable capturedWarnings -WarningAction SilentlyContinue)
 
                 $result.key | Should -Be @('TEST-1', 'TEST-2')
                 $capturedWarnings | Should -HaveCount 1

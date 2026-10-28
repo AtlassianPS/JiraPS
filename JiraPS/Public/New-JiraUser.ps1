@@ -20,7 +20,7 @@
     )
 
     process {
-        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters -UserEmailField
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
         $isCloud = Test-JiraCloudServer -RequestContext $requestContext
         $body = @{ emailAddress = $EmailAddress }
         if ($isCloud) {

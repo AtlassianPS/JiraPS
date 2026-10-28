@@ -7,7 +7,7 @@
         This helper handles URI resolution, request encoding, safe retries, caching and response processing.
         Discovery is an unauthenticated, creation-time GET with redirects disabled.
     #>
-    [CmdletBinding(SupportsPaging, PositionalBinding = $false)]
+    [CmdletBinding(SupportsPaging, PositionalBinding = $false, DefaultParameterSetName = 'Authenticated')]
     param(
         [Parameter(Mandatory)]
         [Uri]$Uri,
@@ -28,13 +28,17 @@
         [Switch]$BypassCache,
         [ValidateRange(0, [int]::MaxValue)]
         [Int]$TimeoutSec = 100,
+        [Parameter(Mandatory, ParameterSetName = 'Authenticated')]
+        [ValidateNotNull()]
         [AtlassianPS.Connection]$RequestContext,
         [System.Management.Automation.PSCmdlet]$Cmdlet = $PSCmdlet,
         [Int]$_RetryCount = 0,
+        [Parameter(Mandatory, ParameterSetName = 'Discovery')]
         [Switch]$Discovery
     )
 
-    if ($Discovery) {
+    if ($PSCmdlet.ParameterSetName -eq 'Discovery') {
+        if (-not $Discovery) { throw 'Supply -Discovery to request unauthenticated endpoint discovery.' }
         $PSDefaultParameterValues = @{}
         $parameters = @{
             Uri                = $Uri
@@ -52,7 +56,6 @@
         return ($response.Content | ConvertFrom-Json -ErrorAction Stop)
     }
 
-    if (-not $RequestContext) { $RequestContext = Resolve-JiraOperationContext -BoundParameters @{} }
     $RequestContext = AtlassianPS.Configuration\Resolve-AtlassianRequestContext -Product Jira -RequestContext $RequestContext
     if ($RequestContext.State -eq 'Candidate' -and
         ($Method -ne 'Get' -or $Uri.OriginalString -notin @('/rest/api/2/serverInfo', '/rest/api/2/myself'))

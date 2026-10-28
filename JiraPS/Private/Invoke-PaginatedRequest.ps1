@@ -9,6 +9,8 @@
     #>
     [CmdletBinding(SupportsPaging)]
     param(
+        [Parameter(Mandatory)]
+        [ValidateNotNull()]
         [AtlassianPS.Connection]$RequestContext,
         [String]$CacheKey,
         [TimeSpan]$CacheExpiry = [TimeSpan]::FromHours(1),

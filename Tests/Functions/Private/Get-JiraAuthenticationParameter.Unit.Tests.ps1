@@ -56,18 +56,21 @@ InModuleScope JiraPS {
             [Object]::ReferenceEquals($result[$ParameterName], $boundParameters[$ParameterName]) | Should -BeTrue
         }
 
-        It 'excludes the user email field while preserving authentication overrides' {
+        It 'resolves only connection selectors without treating user fields or resource URIs as authentication' {
+            $connection = Get-JiraConnection -Default
             $boundParameters = @{
+                Connection   = $connection
                 EmailAddress = 'new-user@example.com'
                 Credential   = [PSCredential]::Empty
+                Uri          = '/rest/api/2/user'
             }
 
-            $result = Get-JiraAuthenticationParameter -BoundParameters $boundParameters -UserEmailField
+            $result = Resolve-JiraOperationContext -BoundParameters $boundParameters
 
-            $result.Count | Should -Be 1
-            $result.ContainsKey('EmailAddress') | Should -BeFalse
-            $result.Credential | Should -Be ([PSCredential]::Empty)
+            [Object]::ReferenceEquals($result, $connection) | Should -BeTrue
             $boundParameters.EmailAddress | Should -Be 'new-user@example.com'
+            [Object]::ReferenceEquals((Resolve-JiraOperationContext -BoundParameters @{}), $connection) | Should -BeTrue
+            { Resolve-JiraOperationContext -BoundParameters @{ Connection = $null } } | Should -Throw '*Connection cannot be null*'
         }
 
         It 'forwards the authentication email address when it is not a user field' {
