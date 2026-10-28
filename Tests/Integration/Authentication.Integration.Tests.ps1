@@ -34,13 +34,13 @@ InModuleScope JiraPS {
             }
 
             It "creates a session with valid API token" {
-                $session = Connect-Jira -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
+                $session = Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
                 $session | Should -Not -BeNullOrEmpty
             }
 
             It "returns a session object with correct type" {
-                $session = Connect-Jira -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
+                $session = Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
                 $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.Connection'
             }
@@ -49,13 +49,13 @@ InModuleScope JiraPS {
             It "fails with invalid API token" {
                 $badToken = ConvertTo-SecureString -String "invalid-token" -AsPlainText -Force
 
-                { Connect-Jira -Uri $env.CloudUrl -ApiToken $badToken -EmailAddress $env.Username -ErrorAction Stop } |
+                { Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $badToken -EmailAddress $env.Username -ErrorAction Stop } |
                     Should -Throw
             }
 
             It "fails with invalid email address" {
                 {
-                    Connect-Jira -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress "invalid@example.com" -ErrorAction Stop
+                    Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress "invalid@example.com" -ErrorAction Stop
                 } |
                     Should -Throw
             }
@@ -76,7 +76,7 @@ InModuleScope JiraPS {
             }
 
             It "returns the current session after authentication" {
-                Connect-Jira -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
+                Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
                 $session = Get-JiraConnection
 
@@ -92,7 +92,7 @@ InModuleScope JiraPS {
             }
 
             It "removes an existing session" {
-                Connect-Jira -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
+                Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
                 Get-JiraConnection | Should -Not -BeNullOrEmpty
 

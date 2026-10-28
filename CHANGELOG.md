@@ -57,8 +57,8 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
   Authenticated connections always validate `myself` and reconcile metadata, gateway and identity evidence, including when deployment metadata is unavailable.
   Anonymous connections require recognized deployment metadata from `serverInfo`.
 - `Connect-Jira`, `Get-JiraConnection`, `Select-JiraConnection`, and `Disconnect-Jira` manage named connections for multiple Jira sites and identities.
-  Pass `-Connection` (alias `-Session`) to target one command; omitting it uses the selected Jira default.
-- `Connect-Jira` and compatibility `New-JiraSession` support Cloud API tokens through `-ApiToken` and `-EmailAddress`, and Data Center personal access tokens through `-PersonalAccessToken` (aliases `-PAT`, `-BearerToken`).
+  Pass `-Connection` to target one command; omitting it uses the selected Jira default.
+- `Connect-Jira` supports Cloud API tokens through `-ApiToken` and `-EmailAddress`, and Data Center personal access tokens through `-PersonalAccessToken` (aliases `-PAT`, `-BearerToken`).
   Token parameters accept strings and `SecureString` values. (#576)
   Cloud API tokens, including scoped tokens, work with the normal site URL through automatic API endpoint discovery.
 - `Get-JiraStatus` retrieves statuses by ID or name, or lists all statuses.
@@ -70,12 +70,11 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
   `-Assignee` accepts a username, Cloud account ID, or typed `User`; omitting both parameters lets Jira apply the project default.
 - `New-JiraIssueLinkRequest` builds typed link requests from `-Type`, `-FromIssue`, and `-ToIssue`.
 - `ConvertTo-JiraTable` returns Jira wiki-markup table text.
-  `Format-Jira` remains a deprecated exported alias.
 - `Invoke-JiraMethod` accepts structured JSON bodies, explicit `-ContentType`, query values through `-QueryParameter`, and `-RawResponse` for status, headers and content inspection.
   `-OutFile` saves response bytes and returns `FileInfo`.
   Explicit GET paging supports `-PageSize`, `-First`, `-Skip` and `-IncludeTotalCount`.
   `-TimeoutSec` defaults to `100`; `0` disables the request timeout. (#576)
-- `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraPriority`, and `Get-JiraServerInformation` cache responses and support `-Force` to refresh them.
+- `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraPriority`, and `Get-JiraServerInformation` cache responses and support `-Refresh` to refresh them.
   `Clear-JiraCache` clears cached responses by type. (#576)
 - `Set-JiraResponseHeaderLogConfiguration` enables debug logging for selected Jira response headers, and `Get-JiraResponseHeaderLogConfiguration` reports the active configuration. (#536)
 - Identifier-based constructors and hashtable initialization are supported for `Issue`, `User`, `Project`, `Group`, `Filter`, and `Version` objects.
@@ -94,10 +93,6 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
 - Removed `Invoke-JiraMethod -StoreSession`, `-RawBody`, `-InFile`, `-OutputType`, public cache controls, and its `-Session` alias.
   Use `Connect-Jira` for reusable authentication and `Add-JiraIssueAttachment` for multipart uploads.
   Typed commands share one private transport; caching and typed conversion stay internal, and cached paging follows the same output path as fresh responses.
-- `New-JiraSession` preserves an existing default unless `-Default` is supplied.
-  Session commands and connection commands manage the same connections.
-- `Set-JiraConfigServer` saves endpoint settings through shared configuration.
-  Existing `server_config` files remain readable as migration inputs and are no longer rewritten.
 - Debug messages follow Configuration's message settings, including breadcrumbs, and redact authentication values.
 - Core objects, leaf objects, issue history, remote links, visibility, role actors, schemas, filter subscriptions, and standard issue fields return typed .NET objects. (#681)
   Related properties contain typed objects, while custom fields and entity-property values retain the data supplied by Jira.
@@ -105,7 +100,7 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
   User identifiers resolve as Cloud account IDs or Data Center usernames.
   `Get-JiraVersion` accepts version objects or integer/string version IDs through the pipeline, and project objects to list project versions.
 - Filter retrieval, removal, and permission commands accept typed filters or filter IDs, with identifier aliases and pipeline support.
-  Permission operations use the supplied credentials when resolving filters.
+  Permission operations use the selected connection when resolving filters.
   `Remove-JiraFilterPermission` accepts `-Filter` (aliases `-FilterId`, `-Id`) and optional typed `-Permission` values (alias `-PermissionId`), and validates all permission IDs before deleting any permissions.
 - `Add-JiraIssueComment` and `Add-JiraIssueWorklog` accept typed role/group `-Visibility`, with `-VisibleRole` retained as an alias.
   `All Users` leaves comments and worklogs unrestricted whether supplied as a role object or a string.
