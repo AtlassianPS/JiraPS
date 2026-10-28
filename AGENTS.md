@@ -1,6 +1,7 @@
 # AI Instructions for JiraPS
 
 Release operators may select stable, alpha, or beta in the pinned shared workflow.
+Dispatch from `master`; use `prerelease_branch` to package another branch for alpha/beta.
 Follow the Standards ReleaseBlueprint for exact candidate provisioning and recovery.
 Major-base candidates require fresh human confirmation naming this repository and major version.
 Keep stable acquisition as the default; retain temporary shared-session tooling until

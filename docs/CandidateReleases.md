@@ -3,6 +3,11 @@
 The Continuous Release workflow delegates alpha and beta releases to the pinned
 Standards workflow. Dispatch from protected `master`, choose the release impact,
 and select `release_channel=alpha` or `beta`. The planner calculates the version.
+Set `prerelease_branch` to package another repository branch before merging,
+or leave it empty to use `master`. The dispatch stays on `master` and the release
+environment retains its branch restriction. Builds, tests, the ledger, and the
+release tag use one resolved source commit. Stable releases reject this input;
+merge the changes into `master` before publishing stable.
 For a major numeric base, enter fresh confirmation in `major_authorization` as
 `AtlassianPS/JiraPS vMAJOR`.
 

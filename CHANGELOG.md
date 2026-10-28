@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Adopt the shared alpha/beta release route with exact candidate validation and explicit major authorization.
+- Adopt the shared alpha/beta release route with optional source branch selection, exact candidate validation, and explicit major authorization.
 
 This release focuses on Cloud and Data Center compatibility, strongly typed objects, and automation.
 

@@ -24,6 +24,10 @@ on:
         description: Fresh major authorization as owner/repository vMAJOR
         required: false
         type: string
+      prerelease_branch:
+        description: Optional source branch for alpha/beta (empty uses master)
+        required: false
+        type: string
 
 permissions:
   actions: read
@@ -34,11 +38,12 @@ permissions:
 jobs:
   release:
     if: github.event_name == 'workflow_dispatch' || vars.JIRAPS_CD_ENABLED == 'true'
-    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@8053d48b6b5ee1b40196f4463fb3eaf2cfab026f # v0.4.1 + #73
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@df1de3e48d5ee30401ecfcbfa7a11118c8d842ac # v0.4.1 + #73
     with:
       module-name: JiraPS
       release-impact: ${{ inputs.release_impact }}
       release-channel: ${{ inputs.release_channel || 'stable' }}
+      prerelease-branch: ${{ inputs.prerelease_branch }}
       major-authorization: ${{ inputs.major_authorization }}
       build-profile: jiraps
       smoke-profile: jira

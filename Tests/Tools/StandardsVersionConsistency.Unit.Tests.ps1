@@ -30,7 +30,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Select-Object -First 1
         $standardsVersion = [string] $standardsRequirement.RequiredVersion
         $expectedStandardsSha = 'fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8'
-        $expectedReleaseStandardsSha = '8053d48b6b5ee1b40196f4463fb3eaf2cfab026f'
+        $expectedReleaseStandardsSha = 'df1de3e48d5ee30401ecfcbfa7a11118c8d842ac'
 
         $workflowPaths = Get-ChildItem -Path (Join-Path -Path $projectRoot -ChildPath '.github/workflows') -File -Filter '*.yml' |
             Select-Object -ExpandProperty FullName
@@ -82,6 +82,8 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $workflowRoot = Join-Path -Path $projectRoot -ChildPath '.github/workflows'
         $releaseIntentContent = Get-Content -LiteralPath (Join-Path -Path $workflowRoot -ChildPath 'release_intent.yml') -Raw
         $continuousReleaseContent = Get-Content -LiteralPath (Join-Path -Path $workflowRoot -ChildPath 'continuous_release.yml') -Raw
+        $continuousReleaseContent | Should -Match 'prerelease_branch:'
+        $continuousReleaseContent | Should -Match 'prerelease-branch: \$\{\{ inputs.prerelease_branch \}\}'
 
         $releaseIntentContent | Should -Match 'pull_request_target:'
         $releaseIntentContent | Should -Match 'pull-requests:\s+read'
