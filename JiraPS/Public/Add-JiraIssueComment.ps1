@@ -54,7 +54,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
@@ -82,7 +83,7 @@
                 Method = "POST"
                 Body   = ConvertTo-Json -InputObject $requestBody -Depth 20
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
                 $rawResult = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 

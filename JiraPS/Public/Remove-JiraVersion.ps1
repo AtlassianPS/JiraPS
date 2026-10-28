@@ -41,11 +41,12 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             foreach ($_version in $Version) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
+                Write-DebugMessage "Processing `$_version [$_version]"
 
                 if (-not $_version.Id) {
                     $errorItem = [System.Management.Automation.ErrorRecord]::new(
@@ -65,7 +66,7 @@
                     URI    = $versionObj.RestUrl
                     Method = "DELETE"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($versionObj.Name, "Removing Version")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
         }
@@ -78,7 +79,7 @@
     end {
         try {
             if ($Force) {
-                Write-Debug "[Remove-JiraVersion] Restoring ConfirmPreference to [$oldConfirmPreference]"
+                Write-DebugMessage "[Remove-JiraVersion] Restoring ConfirmPreference to [$oldConfirmPreference]"
                 $ConfirmPreference = $oldConfirmPreference
             }
 

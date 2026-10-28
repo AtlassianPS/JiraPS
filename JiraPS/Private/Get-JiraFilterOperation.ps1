@@ -25,19 +25,20 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
             "ByInputObject" {
                 foreach ($filter in $InputObject) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filter]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filter [$filter]"
+                    Write-DebugMessage "Processing `$filter [$filter]"
 
                     $parameter = @{
                         URI    = $resourceURi -f $filter.Id
                         Method = "GET"
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraFilter -InputObject $result)
@@ -48,7 +49,7 @@
                     URI    = $resourceURi -f "favourite"
                     Method = "GET"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraFilter -InputObject $result)

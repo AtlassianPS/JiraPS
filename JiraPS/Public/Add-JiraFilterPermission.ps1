@@ -45,7 +45,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             $filters = foreach ($item in $Filter) {
                 if ($item.RestUrl) { $item }
@@ -71,7 +72,7 @@
                     Method = "POST"
                     Body   = ConvertTo-Json $body
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($_filter.Name, "Add Permission [$Type - $Value]")) {
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 

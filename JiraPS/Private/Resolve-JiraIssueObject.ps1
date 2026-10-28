@@ -13,11 +13,11 @@
 
     process {
         if ($InputObject.RestURL) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$InputObject as object"
+            Write-DebugMessage "Using `$InputObject as object"
             return $InputObject
         }
 
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue '$($InputObject.Key)' to object"
+        Write-DebugMessage "Resolve Issue '$($InputObject.Key)' to object"
         Get-JiraIssueOperation -Key $InputObject.Key -RequestContext $RequestContext -ErrorAction Stop
     }
 }

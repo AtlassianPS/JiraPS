@@ -55,11 +55,12 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             foreach ($_version in $Version) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
+                Write-DebugMessage "Processing `$_version [$_version]"
 
                 if (-not $_version.Id) {
                     $errorItem = [System.Management.Automation.ErrorRecord]::new(
@@ -105,7 +106,7 @@
                     Method = "PUT"
                     Body   = ConvertTo-Json -InputObject $requestBody
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 

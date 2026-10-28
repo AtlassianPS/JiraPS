@@ -57,13 +57,13 @@
 
             # Resolve the assignee once; -Assignee / -Unassign do not vary across piped issues.
             if ($Unassign) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Unassign passed. Issue will be unassigned."
+                Write-DebugMessage "-Unassign passed. Issue will be unassigned."
                 $assigneeString = $null
                 $validAssignee = $true
             }
             elseif ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
                 if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -RequestContext $RequestContext -Exact) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
+                    Write-DebugMessage "User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                     $validAssignee = $true
                 }
                 else {
@@ -89,7 +89,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
@@ -100,7 +101,7 @@
                 if ($matchingTransitions.Count -eq 1) { $transitionId = $matchingTransitions[0].Id }
             }
 
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Checking that the issue can perform the given transition"
+            Write-DebugMessage "Checking that the issue can perform the given transition"
             if ($null -eq $transitionId -or ($issueObj.Transition.Id) -notcontains $transitionId) {
                 $errorItem = [System.Management.Automation.ErrorRecord]::new(
                     [System.ArgumentException]::new('Invalid value for Parameter'),
@@ -124,7 +125,7 @@
             }
 
             if ($validAssignee) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating Assignee"
+                Write-DebugMessage "Updating Assignee"
                 $requestBody += @{
                     'fields' = @{
                         'assignee' = $assigneeBody
@@ -138,7 +139,7 @@
 
             if ($Fields) {
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields against transition screen metadata"
+                Write-DebugMessage "Resolving `$Fields against transition screen metadata"
 
                 # Fetch this transition's screen fields: the authoritative source for which
                 # fields appear on a given transition screen. Falls back to the global field
@@ -156,7 +157,7 @@
                         Select-Object -First 1
                 }
                 catch {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Transition metadata unavailable for transition [$transitionId]: $_"
+                    Write-DebugMessage "Transition metadata unavailable for transition [$transitionId]: $_"
                 }
 
                 $scopedMeta = if (
@@ -184,7 +185,7 @@
             }
 
             if ($Comment) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding comment"
+                Write-DebugMessage "Adding comment"
                 $requestBody.update.comment += , @{
                     'add' = @{
                         'body' = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
@@ -193,7 +194,7 @@
             }
 
             if ($PSBoundParameters.ContainsKey('TimeSpent')) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding worklog"
+                Write-DebugMessage "Adding worklog"
                 $dateStarted = [DateTime]::new((Get-Date).Ticks, 'Local')
                 $requestBody.update.worklog += , @{
                     'add' = @{
@@ -208,7 +209,7 @@
                 Method = "POST"
                 Body   = ConvertTo-Json -InputObject $requestBody -Depth 20
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
             if ($Passthru) { Get-JiraIssueOperation -RequestContext $RequestContext $issueObj }

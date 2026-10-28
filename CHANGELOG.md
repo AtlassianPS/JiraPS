@@ -16,6 +16,7 @@
 * Ordinary Jira commands use Connection (alias Session) and the existing Credential parameter.
   Endpoint and token inputs belong on Connect-Jira; resolve names through Get-JiraConnection.
 * Retry responses retain their payload and resolved connection; creation validation preserves transport errors.
+* Debug messages use the shared Configuration message style and retain parameter traces with sensitive values redacted.
 
 
 

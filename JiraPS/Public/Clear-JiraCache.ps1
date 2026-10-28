@@ -12,7 +12,7 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         if (-not $script:JiraCache) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] No cache to clear"

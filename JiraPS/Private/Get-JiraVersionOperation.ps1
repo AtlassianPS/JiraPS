@@ -52,7 +52,8 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $ParameterSetName = ''
         switch ($PsCmdlet.ParameterSetName) {
@@ -87,13 +88,13 @@
             "byId" {
                 foreach ($_id in $ID) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
+                    Write-DebugMessage "Processing `$_id [$_id]"
 
                     $parameter = @{
                         URI    = $resourceURi -f "version/$_id"
                         Method = "GET"
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraVersion -InputObject $result)
@@ -102,7 +103,7 @@
             "byProject" {
                 foreach ($_project in $Project) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
+                    Write-DebugMessage "Processing `$_project [$_project]"
 
                     $projectData = Get-JiraProjectOperation -Project $_project -RequestContext $RequestContext
 
@@ -121,7 +122,7 @@
                         $parameter[$_] = $PSCmdlet.PagingParameters.$_
                     }
 
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     if ($result = Invoke-JiraMethod -RequestContext $RequestContext @parameter) {
                         $result | Where-Object {
                             $__ = $_.Name

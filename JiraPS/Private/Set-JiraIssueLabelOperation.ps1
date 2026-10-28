@@ -38,10 +38,11 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
+        Write-DebugMessage "Processing `$Issue [$Issue]"
 
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
@@ -59,20 +60,20 @@
         # have to make one call to JIRA.
         switch ($PSCmdlet.ParameterSetName) {
             'ClearLabels' {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Clearing all labels"
+                Write-DebugMessage "Clearing all labels"
                 $labels.Clear()
             }
             'ReplaceLabels' {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Replacing existing labels"
+                Write-DebugMessage "Replacing existing labels"
                 $labels = [System.Collections.Generic.List[string]]::new([string[]]$Set)
             }
             'ModifyLabels' {
                 if ($Add) {
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Adding labels"
+                    Write-DebugMessage "Adding labels"
                     $Add.ForEach({ $null = $labels.Add($_) })
                 }
                 if ($Remove) {
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Removing labels"
+                    Write-DebugMessage "Removing labels"
                     # [List[T]].Remove() returns a bool that .ForEach() would
                     # otherwise propagate to the cmdlet's output stream.
                     $Remove.ForEach({ $null = $labels.Remove($_) })
@@ -95,7 +96,7 @@
             Method = "PUT"
             Body   = ConvertTo-Json -InputObject $requestBody -Depth 6
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Updating Issue labels")) {
             Invoke-JiraMethod -RequestContext $RequestContext @parameter
 

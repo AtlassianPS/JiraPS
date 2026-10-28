@@ -94,7 +94,8 @@
         try {
             $resourceURi = ConvertTo-JiraRestApiV3Url -Url "/rest/api/2/issue" -IsCloud $isCloud
 
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             $ProjectObj = Get-JiraProjectOperation -Project $Project -RequestContext $RequestContext -ErrorAction Stop -Debug:$false
             $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {
@@ -140,7 +141,7 @@
 
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Reporter")) {
                 if ($reporterUser = Resolve-JiraUser -InputObject $Reporter -Exact -RequestContext $RequestContext) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Reporter resolved (name=[$($reporterUser.Name)])"
+                    Write-DebugMessage "Reporter resolved (name=[$($reporterUser.Name)])"
                 }
                 else {
                     $exception = ([System.ArgumentException]"Invalid value for Parameter")
@@ -164,7 +165,7 @@
             }
             elseif ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey("Assignee")) {
                 if ($assigneeUser = Resolve-JiraUser -InputObject $Assignee -Exact -RequestContext $RequestContext) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Assignee resolved (name=[$($assigneeUser.Name)])"
+                    Write-DebugMessage "Assignee resolved (name=[$($assigneeUser.Name)])"
                 }
                 else {
                     $exception = ([System.ArgumentException]"Invalid value for Parameter")
@@ -204,7 +205,7 @@
 
             if ($Fields) {
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields against create metadata"
+                Write-DebugMessage "Resolving `$Fields against create metadata"
 
                 # Fetch create metadata lazily so `-Fields` can resolve names against
                 # the current project/issue-type create screen without restoring the
@@ -240,7 +241,7 @@
                 Method = "POST"
                 Body   = (ConvertTo-Json -InputObject ([PSCustomObject]$hashtable) -Depth 20)
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($Summary, "Creating new Issue on JIRA")) {
                 if ($result = Invoke-JiraMethod -RequestContext $RequestContext @parameter) {
                     # REST result will look something like this:

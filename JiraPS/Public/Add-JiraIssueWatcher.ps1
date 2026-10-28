@@ -41,14 +41,15 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
             foreach ($_watcher in $Watcher) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_watcher]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_watcher [$_watcher]"
+                Write-DebugMessage "Processing `$_watcher [$_watcher]"
 
                 $watcherBody = if ($isCloud) { ConvertTo-Json -InputObject $_watcher }
                 else { '"{0}"' -f $_watcher }
@@ -57,7 +58,7 @@
                     Method = "POST"
                     Body   = $watcherBody
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key, "Adding user '$_watcher' as watcher.")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
         }

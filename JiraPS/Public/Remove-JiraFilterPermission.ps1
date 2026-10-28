@@ -40,7 +40,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             $filterObject = if ($Filter.RestUrl) { $Filter }
             else {
@@ -48,7 +49,7 @@
             }
 
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filterObject]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filterObject [$filterObject]"
+            Write-DebugMessage "Processing `$filterObject [$filterObject]"
 
             $permissions = if ($PSBoundParameters.ContainsKey('Permission')) { $Permission }
             else { $filterObject.FilterPermissions }
@@ -73,14 +74,14 @@
 
             foreach ($permissionToRemove in $permissions) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing permission [$($permissionToRemove.Id)]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$permissionToRemove [$permissionToRemove]"
+                Write-DebugMessage "Processing `$permissionToRemove [$permissionToRemove]"
 
                 $parameter = @{
                     URI    = "{0}/permission/{1}" -f $filterObject.RestUrl, $permissionToRemove.Id
                     Method = 'DELETE'
                 }
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($filterObject.Name, "Remove permission $($permissionToRemove.Id)")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
         }

@@ -97,19 +97,19 @@
 
             if ($total -gt $PSCmdlet.PagingParameters.First) {
                 $remaining = $PSCmdlet.PagingParameters.First - ($total - @($result).Count)
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Only output the first $remaining of page"
+                Write-DebugMessage "Only output the first $remaining of page"
                 $result = $result | Select-Object -First $remaining
             }
 
             Convert-Result -InputObject $result -OutputType $OutputType
 
             if ($Response.isLast -eq $true) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as isLast is true"
+                Write-DebugMessage "Stopping paging, as isLast is true"
                 break
             }
 
             if ($total -ge $PSCmdlet.PagingParameters.First) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as $total reached $($PSCmdlet.PagingParameters.First)"
+                Write-DebugMessage "Stopping paging, as $total reached $($PSCmdlet.PagingParameters.First)"
                 break
             }
 
@@ -120,7 +120,7 @@
                     $PSBoundParameters["GetParameter"]["nextPageToken"] = $Response.nextPageToken
                 }
                 else {
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] No nextPageToken found; stopping pagination"
+                    Write-DebugMessage "No nextPageToken found; stopping pagination"
                     break
                 }
             }
@@ -129,7 +129,7 @@
                 if ($null -ne $Response.total -and ($total + $offset) -ge $Response.total) { break }
 
                 if (@($result).Count -lt $pageSize) {
-                    Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Stopping paging, as page had less entries than $pageSize"
+                    Write-DebugMessage "Stopping paging, as page had less entries than $pageSize"
                     break
                 }
 

@@ -47,7 +47,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             $requestBody = @{
                 name = $Name
@@ -61,7 +62,7 @@
                 Method = "POST"
                 Body   = ConvertTo-Json -InputObject $requestBody
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($Name, "Creating new Filter")) {
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 

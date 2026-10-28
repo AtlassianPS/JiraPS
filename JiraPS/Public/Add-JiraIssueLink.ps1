@@ -37,7 +37,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             foreach ($typedIssueLink in $IssueLink) {
                 if (-not $typedIssueLink.Type -or -not $typedIssueLink.InwardIssue -or -not $typedIssueLink.OutwardIssue) {
@@ -107,7 +108,7 @@
                     Method = "POST"
                     Body   = ConvertTo-Json -InputObject $body
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $typeTarget = if ($typedIssueLink.Type.Name) { $typedIssueLink.Type.Name }
                 else { $typedIssueLink.Type.Id }
                 $whatIfTarget = "$inwardTarget -[$typeTarget]-> $outwardTarget"

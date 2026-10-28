@@ -186,7 +186,8 @@
             }
             Set-TlsLevel -Tls12
 
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             #region Manage URI
             $resourceParameters = @{
@@ -263,7 +264,7 @@
             }
             if ($exception) { Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to get an answer from the server" }
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Executed WebRequest. Access `$webResponse to see details"
+            Write-DebugMessage "Executed WebRequest. Access `$webResponse to see details"
             if ($webResponse -and [int]$webResponse.StatusCode -ge 300 -and [int]$webResponse.StatusCode -lt 400) {
                 throw 'Jira redirected the request. Use the final product endpoint to create a new connection.'
             }
@@ -275,7 +276,7 @@
                 return
             }
             if ($script:JiraResponseHeaderLogConfiguration) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Jira response headers"
+                Write-DebugMessage "Jira response headers"
                 try { Write-JiraResponseHeaderLog -InputObject $webResponse }
                 catch { Write-Debug "[$($MyInvocation.MyCommand.Name)] Failed to log response headers: $_" }
             }

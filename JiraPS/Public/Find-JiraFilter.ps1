@@ -56,6 +56,7 @@
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         try {
             $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
@@ -106,13 +107,13 @@
             if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('Name')) {
                 foreach ($_name in $Name) {
                     $parameter['GetParameter']['filterName'] = $_name
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
 
                     Write-Output (Invoke-JiraMethod -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
                 }
             }
             else {
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
 
                 Write-Output (Invoke-JiraMethod -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
             }

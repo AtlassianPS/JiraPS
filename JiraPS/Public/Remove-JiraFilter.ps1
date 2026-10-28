@@ -33,7 +33,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             $filters = foreach ($item in $InputObject) {
                 if ($item.RestUrl) { $item }
@@ -44,13 +45,13 @@
 
             foreach ($filter in $filters) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filter]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filter [$filter]"
+                Write-DebugMessage "Processing `$filter [$filter]"
 
                 $parameter = @{
                     URI    = $filter.RestURL
                     Method = 'DELETE'
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
         }

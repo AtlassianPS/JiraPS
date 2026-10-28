@@ -10,7 +10,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueWatches"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.IssueWatches"
 
             [AtlassianPS.JiraPS.IssueWatches]@{
                 Self       = [uri]$i.self

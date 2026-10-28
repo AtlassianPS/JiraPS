@@ -69,7 +69,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             foreach ($_Attachment in $Attachment) {
                 $filename = if ($Path) { Join-Path $Path $_Attachment.Filename }

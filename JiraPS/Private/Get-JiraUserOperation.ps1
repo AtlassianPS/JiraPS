@@ -66,7 +66,8 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $ParameterSetName = ''
         switch ($PsCmdlet.ParameterSetName) {
@@ -102,7 +103,7 @@
                     URI    = $resourceURi
                     Method = "GET"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                 if ($isCloud -and $result.accountId) {
@@ -118,20 +119,20 @@
 
                 foreach ($user in $lookupValue) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$user [$user]"
+                    Write-DebugMessage "Processing `$user [$user]"
 
                     $parameter = @{
                         URI    = $resourceURi -f $user
                         Method = "GET"
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     if ($users = Invoke-JiraMethod -RequestContext $RequestContext @parameter) {
                         foreach ($item in $users) {
                             $parameter = @{
                                 URI    = "{0}&expand=groups" -f $item.self
                                 Method = "GET"
                             }
-                            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                            Write-DebugMessage "Invoking JiraMethod with `$parameter"
                             $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                             Write-Output (ConvertTo-JiraUser -InputObject $result)

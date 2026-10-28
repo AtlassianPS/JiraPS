@@ -22,7 +22,8 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
@@ -34,7 +35,7 @@
                     CacheExpiry = [TimeSpan]::FromHours(1)
                     BypassCache = $Force
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
                 $allFields = ConvertTo-JiraField -InputObject $result
 
@@ -43,7 +44,7 @@
             '_Search' {
                 foreach ($_field in $Field) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_field]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_field [$_field]"
+                    Write-DebugMessage "Processing `$_field [$_field]"
 
                     $allFields = Get-JiraFieldOperation -Force:$Force -RequestContext $RequestContext
 

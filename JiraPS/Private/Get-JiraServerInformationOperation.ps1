@@ -16,7 +16,8 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $parameter = @{
             URI         = $resourceURi
@@ -26,7 +27,7 @@
             CacheExpiry = [TimeSpan]::FromMinutes(5)
             BypassCache = $Force
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
 
         $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
         Write-Output (ConvertTo-JiraServerInfo -InputObject $result)

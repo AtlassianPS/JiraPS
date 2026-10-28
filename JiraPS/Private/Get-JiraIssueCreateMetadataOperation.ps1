@@ -25,7 +25,8 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $projectObj = Get-JiraProjectOperation -Project $Project -RequestContext $RequestContext -ErrorAction Stop
         $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {
@@ -53,7 +54,7 @@
             $parameter[$_] = $PSCmdlet.PagingParameters.$_
         }
 
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
         Invoke-JiraMethod -RequestContext $RequestContext @parameter | ConvertTo-JiraCreateMetaField
     }
 

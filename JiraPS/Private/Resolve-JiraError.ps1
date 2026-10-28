@@ -47,7 +47,7 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-DebugMessage "Converting `$InputObject to custom object"
 
             $hasErrors = $false
 

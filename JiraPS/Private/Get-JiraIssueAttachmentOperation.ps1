@@ -21,13 +21,14 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         # Find the proper object for the Issue
         $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
         if ($issueObj.Attachment) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Found Attachments on the Issue."
+            Write-DebugMessage "Found Attachments on the Issue."
             if ($FileName) { $attachments = $issueObj.Attachment | Where-Object { $_.Filename -like $FileName } }
             else { $attachments = $issueObj.Attachment }
 

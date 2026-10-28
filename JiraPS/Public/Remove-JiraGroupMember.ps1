@@ -43,7 +43,7 @@
             $resourceURi = "/rest/api/2/group/user"
 
             if ($Force) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
+                Write-DebugMessage "-Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
                 $oldConfirmPreference = $ConfirmPreference
                 $ConfirmPreference = 'None'
             }
@@ -56,15 +56,16 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             foreach ($_group in $Group) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
+                Write-DebugMessage "Processing `$_group [$_group]"
 
                 foreach ($_user in $User) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
+                    Write-DebugMessage "Processing `$_user [$_user]"
 
                     $userObj = Resolve-JiraUser -InputObject $_user -Exact -RequestContext $RequestContext -ErrorAction Stop
                     $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId }
@@ -81,7 +82,7 @@
                         Method       = "DELETE"
                         GetParameter = $getParameter
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     if ($PSCmdlet.ShouldProcess($target, "Remove $($userObj.DisplayName) from group")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
                 }
 
@@ -97,7 +98,7 @@
     end {
         try {
             if ($Force) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
+                Write-DebugMessage "Restoring ConfirmPreference to [$oldConfirmPreference]"
                 $ConfirmPreference = $oldConfirmPreference
             }
 

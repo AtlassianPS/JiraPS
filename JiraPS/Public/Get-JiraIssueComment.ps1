@@ -33,7 +33,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
@@ -48,7 +49,7 @@
                 Paging       = $true
             }
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             Invoke-JiraMethod -RequestContext $RequestContext @parameter
         }
         catch {

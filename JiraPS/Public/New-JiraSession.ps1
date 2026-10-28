@@ -40,6 +40,7 @@
     )
 
     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+    Write-DebugMessage -BoundParameters $PSBoundParameters
     if ($Headers.Count) {
         throw 'New-JiraSession headers are no longer an authentication API. Use explicit authentication parameters.'
     }

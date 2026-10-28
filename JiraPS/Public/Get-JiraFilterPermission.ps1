@@ -35,7 +35,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             $filters = foreach ($item in $Filter) {
                 if ($item.RestUrl) { $item }
@@ -49,7 +50,7 @@
                     URI    = $resourceURi -f $_filter.RestURL
                     Method = "GET"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraFilter -InputObject $_filter -FilterPermissions $result)

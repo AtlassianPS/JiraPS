@@ -55,7 +55,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
@@ -74,7 +75,7 @@
                     InFile  = $file
                     Headers = $headers
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Adding attachment '$($fileName)'.")) {
                     $rawResult = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 

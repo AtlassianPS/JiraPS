@@ -46,6 +46,7 @@
     )
 
     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+    Write-DebugMessage -BoundParameters $PSBoundParameters
 
     if ($Profile) {
         $saved = @(AtlassianPS.Configuration\Get-AtlassianServerConfiguration -Name $Profile)

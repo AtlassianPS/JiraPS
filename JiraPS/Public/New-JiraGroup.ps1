@@ -33,11 +33,12 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             foreach ($_group in $GroupName) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
+                Write-DebugMessage "Processing `$_group [$_group]"
 
                 $requestBody = @{
                     "name" = $_group
@@ -48,7 +49,7 @@
                     Method = "POST"
                     Body   = ConvertTo-Json -InputObject $requestBody
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($GroupName, "Creating group [$GroupName] to JIRA")) {
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 

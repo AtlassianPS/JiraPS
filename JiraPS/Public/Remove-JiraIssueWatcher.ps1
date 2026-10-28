@@ -39,14 +39,15 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
             foreach ($watcherValue in $Watcher) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$watcherValue]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$watcherValue [$watcherValue]"
+                Write-DebugMessage "Processing `$watcherValue [$watcherValue]"
 
                 $watcherUri = if ($isCloud) { "{0}/watchers?accountId={1}" -f $issueObj.RestURL, $watcherValue }
                 else { "{0}/watchers?username={1}" -f $issueObj.RestURL, $watcherValue }
@@ -54,7 +55,7 @@
                     URI    = $watcherUri
                     Method = "DELETE"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
         }

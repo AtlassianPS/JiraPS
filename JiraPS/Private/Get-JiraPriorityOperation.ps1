@@ -21,7 +21,8 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
@@ -33,7 +34,7 @@
                     CacheExpiry = [TimeSpan]::FromHours(1)
                     BypassCache = $Force
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraPriority -InputObject $result)
@@ -41,13 +42,13 @@
             '_Search' {
                 foreach ($_id in $Id) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
+                    Write-DebugMessage "Processing `$_id [$_id]"
 
                     $parameter = @{
                         URI    = $resourceURi -f "/$_id"
                         Method = "GET"
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraPriority -InputObject $result)

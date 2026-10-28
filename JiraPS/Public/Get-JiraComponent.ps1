@@ -39,13 +39,14 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             switch ($PSCmdlet.ParameterSetName) {
                 "ByProject" {
                     foreach ($_project in $Project) {
                         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
+                        Write-DebugMessage "Processing `$_project [$_project]"
 
                         # The /project/{projectIdOrKey}/components endpoint accepts
                         # either a project key or a numeric ID, so we forward whichever
@@ -56,7 +57,7 @@
                             URI    = $resourceURi -f "/project/$projectIdent/components"
                             Method = "GET"
                         }
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                        Write-DebugMessage "Invoking JiraMethod with `$parameter"
                         $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                         Write-Output (ConvertTo-JiraComponent -InputObject $result)
@@ -65,13 +66,13 @@
                 "ByID" {
                     foreach ($_id in $ComponentId) {
                         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
+                        Write-DebugMessage "Processing `$_id [$_id]"
 
                         $parameter = @{
                             URI    = $resourceURi -f "/component/$_id"
                             Method = "GET"
                         }
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                        Write-DebugMessage "Invoking JiraMethod with `$parameter"
                         $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                         Write-Output (ConvertTo-JiraComponent -InputObject $result)

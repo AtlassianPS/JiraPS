@@ -36,7 +36,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             switch ($PSCmdlet.ParameterSetName) {
                 '_All' {
@@ -44,7 +45,7 @@
                         URI    = $resourceURi -f ""
                         Method = "GET"
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraStatus -InputObject $result)
@@ -52,7 +53,7 @@
                 '_Search' {
                     foreach ($_status in $Status) {
                         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_status]"
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_status [$_status]"
+                        Write-DebugMessage "Processing `$_status [$_status]"
 
                         $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id }
                         else { $_status.Name }
@@ -62,7 +63,7 @@
                             URI    = $resourceURi -f "/$encodedIdentifier"
                             Method = "GET"
                         }
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                        Write-DebugMessage "Invoking JiraMethod with `$parameter"
                         $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                         Write-Output (ConvertTo-JiraStatus -InputObject $result)

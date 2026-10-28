@@ -46,11 +46,12 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             foreach ($_group in $Group) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
+                Write-DebugMessage "Processing `$_group [$_group]"
 
                 $existingMembers = @(Get-JiraGroupMemberOperation -Group $_group -RequestContext $RequestContext -ErrorAction Stop)
                 $users = $UserName | Resolve-JiraUser -Exact -RequestContext $RequestContext
@@ -63,7 +64,7 @@
                     elseif ($user.Name) { @($existingMembers.Name) -contains $user.Name }
                     else { $false }
                     if (-not $memberExists) {
-                        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] User [$userDisplayIdentifier] is not already in group [$_group]. Adding user."
+                        Write-DebugMessage "User [$userDisplayIdentifier] is not already in group [$_group]. Adding user."
 
                         $memberBody = if ($isCloud -and $user.AccountId) { @{ 'accountId' = $user.AccountId } }
                         else { @{ 'name' = $user.Name } }
@@ -76,7 +77,7 @@
                             GetParameter = $getParameter
                             Body         = ConvertTo-Json -InputObject $memberBody
                         }
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                        Write-DebugMessage "Invoking JiraMethod with `$parameter"
                         if ($PSCmdlet.ShouldProcess($target, "Adding user '$userDisplayIdentifier'.")) {
                             $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
                         }

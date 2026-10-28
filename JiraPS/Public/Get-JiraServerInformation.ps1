@@ -17,6 +17,7 @@
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
         $operationParameters = @{} + $PSBoundParameters

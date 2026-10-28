@@ -54,25 +54,26 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             switch ($PsCmdlet.ParameterSetName) {
                 "byId" {
                     foreach ($_id in $AttachmentId) {
                         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
+                        Write-DebugMessage "Processing `$_id [$_id]"
 
                         $parameter = @{
                             URI    = $resourceURi -f $_id
                             Method = "DELETE"
                         }
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                        Write-DebugMessage "Invoking JiraMethod with `$parameter"
                         if ($PSCmdlet.ShouldProcess($thisUrl, "Removing an attachment")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
                     }
                 }
                 "byIssue" {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
+                    Write-DebugMessage "Processing `$Issue [$Issue]"
 
                     # Find the proper object for the Issue
                     $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
@@ -88,13 +89,13 @@
 
                     foreach ($attachment in $attachments) {
                         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$attachment]"
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$attachment [$attachment]"
+                        Write-DebugMessage "Processing `$attachment [$attachment]"
 
                         $parameter = @{
                             URI    = $resourceURi -f $attachment.Id
                             Method = "DELETE"
                         }
-                        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                        Write-DebugMessage "Invoking JiraMethod with `$parameter"
                         if ($PSCmdlet.ShouldProcess($Issue.Key, "Removing attachment '$($attachment.FileName)'")) {
                             Invoke-JiraMethod -RequestContext $RequestContext @parameter
                         }

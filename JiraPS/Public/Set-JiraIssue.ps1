@@ -80,18 +80,18 @@
             }
 
             if ($UseDefaultAssignee) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -UseDefaultAssignee passed. Issue will be assigned to the default assignee."
+                Write-DebugMessage "-UseDefaultAssignee passed. Issue will be assigned to the default assignee."
                 $assigneeString = "-1"
                 $validAssignee = $true
             }
             elseif ($Unassign) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Unassign passed. Issue will be unassigned."
+                Write-DebugMessage "-Unassign passed. Issue will be unassigned."
                 $assigneeString = $null
                 $validAssignee = $true
             }
             elseif ($assigneeProvided) {
                 if ($assigneeObj = Resolve-JiraUser -InputObject $Assignee -Exact -RequestContext $RequestContext) {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
+                    Write-DebugMessage "User found (name=[$($assigneeObj.Name)],RestUrl=[$($assigneeObj.RestUrl)])"
                     $validAssignee = $true
                 }
                 else {
@@ -118,10 +118,11 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
+            Write-DebugMessage "Processing `$Issue [$Issue]"
 
             # Find the proper object for the Issue
             $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
@@ -161,7 +162,7 @@
 
             if ($Fields) {
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Resolving `$Fields against edit metadata"
+                Write-DebugMessage "Resolving `$Fields against edit metadata"
 
                 # Fetch edit metadata to resolve field names/IDs in the context of this
                 # specific issue. Falls back to Get-JiraField when a field is not present
@@ -179,7 +180,7 @@
                     Get-JiraIssueEditMetadataOperation -Issue $issueObj.Key -RequestContext $RequestContext -ErrorAction Stop -Debug:$false
                 }
                 catch {
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Edit metadata unavailable for $($issueObj.Key): $_"
+                    Write-DebugMessage "Edit metadata unavailable for $($issueObj.Key): $_"
                     @()
                 }
 
@@ -203,7 +204,7 @@
             $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
 
             if ( @($issueProps.update.Keys).Count -gt 0 ) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue fields"
+                Write-DebugMessage "Updating issue fields"
 
                 $parameter = @{
                     URI          = $issueRestUrl
@@ -212,12 +213,12 @@
 
                     GetParameter = $SkipNotificationParams
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
 
             if ($assigneeProps) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Updating issue assignee"
+                Write-DebugMessage "Updating issue assignee"
                 # Jira handles assignee differently; you can't change it from the default "edit issues" screen unless
                 # you customize the "Edit Issue" screen.
 
@@ -228,7 +229,7 @@
 
                     GetParameter = $SkipNotificationParams
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($issueObj.Key, "Updating Issue [Assignee] from JIRA")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
             }
 

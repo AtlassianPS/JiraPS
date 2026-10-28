@@ -12,7 +12,7 @@
             if ($null -eq $i) { continue }
             if ($i -is [AtlassianPS.JiraPS.Attachment]) { $i; continue }
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Attachment"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Attachment"
 
             $props = @{
                 'ID'        = $i.id

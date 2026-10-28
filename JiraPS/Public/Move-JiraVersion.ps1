@@ -45,7 +45,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             if (-not $Version.Id) {
                 $errorItem = [System.Management.Automation.ErrorRecord]::new(
@@ -90,7 +91,7 @@
                 Body   = ConvertTo-Json $requestBody
             }
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             Invoke-JiraMethod -RequestContext $RequestContext @parameter
         }
         catch {

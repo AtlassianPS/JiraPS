@@ -10,7 +10,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueType"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.IssueType"
 
             $props = @{
                 'Id'          = ConvertTo-JiraNullableInt64 $i.id

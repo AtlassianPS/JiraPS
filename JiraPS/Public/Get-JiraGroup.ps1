@@ -37,11 +37,12 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             foreach ($group in $GroupName) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$group]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$group [$group]"
+                Write-DebugMessage "Processing `$group [$group]"
 
                 if ($isCloud) {
                     $parameter = @{
@@ -51,7 +52,7 @@
                         Paging       = $true
                     }
 
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                     $result = @($result | Where-Object { $_.name -eq $group })
@@ -74,7 +75,7 @@
                         }
                     }
 
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                     if (-not $result) {

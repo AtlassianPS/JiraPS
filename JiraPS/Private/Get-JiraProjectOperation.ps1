@@ -18,7 +18,8 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
@@ -26,7 +27,7 @@
                     URI    = $resourceURi -f ""
                     Method = "GET"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraProject -InputObject $result)
@@ -34,7 +35,7 @@
             '_Search' {
                 foreach ($_project in $Project) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
+                    Write-DebugMessage "Processing `$_project [$_project]"
 
                     $projectIdentifier = if ($_project.Key) { $_project.Key }
                     else { $_project.Id }
@@ -43,7 +44,7 @@
                         URI    = $resourceURi -f "/$projectIdentifier"
                         Method = "GET"
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraProject -InputObject $result)

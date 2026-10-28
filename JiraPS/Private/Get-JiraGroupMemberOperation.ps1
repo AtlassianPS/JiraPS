@@ -31,11 +31,12 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         foreach ($_group in $Group) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
+            Write-DebugMessage "Processing `$_group [$_group]"
 
             $getParameter = @{ maxResults = $PageSize }
             if ($isCloud -and $_group.Id) { $getParameter['groupId'] = $_group.Id }
@@ -56,7 +57,7 @@
                 $parameter[$_] = $PSCmdlet.PagingParameters.$_
             }
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             Invoke-JiraMethod -RequestContext $RequestContext @parameter
         }
     }

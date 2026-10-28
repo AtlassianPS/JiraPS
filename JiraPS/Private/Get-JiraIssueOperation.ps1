@@ -61,13 +61,14 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
             'ByIssueKey' {
                 foreach ($_key in $Key) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
+                    Write-DebugMessage "Processing `$_key [$_key]"
 
                     $expandValue = if ($IncludeHistory) { "transitions,changelog" }
                     else { "transitions" }
@@ -80,7 +81,7 @@
                         GetParameter = $getParameter
                     }
 
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraIssue -InputObject $result)
@@ -89,7 +90,7 @@
             'ByInputObject' {
                 # Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-InputObject' has been marked as deprecated."
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$InputObject]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$InputObject [$InputObject]"
+                Write-DebugMessage "Processing `$InputObject [$InputObject]"
 
                 Write-Output (Get-JiraIssueOperation -Key $InputObject.Key -Fields $Fields -RequestContext $RequestContext -IncludeHistory:$IncludeHistory)
             }
@@ -114,7 +115,7 @@
                     $parameter[$_] = $PSCmdlet.PagingParameters.$_
                 }
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod -RequestContext $RequestContext @parameter
             }
             'ByFilter' {
@@ -138,7 +139,7 @@
                     $parameter[$_] = $PSCmdlet.PagingParameters.$_
                 }
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 Invoke-JiraMethod -RequestContext $RequestContext @parameter
             }
         }

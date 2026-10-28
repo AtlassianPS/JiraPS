@@ -34,14 +34,15 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             if ($LinkType -and $LinkType.Id) {
                 $parameter = @{
                     URI    = $resourceURi -f "/$($LinkType.Id)"
                     Method = "GET"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
@@ -51,7 +52,7 @@
                     URI    = $resourceURi -f ""
                     Method = "GET"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
                 $allLinkTypes = ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes
 

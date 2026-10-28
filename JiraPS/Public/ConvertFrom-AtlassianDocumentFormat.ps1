@@ -12,10 +12,10 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         if ($null -eq $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] InputObject is `$null — returning `$null"
+            Write-DebugMessage "InputObject is `$null — returning `$null"
             return $null
         }
 
@@ -26,11 +26,11 @@
 
         # Data Center, API v2 and non-ADF objects
         if ($docType -ne 'doc') {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Input is not ADF (type='$docType') — returning as string"
+            Write-DebugMessage "Input is not ADF (type='$docType') — returning as string"
             return $InputObject.ToString()
         }
 
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] ADF document with $($InputObject.content.Count) top-level node(s)"
+        Write-DebugMessage "ADF document with $($InputObject.content.Count) top-level node(s)"
 
         $rawBlocks = foreach ($node in $InputObject.content) {
             ConvertFrom-AdfBlock -Node $node

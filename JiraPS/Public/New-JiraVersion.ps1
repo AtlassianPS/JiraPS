@@ -64,7 +64,8 @@
 
     process {
         try {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+            Write-DebugMessage -BoundParameters $PSBoundParameters
 
             $requestBody = @{}
             switch ($PSCmdlet.ParameterSetName) {
@@ -103,7 +104,7 @@
                 Method = "POST"
                 Body   = ConvertTo-Json -InputObject $requestBody
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($Name, "Creating new Version on JIRA")) {
                 $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
 

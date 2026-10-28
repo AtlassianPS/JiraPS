@@ -10,7 +10,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.FieldSchema"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.FieldSchema"
 
             $configuration = $null
             if ($null -ne $i.configuration) {

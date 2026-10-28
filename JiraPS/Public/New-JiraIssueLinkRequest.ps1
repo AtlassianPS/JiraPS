@@ -31,6 +31,7 @@
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
     }
 
     process {

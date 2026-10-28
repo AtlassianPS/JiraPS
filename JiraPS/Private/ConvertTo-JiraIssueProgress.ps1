@@ -10,7 +10,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueProgress"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.IssueProgress"
 
             [AtlassianPS.JiraPS.IssueProgress]@{
                 Progress = ConvertTo-JiraNullableInt64 $i.progress

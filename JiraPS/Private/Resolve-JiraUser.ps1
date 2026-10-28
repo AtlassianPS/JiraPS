@@ -22,11 +22,11 @@
 
     process {
         if ($InputObject.RestUrl) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$InputObject as object"
+            Write-DebugMessage "Using `$InputObject as object"
             return $InputObject
         }
 
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve User to object"
+        Write-DebugMessage "Resolve User to object"
 
         if ($isCloud -and $InputObject.AccountId) {
             return (Get-JiraUserOperation -AccountId $InputObject.AccountId -Exact:$Exact -RequestContext $RequestContext -ErrorAction Stop)

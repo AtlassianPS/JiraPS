@@ -11,7 +11,7 @@
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
             if ($i -is [AtlassianPS.JiraPS.User]) { $i; continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.User"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.User"
 
             $hash = @{
                 Key          = $i.key
