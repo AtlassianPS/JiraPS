@@ -108,7 +108,19 @@ Cloud search returns active users among the first 1,000 matches; `All` includes 
 Data Center enumeration follows `/user/list` cursors when that endpoint is supported and fails actionably otherwise.
 `Find-JiraFilter` uses Cloud's filter-search API; Data Center callers use exact or favorite filter lookup.
 Use `User` for group membership, `Watcher` for watchers, `IssueLink` for issue links and `Link` for remote links.
-Cached metadata getters use `Refresh` to fetch and replace the cached response.
+
+### Refreshing cached metadata
+
+Replace `-Force` with `-Refresh` in `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraPriority` and `Get-JiraServerInformation`.
+`-Refresh` fetches fresh data and replaces the selected connection's cached response.
+
+```powershell
+# v2
+Get-JiraField -Force
+
+# v3
+Get-JiraField -Refresh
+```
 
 ### Mutation intent and outputs
 

@@ -24,7 +24,7 @@
   User IDs remain opaque and deployment-specific.
   `New-JiraUser` requires explicit Cloud products or a Data Center username; the unsupported Boolean `-Notify` option is removed.
   `Set-JiraUser` fails actionably on Cloud, where the account-field update API is unavailable.
-- Cached metadata getters use `-Refresh` to fetch and replace cached data.
+- Cached metadata getters replace `-Force` with `-Refresh` to fetch and replace the selected connection's cached data.
   Version name filtering precedes `First` and `Skip`; comments and worklogs expose standard paging.
 - Domain objects use `AtlassianPS.JiraPS.<Type>` instead of the historic `JiraPS.<Type>` PSTypeNames.
   Update type checks and mocks to the new namespace; prefer `$obj -is [AtlassianPS.JiraPS.Issue]` for type checks.
