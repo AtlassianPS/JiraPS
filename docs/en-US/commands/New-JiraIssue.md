@@ -17,13 +17,13 @@ Creates a new issue in Jira.
 ### AssignToUser (Default)
 
 ```powershell
-New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <String> [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <String>] [-Reporter <AtlassianPS.JiraPS.User>] [-Assignee <AtlassianPS.JiraPS.User>] [-Label <String[]>] [-Parent <String>] [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <PSObject>] [-Components <AtlassianPS.JiraPS.Component[]>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string> [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>] [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Parent <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <String> [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <String>] [-Reporter <AtlassianPS.JiraPS.User>] [-Unassign] [-Label <String[]>] [-Parent <String>] [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <PSObject>] [-Components <AtlassianPS.JiraPS.Component[]>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string> [-Priority <AtlassianPS.JiraPS.Priority>] [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>] [-Unassign] [-Label <string[]>] [-Parent <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

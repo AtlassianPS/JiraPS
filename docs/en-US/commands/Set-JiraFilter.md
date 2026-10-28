@@ -15,7 +15,7 @@ Make changes to an existing filter.
 ## SYNTAX
 
 ```powershell
-Set-JiraFilter -InputObject <AtlassianPS.JiraPS.Filter> [-Name <String>] [-Description <String>] [-JQL <String>] [-Favorite <Boolean>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraFilter [-InputObject] <AtlassianPS.JiraPS.Filter> [[-Name] <string>] [[-Description] <string>] [[-JQL] <string>] [[-Favorite] <bool>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -94,7 +94,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -193,18 +193,23 @@ HelpMessage: ''
 
 ### -Name
 
-Friendly connection name, unique without case sensitivity within Jira.
+The new filter name.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -243,7 +248,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

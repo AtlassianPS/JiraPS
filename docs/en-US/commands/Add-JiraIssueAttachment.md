@@ -15,7 +15,7 @@ Adds a file attachment to an existing Jira issue.
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueAttachment -Issue <AtlassianPS.JiraPS.Issue> -FilePath <String[]> [-Credential <PSCredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Add-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FilePath] <string[]> [-Credential <pscredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

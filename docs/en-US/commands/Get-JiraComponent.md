@@ -17,13 +17,13 @@ Returns a component from Jira.
 ### ByID (Default)
 
 ```powershell
-Get-JiraComponent -ComponentId <Int32[]> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraComponent [-ComponentId] <int[]> [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### ByProject
 
 ```powershell
-Get-JiraComponent -Project <AtlassianPS.JiraPS.Project[]> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraComponent [-Project] <AtlassianPS.JiraPS.Project[]> [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

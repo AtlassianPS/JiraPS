@@ -15,7 +15,7 @@ Remove a permission of a filter.
 ## SYNTAX
 
 ```powershell
-Remove-JiraFilterPermission -Filter <AtlassianPS.JiraPS.Filter> [-Permission <AtlassianPS.JiraPS.FilterPermission[]>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter> [[-Permission] <AtlassianPS.JiraPS.FilterPermission[]>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

@@ -15,7 +15,7 @@ Returns attachments of an issue in Jira.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueAttachment -Issue <AtlassianPS.JiraPS.Issue> [-FileName <String>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [[-FileName] <string>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -62,7 +62,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -128,7 +128,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

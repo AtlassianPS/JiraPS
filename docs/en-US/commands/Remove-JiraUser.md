@@ -15,7 +15,7 @@ Removes an existing user from Jira.
 ## SYNTAX
 
 ```powershell
-Remove-JiraUser -User <AtlassianPS.JiraPS.User> [-Credential <PSCredential>] [-Force] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraUser [-User] <AtlassianPS.JiraPS.User> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -71,7 +71,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -156,7 +156,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

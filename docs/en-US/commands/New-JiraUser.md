@@ -15,7 +15,7 @@ Creates a new user in JIRA
 ## SYNTAX
 
 ```powershell
-New-JiraUser -UserName <String> -EmailAddress <String> [-DisplayName <String>] [-Notify <Boolean>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+New-JiraUser [-UserName] <string> [-EmailAddress] <string> [[-DisplayName] <string>] [[-Notify] <bool>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -82,7 +82,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -209,7 +209,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

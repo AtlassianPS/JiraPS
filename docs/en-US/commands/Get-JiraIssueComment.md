@@ -15,7 +15,7 @@ Returns comments on an issue in Jira.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueComment -Issue <AtlassianPS.JiraPS.Issue> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraIssueComment [-Issue] <AtlassianPS.JiraPS.Issue> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -54,7 +54,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -97,7 +97,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

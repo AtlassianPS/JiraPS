@@ -17,13 +17,13 @@ Changes an issue's status by performing a Jira transition.
 ### AssignToUser (Default)
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <PSObject>] [-Assignee <AtlassianPS.JiraPS.User>] [-Comment <String>] [-TimeSpent <TimeSpan>] [-Credential <PSCredential>] [-Passthru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>] [-Assignee <AtlassianPS.JiraPS.User>] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <PSObject>] [-Unassign] [-Comment <String>] [-TimeSpent <TimeSpan>] [-Credential <PSCredential>] [-Passthru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <AtlassianPS.JiraPS.Transition> [-Fields <psobject>] [-Unassign] [-Comment <string>] [-TimeSpent <timespan>] [-Credential <pscredential>] [-Passthru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

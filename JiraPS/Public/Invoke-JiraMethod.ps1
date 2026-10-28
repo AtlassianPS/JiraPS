@@ -78,14 +78,12 @@
         [AtlassianPS.Connection]
         $Connection,
 
-        [Alias('Server', 'ServerName')]
         [String]
         $ConnectionName,
 
         [Uri]
         $BaseUri,
 
-        [Alias('Email')]
         [String]
         $EmailAddress,
 

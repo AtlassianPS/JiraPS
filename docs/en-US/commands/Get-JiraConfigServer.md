@@ -10,7 +10,7 @@ permalink: /docs/JiraPS/commands/Get-JiraConfigServer/
 
 ## SYNOPSIS
 
-Obtains the configured URL for the JIRA server
+Obtains the selected Jira API endpoint or configured endpoint.
 
 ## SYNTAX
 
@@ -20,7 +20,8 @@ Get-JiraConfigServer [<CommonParameters>]
 
 ## DESCRIPTION
 
-This function returns the configured URL for the JIRA server that JiraPS should manipulate.
+Returns the API endpoint of the current default Jira connection.
+When no connection is selected, returns the endpoint saved by Set-JiraConfigServer or the previously configured Jira server URL.
 
 ## EXAMPLES
 
@@ -30,7 +31,7 @@ This function returns the configured URL for the JIRA server that JiraPS should 
 Get-JiraConfigServer
 ```
 
-Returns the server URL of the JIRA server configured for the JiraPS module.
+Returns the selected Jira API endpoint, falling back to the configured endpoint when no connection is selected.
 
 ## PARAMETERS
 
@@ -49,10 +50,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-Support for multiple configuration files is limited at this point in time, but enhancements are planned for a future update.
-
-<https://github.com/AtlassianPS/JiraPS/issues/45>
-<https://github.com/AtlassianPS/JiraPS/issues/194>
+Use Get-JiraConnection to inspect connections and Connect-Jira to create one.
 
 ## RELATED LINKS
 

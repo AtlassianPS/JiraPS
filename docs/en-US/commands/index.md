@@ -16,12 +16,15 @@ JiraPS exports these commands directly without an additional default command pre
 | `Add-JiraIssueWatcher` | [Add-JiraIssueWatcher](/docs/JiraPS/commands/Add-JiraIssueWatcher/) |
 | `Add-JiraIssueWorklog` | [Add-JiraIssueWorklog](/docs/JiraPS/commands/Add-JiraIssueWorklog/) |
 | `Clear-JiraCache` | [Clear-JiraCache](/docs/JiraPS/commands/Clear-JiraCache/) |
+| `Connect-Jira` | [Connect-Jira](/docs/JiraPS/commands/Connect-Jira/) |
 | `ConvertFrom-AtlassianDocumentFormat` | [ConvertFrom-AtlassianDocumentFormat](/docs/JiraPS/commands/ConvertFrom-AtlassianDocumentFormat/) |
 | `ConvertTo-AtlassianDocumentFormat` | [ConvertTo-AtlassianDocumentFormat](/docs/JiraPS/commands/ConvertTo-AtlassianDocumentFormat/) |
 | `ConvertTo-JiraTable` | [ConvertTo-JiraTable](/docs/JiraPS/commands/ConvertTo-JiraTable/) |
+| `Disconnect-Jira` | [Disconnect-Jira](/docs/JiraPS/commands/Disconnect-Jira/) |
 | `Find-JiraFilter` | [Find-JiraFilter](/docs/JiraPS/commands/Find-JiraFilter/) |
 | `Get-JiraComponent` | [Get-JiraComponent](/docs/JiraPS/commands/Get-JiraComponent/) |
 | `Get-JiraConfigServer` | [Get-JiraConfigServer](/docs/JiraPS/commands/Get-JiraConfigServer/) |
+| `Get-JiraConnection` | [Get-JiraConnection](/docs/JiraPS/commands/Get-JiraConnection/) |
 | `Get-JiraField` | [Get-JiraField](/docs/JiraPS/commands/Get-JiraField/) |
 | `Get-JiraFilter` | [Get-JiraFilter](/docs/JiraPS/commands/Get-JiraFilter/) |
 | `Get-JiraFilterPermission` | [Get-JiraFilterPermission](/docs/JiraPS/commands/Get-JiraFilterPermission/) |
@@ -69,11 +72,13 @@ JiraPS exports these commands directly without an additional default command pre
 | `Remove-JiraSession` | [Remove-JiraSession](/docs/JiraPS/commands/Remove-JiraSession/) |
 | `Remove-JiraUser` | [Remove-JiraUser](/docs/JiraPS/commands/Remove-JiraUser/) |
 | `Remove-JiraVersion` | [Remove-JiraVersion](/docs/JiraPS/commands/Remove-JiraVersion/) |
+| `Select-JiraConnection` | [Select-JiraConnection](/docs/JiraPS/commands/Select-JiraConnection/) |
 | `Set-JiraConfigServer` | [Set-JiraConfigServer](/docs/JiraPS/commands/Set-JiraConfigServer/) |
 | `Set-JiraFilter` | [Set-JiraFilter](/docs/JiraPS/commands/Set-JiraFilter/) |
 | `Set-JiraIssue` | [Set-JiraIssue](/docs/JiraPS/commands/Set-JiraIssue/) |
 | `Set-JiraIssueLabel` | [Set-JiraIssueLabel](/docs/JiraPS/commands/Set-JiraIssueLabel/) |
 | `Set-JiraResponseHeaderLogConfiguration` | [Set-JiraResponseHeaderLogConfiguration](/docs/JiraPS/commands/Set-JiraResponseHeaderLogConfiguration/) |
+| `Set-JiraSession` | [Set-JiraSession](/docs/JiraPS/commands/Set-JiraSession/) |
 | `Set-JiraUser` | [Set-JiraUser](/docs/JiraPS/commands/Set-JiraUser/) |
 | `Set-JiraVersion` | [Set-JiraVersion](/docs/JiraPS/commands/Set-JiraVersion/) |
 

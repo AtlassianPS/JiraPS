@@ -336,10 +336,11 @@ $issue.Status.Name.Substring(0, 3)
 ### Endpoint paths in `Invoke-JiraMethod`
 
 In v3, JiraPS standardizes internal REST calls on relative endpoint paths that match Atlassian documentation (for example, `/rest/api/2/project`).
-`Invoke-JiraMethod` resolves those relative paths against `Get-JiraConfigServer`.
+`Invoke-JiraMethod` resolves those relative paths against the selected connection's API endpoint.
 Relative paths must start with `/`.
 Calls like `Invoke-JiraMethod -Uri 'rest/api/2/project'` now throw a clear argument error.
-Absolute URLs are still accepted for backward compatibility and for object properties like `RestURL`.
+Absolute URLs must belong to that connection's endpoint.
+Cloud site REST URLs from properties like `RestURL` are mapped to the same connection's API gateway.
 
 #### Recommended in v3
 
@@ -350,7 +351,7 @@ Invoke-JiraMethod -Uri '/rest/api/2/issue/TEST-1'
 
 ### PSTypeName changes in `AtlassianPS.JiraPS.*`
 
-The eight most-used JiraPS domain types are now real .NET classes under the `AtlassianPS.JiraPS` namespace, mirroring the long-standing convention used by `ConfluencePS` and other AtlassianPS modules.
+Common JiraPS domain types are now real .NET classes under the `AtlassianPS.JiraPS` namespace, mirroring the long-standing convention used by `ConfluencePS` and other AtlassianPS modules.
 Returned objects have `GetType().FullName -eq 'AtlassianPS.JiraPS.<Type>'`, support hashtable construction (`[AtlassianPS.JiraPS.User]@{ Name = 'jdoe' }`), expose strongly-typed cross-references (e.g. `Project.Lead` is `[User]`, `Issue.Project` is `[Project]`), and surface real properties to `Get-Member` and IDE IntelliSense.
 
 The following types were renamed:
@@ -363,7 +364,7 @@ The following types were renamed:
 | `JiraPS.Filter`     | `AtlassianPS.JiraPS.Filter`      |
 | `JiraPS.Version`    | `AtlassianPS.JiraPS.Version`     |
 | `JiraPS.Comment`    | `AtlassianPS.JiraPS.Comment`     |
-| `JiraPS.Session`    | `AtlassianPS.JiraPS.Session`     |
+| `JiraPS.Session`    | `AtlassianPS.Connection`        |
 | `JiraPS.ServerInfo` | `AtlassianPS.JiraPS.ServerInfo`  |
 
 There is no backward-compatibility alias.

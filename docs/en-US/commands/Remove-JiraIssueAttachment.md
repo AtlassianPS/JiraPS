@@ -17,13 +17,13 @@ Removes an attachment from a Jira issue.
 ### byId (Default)
 
 ```powershell
-Remove-JiraIssueAttachment -AttachmentId <Int32[]> [-Credential <PSCredential>] [-Force] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraIssueAttachment [-AttachmentId] <int[]> [-Credential <pscredential>] [-Force] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### byIssue
 
 ```powershell
-Remove-JiraIssueAttachment -Issue <AtlassianPS.JiraPS.Issue> [-FileName <String[]>] [-Credential <PSCredential>] [-Force] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FileName <string[]>] [-Credential <pscredential>] [-Force] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

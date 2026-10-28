@@ -15,7 +15,7 @@ Save an attachment to disk.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueAttachmentFile -Attachment <AtlassianPS.JiraPS.Attachment[]> [-Path <String>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraIssueAttachmentFile [-Attachment] <AtlassianPS.JiraPS.Attachment[]> [[-Path] <string>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -85,7 +85,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -127,7 +127,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

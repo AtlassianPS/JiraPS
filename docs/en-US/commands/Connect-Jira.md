@@ -17,13 +17,13 @@ Validate and open a named Jira connection.
 ### Uri (Default)
 
 ```powershell
-Connect-Jira -Name <String> -Uri <Uri> [-Credential <PSCredential>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-DeploymentType <String>] [-Default] [<CommonParameters>]
+Connect-Jira -Name <string> -Uri <uri> [-Credential <pscredential>] [-EmailAddress <string>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-DeploymentType <string>] [-Default] [<CommonParameters>]
 ```
 
 ### Profile
 
 ```powershell
-Connect-Jira -Name <String> -Profile <String> [-Credential <PSCredential>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-DeploymentType <String>] [-Default] [<CommonParameters>]
+Connect-Jira -Name <string> -Profile <string> [-Credential <pscredential>] [-EmailAddress <string>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-DeploymentType <string>] [-Default] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -185,13 +185,12 @@ Accept wildcard characters: False
 ### -EmailAddress
 
 Jira Cloud authentication email to use with ApiToken in the same call.
-Email is an alias.
 EmailAddress cannot be used with another authentication method.
 
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: Email
+Aliases: None
 
 Required: False
 Position: Named

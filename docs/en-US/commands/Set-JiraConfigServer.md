@@ -10,17 +10,19 @@ permalink: /docs/JiraPS/commands/Set-JiraConfigServer/
 
 ## SYNOPSIS
 
-Defines the configured URL for the JIRA server
+Saves a Jira endpoint for compatibility with existing scripts.
 
 ## SYNTAX
 
 ```powershell
-Set-JiraConfigServer [-Server] <uri> [<CommonParameters>]
+Set-JiraConfigServer [-Server] <uri> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function defines the configured URL for the JIRA server that JiraPS should manipulate.
+Saves the endpoint in the JiraPS.LegacyEndpoint server profile.
+This compatibility command does not create or select a live connection.
+Use named server profiles with Connect-Jira -Profile for new scripts.
 
 ## EXAMPLES
 
@@ -30,7 +32,7 @@ This function defines the configured URL for the JIRA server that JiraPS should 
 Set-JiraConfigServer 'https://jira.example.com:8080'
 ```
 
-This example defines the server URL of the JIRA server configured for the JiraPS module.
+Saves the Jira endpoint for use when no default connection is selected.
 
 ## PARAMETERS
 
@@ -56,6 +58,38 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -WhatIf
+
+Shows the profile update without saving it.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: wi
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Confirm
+
+Prompts before saving the endpoint profile.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: cf
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -65,17 +99,16 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### String
+### None
 
 ## OUTPUTS
 
-### System.String
+### None
 
 ## NOTES
 
-Support for multiple configuration files is limited at this point in time,
-but enhancements are planned for the next major release.
-This can be tracked in [JiraPS#194](https://github.com/AtlassianPS/JiraPS/issues/194)
+The selected connection takes precedence over this saved endpoint.
+Authentication is supplied when creating a connection or through an explicit Credential override.
 
 ## RELATED LINKS
 

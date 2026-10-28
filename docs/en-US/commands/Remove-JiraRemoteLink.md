@@ -15,7 +15,7 @@ Removes a remote link from a Jira issue.
 ## SYNTAX
 
 ```powershell
-Remove-JiraRemoteLink -Issue <AtlassianPS.JiraPS.Issue> -LinkId <AtlassianPS.JiraPS.Link[]> [-Credential <PSCredential>] [-Force] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [-LinkId] <AtlassianPS.JiraPS.Link[]> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -76,7 +76,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -184,7 +184,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

@@ -17,25 +17,25 @@ Returns a user from Jira.
 ### Self (Default)
 
 ```powershell
-Get-JiraUser [-IncludeInactive] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraUser [-IncludeInactive] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### ByUserName
 
 ```powershell
-Get-JiraUser -UserName <String[]> [-Exact] [-IncludeInactive] [-MaxResults <UInt32>] [-Skip <UInt64>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraUser [-UserName] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <uint>] [-Skip <ulong>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### ByAccountId
 
 ```powershell
-Get-JiraUser -AccountId <String[]> [-Exact] [-IncludeInactive] [-MaxResults <UInt32>] [-Skip <UInt64>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraUser [-AccountId] <string[]> [-Exact] [-IncludeInactive] [-MaxResults <uint>] [-Skip <ulong>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
-Get-JiraUser -InputObject <AtlassianPS.JiraPS.User[]> [-Exact] [-IncludeInactive] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraUser [-InputObject] <AtlassianPS.JiraPS.User[]> [-Exact] [-IncludeInactive] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

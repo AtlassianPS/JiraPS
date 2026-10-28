@@ -15,7 +15,7 @@ Returns a remote link from a Jira issue.
 ## SYNTAX
 
 ```powershell
-Get-JiraRemoteLink -Issue <AtlassianPS.JiraPS.Issue> [-LinkId <Int32>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [[-LinkId] <int>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -54,7 +54,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -118,7 +118,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

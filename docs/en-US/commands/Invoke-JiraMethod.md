@@ -15,7 +15,7 @@ Invoke a specific call to a Jira REST Api endpoint
 ## SYNTAX
 
 ```powershell
-Invoke-JiraMethod -URI <Uri> [-Method <WebRequestMethod>] [-Body <String>] [-RawBody] [-Headers <Hashtable>] [-GetParameter <Hashtable>] [-Paging] [-InFile <String>] [-OutFile <String>] [-StoreSession] [-OutputType <String>] [-Credential <PSCredential>] [-CacheKey <String>] [-CacheExpiry <TimeSpan>] [-BypassCache] [-TimeoutSec <Int32>] [-Connection <AtlassianPS.Connection>] [-ConnectionName <String>] [-BaseUri <Uri>] [-EmailAddress <String>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Invoke-JiraMethod [-URI] <uri> [[-Method] <WebRequestMethod>] [[-Body] <string>] [[-Headers] <hashtable>] [[-GetParameter] <hashtable>] [[-InFile] <string>] [[-OutFile] <string>] [[-OutputType] <string>] [[-Credential] <pscredential>] [[-CacheKey] <string>] [[-CacheExpiry] <timespan>] [[-TimeoutSec] <int>] [[-Connection] <AtlassianPS.Connection>] [[-ConnectionName] <string>] [[-BaseUri] <uri>] [[-EmailAddress] <string>] [[-ApiToken] <Object>] [[-PersonalAccessToken] <Object>] [-RawBody] [-Paging] [-StoreSession] [-BypassCache] [-Anonymous] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -24,8 +24,9 @@ Make a call to a REST Api endpoint with all the benefits of JiraPS.
 
 This cmdlet is what the other cmdlets call under the hood.
 It handles the authentication, parses the response, handles exceptions from Jira, returns specific objects and handles the differences between versions of Powershell and Operating Systems.
-When you pass a relative URI path, it must start with `/` and JiraPS resolves it against `Get-JiraConfigServer`.
-Absolute URIs are also accepted for compatibility with object properties like `RestURL`.
+When you pass a relative URI path, it must start with `/` and JiraPS resolves it against the selected connection's API endpoint.
+Absolute URIs must belong to that connection's endpoint.
+Cloud site REST URLs are mapped to the same connection's API gateway.
 
 Use `Set-JiraResponseHeaderLogConfiguration` to opt into response-header logging on the debug stream.
 This is useful when troubleshooting Jira Data Center diagnostic headers such as `X-AREQUESTID`, `X-ANODEID`, `X-ASESSIONID`, and `X-AUSERNAME`.
@@ -46,7 +47,8 @@ Invoke-JiraMethod -URI "/rest/api/latest/project"
 ```
 
 Sends a GET request which will return all the projects on the Jira server.
-This call would either be executed anonymously or require a session to be available.
+Uses the selected Jira connection.
+For anonymous access, create a connection with `Connect-Jira -Anonymous` first.
 
 ### Example 2
 
@@ -92,18 +94,12 @@ Creates a new group named "NewGroup"
 ### Example 5
 
 ```powershell
-$params = @{
-    Uri = "/rest/api/latest/mypermissions"
-    Method = "GET"
-    Body = $body
-    StoreSession = $true
-    Credential = $cred
-}
-Invoke-JiraMethod @params
+$connection = Connect-Jira -Name 'work' -Uri 'https://jira.example.com' -Credential (Get-Credential)
+Invoke-JiraMethod -Uri '/rest/api/latest/mypermissions' -Method Get -Connection $connection
 ```
 
-Executes the GET request but instead of returning the response,
-it returns a `[AtlassianPS.JiraPS.Session]` which contains the `[WebRequestSession]`.
+Creates a reusable connection and uses it for a GET request.
+Returns the Jira permissions response.
 
 ### Example 6
 
@@ -347,7 +343,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 8
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -406,7 +402,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -679,7 +675,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 14
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -688,16 +684,15 @@ Accept wildcard characters: False
 ### -ConnectionName
 
 Case-insensitive name of an active Jira connection.
-Server and ServerName are compatibility aliases.
 This parameter is mutually exclusive with Connection and a standalone endpoint.
 
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: Server, ServerName
+Aliases: None
 
 Required: False
-Position: Named
+Position: 15
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -716,7 +711,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 16
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -725,16 +720,15 @@ Accept wildcard characters: False
 ### -EmailAddress
 
 Cloud authentication email for ApiToken.
-Email is an alias.
 An override must supply both its own email and token.
 
 ```yaml
 Type: String
 Parameter Sets: (All)
-Aliases: Email
+Aliases: None
 
 Required: False
-Position: Named
+Position: 17
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -752,7 +746,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 18
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -770,7 +764,7 @@ Parameter Sets: (All)
 Aliases: PAT, BearerToken
 
 Required: False
-Position: Named
+Position: 19
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

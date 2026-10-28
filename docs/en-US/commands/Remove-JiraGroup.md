@@ -15,7 +15,7 @@ Removes an existing group from Jira.
 ## SYNTAX
 
 ```powershell
-Remove-JiraGroup -Group <AtlassianPS.JiraPS.Group[]> [-Credential <PSCredential>] [-Force] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraGroup [-Group] <AtlassianPS.JiraPS.Group[]> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -75,7 +75,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -162,7 +162,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

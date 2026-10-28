@@ -17,13 +17,13 @@ Modifies user properties in Jira.
 ### ByNamedParameters (Default)
 
 ```powershell
-Set-JiraUser -User <AtlassianPS.JiraPS.User> [-DisplayName <String>] [-EmailAddress <String>] [-Active <Boolean>] [-Credential <PSCredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraUser [-User] <AtlassianPS.JiraPS.User> [-DisplayName <string>] [-EmailAddress <string>] [-Active <bool>] [-Credential <pscredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByHashtable
 
 ```powershell
-Set-JiraUser -User <AtlassianPS.JiraPS.User> -Property <Hashtable> [-Credential <PSCredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraUser [-User] <AtlassianPS.JiraPS.User> [-Property] <hashtable> [-Credential <pscredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

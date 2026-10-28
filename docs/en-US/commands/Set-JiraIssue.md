@@ -17,19 +17,19 @@ Modifies an existing issue in Jira.
 ### AssignToUser (Default)
 
 ```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <String>] [-Description <String>] [-FixVersion <String[]>] [-Assignee <AtlassianPS.JiraPS.User>] [-Label <String[]>] [-Fields <PSObject>] [-AddComment <String>] [-Credential <PSCredential>] [-PassThru] [-SkipNotification] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>] [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <String>] [-Description <String>] [-FixVersion <String[]>] [-Unassign] [-Label <String[]>] [-Fields <PSObject>] [-AddComment <String>] [-Credential <PSCredential>] [-PassThru] [-SkipNotification] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>] [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### UseDefaultAssignee
 
 ```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <String>] [-Description <String>] [-FixVersion <String[]>] [-UseDefaultAssignee] [-Label <String[]>] [-Fields <PSObject>] [-AddComment <String>] [-Credential <PSCredential>] [-PassThru] [-SkipNotification] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <string[]>] [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

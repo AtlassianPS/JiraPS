@@ -15,7 +15,7 @@ Returns a specific issueLink from Jira
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueLink -Id <Int32[]> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraIssueLink [-Id] <int[]> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -62,7 +62,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -70,18 +70,25 @@ Accept wildcard characters: False
 
 ### -Id
 
-Runtime numeric connection ID, unique across products for the current shared runtime.
+The IssueLink ID to search.
+
+Accepts input from pipeline when the object is of type `JiraPS.IssueLink`
 
 ```yaml
 Type: Int32[]
-Parameter Sets: (All)
-Aliases: None
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Connection
@@ -97,7 +104,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

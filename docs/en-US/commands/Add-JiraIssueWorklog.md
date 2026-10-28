@@ -15,7 +15,7 @@ Adds a worklog item to an existing Jira issue.
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueWorklog -Comment <String> -Issue <AtlassianPS.JiraPS.Issue> -TimeSpent <TimeSpan> -DateStarted <DateTime> [-Visibility <AtlassianPS.JiraPS.Visibility>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Add-JiraIssueWorklog [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue> [-TimeSpent] <timespan> [-DateStarted] <datetime> [[-Visibility] <AtlassianPS.JiraPS.Visibility>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -136,7 +136,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 5
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -280,7 +280,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 6
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

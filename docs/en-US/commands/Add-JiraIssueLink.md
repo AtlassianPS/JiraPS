@@ -15,7 +15,7 @@ Adds a link between two issues on Jira.
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueLink -IssueLink <AtlassianPS.JiraPS.IssueLinkCreateRequest[]> [-Comment <String>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Add-JiraIssueLink [-IssueLink] <AtlassianPS.JiraPS.IssueLinkCreateRequest[]> [[-Comment] <string>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -103,7 +103,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -170,7 +170,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

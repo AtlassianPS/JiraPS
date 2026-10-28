@@ -10,7 +10,8 @@
 - `-Credential` no longer defaults to `PSCredential::Empty`; omitting it uses the selected connection.
   Explicit null or empty credentials fail instead of falling back to another identity.
   Use `Connect-Jira -Anonymous` for anonymous access.
-- Authentication through `New-JiraSession -Headers`, Authorization/Cookie headers, or low-level web request authentication defaults is rejected.
+- Nonempty `New-JiraSession -Headers`, Authorization/Cookie request headers, and low-level web request authentication defaults are unsupported.
+  Pass ordinary request headers to `Invoke-JiraMethod -Headers`.
   Configure authentication with `Connect-Jira`; ordinary Jira commands retain `-Credential` for per-call overrides.
 - `Invoke-JiraMethod -StoreSession` no longer creates a session; use `Connect-Jira` to create a reusable connection.
 - Domain objects use `AtlassianPS.JiraPS.<Type>` instead of the historic `JiraPS.<Type>` PSTypeNames.

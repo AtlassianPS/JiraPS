@@ -17,19 +17,19 @@ Modifies labels on an existing Jira issue.
 ### ReplaceLabels (Default)
 
 ```powershell
-Set-JiraIssueLabel -Issue <AtlassianPS.JiraPS.Issue> -Set <String[]> [-Credential <PSCredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Set <string[]> [-Credential <pscredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ModifyLabels
 
 ```powershell
-Set-JiraIssueLabel -Issue <AtlassianPS.JiraPS.Issue> [-Add <String[]>] [-Remove <String[]>] [-Credential <PSCredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> [-Add <string[]>] [-Remove <string[]>] [-Credential <pscredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ClearLabels
 
 ```powershell
-Set-JiraIssueLabel -Issue <AtlassianPS.JiraPS.Issue> -Clear [-Credential <PSCredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Clear [-Credential <pscredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

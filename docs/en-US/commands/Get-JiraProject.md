@@ -17,13 +17,13 @@ Returns a project from Jira.
 ### _All (Default)
 
 ```powershell
-Get-JiraProject [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraProject [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraProject -Project <AtlassianPS.JiraPS.Project[]> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraProject [-Project] <AtlassianPS.JiraPS.Project[]> [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

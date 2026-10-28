@@ -17,13 +17,13 @@ Removes an existing issue from Jira.
 ### ByInputObject (Default)
 
 ```powershell
-Remove-JiraIssue -InputObject <AtlassianPS.JiraPS.Issue> [-IncludeSubTasks] [-Credential <PSCredential>] [-Force] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraIssue [-InputObject] <AtlassianPS.JiraPS.Issue> [-IncludeSubTasks] [-Credential <pscredential>] [-Force] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByIssueId
 
 ```powershell
-Remove-JiraIssue -IssueId <String[]> [-IncludeSubTasks] [-Credential <PSCredential>] [-Force] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraIssue [-IssueId] <string[]> [-IncludeSubTasks] [-Credential <pscredential>] [-Force] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

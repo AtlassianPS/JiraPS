@@ -17,13 +17,13 @@ Returns information about a filter in Jira.
 ### ByInputObject (Default)
 
 ```powershell
-Get-JiraFilter -InputObject <AtlassianPS.JiraPS.Filter[]> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraFilter [-InputObject] <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### MyFavorite
 
 ```powershell
-Get-JiraFilter -Favorite [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraFilter -Favorite [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

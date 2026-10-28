@@ -17,25 +17,25 @@ Returns information about an issue in Jira.
 ### ByIssueKey (Default)
 
 ```powershell
-Get-JiraIssue -Key <String[]> [-Fields <String[]>] [-Credential <PSCredential>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Get-JiraIssue [-Key] <string[]> [-Fields <string[]>] [-Credential <pscredential>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByInputObject
 
 ```powershell
-Get-JiraIssue -InputObject <AtlassianPS.JiraPS.Issue> [-Fields <String[]>] [-Credential <PSCredential>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Get-JiraIssue [-InputObject] <AtlassianPS.JiraPS.Issue> [-Fields <string[]>] [-Credential <pscredential>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByJQL
 
 ```powershell
-Get-JiraIssue -Query <String> [-Fields <String[]>] [-PageSize <UInt32>] [-Credential <PSCredential>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Get-JiraIssue -Query <string> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByFilter
 
 ```powershell
-Get-JiraIssue -Filter <AtlassianPS.JiraPS.Filter> [-Fields <String[]>] [-PageSize <UInt32>] [-Credential <PSCredential>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Get-JiraIssue -Filter <AtlassianPS.JiraPS.Filter> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

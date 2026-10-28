@@ -18,7 +18,6 @@
         [System.Management.Automation.Credential()]
         $Credential,
 
-        [Alias('Email')]
         [String]
         $EmailAddress,
 

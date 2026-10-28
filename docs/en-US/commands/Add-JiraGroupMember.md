@@ -15,7 +15,7 @@ Adds a user to a Jira group.
 ## SYNTAX
 
 ```powershell
-Add-JiraGroupMember -Group <AtlassianPS.JiraPS.Group[]> -UserName <AtlassianPS.JiraPS.User[]> [-Credential <PSCredential>] [-PassThru] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Add-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-UserName] <AtlassianPS.JiraPS.User[]> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -78,7 +78,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -185,7 +185,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

@@ -15,7 +15,7 @@ Removes an existing filter.
 ## SYNTAX
 
 ```powershell
-Remove-JiraFilter -InputObject <AtlassianPS.JiraPS.Filter[]> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraFilter [-InputObject] <AtlassianPS.JiraPS.Filter[]> [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

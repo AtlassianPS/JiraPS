@@ -17,25 +17,25 @@ Returns versions in a Jira project.
 ### byInputVersion (Default)
 
 ```powershell
-Get-JiraVersion -InputVersion <AtlassianPS.JiraPS.Version> [-PageSize <UInt32>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Get-JiraVersion [-InputVersion] <AtlassianPS.JiraPS.Version> [-PageSize <uint>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### byId
 
 ```powershell
-Get-JiraVersion -Id <Int32[]> [-PageSize <UInt32>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### byProject
 
 ```powershell
-Get-JiraVersion -Project <String[]> [-Name <String[]>] [-Sort <String>] [-PageSize <UInt32>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### byInputProject
 
 ```powershell
-Get-JiraVersion -InputProject <AtlassianPS.JiraPS.Project[]> [-Name <String[]>] [-Sort <String>] [-PageSize <UInt32>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Get-JiraVersion [-InputProject] <AtlassianPS.JiraPS.Project[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -120,18 +120,23 @@ HelpMessage: ''
 
 ### -Id
 
-Runtime numeric connection ID, unique across products for the current shared runtime.
+The version ID.
 
 ```yaml
 Type: Int32[]
-Parameter Sets: byId
-Aliases: None
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byId
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -IncludeTotalCount
@@ -201,18 +206,30 @@ HelpMessage: ''
 
 ### -Name
 
-Friendly connection name, unique without case sensitivity within Jira.
+The version name.
 
 ```yaml
 Type: String[]
-Parameter Sets: byInputProject, byProject
-Aliases: Versions
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: '"*"'
+SupportsWildcards: false
+Aliases:
+- Versions
+ParameterSets:
+- Name: byInputProject
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: byProject
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -PageSize

@@ -15,7 +15,7 @@ Adds a comment to an existing Jira issue.
 ## SYNTAX
 
 ```powershell
-Add-JiraIssueComment -Comment <String> -Issue <AtlassianPS.JiraPS.Issue> [-Visibility <AtlassianPS.JiraPS.Visibility>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Add-JiraIssueComment [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue> [[-Visibility] <AtlassianPS.JiraPS.Visibility>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -155,7 +155,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -257,7 +257,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

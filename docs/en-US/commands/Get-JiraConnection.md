@@ -15,7 +15,7 @@ List active Jira connections.
 ## SYNTAX
 
 ```powershell
-Get-JiraConnection [-Name <String>] [-Id <Int32>] [-Default] [<CommonParameters>]
+Get-JiraConnection [[-Name] <string>] [[-Id] <int>] [-Default] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -60,7 +60,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -76,7 +76,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -84,7 +84,7 @@ Accept wildcard characters: False
 
 ### -Default
 
-Select the successful new connection as Jira default, or filter the listing to the current default. The first successful connection selects itself automatically; later connections leave an existing default unchanged unless this switch is supplied.
+Return only the current Jira default connection.
 
 ```yaml
 Type: SwitchParameter
@@ -104,7 +104,7 @@ Supports standard PowerShell common parameters.
 
 ## INPUTS
 
-### AtlassianPS.Connection
+### None
 
 ## OUTPUTS
 

@@ -23,13 +23,13 @@ Select-JiraConnection -Connection <AtlassianPS.Connection> [<CommonParameters>]
 ### Name
 
 ```powershell
-Select-JiraConnection -Name <String> [<CommonParameters>]
+Select-JiraConnection -Name <string> [<CommonParameters>]
 ```
 
 ### Id
 
 ```powershell
-Select-JiraConnection -Id <Int32> [<CommonParameters>]
+Select-JiraConnection -Id <int> [<CommonParameters>]
 ```
 
 ## DESCRIPTION

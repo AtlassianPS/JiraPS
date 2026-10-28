@@ -15,7 +15,7 @@ Removes a watcher from an existing Jira issue.
 ## SYNTAX
 
 ```powershell
-Remove-JiraIssueWatcher -Watcher <String[]> -Issue <AtlassianPS.JiraPS.Issue> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraIssueWatcher [-Watcher] <string[]> [-Issue] <AtlassianPS.JiraPS.Issue> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -86,7 +86,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -173,7 +173,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

@@ -17,13 +17,13 @@ Returns information about the available issue type in Jira.
 ### _All (Default)
 
 ```powershell
-Get-JiraIssueType [-Force] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraIssueType [-Force] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraIssueType -IssueType <AtlassianPS.JiraPS.IssueType[]> [-Force] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraIssueType [-IssueType] <AtlassianPS.JiraPS.IssueType[]> [-Force] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

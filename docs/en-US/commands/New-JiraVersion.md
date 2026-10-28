@@ -17,13 +17,13 @@ Creates a new FixVersion in Jira.
 ### byObject (Default)
 
 ```powershell
-New-JiraVersion -InputObject <AtlassianPS.JiraPS.Version> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+New-JiraVersion [-InputObject] <AtlassianPS.JiraPS.Version> [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### byParameters
 
 ```powershell
-New-JiraVersion -Name <String> -Project <AtlassianPS.JiraPS.Project> [-Description <String>] [-Archived <Boolean>] [-Released <Boolean>] [-ReleaseDate <DateTime>] [-StartDate <DateTime>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+New-JiraVersion [-Name] <string> [-Project] <AtlassianPS.JiraPS.Project> [-Description <string>] [-Archived <bool>] [-Released <bool>] [-ReleaseDate <datetime>] [-StartDate <datetime>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -179,18 +179,23 @@ HelpMessage: ''
 
 ### -Name
 
-Friendly connection name, unique without case sensitivity within Jira.
+Name of the version to create.
 
 ```yaml
 Type: String
-Parameter Sets: byParameters
-Aliases: None
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: byParameters
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Project

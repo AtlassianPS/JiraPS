@@ -15,7 +15,7 @@ Modifies an existing version in Jira.
 ## SYNTAX
 
 ```powershell
-Set-JiraVersion -Version <AtlassianPS.JiraPS.Version[]> [-Name <String>] [-Description <String>] [-Archived <Boolean>] [-Released <Boolean>] [-ReleaseDate <DateTime>] [-StartDate <DateTime>] [-Project <AtlassianPS.JiraPS.Project>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Set-JiraVersion [-Version] <AtlassianPS.JiraPS.Version[]> [[-Name] <string>] [[-Description] <string>] [[-Archived] <bool>] [[-Released] <bool>] [[-ReleaseDate] <datetime>] [[-StartDate] <datetime>] [[-Project] <AtlassianPS.JiraPS.Project>] [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -97,7 +97,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 8
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -126,18 +126,23 @@ HelpMessage: ''
 
 ### -Name
 
-Friendly connection name, unique without case sensitivity within Jira.
+The new version name.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Project
@@ -283,7 +288,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 9
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

@@ -17,31 +17,31 @@ Disconnect Jira through the legacy command name.
 ### Default (Default)
 
 ```powershell
-Remove-JiraSession [<CommonParameters>]
+Remove-JiraSession [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Object
 
 ```powershell
-Remove-JiraSession -Connection <AtlassianPS.Connection> [<CommonParameters>]
+Remove-JiraSession -Connection <AtlassianPS.Connection> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Name
 
 ```powershell
-Remove-JiraSession -Name <String> [<CommonParameters>]
+Remove-JiraSession -Name <string> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Id
 
 ```powershell
-Remove-JiraSession -Id <Int32> [<CommonParameters>]
+Remove-JiraSession -Id <int> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### All
 
 ```powershell
-Remove-JiraSession -All [<CommonParameters>]
+Remove-JiraSession -All [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION

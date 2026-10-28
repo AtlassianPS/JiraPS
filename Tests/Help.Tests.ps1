@@ -89,6 +89,42 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                     if ($expected.Count -gt 0) { @($actual | Sort-Object) | Should -Be @($expected | Sort-Object) }
                 }
 
+                It "preserves positional binding and ShouldProcess switches in syntax" {
+                    $markdown = Get-Content -LiteralPath $markdownFile -Raw
+                    $syntax = [regex]::Match($markdown, '(?ms)^## SYNTAX\r?\n(.*?)(?=^## |\z)').Groups[1].Value
+                    foreach ($parameterSet in $command.ParameterSets) {
+                        $setSyntax = if ($parameterSet.Name -eq '__AllParameterSets') { $syntax }
+                        else {
+                            $pattern = '(?ms)^### ' + [regex]::Escape($parameterSet.Name) + '(?: \(Default\))?\r?\n(.*?)(?=^### |\z)'
+                            [regex]::Match($syntax, $pattern).Groups[1].Value
+                        }
+                        foreach ($parameter in $parameterSet.Parameters) {
+                            $attributes = $command.Parameters[$parameter.Name].Attributes
+                            if ($attributes.DontShow -contains $true) { continue }
+                            if ($parameter.Position -ge 0 -or $parameter.Name -in @('WhatIf', 'Confirm')) {
+                                $setSyntax | Should -Match ('\[-' + [regex]::Escape($parameter.Name) + '\]')
+                            }
+                        }
+                    }
+                }
+
+                It "uses resolved positions in parameter metadata" {
+                    $markdown = Get-Content -LiteralPath $markdownFile -Raw
+                    $sections = [regex]::Matches($markdown, '(?ms)^### -(\S+)\r?\n(.*?)(?=^### |^## |\z)')
+                    foreach ($section in $sections) {
+                        if ($section.Groups[2].Value -notmatch '(?m)^Parameter Sets:') { continue }
+                        $name = $section.Groups[1].Value
+                        $positions = @(
+                            $command.ParameterSets.Parameters | Where-Object Name -EQ $name | ForEach-Object {
+                                if ($_.Position -ge 0) { [String]$_.Position } else { 'Named' }
+                            } | Sort-Object -Unique
+                        )
+                        $positions.Count | Should -Be 1
+                        $documented = [regex]::Match($section.Groups[2].Value, '(?m)^Position: (.+?)\r?$').Groups[1].Value
+                        $documented | Should -Be $positions[0]
+                    }
+                }
+
                 It "does not have Comment-Based Help" {
                     # We use .EXAMPLE, as we test this extensivly and it is never auto-generated
                     $command.Definition | Should -Not -BeNullOrEmpty
@@ -384,4 +420,34 @@ Describe "Help tests" -Tag "Documentation", "Build" {
         }
     } #>
     #endregion Enumerations
+}
+
+Describe 'Domain parameter documentation' -Tag Documentation, Build {
+    It 'describes <CommandName> -<ParameterName> as a domain field' -ForEach @(
+        @{ CommandName = 'Find-JiraFilter'; ParameterName = 'Name'; Entity = 'filter' }
+        @{ CommandName = 'New-JiraFilter'; ParameterName = 'Name'; Entity = 'filter' }
+        @{ CommandName = 'Set-JiraFilter'; ParameterName = 'Name'; Entity = 'filter' }
+        @{ CommandName = 'Get-JiraVersion'; ParameterName = 'Name'; Entity = 'version' }
+        @{ CommandName = 'New-JiraVersion'; ParameterName = 'Name'; Entity = 'version' }
+        @{ CommandName = 'Set-JiraVersion'; ParameterName = 'Name'; Entity = 'version' }
+        @{ CommandName = 'Get-JiraVersion'; ParameterName = 'Id'; Entity = 'version' }
+        @{ CommandName = 'Get-JiraPriority'; ParameterName = 'Id'; Entity = 'priority' }
+        @{ CommandName = 'Get-JiraIssueLink'; ParameterName = 'Id'; Entity = 'IssueLink' }
+    ) {
+        $description = ((Get-Help $CommandName -Parameter $ParameterName).Description.Text -join ' ')
+
+        $description | Should -Not -Match '\bconnection\b'
+        if ($CommandName -ne 'Find-JiraFilter') { $description | Should -Match $Entity }
+        else {
+            $description | Should -Match 'case-insensitive partial match'
+            $description | Should -Match 'exact match'
+        }
+    }
+
+    It 'lists every exported command in the command index' {
+        $index = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/index.md" -Raw
+        foreach ($command in (Get-Command -Module JiraPS -CommandType Function)) {
+            $index | Should -Match ([regex]::Escape('`' + $command.Name + '`'))
+        }
+    }
 }

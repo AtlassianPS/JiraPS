@@ -15,7 +15,7 @@ Create a new Jira filter.
 ## SYNTAX
 
 ```powershell
-New-JiraFilter -Name <String> [-Description <String>] -JQL <String> [-Favorite] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+New-JiraFilter [-Name] <string> [[-Description] <string>] [-JQL] <string> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-Favorite] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -90,7 +90,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -164,18 +164,23 @@ HelpMessage: ''
 
 ### -Name
 
-Friendly connection name, unique without case sensitivity within Jira.
+Name of the filter.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
-Aliases: None
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -WhatIf
@@ -214,7 +219,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

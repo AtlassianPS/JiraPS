@@ -15,7 +15,7 @@ Removes a user from a Jira group.
 ## SYNTAX
 
 ```powershell
-Remove-JiraGroupMember -Group <AtlassianPS.JiraPS.Group[]> -User <AtlassianPS.JiraPS.User[]> [-Credential <PSCredential>] [-PassThru] [-Force] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Remove-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-User] <AtlassianPS.JiraPS.User[]> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-PassThru] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -78,7 +78,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -207,7 +207,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

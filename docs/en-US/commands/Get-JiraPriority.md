@@ -17,13 +17,13 @@ Returns information about the available priorities in JIRA.
 ### _All (Default)
 
 ```powershell
-Get-JiraPriority [-Force] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraPriority [-Force] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraPriority -Id <Int32[]> [-Force] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraPriority [-Id] <int[]> [-Force] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -96,18 +96,23 @@ HelpMessage: ''
 
 ### -Id
 
-Runtime numeric connection ID, unique across products for the current shared runtime.
+ID of the priority to get.
 
 ```yaml
 Type: Int32[]
-Parameter Sets: _Search
-Aliases: None
-
-Required: True
-Position: Named
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: _Search
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Connection

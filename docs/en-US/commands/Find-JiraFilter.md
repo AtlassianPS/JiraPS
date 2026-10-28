@@ -17,13 +17,13 @@ Find Jira filter(s).
 ### ByAccountId (Default)
 
 ```powershell
-Find-JiraFilter [-Name <String[]>] [-AccountId <String>] [-GroupName <String>] [-Project <AtlassianPS.JiraPS.Project>] [-Fields <String[]>] [-Sort <String>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>] [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByOwner
 
 ```powershell
-Find-JiraFilter [-Name <String[]>] [-Owner <AtlassianPS.JiraPS.User>] [-GroupName <String>] [-Project <AtlassianPS.JiraPS.Project>] [-Fields <String[]>] [-Sort <String>] [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Find-JiraFilter [-Name <string[]>] [-Owner <AtlassianPS.JiraPS.User>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>] [-Fields <string[]>] [-Sort <string>] [-Credential <pscredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -252,18 +252,24 @@ HelpMessage: ''
 
 ### -Name
 
-Friendly connection name, unique without case sensitivity within Jira.
+String used to perform a case-insensitive partial match with name.
+An exact match can be requested by including quotes (refer to the examples above).
 
 ```yaml
 Type: String[]
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: True (ByValue)
-Accept wildcard characters: False
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: true
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
 ```
 
 ### -Owner

@@ -15,7 +15,7 @@ This function returns the information about the JIRA Server
 ## SYNTAX
 
 ```powershell
-Get-JiraServerInformation [-Credential <PSCredential>] [-Force] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraServerInformation [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-Force] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -72,7 +72,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 0
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -112,7 +112,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 1
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

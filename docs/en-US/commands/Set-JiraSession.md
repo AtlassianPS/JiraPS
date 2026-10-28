@@ -23,13 +23,13 @@ Set-JiraSession -Connection <AtlassianPS.Connection> [<CommonParameters>]
 ### Name
 
 ```powershell
-Set-JiraSession -Name <String> [<CommonParameters>]
+Set-JiraSession -Name <string> [<CommonParameters>]
 ```
 
 ### Id
 
 ```powershell
-Set-JiraSession -Id <Int32> [<CommonParameters>]
+Set-JiraSession -Id <int> [<CommonParameters>]
 ```
 
 ## DESCRIPTION

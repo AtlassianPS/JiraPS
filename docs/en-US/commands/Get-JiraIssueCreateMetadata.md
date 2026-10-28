@@ -15,7 +15,7 @@ Returns metadata required to create an issue in Jira.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueCreateMetadata -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> [-Credential <PSCredential>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <UInt64>] [-First <UInt64>] [<CommonParameters>]
+Get-JiraIssueCreateMetadata [-Project] <AtlassianPS.JiraPS.Project> [-IssueType] <AtlassianPS.JiraPS.IssueType> [[-Credential] <pscredential>] [[-Connection] <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -72,7 +72,7 @@ Parameter Sets: (All)
 Aliases: None
 
 Required: False
-Position: Named
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -200,7 +200,7 @@ Parameter Sets: (All)
 Aliases: Session
 
 Required: False
-Position: Named
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
