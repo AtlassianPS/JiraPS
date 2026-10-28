@@ -15,7 +15,7 @@ Open a Jira connection through the legacy command name.
 ## SYNTAX
 
 ```powershell
-New-JiraSession [[-Name] <string>] [[-Uri] <uri>] [[-Credential] <pscredential>] [[-EmailAddress] <string>] [[-ApiToken] <Object>] [[-PersonalAccessToken] <Object>] [[-Headers] <hashtable>] [[-DeploymentType] <string>] [-Anonymous] [-Default] [<CommonParameters>]
+New-JiraSession [[-Name] <string>] [[-Uri] <uri>] [[-Credential] <pscredential>] [[-EmailAddress] <string>] [[-ApiToken] <Object>] [[-PersonalAccessToken] <Object>] [[-Headers] <hashtable>] [-Anonymous] [-Default] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -24,7 +24,8 @@ Open a Jira connection through the legacy command name.
 
 This compatibility name uses the shared connection implementation.
 It does not retain the v2 singleton or AtlassianPS.JiraPS.Session return type.
-Deployment detection and validation follow Connect-Jira, including its fallback when serverInfo is unavailable.
+Deployment detection and validation follow Connect-Jira, including its authenticated fallback when serverInfo is unavailable.
+Anonymous connections require recognized deployment metadata from /rest/api/2/serverInfo.
 
 ## EXAMPLES
 
@@ -147,6 +148,7 @@ Accept wildcard characters: False
 ### -Anonymous
 
 Explicit anonymous authentication when the Jira endpoint permits it.
+Requires recognized deployment metadata from /rest/api/2/serverInfo.
 Never borrows the default connection identity.
 
 ```yaml
@@ -156,26 +158,6 @@ Aliases: None
 
 Required: False
 Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -DeploymentType
-
-Optional deployment information when serverInfo is unavailable.
-Accepted values are Cloud, Server and Data Center.
-Returned metadata takes precedence; contradictory Cloud versus Server/Data Center evidence fails.
-Authenticated connections always validate the identity through myself.
-Anonymous fallback requires this parameter and a recognizable, nonempty anonymous project-list response.
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: 7
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

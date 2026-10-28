@@ -146,9 +146,7 @@
                 $RequestContext = Resolve-JiraOperationContext -BoundParameters $selection
             }
             if ($RequestContext.State -eq 'Candidate' -and
-                ($Method -ne 'GET' -or
-                ($Uri.OriginalString -notin @('/rest/api/2/serverInfo', '/rest/api/2/myself') -and
-                -not ($RequestContext.AuthenticationMode -eq 'Anonymous' -and $Uri.OriginalString -eq '/rest/api/2/project')))
+                ($Method -ne 'GET' -or $Uri.OriginalString -notin @('/rest/api/2/serverInfo', '/rest/api/2/myself'))
             ) {
                 throw 'Unregistered candidates are restricted to creation-time Jira validation GETs.'
             }

@@ -35,11 +35,7 @@
         $Default,
 
         [Hashtable]
-        $Headers = @{},
-
-        [ValidateSet('Cloud', 'Server', 'Data Center')]
-        [String]
-        $DeploymentType
+        $Headers = @{}
     )
 
     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
@@ -56,9 +52,7 @@
     }
     if (-not $Uri) { throw 'Specify Uri or configure a migration endpoint before New-JiraSession.' }
     $authentication = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters
-    $validation = @{}
-    if ($PSBoundParameters.ContainsKey('DeploymentType')) { $validation['DeploymentType'] = $DeploymentType }
-    $candidate = New-JiraCandidate -Name $Name -Uri $Uri -Authentication $authentication @validation
+    $candidate = New-JiraCandidate -Name $Name -Uri $Uri -Authentication $authentication
     try {
         AtlassianPS.Configuration\Register-AtlassianConnection -Connection $candidate -Default:$Default
     }

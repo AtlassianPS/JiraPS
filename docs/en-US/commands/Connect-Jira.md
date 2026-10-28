@@ -17,13 +17,13 @@ Validate and open a named Jira connection.
 ### Uri (Default)
 
 ```powershell
-Connect-Jira -Name <string> -Uri <uri> [-Credential <pscredential>] [-EmailAddress <string>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-DeploymentType <string>] [-Default] [<CommonParameters>]
+Connect-Jira -Name <string> -Uri <uri> [-Credential <pscredential>] [-EmailAddress <string>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-Default] [<CommonParameters>]
 ```
 
 ### Profile
 
 ```powershell
-Connect-Jira -Name <string> -Profile <string> [-Credential <pscredential>] [-EmailAddress <string>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-DeploymentType <string>] [-Default] [<CommonParameters>]
+Connect-Jira -Name <string> -Profile <string> [-Credential <pscredential>] [-EmailAddress <string>] [-ApiToken <Object>] [-PersonalAccessToken <Object>] [-Anonymous] [-Default] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -35,9 +35,10 @@ Authentication is supplied for the new connection; it is never borrowed from an 
 Recognized serverInfo deployment metadata takes precedence; a Jira version is not required.
 When metadata is absent or returns HTTP 403, 404 or 405, authenticated connections use the resolved Cloud gateway and the validated current-user response to identify the deployment.
 Cloud identities use accountId; Server and Data Center identities use name.
-DeploymentType can supply an explicit deployment for restricted installations, but credentials are always checked through myself.
+Every authenticated connection validates the current user through myself, including when serverInfo supplies deployment metadata.
 Conflicting or ambiguous deployment and identity information fails before registration.
-Anonymous connections without deployment metadata require DeploymentType and a recognizable, nonempty response from the anonymous project-list endpoint.
+Anonymous connections require recognized deployment metadata from /rest/api/2/serverInfo.
+If that endpoint is restricted or does not identify the deployment, allow anonymous access to it or use an authenticated connection.
 
 Pass the returned object to Jira commands through Connection.
 The first successful connection becomes the Jira default, so subsequent commands can omit Connection.
@@ -96,16 +97,6 @@ Get-JiraProject -Connection $public
 
 Create an anonymous connection and list publicly accessible projects.
 The Jira endpoint and requested operation must permit anonymous access.
-
-### EXAMPLE 6
-
-```powershell
-$internal = Connect-Jira -Name internal -Uri 'https://jira.example.com/jira' -PersonalAccessToken $token -DeploymentType 'Data Center'
-Get-JiraProject -Connection $internal
-```
-
-Supply the deployment explicitly when serverInfo is unavailable on a restricted Data Center installation.
-The connection still validates the token through myself.
 
 ## PARAMETERS
 
@@ -238,31 +229,11 @@ Accept wildcard characters: False
 ### -Anonymous
 
 Explicit anonymous authentication when the Jira endpoint permits it.
+Requires recognized deployment metadata from /rest/api/2/serverInfo.
 Never borrows the default connection identity.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: None
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -DeploymentType
-
-Optional deployment information for installations that restrict serverInfo.
-Accepted values are Cloud, Server and Data Center.
-Server and Data Center share an API family because Data Center can report Server in its metadata.
-Returned metadata takes precedence, and contradictory Cloud versus Server/Data Center evidence fails.
-Authenticated connections must still return a valid identity from myself.
-Anonymous fallback requires this parameter and at least one anonymously visible Jira project.
-
-```yaml
-Type: String
 Parameter Sets: (All)
 Aliases: None
 

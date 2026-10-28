@@ -64,18 +64,11 @@ When connecting directly to a gateway, site resource links require a valid baseU
 Conflicting evidence or a response containing both identity formats fails.
 Authentication, network, TLS and server failures remain errors.
 
-Supply DeploymentType when the installation requires explicit deployment information.
-The accepted values are Cloud, Server and Data Center.
-Server and Data Center use the same API family; returned metadata takes precedence when it is available.
-The parameter never bypasses authenticated identity validation.
+Deployment detection is automatic; Server and Data Center use the same API family.
+Every authenticated connection validates the current user through myself, including when serverInfo supplies deployment metadata.
 
-```powershell
-$internal = Connect-Jira -Name internal -Uri 'https://jira.example.com/jira' -PersonalAccessToken $token -DeploymentType 'Data Center'
-```
-
-Anonymous fallback without metadata requires an explicit DeploymentType and a recognizable, nonempty project list from /rest/api/2/project.
-At least one project must be visible anonymously.
-If anonymous browsing is restricted or the probe returns no recognizable project, use an authenticated connection or ask the Jira administrator to allow anonymous project browsing.
+Anonymous connections require recognized deployment metadata from /rest/api/2/serverInfo.
+If that endpoint is restricted or does not identify the deployment, allow anonymous access to it or use an authenticated connection.
 
 ## Authentication examples
 

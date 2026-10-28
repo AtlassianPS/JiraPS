@@ -15,11 +15,7 @@
 
         [Parameter( Mandatory )]
         [Hashtable]
-        $Authentication,
-
-        [ValidateSet('Cloud', 'Server', 'Data Center')]
-        [String]
-        $DeploymentType
+        $Authentication
     )
 
     $preflight = AtlassianPS.Configuration\New-AtlassianConnectionContext -Product Jira -BaseUri $Uri @Authentication
@@ -38,7 +34,7 @@
         }
         catch {
             if ($_.FullyQualifiedErrorId -notmatch '^InvalidResponse\.Status(403|404|405)(,|$)') { throw }
-            Write-Verbose 'Jira server information is unavailable; validating through another Jira endpoint.'
+            Write-Verbose 'Jira server information is unavailable.'
         }
 
         if (($null -ne $info.deploymentType -and
@@ -51,6 +47,10 @@
 
         $metadataDeployment = if (-not [String]::IsNullOrWhiteSpace($info.deploymentType)) { $info.deploymentType }
         $gatewayDeployment = if ($candidate.CloudId) { 'Cloud' }
+
+        if ($candidate.AuthenticationMode -eq 'Anonymous' -and -not $metadataDeployment) {
+            throw 'Anonymous Jira connections require deployment metadata from /rest/api/2/serverInfo. Allow anonymous access to that endpoint or use authenticated Connect-Jira.'
+        }
 
         if ($candidate.CloudId -and -not $candidate.SiteUri -and $null -ne $info.baseUrl) {
             [Uri]$siteUri = $null
@@ -83,41 +83,13 @@
         }
 
         $resolvedDeployment = $null
-        foreach ($deployment in @($metadataDeployment, $DeploymentType, $gatewayDeployment, $identityDeployment)) {
+        foreach ($deployment in @($metadataDeployment, $gatewayDeployment, $identityDeployment)) {
             if (-not $deployment) { continue }
             if (-not $resolvedDeployment) { $resolvedDeployment = $deployment }
 
             # Preserve the first source's label while requiring agreement on the Cloud or Server API family.
             if (($deployment -eq 'Cloud') -ne ($resolvedDeployment -eq 'Cloud')) {
-                throw 'Conflicting Jira deployment information from serverInfo, the gateway, DeploymentType or myself.'
-            }
-        }
-
-        if ($candidate.AuthenticationMode -eq 'Anonymous' -and -not $metadataDeployment) {
-            if (-not $DeploymentType) {
-                throw 'Jira server information did not identify a deployment. Anonymous access requires DeploymentType and an anonymously visible Jira project, or use authenticated Connect-Jira.'
-            }
-
-            try {
-                $projects = @(Invoke-JiraMethod -Uri '/rest/api/2/project' -RequestContext $candidate -ErrorAction Stop)
-            }
-            catch {
-                if ($_.FullyQualifiedErrorId -notmatch '^InvalidResponse\.Status(401|403|404|405)(,|$)') { throw }
-                throw 'Anonymous Jira validation at /rest/api/2/project failed. Allow anonymous project browsing or use authenticated Connect-Jira.'
-            }
-            $invalidProjects = @(
-                $projects | Where-Object {
-                    [Uri]$projectUri = $null
-                    $_.id -isnot [String] -or $_.id -notmatch '^\d+$' -or
-                    $_.key -isnot [String] -or [String]::IsNullOrWhiteSpace($_.key) -or
-                    $_.name -isnot [String] -or [String]::IsNullOrWhiteSpace($_.name) -or
-                    $_.self -isnot [String] -or -not [Uri]::TryCreate($_.self, [UriKind]::Absolute, [ref]$projectUri) -or
-                    $projectUri.Scheme -notin @('http', 'https') -or $projectUri.UserInfo -or $projectUri.Query -or $projectUri.Fragment -or
-                    $projectUri.AbsolutePath -notmatch '/rest/api/(2|3)/project/[^/]+$'
-                }
-            )
-            if (-not $projects.Count -or $invalidProjects.Count) {
-                throw 'Anonymous Jira validation requires a recognizable project from /rest/api/2/project. Allow anonymous project browsing or use authenticated Connect-Jira.'
+                throw 'Conflicting Jira deployment information from serverInfo, the gateway or myself.'
             }
         }
 
