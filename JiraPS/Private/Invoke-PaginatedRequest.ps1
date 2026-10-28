@@ -35,7 +35,7 @@
     )
 
     $parameters = @{} + $PSBoundParameters
-    foreach ($key in @('Paging', 'Skip', 'IncludeTotalCount', 'First', 'Response')) { $null = $parameters.Remove($key) }
+    foreach ($key in @('Paging', 'Skip', 'IncludeTotalCount', 'First', 'Response', '_RetryCount')) { $null = $parameters.Remove($key) }
     $parameters['GetParameter'] = $GetParameter.Clone()
     $isArrayPaged = $Uri.AbsolutePath -match '/rest/api/[23]/users?/search$'
     $isCursorPaged = $Uri.AbsolutePath -match '/rest/api/2/user/list$'

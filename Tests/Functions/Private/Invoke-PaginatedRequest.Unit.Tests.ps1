@@ -222,6 +222,53 @@ InModuleScope JiraPS {
             }
         }
 
+        Describe 'Per-page retry budget' {
+            It 'retries the next <Protocol> page after the first page uses its full retry budget' -ForEach @(
+                @{
+                    Protocol    = 'offset'
+                    Resource    = '/rest/api/2/search'
+                    InitialPage = '{"issues":[{"key":"TEST-1"}],"startAt":0,"maxResults":1,"total":2}'
+                    FinalPage   = '{"issues":[{"key":"TEST-2"}],"startAt":1,"maxResults":1,"total":2}'
+                }
+                @{
+                    Protocol    = 'token'
+                    Resource    = '/rest/api/3/search/jql'
+                    InitialPage = '{"issues":[{"key":"TEST-1"}],"nextPageToken":"page-2"}'
+                    FinalPage   = '{"issues":[{"key":"TEST-2"}],"isLast":true}'
+                }
+            ) {
+                $script:retryPageAttempts = @{ first = 0; second = 0 }
+                $script:retryInitialPage = $InitialPage
+                $script:retryFinalPage = $FinalPage
+                Mock Set-TlsLevel {}
+                Mock Resolve-DefaultParameterValue { @{} }
+                Mock Start-Sleep {}
+                Mock Invoke-WebRequest {
+                    $query = [Web.HttpUtility]::ParseQueryString($Uri.Query)
+                    $page = if ($query['startAt'] -eq '1' -or $query['nextPageToken']) { 'second' } else { 'first' }
+                    $script:retryPageAttempts[$page]++
+                    $retryLimit = if ($page -eq 'first') { 3 } else { 1 }
+                    $retry = $script:retryPageAttempts[$page] -le $retryLimit
+                    $content = if ($retry) { '{"errorMessages":["Temporarily unavailable"]}' }
+                    elseif ($page -eq 'first') { $script:retryInitialPage }
+                    else { $script:retryFinalPage }
+                    [PSCustomObject]@{
+                        StatusCode       = if ($retry) { [Net.HttpStatusCode]::ServiceUnavailable } else { [Net.HttpStatusCode]::OK }
+                        Content          = $content
+                        RawContentStream = [IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes($content))
+                        Headers          = @{ 'Retry-After' = '1' }
+                    }
+                }
+
+                $result = @(Invoke-JiraRequest -Uri $Resource -Paging -PageSize 1 -WarningAction SilentlyContinue -ErrorAction Stop)
+
+                $result.key | Should -Be @('TEST-1', 'TEST-2')
+                $retryPageAttempts.first | Should -Be 4
+                $retryPageAttempts.second | Should -Be 2
+                Should -Invoke Start-Sleep -Exactly 4
+            }
+        }
+
         Describe "Null Response Handling" {
             # When Invoke-JiraRequest returns null during pagination (auth failure,
             # server error, etc.), the function should stop gracefully with a warning
