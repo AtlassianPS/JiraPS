@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraFilterPermission {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.FilterPermission objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.FilterPermission])]
     param(

@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraPriority {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Priority objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Priority])]
     param(

@@ -69,18 +69,12 @@ InModuleScope JiraPS {
             # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
 
             #region Definitions
-            $script:jiraServer = "https://jira.example.com"
             # Test data and variables
             #endregion
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
                 # Mock implementation
             }
             #endregion
@@ -393,8 +387,8 @@ Context "Type Validation - Negative Cases" {
 Mock external dependencies in `BeforeAll`:
 
 ```powershell
-Mock Invoke-JiraMethod -ModuleName JiraPS {
-    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+Mock Invoke-JiraRequest -ModuleName JiraPS {
+    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
     ConvertFrom-Json @'
     {
         "id": "123",
@@ -430,13 +424,13 @@ BeforeAll {
 In your mock definitions, call `Write-MockDebugInfo` with the function name and parameter names:
 
 ```powershell
-Mock Invoke-JiraMethod -ModuleName JiraPS {
-    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+Mock Invoke-JiraRequest -ModuleName JiraPS {
+    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
     # ... mock implementation
 }
 
 Mock Get-JiraFilter -ModuleName JiraPS {
-    Write-MockDebugInfo 'Get-JiraFilter' 'Id', 'Name'
+    Write-MockDebugInfo 'Get-JiraFilter' 'Filter', 'Favorite'
     # ... mock implementation
 }
 ```
@@ -452,14 +446,14 @@ Invoke-Pester ./Tests/Functions/Your-Test.Unit.Tests.ps1 -Output Detailed
 You'll see output like:
 
 ```console
-🔷 Mock: Invoke-JiraMethod
+🔷 Mock: Invoke-JiraRequest
   [Method] = "GET"
-  [Uri] = "https://jira.example.com/rest/api/2/issue/TEST-123"
+  [Uri] = "/rest/api/2/issue/TEST-123"
   [Body] = <null>
 
 🔷 Mock: Get-JiraFilter
-  [Id] = 12345
-  [Name] = <null>
+  [Filter] = 12345
+  [Favorite] = <null>
 ```
 
 #### Debug Output Features
@@ -487,7 +481,7 @@ The `-Verbose` parameter on `Invoke-Pester` only affects Pester's own internal l
 If you need interactive debugging, use breakpoints:
 
 ```powershell
-Mock Invoke-JiraMethod -ModuleName JiraPS {
+Mock Invoke-JiraRequest -ModuleName JiraPS {
     $Method | Set-PSBreakpoint  # Set breakpoint
     # ... mock implementation
 }

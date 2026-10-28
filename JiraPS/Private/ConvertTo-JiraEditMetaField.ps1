@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraEditMetaField {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.EditMetaField objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.EditMetaField])]
     param(

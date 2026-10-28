@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraFilter {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Filter objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Filter])]
     param(

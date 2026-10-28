@@ -42,12 +42,12 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | Class slot type tightening   | Boolean / numeric slots on `Filter` and `Version` are now strongly typed; missing flags surface as `$false` instead of `$null`. |
 | `Version.StartDate` / `Version.ReleaseDate` | Empty-string sentinel for missing dates dropped; the slots are now `[DateTime?]` and `$null` when absent. |
 | Identifier equality on core classes | `Issue`, `User`, `Project`, `Group`, `Filter`, and `Version` now compare by canonical identifier instead of object reference. |
-| Issue-scoped cmdlets         | `-Issue` (and `-InputObject` on `Get-JiraIssue` / `Remove-JiraIssue`) is now `[AtlassianPS.JiraPS.Issue]` with a custom transformer; arrays / pipelines iterate the `process` block per item instead of throwing. |
-| User-scoped cmdlets          | `-User` / `-UserName` / `-Owner` on `Set-JiraUser`, `Remove-JiraUser`, `Add-JiraGroupMember`, `Remove-JiraGroupMember`, and `Find-JiraFilter` are now strongly-typed `[AtlassianPS.JiraPS.User]` / `[AtlassianPS.JiraPS.User[]]` with a custom transformer. |
+| Issue-scoped cmdlets         | `-Issue` uses strongly typed issue objects with a custom transformer; supported arrays and pipelines iterate the `process` block per item instead of throwing. |
+| User-scoped cmdlets          | `-User` on `Set-JiraUser`, `Remove-JiraUser`, `Add-JiraGroupMember`, and `Remove-JiraGroupMember`, and `-Owner` on `Find-JiraFilter`, use strongly typed `[AtlassianPS.JiraPS.User]` / `[AtlassianPS.JiraPS.User[]]` with a custom transformer. |
 | Group promoted to .NET class | `Group` joins the eight original `AtlassianPS.JiraPS.*` types. `ConvertTo-JiraGroup` returns `[AtlassianPS.JiraPS.Group]`; `PSObject.TypeNames[0]` is `AtlassianPS.JiraPS.Group` (was `JiraPS.Group`). |
 | Group-scoped cmdlets         | `-Group` on `Add-JiraGroupMember`, `Get-JiraGroupMember`, `Remove-JiraGroup`, and `Remove-JiraGroupMember` is now strongly-typed `[AtlassianPS.JiraPS.Group[]]` with a custom transformer. |
-| Version-scoped cmdlets       | `-Version` / `-After` / `-InputObject` / `-InputVersion` on `Get-JiraVersion`, `Move-JiraVersion`, `New-JiraVersion`, `Remove-JiraVersion`, and `Set-JiraVersion` are now strongly-typed `[AtlassianPS.JiraPS.Version]` / `[AtlassianPS.JiraPS.Version[]]` with a custom transformer. |
-| Filter-scoped cmdlets        | `-InputObject` on `Get-JiraFilter` and `-Filter` on `Get-JiraIssue` are now strongly-typed `[AtlassianPS.JiraPS.Filter]` / `[AtlassianPS.JiraPS.Filter[]]` with a custom transformer. |
+| Version-scoped cmdlets       | `-Version` on `Get-JiraVersion`, `Move-JiraVersion`, `Remove-JiraVersion`, and `Set-JiraVersion`, `-After` on `Move-JiraVersion`, and `-InputObject` on `New-JiraVersion` use strongly typed version objects with a custom transformer. |
+| Filter-scoped cmdlets        | `-Filter` on `Get-JiraFilter` and `Get-JiraIssue` uses strongly typed `[AtlassianPS.JiraPS.Filter]` / `[AtlassianPS.JiraPS.Filter[]]` with a custom transformer. |
 | Project-scoped cmdlets       | `-Project` on `Get-JiraComponent`, `Find-JiraFilter`, `New-JiraVersion`, and `Set-JiraVersion` is now strongly-typed `[AtlassianPS.JiraPS.Project]` / `[AtlassianPS.JiraPS.Project[]]` with a custom transformer. |
 | Class construction           | The six identifier-driven `AtlassianPS.JiraPS.*` classes ship a single string-arg constructor for stub-from-an-identifier (`[AtlassianPS.JiraPS.Issue]::new('TEST-1')`). The hashtable-cast form `[AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }` continues to work. |
 | Rich-text fields (read)      | On Cloud, returned as Markdown strings instead of ADF JSON trees.       |
@@ -264,7 +264,7 @@ In v3:
 - `-Reporter` rejects `$null`, `''`, and whitespace-only strings at parameter binding time with an actionable message.
   **Omit `-Reporter` entirely** to let Jira apply the project's default reporter — this matches the API's behaviour and is the supported way to "reset" the reporter on creation.
 - `-Reporter` is now resolved through `Resolve-JiraUser` on Server / DC as well, so typos are caught client-side and Cloud / DC use the same code path.
-  `Resolve-JiraUser` performs an exact match (`-Exact`).
+  `Resolve-JiraUser` resolves the deployment-specific identity without searching.
 
 #### v2
 
@@ -603,18 +603,18 @@ Most scripts can keep passing strings, while newer scripts can pass real `Atlass
 
 | Family | Representative parameters | v3 class | Canonical identifier slot |
 | ------ | ------------------------- | -------- | ------------------------- |
-| Issue | `-Issue`, `-InputObject` | `[AtlassianPS.JiraPS.Issue]` | `Key` |
-| Version | `-Version`, `-After`, `-InputVersion`, `-InputObject` | `[AtlassianPS.JiraPS.Version]` | `Id` (fallback `Name`) |
-| Filter | `-Filter`, `-InputObject` | `[AtlassianPS.JiraPS.Filter]` | `Id` |
+| Issue | `-Issue` | `[AtlassianPS.JiraPS.Issue]` | `Key` |
+| Version | `-Version`, `-After`, `-InputObject` | `[AtlassianPS.JiraPS.Version]` | `Id` (fallback `Name`) |
+| Filter | `-Filter` | `[AtlassianPS.JiraPS.Filter]` | `Id` |
 | Project | `-Project` | `[AtlassianPS.JiraPS.Project]` | `Key` (or `Id`) |
-| User | `-User`, `-UserName`, `-Owner`, `-Assignee`, `-Reporter` | `[AtlassianPS.JiraPS.User]` | `AccountId` on Cloud, otherwise `Name` |
+| User | `-User`, `-Owner`, `-Assignee`, `-Reporter` | `[AtlassianPS.JiraPS.User]` | `AccountId` on Cloud, otherwise `Name` |
 | Group | `-Group` | `[AtlassianPS.JiraPS.Group]` | `Name` |
 
 Anything else throws an `ArgumentTransformationMetadataException` at parameter binding time with an actionable message, instead of failing later inside the cmdlet body with a generic `Cannot convert ...` error.
 
 #### Affected cmdlets
 
-`Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`, `Get-JiraIssue` (`-InputObject`), `Get-JiraIssueAttachment`, `Get-JiraIssueComment`, `Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraRemoteLink`, `Invoke-JiraIssueTransition`, `Remove-JiraIssue` (`-InputObject`), `Remove-JiraIssueAttachment`, `Remove-JiraIssueWatcher`, `Remove-JiraRemoteLink`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+`Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`, `Get-JiraIssue`, `Get-JiraIssueAttachment`, `Get-JiraIssueComment`, `Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraRemoteLink`, `Invoke-JiraIssueTransition`, `Remove-JiraIssue`, `Remove-JiraIssueAttachment`, `Remove-JiraIssueWatcher`, `Remove-JiraRemoteLink`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
 
 #### `Add-JiraIssueLink` now uses explicit relationship endpoints
 

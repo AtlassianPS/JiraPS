@@ -1,4 +1,8 @@
 ﻿function Convert-Result {
+    <#
+    .SYNOPSIS
+        Apply the requested private converter when available, otherwise emit the response unchanged.
+    #>
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]

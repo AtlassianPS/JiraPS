@@ -1,4 +1,8 @@
 ﻿function Get-JiraProjectOperation {
+    <#
+    .SYNOPSIS
+        Retrieve typed Jira projects or resolve project identifiers and names.
+    #>
     [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = '_Search' )]

@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueProgress {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueProgress objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueProgress])]
     param(

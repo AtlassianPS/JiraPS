@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraLink {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Link objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Link])]
     param(

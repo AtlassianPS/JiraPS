@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueHistoryEntry {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueHistoryEntry objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueHistoryEntry])]
     param(

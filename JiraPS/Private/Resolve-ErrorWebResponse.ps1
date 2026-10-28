@@ -1,4 +1,8 @@
 ﻿function Resolve-ErrorWebResponse {
+    <#
+    .SYNOPSIS
+        Read an HTTP failure response and report Jira errors through the calling command.
+    #>
     [CmdletBinding()]
     param (
         $Exception,

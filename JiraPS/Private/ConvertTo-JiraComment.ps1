@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraComment {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Comment objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Comment])]
     param(

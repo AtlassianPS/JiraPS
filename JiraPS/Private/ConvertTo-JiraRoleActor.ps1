@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraRoleActor {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.RoleActor objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.RoleActor])]
     param(

@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraComponent {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Component objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Component])]
     param(

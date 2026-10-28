@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraStatus {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Status objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Status])]
     param(

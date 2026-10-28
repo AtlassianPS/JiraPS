@@ -174,7 +174,8 @@ Invoke-Pester -Configuration $config
 ```
 
 **Smoke tests cover:**
-- Authentication (New-JiraSession, Get-JiraSession)
+
+- Authentication (Connect-Jira, Get-JiraConnection)
 - Server connectivity (Get-JiraServerInformation)
 - Issue retrieval (Get-JiraIssue)
 - Issue creation (New-JiraIssue)
@@ -274,7 +275,7 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            $session | Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Context "Issue Retrieval" {

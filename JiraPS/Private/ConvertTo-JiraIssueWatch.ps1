@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueWatch {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueWatches objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueWatches])]
     param(

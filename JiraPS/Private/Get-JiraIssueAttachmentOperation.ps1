@@ -1,4 +1,8 @@
 ﻿function Get-JiraIssueAttachmentOperation {
+    <#
+    .SYNOPSIS
+        Retrieve typed attachment metadata for an issue, optionally matching file names.
+    #>
     [CmdletBinding()]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]

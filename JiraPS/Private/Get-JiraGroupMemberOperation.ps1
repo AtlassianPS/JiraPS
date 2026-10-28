@@ -1,4 +1,8 @@
 ﻿function Get-JiraGroupMemberOperation {
+    <#
+    .SYNOPSIS
+        Retrieve and page members of a typed Jira group using the selected request context.
+    #>
     [CmdletBinding( SupportsPaging )]
     param(
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]

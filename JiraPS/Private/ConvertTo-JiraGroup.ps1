@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraGroup {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Group objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Group])]
     param(

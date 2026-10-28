@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraProject {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Project objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Project])]
     param(

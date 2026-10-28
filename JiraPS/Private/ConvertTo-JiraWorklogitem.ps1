@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraWorklogItem {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Worklogitem objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Worklogitem])]
     param(

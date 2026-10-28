@@ -1,4 +1,8 @@
 ﻿function Write-DebugMessage {
+    <#
+    .SYNOPSIS
+        Forward messages and bound parameters through Configuration's redacted debug logging.
+    #>
     [CmdletBinding( DefaultParameterSetName = 'Message' )]
     param(
         [Parameter( Position = 0, ValueFromPipeline, ParameterSetName = 'Message' )]

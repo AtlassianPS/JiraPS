@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraAttachment {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Attachment objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Attachment])]
     param(

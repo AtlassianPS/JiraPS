@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssue {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Issue objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Issue])]
     param(

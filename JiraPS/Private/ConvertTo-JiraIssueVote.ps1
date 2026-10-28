@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueVote {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueVotes objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueVotes])]
     param(

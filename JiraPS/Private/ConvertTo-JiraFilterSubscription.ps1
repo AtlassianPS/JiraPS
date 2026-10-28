@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraFilterSubscription {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.FilterSubscription objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.FilterSubscription])]
     param(

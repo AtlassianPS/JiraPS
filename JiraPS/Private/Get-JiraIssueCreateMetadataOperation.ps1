@@ -1,4 +1,8 @@
 ﻿function Get-JiraIssueCreateMetadataOperation {
+    <#
+    .SYNOPSIS
+        Retrieve and page issue creation metadata using the deployment-specific Jira API.
+    #>
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '')]
     [CmdletBinding( SupportsPaging )]
     param(

@@ -46,7 +46,7 @@ Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraAttachment`.
 
 Producing commands: `Add-JiraIssueAttachment`, `Get-JiraIssue`, `Get-JiraIssueAttachment`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
 
-Consuming parameters: `Get-JiraIssueAttachmentFile -Attachment`.
+Consuming parameters: `Save-JiraIssueAttachment -Attachment`.
 
 Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraAttachment.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
 
@@ -207,7 +207,7 @@ Converters: `ConvertTo-JiraFilter`.
 
 Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `New-JiraFilter`, `Set-JiraFilter`.
 
-Consuming parameters: `Add-JiraFilterPermission -Filter`, `Get-JiraFilterPermission -Filter`, `Remove-JiraFilter -InputObject`, `Remove-JiraFilterPermission -Filter`, `Set-JiraFilter -InputObject`, `Get-JiraFilter -InputObject`, `Get-JiraIssue -Filter`.
+Consuming parameters: `Add-JiraFilterPermission -Filter`, `Get-JiraFilterPermission -Filter`, `Remove-JiraFilter -Filter`, `Remove-JiraFilterPermission -Filter`, `Set-JiraFilter -Filter`, `Get-JiraFilter -Filter`, `Get-JiraIssue -Filter`.
 
 Tests: `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
 
@@ -328,7 +328,7 @@ Converters: `Resolve-JiraIssueObject`, `ConvertTo-JiraIssue`.
 
 Producing commands: `Get-JiraIssue`, `Get-JiraIssueLink`, `Invoke-JiraIssueTransition`, `New-JiraIssue`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
 
-Consuming parameters: `Add-JiraIssueComment -Issue`, `Add-JiraIssueWorklog -Issue`, `Invoke-JiraIssueTransition -Issue`, `Remove-JiraIssueLink -Issue`, `Remove-JiraRemoteLink -Issue`, `Add-JiraIssueAttachment -Issue`, `Add-JiraIssueWatcher -Issue`, `Get-JiraIssue -InputObject`, `Get-JiraIssueAttachment -Issue`, `Get-JiraIssueComment -Issue`, `Get-JiraIssueWatcher -Issue`, `Get-JiraIssueWorklog -Issue`, `Get-JiraRemoteLink -Issue`, `New-JiraIssueLinkRequest -FromIssue`, `New-JiraIssueLinkRequest -ToIssue`, `Remove-JiraIssue -InputObject`, `Remove-JiraIssueAttachment -Issue`, `Remove-JiraIssueWatcher -Issue`, `Set-JiraIssue -Issue`, `Set-JiraIssueLabel -Issue`.
+Consuming parameters: `Add-JiraIssueComment -Issue`, `Add-JiraIssueWorklog -Issue`, `Invoke-JiraIssueTransition -Issue`, `Remove-JiraIssueLink -Issue`, `Remove-JiraRemoteLink -Issue`, `Add-JiraIssueAttachment -Issue`, `Add-JiraIssueWatcher -Issue`, `Get-JiraIssue -Issue`, `Get-JiraIssueAttachment -Issue`, `Get-JiraIssueComment -Issue`, `Get-JiraIssueWatcher -Issue`, `Get-JiraIssueWorklog -Issue`, `Get-JiraRemoteLink -Issue`, `New-JiraIssueLinkRequest -FromIssue`, `New-JiraIssueLinkRequest -ToIssue`, `Remove-JiraIssue -Issue`, `Remove-JiraIssueAttachment -Issue`, `Remove-JiraIssueWatcher -Issue`, `Set-JiraIssue -Issue`, `Set-JiraIssueLabel -Issue`.
 
 Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
 
@@ -836,22 +836,6 @@ No public parameter consumes this record directly.
 
 Tests: `ConvertTo-JiraServerInfo.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
 
-### `Session`
-
-| Property | CLR type |
-| --- | --- |
-| `WebSession` | `object` |
-| `Username` | `string` |
-| `JSessionID` | `string` |
-
-Converters: `ConvertTo-JiraSession`.
-
-Producing commands: `Get-JiraSession`, `New-JiraSession`.
-
-No public parameter consumes this record directly.
-
-Tests: `ConvertTo-JiraSession.Unit.Tests.ps1`.
-
 ### `Status`
 
 | Property | CLR type |
@@ -928,7 +912,7 @@ Converters: `ConvertTo-JiraGroup`, `ConvertTo-JiraUser`, `Resolve-JiraUser`, `Co
 
 Producing commands: `Add-JiraFilterPermission`, `Add-JiraGroupMember`, `Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueWorklog`, `Find-JiraFilter`, `Get-JiraComponent`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraGroup`, `Get-JiraGroupMember`, `Get-JiraIssue`, `Get-JiraIssueAttachment`, `Get-JiraIssueComment`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraProject`, `Get-JiraUser`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraGroup`, `New-JiraIssue`, `New-JiraUser`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`, `Set-JiraUser`.
 
-Consuming parameters: `Invoke-JiraIssueTransition -Assignee`, `New-JiraIssue -Reporter`, `New-JiraIssue -Assignee`, `Add-JiraGroupMember -UserName`, `Find-JiraFilter -Owner`, `Get-JiraUser -InputObject`, `Remove-JiraGroupMember -User`, `Remove-JiraUser -User`, `Set-JiraIssue -Assignee`, `Set-JiraUser -User`.
+Consuming parameters: `Invoke-JiraIssueTransition -Assignee`, `New-JiraIssue -Reporter`, `New-JiraIssue -Assignee`, `Add-JiraGroupMember -User`, `Find-JiraFilter -Owner`, `Get-JiraUser -User`, `Remove-JiraGroupMember -User`, `Remove-JiraUser -User`, `Set-JiraIssue -Assignee`, `Set-JiraUser -User`.
 
 Tests: `ConvertTo-JiraGroup.Unit.Tests.ps1`, `ConvertTo-JiraUser.Unit.Tests.ps1`, `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraFilter.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`, `V3ParameterContracts.Unit.Tests.ps1`.
 
@@ -969,7 +953,7 @@ Converters: `ConvertTo-JiraIssue`, `ConvertTo-JiraProject`, `ConvertTo-JiraVersi
 
 Producing commands: `Add-JiraFilterPermission`, `Find-JiraFilter`, `Get-JiraFilter`, `Get-JiraFilterPermission`, `Get-JiraIssue`, `Get-JiraIssueLink`, `Get-JiraIssueType`, `Get-JiraProject`, `Get-JiraVersion`, `Invoke-JiraIssueTransition`, `New-JiraFilter`, `New-JiraIssue`, `New-JiraVersion`, `Set-JiraFilter`, `Set-JiraIssue`, `Set-JiraIssueLabel`, `Set-JiraVersion`.
 
-Consuming parameters: `Get-JiraVersion -InputVersion`, `New-JiraIssue -FixVersion`, `Move-JiraVersion -Version`, `Move-JiraVersion -After`, `New-JiraVersion -InputObject`, `Remove-JiraVersion -Version`, `Set-JiraVersion -Version`.
+Consuming parameters: `Get-JiraVersion -Version`, `New-JiraIssue -FixVersion`, `Move-JiraVersion -Version`, `Move-JiraVersion -After`, `New-JiraVersion -InputObject`, `Remove-JiraVersion -Version`, `Set-JiraVersion -Version`.
 
 Tests: `ConvertTo-JiraIssue.Unit.Tests.ps1`, `ConvertTo-JiraProject.Unit.Tests.ps1`, `ConvertTo-JiraVersion.Unit.Tests.ps1`, `AtlassianPS.JiraPS.Types.Unit.Tests.ps1`, `V3ReturnContracts.Unit.Tests.ps1`.
 
@@ -1021,7 +1005,6 @@ Tests: `ConvertTo-JiraWorklogitem.Unit.Tests.ps1`, `ConvertTo-JiraIssue.Unit.Tes
 | `EntityProperty.Value` | `object` | Jira entity properties accept arbitrary JSON values. The property envelope itself is typed. |
 | `CreateMetaField.AllowedValues`, inherited by `EditMetaField` | `object[]` | Values vary by field schema and plugin, including users, options, components and plugin records. |
 | `FieldSchema.Configuration` | `IDictionary<string, object>` | App-defined field configuration has arbitrary keys and values. |
-| `Session.WebSession` | `object` | Holds the live `Microsoft.PowerShell.Commands.WebRequestSession` from the current PowerShell edition. The C# assembly does not reference the edition-specific Utility assembly. It is runtime state, not a Jira domain record or export format. |
 | `Invoke-JiraMethod` results, issue debug fields, ADF documents and extra metadata keys | Native REST/PowerShell JSON shapes | These explicitly raw or extensible results are not domain models. Internal HTTP/request objects follow their existing transport contract. |
 
 ## Enumerated properties
@@ -1061,9 +1044,7 @@ It does not change `User(string)` classification or Cloud/DC identity dispatch; 
 The current constructor keeps its documented `Name` stub behavior and `Resolve-JiraUser` resolves Cloud identifiers at runtime.
 Assignment intent continues to use `-Unassign` and `-UseDefaultAssignee` rather than magic user values.
 
-#194 owns named connections, server-bound session state, configuration import/export and final connection propagation.
-`Session` and `ServerInfo` are inventoried here, but the session contract cannot be frozen until #194 lands.
-Completion of #681 depends on #194/#614 coordination and PS5.1/PS7 CI verification.
+Named connection behavior is documented in [about_JiraPS_Authentication](../../docs/en-US/about_JiraPS_Authentication.md).
 
 ## Wire-contract references
 

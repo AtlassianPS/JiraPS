@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraCreateMetaField {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.CreateMetaField objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.CreateMetaField])]
     param(

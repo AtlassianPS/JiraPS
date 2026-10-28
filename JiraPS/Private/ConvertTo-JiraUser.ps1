@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraUser {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.User objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.User])]
     param(

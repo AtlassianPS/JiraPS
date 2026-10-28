@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraVersion {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Version objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Version])]
     param(

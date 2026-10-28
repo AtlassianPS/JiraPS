@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraResolution {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Resolution objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Resolution])]
     param(

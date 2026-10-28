@@ -38,7 +38,6 @@ Update-Module JiraPS
 ```powershell
 # To use each session:
 Import-Module JiraPS
-Set-JiraConfigServer 'https://YourCloud.atlassian.net'
 $connection = Connect-Jira -Name work -Uri 'https://jira.example.com' -Credential $cred
 ```
 

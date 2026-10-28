@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraTransition {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Transition objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Transition])]
     param(

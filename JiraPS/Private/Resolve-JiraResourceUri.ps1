@@ -1,4 +1,8 @@
 ﻿function Resolve-JiraResourceUri {
+    <#
+    .SYNOPSIS
+        Resolve a resource against its connection and reject foreign endpoints and path escapes.
+    #>
     [CmdletBinding()]
     [OutputType( [Uri] )]
     param(

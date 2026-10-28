@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraProjectRole {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.ProjectRole objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.ProjectRole])]
     param(

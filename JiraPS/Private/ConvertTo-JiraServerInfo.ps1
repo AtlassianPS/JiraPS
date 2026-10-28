@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraServerInfo {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.ServerInfo objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.ServerInfo])]
     param(

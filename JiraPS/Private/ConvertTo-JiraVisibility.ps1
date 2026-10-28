@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraVisibility {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Visibility objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Visibility])]
     param(

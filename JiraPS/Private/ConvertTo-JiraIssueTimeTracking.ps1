@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueTimeTracking {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueTimeTracking objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueTimeTracking])]
     param(

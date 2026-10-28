@@ -1,4 +1,8 @@
 ﻿function Resolve-JiraEndpoint {
+    <#
+    .SYNOPSIS
+        Validate a Jira endpoint and discover the Cloud gateway for a site API token.
+    #>
     [CmdletBinding()]
     param(
         [Parameter( Mandatory )]

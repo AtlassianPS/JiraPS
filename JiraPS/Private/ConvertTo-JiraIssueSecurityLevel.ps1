@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueSecurityLevel {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueSecurityLevel objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueSecurityLevel])]
     param(

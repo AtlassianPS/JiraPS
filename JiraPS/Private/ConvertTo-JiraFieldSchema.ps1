@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraFieldSchema {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.FieldSchema objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.FieldSchema])]
     param(

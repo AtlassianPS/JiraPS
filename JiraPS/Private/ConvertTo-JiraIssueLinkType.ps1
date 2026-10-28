@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueLinkType {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueLinkType objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueLinkType])]
     param(

@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraUriMap {
+    <#
+    .SYNOPSIS
+        Convert named Jira URL properties to a dictionary of URI values.
+    #>
     [CmdletBinding()]
     [OutputType([System.Collections.Generic.IDictionary[string, uri]])]
     param(
