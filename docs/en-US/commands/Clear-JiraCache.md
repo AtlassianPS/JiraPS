@@ -14,11 +14,9 @@ Clears cached data stored by JiraPS.
 
 ## SYNTAX
 
-```
+```powershell
 Clear-JiraCache [[-Type] <string>] [<CommonParameters>]
 ```
-
-## ALIASES
 
 ## DESCRIPTION
 
@@ -46,8 +44,7 @@ Clear-JiraCache -Type Fields
 ```
 
 Clears only the cached field data.
-The next call to `Get-JiraField` will fetch
-fresh data from the server.
+The next call to `Get-JiraField` will fetch fresh data from the server.
 
 ### EXAMPLE 3
 
@@ -65,6 +62,7 @@ Clears cached server information and fetches fresh data.
 The type of cached data to clear.
 
 Valid values are:
+
 - `All` (default): Clears all cached data
 - `Fields`: Clears cached field metadata
 - `IssueTypes`: Clears cached issue types
@@ -85,7 +83,13 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- All
+- Fields
+- IssueTypes
+- Priorities
+- Statuses
+- ServerInfo
 HelpMessage: ''
 ```
 
