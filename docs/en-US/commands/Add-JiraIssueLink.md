@@ -19,8 +19,6 @@ Add-JiraIssueLink [-IssueLink] <AtlassianPS.JiraPS.IssueLinkCreateRequest[]> [[-
  [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Creates a new link of the specified type between two issues.
@@ -173,6 +171,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 None.
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

@@ -18,8 +18,6 @@ Removes an existing user from Jira.
 Remove-JiraUser [-User] <AtlassianPS.JiraPS.User> [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function removes an existing user from Jira.
@@ -142,6 +140,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.User
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

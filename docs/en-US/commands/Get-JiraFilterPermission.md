@@ -18,8 +18,6 @@ Fetch the permissions of a specific filter.
 Get-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Returns typed FilterPermission records for the selected filters.

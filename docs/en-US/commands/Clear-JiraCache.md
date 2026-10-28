@@ -106,6 +106,8 @@ None.
 
 ## OUTPUTS
 
+None.
+
 ## NOTES
 
 The cache is stored in module-level variables and is specific to each PowerShell session.

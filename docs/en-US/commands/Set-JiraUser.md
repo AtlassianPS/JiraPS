@@ -28,8 +28,6 @@ Set-JiraUser [-User] <AtlassianPS.JiraPS.User> [-Property] <hashtable> [-PassThr
  [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Updates supported Data Center user account fields.

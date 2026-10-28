@@ -19,8 +19,6 @@ Remove-JiraIssue [-Issue] <AtlassianPS.JiraPS.Issue[]> [-IncludeSubTasks] [-Conn
  [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function will remove an issue from Jira.

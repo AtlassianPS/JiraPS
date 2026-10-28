@@ -19,8 +19,6 @@ Get-JiraIssueCreateMetadata [-Project] <AtlassianPS.JiraPS.Project> [-IssueType]
  [[-Connection] <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function returns metadata required to create an issue in Jira - the fields that can be defined in the process of creating an issue.

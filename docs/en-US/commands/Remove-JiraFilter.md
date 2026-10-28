@@ -18,8 +18,6 @@ Removes an existing filter.
 Remove-JiraFilter [-Filter] <AtlassianPS.JiraPS.Filter[]> [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function will remove a filter from Jira.
@@ -177,6 +175,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.Filter[]
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

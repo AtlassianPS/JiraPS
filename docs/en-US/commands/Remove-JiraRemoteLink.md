@@ -19,8 +19,6 @@ Remove-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [-Link] <AtlassianPS.J
  [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function removes a remote link from a Jira issue.
@@ -168,6 +166,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.Issue
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

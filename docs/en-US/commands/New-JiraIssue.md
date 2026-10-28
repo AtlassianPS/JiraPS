@@ -32,8 +32,6 @@ New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.Jira
  [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function creates a new issue in Jira.

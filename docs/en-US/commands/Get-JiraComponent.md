@@ -26,8 +26,6 @@ Get-JiraComponent [-ComponentId] <int[]> [-Connection <AtlassianPS.Connection>] 
 Get-JiraComponent [-Project] <AtlassianPS.JiraPS.Project[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function returns information regarding a specified component from Jira.

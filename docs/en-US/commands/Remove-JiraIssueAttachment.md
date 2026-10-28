@@ -28,8 +28,6 @@ Remove-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FileName <strin
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function removes an attachment from a Jira issue.
@@ -209,6 +207,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.Attachment[]
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

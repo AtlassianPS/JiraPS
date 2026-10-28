@@ -26,8 +26,6 @@ Get-JiraStatus [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function returns Jira status objects.

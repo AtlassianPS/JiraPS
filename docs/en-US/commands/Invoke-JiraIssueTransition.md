@@ -30,8 +30,6 @@ Invoke-JiraIssueTransition -Issue <AtlassianPS.JiraPS.Issue> -Transition <Atlass
  [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function performs an issue transition on a Jira issue.

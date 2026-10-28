@@ -26,8 +26,6 @@ Get-JiraIssueLinkType [-Connection <AtlassianPS.Connection>] [<CommonParameters>
 Get-JiraIssueLinkType [-LinkType] <AtlassianPS.JiraPS.IssueLinkType> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function gets available issueLink types from a Jira server.

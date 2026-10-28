@@ -18,8 +18,6 @@ This function returns the information about the JIRA Server
 Get-JiraServerInformation [[-Connection] <AtlassianPS.Connection>] [-Refresh] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This functions shows all the information about the JIRA server, such as version, time, etc.

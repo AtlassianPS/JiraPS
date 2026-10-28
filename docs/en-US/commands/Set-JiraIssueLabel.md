@@ -35,8 +35,6 @@ Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Clear [-PassThru] [-Conn
  [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function modifies labels on an existing Jira issue.

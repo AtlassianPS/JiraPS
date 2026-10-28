@@ -26,8 +26,6 @@ Remove-JiraIssueLink -IssueLink <AtlassianPS.JiraPS.IssueLink[]> [-Connection <A
 Remove-JiraIssueLink -Issue <AtlassianPS.JiraPS.Issue[]> [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function removes an issue link from a Jira issue.
@@ -176,6 +174,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.Issue[]
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

@@ -18,8 +18,6 @@ Returns a remote link from a Jira issue.
 Get-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [[-LinkId] <int>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function returns information on remote links from a  Jira issue.

@@ -26,8 +26,6 @@ Get-JiraPriority [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParam
 Get-JiraPriority [-Id] <int[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function retrieves all the available Priorities on the JIRA server an returns them as `JiraPS.Priority`.

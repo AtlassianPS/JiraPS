@@ -19,8 +19,6 @@ Add-JiraIssueWatcher [-Watcher] <AtlassianPS.JiraPS.User[]> [-Issue] <AtlassianP
  [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function adds a watcher to an existing issue in Jira.
@@ -180,6 +178,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.Issue
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

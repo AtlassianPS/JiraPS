@@ -519,7 +519,17 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- Default
+- Get
+- Head
+- Post
+- Put
+- Delete
+- Trace
+- Options
+- Merge
+- Patch
 HelpMessage: ''
 ```
 

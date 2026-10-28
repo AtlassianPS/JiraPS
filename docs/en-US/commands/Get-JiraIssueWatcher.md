@@ -18,8 +18,6 @@ Returns watchers on an issue in Jira.
 Get-JiraIssueWatcher [-Issue] <AtlassianPS.JiraPS.Issue> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function obtains watchers from existing issues in Jira.

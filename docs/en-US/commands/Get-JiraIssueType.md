@@ -26,8 +26,6 @@ Get-JiraIssueType [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonPara
 Get-JiraIssueType [-IssueType] <AtlassianPS.JiraPS.IssueType[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function retrieves all the available IssueType on the Jira server an returns them as `AtlassianPS.JiraPS.IssueType`.

@@ -27,8 +27,6 @@ Move-JiraVersion -Version <AtlassianPS.JiraPS.Version> -Position <string> [-Conn
  [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function moves the version for an existing project in Jira.
@@ -145,7 +143,11 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- First
+- Last
+- Earlier
+- Later
 HelpMessage: ''
 ```
 
@@ -204,6 +206,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.Version
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

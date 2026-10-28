@@ -19,8 +19,6 @@ Remove-JiraIssueWatcher [-Watcher] <AtlassianPS.JiraPS.User[]> [-Issue] <Atlassi
  [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function removes a watcher from an existing issue in Jira.
@@ -180,6 +178,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.Issue
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

@@ -44,8 +44,6 @@ Disconnect-Jira -Id <int> [-WhatIf] [-Confirm] [<CommonParameters>]
 Disconnect-Jira -All [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Disconnect Jira locally and invalidate retained handles.
@@ -238,6 +236,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.Connection
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

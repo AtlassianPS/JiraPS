@@ -20,8 +20,6 @@ Set-JiraVersion [-Version] <AtlassianPS.JiraPS.Version[]> [[-Name] <string>] [[-
  [[-Project] <AtlassianPS.JiraPS.Project>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function modifies the version for an existing project in Jira.

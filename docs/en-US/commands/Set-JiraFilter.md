@@ -19,8 +19,6 @@ Set-JiraFilter [-Filter] <AtlassianPS.JiraPS.Filter> [[-Name] <string>] [[-Descr
  [[-Favorite] <bool>] [[-Connection] <AtlassianPS.Connection>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Updates only the supplied filter properties.

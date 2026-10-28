@@ -20,8 +20,6 @@ Get-JiraIssueWorklog [-Issue] <AtlassianPS.JiraPS.Issue> [[-PageSize] <int>] [[-
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function obtains worklogs from existing issues in Jira.

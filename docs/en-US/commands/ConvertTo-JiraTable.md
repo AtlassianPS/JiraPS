@@ -18,8 +18,6 @@ Converts an object into a Jira **wiki-markup** table string (Server / Data Cente
 ConvertTo-JiraTable [-InputObject] <psobject[]> [[-Property] <Object[]>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Converts one or more PowerShell objects into a string formatted as a Jira **wiki-markup** table (`||header||header|| ... |cell|cell|`).

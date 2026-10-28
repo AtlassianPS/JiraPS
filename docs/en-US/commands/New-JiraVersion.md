@@ -28,8 +28,6 @@ New-JiraVersion [-Name] <string> [-Project] <AtlassianPS.JiraPS.Project> [-Descr
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function creates a new FixVersion in Jira.

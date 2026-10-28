@@ -18,8 +18,6 @@ Returns a group from Jira
 Get-JiraGroup [-GroupName] <string[]> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function attempts to return canonical information for a specified group from JIRA.

@@ -18,8 +18,6 @@ Removes an existing group from Jira.
 Remove-JiraGroup [-Group] <AtlassianPS.JiraPS.Group[]> [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function removes an existing group from Jira.
@@ -147,6 +145,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.Group[]
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

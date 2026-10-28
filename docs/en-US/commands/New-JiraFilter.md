@@ -19,8 +19,6 @@ New-JiraFilter [-Name] <string> [[-Description] <string>] [-JQL] <string>
  [[-Connection] <AtlassianPS.Connection>] [-Favorite] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Create a new Jira filter.

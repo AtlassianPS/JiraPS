@@ -22,8 +22,6 @@ Save-JiraIssueAttachment [-Attachment] <AtlassianPS.JiraPS.Attachment[]> [[-Path
  [[-Connection] <AtlassianPS.Connection>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Downloads attachment content to the file system and returns FileInfo for each completed write.

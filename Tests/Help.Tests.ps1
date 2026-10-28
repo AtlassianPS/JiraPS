@@ -423,6 +423,30 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 }
 
 Describe 'Domain parameter documentation' -Tag Documentation, Build {
+    It 'omits empty command aliases sections from markdown' {
+        foreach ($command in $commands.Command) {
+            $markdown = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/$($command.Name).md" -Raw
+            $markdown | Should -Not -Match '(?m)^## ALIASES\r?\n\s*(?=^## |\z)' -Because "$($command.Name) should omit an aliases section when it has no content"
+        }
+    }
+
+    It 'preserves accepted parameter values in generated help' {
+        foreach ($command in $commands.Command) {
+            foreach ($parameter in $command.Parameters.Values) {
+                if ($parameter.Name -in $DefaultParams) { continue }
+                $expected = @($parameter.Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } | ForEach-Object ValidValues)
+                $parameterType = if ($parameter.ParameterType.IsArray) { $parameter.ParameterType.GetElementType() } else { $parameter.ParameterType }
+                if ($expected.Count -eq 0 -and $parameterType.IsEnum) { $expected = @([Enum]::GetNames($parameterType)) }
+                if ($expected.Count -eq 0) { continue }
+
+                $parameterHelp = Get-Help $command.Name -Parameter $parameter.Name
+                $actual = @($parameterHelp.parameterValueGroup.parameterValue | Where-Object { $_ })
+                $actual.Count | Should -Be $expected.Count -Because "$($command.Name) -$($parameter.Name) must list every accepted value"
+                @($actual | Sort-Object) | Should -Be @($expected | Sort-Object)
+            }
+        }
+    }
+
     It 'describes <CommandName> -<ParameterName> as a domain field' -ForEach @(
         @{ CommandName = 'Find-JiraFilter'; ParameterName = 'Name'; Entity = 'filter' }
         @{ CommandName = 'New-JiraFilter'; ParameterName = 'Name'; Entity = 'filter' }

@@ -28,8 +28,6 @@ Get-JiraVersion -Project <AtlassianPS.JiraPS.Project[]> [-Name <string[]>] [-Sor
  [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Retrieves exact versions or lists versions belonging to projects.
@@ -242,7 +240,11 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- sequence
+- name
+- startDate
+- releaseDate
 HelpMessage: ''
 ```
 

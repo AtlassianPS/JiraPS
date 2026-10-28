@@ -26,8 +26,6 @@ Get-JiraField [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParamete
 Get-JiraField [-Field] <AtlassianPS.JiraPS.Field[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function provides information about Jira fields, or about one field in particular.

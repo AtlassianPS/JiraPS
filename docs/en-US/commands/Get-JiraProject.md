@@ -26,8 +26,6 @@ Get-JiraProject [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 Get-JiraProject [-Project] <AtlassianPS.JiraPS.Project[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function returns information regarding a specified project from Jira.

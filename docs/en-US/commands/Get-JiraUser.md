@@ -41,8 +41,6 @@ Get-JiraUser -All [-PageSize <int>] [-Connection <AtlassianPS.Connection>] [-Inc
  [-First <ulong>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Returns the current user, exact users, explicit search results or an intentional user enumeration.

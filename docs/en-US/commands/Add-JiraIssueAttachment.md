@@ -19,8 +19,6 @@ Add-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FilePath] <string[
  [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function adds an Attachment to an existing issue in Jira.

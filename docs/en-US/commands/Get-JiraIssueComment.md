@@ -19,8 +19,6 @@ Get-JiraIssueComment [-Issue] <AtlassianPS.JiraPS.Issue> [[-PageSize] <int>] [[-
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function obtains comments from existing issues in Jira.

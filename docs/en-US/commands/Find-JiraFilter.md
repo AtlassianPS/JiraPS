@@ -30,8 +30,6 @@ Find-JiraFilter [-Name <string[]>] [-Owner <AtlassianPS.JiraPS.User>] [-GroupNam
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Searches Jira Cloud filters using explicit criteria.
@@ -177,7 +175,16 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- description
+- favourite
+- favouritedCount
+- jql
+- owner
+- searchUrl
+- sharePermissions
+- subscriptions
+- viewUrl
 HelpMessage: ''
 ```
 
@@ -356,7 +363,13 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- description
+- favourite_count
+- is_favourite
+- id
+- name
+- owner
 HelpMessage: ''
 ```
 

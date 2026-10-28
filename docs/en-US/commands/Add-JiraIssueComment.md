@@ -19,8 +19,6 @@ Add-JiraIssueComment [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue> [[-
  [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function adds a comment to an existing issue in Jira.

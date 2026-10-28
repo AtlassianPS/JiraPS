@@ -32,8 +32,6 @@ Select-JiraConnection -Name <string> [<CommonParameters>]
 Select-JiraConnection -Id <int> [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Select an active connection as the Jira default.

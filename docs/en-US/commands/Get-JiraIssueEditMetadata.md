@@ -18,8 +18,6 @@ Returns metadata required to change an issue in JIRA
 Get-JiraIssueEditMetadata [-Issue] <AtlassianPS.JiraPS.Issue> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function returns metadata required to update an issue in JIRA - the fields that can be defined in the process of updating an issue.

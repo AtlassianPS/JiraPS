@@ -18,8 +18,6 @@ This function removes an existing version.
 Remove-JiraVersion [-Version] <AtlassianPS.JiraPS.Version[]> [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function removes an existing version in Jira.
@@ -145,6 +143,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### AtlassianPS.JiraPS.Version[]
 
 ## OUTPUTS
+
+None.
 
 ## NOTES
 

@@ -20,8 +20,6 @@ Add-JiraIssueWorklog [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue> [-T
  [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function adds a worklog item to an existing issue in Jira.

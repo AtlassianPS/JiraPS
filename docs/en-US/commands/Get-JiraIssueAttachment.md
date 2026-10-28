@@ -18,8 +18,6 @@ Returns attachments of an issue in Jira.
 Get-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [[-FileName] <string>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function obtains attachments from existing issues in Jira.

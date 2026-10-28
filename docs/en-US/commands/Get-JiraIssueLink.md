@@ -18,8 +18,6 @@ Returns a specific issueLink from Jira
 Get-JiraIssueLink [-IssueLink] <AtlassianPS.JiraPS.IssueLink[]> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function returns information regarding a specified issueLink from Jira.

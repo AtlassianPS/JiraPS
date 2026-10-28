@@ -19,8 +19,6 @@ New-JiraUser [-EmailAddress] <string> [[-UserName] <string>] [[-DisplayName] <st
  [[-Products] <string[]>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Creates users through the deployment-specific Jira API.
@@ -167,7 +165,11 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- jira-core
+- jira-servicedesk
+- jira-product-discovery
+- jira-software
 HelpMessage: ''
 ```
 

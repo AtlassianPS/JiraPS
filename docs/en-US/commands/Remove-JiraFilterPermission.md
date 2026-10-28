@@ -27,8 +27,6 @@ Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter> [-Permission] 
 Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter> -All [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 Removes explicitly selected permissions, or every current permission when All is supplied.

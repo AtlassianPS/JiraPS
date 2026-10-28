@@ -38,8 +38,6 @@ Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Descriptio
  [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function modifies an existing issue in Jira.

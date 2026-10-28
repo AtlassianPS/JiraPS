@@ -26,8 +26,6 @@ Get-JiraFilter [-Filter] <AtlassianPS.JiraPS.Filter[]> [-Connection <AtlassianPS
 Get-JiraFilter -Favorite [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function returns information about a filter in Jira, including the JQL syntax of the filter, its owner, and sharing status.

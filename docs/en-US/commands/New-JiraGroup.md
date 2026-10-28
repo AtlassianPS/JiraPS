@@ -18,8 +18,6 @@ Creates a new group in JIRA
 New-JiraGroup [-GroupName] <string[]> [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
-## ALIASES
-
 ## DESCRIPTION
 
 This function creates a new group in JIRA.
