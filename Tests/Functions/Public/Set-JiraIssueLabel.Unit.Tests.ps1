@@ -17,7 +17,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraIssueOperation -ModuleName JiraPS {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 $Key = $Issue.Key
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
@@ -121,7 +121,7 @@ InModuleScope JiraPS {
                     $payload = $Body | ConvertFrom-Json
                     $Method -eq 'Put' -and $payload.update.labels[0].set -join ',' -eq 'existingLabel2,newLabel'
                 }
-                Should -Invoke Get-JiraIssueOperation -Exactly 2 -ParameterFilter { $RequestContext -and $Issue.Key -in @('TEST-001', 'TEST-002') }
+                Should -Invoke Get-JiraIssue -Exactly 2 -ParameterFilter { $Connection -and $Issue.Key -in @('TEST-001', 'TEST-002') }
             }
         }
 
@@ -131,13 +131,13 @@ InModuleScope JiraPS {
                 It "Accepts an issue object for the -Issue parameter" {
                     $issue = Get-JiraIssue -Key TEST-001
                     { Set-JiraIssueLabel -Issue $issue -Set 'testLabel1' } | Should -Not -Throw
-                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts the output of Get-JiraIssue by pipeline for the -Issue parameter" {
                     { Get-JiraIssue -Key TEST-001 | Set-JiraIssueLabel -Set 'testLabel1' } | Should -Not -Throw
-                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
             }

@@ -40,7 +40,7 @@ InModuleScope JiraPS {
                 ConvertFrom-Json $resultsJson
             }
 
-            Mock Get-JiraIssueOperation -ModuleName JiraPS -ParameterFilter { $Key -eq "TEST-01" } {
+            Mock Get-JiraIssue -ModuleName JiraPS -ParameterFilter { $Key -eq "TEST-01" } {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 # We don't care about the content of any field except for the id
                 $obj = [PSCustomObject]@{

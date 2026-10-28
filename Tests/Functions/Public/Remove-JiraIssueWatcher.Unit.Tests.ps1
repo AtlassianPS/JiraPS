@@ -23,7 +23,7 @@ InModuleScope JiraPS {
             Mock Resolve-JiraUser { [AtlassianPS.JiraPS.User]@{ Name = $InputObject.Name; AccountId = $InputObject.Name } }
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraIssueOperation -ModuleName JiraPS {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     ID      = $issueID
@@ -61,7 +61,7 @@ InModuleScope JiraPS {
                     $WatcherResult | Should -BeNullOrEmpty
 
                     # Get-JiraIssue should be used to identify the issue parameter (called twice total)
-                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
 
                     # Invoke-JiraRequest should be used to remove the Watcher (called twice total)
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2 -ParameterFilter {
@@ -77,7 +77,7 @@ InModuleScope JiraPS {
                     $WatcherResult | Should -BeNullOrEmpty
 
                     # Get-JiraIssue called once in test, once inside Remove-JiraIssueWatcher
-                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
             }

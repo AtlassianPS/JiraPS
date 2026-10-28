@@ -29,12 +29,41 @@
 
     begin {
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $parameters = @{} + $PSBoundParameters
-        $null = $parameters.Remove('Connection')
-        $parameters['RequestContext'] = $requestContext
-        $operation = { Get-JiraVersionOperation @parameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-        $operation.Begin($PSCmdlet)
+
+        $matches = [Collections.Generic.List[Object]]::new()
     }
-    process { $operation.Process($_) }
-    end { $operation.End() }
+
+    process {
+        if ($PSCmdlet.ParameterSetName -eq 'Version') {
+            foreach ($item in $Version) {
+                if (-not $item.Id) { throw 'Version requires a numeric version ID. Use -Project and -Name to match version names.' }
+                $result = Invoke-JiraRequest -RequestContext $RequestContext -Uri "/rest/api/2/version/$($item.Id)" -Method Get
+                foreach ($value in @(ConvertTo-JiraVersion -InputObject $result)) { $matches.Add($value) }
+            }
+        }
+        else {
+            foreach ($item in $Project) {
+                $projectValue = if ($item.Key) { $item.Key } else { $item.Id }
+                $projectObject = Get-JiraProject -Project $projectValue -Connection $RequestContext -ErrorAction Stop
+                $parameters = @{
+                    Uri          = "/rest/api/2/project/$($projectObject.Key)/version"
+                    Method       = 'Get'
+                    GetParameter = @{ orderBy = $Sort; maxResults = $PageSize }
+                    Paging       = $true
+                    PageSize     = $PageSize
+                    OutputType   = 'JiraVersion'
+                }
+                foreach ($value in @(Invoke-JiraRequest -RequestContext $RequestContext @parameters)) {
+                    if (@($Name | Where-Object { $value.Name -like $_ }).Count) { $matches.Add($value) }
+                }
+            }
+        }
+    }
+
+    end {
+        if ($PSCmdlet.PagingParameters.IncludeTotalCount) { $PSCmdlet.PagingParameters.NewTotalCount($matches.Count, 1.0) }
+        $skip = [int][Math]::Min($PSCmdlet.PagingParameters.Skip, $matches.Count)
+        $first = [int][Math]::Min($PSCmdlet.PagingParameters.First, $matches.Count)
+        if ($first) { $matches | Select-Object -Skip $skip -First $first }
+    }
 }

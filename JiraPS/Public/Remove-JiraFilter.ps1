@@ -27,7 +27,7 @@
         $filters = foreach ($item in $Filter) {
             if ($item.RestUrl) { $item }
             else {
-                Get-JiraFilterOperation -Id $item.Id -RequestContext $RequestContext -ErrorAction Stop
+                Get-JiraFilter -Id $item.Id -Connection $RequestContext -ErrorAction Stop
             }
         }
 

@@ -26,7 +26,7 @@ InModuleScope JiraPS {
             Mock Invoke-JiraRequest -ModuleName JiraPS {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
             }
-            Mock Get-JiraFilterOperation -ModuleName JiraPS {
+            Mock Get-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject', 'Credential'
                 [AtlassianPS.JiraPS.Filter]@{
                     Id      = '10'
@@ -111,7 +111,7 @@ InModuleScope JiraPS {
         }
 
         It 'binds an ID-only project through the competing version parameter sets' {
-            Mock Get-JiraProjectOperation -ModuleName JiraPS {
+            Mock Get-JiraProject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project', 'Credential'
                 [AtlassianPS.JiraPS.Project]@{ Id = '123'; Key = 'TEST' }
             }
@@ -119,7 +119,7 @@ InModuleScope JiraPS {
             Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -like '/rest/api/2/project/TEST/*'
             }
-            Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Get-JiraProject -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Project.Key -eq '123'
             }
         }

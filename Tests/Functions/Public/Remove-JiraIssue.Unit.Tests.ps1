@@ -196,7 +196,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraIssueOperation {
+            Mock Get-JiraIssue {
                 $Key = $Issue.Key
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $raw = $TestIssueJSONs[$Key] | ConvertFrom-Json

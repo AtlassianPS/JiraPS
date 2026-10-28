@@ -46,7 +46,7 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         if ($Filter -and -not $Filter.RestUrl) {
-            $Filter = Get-JiraFilterOperation -Id $Filter.Id -RequestContext $RequestContext -ErrorAction Stop
+            $Filter = Get-JiraFilter -Id $Filter.Id -Connection $RequestContext -ErrorAction Stop
         }
 
         $requestBody = @{}

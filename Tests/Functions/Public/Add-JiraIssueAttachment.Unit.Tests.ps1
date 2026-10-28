@@ -55,7 +55,7 @@ InModuleScope JiraPS {
                 $InputObject
             }
 
-            Mock Get-JiraIssueOperation -ModuleName JiraPS {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $Issue = [AtlassianPS.JiraPS.Issue]@{
                     Key     = $issueKey

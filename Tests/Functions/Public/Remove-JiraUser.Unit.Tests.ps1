@@ -35,7 +35,7 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraUserOperation -ModuleName JiraPS {
+            Mock Get-JiraUser -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                 $object = ConvertFrom-Json $testJsonGet
                 $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
@@ -88,7 +88,7 @@ InModuleScope JiraPS {
 
                 Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
-                Mock Get-JiraUserOperation -ModuleName JiraPS {
+                Mock Get-JiraUser -ModuleName JiraPS {
                     Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                     $object = ConvertFrom-Json $testJsonGet
                     $object | Add-Member -MemberType NoteProperty -Name 'AccountId' -Value $testAccountId

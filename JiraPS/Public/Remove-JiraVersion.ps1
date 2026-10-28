@@ -39,7 +39,7 @@
                 ThrowError -ErrorRecord $errorItem
             }
 
-            $versionObj = Get-JiraVersionOperation -Id $_version.Id -RequestContext $RequestContext -ErrorAction Stop
+            $versionObj = Get-JiraVersion -Id $_version.Id -Connection $RequestContext -ErrorAction Stop
 
             $parameter = @{
                 URI    = $versionObj.RestUrl

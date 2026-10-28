@@ -67,7 +67,7 @@
         }
         if ($PSCmdlet.ShouldProcess($issueObject.Key, 'Updating Issue labels')) {
             Invoke-JiraRequest -RequestContext $requestContext @parameter
-            if ($PassThru) { Get-JiraIssueOperation -Key $issueObject.Key -RequestContext $requestContext }
+            if ($PassThru) { Get-JiraIssue -Key $issueObject.Key -Connection $requestContext }
         }
     }
 

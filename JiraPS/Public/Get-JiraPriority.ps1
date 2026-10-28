@@ -20,20 +20,48 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{} + $PSBoundParameters
-        $null = $operationParameters.Remove('Connection')
-        $operationParameters['RequestContext'] = $requestContext
 
-        $operation = { Get-JiraPriorityOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-        $operation.Begin($PSCmdlet)
+        $resourceURi = "/rest/api/2/priority{0}"
     }
 
     process {
-        $operation.Process($_)
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        switch ($PSCmdlet.ParameterSetName) {
+            '_All' {
+                $parameter = @{
+                    URI         = $resourceURi -f ""
+                    Method      = "GET"
+
+                    CacheKey    = 'Priorities'
+                    CacheExpiry = [TimeSpan]::FromHours(1)
+                    BypassCache = $Refresh
+                }
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+                Write-Output (ConvertTo-JiraPriority -InputObject $result)
+            }
+            '_Search' {
+                foreach ($_id in $Id) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
+                    Write-DebugMessage "Processing `$_id [$_id]"
+
+                    $parameter = @{
+                        URI    = $resourceURi -f "/$_id"
+                        Method = "GET"
+                    }
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+                    Write-Output (ConvertTo-JiraPriority -InputObject $result)
+                }
+            }
+        }
     }
 
     end {
-        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

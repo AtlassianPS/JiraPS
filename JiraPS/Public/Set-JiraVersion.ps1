@@ -62,7 +62,7 @@
                 ThrowError -ErrorRecord $errorItem
             }
 
-            $versionObj = Get-JiraVersionOperation -Id $_version.Id -RequestContext $RequestContext -ErrorAction Stop
+            $versionObj = Get-JiraVersion -Id $_version.Id -Connection $RequestContext -ErrorAction Stop
 
             $requestBody = @{}
 
@@ -78,7 +78,7 @@
                     $requestBody["projectId"] = $Project.Id
                 }
                 else {
-                    $projectObj = Get-JiraProjectOperation -Project $Project.Key -RequestContext $RequestContext -ErrorAction Stop
+                    $projectObj = Get-JiraProject -Project $Project.Key -Connection $RequestContext -ErrorAction Stop
                     $requestBody["projectId"] = $projectObj.Id
                 }
             }

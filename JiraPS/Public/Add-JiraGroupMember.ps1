@@ -41,7 +41,7 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
             Write-DebugMessage "Processing `$_group [$_group]"
 
-            $existingMembers = @(Get-JiraGroupMemberOperation -Group $_group -RequestContext $RequestContext -ErrorAction Stop)
+            $existingMembers = @(Get-JiraGroupMember -Group $_group -Connection $RequestContext -ErrorAction Stop)
             $users = $User | Resolve-JiraUser -RequestContext $RequestContext
 
             foreach ($user in $users) {

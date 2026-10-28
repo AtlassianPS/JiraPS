@@ -22,20 +22,25 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{} + $PSBoundParameters
-        $null = $operationParameters.Remove('Connection')
-        $operationParameters['RequestContext'] = $requestContext
-
-        $operation = { Get-JiraIssueAttachmentOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-        $operation.Begin($PSCmdlet)
     }
 
     process {
-        $operation.Process($_)
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        # Find the proper object for the Issue
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
+
+        if ($issueObj.Attachment) {
+            Write-DebugMessage "Found Attachments on the Issue."
+            if ($FileName) { $attachments = $issueObj.Attachment | Where-Object { $_.Filename -like $FileName } }
+            else { $attachments = $issueObj.Attachment }
+
+            ConvertTo-JiraAttachment -InputObject $attachments
+        }
     }
 
     end {
-        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

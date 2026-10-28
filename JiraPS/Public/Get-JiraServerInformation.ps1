@@ -15,20 +15,29 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{} + $PSBoundParameters
-        $null = $operationParameters.Remove('Connection')
-        $operationParameters['RequestContext'] = $requestContext
 
-        $operation = { Get-JiraServerInformationOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-        $operation.Begin($PSCmdlet)
+        $resourceURi = "/rest/api/2/serverInfo"
     }
 
     process {
-        $operation.Process($_)
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        $parameter = @{
+            URI         = $resourceURi
+            Method      = "GET"
+
+            CacheKey    = 'ServerInfo'
+            CacheExpiry = [TimeSpan]::FromMinutes(5)
+            BypassCache = $Refresh
+        }
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+
+        $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+        Write-Output (ConvertTo-JiraServerInfo -InputObject $result)
     }
 
     end {
-        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

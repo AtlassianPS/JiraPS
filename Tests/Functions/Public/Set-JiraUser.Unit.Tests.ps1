@@ -35,7 +35,7 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraUserOperation -ModuleName JiraPS {
+            Mock Get-JiraUser -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                 ConvertTo-JiraUser -InputObject (ConvertFrom-Json $restResultGet)
             }

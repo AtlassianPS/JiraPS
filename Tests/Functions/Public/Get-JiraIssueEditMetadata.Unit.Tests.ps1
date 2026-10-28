@@ -177,7 +177,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraIssueOperation -ModuleName JiraPS {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 [PSCustomObject] @{
                     ID      = $issueID
@@ -246,7 +246,7 @@ InModuleScope JiraPS {
 
                 It "Throws a terminating ObjectNotFound error when no metadata is returned" {
                     { Get-JiraIssueEditMetadata -Issue "$issueID" -ErrorAction Stop } |
-                        Should -Throw -ErrorId 'IssueMetadata.ObjectNotFound,Get-JiraIssueEditMetadataOperation'
+                        Should -Throw -ErrorId 'IssueMetadata.ObjectNotFound,Get-JiraIssueEditMetadata'
                 }
 
                 It "References the -Issue parameter in the error message instead of the legacy 'project ... issueType ...' template" {

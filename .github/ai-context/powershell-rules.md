@@ -77,7 +77,7 @@ else { $filterObject.FilterPermissions }
 
 if ($item.RestUrl) { $item }
 else {
-    Get-JiraFilterOperation -Id $item.Id -RequestContext $RequestContext -ErrorAction Stop
+    Get-JiraFilter -Id $item.Id -Connection $requestContext -ErrorAction Stop
 }
 
 switch ($deploymentType) {

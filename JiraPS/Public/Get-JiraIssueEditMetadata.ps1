@@ -19,20 +19,36 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{} + $PSBoundParameters
-        $null = $operationParameters.Remove('Connection')
-        $operationParameters['RequestContext'] = $requestContext
 
-        $operation = { Get-JiraIssueEditMetadataOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-        $operation.Begin($PSCmdlet)
+        $resourceURi = "/rest/api/2/issue/{0}/editmeta"
     }
 
     process {
-        $operation.Process($_)
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        $parameter = @{
+            URI    = $resourceURi -f $(if ($Issue.Key) { $Issue.Key } else { $Issue.Id })
+            Method = "GET"
+        }
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+        Write-DebugMessage ($result | Out-String)
+
+        if ($result) { Write-Output (ConvertTo-JiraEditMetaField -InputObject $result) }
+        else {
+            $exception = ([System.ArgumentException]"No results")
+            $errorId = 'IssueMetadata.ObjectNotFound'
+            $errorCategory = 'ObjectNotFound'
+            $errorTarget = $Issue
+            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
+            $errorItem.ErrorDetails = "No edit metadata found for issue [$Issue]."
+            $PSCmdlet.ThrowTerminatingError($errorItem)
+        }
     }
 
     end {
-        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

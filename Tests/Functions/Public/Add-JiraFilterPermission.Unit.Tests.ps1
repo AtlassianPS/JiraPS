@@ -115,7 +115,7 @@ InModuleScope JiraPS {
                 $i
             }
 
-            Mock Get-JiraFilterOperation -ModuleName JiraPS {
+            Mock Get-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
                 foreach ($item in $Filter) {
                     [AtlassianPS.JiraPS.Filter]@{

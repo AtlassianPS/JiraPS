@@ -18,6 +18,6 @@
         $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
         $identifier = if ($isCloud) { $InputObject.AccountId } else { $InputObject.Name }
         if ($InputObject.RestUrl -and $identifier) { return $InputObject }
-        Get-JiraUserOperation -User $InputObject -RequestContext $RequestContext -ErrorAction Stop
+        Get-JiraUser -User $InputObject -Connection $RequestContext -ErrorAction Stop
     }
 }

@@ -23,20 +23,46 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{} + $PSBoundParameters
-        $null = $operationParameters.Remove('Connection')
-        $operationParameters['RequestContext'] = $requestContext
 
-        $operation = { Get-JiraIssueCreateMetadataOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-        $operation.Begin($PSCmdlet)
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
+        $resourceURi = "/rest/api/2/issue/createmeta/{0}/issuetypes/{1}"
     }
 
     process {
-        $operation.Process($_)
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        $projectObj = Get-JiraProject -Project $Project -Connection $RequestContext -ErrorAction Stop
+        $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {
+            if ($null -ne $IssueType.Id) { $_.Id -eq $IssueType.Id } else { $_.Name -eq $IssueType.Name }
+        }
+
+        if ($null -eq $issueTypeObj.Id) {
+            $errorMessage = @{
+                Category         = "InvalidResult"
+                CategoryActivity = "Validating parameters"
+                Message          = "No issue types were found in the project [$Project] for the given issue type [$IssueType]. Use Get-JiraIssueType for more details."
+            }
+            Write-Error @errorMessage
+        }
+
+        $parameter = @{
+            URI          = ConvertTo-JiraRestApiV3Url -Url ($resourceURi -f $projectObj.Id, $issueTypeObj.Id) -IsCloud $isCloud
+            Method       = "GET"
+            GetParameter = @{ maxResults = $script:DefaultPageSize }
+            Paging       = $true
+        }
+
+        # Forward PowerShell's SupportsPaging common parameters (First/Skip/IncludeTotalCount)
+        ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
+            $parameter[$_] = $PSCmdlet.PagingParameters.$_
+        }
+
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        Invoke-JiraRequest -RequestContext $RequestContext @parameter | ConvertTo-JiraCreateMetaField
     }
 
     end {
-        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

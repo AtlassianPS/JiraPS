@@ -8,7 +8,7 @@ BeforeDiscovery {
 InModuleScope JiraPS {
     Describe 'Get-JiraVersion selectors and output limits' -Tag Unit {
         BeforeEach {
-            Mock Get-JiraProjectOperation { [AtlassianPS.JiraPS.Project]@{ Key = 'PROJ'; Id = 10 } }
+            Mock Get-JiraProject { [AtlassianPS.JiraPS.Project]@{ Key = 'PROJ'; Id = 10 } }
             Mock Invoke-JiraRequest {
                 if ($Uri.OriginalString -like '*/project/*') {
                     foreach ($name in @('other', 'release-1', 'release-2', 'other-2')) {

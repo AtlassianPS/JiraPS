@@ -63,7 +63,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraFilterOperation -ModuleName JiraPS {
+            Mock Get-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
                 foreach ($i in $Filter) {
                     ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)

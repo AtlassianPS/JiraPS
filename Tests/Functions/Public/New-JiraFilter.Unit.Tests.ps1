@@ -35,7 +35,7 @@ InModuleScope JiraPS {
                 $i
             }
 
-            Mock Get-JiraFilterOperation -ModuleName JiraPS {
+            Mock Get-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter'
                 ConvertTo-JiraFilter
             }

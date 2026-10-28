@@ -14,7 +14,7 @@ InModuleScope JiraPS {
                 RestUrl           = 'https://jira.example.com/rest/api/2/filter/12345'
                 FilterPermissions = @([AtlassianPS.JiraPS.FilterPermission]@{ Id = 999 })
             }
-            Mock Get-JiraFilterOperation { $script:filter }
+            Mock Get-JiraFilter { $script:filter }
             Mock Invoke-JiraRequest {
                 if ($Method -eq 'Get') {
                     [PSCustomObject]@{ id = 0; type = 'global' }

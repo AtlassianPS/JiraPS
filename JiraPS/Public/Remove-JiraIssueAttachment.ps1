@@ -58,7 +58,7 @@
 
                 # Find the proper object for the Issue
                 $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
-                $attachments = Get-JiraIssueAttachmentOperation -Issue $IssueObj -RequestContext $RequestContext -ErrorAction Stop
+                $attachments = Get-JiraIssueAttachment -Issue $IssueObj -Connection $RequestContext -ErrorAction Stop
 
                 if ($FileName) {
                     $_attachments = @()

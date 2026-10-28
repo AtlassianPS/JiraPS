@@ -65,7 +65,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraFilterOperation -ModuleName JiraPS {
+            Mock Get-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
                 foreach ($i in $Filter) {
                     ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
@@ -95,7 +95,7 @@ InModuleScope JiraPS {
                     $arguments = @{ $parameter = '12844'; Confirm = $false }
                     Remove-JiraFilter @arguments
 
-                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter { $Filter.Id -eq 12844 }
+                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter { $Filter.Id -eq 12844 }
                     Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'DELETE' -and $URI -like '*/filter/12844'
                     }
@@ -106,14 +106,14 @@ InModuleScope JiraPS {
                     @{ parameter = 'Id' }
                 ) {
                     param($parameter)
-                    Mock Get-JiraFilterOperation -ModuleName JiraPS -ParameterFilter { $Filter.Id -eq 67890 } {
+                    Mock Get-JiraFilter -ModuleName JiraPS -ParameterFilter { $Filter.Id -eq 67890 } {
                         throw 'Filter 67890 is not accessible.'
                     }
                     $arguments = @{ $parameter = @(12844, 67890); Confirm = $false }
 
                     { Remove-JiraFilter @arguments } | Should -Throw -ExpectedMessage '*Filter 67890 is not accessible*'
 
-                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 2
+                    Should -Invoke Get-JiraFilter -Exactly -Times 2
                     Should -Invoke Invoke-JiraRequest -Exactly -Times 0 -ParameterFilter { $Method -eq 'DELETE' }
                 }
 
@@ -131,7 +131,7 @@ InModuleScope JiraPS {
                     }
                     $filter | Remove-JiraFilter -Confirm:$false
 
-                    Should -Invoke Get-JiraFilterOperation -Exactly -Times 0
+                    Should -Invoke Get-JiraFilter -Exactly -Times 0
                     Should -Invoke Invoke-JiraRequest -Exactly -Times 1
                 }
 

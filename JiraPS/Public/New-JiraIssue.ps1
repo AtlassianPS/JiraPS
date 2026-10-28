@@ -85,7 +85,7 @@
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        $ProjectObj = Get-JiraProjectOperation -Project $Project -RequestContext $RequestContext -ErrorAction Stop -Debug:$false
+        $ProjectObj = Get-JiraProject -Project $Project -Connection $RequestContext -ErrorAction Stop -Debug:$false
         $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {
             if ($null -ne $IssueType.Id) { $_.Id -eq $IssueType.Id } else { $_.Name -eq $IssueType.Name }
         }
@@ -109,7 +109,7 @@
             $priorityId = $Priority.Id
             if ($null -eq $priorityId) {
                 $matchingPriorities = @(
-                    Get-JiraPriorityOperation -RequestContext $RequestContext -ErrorAction Stop |
+                    Get-JiraPriority -Connection $RequestContext -ErrorAction Stop |
                         Where-Object -FilterScript { $_.Name -eq $Priority.Name }
                 )
 
@@ -198,10 +198,10 @@
             # Fetch create metadata lazily so `-Fields` can resolve names against
             # the current project/issue-type create screen without restoring the
             # removed client-side required-field validation behavior.
-            $createmeta = Get-JiraIssueCreateMetadataOperation `
+            $createmeta = Get-JiraIssueCreateMetadata `
                 -Project $Project `
                 -IssueType $IssueType `
-                -RequestContext $RequestContext `
+                -Connection $RequestContext `
                 -ErrorAction Stop `
                 -Debug:$false
 
@@ -215,7 +215,7 @@
                     -IsCloud $isCloud `
                     -ScopedContext 'create metadata' `
                     -CallerName $MyInvocation.MyCommand.Name `
-                    -FallbackFieldFetcher { Get-JiraFieldOperation -RequestContext $RequestContext -ErrorAction Stop -Debug:$false }) {
+                    -FallbackFieldFetcher { Get-JiraField -Connection $RequestContext -ErrorAction Stop -Debug:$false }) {
                 $requestBody[$assignment.Id] = $assignment.Value
             }
         }
@@ -235,7 +235,7 @@
                 # REST result will look something like this:
                 # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/2/issue/12345"}
                 # This will fetch the created issue to return it with all it'a properties
-                Write-Output (Get-JiraIssueOperation -Key $result.Key -RequestContext $RequestContext)
+                Write-Output (Get-JiraIssue -Key $result.Key -Connection $RequestContext)
             }
         }
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"

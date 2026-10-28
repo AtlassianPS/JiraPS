@@ -106,22 +106,28 @@ InModuleScope JiraPS {
             $first.GetAuthorizationHeader() | Should -Be 'Bearer first-secret'
         }
 
-        It 'retains the selected identity across pages after another connection becomes default' {
-            $null = $first | Select-JiraConnection
+        It 'uses the explicit connection for a filter lookup and every search page' {
+            $null = $second | Select-JiraConnection
             Mock Invoke-WebRequest {
                 $script:requests.Add([PSCustomObject]@{
                         Uri           = $Uri
                         Session       = $WebSession
                         Authorization = $Headers.Authorization
                     })
-                $page = if ("$Uri" -match 'startAt=1') { 1 } else { 0 }
-                if ($page -eq 0) { $null = $second | Select-JiraConnection }
-                $payload = @{
-                    startAt    = $page
-                    maxResults = 1
-                    total      = 2
-                    isLast     = ($page -eq 1)
-                    values     = @(@{ id = $page + 1 })
+                if ($Uri.AbsolutePath -eq '/rest/api/2/filter/12844') {
+                    $payload = @{
+                        id        = 12844
+                        searchUrl = 'https://jira.example.com/rest/api/2/search?jql=project%3DTEST'
+                    }
+                }
+                else {
+                    $page = if ("$Uri" -match 'startAt=1') { 1 } else { 0 }
+                    $payload = @{
+                        startAt    = $page
+                        maxResults = 1
+                        total      = 2
+                        issues     = @(@{ id = $page + 1; key = "TEST-$($page + 1)"; fields = @{ summary = "Issue $page" } })
+                    }
                 }
                 $content = $payload | ConvertTo-Json -Depth 5
                 [PSCustomObject]@{
@@ -131,12 +137,15 @@ InModuleScope JiraPS {
                     Headers          = @{ 'Content-Type' = 'application/json' }
                 }
             }
-            $result = @(Invoke-JiraMethod -Uri '/rest/api/2/search?maxResults=1' -Paging -Connection $first)
+            $result = @(Get-JiraIssue -Filter 12844 -PageSize 1 -Connection $first)
 
-            $result.Count | Should -Be 2
-            $requests.Count | Should -Be 2
+            $result.Key | Should -Be @('TEST-1', 'TEST-2')
+            $requests.Count | Should -Be 3
+            $requests[0].Uri.AbsolutePath | Should -Be '/rest/api/2/filter/12844'
+            $requests[1].Uri.AbsolutePath | Should -Be '/rest/api/2/search'
+            $requests[2].Uri.Query | Should -Match 'startAt=1'
             foreach ($request in $requests) { $request.Authorization | Should -Be 'Bearer first-secret' }
-            [Object]::ReferenceEquals($requests[0].Session, $requests[1].Session) | Should -BeTrue
+            foreach ($request in $requests) { [Object]::ReferenceEquals($request.Session, $first.GetWebSession()) | Should -BeTrue }
             (Get-JiraConnection -Default).InstanceId | Should -Be $second.InstanceId
         }
 

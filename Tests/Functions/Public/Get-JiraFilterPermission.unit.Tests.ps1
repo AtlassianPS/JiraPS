@@ -30,7 +30,7 @@ InModuleScope JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
             }
 
-            Mock Get-JiraFilterOperation -ModuleName JiraPS {
+            Mock Get-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
                 foreach ($item in $Filter) {
                     [AtlassianPS.JiraPS.Filter]@{
@@ -112,7 +112,7 @@ InModuleScope JiraPS {
                 It "can process multiple Ids" {
                     { Get-JiraFilterPermission -Id 23456, 23456 } | Should -Not -Throw
 
-                    Should -Invoke Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Get-JiraFilter -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
 

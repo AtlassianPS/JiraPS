@@ -37,7 +37,7 @@
 
         $filterObject = if ($Filter.RestUrl) { $Filter }
         else {
-            Get-JiraFilterOperation -Id $Filter.Id -RequestContext $RequestContext -ErrorAction Stop
+            Get-JiraFilter -Id $Filter.Id -Connection $RequestContext -ErrorAction Stop
         }
 
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filterObject]"

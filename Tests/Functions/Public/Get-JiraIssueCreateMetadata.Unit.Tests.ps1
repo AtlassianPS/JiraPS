@@ -55,7 +55,7 @@ InModuleScope JiraPS {
 
             #endregion Definitions
 
-            Mock Get-JiraProjectOperation -ModuleName JiraPS {
+            Mock Get-JiraProject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject'
                 $issueObject = [PSCustomObject] @{
                     ID   = 2

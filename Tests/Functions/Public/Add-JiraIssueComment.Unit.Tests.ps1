@@ -33,7 +33,7 @@ InModuleScope JiraPS {
                 return $InputObject
             }
 
-            Mock Get-JiraIssueOperation -ModuleName JiraPS {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     ID      = $issueID
@@ -76,7 +76,7 @@ InModuleScope JiraPS {
                 $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
                 $commentResult | Should -Not -BeNullOrEmpty
 
-                Should -Invoke 'Get-JiraIssueOperation' -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1
                 Should -Invoke 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1
                 Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -Exactly -Times 1
             }

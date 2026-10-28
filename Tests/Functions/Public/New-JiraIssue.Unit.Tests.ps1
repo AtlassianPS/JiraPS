@@ -38,12 +38,12 @@ InModuleScope JiraPS {
                 @{ Key = "TEST-01" }
             }
 
-            Mock Get-JiraIssueOperation -ModuleName JiraPS {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue'
                 [PSCustomObject] @{ Key = "TEST-01" }
             }
 
-            Mock Get-JiraProjectOperation -ModuleName JiraPS {
+            Mock Get-JiraProject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject'
                 $issueObject = [PSCustomObject] @{
                     ID   = $issueTypeTest
@@ -59,7 +59,7 @@ InModuleScope JiraPS {
                 return $object
             }
 
-            Mock Get-JiraUserOperation -ModuleName JiraPS {
+            Mock Get-JiraUser -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser'
                 $object = [PSCustomObject] @{
                     'Name' = $UserName
@@ -69,7 +69,7 @@ InModuleScope JiraPS {
             }
 
             # This one needs to be able to output multiple objects
-            Mock Get-JiraFieldOperation -ModuleName JiraPS {
+            Mock Get-JiraField -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraField'
                 $(
                     if ($null -eq $Field) {
@@ -93,7 +93,7 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS {
+            Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
                 @(
                     @{Name = 'Project'; ID = 'Project'; Required = $true }
@@ -115,7 +115,7 @@ InModuleScope JiraPS {
                 ) {
                     param($isCloud, $apiVersion)
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $isCloud }
-                    Mock Get-JiraPriorityOperation -ModuleName JiraPS {
+                    Mock Get-JiraPriority -ModuleName JiraPS {
                         [AtlassianPS.JiraPS.Priority]@{ Id = 2; Name = 'High' }
                         [AtlassianPS.JiraPS.Priority]@{ Id = 3; Name = 'Highest' }
                     }
@@ -126,7 +126,7 @@ InModuleScope JiraPS {
                     New-JiraIssue -Project TEST -IssueType 1 -Summary 'Typed references' `
                         -Priority $priority -Components $component, 'Frontend' -FixVersion $version, '1.2'
 
-                    Should -Invoke Get-JiraPriorityOperation -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                    Should -Invoke Get-JiraPriority -ModuleName JiraPS -Exactly -Times 1 -Scope It
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                         $payload = ConvertFrom-Json -InputObject $Body
                         $Method -eq 'POST' -and $URI -eq "/rest/api/$apiVersion/issue" -and
@@ -163,11 +163,11 @@ InModuleScope JiraPS {
                 }
 
                 It "sends a priority ID without querying priorities" {
-                    Mock Get-JiraPriorityOperation -ModuleName JiraPS { throw 'Unexpected priority lookup' }
+                    Mock Get-JiraPriority -ModuleName JiraPS { throw 'Unexpected priority lookup' }
 
                     New-JiraIssue @newParams
 
-                    Should -Invoke Get-JiraPriorityOperation -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                    Should -Invoke Get-JiraPriority -ModuleName JiraPS -Exactly -Times 0 -Scope It
                     Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                         (ConvertFrom-Json -InputObject $Body).fields.priority.id -eq '1'
                     }
@@ -184,7 +184,7 @@ InModuleScope JiraPS {
                     }
                 ) {
                     param($priorities)
-                    Mock Get-JiraPriorityOperation -ModuleName JiraPS { $priorities }
+                    Mock Get-JiraPriority -ModuleName JiraPS { $priorities }
                     $failure = $null
                     try {
                         New-JiraIssue -Project TEST -IssueType 1 -Summary 'Invalid priority' -Priority High
@@ -203,7 +203,7 @@ InModuleScope JiraPS {
                 }
 
                 It "stops when priority lookup fails before creating an issue" {
-                    Mock Get-JiraPriorityOperation -ModuleName JiraPS { Write-Error 'Priority lookup failed' }
+                    Mock Get-JiraPriority -ModuleName JiraPS { Write-Error 'Priority lookup failed' }
 
                     { New-JiraIssue -Project TEST -IssueType 1 -Summary 'Lookup failure' -Priority High } |
                         Should -Throw -ExpectedMessage '*Priority lookup failed*'
@@ -223,7 +223,7 @@ InModuleScope JiraPS {
             It "defers required-field validation to Jira instead of client-side createmeta checks" {
                 { New-JiraIssue @newParams } | Should -Not -Throw
 
-                Should -Invoke -CommandName Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS -Times 0
+                Should -Invoke -CommandName Get-JiraIssueCreateMetadata -ModuleName JiraPS -Times 0
                 Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Times 1
             }
 
@@ -262,7 +262,7 @@ InModuleScope JiraPS {
         Describe "Input Validation" {
             Context "Positive cases" {
                 It "Accepts custom fields via -Fields parameter" {
-                    Mock Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS {
+                    Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
                         Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
                         @(
                             @{Name = 'Project'; ID = 'Project'; Required = $true }
@@ -334,7 +334,7 @@ InModuleScope JiraPS {
                 # use the field's schema (via Test-JiraRichTextField) to
                 # wrap the value in ADF, matching the behaviour of the
                 # explicit -Description parameter.
-                Mock Get-JiraFieldOperation -ModuleName JiraPS {
+                Mock Get-JiraField -ModuleName JiraPS {
                     Write-MockDebugInfo 'Get-JiraField'
                     $object = [PSCustomObject]@{
                         Id     = 'description'
@@ -344,7 +344,7 @@ InModuleScope JiraPS {
                     $object
                 }
 
-                Mock Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS {
+                Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
                     @(
                         @{Name = 'Project'; ID = 'Project'; Required = $true }
                         @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
@@ -371,7 +371,7 @@ InModuleScope JiraPS {
             It "leaves a non-rich-text field passed via -Fields verbatim on Cloud" {
                 # Single-line / numeric / etc. fields still go to v3 as
                 # their native value — wrapping would be incorrect there.
-                Mock Get-JiraFieldOperation -ModuleName JiraPS {
+                Mock Get-JiraField -ModuleName JiraPS {
                     Write-MockDebugInfo 'Get-JiraField'
                     $object = [PSCustomObject]@{
                         Id     = 'CustomField'
@@ -384,7 +384,7 @@ InModuleScope JiraPS {
                     $object
                 }
 
-                Mock Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS {
+                Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
                     @(
                         @{Name = 'Project'; ID = 'Project'; Required = $true }
                         @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
@@ -505,7 +505,7 @@ InModuleScope JiraPS {
             BeforeAll {
                 # Createmeta without Assignee; tests assert assignee shape
                 # without forcing the required-field check to fire.
-                Mock Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS {
+                Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
                     @(
                         @{Name = 'Project'; ID = 'Project'; Required = $true }
                         @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
@@ -671,7 +671,7 @@ InModuleScope JiraPS {
             BeforeAll {
                 Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-                Mock Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS {
+                Mock Get-JiraIssueCreateMetadata -ModuleName JiraPS {
                     Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
                     @(
                         [PSCustomObject]@{ Id = 'Project'; Name = 'Project'; Required = $true }
@@ -697,7 +697,7 @@ InModuleScope JiraPS {
                 { New-JiraIssue @newParams -Fields @{ customfield_10001 = 'scoped value' } } |
                     Should -Not -Throw
 
-                Should -Invoke Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 0
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 0
                 Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Body -match '"customfield_10001"'
                 }
@@ -707,7 +707,7 @@ InModuleScope JiraPS {
                 { New-JiraIssue @newParams -Fields @{ 'My Custom Field' = 'named value' } } |
                     Should -Not -Throw
 
-                Should -Invoke Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 0
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 0
                 Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Body -match '"customfield_10001"'
                 }
@@ -719,11 +719,11 @@ InModuleScope JiraPS {
                 { New-JiraIssue @newParams -Fields @{ 'CustomField' = 'fallback value' } } |
                     Should -Not -Throw
 
-                Should -Invoke Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "fetches the global field list at most once when multiple unscoped keys are present" {
-                Mock Get-JiraFieldOperation -ModuleName JiraPS {
+                Mock Get-JiraField -ModuleName JiraPS {
                     @(
                         [PSCustomObject]@{ Id = 'CustomField' }
                         [PSCustomObject]@{ Id = 'AnotherCustomField' }
@@ -738,7 +738,7 @@ InModuleScope JiraPS {
                     'AnotherCustomField' = 'b'
                 }
 
-                Should -Invoke Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Get-JiraField -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "throws when a field cannot be resolved from create metadata or the global list" {

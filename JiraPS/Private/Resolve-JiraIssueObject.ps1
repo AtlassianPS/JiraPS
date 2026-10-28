@@ -22,6 +22,6 @@
         }
 
         Write-DebugMessage "Resolve Issue '$($InputObject.Key)' to object"
-        Get-JiraIssueOperation -Issue $InputObject -RequestContext $RequestContext -ErrorAction Stop
+        Get-JiraIssue -Issue $InputObject -Connection $RequestContext -ErrorAction Stop
     }
 }

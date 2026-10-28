@@ -23,15 +23,15 @@ InModuleScope JiraPS {
             $source.SetValidationResult($Deployment, 'source-user')
             $null = Register-AtlassianConnection -Connection $source
             $script:context = Resolve-AtlassianRequestContext -Product Jira -Connection $source -PersonalAccessToken override-secret
-            Mock Get-JiraUserOperation { [AtlassianPS.JiraPS.User]@{ Name = $User.Name; AccountId = $User.AccountId } }
+            Mock Get-JiraUser { [AtlassianPS.JiraPS.User]@{ Name = $User.Name; AccountId = $User.AccountId } }
             try {
                 $result = Resolve-JiraUser -InputObject ([AtlassianPS.JiraPS.User]$Identity) -RequestContext $context
 
                 if ($Deployment -eq 'Cloud') { $result.AccountId | Should -Be 'account-1' }
                 else { $result.Name | Should -Be 'user-1' }
-                Should -Invoke Get-JiraUserOperation -Exactly 1 -ParameterFilter {
-                    [Object]::ReferenceEquals($RequestContext, $script:context) -and
-                    $RequestContext.GetAuthorizationHeader() -eq 'Bearer override-secret'
+                Should -Invoke Get-JiraUser -Exactly 1 -ParameterFilter {
+                    [Object]::ReferenceEquals($Connection, $script:context) -and
+                    $Connection.GetAuthorizationHeader() -eq 'Bearer override-secret'
                 }
                 $source.GetAuthorizationHeader() | Should -Be 'Bearer source-secret'
             }

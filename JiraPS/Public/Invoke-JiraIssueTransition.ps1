@@ -163,7 +163,7 @@
                     -IsCloud $isCloud `
                     -ScopedContext 'transition metadata' `
                     -CallerName $MyInvocation.MyCommand.Name `
-                    -FallbackFieldFetcher { Get-JiraFieldOperation -RequestContext $RequestContext -ErrorAction Stop -Debug:$false }) {
+                    -FallbackFieldFetcher { Get-JiraField -Connection $RequestContext -ErrorAction Stop -Debug:$false }) {
                 $requestBody.update.$($assignment.Id) = @(
                     @{
                         'set' = $assignment.Value
@@ -200,7 +200,7 @@
         Write-DebugMessage "Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($issueObj.Key, "Transition issue to $transitionId")) {
             $null = Invoke-JiraRequest -RequestContext $RequestContext @parameter -ErrorAction Stop
-            if ($Passthru) { Get-JiraIssueOperation -RequestContext $RequestContext $issueObj }
+            if ($Passthru) { Get-JiraIssue -Connection $RequestContext $issueObj }
         }
     }
 

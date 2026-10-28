@@ -21,7 +21,7 @@ InModuleScope JiraPS {
             Mock Resolve-JiraUser { [AtlassianPS.JiraPS.User]@{ Name = $InputObject.Name; AccountId = $InputObject.Name } }
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraIssueOperation -ModuleName JiraPS {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     ID      = $issueID
@@ -54,7 +54,7 @@ InModuleScope JiraPS {
                 $WatcherResult | Should -BeNullOrEmpty
 
                 # Get-JiraIssue should be used to identify the issue parameter
-                Should -Invoke -CommandName Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
 
                 # Invoke-JiraRequest should be used to add the Watcher
                 Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
@@ -68,7 +68,7 @@ InModuleScope JiraPS {
                     $WatcherResult | Should -BeNullOrEmpty
 
                     # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
-                    Should -Invoke -CommandName Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
             }

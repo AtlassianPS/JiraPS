@@ -21,20 +21,46 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{} + $PSBoundParameters
-        $null = $operationParameters.Remove('Connection')
-        $operationParameters['RequestContext'] = $requestContext
 
-        $operation = { Get-JiraIssueTypeOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-        $operation.Begin($PSCmdlet)
+        $resourceURi = "/rest/api/2/issuetype"
     }
 
     process {
-        $operation.Process($_)
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        switch ($PSCmdlet.ParameterSetName) {
+            '_All' {
+                $parameter = @{
+                    URI         = $resourceURi
+                    Method      = "GET"
+
+                    CacheKey    = 'IssueTypes'
+                    CacheExpiry = [TimeSpan]::FromHours(1)
+                    BypassCache = $Refresh
+                }
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+                Write-Output (ConvertTo-JiraIssueType -InputObject $result)
+            }
+            '_Search' {
+                foreach ($_issueType in $IssueType) {
+                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issueType]"
+                    Write-DebugMessage "Processing `$_issueType [$_issueType]"
+
+                    $allIssueTypes = Get-JiraIssueType -Refresh:$Refresh -Connection $RequestContext
+
+                    Write-Output ($allIssueTypes | Where-Object -FilterScript {
+                            if ($null -ne $_issueType.Id) { $_.Id -eq $_issueType.Id }
+                            else { $_.Name -like $_issueType.Name }
+                        })
+                }
+            }
+        }
     }
 
     end {
-        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

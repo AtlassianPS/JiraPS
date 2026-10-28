@@ -61,7 +61,7 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraIssueOperation -ModuleName JiraPS {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $result = [AtlassianPS.JiraPS.Issue]@{
                     ID      = $issueID
@@ -106,7 +106,7 @@ InModuleScope JiraPS {
                 $commentResult | Should -Not -BeNullOrEmpty
 
                 # Get-JiraIssue should be used to identify the issue parameter
-                Should -Invoke -CommandName Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
 
                 # Invoke-JiraRequest should be used to add the comment
                 Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
@@ -324,7 +324,7 @@ InModuleScope JiraPS {
                     $commentResult | Should -Not -BeNullOrEmpty
 
                     # Get-JiraIssue should be called once here to fetch the initial test issue
-                    Should -Invoke -CommandName Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
             }

@@ -42,7 +42,7 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraIssueOperation -ModuleName JiraPS {
+            Mock Get-JiraIssue -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key', 'Credential'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     id      = $testJson.id
@@ -72,7 +72,7 @@ InModuleScope JiraPS {
                 $object
             }
 
-            Mock Get-JiraFieldOperation -ModuleName JiraPS {
+            Mock Get-JiraField -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraField' 'Credential'
                 @(
                     [PSCustomObject]@{
@@ -86,7 +86,7 @@ InModuleScope JiraPS {
                 )
             }
 
-            Mock Get-JiraIssueEditMetadataOperation -ModuleName JiraPS {
+            Mock Get-JiraIssueEditMetadata -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssueEditMetadata' 'Issue', 'Credential'
                 $field = [PSCustomObject]@{
                     Id     = 'customfield_10001'
@@ -325,8 +325,8 @@ InModuleScope JiraPS {
                     } | Should -Not -Throw
 
                     # Field is in edit metadata — Get-JiraField should not be called
-                    Should -Invoke -CommandName Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 0
-                    Should -Invoke -CommandName Get-JiraIssueEditMetadataOperation -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Get-JiraField -ModuleName JiraPS -Exactly -Times 0
+                    Should -Invoke -CommandName Get-JiraIssueEditMetadata -ModuleName JiraPS -Exactly -Times 1
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Body -match '"customfield_10001":[\s\n]*\[[\s\n]*\{[\s\n]*"set":[\s\n]*"test value"'
                     }
@@ -336,26 +336,26 @@ InModuleScope JiraPS {
                     # Override edit metadata to return empty — customfield_99999
                     # is only present in the Get-JiraField mock, so it should
                     # trigger the fallback path.
-                    Mock Get-JiraIssueEditMetadataOperation -ModuleName JiraPS { @() }
+                    Mock Get-JiraIssueEditMetadata -ModuleName JiraPS { @() }
 
                     {
                         $fields = @{ "customfield_99999" = "fallback value" }
                         Set-JiraIssue -Issue "IT-3676" -Fields $fields
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Get-JiraField -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "fetches edit metadata and the global list at most once across multiple -Fields keys" {
                     # Override edit metadata so both keys fall back to Get-JiraField.
-                    Mock Get-JiraIssueEditMetadataOperation -ModuleName JiraPS { @() }
+                    Mock Get-JiraIssueEditMetadata -ModuleName JiraPS { @() }
 
                     Set-JiraIssue -Issue "IT-3676" -Fields @{
                         customfield_10001 = 'a'
                         customfield_99999 = 'b'
                     }
 
-                    Should -Invoke -CommandName Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Get-JiraField -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 
@@ -489,7 +489,7 @@ InModuleScope JiraPS {
                 # must use the field's schema (via Test-JiraRichTextField)
                 # to wrap the value in ADF, matching the behaviour of the
                 # explicit -Description parameter.
-                Mock Get-JiraFieldOperation -ModuleName JiraPS {
+                Mock Get-JiraField -ModuleName JiraPS {
                     Write-MockDebugInfo 'Get-JiraField' 'Credential'
                     @(
                         [PSCustomObject]@{
@@ -512,7 +512,7 @@ InModuleScope JiraPS {
             }
 
             It "Leaves a non-rich-text field passed via -Fields verbatim on Cloud" {
-                Mock Get-JiraFieldOperation -ModuleName JiraPS {
+                Mock Get-JiraField -ModuleName JiraPS {
                     Write-MockDebugInfo 'Get-JiraField' 'Credential'
                     @(
                         [PSCustomObject]@{

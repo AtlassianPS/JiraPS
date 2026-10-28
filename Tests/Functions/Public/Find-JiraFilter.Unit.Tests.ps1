@@ -56,7 +56,7 @@ InModuleScope JiraPS {
 
             #region Mocks
             Mock Test-JiraCloudServer { $true }
-            Mock Get-JiraProjectOperation -ModuleName JiraPS {
+            Mock Get-JiraProject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject' 'Project'
                 [PSCustomObject]@{
                     Id  = '1'
@@ -64,7 +64,7 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Get-JiraUserOperation -ModuleName JiraPS {
+            Mock Get-JiraUser -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'InputObject'
                 $mockOwner
             }
@@ -183,7 +183,7 @@ InModuleScope JiraPS {
                         $URI -like '*rest/api/*/filter/search*'
                     } -Exactly 1
 
-                    Should -Invoke Get-JiraUserOperation -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke Get-JiraUser -ModuleName JiraPS -ParameterFilter {
                         $User.Name -contains $mockOwner.Name
                     } -Exactly 1
                 }

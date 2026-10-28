@@ -172,7 +172,7 @@
             # "only when name lookup fails" strategy would still need it for
             # Cloud deployments. The extra call is therefore accepted.
             $scopedMeta = try {
-                Get-JiraIssueEditMetadataOperation -Issue $issueObj.Key -RequestContext $RequestContext -ErrorAction Stop -Debug:$false
+                Get-JiraIssueEditMetadata -Issue $issueObj.Key -Connection $RequestContext -ErrorAction Stop -Debug:$false
             }
             catch {
                 Write-DebugMessage "Edit metadata unavailable for $($issueObj.Key): $_"
@@ -185,7 +185,7 @@
                     -IsCloud $isCloud `
                     -ScopedContext 'edit metadata' `
                     -CallerName $MyInvocation.MyCommand.Name `
-                    -FallbackFieldFetcher { Get-JiraFieldOperation -RequestContext $RequestContext -ErrorAction Stop -Debug:$false }) {
+                    -FallbackFieldFetcher { Get-JiraField -Connection $RequestContext -ErrorAction Stop -Debug:$false }) {
                 $issueProps.update[$assignment.Id] = @(@{ 'set' = $assignment.Value })
             }
         }
@@ -238,7 +238,7 @@
             }
         }
 
-        if ($PassThru -and $updated) { Get-JiraIssueOperation -Key $issueObj.Key -RequestContext $RequestContext }
+        if ($PassThru -and $updated) { Get-JiraIssue -Key $issueObj.Key -Connection $RequestContext }
     }
 
     end {

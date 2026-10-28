@@ -87,7 +87,7 @@
                 $parameter['GetParameter']['projectId'] = $Project.Id
             }
             else {
-                $projectObj = Get-JiraProjectOperation -Project $Project.Key -RequestContext $RequestContext -ErrorAction Stop
+                $projectObj = Get-JiraProject -Project $Project.Key -Connection $RequestContext -ErrorAction Stop
                 $parameter['GetParameter']['projectId'] = $projectObj.Id
             }
         }
