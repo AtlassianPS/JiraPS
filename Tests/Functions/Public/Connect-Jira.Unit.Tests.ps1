@@ -106,4 +106,98 @@ InModuleScope JiraPS {
             { Connect-Jira -Name contract-invalid -Uri https://jira.example.com -Anonymous } | Should -Throw '*Jira server information*'
         }
     }
+
+    Describe 'Connect-Jira request paths' -Tag Unit {
+        BeforeAll {
+            . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
+            function script:New-ReviewWebResponse {
+                param([String]$Json)
+
+                [PSCustomObject]@{
+                    StatusCode       = [System.Net.HttpStatusCode]::OK
+                    Content          = $Json
+                    RawContentStream = [IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes($Json))
+                    Headers          = @{}
+                }
+            }
+        }
+
+        BeforeEach {
+            $script:previousDefault = Get-JiraConnection -Default
+        }
+
+        AfterEach {
+            Get-JiraConnection | Where-Object Name -Like 'review-*' | Disconnect-Jira
+            if ($previousDefault -and $previousDefault.State -eq 'Active') {
+                $previousDefault | Select-JiraConnection | Out-Null
+            }
+        }
+
+        It 'preserves a transport failure from the HTTP boundary without registering a connection' {
+            Mock Invoke-WebRequest { throw [System.Net.WebException]::new('Connection refused sentinel') }
+
+            { Connect-Jira -Name review-transport -Uri https://jira.example.com -Anonymous } |
+                Should -Throw -ExpectedMessage '*Connection refused sentinel*'
+
+            Get-JiraConnection -Name review-transport | Should -BeNullOrEmpty
+            (Get-JiraConnection -Default).InstanceId | Should -Be $previousDefault.InstanceId
+            Should -Invoke Invoke-WebRequest -Exactly 1
+        }
+
+        It 'uses returned site resource links through the explicitly selected Cloud gateway' {
+            Mock Invoke-WebRequest {
+                switch ($Uri.AbsolutePath) {
+                    '/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/serverInfo' {
+                        New-ReviewWebResponse '{"version":"11.0","deploymentType":"Cloud","baseUrl":"https://site.atlassian.net"}'
+                    }
+                    '/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/myself' {
+                        New-ReviewWebResponse '{"accountId":"review-account"}'
+                    }
+                    '/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/issue/TEST-1' {
+                        New-ReviewWebResponse '{"id":"1","key":"TEST-1","self":"https://site.atlassian.net/rest/api/2/issue/1","fields":{"summary":"Test"}}'
+                    }
+                    '/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/issue/1/comment' {
+                        New-ReviewWebResponse '{"startAt":0,"maxResults":50,"total":1,"comments":[{"id":"2","body":"Review comment"}]}'
+                    }
+                    default { throw "Unexpected request: $($Uri.AbsolutePath)" }
+                }
+            }
+
+            $connection = Connect-Jira -Name review-gateway -Uri https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111 -EmailAddress identity@example.com -ApiToken test-token
+            $comments = @(Get-JiraIssueComment -Issue TEST-1 -Connection $connection)
+
+            $connection.SiteUri.AbsoluteUri | Should -Be 'https://site.atlassian.net/'
+            $comments.Count | Should -Be 1
+            $comments[0].Body | Should -Be 'Review comment'
+            Should -Invoke Invoke-WebRequest -Exactly 4 -ParameterFilter {
+                $Uri.Host -eq 'api.atlassian.com' -and
+                $Uri.AbsolutePath.StartsWith('/ex/jira/11111111-1111-1111-1111-111111111111/')
+            }
+            Should -Invoke Invoke-WebRequest -Exactly 0 -ParameterFilter { $Uri.Host -ne 'api.atlassian.com' }
+        }
+
+        It 'rejects an invalid site origin in explicit gateway metadata: <BaseUrl>' -ForEach @(
+            @{ BaseUrl = $null }
+            @{ BaseUrl = 'http://site.atlassian.net' }
+            @{ BaseUrl = 'https://foreign.example.com' }
+            @{ BaseUrl = 'https://site.atlassian.net/path' }
+            @{ BaseUrl = 'https://site.atlassian.net?token=value' }
+        ) {
+            Mock Invoke-WebRequest {
+                New-ReviewWebResponse (@{
+                        version        = '11.0'
+                        deploymentType = 'Cloud'
+                        baseUrl        = $BaseUrl
+                    } | ConvertTo-Json -Compress)
+            }
+
+            { Connect-Jira -Name review-invalid -Uri https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111 -Anonymous } |
+                Should -Throw -ExpectedMessage '*baseUrl*'
+
+            Get-JiraConnection -Name review-invalid | Should -BeNullOrEmpty
+            (Get-JiraConnection -Default).InstanceId | Should -Be $previousDefault.InstanceId
+            Should -Invoke Invoke-WebRequest -Exactly 1
+        }
+    }
 }

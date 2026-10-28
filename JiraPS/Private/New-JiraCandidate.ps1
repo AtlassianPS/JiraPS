@@ -52,6 +52,23 @@
         $metadataDeployment = if (-not [String]::IsNullOrWhiteSpace($info.deploymentType)) { $info.deploymentType }
         $gatewayDeployment = if ($candidate.CloudId) { 'Cloud' }
 
+        if ($candidate.CloudId -and -not $candidate.SiteUri) {
+            [Uri]$siteUri = $null
+            if (-not [Uri]::TryCreate([String]$info.baseUrl, [UriKind]::Absolute, [ref]$siteUri) -or
+                $siteUri.Scheme -ne 'https' -or $siteUri.Port -ne 443 -or
+                $siteUri.Host -notmatch '^[a-z0-9-]+\.atlassian\.net$' -or
+                $siteUri.AbsolutePath -ne '/' -or $siteUri.UserInfo -or $siteUri.Query -or $siteUri.Fragment
+            ) {
+                throw 'Jira Cloud server information must include a valid HTTPS site origin in baseUrl.'
+            }
+
+            # Jira returns site URLs in resource links even when validation uses the gateway.
+            $endpoint['SiteUri'] = $siteUri
+            $gatewayCandidate = $candidate
+            $candidate = AtlassianPS.Configuration\New-AtlassianConnectionContext -Product Jira @endpoint @Authentication
+            $gatewayCandidate.Dispose()
+        }
+
         $username = $null
         $identityDeployment = $null
         if ($candidate.AuthenticationMode -ne 'Anonymous') {
