@@ -178,7 +178,6 @@ InModuleScope JiraPS {
         }
 
         It 'rejects an invalid site origin in explicit gateway metadata: <BaseUrl>' -ForEach @(
-            @{ BaseUrl = $null }
             @{ BaseUrl = 'http://site.atlassian.net' }
             @{ BaseUrl = 'https://foreign.example.com' }
             @{ BaseUrl = 'https://site.atlassian.net/path' }

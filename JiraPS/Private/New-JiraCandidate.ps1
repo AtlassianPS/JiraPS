@@ -52,14 +52,14 @@
         $metadataDeployment = if (-not [String]::IsNullOrWhiteSpace($info.deploymentType)) { $info.deploymentType }
         $gatewayDeployment = if ($candidate.CloudId) { 'Cloud' }
 
-        if ($candidate.CloudId -and -not $candidate.SiteUri) {
+        if ($candidate.CloudId -and -not $candidate.SiteUri -and $null -ne $info.baseUrl) {
             [Uri]$siteUri = $null
             if (-not [Uri]::TryCreate([String]$info.baseUrl, [UriKind]::Absolute, [ref]$siteUri) -or
                 $siteUri.Scheme -ne 'https' -or $siteUri.Port -ne 443 -or
                 $siteUri.Host -notmatch '^[a-z0-9-]+\.atlassian\.net$' -or
                 $siteUri.AbsolutePath -ne '/' -or $siteUri.UserInfo -or $siteUri.Query -or $siteUri.Fragment
             ) {
-                throw 'Jira Cloud server information must include a valid HTTPS site origin in baseUrl.'
+                throw 'Jira Cloud baseUrl must be a valid HTTPS site origin.'
             }
 
             # Jira returns site URLs in resource links even when validation uses the gateway.
@@ -102,7 +102,8 @@
                 if ($_.FullyQualifiedErrorId -notmatch '^InvalidResponse\.Status(401|403|404|405)(,|$)') { throw }
                 throw 'Anonymous Jira validation at /rest/api/2/project failed. Allow anonymous project browsing or use authenticated Connect-Jira.'
             }
-            $invalidProjects = @($projects | Where-Object {
+            $invalidProjects = @(
+                $projects | Where-Object {
                     [Uri]$projectUri = $null
                     $_.id -isnot [String] -or $_.id -notmatch '^\d+$' -or
                     $_.key -isnot [String] -or [String]::IsNullOrWhiteSpace($_.key) -or
@@ -110,7 +111,8 @@
                     $_.self -isnot [String] -or -not [Uri]::TryCreate($_.self, [UriKind]::Absolute, [ref]$projectUri) -or
                     $projectUri.Scheme -notin @('http', 'https') -or $projectUri.UserInfo -or $projectUri.Query -or $projectUri.Fragment -or
                     $projectUri.AbsolutePath -notmatch '/rest/api/(2|3)/project/[^/]+$'
-                })
+                }
+            )
             if (-not $projects.Count -or $invalidProjects.Count) {
                 throw 'Anonymous Jira validation requires a recognizable project from /rest/api/2/project. Allow anonymous project browsing or use authenticated Connect-Jira.'
             }

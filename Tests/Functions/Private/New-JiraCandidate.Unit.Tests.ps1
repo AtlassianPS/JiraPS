@@ -80,6 +80,22 @@ InModuleScope JiraPS {
             }
         }
 
+        It 'uses explicit gateway relative resources without site metadata' {
+            $script:metadataStatus = [System.Net.HttpStatusCode]::NotFound
+            $script:identity = '{"accountId":"validated-account"}'
+            $connection = Connect-Jira -Name validation-gateway -Uri https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111 -EmailAddress user@example.com -ApiToken sentinel-token
+
+            $projects = @(Invoke-JiraMethod -Uri '/rest/api/2/project' -Connection $connection)
+
+            $connection.SiteUri | Should -BeNullOrEmpty
+            $connection.DeploymentType | Should -Be 'Cloud'
+            $projects[0].key | Should -Be 'PUBLIC'
+            Should -Invoke Invoke-WebRequest -Exactly 3 -ParameterFilter {
+                $Uri.Host -eq 'api.atlassian.com' -and
+                $Uri.AbsolutePath.StartsWith('/ex/jira/11111111-1111-1111-1111-111111111111/')
+            }
+        }
+
         It 'infers Server from a validated username when metadata is absent' {
             $script:metadata = '{}'
             $connection = Connect-Jira -Name validation-server -Uri https://jira.example.com -PersonalAccessToken sentinel-token
