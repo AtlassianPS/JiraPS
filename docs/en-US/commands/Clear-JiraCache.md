@@ -107,8 +107,7 @@ None.
 The cache is stored in module-level variables and is specific to each PowerShell session.
 Restarting PowerShell will also clear the cache.
 
-Functions like `Get-JiraField` also support a `-Force` parameter that bypasses
-the cache for a single call without clearing the entire cache.
+Functions like `Get-JiraField` support `-Refresh` to fetch and replace the selected connection's cached response.
 
 ## RELATED LINKS
 

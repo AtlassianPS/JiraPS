@@ -34,6 +34,11 @@
         foreach ($target in $targets) {
             if ($PSCmdlet.ShouldProcess($target.ToString(), 'Disconnect Jira')) {
                 AtlassianPS.Configuration\Disconnect-AtlassianConnection -Connection $target -Confirm:$false
+                if ($script:JiraCache) {
+                    foreach ($key in @($script:JiraCache.Keys | Where-Object { $_ -like "$($target.InstanceId):*" })) {
+                        $script:JiraCache.Remove($key)
+                    }
+                }
             }
         }
     }

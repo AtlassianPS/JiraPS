@@ -1,4 +1,8 @@
 ﻿function Set-JiraCachedResponse {
+    <#
+    .SYNOPSIS
+        Store a GET response and its expiry using the transport's complete cache key.
+    #>
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
@@ -26,8 +30,7 @@
 
     if (-not $script:JiraCache) { $script:JiraCache = @{} }
 
-    $fullCacheKey = $CacheKey
-    $script:JiraCache[$fullCacheKey] = @{
+    $script:JiraCache[$CacheKey] = @{
         Data   = $Response
         Expiry = (Get-Date).Add($CacheExpiry)
     }

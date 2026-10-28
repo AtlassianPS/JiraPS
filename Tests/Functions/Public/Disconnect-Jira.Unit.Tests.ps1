@@ -16,6 +16,7 @@ InModuleScope JiraPS {
 
         BeforeEach {
             $script:previousDefault = Get-JiraConnection -Default
+            $script:JiraCache = @{}
             Mock Invoke-JiraRequest {
                 if ($Uri -eq '/rest/api/2/serverInfo') {
                     return [PSCustomObject]@{
@@ -38,11 +39,18 @@ InModuleScope JiraPS {
         It 'disconnects only the current Jira default without promoting another' {
             $first = Connect-Jira -Name contract-first -Uri https://jira.example.com -Anonymous
             $second = Connect-Jira -Name contract-second -Uri https://jira.example.com -Anonymous -Default
+            $firstKey = "$($first.InstanceId):https://jira.example.com/rest/api/2/field:Fields"
+            $secondKey = "$($second.InstanceId):https://jira.example.com/rest/api/2/field:Fields"
+            $secondTypesKey = "$($second.InstanceId):https://jira.example.com/rest/api/2/issuetype:IssueTypes"
+            foreach ($key in @($firstKey, $secondKey, $secondTypesKey)) {
+                Set-JiraCachedResponse -CacheKey $key -Response @('cached')
+            }
             Disconnect-Jira
 
             $first.State | Should -Be 'Active'
             $second.State | Should -Be 'Disconnected'
             Get-JiraConnection -Default | Should -BeNullOrEmpty
+            $script:JiraCache.Keys | Should -Be @($firstKey)
         }
 
         It 'rejects an explicitly false All switch without disconnecting anything' {
@@ -54,9 +62,12 @@ InModuleScope JiraPS {
 
         It 'honors WhatIf without invalidating the handle' {
             $first = Connect-Jira -Name contract-first -Uri https://jira.example.com -Anonymous
+            $cacheKey = "$($first.InstanceId):https://jira.example.com/rest/api/2/field:Fields"
+            Set-JiraCachedResponse -CacheKey $cacheKey -Response @('cached')
             $first | Disconnect-Jira -WhatIf
 
             $first.State | Should -Be 'Active'
+            $script:JiraCache.ContainsKey($cacheKey) | Should -BeTrue
         }
     }
 }

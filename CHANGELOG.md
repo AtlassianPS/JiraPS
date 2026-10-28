@@ -125,6 +125,8 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
 
 ### Fixed
 
+- `Disconnect-Jira` removes that connection's cached responses while switching between active connections preserves their caches.
+  Expired cache entries are removed when read.
 - PowerShell 7 HTTP errors without `ErrorDetails` report the HTTP status; Windows PowerShell 5.1 retains stream-based error parsing. (#604)
 - `Invoke-JiraIssueTransition` reports unresolved transitions, including issues with no available transitions.
 - Query keys, query values, and status names are percent-encoded, with spaces encoded as `%20`.

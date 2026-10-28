@@ -49,6 +49,7 @@ Disconnect-Jira -All [-WhatIf] [-Confirm] [<CommonParameters>]
 ## DESCRIPTION
 
 Disconnect Jira locally and invalidate retained handles.
+Disconnecting clears that connection's cached responses, while selecting an existing connection retains its cache.
 
 ## EXAMPLES
 

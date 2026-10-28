@@ -37,7 +37,7 @@ Typically, this information is only needed when identifying what fields are nece
 See `Get-JiraIssueCreateMetadata` for more details.
 
 Results are cached for 60 minutes to reduce API calls.
-Use the `-Refresh` parameter to fetch and replace the cached response and fetch fresh data from the server.
+Use `-Refresh` to fetch and replace the cached response.
 
 ## EXAMPLES
 
@@ -154,7 +154,7 @@ This function uses the selected Jira connection unless you pass another connecti
 Use `Connect-Jira` to create a connection.
 For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
-Results are cached for 60 minutes per server.
+Results are cached for 60 minutes per connection.
 Use `-Refresh` to fetch and replace the cached response, or use `Clear-JiraCache -Type Fields` to clear all cached field data.
 
 Remaining operations for `field` have not yet been implemented in the module.
