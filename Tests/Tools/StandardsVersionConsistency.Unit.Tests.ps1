@@ -30,7 +30,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Select-Object -First 1
         $standardsVersion = [string] $standardsRequirement.RequiredVersion
         $expectedStandardsSha = 'fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8'
-        $expectedReleaseStandardsSha = '1a5a3ef64525d55c4c2e01492867d832a87627a6'
+        $expectedReleaseStandardsSha = '12cda64cf750cfb401a1072853ca6400d9a309e3'
 
         $workflowPaths = Get-ChildItem -Path (Join-Path -Path $projectRoot -ChildPath '.github/workflows') -File -Filter '*.yml' |
             Select-Object -ExpandProperty FullName

@@ -34,7 +34,7 @@ permissions:
 jobs:
   release:
     if: github.event_name == 'workflow_dispatch' || vars.JIRAPS_CD_ENABLED == 'true'
-    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@1a5a3ef64525d55c4c2e01492867d832a87627a6 # v0.4.1 + #73
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@12cda64cf750cfb401a1072853ca6400d9a309e3 # v0.4.1 + #73
     with:
       module-name: JiraPS
       release-impact: ${{ inputs.release_impact }}
