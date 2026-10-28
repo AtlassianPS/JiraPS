@@ -119,11 +119,6 @@ InModuleScope JiraPS {
                 # Should not need to return anything for an assignee update
             }
 
-            Mock Set-JiraIssueLabelOperation -ModuleName JiraPS {
-                Write-MockDebugInfo 'Set-JiraIssueLabel' 'Issue', 'Set', 'Add', 'Remove', 'Clear', 'Credential'
-                # Should not need to return anything for an update
-            }
-
             Mock Invoke-JiraRequest -ModuleName JiraPS {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 throw "Unidentified call to Invoke-JiraRequest"

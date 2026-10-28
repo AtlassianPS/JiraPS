@@ -124,6 +124,23 @@ InModuleScope JiraPS {
                 $output = Set-JiraIssueLabel -Issue TEST-001 -Add 'newLabel' -Remove 'existingLabel1'
                 $output | Should -BeNullOrEmpty
             }
+
+            It 'updates each piped issue and refreshes it only when PassThru is requested' {
+                Mock Resolve-JiraIssueObject { $InputObject }
+                $issues = foreach ($key in @('TEST-001', 'TEST-002')) {
+                    $issue = [AtlassianPS.JiraPS.Issue]@{ Key = $key; RestUrl = "$jiraServer/rest/api/2/issue/12345" }
+                    $issue | Add-Member -NotePropertyName Labels -NotePropertyValue @('existingLabel1', 'existingLabel2')
+                    $issue
+                }
+                $result = @($issues | Set-JiraIssueLabel -Add 'newLabel' -Remove 'existingLabel1' -PassThru)
+
+                $result.Key | Should -Be @('TEST-001', 'TEST-002')
+                Should -Invoke Invoke-JiraRequest -Exactly 2 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $Method -eq 'Put' -and $payload.update.labels[0].set -join ',' -eq 'existingLabel2,newLabel'
+                }
+                Should -Invoke Get-JiraIssueOperation -Exactly 2 -ParameterFilter { $RequestContext -and $Issue.Key -in @('TEST-001', 'TEST-002') }
+            }
         }
 
         Describe "Input Validation" {

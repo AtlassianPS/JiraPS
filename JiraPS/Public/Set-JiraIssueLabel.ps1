@@ -1,6 +1,5 @@
 ﻿function Set-JiraIssueLabel {
     # .ExternalHelp ..\JiraPS-help.xml
-    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Set-JiraIssueLabelOperation performs ShouldProcess through the steppable pipeline.')]
     [CmdletBinding( SupportsShouldProcess, DefaultParameterSetName = 'ReplaceLabels' )]
     param(
         [Parameter( Mandatory, Position = 0, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -40,20 +39,39 @@
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
-        $operationParameters = @{} + $PSBoundParameters
-        $null = $operationParameters.Remove('Connection')
-        $operationParameters['RequestContext'] = $requestContext
-
-        $operation = { Set-JiraIssueLabelOperation @operationParameters }.GetSteppablePipeline($MyInvocation.CommandOrigin)
-        $operation.Begin($PSCmdlet)
     }
 
     process {
-        $operation.Process($_)
+        Write-DebugMessage "ParameterSetName: $($PSCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        $issueObject = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $requestContext
+        $labels = [System.Collections.Generic.List[string]]::new(
+            [string[]]@($issueObject.Labels | Where-Object { $_ })
+        )
+
+        switch ($PSCmdlet.ParameterSetName) {
+            'ClearLabels' { $labels.Clear() }
+            'ReplaceLabels' { $labels = [System.Collections.Generic.List[string]]::new([string[]]$Set) }
+            'ModifyLabels' {
+                foreach ($label in $Add) { $labels.Add($label) }
+                foreach ($label in $Remove) { $null = $labels.Remove($label) }
+            }
+        }
+
+        # A single set operation works across Jira versions that cannot add or remove label arrays.
+        $parameter = @{
+            URI    = $issueObject.RestUrl
+            Method = 'PUT'
+            Body   = ConvertTo-Json -InputObject @{ update = @{ labels = @(@{ set = @($labels) }) } } -Depth 6
+        }
+        if ($PSCmdlet.ShouldProcess($issueObject.Key, 'Updating Issue labels')) {
+            Invoke-JiraRequest -RequestContext $requestContext @parameter
+            if ($PassThru) { Get-JiraIssueOperation -Key $issueObject.Key -RequestContext $requestContext }
+        }
     }
 
     end {
-        $operation.End()
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
