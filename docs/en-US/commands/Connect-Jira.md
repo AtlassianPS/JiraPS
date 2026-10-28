@@ -185,7 +185,9 @@ Accept wildcard characters: False
 
 ### -ApiToken
 
-Cloud API token as a nonempty string or SecureString. Supply the authentication email in the same call. The module normalizes the secret and resolves a normal Cloud site URL automatically.
+Cloud API token as a nonempty string or SecureString.
+Supply the authentication email in the same call.
+The module normalizes the secret and resolves a normal Cloud site URL automatically.
 
 ```yaml
 Type: Object
@@ -201,7 +203,9 @@ Accept wildcard characters: False
 
 ### -PersonalAccessToken
 
-Data Center PAT as a nonempty string or SecureString. PAT and BearerToken are aliases. No dummy username is required.
+Data Center PAT as a nonempty string or SecureString.
+PAT and BearerToken are aliases.
+No dummy username is required.
 
 ```yaml
 Type: Object
@@ -217,7 +221,8 @@ Accept wildcard characters: False
 
 ### -Anonymous
 
-Explicit anonymous authentication when the Jira endpoint permits it. Never borrows the default connection identity.
+Explicit anonymous authentication when the Jira endpoint permits it.
+Never borrows the default connection identity.
 
 ```yaml
 Type: SwitchParameter

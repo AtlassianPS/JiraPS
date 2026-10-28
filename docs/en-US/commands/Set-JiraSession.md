@@ -69,7 +69,9 @@ Select by ID.
 
 ### -Connection
 
-Live shared connection for this operation. Session is a compatibility alias. The object must be active in this runspace and belong to Jira.
+Live shared connection for this operation.
+Session is a compatibility alias.
+The object must be active in this runspace and belong to Jira.
 
 ```yaml
 Type: AtlassianPS.Connection

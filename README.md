@@ -22,7 +22,8 @@ Join the conversation on [![SlackLogo][] AtlassianPS.Slack.com](https://atlassia
 
 ### Installation
 
-Install JiraPS from the [PowerShell Gallery]! `Install-Module` requires PowerShellGet (included in PS v5, or download for v3/v4 via the gallery link)
+Install JiraPS from the [PowerShell Gallery]!
+`Install-Module` requires PowerShellGet (included in PS v5, or download for v3/v4 via the gallery link)
 
 ```powershell
 # One time only install:
@@ -54,7 +55,8 @@ For more information on how to use JiraPS, check out the [Documentation](https:/
 
 ### Contribute
 
-Want to contribute to AtlassianPS? Great!
+Want to contribute to AtlassianPS?
+Great!
 We appreciate [everyone](https://atlassianps.org/#people) who invests their time to make our modules the best they can be.
 
 Check out our guidelines on [Contributing] to our modules and documentation.
@@ -105,7 +107,9 @@ And once installed, you will be prompted to "Reopen in Container".
 
 Hopefully this is obvious, but:
 
-> This is an open source project (under the [MIT license]), and all contributors are volunteers. All commands are executed at your own risk. Please have good backups before you start, because you can delete a lot of stuff if you're not careful.
+> This is an open source project (under the [MIT license]), and all contributors are volunteers.
+> All commands are executed at your own risk.
+> Please have good backups before you start, because you can delete a lot of stuff if you're not careful.
 
 See [LICENSING.md](LICENSING.md) for the project's licensing history and the ongoing audit of the 2017 GPLv3-to-MIT change.
 

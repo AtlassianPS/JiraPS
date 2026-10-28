@@ -33,7 +33,8 @@ It does not retain the v2 singleton or AtlassianPS.JiraPS.Session return type.
 Get-JiraSession
 ```
 
-List all Jira connections. The output type is AtlassianPS.Connection.
+List all Jira connections.
+The output type is AtlassianPS.Connection.
 
 ## PARAMETERS
 
@@ -71,7 +72,8 @@ Accept wildcard characters: False
 
 ### -Default
 
-Select the successful new connection as Jira default, or filter the listing to the current default. The first successful connection selects itself automatically; later connections leave an existing default unchanged unless this switch is supplied.
+Select the successful new connection as Jira default, or filter the listing to the current default.
+The first successful connection selects itself automatically; later connections leave an existing default unchanged unless this switch is supplied.
 
 ```yaml
 Type: SwitchParameter

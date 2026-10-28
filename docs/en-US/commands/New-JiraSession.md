@@ -33,7 +33,8 @@ It does not retain the v2 singleton or AtlassianPS.JiraPS.Session return type.
 New-JiraSession -PersonalAccessToken $env:JIRA_PAT
 ```
 
-Reuse the current default endpoint or configured migration endpoint and allocate a unique name. Existing defaults remain unchanged unless Default is supplied.
+Reuse the current default endpoint or configured migration endpoint and allocate a unique name.
+Existing defaults remain unchanged unless Default is supplied.
 
 ## PARAMETERS
 
@@ -55,7 +56,10 @@ Accept wildcard characters: False
 
 ### -Uri
 
-Standalone Jira product endpoint for this logical operation. Cannot be combined with Connection or ConnectionName. Supply one explicit authentication mode; use Anonymous for anonymous access. Normal HTTPS commercial Atlassian site URLs resolve cloudId and the API gateway automatically for ApiToken authentication.
+Standalone Jira product endpoint for this logical operation.
+Cannot be combined with Connection or ConnectionName.
+Supply one explicit authentication mode; use Anonymous for anonymous access.
+Normal HTTPS commercial Atlassian site URLs resolve cloudId and the API gateway automatically for ApiToken authentication.
 
 ```yaml
 Type: Uri
@@ -71,7 +75,9 @@ Accept wildcard characters: False
 
 ### -Credential
 
-Username/password or compatible Cloud email/token as PSCredential. Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection. An empty credential fails; omitted input uses the selected connection.
+Username/password or compatible Cloud email/token as PSCredential.
+Explicit input temporarily overrides the selected identity without inheriting cookies or changing the stored connection.
+An empty credential fails; omitted input uses the selected connection.
 
 ```yaml
 Type: PSCredential
@@ -87,7 +93,9 @@ Accept wildcard characters: False
 
 ### -EmailAddress
 
-Cloud authentication email for ApiToken. Email is an alias. An override must supply both its own email and token.
+Cloud authentication email for ApiToken.
+Email is an alias.
+An override must supply both its own email and token.
 
 ```yaml
 Type: String
@@ -103,7 +111,9 @@ Accept wildcard characters: False
 
 ### -ApiToken
 
-Cloud API token as a nonempty string or SecureString. Supply the authentication email in the same call. The module normalizes the secret and resolves a normal Cloud site URL automatically.
+Cloud API token as a nonempty string or SecureString.
+Supply the authentication email in the same call.
+The module normalizes the secret and resolves a normal Cloud site URL automatically.
 
 ```yaml
 Type: Object
@@ -119,7 +129,9 @@ Accept wildcard characters: False
 
 ### -PersonalAccessToken
 
-Data Center PAT as a nonempty string or SecureString. PAT and BearerToken are aliases. No dummy username is required.
+Data Center PAT as a nonempty string or SecureString.
+PAT and BearerToken are aliases.
+No dummy username is required.
 
 ```yaml
 Type: Object
@@ -135,7 +147,8 @@ Accept wildcard characters: False
 
 ### -Anonymous
 
-Explicit anonymous authentication when the Jira endpoint permits it. Never borrows the default connection identity.
+Explicit anonymous authentication when the Jira endpoint permits it.
+Never borrows the default connection identity.
 
 ```yaml
 Type: SwitchParameter
@@ -151,7 +164,8 @@ Accept wildcard characters: False
 
 ### -Default
 
-Select the successful new connection as Jira default, or filter the listing to the current default. The first successful connection selects itself automatically; later connections leave an existing default unchanged unless this switch is supplied.
+Select the successful new connection as Jira default, or filter the listing to the current default.
+The first successful connection selects itself automatically; later connections leave an existing default unchanged unless this switch is supplied.
 
 ```yaml
 Type: SwitchParameter
@@ -167,7 +181,8 @@ Accept wildcard characters: False
 
 ### -Headers
 
-Ordinary request headers. Authorization and Cookie headers are rejected; supply authentication through the supported parameters.
+Ordinary request headers.
+Authorization and Cookie headers are rejected; supply authentication through the supported parameters.
 
 ```yaml
 Type: Hashtable

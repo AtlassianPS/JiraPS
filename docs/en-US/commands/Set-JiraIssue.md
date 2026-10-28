@@ -41,7 +41,9 @@ On **Jira Cloud**, both the `-Description` and the `-AddComment` text are interp
 On **Jira Server / Data Center**, both fields are sent verbatim and the legacy wiki-markup syntax continues to apply.
 See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/) for the supported Markdown subset.
 
-> Passing `-Description ''` is currently a no-op on both deployments — empty strings are filtered out before the request is built. To clear the description field today, set the field via `-Fields @{ description = $null }`. The semantics of `-Description ''` (clear vs. ignore) are tracked in the backlog.
+> Passing `-Description ''` is currently a no-op on both deployments — empty strings are filtered out before the request is built.
+> To clear the description field today, set the field via `-Fields @{ description = $null }`.
+> The semantics of `-Description ''` (clear vs. ignore) are tracked in the backlog.
 
 ## EXAMPLES
 

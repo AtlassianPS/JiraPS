@@ -97,7 +97,9 @@ Disconnect by ID.
 
 ### -Connection
 
-Live shared connection for this operation. Session is a compatibility alias. The object must be active in this runspace and belong to Jira.
+Live shared connection for this operation.
+Session is a compatibility alias.
+The object must be active in this runspace and belong to Jira.
 
 ```yaml
 Type: AtlassianPS.Connection
@@ -145,7 +147,8 @@ Accept wildcard characters: False
 
 ### -All
 
-Disconnect every Jira connection. Without a selector or All, Disconnect-Jira removes only the current Jira default.
+Disconnect every Jira connection.
+Without a selector or All, Disconnect-Jira removes only the current Jira default.
 
 ```yaml
 Type: SwitchParameter
