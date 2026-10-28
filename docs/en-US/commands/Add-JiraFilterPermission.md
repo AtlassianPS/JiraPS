@@ -23,18 +23,42 @@ Add-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> -Type <string> 
 
 ## DESCRIPTION
 
-Adds filter sharing permissions and returns the typed permission records Jira supplies.
-It does not return a whole filter or perform a follow-up lookup.
+Share a filter with a group, project role, authenticated users or everyone.
+Use `Type` to choose the permission and `Value` to identify the group, project or role.
+Returns the typed permission records Jira supplies.
 
 ## EXAMPLES
 
-### Example 1
+### Example 1: Share a filter with everyone
 
 ```powershell
 Add-JiraFilterPermission -Filter 12345 -Type Global
+
+# Or pass a filter object.
+Add-JiraFilterPermission -Filter (Get-JiraFilter -Filter 12345) -Type Global
 ```
 
-Add global sharing and return the permission records Jira supplies.
+Share filter 12345 with everyone using its ID or a filter object.
+Each call returns the permission records Jira supplies.
+
+### Example 2: Share a piped filter ID with authenticated users
+
+```powershell
+12345 | Add-JiraFilterPermission -Type Authenticated
+```
+
+Share filter 12345 with authenticated users.
+Filter IDs can also come from a file or another command.
+
+### Example 3: Share a filter with a group
+
+```powershell
+Get-JiraFilter -Filter 12345 |
+    Add-JiraFilterPermission -Type Group -Value 'administrators'
+```
+
+Add sharing permission for users in the administrators group.
+Pipe the filter object returned by Get-JiraFilter into Add-JiraFilterPermission.
 
 ## PARAMETERS
 
@@ -123,7 +147,12 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- Group
+- Project
+- ProjectRole
+- Authenticated
+- Global
 HelpMessage: ''
 ```
 
