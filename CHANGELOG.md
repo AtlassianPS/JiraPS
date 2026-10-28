@@ -2,35 +2,17 @@
 
 ## Unreleased
 
-### Added
-
-* Named shared Jira connections with Connect/Get/Select/Disconnect, per-operation targeting and isolated authentication overrides.
-* Automatic Cloud site discovery and gateway context metadata for API-token calls.
-
-### Changed
-
-* Replaced the v2 singleton/session type with AtlassianPS.Connection.
-* Legacy session commands use the shared registry; repeated New calls preserve an existing default unless Default is supplied.
-* Set-JiraConfigServer saves a non-secret shared profile; legacy server_config is read-only migration input.
-* Request headers and low-level defaults can no longer inject authentication.
-* Ordinary Jira commands use Connection (alias Session) and the existing Credential parameter.
-  Endpoint and token inputs belong on Connect-Jira; resolve names through Get-JiraConnection.
-* Retry responses retain their payload and resolved connection; creation validation preserves transport errors.
-* Debug messages use the shared Configuration message style and retain parameter traces with sensitive values redacted.
-
-
-
-This release focuses on Cloud and Data Center compatibility, strongly typed objects, and automation.
-
-### Highlights for users
-
-- JiraPS supports deployment-aware authentication, user identity, rich text, and REST endpoints on Jira Cloud and Jira Data Center.
-- Domain objects use real .NET types under `AtlassianPS.JiraPS.*`, with typed inputs, nested properties, and IntelliSense support.
-- Frequently requested metadata is cached, and HTTP requests support timeouts and retries for throttling and transient outages.
-
 ### Breaking changes
 
 - Minimum supported PowerShell version is now 5.1.
+- Session commands use shared `AtlassianPS.Connection` objects instead of `AtlassianPS.JiraPS.Session`.
+  `Get-JiraSession` lists connections; use `-Default` to retrieve the selected Jira connection.
+- `-Credential` no longer defaults to `PSCredential::Empty`; omitting it uses the selected connection.
+  Explicit null or empty credentials fail instead of falling back to another identity.
+  Use `Connect-Jira -Anonymous` for anonymous access.
+- Authentication through `New-JiraSession -Headers`, Authorization/Cookie headers, or low-level web request authentication defaults is rejected.
+  Configure authentication with `Connect-Jira`; ordinary Jira commands retain `-Credential` for per-call overrides.
+- `Invoke-JiraMethod -StoreSession` no longer creates a session; use `Connect-Jira` to create a reusable connection.
 - Domain objects use `AtlassianPS.JiraPS.<Type>` instead of the historic `JiraPS.<Type>` PSTypeNames.
   Update type checks and mocks to the new namespace; prefer `$obj -is [AtlassianPS.JiraPS.Issue]` for type checks.
 - Issue, user, group, project, version, filter, and issue-link parameters use strongly typed objects with argument transformation.
@@ -54,11 +36,15 @@ This release focuses on Cloud and Data Center compatibility, strongly typed obje
   The `-Issue` anchor parameter was removed.
 
 See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migration-v3.html) for before/after examples and detailed input contracts.
+See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for connection and session migration examples.
 
 ### Added
 
-- `New-JiraSession` supports Cloud API tokens through `-ApiToken` and `-EmailAddress`, and Data Center personal access tokens through `-PersonalAccessToken` (aliases `-PAT`, `-BearerToken`).
-  Token parameters accept `SecureString` values. (#576)
+- `Connect-Jira`, `Get-JiraConnection`, `Select-JiraConnection`, and `Disconnect-Jira` manage named connections for multiple Jira sites and identities.
+  Pass `-Connection` (alias `-Session`) to target one command; omitting it uses the selected Jira default.
+- `Connect-Jira` and compatibility `New-JiraSession` support Cloud API tokens through `-ApiToken` and `-EmailAddress`, and Data Center personal access tokens through `-PersonalAccessToken` (aliases `-PAT`, `-BearerToken`).
+  Token parameters accept strings and `SecureString` values. (#576)
+  Cloud API tokens, including scoped tokens, work with the normal site URL through automatic API endpoint discovery.
 - `Get-JiraStatus` retrieves statuses by ID or name, or lists all statuses.
 - `Get-JiraIssue -IncludeHistory` returns issue history entries, with `-GetHistory` retained as an alias.
 - `Invoke-JiraIssueTransition -TimeSpent` records a worklog entry as part of an issue transition. (#343, [@alexsuslin])
@@ -80,6 +66,12 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Changed
 
+- JiraPS uses AtlassianPS.Configuration for connection state, authentication and saved endpoint settings.
+- `New-JiraSession` preserves an existing default unless `-Default` is supplied.
+  Session commands and connection commands manage the same connections.
+- `Set-JiraConfigServer` saves endpoint settings through shared configuration.
+  Existing `server_config` files remain readable as migration inputs and are no longer rewritten.
+- Debug messages follow Configuration's message settings, including breadcrumbs, and redact authentication values.
 - Core objects, leaf objects, issue history, remote links, visibility, role actors, schemas, filter subscriptions, and standard issue fields return typed .NET objects. (#681)
   Related properties contain typed objects, while custom fields and entity-property values retain the data supplied by Jira.
 - Issue, user, group, project, version, and filter inputs accept typed objects and supported identifier/name shorthand.
@@ -105,7 +97,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - `Get-JiraGroup` uses the supported Cloud and Data Center endpoints, reports non-terminating `GroupNotFound` errors for missing groups, and returns `Group.Id` with `GroupId` retained as an alias. (#606)
 - Group member and removal commands accept group names directly, using known group IDs on Cloud where available. (#606)
 - Attachment uploads preserve non-ASCII filenames. (#607)
-- `Invoke-JiraMethod` accepts absolute URLs and relative endpoints beginning with `/`, resolving relative paths against the configured Jira server.
+- `Invoke-JiraMethod` accepts absolute URLs and relative endpoints beginning with `/`, resolving relative paths against the selected connection's Jira endpoint.
 - HTTP retries cover 429 and 503 responses, vary retry timing, and cap delays at 60 seconds. (#576)
 - Jira error parsing supports `message`, `errorMessage`, `errorMessages`, and field-level `errors`. (#576)
 
@@ -133,7 +125,6 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - Shared standards tooling handles help generation, package validation, environment loading, test-module resolution, and release-note extraction.
   `CHANGELOG.md` supplies both GitHub release notes and PSGallery manifest release notes.
 - Continuous delivery promotes CI-tested artifacts after release-intent validation.
-  Automatic publishing remains gated by `JIRAPS_CD_ENABLED` pending explicit preparation of the v3 release.
 - Cloud smoke tests run in CI for first-party pull requests and pushes to `master`.
   Full Cloud and Dockerized Data Center integration suites run on a weekly schedule and manual dispatch, with a `track` selector.
   The former `run-integration-tests` label is retired.
