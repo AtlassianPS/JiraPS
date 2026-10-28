@@ -184,6 +184,29 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
+            It 'rejects an explicitly supplied <ParameterName> alongside an internal request context before HTTP' -ForEach @(
+                @{ ParameterName = 'Connection'; Value = $null }
+                @{ ParameterName = 'ConnectionName'; Value = '' }
+                @{ ParameterName = 'BaseUri'; Value = $null }
+                @{ ParameterName = 'Credential'; Value = [PSCredential]::Empty }
+                @{ ParameterName = 'EmailAddress'; Value = '' }
+                @{ ParameterName = 'ApiToken'; Value = $null }
+                @{ ParameterName = 'PersonalAccessToken'; Value = '' }
+                @{ ParameterName = 'Anonymous'; Value = [Switch]$false }
+            ) {
+                $context = Get-JiraConnection -Default
+                $parameters = @{
+                    Uri            = '/rest/api/2/issue/TEST-1'
+                    RequestContext = $context
+                    $ParameterName = $Value
+                }
+
+                { Invoke-JiraMethod @parameters } | Should -Throw '*internal context cannot be combined*'
+
+                Should -Invoke Invoke-WebRequest -Times 0 -Exactly
+                $context.State | Should -Be 'Active'
+            }
+
             It "uses Invoke-WebMethod under the hood" {
                 Invoke-JiraMethod -URI "https://jira.example.com/get?test=123" -ErrorAction Stop
 

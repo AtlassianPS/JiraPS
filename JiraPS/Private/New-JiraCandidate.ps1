@@ -82,13 +82,16 @@
             $username = if ($hasAccountId) { $identity.accountId } else { $identity.name }
         }
 
-        $deploymentFamilies = @(
-            @($metadataDeployment, $DeploymentType, $gatewayDeployment, $identityDeployment) |
-                Where-Object { $_ } |
-                ForEach-Object { if ($_ -eq 'Cloud') { 'Cloud' } else { 'Server' } } |
-                Select-Object -Unique
-        )
-        if ($deploymentFamilies.Count -gt 1) { throw 'Conflicting Jira deployment information from serverInfo, the gateway, DeploymentType or myself.' }
+        $resolvedDeployment = $null
+        foreach ($deployment in @($metadataDeployment, $DeploymentType, $gatewayDeployment, $identityDeployment)) {
+            if (-not $deployment) { continue }
+            if (-not $resolvedDeployment) { $resolvedDeployment = $deployment }
+
+            # Preserve the first source's label while requiring agreement on the Cloud or Server API family.
+            if (($deployment -eq 'Cloud') -ne ($resolvedDeployment -eq 'Cloud')) {
+                throw 'Conflicting Jira deployment information from serverInfo, the gateway, DeploymentType or myself.'
+            }
+        }
 
         if ($candidate.AuthenticationMode -eq 'Anonymous' -and -not $metadataDeployment) {
             if (-not $DeploymentType) {
@@ -118,10 +121,6 @@
             }
         }
 
-        $resolvedDeployment = if ($metadataDeployment) { $metadataDeployment }
-        elseif ($DeploymentType) { $DeploymentType }
-        elseif ($gatewayDeployment) { $gatewayDeployment }
-        else { $identityDeployment }
         $candidate.SetValidationResult($resolvedDeployment, $username)
         $success = $true
         $candidate

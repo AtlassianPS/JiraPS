@@ -131,37 +131,18 @@
                 $discoveryResult = $discoveryResponse.Content | ConvertFrom-Json -ErrorAction Stop
                 return
             }
+            $selection = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters
+            foreach ($key in @('Connection', 'ConnectionName', 'BaseUri')) {
+                if ($PSBoundParameters.ContainsKey($key)) { $selection[$key] = $PSBoundParameters[$key] }
+            }
+
             if ($RequestContext) {
-                if (@(
-                        'Connection',
-                        'ConnectionName',
-                        'BaseUri',
-                        'Credential',
-                        'EmailAddress',
-                        'ApiToken',
-                        'PersonalAccessToken',
-                        'Anonymous' |
-                            Where-Object { $PSBoundParameters.ContainsKey($_) }
-                    ).Count
-                ) {
+                if ($selection.Count) {
                     throw 'An internal context cannot be combined with another selector or authentication input.'
                 }
                 $RequestContext = AtlassianPS.Configuration\Resolve-AtlassianRequestContext -Product Jira -RequestContext $RequestContext
             }
             else {
-                $selection = @{}
-                foreach ($key in @(
-                        'Connection',
-                        'ConnectionName',
-                        'BaseUri',
-                        'Credential',
-                        'EmailAddress',
-                        'ApiToken',
-                        'PersonalAccessToken',
-                        'Anonymous'
-                    )) {
-                    if ($PSBoundParameters.ContainsKey($key)) { $selection[$key] = $PSBoundParameters[$key] }
-                }
                 $RequestContext = Resolve-JiraOperationContext -BoundParameters $selection
             }
             if ($RequestContext.State -eq 'Candidate' -and
@@ -172,16 +153,7 @@
                 throw 'Unregistered candidates are restricted to creation-time Jira validation GETs.'
             }
             $PSBoundParameters['RequestContext'] = $RequestContext
-            foreach ($key in @(
-                    'Connection',
-                    'ConnectionName',
-                    'BaseUri',
-                    'Credential',
-                    'EmailAddress',
-                    'ApiToken',
-                    'PersonalAccessToken',
-                    'Anonymous'
-                )) {
+            foreach ($key in $selection.Keys) {
                 $null = $PSBoundParameters.Remove($key)
             }
             Set-TlsLevel -Tls12
