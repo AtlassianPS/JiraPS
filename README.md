@@ -119,9 +119,7 @@ See [LICENSING.md](LICENSING.md) for the project's licensing history and the ong
   [MIT license]: https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE
   [Contributing]: https://atlassianps.org/docs/Contributing/
 
-## Shared connection candidate
+## Connections
 
-Named connections and per-call selectors are part of the JiraPS v3 candidate.
-See [authentication and v2 migration](docs/en-US/about_JiraPS_Authentication.md).
-Development uses the pinned experimental Configuration alpha dependency.
-JiraAgilePS adoption is a later task.
+Use named connections to work with multiple Jira sites or identities.
+See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for connection examples.
