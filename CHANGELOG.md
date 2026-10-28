@@ -129,6 +129,7 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
   Expired cache entries are removed when read.
 - Explicit Cloud gateway connections can learn the site origin from authenticated `myself.self` when `serverInfo` is unavailable.
   Returned site resource links use the same validated gateway, and foreign endpoints remain rejected.
+- `Remove-JiraIssue` preserves the resolved issue URL so a typed issue from another endpoint cannot delete an issue on the selected site.
 - PowerShell 7 HTTP errors without `ErrorDetails` report the HTTP status; Windows PowerShell 5.1 retains stream-based error parsing. (#604)
 - `Invoke-JiraIssueTransition` reports unresolved transitions, including issues with no available transitions.
 - Query keys, query values, and status names are percent-encoded, with spaces encoded as `%20`.

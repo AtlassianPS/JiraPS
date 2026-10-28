@@ -213,12 +213,12 @@ InModuleScope JiraPS {
                 return $obj
             }
 
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-1" -and $Method -eq "Delete" } {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "*/rest/api/*/issue/58159" -and $Method -eq "Delete" } {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 return $null
             }
 
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2" -and $GetParameter.deleteSubtasks -eq "false" -and $Method -eq "Delete" } {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "*/rest/api/*/issue/58160" -and $GetParameter.deleteSubtasks -eq "false" -and $Method -eq "Delete" } {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 $MockedResponse = @"
             {
@@ -240,7 +240,7 @@ InModuleScope JiraPS {
                 $PSCmdlet.WriteError($errorItem)
             }
 
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2" -and $GetParameter.deleteSubtasks -eq "true" -and $Method -eq "Delete" } {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "*/rest/api/*/issue/58160" -and $GetParameter.deleteSubtasks -eq "true" -and $Method -eq "Delete" } {
                 Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 return $null
             }
@@ -319,6 +319,67 @@ InModuleScope JiraPS {
                 It "Validates pipeline input" {
                     { @{id = 1 } | Remove-JiraIssue -ErrorAction Stop } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
                 }
+            }
+        }
+    }
+
+    Describe 'Remove-JiraIssue endpoint isolation' -Tag Unit {
+        BeforeEach {
+            $script:deletionConnection = $null
+            Mock Invoke-WebRequest {
+                [PSCustomObject]@{ StatusCode = 204; Content = ''; Headers = @{} }
+            }
+        }
+
+        AfterEach {
+            if ($deletionConnection -and $deletionConnection.State -eq 'Active') {
+                AtlassianPS.Configuration\Disconnect-AtlassianConnection -Connection $deletionConnection -Confirm:$false
+            }
+        }
+
+        It 'rejects an issue from a different Data Center endpoint before any request' {
+            $script:deletionConnection = AtlassianPS.Configuration\New-AtlassianConnectionContext `
+                -Name deletion-other-server -Product Jira -BaseUri https://other.example.com/jira -Anonymous
+            $deletionConnection.SetValidationResult('Server', $null)
+            $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $deletionConnection
+            $issue = [AtlassianPS.JiraPS.Issue]@{
+                Key     = 'TEST-1'
+                RestUrl = 'https://jira.example.com/jira/rest/api/2/issue/41701'
+            }
+
+            { $issue | Remove-JiraIssue -Connection $deletionConnection -Confirm:$false -ErrorAction Stop } |
+                Should -Throw '*does not belong to the selected connection endpoint*'
+            Should -Invoke Invoke-WebRequest -Exactly 0
+        }
+
+        It 'deletes the original issue URI on <Deployment> while preserving the connection prefix' -ForEach @(
+            @{
+                Deployment = 'Server'
+                Endpoint   = 'https://jira.example.com/jira'
+                Resource   = 'https://jira.example.com/jira/rest/api/2/issue/41701'
+                RequestUri = 'https://jira.example.com/jira/rest/api/2/issue/41701'
+            }
+            @{
+                Deployment = 'Cloud'
+                Endpoint   = 'https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111'
+                Resource   = 'https://site.atlassian.net/rest/api/2/issue/41701'
+                RequestUri = 'https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/issue/41701'
+            }
+        ) {
+            $connectionParameters = @{ Name = 'deletion-original-uri'; Product = 'Jira'; BaseUri = $Endpoint; Anonymous = $true }
+            if ($Deployment -eq 'Cloud') {
+                $connectionParameters.SiteUri = 'https://site.atlassian.net'
+                $connectionParameters.CloudId = '11111111-1111-1111-1111-111111111111'
+            }
+            $script:deletionConnection = AtlassianPS.Configuration\New-AtlassianConnectionContext @connectionParameters
+            $deletionConnection.SetValidationResult($Deployment, $null)
+            $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $deletionConnection
+            $issue = [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1'; RestUrl = $Resource }
+
+            $issue | Remove-JiraIssue -Connection $deletionConnection -IncludeSubTasks -Confirm:$false
+
+            Should -Invoke Invoke-WebRequest -Exactly 1 -ParameterFilter {
+                $Method -eq 'Delete' -and $Uri.GetLeftPart('Path') -eq $RequestUri -and $Uri.Query -match 'deleteSubtasks=true'
             }
         }
     }

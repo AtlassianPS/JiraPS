@@ -21,7 +21,7 @@
             $action = if ($IncludeSubTasks) { 'Remove issue and sub-tasks' } else { 'Remove issue' }
             if ($PSCmdlet.ShouldProcess($issueObject.Key, $action)) {
                 $parameters = @{
-                    Uri          = "/rest/api/2/issue/$($issueObject.Key)"
+                    Uri          = $issueObject.RestUrl
                     Method       = 'Delete'
                     GetParameter = @{ deleteSubtasks = $IncludeSubTasks.ToString().ToLowerInvariant() }
                 }
