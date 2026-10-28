@@ -18,21 +18,14 @@ InModuleScope JiraPS {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
             $script:env = Initialize-IntegrationEnvironment
+            $script:secureToken = ConvertTo-SecureString -String $env.Password -AsPlainText -Force
         }
 
-        AfterAll {
+        AfterEach {
             Get-JiraConnection | Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Context "Connect-Jira" {
-            BeforeAll {
-                $script:secureToken = ConvertTo-SecureString -String $env.Password -AsPlainText -Force
-            }
-
-            AfterEach {
-                Get-JiraConnection | Disconnect-Jira -ErrorAction SilentlyContinue
-            }
-
             It "creates a session with valid API token" {
                 $session = Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
@@ -62,11 +55,6 @@ InModuleScope JiraPS {
         }
 
         Context "Get-JiraConnection" {
-            BeforeAll {
-
-                $script:secureToken = ConvertTo-SecureString -String $env.Password -AsPlainText -Force
-            }
-
             It "returns null when no session exists" {
                 Get-JiraConnection | Disconnect-Jira -ErrorAction SilentlyContinue
 
@@ -86,11 +74,6 @@ InModuleScope JiraPS {
         }
 
         Context "Disconnect-Jira" {
-            BeforeAll {
-
-                $script:secureToken = ConvertTo-SecureString -String $env.Password -AsPlainText -Force
-            }
-
             It "removes an existing session" {
                 Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
